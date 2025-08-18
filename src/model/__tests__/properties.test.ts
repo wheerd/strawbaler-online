@@ -93,9 +93,8 @@ describe('Property-Based Model Tests', () => {
           useModelStore.getState().reset();
           
           // Add floors
-          const floors = floorData.map(data => createFloor(data.name, data.level, data.height));
-          floors.forEach(floor => {
-            useModelStore.getState().addFloor(floor);
+          floorData.forEach(data => {
+            useModelStore.getState().addFloor(data.name, data.level, data.height);
           });
           
           const state = useModelStore.getState();
@@ -413,9 +412,8 @@ describe('Property-Based Model Tests', () => {
           useModelStore.getState().reset();
           
           // Add floors in random order
-          const floors = floorData.map(data => createFloor(data.name, data.level, data.height));
-          floors.forEach(floor => {
-            useModelStore.getState().addFloor(floor);
+          floorData.forEach(data => {
+            useModelStore.getState().addFloor(data.name, data.level, data.height);
           });
           
           const state = useModelStore.getState();
@@ -485,13 +483,10 @@ describe('Property-Based Model Tests', () => {
           
           for (const op of operations) {
             try {
-              const conn1 = createConnectionPoint(op.point1);
-              const conn2 = createConnectionPoint(op.point2);
-              useModelStore.getState().addConnectionPoint(conn1);
-              useModelStore.getState().addConnectionPoint(conn2);
+              const conn1 = useModelStore.getState().addConnectionPoint(op.point1);
+              const conn2 = useModelStore.getState().addConnectionPoint(op.point2);
               
-              const wall = createWall(conn1.id, conn2.id, op.thickness, op.height);
-              useModelStore.getState().addWall(wall);
+              const wall = useModelStore.getState().addWall(conn1.id, conn2.id, op.thickness, op.height);
               addedWalls.push(wall.id);
               
               // Randomly remove some walls

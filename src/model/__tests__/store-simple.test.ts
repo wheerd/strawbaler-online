@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useModelStore } from '../store';
-import { createFloor, createWall, createConnectionPoint, createOpening } from '../operations';
 
 // Simple store tests without React hooks to avoid rendering issues
 describe('ModelStore - Basic Operations', () => {
@@ -12,7 +11,10 @@ describe('ModelStore - Basic Operations', () => {
   describe('Initial State', () => {
     it('should have correct initial state', () => {
       const state = useModelStore.getState();
+      
       expect(state.building.floors.size).toBe(1);
+      const groundFloor = Array.from(state.building.floors.values())[0];
+      expect(groundFloor.name).toBe('Ground Floor');
       expect(state.selectedEntityIds).toEqual([]);
       expect(state.viewMode).toBe('plan');
       expect(state.gridSize).toBe(50);
@@ -36,9 +38,8 @@ describe('ModelStore - Basic Operations', () => {
 
     it('should add floor', () => {
       const { addFloor } = useModelStore.getState();
-      const floor = createFloor('First Floor', 1, 3000);
       
-      addFloor(floor);
+      addFloor('First Floor', 1, 3000);
       
       const state = useModelStore.getState();
       expect(state.building.floors.size).toBe(2);
@@ -47,17 +48,13 @@ describe('ModelStore - Basic Operations', () => {
 
     it('should add connection points and walls', () => {
       const { addConnectionPoint, addWall } = useModelStore.getState();
-      const point1 = createConnectionPoint({ x: 0, y: 0 });
-      const point2 = createConnectionPoint({ x: 1000, y: 0 });
-      
-      addConnectionPoint(point1);
-      addConnectionPoint(point2);
+      const point1 = addConnectionPoint({ x: 0, y: 0 });
+      const point2 = addConnectionPoint({ x: 1000, y: 0 });
       
       let state = useModelStore.getState();
       expect(state.building.connectionPoints.size).toBe(2);
       
-      const wall = createWall(point1.id, point2.id);
-      addWall(wall);
+      addWall(point1.id, point2.id);
       
       state = useModelStore.getState();
       expect(state.building.walls.size).toBe(1);
@@ -68,21 +65,15 @@ describe('ModelStore - Basic Operations', () => {
       const { addConnectionPoint, addWall, addOpening } = useModelStore.getState();
       
       // Setup wall
-      const point1 = createConnectionPoint({ x: 0, y: 0 });
-      const point2 = createConnectionPoint({ x: 1000, y: 0 });
-      const wall = createWall(point1.id, point2.id);
-      
-      addConnectionPoint(point1);
-      addConnectionPoint(point2);
-      addWall(wall);
+      const point1 = addConnectionPoint({ x: 0, y: 0 });
+      const point2 = addConnectionPoint({ x: 1000, y: 0 });
+      const wall = addWall(point1.id, point2.id);
       
       // Valid opening
-      const validOpening = createOpening(wall.id, 'door', 100, 800, 2100);
-      expect(() => addOpening(validOpening)).not.toThrow();
+      expect(() => addOpening(wall.id, 'door', 100, 800, 2100)).not.toThrow();
       
       // Invalid opening
-      const invalidOpening = createOpening(wall.id, 'window', 500, 800, 1200);
-      expect(() => addOpening(invalidOpening)).toThrow('Invalid opening position');
+      expect(() => addOpening(wall.id, 'window', 500, 800, 1200)).toThrow('Invalid opening position');
     });
   });
 
@@ -121,8 +112,7 @@ describe('ModelStore - Basic Operations', () => {
     it('should switch active floor', () => {
       const { addFloor, setActiveFloor, getActiveFloor } = useModelStore.getState();
       
-      const floor = createFloor('Second Floor', 1, 3000);
-      addFloor(floor);
+      const floor = addFloor('Second Floor', 1, 3000);
       
       setActiveFloor(floor.id);
       
@@ -137,15 +127,10 @@ describe('ModelStore - Basic Operations', () => {
       const { addConnectionPoint, addWall, addOpening, removeWall, setSelectedEntities } = useModelStore.getState();
       
       // Setup
-      const point1 = createConnectionPoint({ x: 0, y: 0 });
-      const point2 = createConnectionPoint({ x: 1000, y: 0 });
-      const wall = createWall(point1.id, point2.id);
-      const opening = createOpening(wall.id, 'door', 100, 800, 2100);
-      
-      addConnectionPoint(point1);
-      addConnectionPoint(point2);
-      addWall(wall);
-      addOpening(opening);
+      const point1 = addConnectionPoint({ x: 0, y: 0 });
+      const point2 = addConnectionPoint({ x: 1000, y: 0 });
+      const wall = addWall(point1.id, point2.id);
+      addOpening(wall.id, 'door', 100, 800, 2100);
       setSelectedEntities([wall.id]);
       
       let state = useModelStore.getState();

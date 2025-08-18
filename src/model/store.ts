@@ -1,9 +1,14 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { ModelState, Wall, Room, ConnectionPoint, Opening, Floor } from '../types/model';
-import type { FloorId, WallId } from '../types/ids';
+import type { ModelState, Wall, Room, ConnectionPoint, Opening, Floor, Point2D } from '../types/model';
+import type { FloorId, WallId, ConnectionPointId } from '../types/ids';
 import {
   createEmptyBuilding,
+  createFloor,
+  createWall,
+  createRoom,
+  createConnectionPoint,
+  createOpening,
   addFloorToBuilding,
   addWallToBuilding,
   addRoomToBuilding,
@@ -19,11 +24,11 @@ interface ModelActions {
   reset: () => void;
   
   // Entity operations
-  addFloor: (floor: Floor) => void;
-  addWall: (wall: Wall) => void;
-  addRoom: (room: Room) => void;
-  addConnectionPoint: (connectionPoint: ConnectionPoint) => void;
-  addOpening: (opening: Opening) => void;
+  addFloor: (name: string, level: number, height?: number) => Floor;
+  addWall: (startPointId: ConnectionPointId, endPointId: ConnectionPointId, thickness?: number, height?: number) => Wall;
+  addRoom: (name: string, wallIds?: WallId[]) => Room;
+  addConnectionPoint: (position: Point2D) => ConnectionPoint;
+  addOpening: (wallId: WallId, type: Opening['type'], offsetFromStart: number, width: number, height: number, sillHeight?: number) => Opening;
   removeWall: (wallId: WallId) => void;
   
   // View state operations
@@ -77,17 +82,21 @@ export const useModelStore = create<ModelStore>()(
       },
       
       // Entity operations
-      addFloor: (floor: Floor) => {
+      addFloor: (name: string, level: number, height: number = 3000): Floor => {
         const state = get();
+        const floor = createFloor(name, level, height);
         const updatedBuilding = addFloorToBuilding(state.building, floor);
         
         set({ 
           building: updatedBuilding 
         }, false, 'addFloor');
+        
+        return floor;
       },
       
-      addWall: (wall: Wall) => {
+      addWall: (startPointId: ConnectionPointId, endPointId: ConnectionPointId, thickness: number = 200, height: number = 3000): Wall => {
         const state = get();
+        const wall = createWall(startPointId, endPointId, thickness, height);
         let updatedBuilding = addWallToBuilding(state.building, wall);
         
         // Update building bounds
@@ -97,10 +106,13 @@ export const useModelStore = create<ModelStore>()(
         set({ 
           building: updatedBuilding 
         }, false, 'addWall');
+        
+        return wall;
       },
       
-      addRoom: (room: Room) => {
+      addRoom: (name: string, wallIds: WallId[] = []): Room => {
         const state = get();
+        const room = createRoom(name, wallIds);
         
         // Calculate room area
         const area = calculateRoomArea(room, state.building);
@@ -111,24 +123,32 @@ export const useModelStore = create<ModelStore>()(
         set({ 
           building: updatedBuilding 
         }, false, 'addRoom');
+        
+        return roomWithArea;
       },
       
-      addConnectionPoint: (connectionPoint: ConnectionPoint) => {
+      addConnectionPoint: (position: Point2D): ConnectionPoint => {
         const state = get();
+        const connectionPoint = createConnectionPoint(position);
         const updatedBuilding = addConnectionPointToBuilding(state.building, connectionPoint);
         
         set({ 
           building: updatedBuilding 
         }, false, 'addConnectionPoint');
+        
+        return connectionPoint;
       },
       
-      addOpening: (opening: Opening) => {
+      addOpening: (wallId: WallId, type: Opening['type'], offsetFromStart: number, width: number, height: number, sillHeight?: number): Opening => {
         const state = get();
+        const opening = createOpening(wallId, type, offsetFromStart, width, height, sillHeight);
         const updatedBuilding = addOpeningToBuilding(state.building, opening);
         
         set({ 
           building: updatedBuilding 
         }, false, 'addOpening');
+        
+        return opening;
       },
       
       removeWall: (wallId: WallId) => {
