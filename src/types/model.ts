@@ -21,6 +21,7 @@ export interface Bounds {
 // Connection point for wall endpoints
 export interface ConnectionPoint {
   id: ConnectionPointId
+  floorId: FloorId
   position: Point2D
   connectedWallIds: WallId[]
 }
@@ -28,6 +29,7 @@ export interface ConnectionPoint {
 // Wall entity
 export interface Wall {
   id: WallId
+  floorId: FloorId
   startPointId: ConnectionPointId
   endPointId: ConnectionPointId
   thickness: number
@@ -38,6 +40,7 @@ export interface Wall {
 // Opening in a wall (door, window, etc.)
 export interface Opening {
   id: OpeningId
+  floorId: FloorId
   wallId: WallId
   type: 'door' | 'window' | 'passage'
   offsetFromStart: number // Offset in mm from wall start point
@@ -49,6 +52,7 @@ export interface Opening {
 // Room/space
 export interface Room {
   id: RoomId
+  floorId: FloorId
   name: string
   wallIds: WallId[]
   area?: number

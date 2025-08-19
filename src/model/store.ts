@@ -12,7 +12,6 @@ import {
   addFloorToState,
   addWallToState,
   addRoomToState,
-  addConnectionPointToState,
   addConnectionPointToFloor,
   addOpeningToState,
   removeWallFromState,
@@ -25,12 +24,12 @@ interface ModelActions {
   reset: () => void
 
   addFloor: (name: string, level: number, height?: number) => Floor
-  addWall: (startPointId: ConnectionPointId, endPointId: ConnectionPointId, thickness?: number, height?: number) => Wall
-  addRoom: (name: string, wallIds?: WallId[]) => Room
-  addConnectionPoint: (position: Point2D, floorId?: FloorId) => ConnectionPoint
+  addWall: (startPointId: ConnectionPointId, endPointId: ConnectionPointId, floorId: FloorId, thickness?: number, height?: number) => Wall
+  addRoom: (name: string, floorId: FloorId, wallIds?: WallId[]) => Room
+  addConnectionPoint: (position: Point2D, floorId: FloorId) => ConnectionPoint
   addOpening: (wallId: WallId, type: Opening['type'], offsetFromStart: number, width: number, height: number, sillHeight?: number) => Opening
   removeWall: (wallId: WallId) => void
-  getActiveFloorBounds: () => Bounds | null
+  getActiveFloorBounds: (floorId: FloorId) => Bounds | null
 }
 
 type ModelStore = ModelState & ModelActions
@@ -58,9 +57,15 @@ export const useModelStore = create<ModelStore>()(
         return floor
       },
 
-      addWall: (startPointId: ConnectionPointId, endPointId: ConnectionPointId, thickness: number = 200, height: number = 3000): Wall => {
+      addWall: (startPointId: ConnectionPointId, endPointId: ConnectionPointId, floorId: FloorId, thickness: number = 200, height: number = 3000): Wall => {
         const state = get()
-        const wall = createWall(startPointId, endPointId, thickness, height)
+        
+        // Validate floor exists
+        if (!state.floors.has(floorId)) {
+          throw new Error(`Floor ${floorId} not found`)
+        }
+        
+        const wall = createWall(startPointId, endPointId, floorId, thickness, height)
         let updatedState = addWallToState(state, wall)
 
         const bounds = calculateStateBounds(updatedState)
@@ -70,9 +75,15 @@ export const useModelStore = create<ModelStore>()(
         return wall
       },
 
-      addRoom: (name: string, wallIds: WallId[] = []): Room => {
+      addRoom: (name: string, floorId: FloorId, wallIds: WallId[] = []): Room => {
         const state = get()
-        const room = createRoom(name, wallIds)
+        
+        // Validate floor exists
+        if (!state.floors.has(floorId)) {
+          throw new Error(`Floor ${floorId} not found`)
+        }
+        
+        const room = createRoom(name, floorId, wallIds)
 
         const area = calculateRoomArea(room, state)
         const roomWithArea = { ...room, area }
@@ -83,19 +94,16 @@ export const useModelStore = create<ModelStore>()(
         return roomWithArea
       },
 
-      addConnectionPoint: (position: Point2D, floorId?: FloorId): ConnectionPoint => {
+      addConnectionPoint: (position: Point2D, floorId: FloorId): ConnectionPoint => {
         const state = get()
-        const connectionPoint = createConnectionPoint(position)
         
-        // If no floorId provided, use the first available floor
-        const targetFloorId = floorId || Array.from(state.floors.keys())[0]
-        
-        let updatedState: ModelState
-        if (targetFloorId) {
-          updatedState = addConnectionPointToFloor(state, connectionPoint, targetFloorId)
-        } else {
-          updatedState = addConnectionPointToState(state, connectionPoint)
+        // Validate floor exists
+        if (!state.floors.has(floorId)) {
+          throw new Error(`Floor ${floorId} not found`)
         }
+        
+        const connectionPoint = createConnectionPoint(position, floorId)
+        const updatedState = addConnectionPointToFloor(state, connectionPoint, floorId)
 
         set(updatedState, false, 'addConnectionPoint')
         return connectionPoint
@@ -103,7 +111,14 @@ export const useModelStore = create<ModelStore>()(
 
       addOpening: (wallId: WallId, type: Opening['type'], offsetFromStart: number, width: number, height: number, sillHeight?: number): Opening => {
         const state = get()
-        const opening = createOpening(wallId, type, offsetFromStart, width, height, sillHeight)
+        
+        // Get the floor ID from the wall
+        const wall = state.walls.get(wallId)
+        if (!wall) {
+          throw new Error(`Wall ${wallId} not found`)
+        }
+        
+        const opening = createOpening(wallId, wall.floorId, type, offsetFromStart, width, height, sillHeight)
         const updatedState = addOpeningToState(state, opening)
 
         set(updatedState, false, 'addOpening')
@@ -120,15 +135,13 @@ export const useModelStore = create<ModelStore>()(
         set(updatedState, false, 'removeWall')
       },
 
-      getActiveFloorBounds: (): Bounds | null => {
+      getActiveFloorBounds: (floorId: FloorId): Bounds | null => {
         const state = get()
-        // We need to get the active floor ID from the editor store
-        // For now, just return bounds from the first floor
-        const firstFloorId = Array.from(state.floors.keys())[0]
-        if (firstFloorId) {
-          return calculateFloorBounds(firstFloorId, state)
+        // Validate floor exists
+        if (!state.floors.has(floorId)) {
+          return null
         }
-        return null
+        return calculateFloorBounds(floorId, state)
       }
     }),
     {

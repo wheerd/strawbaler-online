@@ -48,9 +48,10 @@ export function createFloor (name: string, level: number, height: number = 3000)
   }
 }
 
-export function createConnectionPoint (position: Point2D): ConnectionPoint {
+export function createConnectionPoint (position: Point2D, floorId: FloorId): ConnectionPoint {
   return {
     id: createConnectionPointId(),
+    floorId,
     position,
     connectedWallIds: []
   }
@@ -59,11 +60,13 @@ export function createConnectionPoint (position: Point2D): ConnectionPoint {
 export function createWall (
   startPointId: ConnectionPointId,
   endPointId: ConnectionPointId,
+  floorId: FloorId,
   thickness: number = 200,
   height: number = 3000
 ): Wall {
   return {
     id: createWallId(),
+    floorId,
     startPointId,
     endPointId,
     thickness,
@@ -74,10 +77,12 @@ export function createWall (
 
 export function createRoom (
   name: string,
+  floorId: FloorId,
   wallIds: WallId[] = []
 ): Room {
   return {
     id: createRoomId(),
+    floorId,
     name,
     wallIds,
     area: 0
@@ -86,6 +91,7 @@ export function createRoom (
 
 export function createOpening (
   wallId: WallId,
+  floorId: FloorId,
   type: Opening['type'],
   offsetFromStart: number,
   width: number,
@@ -94,6 +100,7 @@ export function createOpening (
 ): Opening {
   return {
     id: createOpeningId(),
+    floorId,
     wallId,
     type,
     offsetFromStart,
@@ -115,6 +122,26 @@ export function addWallToState (state: ModelState, wall: Wall): ModelState {
   const updatedState = { ...state }
   updatedState.walls = new Map(state.walls)
   updatedState.walls.set(wall.id, wall)
+  
+  // Add wall to the floor's wall collection
+  const updatedFloors = new Map(state.floors)
+  const floor = updatedFloors.get(wall.floorId)
+  
+  if (floor != null) {
+    const updatedFloor = {
+      ...floor,
+      wallIds: [...floor.wallIds, wall.id]
+    }
+    
+    // Calculate new bounds for the floor
+    const tempState = { ...updatedState, floors: new Map(updatedFloors).set(wall.floorId, updatedFloor) }
+    const bounds = calculateFloorBounds(wall.floorId, tempState)
+    updatedFloor.bounds = bounds ?? undefined
+    
+    updatedFloors.set(wall.floorId, updatedFloor)
+    updatedState.floors = updatedFloors
+  }
+  
   updatedState.updatedAt = new Date()
   return updatedState
 }
@@ -271,6 +298,31 @@ export function removeWallFromState (state: ModelState, wallId: WallId): ModelSt
     updatedState.openings.delete(openingId)
   }
 
+  // Remove wall and its openings from floor collections
+  const updatedFloors = new Map(state.floors)
+  const floor = updatedFloors.get(wall.floorId)
+  
+  if (floor != null) {
+    const updatedFloor = {
+      ...floor,
+      wallIds: floor.wallIds.filter(id => id !== wallId),
+      openingIds: floor.openingIds.filter(id => !wall.openingIds.includes(id)),
+      connectionPointIds: floor.connectionPointIds.filter(id => {
+        // Keep connection points that are still connected to other walls
+        const point = updatedState.connectionPoints.get(id)
+        return point != null && point.connectedWallIds.length > 0
+      })
+    }
+    
+    // Calculate new bounds for the floor
+    const tempState = { ...updatedState, floors: new Map(updatedFloors).set(wall.floorId, updatedFloor) }
+    const bounds = calculateFloorBounds(wall.floorId, tempState)
+    updatedFloor.bounds = bounds ?? undefined
+    
+    updatedFloors.set(wall.floorId, updatedFloor)
+    updatedState.floors = updatedFloors
+  }
+
   updatedState.updatedAt = new Date()
   return updatedState
 }
@@ -279,6 +331,20 @@ export function addRoomToState (state: ModelState, room: Room): ModelState {
   const updatedState = { ...state }
   updatedState.rooms = new Map(state.rooms)
   updatedState.rooms.set(room.id, room)
+  
+  // Add room to the floor's room collection
+  const updatedFloors = new Map(state.floors)
+  const floor = updatedFloors.get(room.floorId)
+  
+  if (floor != null) {
+    const updatedFloor = {
+      ...floor,
+      roomIds: [...floor.roomIds, room.id]
+    }
+    updatedFloors.set(room.floorId, updatedFloor)
+    updatedState.floors = updatedFloors
+  }
+  
   updatedState.updatedAt = new Date()
   return updatedState
 }
@@ -299,6 +365,19 @@ export function addOpeningToState (state: ModelState, opening: Opening): ModelSt
     const updatedWall = { ...wall }
     updatedWall.openingIds = [...wall.openingIds, opening.id]
     updatedState.walls.set(wall.id, updatedWall)
+    
+    // Add opening to the floor's opening collection
+    const updatedFloors = new Map(state.floors)
+    const floor = updatedFloors.get(opening.floorId)
+    
+    if (floor != null) {
+      const updatedFloor = {
+        ...floor,
+        openingIds: [...floor.openingIds, opening.id]
+      }
+      updatedFloors.set(opening.floorId, updatedFloor)
+      updatedState.floors = updatedFloors
+    }
   }
 
   updatedState.updatedAt = new Date()
@@ -466,4 +545,102 @@ export function addConnectionPointToFloor (state: ModelState, point: ConnectionP
   }
   
   return updatedState
+}
+
+// Validation functions for floor ID consistency
+export function validateFloorConsistency (state: ModelState): { valid: boolean, errors: string[] } {
+  const errors: string[] = []
+
+  // Check that all connection points reference valid floors and are listed in their floors
+  for (const [pointId, point] of state.connectionPoints.entries()) {
+    const floor = state.floors.get(point.floorId)
+    if (!floor) {
+      errors.push(`Connection point ${pointId} references non-existent floor ${point.floorId}`)
+    } else if (!floor.connectionPointIds.includes(pointId)) {
+      errors.push(`Floor ${point.floorId} missing connection point ${pointId} in its connectionPointIds array`)
+    }
+  }
+
+  // Check that all walls reference valid floors and are listed in their floors
+  for (const [wallId, wall] of state.walls.entries()) {
+    const floor = state.floors.get(wall.floorId)
+    if (!floor) {
+      errors.push(`Wall ${wallId} references non-existent floor ${wall.floorId}`)
+    } else if (!floor.wallIds.includes(wallId)) {
+      errors.push(`Floor ${wall.floorId} missing wall ${wallId} in its wallIds array`)
+    }
+
+    // Check that wall's connection points are on the same floor
+    const startPoint = state.connectionPoints.get(wall.startPointId)
+    const endPoint = state.connectionPoints.get(wall.endPointId)
+    if (startPoint && startPoint.floorId !== wall.floorId) {
+      errors.push(`Wall ${wallId} start point is on floor ${startPoint.floorId} but wall is on floor ${wall.floorId}`)
+    }
+    if (endPoint && endPoint.floorId !== wall.floorId) {
+      errors.push(`Wall ${wallId} end point is on floor ${endPoint.floorId} but wall is on floor ${wall.floorId}`)
+    }
+  }
+
+  // Check that all rooms reference valid floors and are listed in their floors
+  for (const [roomId, room] of state.rooms.entries()) {
+    const floor = state.floors.get(room.floorId)
+    if (!floor) {
+      errors.push(`Room ${roomId} references non-existent floor ${room.floorId}`)
+    } else if (!floor.roomIds.includes(roomId)) {
+      errors.push(`Floor ${room.floorId} missing room ${roomId} in its roomIds array`)
+    }
+
+    // Check that room's walls are on the same floor
+    for (const wallId of room.wallIds) {
+      const wall = state.walls.get(wallId)
+      if (wall && wall.floorId !== room.floorId) {
+        errors.push(`Room ${roomId} references wall ${wallId} on different floor (room: ${room.floorId}, wall: ${wall.floorId})`)
+      }
+    }
+  }
+
+  // Check that all openings reference valid floors and are listed in their floors
+  for (const [openingId, opening] of state.openings.entries()) {
+    const floor = state.floors.get(opening.floorId)
+    if (!floor) {
+      errors.push(`Opening ${openingId} references non-existent floor ${opening.floorId}`)
+    } else if (!floor.openingIds.includes(openingId)) {
+      errors.push(`Floor ${opening.floorId} missing opening ${openingId} in its openingIds array`)
+    }
+
+    // Check that opening's wall is on the same floor
+    const wall = state.walls.get(opening.wallId)
+    if (wall && wall.floorId !== opening.floorId) {
+      errors.push(`Opening ${openingId} is on floor ${opening.floorId} but its wall ${opening.wallId} is on floor ${wall.floorId}`)
+    }
+  }
+
+  // Check that floors don't reference non-existent entities
+  for (const [floorId, floor] of state.floors.entries()) {
+    for (const pointId of floor.connectionPointIds) {
+      if (!state.connectionPoints.has(pointId)) {
+        errors.push(`Floor ${floorId} references non-existent connection point ${pointId}`)
+      }
+    }
+
+    for (const wallId of floor.wallIds) {
+      if (!state.walls.has(wallId)) {
+        errors.push(`Floor ${floorId} references non-existent wall ${wallId}`)
+      }
+    }
+
+    for (const roomId of floor.roomIds) {
+      if (!state.rooms.has(roomId)) {
+        errors.push(`Floor ${floorId} references non-existent room ${roomId}`)
+      }
+    }
+
+    for (const openingId of floor.openingIds) {
+      if (!state.openings.has(openingId)) {
+        errors.push(`Floor ${floorId} references non-existent opening ${openingId}`)
+      }
+    }
+  }
+
+  return { valid: errors.length === 0, errors }
 }

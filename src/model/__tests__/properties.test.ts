@@ -12,29 +12,37 @@ import {
 describe('Model Properties', () => {
   describe('Connection Points', () => {
     it('should create connection point with position', () => {
-      const point = createConnectionPoint({ x: 100, y: 200 })
+      const state = createEmptyModelState()
+      const groundFloorId = Array.from(state.floors.keys())[0]
+      const point = createConnectionPoint({ x: 100, y: 200 }, groundFloorId)
+      
       expect(point.position).toEqual({ x: 100, y: 200 })
       expect(point.connectedWallIds).toEqual([])
+      expect(point.floorId).toBe(groundFloorId)
     })
   })
 
   describe('Walls', () => {
     it('should create wall between points', () => {
-      const p1 = createConnectionPoint({ x: 0, y: 0 })
-      const p2 = createConnectionPoint({ x: 100, y: 0 })
-      const wall = createWall(p1.id, p2.id, 200, 3000)
+      const state = createEmptyModelState()
+      const groundFloorId = Array.from(state.floors.keys())[0]
+      const p1 = createConnectionPoint({ x: 0, y: 0 }, groundFloorId)
+      const p2 = createConnectionPoint({ x: 100, y: 0 }, groundFloorId)
+      const wall = createWall(p1.id, p2.id, groundFloorId, 200, 3000)
 
       expect(wall.startPointId).toBe(p1.id)
       expect(wall.endPointId).toBe(p2.id)
       expect(wall.thickness).toBe(200)
       expect(wall.height).toBe(3000)
+      expect(wall.floorId).toBe(groundFloorId)
     })
 
     it('should calculate wall length', () => {
       let state = createEmptyModelState()
-      const p1 = createConnectionPoint({ x: 0, y: 0 })
-      const p2 = createConnectionPoint({ x: 300, y: 400 })
-      const wall = createWall(p1.id, p2.id)
+      const groundFloorId = Array.from(state.floors.keys())[0]
+      const p1 = createConnectionPoint({ x: 0, y: 0 }, groundFloorId)
+      const p2 = createConnectionPoint({ x: 300, y: 400 }, groundFloorId)
+      const wall = createWall(p1.id, p2.id, groundFloorId)
 
       state = addConnectionPointToState(state, p1)
       state = addConnectionPointToState(state, p2)
@@ -47,8 +55,9 @@ describe('Model Properties', () => {
   describe('State Bounds', () => {
     it('should calculate bounds from connection points', () => {
       let state = createEmptyModelState()
-      const p1 = createConnectionPoint({ x: 10, y: 20 })
-      const p2 = createConnectionPoint({ x: 100, y: 50 })
+      const groundFloorId = Array.from(state.floors.keys())[0]
+      const p1 = createConnectionPoint({ x: 10, y: 20 }, groundFloorId)
+      const p2 = createConnectionPoint({ x: 100, y: 50 }, groundFloorId)
 
       state = addConnectionPointToState(state, p1)
       state = addConnectionPointToState(state, p2)
