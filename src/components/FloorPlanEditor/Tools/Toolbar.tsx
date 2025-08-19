@@ -8,13 +8,13 @@ export function Toolbar (): React.JSX.Element {
   const activeTool = useActiveTool()
   const activeFloorId = useActiveFloorId()
   const viewport = useViewport()
-  
+
   // Use individual selectors instead of useEditorActions() to avoid object creation
   const setActiveTool = useEditorStore(state => state.setActiveTool)
   const setShowGrid = useEditorStore(state => state.setShowGrid)
   const setGridSize = useEditorStore(state => state.setGridSize)
   const setViewport = useEditorStore(state => state.setViewport)
-  
+
   // Use individual selectors for model actions
   const addConnectionPoint = useModelStore(state => state.addConnectionPoint)
   const addWall = useModelStore(state => state.addWall)
@@ -44,8 +44,8 @@ export function Toolbar (): React.JSX.Element {
     // Get the current model state to calculate floor bounds
     const modelState = useModelStore.getState()
     const bounds = calculateFloorBounds(activeFloorId, modelState)
-    
-    if (!bounds) {
+
+    if (bounds == null) {
       // No content to fit to, reset to default view
       setViewport({
         zoom: 1,
@@ -58,7 +58,7 @@ export function Toolbar (): React.JSX.Element {
     const padding = 50 // pixels of padding around content
     const boundsWidth = bounds.maxX - bounds.minX
     const boundsHeight = bounds.maxY - bounds.minY
-    
+
     if (boundsWidth === 0 || boundsHeight === 0) {
       return
     }
@@ -67,7 +67,7 @@ export function Toolbar (): React.JSX.Element {
     const scaleX = (viewport.stageWidth - padding * 2) / boundsWidth
     const scaleY = (viewport.stageHeight - padding * 2) / boundsHeight
     const scale = Math.min(scaleX, scaleY, 2) // Max zoom of 2x
-    
+
     // Calculate pan to center content
     const centerX = bounds.minX + boundsWidth / 2
     const centerY = bounds.minY + boundsHeight / 2

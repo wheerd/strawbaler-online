@@ -34,7 +34,7 @@ export interface EditorState {
   snapToGrid: boolean
   showRoomLabels: boolean
   activeFloorId: FloorId
-  selectedEntityIds: string[]
+  selectedEntityId?: string
   viewMode: ViewMode
   viewport: ViewportState
 }
@@ -52,8 +52,8 @@ export interface EditorActions {
   setSnapToGrid: (snapToGrid: boolean) => void
   setShowRoomLabels: (show: boolean) => void
   setActiveFloor: (floorId: FloorId) => void
-  setSelectedEntities: (entityIds: string[]) => void
-  toggleEntitySelection: (entityId: string) => void
+  setSelectedEntity: (entityId?: string) => void
+  selectEntity: (entityId: string) => void
   clearSelection: () => void
   setViewMode: (viewMode: ViewMode) => void
   setViewport: (viewport: Partial<ViewportState>) => void
@@ -80,7 +80,7 @@ function createInitialState (defaultFloorId: FloorId): EditorState {
     snapToGrid: true,
     showRoomLabels: true,
     activeFloorId: defaultFloorId,
-    selectedEntityIds: [],
+    selectedEntityId: undefined,
     viewMode: 'plan',
     viewport: {
       zoom: 1,
@@ -165,26 +165,23 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
   setActiveFloor: (floorId: FloorId) => {
     set({
       activeFloorId: floorId,
-      selectedEntityIds: []
+      selectedEntityId: undefined
     })
   },
 
-  setSelectedEntities: (entityIds: string[]) => {
-    set({ selectedEntityIds: entityIds })
+  setSelectedEntity: (entityId?: string) => {
+    set({ selectedEntityId: entityId })
   },
 
-  toggleEntitySelection: (entityId: string) => {
+  selectEntity: (entityId: string) => {
     const state = get()
-    const isSelected = state.selectedEntityIds.includes(entityId)
-    const selectedEntityIds = isSelected
-      ? state.selectedEntityIds.filter(id => id !== entityId)
-      : [...state.selectedEntityIds, entityId]
-
-    set({ selectedEntityIds })
+    // Toggle selection - if already selected, deselect; otherwise select
+    const selectedEntityId = state.selectedEntityId === entityId ? undefined : entityId
+    set({ selectedEntityId })
   },
 
   clearSelection: () => {
-    set({ selectedEntityIds: [] })
+    set({ selectedEntityId: undefined })
   },
 
   setViewMode: (viewMode: ViewMode) => {
@@ -230,6 +227,6 @@ export const useEditorGridSize = (): number => useEditorStore(state => state.gri
 export const useSnapToGrid = (): boolean => useEditorStore(state => state.snapToGrid)
 export const useShowRoomLabels = (): boolean => useEditorStore(state => state.showRoomLabels)
 export const useActiveFloorId = (): FloorId => useEditorStore(state => state.activeFloorId)
-export const useSelectedEntities = (): string[] => useEditorStore(state => state.selectedEntityIds)
+export const useSelectedEntity = (): string | undefined => useEditorStore(state => state.selectedEntityId)
 export const useViewMode = (): ViewMode => useEditorStore(state => state.viewMode)
 export const useViewport = (): ViewportState => useEditorStore(state => state.viewport)

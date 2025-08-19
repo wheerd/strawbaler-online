@@ -122,26 +122,26 @@ export function addWallToState (state: ModelState, wall: Wall): ModelState {
   const updatedState = { ...state }
   updatedState.walls = new Map(state.walls)
   updatedState.walls.set(wall.id, wall)
-  
+
   // Add wall to the floor's wall collection
   const updatedFloors = new Map(state.floors)
   const floor = updatedFloors.get(wall.floorId)
-  
+
   if (floor != null) {
     const updatedFloor = {
       ...floor,
       wallIds: [...floor.wallIds, wall.id]
     }
-    
+
     // Calculate new bounds for the floor
     const tempState = { ...updatedState, floors: new Map(updatedFloors).set(wall.floorId, updatedFloor) }
     const bounds = calculateFloorBounds(wall.floorId, tempState)
     updatedFloor.bounds = bounds ?? undefined
-    
+
     updatedFloors.set(wall.floorId, updatedFloor)
     updatedState.floors = updatedFloors
   }
-  
+
   updatedState.updatedAt = new Date()
   return updatedState
 }
@@ -174,7 +174,7 @@ export function calculateStateBounds (state: ModelState): Bounds | null {
 
 export function calculateFloorBounds (floorId: FloorId, state: ModelState): Bounds | null {
   const floor = state.floors.get(floorId)
-  if (!floor || floor.connectionPointIds.length === 0) return null
+  if ((floor == null) || floor.connectionPointIds.length === 0) return null
 
   let minX = Infinity
   let minY = Infinity
@@ -183,7 +183,7 @@ export function calculateFloorBounds (floorId: FloorId, state: ModelState): Boun
 
   for (const pointId of floor.connectionPointIds) {
     const point = state.connectionPoints.get(pointId)
-    if (point) {
+    if (point != null) {
       minX = Math.min(minX, point.position.x)
       minY = Math.min(minY, point.position.y)
       maxX = Math.max(maxX, point.position.x)
@@ -301,7 +301,7 @@ export function removeWallFromState (state: ModelState, wallId: WallId): ModelSt
   // Remove wall and its openings from floor collections
   const updatedFloors = new Map(state.floors)
   const floor = updatedFloors.get(wall.floorId)
-  
+
   if (floor != null) {
     const updatedFloor = {
       ...floor,
@@ -313,12 +313,12 @@ export function removeWallFromState (state: ModelState, wallId: WallId): ModelSt
         return point != null && point.connectedWallIds.length > 0
       })
     }
-    
+
     // Calculate new bounds for the floor
     const tempState = { ...updatedState, floors: new Map(updatedFloors).set(wall.floorId, updatedFloor) }
     const bounds = calculateFloorBounds(wall.floorId, tempState)
     updatedFloor.bounds = bounds ?? undefined
-    
+
     updatedFloors.set(wall.floorId, updatedFloor)
     updatedState.floors = updatedFloors
   }
@@ -331,11 +331,11 @@ export function addRoomToState (state: ModelState, room: Room): ModelState {
   const updatedState = { ...state }
   updatedState.rooms = new Map(state.rooms)
   updatedState.rooms.set(room.id, room)
-  
+
   // Add room to the floor's room collection
   const updatedFloors = new Map(state.floors)
   const floor = updatedFloors.get(room.floorId)
-  
+
   if (floor != null) {
     const updatedFloor = {
       ...floor,
@@ -344,7 +344,7 @@ export function addRoomToState (state: ModelState, room: Room): ModelState {
     updatedFloors.set(room.floorId, updatedFloor)
     updatedState.floors = updatedFloors
   }
-  
+
   updatedState.updatedAt = new Date()
   return updatedState
 }
@@ -365,11 +365,11 @@ export function addOpeningToState (state: ModelState, opening: Opening): ModelSt
     const updatedWall = { ...wall }
     updatedWall.openingIds = [...wall.openingIds, opening.id]
     updatedState.walls.set(wall.id, updatedWall)
-    
+
     // Add opening to the floor's opening collection
     const updatedFloors = new Map(state.floors)
     const floor = updatedFloors.get(opening.floorId)
-    
+
     if (floor != null) {
       const updatedFloor = {
         ...floor,
@@ -467,19 +467,19 @@ export function findNearestConnectionPoint (
 }
 
 export function moveConnectionPoint (
-  state: ModelState, 
-  pointId: ConnectionPointId, 
+  state: ModelState,
+  pointId: ConnectionPointId,
   newPosition: Point2D
 ): ModelState {
   const point = state.connectionPoints.get(pointId)
-  if (!point) return state
+  if (point == null) return state
 
   const updatedState = { ...state }
   updatedState.connectionPoints = new Map(state.connectionPoints)
-  
+
   const updatedPoint = { ...point, position: newPosition }
   updatedState.connectionPoints.set(pointId, updatedPoint)
-  
+
   updatedState.updatedAt = new Date()
   return updatedState
 }
@@ -491,12 +491,12 @@ export function moveWall (
   deltaY: number
 ): ModelState {
   const wall = state.walls.get(wallId)
-  if (!wall) return state
+  if (wall == null) return state
 
   const startPoint = state.connectionPoints.get(wall.startPointId)
   const endPoint = state.connectionPoints.get(wall.endPointId)
-  
-  if (!startPoint || !endPoint) return state
+
+  if ((startPoint == null) || (endPoint == null)) return state
 
   let updatedState = state
 
@@ -506,7 +506,7 @@ export function moveWall (
     y: startPoint.position.y + deltaY
   })
 
-  // Move end point  
+  // Move end point
   updatedState = moveConnectionPoint(updatedState, wall.endPointId, {
     x: endPoint.position.x + deltaX,
     y: endPoint.position.y + deltaY
@@ -537,7 +537,7 @@ export function addRoomToFloor (state: ModelState, room: Room, floorId: FloorId)
   const updatedState = addRoomToState(state, room)
   const updatedFloors = new Map(updatedState.floors)
   const floor = updatedFloors.get(floorId)
-  
+
   if (floor != null) {
     const updatedFloor = {
       ...floor,
@@ -546,7 +546,7 @@ export function addRoomToFloor (state: ModelState, room: Room, floorId: FloorId)
     updatedFloors.set(floorId, updatedFloor)
     updatedState.floors = updatedFloors
   }
-  
+
   return updatedState
 }
 
@@ -554,22 +554,22 @@ export function addWallToFloor (state: ModelState, wall: Wall, floorId: FloorId)
   const updatedState = addWallToState(state, wall)
   const updatedFloors = new Map(updatedState.floors)
   const floor = updatedFloors.get(floorId)
-  
+
   if (floor != null) {
     const updatedFloor = {
       ...floor,
       wallIds: [...floor.wallIds, wall.id]
     }
-    
+
     // Calculate new bounds for the floor (walls depend on connection points)
     const tempState = { ...updatedState, floors: new Map(updatedFloors).set(floorId, updatedFloor) }
     const bounds = calculateFloorBounds(floorId, tempState)
     updatedFloor.bounds = bounds ?? undefined
-    
+
     updatedFloors.set(floorId, updatedFloor)
     updatedState.floors = updatedFloors
   }
-  
+
   return updatedState
 }
 
@@ -577,22 +577,22 @@ export function addConnectionPointToFloor (state: ModelState, point: ConnectionP
   const updatedState = addConnectionPointToState(state, point)
   const updatedFloors = new Map(updatedState.floors)
   const floor = updatedFloors.get(floorId)
-  
+
   if (floor != null) {
     const updatedFloor = {
       ...floor,
       connectionPointIds: [...floor.connectionPointIds, point.id]
     }
-    
+
     // Calculate new bounds for the floor
     const tempState = { ...updatedState, floors: new Map(updatedFloors).set(floorId, updatedFloor) }
     const bounds = calculateFloorBounds(floorId, tempState)
     updatedFloor.bounds = bounds ?? undefined
-    
+
     updatedFloors.set(floorId, updatedFloor)
     updatedState.floors = updatedFloors
   }
-  
+
   return updatedState
 }
 
@@ -603,7 +603,7 @@ export function validateFloorConsistency (state: ModelState): { valid: boolean, 
   // Check that all connection points reference valid floors and are listed in their floors
   for (const [pointId, point] of state.connectionPoints.entries()) {
     const floor = state.floors.get(point.floorId)
-    if (!floor) {
+    if (floor == null) {
       errors.push(`Connection point ${pointId} references non-existent floor ${point.floorId}`)
     } else if (!floor.connectionPointIds.includes(pointId)) {
       errors.push(`Floor ${point.floorId} missing connection point ${pointId} in its connectionPointIds array`)
@@ -613,7 +613,7 @@ export function validateFloorConsistency (state: ModelState): { valid: boolean, 
   // Check that all walls reference valid floors and are listed in their floors
   for (const [wallId, wall] of state.walls.entries()) {
     const floor = state.floors.get(wall.floorId)
-    if (!floor) {
+    if (floor == null) {
       errors.push(`Wall ${wallId} references non-existent floor ${wall.floorId}`)
     } else if (!floor.wallIds.includes(wallId)) {
       errors.push(`Floor ${wall.floorId} missing wall ${wallId} in its wallIds array`)
@@ -622,10 +622,10 @@ export function validateFloorConsistency (state: ModelState): { valid: boolean, 
     // Check that wall's connection points are on the same floor
     const startPoint = state.connectionPoints.get(wall.startPointId)
     const endPoint = state.connectionPoints.get(wall.endPointId)
-    if (startPoint && startPoint.floorId !== wall.floorId) {
+    if ((startPoint != null) && startPoint.floorId !== wall.floorId) {
       errors.push(`Wall ${wallId} start point is on floor ${startPoint.floorId} but wall is on floor ${wall.floorId}`)
     }
-    if (endPoint && endPoint.floorId !== wall.floorId) {
+    if ((endPoint != null) && endPoint.floorId !== wall.floorId) {
       errors.push(`Wall ${wallId} end point is on floor ${endPoint.floorId} but wall is on floor ${wall.floorId}`)
     }
   }
@@ -633,7 +633,7 @@ export function validateFloorConsistency (state: ModelState): { valid: boolean, 
   // Check that all rooms reference valid floors and are listed in their floors
   for (const [roomId, room] of state.rooms.entries()) {
     const floor = state.floors.get(room.floorId)
-    if (!floor) {
+    if (floor == null) {
       errors.push(`Room ${roomId} references non-existent floor ${room.floorId}`)
     } else if (!floor.roomIds.includes(roomId)) {
       errors.push(`Floor ${room.floorId} missing room ${roomId} in its roomIds array`)
@@ -642,7 +642,7 @@ export function validateFloorConsistency (state: ModelState): { valid: boolean, 
     // Check that room's walls are on the same floor
     for (const wallId of room.wallIds) {
       const wall = state.walls.get(wallId)
-      if (wall && wall.floorId !== room.floorId) {
+      if ((wall != null) && wall.floorId !== room.floorId) {
         errors.push(`Room ${roomId} references wall ${wallId} on different floor (room: ${room.floorId}, wall: ${wall.floorId})`)
       }
     }
@@ -651,7 +651,7 @@ export function validateFloorConsistency (state: ModelState): { valid: boolean, 
   // Check that all openings reference valid floors and are listed in their floors
   for (const [openingId, opening] of state.openings.entries()) {
     const floor = state.floors.get(opening.floorId)
-    if (!floor) {
+    if (floor == null) {
       errors.push(`Opening ${openingId} references non-existent floor ${opening.floorId}`)
     } else if (!floor.openingIds.includes(openingId)) {
       errors.push(`Floor ${opening.floorId} missing opening ${openingId} in its openingIds array`)
@@ -659,7 +659,7 @@ export function validateFloorConsistency (state: ModelState): { valid: boolean, 
 
     // Check that opening's wall is on the same floor
     const wall = state.walls.get(opening.wallId)
-    if (wall && wall.floorId !== opening.floorId) {
+    if ((wall != null) && wall.floorId !== opening.floorId) {
       errors.push(`Opening ${openingId} is on floor ${opening.floorId} but its wall ${opening.wallId} is on floor ${wall.floorId}`)
     }
   }

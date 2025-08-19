@@ -10,7 +10,7 @@ beforeAll(() => {
     default: {},
     Canvas: class MockCanvas {},
     createCanvas: () => ({}),
-    loadImage: () => Promise.resolve({}),
+    loadImage: async () => await Promise.resolve({})
   }))
 
   // Mock konva's canvas usage
@@ -21,13 +21,13 @@ beforeAll(() => {
       Layer: vi.fn(),
       Line: vi.fn(),
       Circle: vi.fn(),
-      Text: vi.fn(),
+      Text: vi.fn()
     },
     Stage: vi.fn(),
-    Layer: vi.fn(), 
+    Layer: vi.fn(),
     Line: vi.fn(),
     Circle: vi.fn(),
-    Text: vi.fn(),
+    Text: vi.fn()
   }))
 })
 
@@ -37,14 +37,14 @@ vi.mock('react-konva', () => ({
   Layer: vi.fn(({ children }) => children),
   Line: vi.fn(() => null),
   Circle: vi.fn(() => null),
-  Text: vi.fn(() => null),
+  Text: vi.fn(() => null)
 }))
 
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
-  disconnect: vi.fn(),
+  disconnect: vi.fn()
 }))
 
 // runs a cleanup after each test case (e.g. clearing jsdom)

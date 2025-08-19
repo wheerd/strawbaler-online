@@ -1,8 +1,8 @@
 import { Circle } from 'react-konva'
 import type Konva from 'konva'
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import type { ConnectionPoint } from '../../../types/model'
-import { useSelectedEntities, useEditorStore, useDragState, useActiveTool } from '../hooks/useEditorStore'
+import { useSelectedEntity, useEditorStore, useDragState, useActiveTool } from '../hooks/useEditorStore'
 
 interface ConnectionPointShapeProps {
   point: ConnectionPoint
@@ -10,13 +10,14 @@ interface ConnectionPointShapeProps {
 
 export function ConnectionPointShape ({ point }: ConnectionPointShapeProps): React.JSX.Element {
   // Use individual selectors to avoid object creation
-  const selectedEntities = useSelectedEntities()
-  const toggleEntitySelection = useEditorStore(state => state.toggleEntitySelection)
+  const selectedEntity = useSelectedEntity()
+  const selectEntity = useEditorStore(state => state.selectEntity)
   const startDrag = useEditorStore(state => state.startDrag)
   const dragState = useDragState()
   const activeTool = useActiveTool()
+  const hasDraggedRef = useRef(false)
 
-  const isSelected = selectedEntities.includes(point.id)
+  const isSelected = selectedEntity === point.id
   const isDragging = dragState.isDragging && dragState.dragEntityId === point.id && dragState.dragType === 'point'
 
   const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
@@ -25,10 +26,17 @@ export function ConnectionPointShape ({ point }: ConnectionPointShapeProps): Rea
       return // Don't cancel bubbling, let the stage handle it
     }
 
+    // If we just finished dragging, don't process the click (prevents deselection)
+    if (hasDraggedRef.current) {
+      hasDraggedRef.current = false
+      e.cancelBubble = true
+      return
+    }
+
     // Default behavior: stop propagation and toggle selection
     e.cancelBubble = true
-    toggleEntitySelection(point.id)
-  }, [toggleEntitySelection, point.id, activeTool])
+    selectEntity(point.id)
+  }, [selectEntity, point.id, activeTool])
 
   const handleMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
     if (e.evt.button !== 0) return // Only left click
@@ -40,12 +48,20 @@ export function ConnectionPointShape ({ point }: ConnectionPointShapeProps): Rea
 
     e.cancelBubble = true
 
+    // Reset drag flag
+    hasDraggedRef.current = false
+
+    // Select the point when starting to drag
+    selectEntity(point.id)
+
     const stage = e.target.getStage()
     const pointer = stage?.getPointerPosition()
     if (pointer != null) {
       startDrag('point', pointer, point.id)
+      // Mark that we started a drag operation
+      hasDraggedRef.current = true
     }
-  }, [startDrag, point.id, activeTool])
+  }, [startDrag, selectEntity, point.id, activeTool])
 
   return (
     <Circle

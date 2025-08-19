@@ -63,12 +63,12 @@ export const useModelStore = create<ModelStore>()(
 
       addWall: (startPointId: ConnectionPointId, endPointId: ConnectionPointId, floorId: FloorId, thickness: number = 200, height: number = 3000): Wall => {
         const state = get()
-        
+
         // Validate floor exists
         if (!state.floors.has(floorId)) {
           throw new Error(`Floor ${floorId} not found`)
         }
-        
+
         const wall = createWall(startPointId, endPointId, floorId, thickness, height)
         let updatedState = addWallToState(state, wall)
 
@@ -81,12 +81,12 @@ export const useModelStore = create<ModelStore>()(
 
       addRoom: (name: string, floorId: FloorId, wallIds: WallId[] = []): Room => {
         const state = get()
-        
+
         // Validate floor exists
         if (!state.floors.has(floorId)) {
           throw new Error(`Floor ${floorId} not found`)
         }
-        
+
         const room = createRoom(name, floorId, wallIds)
 
         const area = calculateRoomArea(room, state)
@@ -100,12 +100,12 @@ export const useModelStore = create<ModelStore>()(
 
       addConnectionPoint: (position: Point2D, floorId: FloorId): ConnectionPoint => {
         const state = get()
-        
+
         // Validate floor exists
         if (!state.floors.has(floorId)) {
           throw new Error(`Floor ${floorId} not found`)
         }
-        
+
         const connectionPoint = createConnectionPoint(position, floorId)
         const updatedState = addConnectionPointToFloor(state, connectionPoint, floorId)
 
@@ -115,13 +115,13 @@ export const useModelStore = create<ModelStore>()(
 
       addOpening: (wallId: WallId, type: Opening['type'], offsetFromStart: number, width: number, height: number, sillHeight?: number): Opening => {
         const state = get()
-        
+
         // Get the floor ID from the wall
         const wall = state.walls.get(wallId)
-        if (!wall) {
+        if (wall == null) {
           throw new Error(`Wall ${wallId} not found`)
         }
-        
+
         const opening = createOpening(wallId, wall.floorId, type, offsetFromStart, width, height, sillHeight)
         const updatedState = addOpeningToState(state, opening)
 

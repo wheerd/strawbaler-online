@@ -26,7 +26,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
   const wallDrawingStart = useWallDrawingStart()
   const [dragStart, setDragStart] = useState<{ pos: { x: number, y: number }, viewport: typeof viewport } | null>(null)
   const [dragStartPos, setDragStartPos] = useState<Point2D | null>(null)
-  
+
   // Use individual selectors instead of useEditorActions() to avoid object creation
   const startDrag = useEditorStore(state => state.startDrag)
   const endDrag = useEditorStore(state => state.endDrag)
@@ -37,7 +37,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
   const setSnapPreview = useEditorStore(state => state.setSnapPreview)
   const snapDistance = useEditorStore(state => state.snapDistance)
   const dragState = useEditorStore(state => state.dragState)
-  
+
   // Model store actions
   const modelState = useModelStore()
   const addConnectionPoint = useModelStore(state => state.addConnectionPoint)
@@ -61,13 +61,13 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
   // Helper function to find snap point
   const findSnapPoint = useCallback((point: Point2D): Point2D => {
     const nearest = findNearestConnectionPoint(modelState, point, snapDistance / viewport.zoom)
-    return nearest ? nearest.position : point
+    return (nearest != null) ? nearest.position : point
   }, [modelState, snapDistance, viewport.zoom])
 
   // Helper function to create or find connection point at position
   const getOrCreateConnectionPoint = useCallback((position: Point2D) => {
     const nearest = findNearestConnectionPoint(modelState, position, snapDistance / viewport.zoom)
-    if (nearest) {
+    if (nearest != null) {
       return nearest
     }
     return addConnectionPoint(position, activeFloorId)
@@ -104,8 +104,6 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
     const pointer = stage.getPointerPosition()
     if (pointer == null) return
 
-
-
     // Handle panning (middle mouse or shift+left click)
     if (e.evt.button === 1 || (e.evt.button === 0 && e.evt.shiftKey)) {
       setDragStart({ pos: pointer, viewport: { ...viewport } })
@@ -113,10 +111,10 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
       return
     }
 
-    // Handle wall tool 
+    // Handle wall tool
     if (activeTool === 'wall') {
       const stageCoords = getStageCoordinates(pointer)
-      
+
       if (!isDrawing) {
         // Start drawing wall - use snapped coordinates which might be an existing point
         const snapCoords = findSnapPoint(stageCoords)
@@ -128,9 +126,9 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
         const snapCoords = findSnapPoint(stageCoords)
         const startPoint = getOrCreateConnectionPoint(wallDrawingStart)
         const endPoint = getOrCreateConnectionPoint(snapCoords)
-        
+
         addWall(startPoint.id, endPoint.id, activeFloorId)
-        
+
         setWallDrawingStart(undefined)
         setIsDrawing(false)
         setSnapPreview(undefined)
@@ -142,12 +140,12 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
     if (e.target === stage || e.target.getClassName() === 'Stage' || e.target.getClassName() === 'Line') {
       startDrag('selection', pointer)
     }
-  }, [viewport, startDrag, activeTool, isDrawing, wallDrawingStart, getStageCoordinates, findSnapPoint, 
-      getOrCreateConnectionPoint, setWallDrawingStart, setIsDrawing, addWall, activeFloorId, setSnapPreview])
+  }, [viewport, startDrag, activeTool, isDrawing, wallDrawingStart, getStageCoordinates, findSnapPoint,
+    getOrCreateConnectionPoint, setWallDrawingStart, setIsDrawing, addWall, activeFloorId, setSnapPreview])
 
   // Handle drag initiation from wall shapes
   useEffect(() => {
-    if (dragState.isDragging && dragState.dragType === 'wall' && !dragStartPos) {
+    if (dragState.isDragging && dragState.dragType === 'wall' && (dragStartPos == null)) {
       const stageCoords = getStageCoordinates(dragState.startPos)
       setDragStartPos(stageCoords)
     }
@@ -164,7 +162,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
     if (dragStart != null && ((e.evt.buttons === 4) || (e.evt.buttons === 1 && e.evt.shiftKey))) {
       const deltaX = pointer.x - dragStart.pos.x
       const deltaY = pointer.y - dragStart.pos.y
-      
+
       setViewport({
         zoom: dragStart.viewport.zoom,
         panX: dragStart.viewport.panX + deltaX,
@@ -174,11 +172,11 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
     }
 
     // Handle wall dragging
-    if (dragState.isDragging && dragState.dragType === 'wall' && dragState.dragEntityId && dragStartPos) {
+    if (dragState.isDragging && dragState.dragType === 'wall' && dragState.dragEntityId && (dragStartPos != null)) {
       const currentPos = getStageCoordinates(pointer)
       const deltaX = currentPos.x - dragStartPos.x
       const deltaY = currentPos.y - dragStartPos.y
-      
+
       moveWallAction(dragState.dragEntityId as import('../../../types/ids').WallId, deltaX, deltaY)
       setDragStartPos(currentPos)
       return
@@ -188,7 +186,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
     if (dragState.isDragging && dragState.dragType === 'point' && dragState.dragEntityId) {
       const currentPos = getStageCoordinates(pointer)
       const snapPos = findSnapPoint(currentPos)
-      
+
       moveConnectionPointAction(dragState.dragEntityId as import('../../../types/ids').ConnectionPointId, snapPos)
       return
     }
@@ -199,8 +197,8 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
       const snapCoords = findSnapPoint(stageCoords)
       setSnapPreview(snapCoords)
     }
-  }, [dragStart, setViewport, activeTool, getStageCoordinates, findSnapPoint, setSnapPreview, 
-      dragState, dragStartPos, moveWallAction, moveConnectionPointAction])
+  }, [dragStart, setViewport, activeTool, getStageCoordinates, findSnapPoint, setSnapPreview,
+    dragState, dragStartPos, moveWallAction, moveConnectionPointAction])
 
   const handleMouseUp = useCallback(() => {
     setDragStart(null)

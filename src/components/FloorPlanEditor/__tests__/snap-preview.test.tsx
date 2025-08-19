@@ -6,7 +6,7 @@ import { useEditorStore } from '../hooks/useEditorStore'
 // Mock Konva components
 vi.mock('react-konva', () => ({
   Layer: ({ children, name }: any) => <div data-testid={name}>{children}</div>,
-  Circle: ({ x, y, radius }: any) => <div data-testid="snap-preview-circle" data-x={x} data-y={y} data-radius={radius} />
+  Circle: ({ x, y, radius }: any) => <div data-testid='snap-preview-circle' data-x={x} data-y={y} data-radius={radius} />
 }))
 
 describe('Snap Preview Visibility', () => {
@@ -20,7 +20,7 @@ describe('Snap Preview Visibility', () => {
     useEditorStore.getState().setSnapPreview({ x: 100, y: 200 })
 
     const { queryByTestId } = render(<SelectionLayer />)
-    
+
     // Should show the snap preview circle
     const circle = queryByTestId('snap-preview-circle')
     expect(circle).toBeTruthy()
@@ -34,7 +34,7 @@ describe('Snap Preview Visibility', () => {
     useEditorStore.getState().setSnapPreview({ x: 100, y: 200 })
 
     const { queryByTestId } = render(<SelectionLayer />)
-    
+
     // Should not show the snap preview circle
     const circle = queryByTestId('snap-preview-circle')
     expect(circle).toBeFalsy()
@@ -46,7 +46,7 @@ describe('Snap Preview Visibility', () => {
     useEditorStore.getState().setSnapPreview({ x: 100, y: 200 })
 
     const { queryByTestId } = render(<SelectionLayer />)
-    
+
     // Should not show the snap preview circle
     const circle = queryByTestId('snap-preview-circle')
     expect(circle).toBeFalsy()

@@ -1,8 +1,8 @@
 import { Line } from 'react-konva'
 import type Konva from 'konva'
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import type { Wall } from '../../../types/model'
-import { useSelectedEntities, useEditorStore, useDragState, useActiveTool } from '../hooks/useEditorStore'
+import { useSelectedEntity, useEditorStore, useDragState, useActiveTool } from '../hooks/useEditorStore'
 import { useConnectionPoints } from '../../../model/store'
 
 interface WallShapeProps {
@@ -11,12 +11,13 @@ interface WallShapeProps {
 
 export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
   // Use individual selectors to avoid object creation
-  const selectedEntities = useSelectedEntities()
-  const toggleEntitySelection = useEditorStore(state => state.toggleEntitySelection)
+  const selectedEntity = useSelectedEntity()
+  const selectEntity = useEditorStore(state => state.selectEntity)
   const startDrag = useEditorStore(state => state.startDrag)
   const connectionPoints = useConnectionPoints()
   const dragState = useDragState()
   const activeTool = useActiveTool()
+  const hasDraggedRef = useRef(false)
 
   const startPoint = connectionPoints.get(wall.startPointId)
   const endPoint = connectionPoints.get(wall.endPointId)
@@ -25,7 +26,7 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
     return null
   }
 
-  const isSelected = selectedEntities.includes(wall.id)
+  const isSelected = selectedEntity === wall.id
   const isDragging = dragState.isDragging && dragState.dragEntityId === wall.id && dragState.dragType === 'wall'
 
   const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
@@ -34,9 +35,16 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
       return // Don't cancel bubbling, let the stage handle it
     }
 
+    // If we just finished dragging, don't process the click (prevents deselection)
+    if (hasDraggedRef.current) {
+      hasDraggedRef.current = false
+      e.cancelBubble = true
+      return
+    }
+
     e.cancelBubble = true
-    toggleEntitySelection(wall.id)
-  }, [toggleEntitySelection, wall.id, activeTool])
+    selectEntity(wall.id)
+  }, [selectEntity, wall.id, activeTool])
 
   const handleMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
     if (e.evt.button !== 0) return // Only left click
@@ -48,12 +56,20 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
 
     e.cancelBubble = true
 
+    // Reset drag flag
+    hasDraggedRef.current = false
+
+    // Select the wall when starting to drag
+    selectEntity(wall.id)
+
     const stage = e.target.getStage()
     const pointer = stage?.getPointerPosition()
     if (pointer != null) {
       startDrag('wall', pointer, wall.id)
+      // Mark that we started a drag operation
+      hasDraggedRef.current = true
     }
-  }, [startDrag, wall.id, activeTool])
+  }, [startDrag, selectEntity, wall.id, activeTool])
 
   return (
     <Line

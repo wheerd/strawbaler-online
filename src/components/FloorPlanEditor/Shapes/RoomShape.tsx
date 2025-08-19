@@ -1,6 +1,6 @@
 import { Line, Text } from 'react-konva'
 import type { Room } from '../../../types/model'
-import { useSelectedEntities, useEditorStore, useActiveTool } from '../hooks/useEditorStore'
+import { useSelectedEntity, useEditorStore, useActiveTool } from '../hooks/useEditorStore'
 import { useWalls, useConnectionPoints } from '../../../model/store'
 
 interface RoomShapeProps {
@@ -48,14 +48,14 @@ function getRoomCenter (points: number[]): { x: number, y: number } {
 
 export function RoomShape ({ room }: RoomShapeProps): React.JSX.Element | null {
   // Use individual selectors to avoid object creation
-  const selectedEntities = useSelectedEntities()
-  const toggleEntitySelection = useEditorStore(state => state.toggleEntitySelection)
+  const selectedEntity = useSelectedEntity()
+  const selectEntity = useEditorStore(state => state.selectEntity)
   const showRoomLabels = useEditorStore(state => state.showRoomLabels)
   const activeTool = useActiveTool()
   const walls = useWalls()
   const connectionPoints = useConnectionPoints()
 
-  const isSelected = selectedEntities.includes(room.id)
+  const isSelected = selectedEntity === room.id
   const points = getRoomPolygonPoints(room, walls, connectionPoints)
 
   if (points.length < 6) {
@@ -69,8 +69,8 @@ export function RoomShape ({ room }: RoomShapeProps): React.JSX.Element | null {
     if (activeTool === 'wall') {
       return
     }
-    
-    toggleEntitySelection(room.id)
+
+    selectEntity(room.id)
   }
 
   return (

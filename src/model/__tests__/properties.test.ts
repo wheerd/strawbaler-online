@@ -15,7 +15,7 @@ describe('Model Properties', () => {
       const state = createEmptyModelState()
       const groundFloorId = Array.from(state.floors.keys())[0]
       const point = createConnectionPoint({ x: 100, y: 200 }, groundFloorId)
-      
+
       expect(point.position).toEqual({ x: 100, y: 200 })
       expect(point.connectedWallIds).toEqual([])
       expect(point.floorId).toBe(groundFloorId)

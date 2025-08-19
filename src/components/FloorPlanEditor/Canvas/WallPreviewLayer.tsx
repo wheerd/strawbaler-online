@@ -21,7 +21,7 @@ export function WallPreviewLayer ({ wallDrawingStart }: WallPreviewLayerProps): 
   return (
     <Layer name='wall-preview' listening={false}>
       {/* Show snap preview point */}
-      {showSnapPreview && snapPreviewPoint && (
+      {showSnapPreview && (snapPreviewPoint != null) && (
         <Circle
           x={snapPreviewPoint.x}
           y={snapPreviewPoint.y}
@@ -31,14 +31,14 @@ export function WallPreviewLayer ({ wallDrawingStart }: WallPreviewLayerProps): 
           listening={false}
         />
       )}
-      
+
       {/* Show preview wall line */}
-      {isDrawing && wallDrawingStart && snapPreviewPoint && (
+      {isDrawing && (wallDrawingStart != null) && (snapPreviewPoint != null) && (
         <Line
           points={[
-            wallDrawingStart.x, 
-            wallDrawingStart.y, 
-            snapPreviewPoint.x, 
+            wallDrawingStart.x,
+            wallDrawingStart.y,
+            snapPreviewPoint.x,
             snapPreviewPoint.y
           ]}
           stroke='#007acc'
@@ -48,7 +48,7 @@ export function WallPreviewLayer ({ wallDrawingStart }: WallPreviewLayerProps): 
           listening={false}
         />
       )}
-      
+
       {/* Show connection points as snap targets */}
       {Array.from(connectionPoints.values()).map(point => (
         <Circle
