@@ -1,0 +1,67 @@
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="appleBaleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8e9a8"/>
+      <stop offset="50%" style="stop-color:#e6c547"/>
+      <stop offset="100%" style="stop-color:#d4a017"/>
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background with rounded corners for iOS -->
+  <rect x="0" y="0" width="180" height="180" rx="40" fill="#ffffff"/>
+  
+  <!-- Shadow base -->
+  <ellipse cx="90" cy="150" rx="70" ry="15" fill="#000" opacity="0.1"/>
+  
+  <!-- Main strawbale with enhanced detail -->
+  <rect x="30" y="60" width="120" height="60" rx="6" fill="url(#appleBaleGradient)" stroke="#b8860b" stroke-width="2" filter="url(#shadow)"/>
+  
+  <!-- Detailed straw texture -->
+  <g stroke="#cd853f" stroke-width="1.5" opacity="0.6">
+    <line x1="35" y1="70" x2="145" y2="70"/>
+    <line x1="32" y1="80" x2="148" y2="80"/>
+    <line x1="35" y1="90" x2="145" y2="90"/>
+    <line x1="32" y1="100" x2="148" y2="100"/>
+    <line x1="35" y1="110" x2="145" y2="110"/>
+  </g>
+  
+  <!-- Binding straps with detail -->
+  <rect x="55" y="55" width="6" height="70" fill="#8b4513" rx="1"/>
+  <rect x="119" y="55" width="6" height="70" fill="#8b4513" rx="1"/>
+  
+  <!-- Strap highlights -->
+  <rect x="56" y="55" width="2" height="70" fill="#a0522d" opacity="0.7"/>
+  <rect x="120" y="55" width="2" height="70" fill="#a0522d" opacity="0.7"/>
+  
+  <!-- Abundant straw protrusions for richness -->
+  <g stroke="#e6c547" stroke-width="3" stroke-linecap="round" opacity="0.9">
+    <!-- Left side -->
+    <line x1="30" y1="65" x2="20" y2="60"/>
+    <line x1="30" y1="75" x2="15" y2="75"/>
+    <line x1="30" y1="85" x2="18" y2="90"/>
+    <line x1="30" y1="95" x2="12" y2="95"/>
+    <line x1="30" y1="105" x2="20" y2="110"/>
+    <line x1="30" y1="115" x2="15" y2="120"/>
+    
+    <!-- Right side -->
+    <line x1="150" y1="65" x2="160" y2="60"/>
+    <line x1="150" y1="75" x2="165" y2="75"/>
+    <line x1="150" y1="85" x2="162" y2="90"/>
+    <line x1="150" y1="95" x2="168" y2="95"/>
+    <line x1="150" y1="105" x2="160" y2="110"/>
+    <line x1="150" y1="115" x2="165" y2="120"/>
+  </g>
+  
+  <!-- Additional small straw pieces for texture -->
+  <g stroke="#d4a017" stroke-width="2" stroke-linecap="round" opacity="0.7">
+    <line x1="30" y1="70" x2="25" y2="68"/>
+    <line x1="30" y1="90" x2="22" y2="88"/>
+    <line x1="30" y1="110" x2="25" y2="112"/>
+    <line x1="150" y1="70" x2="155" y2="68"/>
+    <line x1="150" y1="90" x2="158" y2="88"/>
+    <line x1="150" y1="110" x2="155" y2="112"/>
+  </g>
+</svg>

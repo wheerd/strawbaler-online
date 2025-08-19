@@ -1,0 +1,19 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified version for 16x16 -->
+  <rect x="2" y="5" width="12" height="6" rx="0.5" fill="#e6c547" stroke="#b8860b" stroke-width="0.5"/>
+  
+  <!-- Simple straw lines -->
+  <line x1="3" y1="6.5" x2="13" y2="6.5" stroke="#cd853f" stroke-width="0.3" opacity="0.7"/>
+  <line x1="3" y1="8" x2="13" y2="8" stroke="#cd853f" stroke-width="0.3" opacity="0.7"/>
+  <line x1="3" y1="9.5" x2="13" y2="9.5" stroke="#cd853f" stroke-width="0.3" opacity="0.7"/>
+  
+  <!-- Binding straps -->
+  <rect x="5" y="4.5" width="0.5" height="7" fill="#8b4513"/>
+  <rect x="10.5" y="4.5" width="0.5" height="7" fill="#8b4513"/>
+  
+  <!-- Minimal straw protrusions -->
+  <line x1="2" y1="7" x2="1" y2="6.5" stroke="#e6c547" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="2" y1="9" x2="1" y2="9.5" stroke="#e6c547" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="14" y1="7" x2="15" y2="6.5" stroke="#e6c547" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="14" y1="9" x2="15" y2="9.5" stroke="#e6c547" stroke-width="0.8" stroke-linecap="round"/>
+</svg>

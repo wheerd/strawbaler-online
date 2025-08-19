@@ -1,0 +1,21 @@
+{
+  "name": "Strawbaler Online",
+  "short_name": "Strawbaler",
+  "description": "Online floor plan editor for strawbale construction",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#e6c547",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}
