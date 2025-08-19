@@ -1,7 +1,7 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { Stage } from 'react-konva'
 import type Konva from 'konva'
-import { useEditorStore } from '../hooks/useEditorStore'
+import { useEditorStore, useViewport } from '../hooks/useEditorStore'
 import { GridLayer } from './GridLayer'
 import { WallLayer } from './WallLayer'
 import { ConnectionPointLayer } from './ConnectionPointLayer'
@@ -13,24 +13,21 @@ interface FloorPlanStageProps {
   height: number
 }
 
-interface ViewportState {
-  zoom: number
-  panX: number
-  panY: number
-}
-
 export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.JSX.Element {
   const stageRef = useRef<Konva.Stage>(null)
-  const [viewport, setViewport] = useState<ViewportState>({
-    zoom: 1,
-    panX: 0,
-    panY: 0
-  })
-  const [dragStart, setDragStart] = useState<{ pos: { x: number, y: number }, viewport: ViewportState } | null>(null)
+  const viewport = useViewport()
+  const [dragStart, setDragStart] = useState<{ pos: { x: number, y: number }, viewport: typeof viewport } | null>(null)
   
   // Use individual selectors instead of useEditorActions() to avoid object creation
   const startDrag = useEditorStore(state => state.startDrag)
   const endDrag = useEditorStore(state => state.endDrag)
+  const setViewport = useEditorStore(state => state.setViewport)
+  const setStageDimensions = useEditorStore(state => state.setStageDimensions)
+
+  // Update stage dimensions in the store when they change
+  useEffect(() => {
+    setStageDimensions(width, height)
+  }, [width, height, setStageDimensions])
 
   const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault()
@@ -54,7 +51,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
       panX: newPanX,
       panY: newPanY
     })
-  }, [viewport])
+  }, [viewport, setViewport])
 
   const handleMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     const stage = e.target.getStage()
@@ -91,7 +88,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
         panY: dragStart.viewport.panY + deltaY
       })
     }
-  }, [dragStart])
+  }, [dragStart, setViewport])
 
   const handleMouseUp = useCallback(() => {
     setDragStart(null)
@@ -113,7 +110,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
       onMouseUp={handleMouseUp}
       draggable={false}
     >
-      <GridLayer width={width} height={height} viewport={viewport} />
+      <GridLayer width={width} height={height} viewport={{ zoom: viewport.zoom, panX: viewport.panX, panY: viewport.panY }} />
       <RoomLayer />
       <WallLayer />
       <ConnectionPointLayer />

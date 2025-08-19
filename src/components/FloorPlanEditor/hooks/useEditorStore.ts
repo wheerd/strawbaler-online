@@ -13,6 +13,14 @@ export interface DragState {
   dragEntityId?: string
 }
 
+export interface ViewportState {
+  zoom: number
+  panX: number
+  panY: number
+  stageWidth: number
+  stageHeight: number
+}
+
 export interface EditorState {
   activeTool: EditorTool
   isDrawing: boolean
@@ -27,6 +35,7 @@ export interface EditorState {
   activeFloorId: FloorId
   selectedEntityIds: string[]
   viewMode: ViewMode
+  viewport: ViewportState
 }
 
 export interface EditorActions {
@@ -45,6 +54,9 @@ export interface EditorActions {
   toggleEntitySelection: (entityId: string) => void
   clearSelection: () => void
   setViewMode: (viewMode: ViewMode) => void
+  setViewport: (viewport: Partial<ViewportState>) => void
+  setStageDimensions: (width: number, height: number) => void
+  fitToView: () => void
   reset: () => void
 }
 
@@ -62,12 +74,19 @@ function createInitialState (defaultFloorId: FloorId): EditorState {
     snapDistance: 20,
     showSnapPreview: false,
     showGrid: true,
-    gridSize: 50,
+    gridSize: 100,
     snapToGrid: true,
     showRoomLabels: true,
     activeFloorId: defaultFloorId,
     selectedEntityIds: [],
-    viewMode: 'plan'
+    viewMode: 'plan',
+    viewport: {
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+      stageWidth: 800,
+      stageHeight: 600
+    }
   }
 }
 
@@ -160,6 +179,26 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
     set({ viewMode })
   },
 
+  setViewport: (viewportUpdate: Partial<ViewportState>) => {
+    const state = get()
+    set({
+      viewport: { ...state.viewport, ...viewportUpdate }
+    })
+  },
+
+  setStageDimensions: (width: number, height: number) => {
+    const state = get()
+    set({
+      viewport: { ...state.viewport, stageWidth: width, stageHeight: height }
+    })
+  },
+
+  fitToView: () => {
+    // This will be implemented with the bounds from the model store
+    // For now, it's a placeholder that will be called from the component
+    console.log('fitToView called - implementation will be in the component')
+  },
+
   reset: (defaultFloorId?: FloorId) => {
     const floorId = defaultFloorId ?? ('ground-floor' as FloorId)
     set(createInitialState(floorId))
@@ -180,3 +219,4 @@ export const useShowRoomLabels = (): boolean => useEditorStore(state => state.sh
 export const useActiveFloorId = (): FloorId => useEditorStore(state => state.activeFloorId)
 export const useSelectedEntities = (): string[] => useEditorStore(state => state.selectedEntityIds)
 export const useViewMode = (): ViewMode => useEditorStore(state => state.viewMode)
+export const useViewport = (): ViewportState => useEditorStore(state => state.viewport)

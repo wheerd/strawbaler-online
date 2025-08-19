@@ -145,6 +145,29 @@ export function calculateStateBounds (state: ModelState): Bounds | null {
   return { minX, minY, maxX, maxY }
 }
 
+export function calculateFloorBounds (floorId: FloorId, state: ModelState): Bounds | null {
+  const floor = state.floors.get(floorId)
+  if (!floor || floor.connectionPointIds.length === 0) return null
+
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+
+  for (const pointId of floor.connectionPointIds) {
+    const point = state.connectionPoints.get(pointId)
+    if (point) {
+      minX = Math.min(minX, point.position.x)
+      minY = Math.min(minY, point.position.y)
+      maxX = Math.max(maxX, point.position.x)
+      maxY = Math.max(maxY, point.position.y)
+    }
+  }
+
+  if (minX === Infinity) return null
+  return { minX, minY, maxX, maxY }
+}
+
 export function getWallLength (wall: Wall, state: ModelState): number {
   const startPoint = state.connectionPoints.get(wall.startPointId)
   const endPoint = state.connectionPoints.get(wall.endPointId)
@@ -409,6 +432,12 @@ export function addWallToFloor (state: ModelState, wall: Wall, floorId: FloorId)
       ...floor,
       wallIds: [...floor.wallIds, wall.id]
     }
+    
+    // Calculate new bounds for the floor (walls depend on connection points)
+    const tempState = { ...updatedState, floors: new Map(updatedFloors).set(floorId, updatedFloor) }
+    const bounds = calculateFloorBounds(floorId, tempState)
+    updatedFloor.bounds = bounds ?? undefined
+    
     updatedFloors.set(floorId, updatedFloor)
     updatedState.floors = updatedFloors
   }
@@ -426,6 +455,12 @@ export function addConnectionPointToFloor (state: ModelState, point: ConnectionP
       ...floor,
       connectionPointIds: [...floor.connectionPointIds, point.id]
     }
+    
+    // Calculate new bounds for the floor
+    const tempState = { ...updatedState, floors: new Map(updatedFloors).set(floorId, updatedFloor) }
+    const bounds = calculateFloorBounds(floorId, tempState)
+    updatedFloor.bounds = bounds ?? undefined
+    
     updatedFloors.set(floorId, updatedFloor)
     updatedState.floors = updatedFloors
   }

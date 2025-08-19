@@ -64,6 +64,7 @@ export interface Floor {
   roomIds: RoomId[]
   connectionPointIds: ConnectionPointId[]
   openingIds: OpeningId[]
+  bounds?: Bounds
 }
 
 // Model state for the application
