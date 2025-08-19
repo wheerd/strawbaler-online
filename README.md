@@ -1,75 +1,154 @@
-# React + TypeScript + Vite
+# 🌾 Strawbaler Online
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![CI](https://github.com/wheerd/strawbaler-online/workflows/CI/badge.svg)](https://github.com/wheerd/strawbaler-online/actions/workflows/ci.yml)
+[![Security](https://github.com/wheerd/strawbaler-online/workflows/Security%20&%20Dependencies/badge.svg)](https://github.com/wheerd/strawbaler-online/actions/workflows/security.yml)
 
-Currently, two official plugins are available:
+A modern web-based floor plan editor specifically designed for strawbale construction planning. Built with React, TypeScript, and Konva for high-performance canvas rendering.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## Expanding the ESLint configuration
+- **Interactive Floor Plan Editor**: Draw walls, rooms, and connection points
+- **Strawbale-Specific Tools**: Optimized for strawbale construction workflows  
+- **Real-time Preview**: See your floor plan as you build it
+- **Modern Tech Stack**: React 19, TypeScript, Vite, and Zustand
+- **Comprehensive Testing**: 31+ tests covering core functionality
+- **CI/CD Pipeline**: Automated testing, linting, and security checks
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Quick Start
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
+- Node.js 18+ 
+- pnpm (recommended) or npm
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Installation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Clone the repository
+git clone https://github.com/wheerd/strawbaler-online.git
+cd strawbaler-online
+
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Visit `http://localhost:5173` to see the application.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📋 Available Scripts
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Development
+pnpm dev          # Start dev server with hot reload
+pnpm preview      # Preview production build locally
+
+# Testing
+pnpm test         # Run all tests
+pnpm test -- run  # Run tests once (CI mode)
+
+# Code Quality
+pnpm lint         # Check code style and formatting
+pnpm lint:fix     # Auto-fix linting issues
+
+# Building
+pnpm build        # Build for production
 ```
 
-TODO:
-Check immutable properties of store
-createBuilding is not needed
-Refactor walls, rooms etc -> into floor
+## 🏗️ Architecture
 
+### Tech Stack
+- **Frontend**: React 19 with TypeScript
+- **Canvas Rendering**: Konva.js with react-konva
+- **State Management**: Zustand with immutable updates
+- **Testing**: Vitest + React Testing Library + jsdom
+- **Build Tool**: Vite
+- **Code Style**: ts-standard
+
+### Project Structure
+```
+src/
+├── components/
+│   └── FloorPlanEditor/    # Main editor components
+│       ├── Canvas/         # Konva canvas layers
+│       ├── Shapes/         # Drawable elements (walls, points, rooms)
+│       ├── Tools/          # UI tools and toolbar
+│       └── hooks/          # Editor state management
+├── model/                  # Data models and operations
+├── types/                  # TypeScript type definitions
+└── test/                   # Test utilities and setup
+```
+
+## 🔧 Development
+
+### Running Tests
+```bash
+# Run all tests with coverage
+pnpm test
+
+# Run specific test file
+pnpm test -- wall-creation.test.tsx
+
+# Run tests in watch mode
+pnpm test -- --watch
+```
+
+### Code Style
+This project uses ts-standard for consistent code formatting:
+
+```bash
+# Check code style
+pnpm lint
+
+# Auto-fix style issues
+pnpm lint:fix
+```
+
+## 🚢 Deployment
+
+### Production Build
+```bash
+pnpm build
+```
+
+The `dist/` folder contains the production-ready static files.
+
+### GitHub Actions
+This project includes comprehensive CI/CD workflows:
+
+- **CI**: Tests, linting, and builds on every push/PR
+- **Security**: Dependency auditing and CodeQL analysis  
+- **Release**: Automated releases on git tags
+- **Dependencies**: Weekly automated dependency updates
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Run tests and linting: `pnpm test && pnpm lint`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🎯 Roadmap
+
+- [ ] Enhanced room editing tools
+- [ ] Export functionality (PDF, DXF)
+- [ ] Material estimation calculations
+- [ ] 3D visualization mode
+- [ ] Collaborative editing features
+- [ ] Mobile-responsive design
+
+## 🐛 Known Issues
+
+- Some linting rules need cleanup (tracked in CI)
+- Bundle size optimization needed for production
+
+---
+
+Built with ❤️ for the strawbale building community
