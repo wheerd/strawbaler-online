@@ -10,6 +10,7 @@ import { WallLayer } from './WallLayer'
 import { WallPreviewLayer } from './WallPreviewLayer'
 import { PointLayer } from './PointLayer'
 import { RoomLayer } from './RoomLayer'
+import { CornerLayer } from './CornerLayer'
 import { SelectionLayer } from './SelectionLayer'
 
 interface FloorPlanStageProps {
@@ -238,6 +239,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
       <GridLayer width={width} height={height} viewport={{ zoom: viewport.zoom, panX: viewport.panX, panY: viewport.panY }} />
       <RoomLayer />
       <WallLayer />
+      <CornerLayer />
       <PointLayer />
       <WallPreviewLayer wallDrawingStart={wallDrawingStart ?? null} />
       <SelectionLayer />

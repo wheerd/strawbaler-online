@@ -39,7 +39,8 @@ vi.mock('react-konva', () => ({
   Layer: vi.fn(({ children }) => children),
   Line: vi.fn(() => null),
   Circle: vi.fn(() => null),
-  Text: vi.fn(() => null)
+  Text: vi.fn(() => null),
+  Group: vi.fn(({ children }) => children)
 }))
 
 // Mock ResizeObserver

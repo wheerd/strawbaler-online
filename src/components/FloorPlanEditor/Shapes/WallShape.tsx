@@ -3,7 +3,7 @@ import type Konva from 'konva'
 import { useCallback, useRef } from 'react'
 import type { Wall } from '@/types/model'
 import { useSelectedEntity, useEditorStore, useDragState, useActiveTool } from '@/components/FloorPlanEditor/hooks/useEditorStore'
-import { usePoints } from '@/model/store'
+import { usePoints, useCorners } from '@/model/store'
 import type { Point2D } from '@/types/geometry'
 
 interface WallShapeProps {
@@ -16,6 +16,7 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
   const selectEntity = useEditorStore(state => state.selectEntity)
   const startDrag = useEditorStore(state => state.startDrag)
   const points = usePoints()
+  const corners = useCorners()
   const dragState = useDragState()
   const activeTool = useActiveTool()
   const hasDraggedRef = useRef(false)
@@ -29,6 +30,11 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
 
   const isSelected = selectedEntity === wall.id
   const isDragging = dragState.isDragging && dragState.dragEntityId === wall.id && dragState.dragType === 'wall'
+
+  // Check if this wall is a main wall of a selected corner
+  const isMainWallOfSelectedCorner = Array.from(corners.values()).some(corner =>
+    selectedEntity === corner.id && (corner.wall1Id === wall.id || corner.wall2Id === wall.id)
+  )
 
   const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
     // In wall creation mode, allow the stage to handle the click
@@ -72,11 +78,26 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
     }
   }, [startDrag, selectEntity, wall.id, activeTool])
 
+  // Determine wall color based on state
+  const getWallColor = (): string => {
+    if (isSelected) return '#007acc' // Blue for selected wall
+    if (isDragging) return '#ff6b35' // Orange for dragging
+    if (isMainWallOfSelectedCorner) return '#00cc66' // Green for main walls of selected corner
+    return '#333333' // Default gray
+  }
+
+  // Determine stroke width based on state
+  const getStrokeWidth = (): number => {
+    const baseWidth = wall.thickness / 10
+    if (isSelected || isMainWallOfSelectedCorner) return baseWidth + 2
+    return baseWidth
+  }
+
   return (
     <Line
       points={[startPoint.position.x, startPoint.position.y, endPoint.position.x, endPoint.position.y]}
-      stroke={isSelected ? '#007acc' : isDragging ? '#ff6b35' : '#333333'}
-      strokeWidth={wall.thickness / 10}
+      stroke={getWallColor()}
+      strokeWidth={getStrokeWidth()}
       lineCap='round'
       onClick={activeTool === 'wall' ? undefined : handleClick}
       onTap={activeTool === 'wall' ? undefined : handleClick}
