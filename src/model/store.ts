@@ -1,38 +1,44 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import type { ModelState, Wall, Room, Point, Opening, Floor, Point2D, Bounds2D } from '@/types/model'
-import type { WallId, PointId, FloorId, RoomId, OpeningId } from '@/types/ids'
+import type { ModelState, Wall, Room, Point, Opening, Floor, Slab, Roof } from '@/types/model'
+import type { WallId, PointId, FloorId, RoomId, SlabId, RoofId } from '@/types/ids'
+import type { Point2D, Bounds2D, Length } from '@/types/geometry'
 import {
   createEmptyModelState,
   createFloor,
   createWall,
   createRoom,
   createPoint,
-  createOpening,
+
+  createSlab,
+  createRoof,
   addFloorToState,
-  addWallToState,
-  addRoomToState,
+  addWallToFloor,
+  addRoomToFloor,
   addPointToFloor,
-  addOpeningToState,
-  removeWallFromState,
+  addSlabToFloor,
+  addRoofToFloor,
+  removeWallFromFloor,
   calculateStateBounds,
   calculateFloorBounds,
   calculateRoomArea,
   movePoint,
-  moveWall
+  addOpeningToWall
 } from '@/model/operations'
+import { createLength } from '@/types/geometry'
 
 interface ModelActions {
   reset: () => void
 
-  addFloor: (name: string, level: number, height?: number) => Floor
-  addWall: (startPointId: PointId, endPointId: PointId, floorId: FloorId, thickness?: number, height?: number) => Wall
+  addFloor: (name: string, height?: Length) => Floor
+  addWall: (startPointId: PointId, endPointId: PointId, floorId: FloorId, heightAtStart?: Length, heightAtEnd?: Length, thickness?: Length) => Wall
   addRoom: (name: string, floorId: FloorId, wallIds?: WallId[]) => Room
   addPoint: (position: Point2D, floorId: FloorId) => Point
-  addOpening: (wallId: WallId, type: Opening['type'], offsetFromStart: number, width: number, height: number, sillHeight?: number) => Opening
-  removeWall: (wallId: WallId) => void
+  addSlab: (polygon: Point2D[], thickness: Length, floorId: FloorId) => Slab
+  addRoof: (polygon: Point2D[], thickness: Length, overhang: Length, floorId: FloorId) => Roof
+  addOpeningToWall: (wallId: WallId, opening: Opening) => void
+  removeWall: (wallId: WallId, floorId: FloorId) => void
   movePoint: (pointId: PointId, position: Point2D) => void
-  moveWall: (wallId: WallId, deltaX: number, deltaY: number) => void
   getActiveFloorBounds: (floorId: FloorId) => Bounds2D | null
 }
 
@@ -52,16 +58,23 @@ export const useModelStore = create<ModelStore>()(
         set(newState, false, 'reset')
       },
 
-      addFloor: (name: string, level: number, height: number = 3000): Floor => {
+      addFloor: (name: string, height: Length = createLength(3000)): Floor => {
         const state = get()
-        const floor = createFloor(name, level, height)
+        const floor = createFloor(name, height)
         const updatedState = addFloorToState(state, floor)
 
         set(updatedState, false, 'addFloor')
         return floor
       },
 
-      addWall: (startPointId: PointId, endPointId: PointId, floorId: FloorId, thickness: number = 200, height: number = 3000): Wall => {
+      addWall: (
+        startPointId: PointId,
+        endPointId: PointId,
+        floorId: FloorId,
+        heightAtStart: Length = createLength(3000),
+        heightAtEnd: Length = createLength(3000),
+        thickness: Length = createLength(200)
+      ): Wall => {
         const state = get()
 
         // Validate floor exists
@@ -69,11 +82,13 @@ export const useModelStore = create<ModelStore>()(
           throw new Error(`Floor ${floorId} not found`)
         }
 
-        const wall = createWall(startPointId, endPointId, floorId, thickness, height)
-        let updatedState = addWallToState(state, wall)
+        const wall = createWall(startPointId, endPointId, heightAtStart, heightAtEnd, thickness)
+        let updatedState = addWallToFloor(state, wall, floorId)
 
         const bounds = calculateStateBounds(updatedState)
-        updatedState = { ...updatedState, bounds: bounds ?? undefined }
+        if (bounds != null) {
+          updatedState = { ...updatedState, bounds }
+        }
 
         set(updatedState, false, 'addWall')
         return wall
@@ -87,12 +102,13 @@ export const useModelStore = create<ModelStore>()(
           throw new Error(`Floor ${floorId} not found`)
         }
 
-        const room = createRoom(name, floorId, wallIds)
+        const room = createRoom(name, wallIds)
+        const roomWithArea = {
+          ...room,
+          area: calculateRoomArea(room, state)
+        }
 
-        const area = calculateRoomArea(room, state)
-        const roomWithArea = { ...room, area }
-
-        const updatedState = addRoomToState(state, roomWithArea)
+        const updatedState = addRoomToFloor(state, roomWithArea, floorId)
 
         set(updatedState, false, 'addRoom')
         return roomWithArea
@@ -106,35 +122,76 @@ export const useModelStore = create<ModelStore>()(
           throw new Error(`Floor ${floorId} not found`)
         }
 
-        const point = createPoint(position, floorId)
+        const point = createPoint(position)
         const updatedState = addPointToFloor(state, point, floorId)
 
         set(updatedState, false, 'addPoint')
         return point
       },
 
-      addOpening: (wallId: WallId, type: Opening['type'], offsetFromStart: number, width: number, height: number, sillHeight?: number): Opening => {
+      addSlab: (polygon: Point2D[], thickness: Length, floorId: FloorId): Slab => {
         const state = get()
 
-        // Get the floor ID from the wall
+        // Validate floor exists
+        if (!state.floors.has(floorId)) {
+          throw new Error(`Floor ${floorId} not found`)
+        }
+
+        const slab = createSlab({ points: polygon }, thickness)
+        const updatedState = addSlabToFloor(state, slab, floorId)
+
+        set(updatedState, false, 'addSlab')
+        return slab
+      },
+
+      addRoof: (polygon: Point2D[], thickness: Length, overhang: Length, floorId: FloorId): Roof => {
+        const state = get()
+
+        // Validate floor exists
+        if (!state.floors.has(floorId)) {
+          throw new Error(`Floor ${floorId} not found`)
+        }
+
+        const roof = createRoof(
+          { points: polygon },
+          thickness,
+          overhang,
+          'flat',
+          createLength(0),
+          createLength(0)
+        )
+        const updatedState = addRoofToFloor(state, roof, floorId)
+
+        set(updatedState, false, 'addRoof')
+        return roof
+      },
+
+      addOpeningToWall: (wallId: WallId, opening: Opening): void => {
+        const state = get()
+
         const wall = state.walls.get(wallId)
         if (wall == null) {
           throw new Error(`Wall ${wallId} not found`)
         }
 
-        const opening = createOpening(wallId, wall.floorId, type, offsetFromStart, width, height, sillHeight)
-        const updatedState = addOpeningToState(state, opening)
+        const updatedWall = addOpeningToWall(wall, opening, state)
+        const updatedState = {
+          ...state,
+          walls: new Map(state.walls).set(wallId, updatedWall),
+          updatedAt: new Date()
+        }
 
-        set(updatedState, false, 'addOpening')
-        return opening
+        set(updatedState, false, 'addOpeningToWall')
       },
 
-      removeWall: (wallId: WallId) => {
+      removeWall: (wallId: WallId, floorId: FloorId) => {
         const state = get()
-        let updatedState = removeWallFromState(state, wallId)
+        let updatedState = removeWallFromFloor(state, wallId, floorId)
 
         const bounds = calculateStateBounds(updatedState)
-        updatedState = { ...updatedState, bounds: bounds ?? undefined }
+        if (bounds != null) {
+          updatedState = { ...updatedState, bounds }
+        }
 
         set(updatedState, false, 'removeWall')
       },
@@ -143,12 +200,6 @@ export const useModelStore = create<ModelStore>()(
         const state = get()
         const updatedState = movePoint(state, pointId, position)
         set(updatedState, false, 'movePoint')
-      },
-
-      moveWall: (wallId: WallId, deltaX: number, deltaY: number) => {
-        const state = get()
-        const updatedState = moveWall(state, wallId, deltaX, deltaY)
-        set(updatedState, false, 'moveWall')
       },
 
       getActiveFloorBounds: (floorId: FloorId): Bounds2D | null => {
@@ -166,12 +217,15 @@ export const useModelStore = create<ModelStore>()(
   )
 )
 
+// Selective hooks for components
 export const useFloors = (): Map<FloorId, Floor> => useModelStore(state => state.floors)
 export const useWalls = (): Map<WallId, Wall> => useModelStore(state => state.walls)
 export const useRooms = (): Map<RoomId, Room> => useModelStore(state => state.rooms)
 export const usePoints = (): Map<PointId, Point> => useModelStore(state => state.points)
-export const useOpenings = (): Map<OpeningId, Opening> => useModelStore(state => state.openings)
+export const useSlabs = (): Map<SlabId, Slab> => useModelStore(state => state.slabs)
+export const useRoofs = (): Map<RoofId, Roof> => useModelStore(state => state.roofs)
 
+// Helper function to get active floor
 export const getActiveFloor = (floors: Map<FloorId, Floor>, activeFloorId: FloorId): Floor | null => {
   const floor = floors.get(activeFloorId)
   return floor ?? null

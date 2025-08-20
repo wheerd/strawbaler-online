@@ -1,12 +1,12 @@
 import type { WallId, PointId, RoomId, FloorId, CornerId, SlabId, RoofId } from '@/types/ids'
-import type { 
-  Length, 
-  Area, 
-  Angle, 
-  Point2D, 
-  Bounds2D, 
-  Polygon2D, 
-  PolygonWithHoles2D 
+import type {
+  Length,
+  Area,
+  Angle,
+  Point2D,
+  Bounds2D,
+  Polygon2D,
+  PolygonWithHoles2D
 } from '@/types/geometry'
 
 // Connection point for wall endpoints
@@ -100,7 +100,7 @@ export interface Floor {
   slabIds: SlabId[]
   roofIds: RoofId[]
   readonly area: Area // Computed from walls and rooms
-  readonly bounds: Bounds2D
+  readonly bounds?: Bounds2D
 }
 
 // Model state for the application
@@ -112,7 +112,7 @@ export interface ModelState {
   corners: Map<CornerId, Corner>
   slabs: Map<SlabId, Slab>
   roofs: Map<RoofId, Roof>
-  readonly bounds: Bounds2D
+  readonly bounds?: Bounds2D
   createdAt: Date
   updatedAt: Date
 }
