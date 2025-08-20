@@ -1,74 +1,129 @@
-import type { WallId, PointId, RoomId, OpeningId, FloorId } from '@/types/ids'
+import type { WallId, PointId, RoomId, FloorId, CornerId, SlabId, RoofId } from '@/types/ids'
 
 // Core geometric types
+type AbsoluteOffset = number & { __brand: 'AbsoluteOffset' }
+type Length = number & { __brand: 'Length' }
+type Area = number & { __brand: 'Area' }
+type Angle = number & { __brand: 'Angle' }
+
 export interface Point2D {
-  x: number
-  y: number
+  x: AbsoluteOffset
+  y: AbsoluteOffset
 }
 
 export interface Vector2D {
-  x: number
-  y: number
+  x: Length
+  y: Length
 }
 
 export interface Bounds2D {
-  minX: number
-  minY: number
-  maxX: number
-  maxY: number
+  minX: AbsoluteOffset
+  minY: AbsoluteOffset
+  maxX: AbsoluteOffset
+  maxY: AbsoluteOffset
+}
+
+export interface Polygon2D {
+  points: Point2D[]
+}
+
+export interface PolygonWithHoles2D {
+  outer: Polygon2D
+  holes: Polygon2D[]
 }
 
 // Connection point for wall endpoints
 export interface Point {
   id: PointId
-  floorId: FloorId
   position: Point2D
-  connectedWallIds: WallId[]
+}
+
+export type WallOrCornerId = WallId | CornerId
+
+// Connection point for wall endpoints
+export interface Corner {
+  id: CornerId
+  pointId: PointId
+  wall1Id: WallId // Depending on the construction type, this is the dominant wall which "owns" the corner
+  wall2Id: WallId
+  otherWallIds?: WallId[]
+  readonly angle: Angle
+  readonly type: 'corner' | 'straight' | 'tee' | 'cross'
+  readonly area: Polygon2D
 }
 
 // Wall entity
 export interface Wall {
   id: WallId
-  floorId: FloorId
+
   startPointId: PointId
+  startTouches?: WallOrCornerId
   endPointId: PointId
-  thickness: number
-  height: number
-  openingIds: OpeningId[]
+  endTouches?: WallOrCornerId
+
+  heightAtStart: Length
+  heightAtEnd: Length
+  thickness: Length
+
+  touchedBy?: WallId[]
+  openings?: Opening[]
+
+  type: 'outer' | 'structural' | 'partition' | 'other'
+  outsideDirection?: 'left' | 'right' // Relative to the wall's start point
+
+  readonly shape: Polygon2D // Computed
 }
 
 // Opening in a wall (door, window, etc.)
 export interface Opening {
-  id: OpeningId
-  floorId: FloorId
-  wallId: WallId
   type: 'door' | 'window' | 'passage'
-  offsetFromStart: number // Offset in mm from wall start point
-  width: number
-  height: number
-  sillHeight?: number // For windows
+  offsetFromStart: Length // Offset in mm from wall start point
+  width: Length
+  height: Length
+  sillHeight?: Length // For windows
+}
+
+// Slab entity
+export interface Slab {
+  id: SlabId
+  polygon: PolygonWithHoles2D
+  thickness: Length
+  readonly area: Area // Computed
+}
+
+// Slab entity
+export interface Roof {
+  id: RoofId
+  polygon: Polygon2D
+  thickness: Length
+  overhang: Length
+  readonly slope: Angle
+  orientation: 'flat' | 'pitched' | 'gable'
+  ridgeHeight: Length
+  eaveHeight: Length
+  readonly area: Area // Computed
 }
 
 // Room/space
 export interface Room {
   id: RoomId
-  floorId: FloorId
   name: string
   wallIds: WallId[]
-  area?: number
+  readonly area: Area
 }
 
 // Floor/level
 export interface Floor {
   id: FloorId
   name: string
-  level: number // Floor number (0 = ground, 1 = first floor, etc.)
-  height: number
+  height: Length
   wallIds: WallId[]
   roomIds: RoomId[]
   pointIds: PointId[]
-  openingIds: OpeningId[]
-  bounds?: Bounds2D
+  slabIds: SlabId[]
+  roofIds: RoofId[]
+  readonly area: Area // Computed from walls and rooms
+  readonly bounds: Bounds2D
 }
 
 // Model state for the application
@@ -77,8 +132,10 @@ export interface ModelState {
   walls: Map<WallId, Wall>
   rooms: Map<RoomId, Room>
   points: Map<PointId, Point>
-  openings: Map<OpeningId, Opening>
-  bounds?: Bounds2D
+  corners: Map<CornerId, Corner>
+  slabs: Map<SlabId, Slab>
+  roofs: Map<RoofId, Roof>
+  readonly bounds: Bounds2D
   createdAt: Date
   updatedAt: Date
 }
