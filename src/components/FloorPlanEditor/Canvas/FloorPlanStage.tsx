@@ -42,8 +42,8 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
   const modelState = useModelStore()
   const addPoint = useModelStore(state => state.addPoint)
   const addWall = useModelStore(state => state.addWall)
-  const moveWallAction = useModelStore(state => state.moveWall)
-  const movePointAction = useModelStore(state => state.movePoint)
+  const moveWall = useModelStore(state => state.moveWall)
+  const movePoint = useModelStore(state => state.movePoint)
 
   // Update stage dimensions in the store when they change
   useEffect(() => {
@@ -172,22 +172,22 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
     }
 
     // Handle wall dragging
-    if (dragState.isDragging && dragState.dragType === 'wall' && dragState.dragEntityId && (dragStartPos != null)) {
+    if (dragState.isDragging && dragState.dragType === 'wall' && dragState.dragEntityId != null && (dragStartPos != null)) {
       const currentPos = getStageCoordinates(pointer)
       const deltaX = currentPos.x - dragStartPos.x
       const deltaY = currentPos.y - dragStartPos.y
 
-      moveWallAction(dragState.dragEntityId as import('../../../types/ids').WallId, deltaX, deltaY)
+      moveWall(dragState.dragEntityId as import('../../../types/ids').WallId, deltaX, deltaY)
       setDragStartPos(currentPos)
       return
     }
 
     // Handle connection point dragging
-    if (dragState.isDragging && dragState.dragType === 'point' && dragState.dragEntityId) {
+    if (dragState.isDragging && dragState.dragType === 'point' && dragState.dragEntityId != null) {
       const currentPos = getStageCoordinates(pointer)
       const snapPos = findSnapPoint(currentPos)
 
-      movePointAction(dragState.dragEntityId as import('../../../types/ids').PointId, snapPos)
+      movePoint(dragState.dragEntityId as import('../../../types/ids').PointId, snapPos)
       return
     }
 
@@ -198,9 +198,9 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
       setSnapPreview(snapCoords)
     }
   }, [dragStart, setViewport, activeTool, getStageCoordinates, findSnapPoint, setSnapPreview,
-    dragState, dragStartPos, moveWallAction, movePointAction])
+    dragState, dragStartPos, moveWall, movePoint])
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((): void => {
     setDragStart(null)
     setDragStartPos(null)
     endDrag()
@@ -208,7 +208,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
 
   // Handle escape key to cancel wall drawing
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && activeTool === 'wall' && isDrawing) {
         setWallDrawingStart(undefined)
         setIsDrawing(false)

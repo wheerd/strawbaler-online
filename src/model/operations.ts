@@ -417,6 +417,42 @@ export function movePoint (
   return updatedState
 }
 
+export function moveWall (
+  state: ModelState,
+  wallId: WallId,
+  deltaX: number,
+  deltaY: number
+): ModelState {
+  const wall = state.walls.get(wallId)
+  if (wall == null) return state
+
+  const startPoint = state.points.get(wall.startPointId)
+  const endPoint = state.points.get(wall.endPointId)
+  if (startPoint == null || endPoint == null) return state
+
+  const updatedState = { ...state }
+  updatedState.points = new Map(state.points)
+
+  const newStartPosition: Point2D = {
+    x: createAbsoluteOffset(startPoint.position.x + deltaX),
+    y: createAbsoluteOffset(startPoint.position.y + deltaY)
+  }
+
+  const newEndPosition: Point2D = {
+    x: createAbsoluteOffset(endPoint.position.x + deltaX),
+    y: createAbsoluteOffset(endPoint.position.y + deltaY)
+  }
+
+  const updatedStartPoint = { ...startPoint, position: newStartPosition }
+  const updatedEndPoint = { ...endPoint, position: newEndPosition }
+
+  updatedState.points.set(wall.startPointId, updatedStartPoint)
+  updatedState.points.set(wall.endPointId, updatedEndPoint)
+
+  updatedState.updatedAt = new Date()
+  return updatedState
+}
+
 export function removeWallFromFloor (state: ModelState, wallId: WallId, floorId: FloorId): ModelState {
   const wall = state.walls.get(wallId)
   const floor = state.floors.get(floorId)

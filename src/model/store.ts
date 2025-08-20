@@ -23,6 +23,7 @@ import {
   calculateFloorBounds,
   calculateRoomArea,
   movePoint,
+  moveWall,
   addOpeningToWall
 } from '@/model/operations'
 import { createLength } from '@/types/geometry'
@@ -39,6 +40,7 @@ interface ModelActions {
   addOpeningToWall: (wallId: WallId, opening: Opening) => void
   removeWall: (wallId: WallId, floorId: FloorId) => void
   movePoint: (pointId: PointId, position: Point2D) => void
+  moveWall: (wallId: WallId, deltaX: number, deltaY: number) => void
   getActiveFloorBounds: (floorId: FloorId) => Bounds2D | null
 }
 
@@ -200,6 +202,12 @@ export const useModelStore = create<ModelStore>()(
         const state = get()
         const updatedState = movePoint(state, pointId, position)
         set(updatedState, false, 'movePoint')
+      },
+
+      moveWall: (wallId: WallId, deltaX: number, deltaY: number) => {
+        const state = get()
+        const updatedState = moveWall(state, wallId, deltaX, deltaY)
+        set(updatedState, false, 'moveWall')
       },
 
       getActiveFloorBounds: (floorId: FloorId): Bounds2D | null => {
