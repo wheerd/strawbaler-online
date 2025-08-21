@@ -65,7 +65,7 @@ export function CornerShape ({ corner }: CornerShapeProps): React.JSX.Element | 
       x={cornerPoint.position.x}
       y={cornerPoint.position.y}
       // Allow group to listen for interactions on specific children
-      listening={true}
+      listening
     >
       {/* Background circle for better visibility - much larger */}
       <Circle

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import { CornerShape } from '@/components/FloorPlanEditor/Shapes/CornerShape'
 import { CornerLayer } from '@/components/FloorPlanEditor/Canvas/CornerLayer'
-import { createAbsoluteOffset, createAngle } from '@/types/geometry'
+import { createPoint2D, createAngle } from '@/types/geometry'
 import { createCornerId, createPointId, createWallId } from '@/types/ids'
 
 // Mock the hooks
@@ -18,7 +18,7 @@ vi.mock('@/model/store', () => ({
   usePoints: () => new Map([
     ['test-point-id', {
       id: 'test-point-id',
-      position: { x: createAbsoluteOffset(100), y: createAbsoluteOffset(200) }
+      position: createPoint2D(100, 200)
     }]
   ]),
   useFloors: () => new Map([

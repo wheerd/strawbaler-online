@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { createEmptyModelState, addPointToFloor, addWallToFloor, updateOrCreateCorner, findWallsConnectedToPoint, createPoint, createWall, createFloor, switchCornerMainWalls } from '@/model/operations'
-import { createLength, createAbsoluteOffset, radiansToDegrees } from '@/types/geometry'
+import { createLength, createPoint2D, radiansToDegrees } from '@/types/geometry'
 import { createFloorLevel } from '@/types/model'
 import type { ModelState } from '@/types/model'
 import type { FloorId } from '@/types/ids'
@@ -19,9 +19,9 @@ describe('Corner Management', () => {
   describe('findWallsConnectedToPoint', () => {
     it('should find walls connected to a point', () => {
       // Add three points
-      const point1 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) })
-      const point2 = createPoint({ x: createAbsoluteOffset(1000), y: createAbsoluteOffset(0) })
-      const point3 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(1000) })
+      const point1 = createPoint(createPoint2D(0, 0))
+      const point2 = createPoint(createPoint2D(1000, 0))
+      const point3 = createPoint(createPoint2D(0, 1000))
 
       state = addPointToFloor(state, point1, floorId)
       state = addPointToFloor(state, point2, floorId)
@@ -45,9 +45,9 @@ describe('Corner Management', () => {
   describe('updateOrCreateCorner', () => {
     it('should create a corner when two walls meet', () => {
       // Create an L-shaped configuration
-      const point1 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) })
-      const point2 = createPoint({ x: createAbsoluteOffset(1000), y: createAbsoluteOffset(0) })
-      const point3 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(1000) })
+      const point1 = createPoint(createPoint2D(0, 0))
+      const point2 = createPoint(createPoint2D(1000, 0))
+      const point3 = createPoint(createPoint2D(0, 1000))
 
       state = addPointToFloor(state, point1, floorId)
       state = addPointToFloor(state, point2, floorId)
@@ -72,9 +72,9 @@ describe('Corner Management', () => {
 
     it('should create a corner (not straight) when two walls meet at any significant angle', () => {
       // Create an L-shaped configuration - with the new tolerance, this will be a corner, not straight
-      const point1 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) })
-      const point2 = createPoint({ x: createAbsoluteOffset(500), y: createAbsoluteOffset(0) })
-      const point3 = createPoint({ x: createAbsoluteOffset(500), y: createAbsoluteOffset(500) })
+      const point1 = createPoint(createPoint2D(0, 0))
+      const point2 = createPoint(createPoint2D(500, 0))
+      const point3 = createPoint(createPoint2D(500, 500))
 
       state = addPointToFloor(state, point1, floorId)
       state = addPointToFloor(state, point2, floorId)
@@ -101,10 +101,10 @@ describe('Corner Management', () => {
 
     it('should create a tee corner when three walls meet', () => {
       // Create a T-shaped configuration - center point where 3 walls meet
-      const centerPoint = createPoint({ x: createAbsoluteOffset(500), y: createAbsoluteOffset(500) }) // center of T
-      const topPoint = createPoint({ x: createAbsoluteOffset(500), y: createAbsoluteOffset(0) }) // top
-      const leftPoint = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(500) }) // left
-      const rightPoint = createPoint({ x: createAbsoluteOffset(1000), y: createAbsoluteOffset(500) }) // right
+      const centerPoint = createPoint(createPoint2D(500, 500)) // center of T
+      const topPoint = createPoint(createPoint2D(500, 0)) // top
+      const leftPoint = createPoint(createPoint2D(0, 500)) // left
+      const rightPoint = createPoint(createPoint2D(1000, 500)) // right
 
       state = addPointToFloor(state, centerPoint, floorId)
       state = addPointToFloor(state, topPoint, floorId)
@@ -132,9 +132,9 @@ describe('Corner Management', () => {
     })
 
     it('should update wall references to include corner touches', () => {
-      const point1 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) })
-      const point2 = createPoint({ x: createAbsoluteOffset(1000), y: createAbsoluteOffset(0) })
-      const point3 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(1000) })
+      const point1 = createPoint(createPoint2D(0, 0))
+      const point2 = createPoint(createPoint2D(1000, 0))
+      const point3 = createPoint(createPoint2D(0, 1000))
 
       state = addPointToFloor(state, point1, floorId)
       state = addPointToFloor(state, point2, floorId)
@@ -161,9 +161,9 @@ describe('Corner Management', () => {
 
     it('should remove corner when only one wall remains', () => {
       // First create a corner with two walls
-      const point1 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) })
-      const point2 = createPoint({ x: createAbsoluteOffset(1000), y: createAbsoluteOffset(0) })
-      const point3 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(1000) })
+      const point1 = createPoint(createPoint2D(0, 0))
+      const point2 = createPoint(createPoint2D(1000, 0))
+      const point3 = createPoint(createPoint2D(0, 1000))
 
       state = addPointToFloor(state, point1, floorId)
       state = addPointToFloor(state, point2, floorId)
@@ -193,10 +193,10 @@ describe('Corner Management', () => {
   describe('switchCornerMainWalls', () => {
     it('should switch the main walls of a corner', () => {
       // Create a T-shaped configuration with 3 walls
-      const centerPoint = createPoint({ x: createAbsoluteOffset(500), y: createAbsoluteOffset(500) })
-      const topPoint = createPoint({ x: createAbsoluteOffset(500), y: createAbsoluteOffset(0) })
-      const leftPoint = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(500) })
-      const rightPoint = createPoint({ x: createAbsoluteOffset(1000), y: createAbsoluteOffset(500) })
+      const centerPoint = createPoint(createPoint2D(500, 500))
+      const topPoint = createPoint(createPoint2D(500, 0))
+      const leftPoint = createPoint(createPoint2D(0, 500))
+      const rightPoint = createPoint(createPoint2D(1000, 500))
 
       state = addPointToFloor(state, centerPoint, floorId)
       state = addPointToFloor(state, topPoint, floorId)
@@ -229,10 +229,10 @@ describe('Corner Management', () => {
 
     it('should throw error when switching to non-connected walls', () => {
       // Create a simple corner
-      const point1 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) })
-      const point2 = createPoint({ x: createAbsoluteOffset(1000), y: createAbsoluteOffset(0) })
-      const point3 = createPoint({ x: createAbsoluteOffset(0), y: createAbsoluteOffset(1000) })
-      const point4 = createPoint({ x: createAbsoluteOffset(2000), y: createAbsoluteOffset(0) }) // Disconnected
+      const point1 = createPoint(createPoint2D(0, 0))
+      const point2 = createPoint(createPoint2D(1000, 0))
+      const point3 = createPoint(createPoint2D(0, 1000))
+      const point4 = createPoint(createPoint2D(2000, 0)) // Disconnected
 
       state = addPointToFloor(state, point1, floorId)
       state = addPointToFloor(state, point2, floorId)

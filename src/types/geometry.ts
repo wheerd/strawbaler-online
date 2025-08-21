@@ -10,6 +10,12 @@ export const createLength = (value: number): Length => value as Length
 export const createArea = (value: number): Area => value as Area
 export const createAngle = (value: number): Angle => value as Angle
 
+// Helper function to create Point2D from two numbers
+export const createPoint2D = (x: number, y: number): Point2D => ({
+  x: createAbsoluteOffset(x),
+  y: createAbsoluteOffset(y)
+})
+
 // Core geometric types
 export interface Point2D {
   x: AbsoluteOffset
@@ -45,10 +51,7 @@ export function distance (p1: Point2D, p2: Point2D): Length {
 }
 
 export function midpoint (p1: Point2D, p2: Point2D): Point2D {
-  return {
-    x: createAbsoluteOffset((p1.x + p2.x) / 2),
-    y: createAbsoluteOffset((p1.y + p2.y) / 2)
-  }
+  return createPoint2D((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
 }
 
 export function angle (from: Point2D, to: Point2D): Angle {
@@ -65,10 +68,10 @@ export function normalizeAngle (angle: Angle): Angle {
 }
 
 export function pointOnLine (start: Point2D, end: Point2D, t: number): Point2D {
-  return {
-    x: createAbsoluteOffset(start.x + (end.x - start.x) * t),
-    y: createAbsoluteOffset(start.y + (end.y - start.y) * t)
-  }
+  return createPoint2D(
+    start.x + (end.x - start.x) * t,
+    start.y + (end.y - start.y) * t
+  )
 }
 
 export function vectorFromAngle (angle: Angle, length: Length = createLength(1)): Vector2D {
@@ -79,17 +82,14 @@ export function vectorFromAngle (angle: Angle, length: Length = createLength(1))
 }
 
 export function addVector (point: Point2D, vector: Vector2D): Point2D {
-  return {
-    x: createAbsoluteOffset(point.x + vector.x),
-    y: createAbsoluteOffset(point.y + vector.y)
-  }
+  return createPoint2D(point.x + vector.x, point.y + vector.y)
 }
 
 export function snapToGrid (point: Point2D, gridSize: Length): Point2D {
-  return {
-    x: createAbsoluteOffset(Math.round(point.x / gridSize) * gridSize),
-    y: createAbsoluteOffset(Math.round(point.y / gridSize) * gridSize)
-  }
+  return createPoint2D(
+    Math.round(point.x / gridSize) * gridSize,
+    Math.round(point.y / gridSize) * gridSize
+  )
 }
 
 export function expandBounds (bounds: Bounds2D, padding: Length): Bounds2D {

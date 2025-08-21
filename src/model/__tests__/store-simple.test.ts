@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useModelStore } from '@/model/store'
-import { createLength, createAbsoluteOffset } from '@/types/geometry'
+import { createLength, createPoint2D } from '@/types/geometry'
 import { createFloorLevel } from '@/types/model'
 import type { FloorId } from '@/types/ids'
 
@@ -46,14 +46,8 @@ describe('ModelStore - Basic Operations', () => {
       const state = useModelStore.getState()
       const groundFloorId = Array.from(state.floors.keys())[0]
 
-      const point1 = addPoint({
-        x: createAbsoluteOffset(0),
-        y: createAbsoluteOffset(0)
-      }, groundFloorId)
-      const point2 = addPoint({
-        x: createAbsoluteOffset(1000),
-        y: createAbsoluteOffset(0)
-      }, groundFloorId)
+      const point1 = addPoint(createPoint2D(0, 0), groundFloorId)
+      const point2 = addPoint(createPoint2D(1000, 0), groundFloorId)
 
       let updatedState = useModelStore.getState()
       expect(updatedState.points.size).toBe(2)
@@ -75,14 +69,8 @@ describe('ModelStore - Basic Operations', () => {
       const groundFloorId = Array.from(state.floors.keys())[0]
 
       // Add entities to the first floor by passing the active floor ID
-      const point1 = addPoint({
-        x: createAbsoluteOffset(0),
-        y: createAbsoluteOffset(0)
-      }, firstFloor.id)
-      const point2 = addPoint({
-        x: createAbsoluteOffset(1000),
-        y: createAbsoluteOffset(0)
-      }, firstFloor.id)
+      const point1 = addPoint(createPoint2D(0, 0), firstFloor.id)
+      const point2 = addPoint(createPoint2D(1000, 0), firstFloor.id)
       const wall = addWall(point1.id, point2.id, firstFloor.id, createLength(3000), createLength(3000), createLength(200))
       const room = addRoom('Test Room', firstFloor.id, [wall.id])
 
@@ -107,14 +95,8 @@ describe('ModelStore - Basic Operations', () => {
       const groundFloorId = Array.from(state.floors.keys())[0]
 
       // Setup wall
-      const point1 = addPoint({
-        x: createAbsoluteOffset(0),
-        y: createAbsoluteOffset(0)
-      }, groundFloorId)
-      const point2 = addPoint({
-        x: createAbsoluteOffset(1000),
-        y: createAbsoluteOffset(0)
-      }, groundFloorId)
+      const point1 = addPoint(createPoint2D(0, 0), groundFloorId)
+      const point2 = addPoint(createPoint2D(1000, 0), groundFloorId)
       const wall = addWall(point1.id, point2.id, groundFloorId)
 
       // Valid opening
@@ -142,14 +124,8 @@ describe('ModelStore - Basic Operations', () => {
       const groundFloorId = Array.from(state.floors.keys())[0]
 
       // Setup
-      const point1 = addPoint({
-        x: createAbsoluteOffset(0),
-        y: createAbsoluteOffset(0)
-      }, groundFloorId)
-      const point2 = addPoint({
-        x: createAbsoluteOffset(1000),
-        y: createAbsoluteOffset(0)
-      }, groundFloorId)
+      const point1 = addPoint(createPoint2D(0, 0), groundFloorId)
+      const point2 = addPoint(createPoint2D(1000, 0), groundFloorId)
       const wall = addWall(point1.id, point2.id, groundFloorId)
       addOpeningToWall(wall.id, {
         type: 'door',
@@ -175,23 +151,14 @@ describe('ModelStore - Basic Operations', () => {
       const invalidFloorId = 'invalid-floor-id' as FloorId
 
       // Should throw for connection points
-      expect(() => addPoint({
-        x: createAbsoluteOffset(0),
-        y: createAbsoluteOffset(0)
-      }, invalidFloorId))
+      expect(() => addPoint(createPoint2D(0, 0), invalidFloorId))
         .toThrow('Floor invalid-floor-id not found')
 
       // Should throw for walls (after creating valid connection points first)
       const state = useModelStore.getState()
       const validFloorId = Array.from(state.floors.keys())[0]
-      const point1 = addPoint({
-        x: createAbsoluteOffset(0),
-        y: createAbsoluteOffset(0)
-      }, validFloorId)
-      const point2 = addPoint({
-        x: createAbsoluteOffset(100),
-        y: createAbsoluteOffset(0)
-      }, validFloorId)
+      const point1 = addPoint(createPoint2D(0, 0), validFloorId)
+      const point2 = addPoint(createPoint2D(100, 0), validFloorId)
 
       expect(() => addWall(point1.id, point2.id, invalidFloorId))
         .toThrow('Floor invalid-floor-id not found')

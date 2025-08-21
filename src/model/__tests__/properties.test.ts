@@ -8,15 +8,12 @@ import {
   getWallLength,
   calculateStateBounds
 } from '@/model/operations'
-import { createAbsoluteOffset, createLength } from '@/types/geometry'
+import { createLength, createPoint2D } from '@/types/geometry'
 
 describe('Model Properties', () => {
   describe('Connection Points', () => {
     it('should create connection point with position', () => {
-      const point = createPoint({
-        x: createAbsoluteOffset(100),
-        y: createAbsoluteOffset(200)
-      })
+      const point = createPoint(createPoint2D(100, 200))
 
       expect(Number(point.position.x)).toBe(100)
       expect(Number(point.position.y)).toBe(200)
@@ -25,14 +22,8 @@ describe('Model Properties', () => {
 
   describe('Walls', () => {
     it('should create wall between points', () => {
-      const p1 = createPoint({
-        x: createAbsoluteOffset(0),
-        y: createAbsoluteOffset(0)
-      })
-      const p2 = createPoint({
-        x: createAbsoluteOffset(100),
-        y: createAbsoluteOffset(0)
-      })
+      const p1 = createPoint(createPoint2D(0, 0))
+      const p2 = createPoint(createPoint2D(100, 0))
       const wall = createWall(
         p1.id,
         p2.id,
@@ -51,14 +42,8 @@ describe('Model Properties', () => {
     it('should calculate wall length', () => {
       let state = createEmptyModelState()
       const groundFloorId = Array.from(state.floors.keys())[0]
-      const p1 = createPoint({
-        x: createAbsoluteOffset(0),
-        y: createAbsoluteOffset(0)
-      })
-      const p2 = createPoint({
-        x: createAbsoluteOffset(300),
-        y: createAbsoluteOffset(400)
-      })
+      const p1 = createPoint(createPoint2D(0, 0))
+      const p2 = createPoint(createPoint2D(300, 400))
       const wall = createWall(
         p1.id,
         p2.id,
@@ -79,14 +64,8 @@ describe('Model Properties', () => {
     it('should calculate bounds from connection points', () => {
       let state = createEmptyModelState()
       const groundFloorId = Array.from(state.floors.keys())[0]
-      const p1 = createPoint({
-        x: createAbsoluteOffset(10),
-        y: createAbsoluteOffset(20)
-      })
-      const p2 = createPoint({
-        x: createAbsoluteOffset(100),
-        y: createAbsoluteOffset(50)
-      })
+      const p1 = createPoint(createPoint2D(10, 20))
+      const p2 = createPoint(createPoint2D(100, 50))
 
       state = addPointToFloor(state, p1, groundFloorId)
       state = addPointToFloor(state, p2, groundFloorId)

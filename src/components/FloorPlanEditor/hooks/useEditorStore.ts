@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { createAbsoluteOffset, type Point2D } from '@/types/geometry'
+import { createPoint2D, type Point2D } from '@/types/geometry'
 import type { FloorId } from '@/types/ids'
 
 export type EditorTool = 'select' | 'wall' | 'room'
@@ -71,7 +71,7 @@ function createInitialState (defaultFloorId: FloorId): EditorState {
     dragState: {
       isDragging: false,
       dragType: 'selection',
-      startPos: { x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) }
+      startPos: createPoint2D(0, 0)
     },
     snapDistance: 20,
     showSnapPreview: false,
@@ -130,7 +130,7 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
       dragState: {
         isDragging: false,
         dragType: 'selection',
-        startPos: { x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) }
+        startPos: createPoint2D(0, 0)
       }
     })
   },

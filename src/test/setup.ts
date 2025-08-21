@@ -39,13 +39,13 @@ vi.mock('react-konva', () => {
   return {
     Stage: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'stage', ...props }, children),
     Layer: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'layer', ...props }, children),
-    Line: ({ points, ...props }: any) => React.createElement('div', { 
+    Line: ({ points, ...props }: any) => React.createElement('div', {
       'data-testid': 'wall-line',
       'data-points': JSON.stringify(points),
       ...props
     }),
     Group: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'group', ...props }, children),
-    Arrow: ({ points, ...props }: any) => React.createElement('div', { 
+    Arrow: ({ points, ...props }: any) => React.createElement('div', {
       'data-testid': 'direction-arrow',
       'data-points': JSON.stringify(points),
       ...props

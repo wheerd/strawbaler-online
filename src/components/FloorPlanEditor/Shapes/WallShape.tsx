@@ -98,15 +98,15 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
   const wallDx = endPoint.position.x - startPoint.position.x
   const wallDy = endPoint.position.y - startPoint.position.y
   const wallLength = Math.sqrt(wallDx * wallDx + wallDy * wallDy)
-  
+
   // Get perpendicular vector (normal to wall)
   const normalX = wallLength > 0 ? -wallDy / wallLength : 0
   const normalY = wallLength > 0 ? wallDx / wallLength : 0
-  
+
   // Calculate wall midpoint
   const midX = (startPoint.position.x + endPoint.position.x) / 2
   const midY = (startPoint.position.y + endPoint.position.y) / 2
-  
+
   // Arrow positions offset from wall center
   const arrowOffset = 30
   const arrow1X = midX + normalX * arrowOffset
@@ -127,7 +127,7 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
         listening={activeTool !== 'wall'}
         draggable={false}
       />
-      
+
       {/* Direction arrows when selected */}
       {isSelected && wallLength > 0 && (
         <>

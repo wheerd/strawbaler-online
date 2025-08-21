@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import { SelectionLayer } from '@/components/FloorPlanEditor/Canvas/SelectionLayer'
 import { useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
-import { createAbsoluteOffset } from '@/types/geometry'
+import { createPoint2D } from '@/types/geometry'
 
 // Mock Konva components
 vi.mock('react-konva', () => ({
@@ -18,7 +18,7 @@ describe('Snap Preview Visibility', () => {
   it('should show snap preview circle when wall tool is active', () => {
     // Set up wall tool with snap preview
     useEditorStore.getState().setActiveTool('wall')
-    useEditorStore.getState().setSnapPreview({ x: createAbsoluteOffset(100), y: createAbsoluteOffset(200) })
+    useEditorStore.getState().setSnapPreview(createPoint2D(100, 200))
 
     const { queryByTestId } = render(<SelectionLayer />)
 
@@ -32,7 +32,7 @@ describe('Snap Preview Visibility', () => {
   it('should hide snap preview circle when select tool is active', () => {
     // Set up select tool with snap preview (should not show)
     useEditorStore.getState().setActiveTool('select')
-    useEditorStore.getState().setSnapPreview({ x: createAbsoluteOffset(100), y: createAbsoluteOffset(200) })
+    useEditorStore.getState().setSnapPreview(createPoint2D(100, 200))
 
     const { queryByTestId } = render(<SelectionLayer />)
 
@@ -44,7 +44,7 @@ describe('Snap Preview Visibility', () => {
   it('should hide snap preview circle when room tool is active', () => {
     // Set up room tool with snap preview (should not show)
     useEditorStore.getState().setActiveTool('room')
-    useEditorStore.getState().setSnapPreview({ x: createAbsoluteOffset(100), y: createAbsoluteOffset(200) })
+    useEditorStore.getState().setSnapPreview(createPoint2D(100, 200))
 
     const { queryByTestId } = render(<SelectionLayer />)
 
@@ -56,11 +56,11 @@ describe('Snap Preview Visibility', () => {
   it('should clear snap preview when switching away from wall tool', () => {
     // Start with wall tool and snap preview
     useEditorStore.getState().setActiveTool('wall')
-    useEditorStore.getState().setSnapPreview({ x: createAbsoluteOffset(100), y: createAbsoluteOffset(200) })
+    useEditorStore.getState().setSnapPreview(createPoint2D(100, 200))
 
     // Verify snap preview is set
     expect(useEditorStore.getState().showSnapPreview).toBe(true)
-    expect(useEditorStore.getState().snapPreviewPoint).toEqual({ x: createAbsoluteOffset(100), y: createAbsoluteOffset(200) })
+    expect(useEditorStore.getState().snapPreviewPoint).toEqual(createPoint2D(100, 200))
 
     // Switch to select tool
     useEditorStore.getState().setActiveTool('select')

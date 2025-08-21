@@ -4,7 +4,7 @@ import type Konva from 'konva'
 import { useEditorStore, useViewport, useActiveTool, useIsDrawing, useActiveFloorId, useWallDrawingStart } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { useModelStore } from '@/model/store'
 import { findNearestPoint } from '@/model/operations'
-import { createAbsoluteOffset, createLength, type Point2D } from '@/types/geometry'
+import { createPoint2D, createLength, type Point2D } from '@/types/geometry'
 import { GridLayer } from './GridLayer'
 import { WallLayer } from './WallLayer'
 import { WallPreviewLayer } from './WallPreviewLayer'
@@ -53,10 +53,10 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
 
   // Helper function to get stage coordinates from pointer
   const getStageCoordinates = useCallback((pointer: { x: number, y: number }): Point2D => {
-    return {
-      x: createAbsoluteOffset((pointer.x - viewport.panX) / viewport.zoom),
-      y: createAbsoluteOffset((pointer.y - viewport.panY) / viewport.zoom)
-    }
+    return createPoint2D(
+      (pointer.x - viewport.panX) / viewport.zoom,
+      (pointer.y - viewport.panY) / viewport.zoom
+    )
   }, [viewport])
 
   // Helper function to find snap point

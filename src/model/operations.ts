@@ -30,7 +30,7 @@ import {
   createLength,
   createArea,
   createAngle,
-  createAbsoluteOffset,
+  createPoint2D,
   type Point2D,
   type Bounds2D,
   type Polygon2D,
@@ -98,10 +98,10 @@ export function createWall (
   // This is a computed property that would normally be calculated based on points and thickness
   const shape: Polygon2D = {
     points: [
-      { x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) },
-      { x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) },
-      { x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) },
-      { x: createAbsoluteOffset(0), y: createAbsoluteOffset(0) }
+      createPoint2D(0, 0),
+      createPoint2D(0, 0),
+      createPoint2D(0, 0),
+      createPoint2D(0, 0)
     ]
   }
 
@@ -437,7 +437,7 @@ export function moveWall (
   const wallDx = endPoint.position.x - startPoint.position.x
   const wallDy = endPoint.position.y - startPoint.position.y
   const wallLength = Math.sqrt(wallDx * wallDx + wallDy * wallDy)
-  
+
   if (wallLength === 0) return state // Degenerate wall
 
   // Calculate perpendicular (normal) vector to the wall
@@ -454,15 +454,15 @@ export function moveWall (
   const updatedState = { ...state }
   updatedState.points = new Map(state.points)
 
-  const newStartPosition: Point2D = {
-    x: createAbsoluteOffset(startPoint.position.x + moveX),
-    y: createAbsoluteOffset(startPoint.position.y + moveY)
-  }
+  const newStartPosition: Point2D = createPoint2D(
+    startPoint.position.x + moveX,
+    startPoint.position.y + moveY
+  )
 
-  const newEndPosition: Point2D = {
-    x: createAbsoluteOffset(endPoint.position.x + moveX),
-    y: createAbsoluteOffset(endPoint.position.y + moveY)
-  }
+  const newEndPosition: Point2D = createPoint2D(
+    endPoint.position.x + moveX,
+    endPoint.position.y + moveY
+  )
 
   const updatedStartPoint = { ...startPoint, position: newStartPosition }
   const updatedEndPoint = { ...endPoint, position: newEndPosition }
@@ -526,10 +526,10 @@ export function calculateWallShape (wall: Wall, state: ModelState): Polygon2D {
 
   return {
     points: [
-      { x: createAbsoluteOffset(start.x + perpX), y: createAbsoluteOffset(start.y + perpY) },
-      { x: createAbsoluteOffset(end.x + perpX), y: createAbsoluteOffset(end.y + perpY) },
-      { x: createAbsoluteOffset(end.x - perpX), y: createAbsoluteOffset(end.y - perpY) },
-      { x: createAbsoluteOffset(start.x - perpX), y: createAbsoluteOffset(start.y - perpY) }
+      createPoint2D(start.x + perpX, start.y + perpY),
+      createPoint2D(end.x + perpX, end.y + perpY),
+      createPoint2D(end.x - perpX, end.y - perpY),
+      createPoint2D(start.x - perpX, start.y - perpY)
     ]
   }
 }
@@ -728,10 +728,10 @@ export function createCornerFromWalls (
 
   const area: Polygon2D = {
     points: [
-      { x: createAbsoluteOffset(cornerPoint.position.x - cornerSize / 2), y: createAbsoluteOffset(cornerPoint.position.y - cornerSize / 2) },
-      { x: createAbsoluteOffset(cornerPoint.position.x + cornerSize / 2), y: createAbsoluteOffset(cornerPoint.position.y - cornerSize / 2) },
-      { x: createAbsoluteOffset(cornerPoint.position.x + cornerSize / 2), y: createAbsoluteOffset(cornerPoint.position.y + cornerSize / 2) },
-      { x: createAbsoluteOffset(cornerPoint.position.x - cornerSize / 2), y: createAbsoluteOffset(cornerPoint.position.y + cornerSize / 2) }
+      createPoint2D(cornerPoint.position.x - cornerSize / 2, cornerPoint.position.y - cornerSize / 2),
+      createPoint2D(cornerPoint.position.x + cornerSize / 2, cornerPoint.position.y - cornerSize / 2),
+      createPoint2D(cornerPoint.position.x + cornerSize / 2, cornerPoint.position.y + cornerSize / 2),
+      createPoint2D(cornerPoint.position.x - cornerSize / 2, cornerPoint.position.y + cornerSize / 2)
     ]
   }
 

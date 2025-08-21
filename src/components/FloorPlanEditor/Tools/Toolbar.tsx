@@ -3,7 +3,7 @@ import { useActiveTool, useEditorStore, useActiveFloorId, useViewport } from '@/
 import { useModelStore } from '@/model/store'
 import { FloorSelector } from './FloorSelector'
 import { calculateFloorBounds } from '@/model/operations'
-import { createAbsoluteOffset, createLength } from '@/types/geometry'
+import { createPoint2D, createLength } from '@/types/geometry'
 
 export function Toolbar (): React.JSX.Element {
   const activeTool = useActiveTool()
@@ -28,10 +28,10 @@ export function Toolbar (): React.JSX.Element {
   ]
 
   const createSampleBuilding = useCallback(() => {
-    const point1 = addPoint({ x: createAbsoluteOffset(100), y: createAbsoluteOffset(100) }, activeFloorId)
-    const point2 = addPoint({ x: createAbsoluteOffset(400), y: createAbsoluteOffset(100) }, activeFloorId)
-    const point3 = addPoint({ x: createAbsoluteOffset(400), y: createAbsoluteOffset(300) }, activeFloorId)
-    const point4 = addPoint({ x: createAbsoluteOffset(100), y: createAbsoluteOffset(300) }, activeFloorId)
+    const point1 = addPoint(createPoint2D(100, 100), activeFloorId)
+    const point2 = addPoint(createPoint2D(400, 100), activeFloorId)
+    const point3 = addPoint(createPoint2D(400, 300), activeFloorId)
+    const point4 = addPoint(createPoint2D(100, 300), activeFloorId)
 
     const wall1 = addWall(point1.id, point2.id, activeFloorId, createLength(200), createLength(3000))
     const wall2 = addWall(point2.id, point3.id, activeFloorId, createLength(200), createLength(3000))
