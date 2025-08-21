@@ -209,10 +209,10 @@ describe('Model Operations', () => {
       state = addPointToFloor(state, point2, groundFloorId)
 
       const bounds = calculateStateBounds(state)
-      expect((bounds != null) && Number(bounds.minX)).toBe(10)
-      expect((bounds != null) && Number(bounds.minY)).toBe(20)
-      expect((bounds != null) && Number(bounds.maxX)).toBe(100)
-      expect((bounds != null) && Number(bounds.maxY)).toBe(150)
+      expect(Number(bounds!.minX)).toBe(10)
+      expect(Number(bounds!.minY)).toBe(20)
+      expect(Number(bounds!.maxX)).toBe(100)
+      expect(Number(bounds!.maxY)).toBe(150)
     })
 
     it('should return null bounds for empty state', () => {

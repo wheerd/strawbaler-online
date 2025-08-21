@@ -116,33 +116,23 @@ describe('Wall Dragging Features', () => {
 
       // Get fresh store reference after wall creation
       const freshModelStore = useModelStore.getState()
-      const initialStartPoint = freshModelStore.points.get(verticalWall.startPointId)
-      const initialEndPoint = freshModelStore.points.get(verticalWall.endPointId)
-
-      // Check points exist before proceeding
-      expect(initialStartPoint).toBeDefined()
-      expect(initialEndPoint).toBeDefined()
+      const initialStartPoint = freshModelStore.points.get(verticalWall.startPointId)!
+      const initialEndPoint = freshModelStore.points.get(verticalWall.endPointId)!
 
       // Move vertical wall with diagonal delta (should only move horizontally)
       freshModelStore.moveWall(verticalWall.id, 50, 50)
 
       const updatedModelStore = useModelStore.getState()
-      const updatedStartPoint = updatedModelStore.points.get(verticalWall.startPointId)
-      const updatedEndPoint = updatedModelStore.points.get(verticalWall.endPointId)
+      const updatedStartPoint = updatedModelStore.points.get(verticalWall.startPointId)!
+      const updatedEndPoint = updatedModelStore.points.get(verticalWall.endPointId)!
 
-      // Check updated points exist
-      expect(updatedStartPoint).toBeDefined()
-      expect(updatedEndPoint).toBeDefined()
+      // Wall is vertical, so only X movement should be applied (perpendicular)
+      expect(updatedStartPoint.position.y).toBe(initialStartPoint.position.y)
+      expect(updatedEndPoint.position.y).toBe(initialEndPoint.position.y)
 
-      if ((initialStartPoint != null) && (initialEndPoint != null) && (updatedStartPoint != null) && (updatedEndPoint != null)) {
-        // Wall is vertical, so only X movement should be applied (perpendicular)
-        expect(updatedStartPoint.position.y).toBe(initialStartPoint.position.y)
-        expect(updatedEndPoint.position.y).toBe(initialEndPoint.position.y)
-
-        // X position should change (perpendicular to vertical wall)
-        expect(updatedStartPoint.position.x).not.toBe(initialStartPoint.position.x)
-        expect(updatedEndPoint.position.x).not.toBe(initialEndPoint.position.x)
-      }
+      // X position should change (perpendicular to vertical wall)
+      expect(updatedStartPoint.position.x).not.toBe(initialStartPoint.position.x)
+      expect(updatedEndPoint.position.x).not.toBe(initialEndPoint.position.x)
     })
   })
 

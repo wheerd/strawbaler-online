@@ -34,8 +34,8 @@ beforeAll(() => {
 })
 
 // Mock React-Konva components with test-friendly implementations
-vi.mock('react-konva', () => {
-  const React = require('react')
+vi.mock('react-konva', async () => {
+  const React = await import('react')
   return {
     Stage: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'stage', ...props }, children),
     Layer: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'layer', ...props }, children),

@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "ts-standard -p tsconfig.app.json src/",
-    "lint:fix": "ts-standard --fix -p tsconfig.app.json src/",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "preview": "vite preview",
     "test": "vitest run"
   },

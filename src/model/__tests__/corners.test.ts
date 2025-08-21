@@ -127,8 +127,7 @@ describe('Corner Management', () => {
       const corner = Array.from(updatedState.corners.values())[0]
       expect(corner.pointId).toBe(centerPoint.id)
       expect(corner.type).toBe('tee')
-      expect(corner.otherWallIds).toBeDefined()
-      expect(corner.otherWallIds).toHaveLength(1)
+      expect(corner.otherWallIds!).toHaveLength(1)
     })
 
     it('should update wall references to include corner touches', () => {
@@ -150,13 +149,11 @@ describe('Corner Management', () => {
       const corner = Array.from(updatedState.corners.values())[0]
 
       // Check that walls now reference the corner
-      const updatedWall1 = updatedState.walls.get(wall1.id)
-      const updatedWall2 = updatedState.walls.get(wall2.id)
+      const updatedWall1 = updatedState.walls.get(wall1.id)!
+      const updatedWall2 = updatedState.walls.get(wall2.id)!
 
-      expect(updatedWall1).toBeDefined()
-      expect(updatedWall2).toBeDefined()
-      expect(updatedWall1?.startTouches).toBe(corner.id)
-      expect(updatedWall2?.startTouches).toBe(corner.id)
+      expect(updatedWall1.startTouches).toBe(corner.id)
+      expect(updatedWall2.startTouches).toBe(corner.id)
     })
 
     it('should remove corner when only one wall remains', () => {
