@@ -33,21 +33,21 @@ beforeAll(() => {
   }))
 })
 
-const propsAttrs = (props: any) => {
-  return Object.entries(props).reduce((acc, [key, value]) => {
+const propsAttrs = (props: any): Record<string, any> => {
+  return Object.entries(props).reduce<Record<string, any>>((acc, [key, value]) => {
     if (typeof value === 'function') return acc
-    
+
     // Handle special attributes
     if (key === 'listening') {
       acc[key] = String(value)
       return acc
     }
-    
+
     // Convert camelCase to kebab-case for data attributes
     const kebabKey = key.replace(/([A-Z])/g, '-$1').toLowerCase()
     acc[`data-${kebabKey}`] = typeof value === 'object' ? JSON.stringify(value) : value
     return acc
-  }, {} as Record<string, any>)
+  }, {})
 }
 
 // Mock React-Konva components with test-friendly implementations

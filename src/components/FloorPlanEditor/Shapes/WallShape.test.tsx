@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render } from '@testing-library/react'
-import { WallShape } from '../WallShape'
+import { WallShape } from './WallShape'
 import type { Wall } from '@/types/model'
 import { createWallId, createPointId } from '@/types/ids'
 import { createLength, createPoint2D } from '@/types/geometry'

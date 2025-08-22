@@ -1,13 +1,13 @@
 import { renderHook } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { usePointsOfActiveFloor, useWallsOfActiveFloor, useActiveFloorData } from '../useFloorData'
+import { usePointsOfActiveFloor, useWallsOfActiveFloor, useActiveFloorData } from './useFloorData'
 import * as operations from '@/model/operations'
-import * as editorStore from '../useEditorStore'
+import * as editorStore from './useEditorStore'
 import * as modelStore from '@/model/store'
 
 // Mock the dependencies
 vi.mock('@/model/operations')
-vi.mock('../useEditorStore')
+vi.mock('./useEditorStore')
 vi.mock('@/model/store')
 
 const mockedOperations = vi.mocked(operations)
