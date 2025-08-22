@@ -90,7 +90,7 @@ export function WallPreviewLayer ({ wallDrawingStart, stageWidth, stageHeight }:
           x={snapResult.position.x}
           y={snapResult.position.y}
           radius={15}
-          fill={snapResult.snapType === 'intersection' ? '#ff00ff' : snapResult.type === 'point' ? '#ff6600' : '#0066ff'}
+          fill={(snapResult.lines?.length === 2) ? '#ff00ff' : (snapResult.lines?.length === 1) ? '#0066ff' : '#ff6600'}
           stroke='#ffffff'
           strokeWidth={3}
           opacity={0.9}
@@ -98,57 +98,32 @@ export function WallPreviewLayer ({ wallDrawingStart, stageWidth, stageHeight }:
         />
       )}
 
-      {/* Show active snap line if snapping to a line */}
-      {(snapResult != null) && snapResult.type === 'line' && (snapResult.line != null) && (
-        <Line
-          points={[
-            snapResult.line.position.x - lineExtent * snapResult.line.direction.x,
-            snapResult.line.position.y - lineExtent * snapResult.line.direction.y,
-            snapResult.line.position.x + lineExtent * snapResult.line.direction.x,
-            snapResult.line.position.y + lineExtent * snapResult.line.direction.y
-          ]}
-          stroke={(() => {
-            const colors = {
-              horizontal: '#0066ff',
-              vertical: '#6600ff',
-              extension: '#ff6600',
-              perpendicular: '#00ff00'
-            }
-            return colors[snapResult.line.type] ?? '#666666'
-          })()}
-          strokeWidth={20}
-          dash={[10, 5]}
-          opacity={0.7}
-          listening={false}
-        />
-      )}
-
-      {/* Show intersection lines when snapping to intersection */}
-      {(snapResult != null) && snapResult.snapType === 'intersection' && (snapResult.intersectionLines != null) &&
-        snapResult.intersectionLines.map((line, index) => (
-          <Line
-            key={`intersection-line-${index}`}
-            points={[
-              line.position.x - lineExtent * line.direction.x,
-              line.position.y - lineExtent * line.direction.y,
-              line.position.x + lineExtent * line.direction.x,
-              line.position.y + lineExtent * line.direction.y
-            ]}
-            stroke={(() => {
-              const colors = {
-                horizontal: '#0066ff',
-                vertical: '#6600ff',
-                extension: '#ff6600',
-                perpendicular: '#00ff00'
-              }
-              return colors[line.type] ?? '#666666'
-            })()}
-            strokeWidth={20}
-            dash={[10, 5]}
-            opacity={0.7}
-            listening={false}
-          />
-        ))}
+      {/* Show snap lines */}
+      {(snapResult?.lines != null) &&
+         snapResult.lines.map((line, index) => (
+           <Line
+             key={`snap-line-${index}`}
+             points={[
+               line.line2D.point.x - lineExtent * line.line2D.direction.x,
+               line.line2D.point.y - lineExtent * line.line2D.direction.y,
+               line.line2D.point.x + lineExtent * line.line2D.direction.x,
+               line.line2D.point.y + lineExtent * line.line2D.direction.y
+             ]}
+             stroke={(() => {
+               const colors = {
+                 horizontal: '#0066ff',
+                 vertical: '#6600ff',
+                 extension: '#ff6600',
+                 perpendicular: '#00ff00'
+               }
+               return colors[line.type] ?? '#666666'
+             })()}
+             strokeWidth={20}
+             dash={[10, 5]}
+             opacity={0.7}
+             listening={false}
+           />
+         ))}
 
     </Layer>
   )

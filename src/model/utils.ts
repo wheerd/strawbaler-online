@@ -19,5 +19,7 @@ export {
   lineFromPoints,
   lineFromPointAndAngle,
   distanceToInfiniteLine,
-  type Line2D
+  createVector2D,
+  type Line2D,
+  type Vector2D
 } from '@/types/geometry'

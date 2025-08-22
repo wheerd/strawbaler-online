@@ -6,7 +6,6 @@ import {
   createPoint,
   createWall,
   findSnapPoint,
-  findPointSnapPositions,
   generateSnapLines,
   SNAP_CONFIG
 } from '@/model/operations'
@@ -25,9 +24,9 @@ describe('Snapping System Improvements', () => {
     const target = createPoint2D(120, 100) // 20mm away
     const fromPoint = createPoint2D(0, 0)
 
-    const pointSnaps = findPointSnapPositions(stateWithPoint, target, fromPoint, groundFloorId)
-    expect(pointSnaps).toHaveLength(1)
-    expect(pointSnaps[0].position).toEqual(point1.position)
+    const snapResult = findSnapPoint(stateWithPoint, target, fromPoint, groundFloorId, false)
+    expect(snapResult).toBeDefined()
+    expect(snapResult?.position).toEqual(point1.position)
   })
 
   test('should only generate extension/perpendicular lines for walls connected to start point', () => {
@@ -82,18 +81,20 @@ describe('Snapping System Improvements', () => {
     const point1 = createPoint(createPoint2D(100, 100))
     const stateWithPoint = addPointToFloor(state, point1, groundFloorId)
 
-    // Test with target just outside snap distance
+    // Test with target just outside point snap distance
     const snapDistanceValue = Number(SNAP_CONFIG.pointSnapDistance)
-    const target = createPoint2D(100 + snapDistanceValue + 1, 100) // Just outside range
+    const target = createPoint2D(100 + snapDistanceValue + 1, 100) // Just outside point snap range
     const fromPoint = createPoint2D(0, 0)
 
-    const pointSnaps = findPointSnapPositions(stateWithPoint, target, fromPoint, groundFloorId)
-    expect(pointSnaps).toHaveLength(0) // Should not snap
+    const snapResult = findSnapPoint(stateWithPoint, target, fromPoint, groundFloorId, false)
+    // Should not do point snapping (would be line snapping if anything), so no direct position match
+    expect(snapResult?.position).not.toEqual(point1.position)
 
-    // Test with target just inside snap distance
+    // Test with target just inside snap distance - should snap directly to point
     const targetInside = createPoint2D(100 + snapDistanceValue - 1, 100) // Just inside range
-    const pointSnapsInside = findPointSnapPositions(stateWithPoint, targetInside, fromPoint, groundFloorId)
-    expect(pointSnapsInside).toHaveLength(1) // Should snap
+    const snapResultInside = findSnapPoint(stateWithPoint, targetInside, fromPoint, groundFloorId, false)
+    expect(snapResultInside).toBeDefined() // Should snap
+    expect(snapResultInside?.position).toEqual(point1.position) // Should snap to exact point
   })
 
   test('should prevent snapping end point to start point', () => {
@@ -108,8 +109,8 @@ describe('Snapping System Improvements', () => {
     const target = createPoint2D(101, 100) // Very close to start point
     const fromPoint = startPoint.position
 
-    const pointSnaps = findPointSnapPositions(stateWithPoint, target, fromPoint, groundFloorId)
-    expect(pointSnaps).toHaveLength(0) // Should not snap to itself
+    const snapResult = findSnapPoint(stateWithPoint, target, fromPoint, groundFloorId, false)
+    expect(snapResult).toBeNull() // Should not snap to itself
   })
 
   test('should work with complete findSnapPoint function', () => {
@@ -126,7 +127,8 @@ describe('Snapping System Improvements', () => {
 
     const snapResult = findSnapPoint(stateWithPoint, target, fromPoint, groundFloorId, false)
     expect(snapResult).not.toBeNull()
-    expect(snapResult!.type).toBe('point')
+    // Point snapping should result in no lines array (direct point snap)
+    expect(snapResult!.lines).toBeUndefined()
     expect(snapResult!.position).toEqual(point1.position)
   })
 })

@@ -16,6 +16,12 @@ export const createPoint2D = (x: number, y: number): Point2D => ({
   y: createAbsoluteOffset(y)
 })
 
+// Helper function to create Vector2D from two numbers
+export const createVector2D = (x: number, y: number): Vector2D => ({
+  x: createLength(x),
+  y: createLength(y)
+})
+
 // Core geometric types
 export interface Point2D {
   x: AbsoluteOffset
@@ -292,7 +298,7 @@ export function degreesToRadians (degrees: number): Angle {
 // Line representation for intersection calculations
 export interface Line2D {
   point: Point2D
-  direction: Point2D // Normalized direction vector
+  direction: Vector2D // Normalized direction vector
 }
 
 // Calculate intersection of two infinite lines
@@ -327,7 +333,7 @@ export function lineFromPoints (p1: Point2D, p2: Point2D): Line2D | null {
 
   return {
     point: p1,
-    direction: createPoint2D(dx / length, dy / length)
+    direction: createVector2D(dx / length, dy / length)
   }
 }
 
@@ -335,7 +341,7 @@ export function lineFromPoints (p1: Point2D, p2: Point2D): Line2D | null {
 export function lineFromPointAndAngle (point: Point2D, angle: Angle): Line2D {
   return {
     point,
-    direction: createPoint2D(Math.cos(angle), Math.sin(angle))
+    direction: createVector2D(Math.cos(angle), Math.sin(angle))
   }
 }
 
