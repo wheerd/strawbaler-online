@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { FloorPlanStage } from './Canvas/FloorPlanStage'
 import { Toolbar } from './Tools/Toolbar'
 import { useFloors } from '@/model/store'
-import { useEditorStore } from './hooks/useEditorStore'
+import { useEditorStore, useSelectedEntity } from './hooks/useEditorStore'
 import './FloorPlanEditor.css'
 
 export function FloorPlanEditor (): React.JSX.Element {
@@ -10,6 +10,9 @@ export function FloorPlanEditor (): React.JSX.Element {
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const floors = useFloors()
   const setActiveFloor = useEditorStore(state => state.setActiveFloor)
+  const selectedEntityId = useSelectedEntity()
+  const clearSelection = useEditorStore(state => state.clearSelection)
+  const deleteSelectedEntity = useEditorStore(state => state.deleteSelectedEntity)
 
   // Sync editor store with model store's default floor
   useEffect(() => {
@@ -52,6 +55,26 @@ export function FloorPlanEditor (): React.JSX.Element {
       window.removeEventListener('resize', handleResize)
     }
   }, [updateDimensions])
+
+  // Handle delete key
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Delete' || event.key === 'Backspace') {
+      if (selectedEntityId != null) {
+        event.preventDefault()
+        deleteSelectedEntity()
+      }
+    } else if (event.key === 'Escape') {
+      clearSelection()
+    }
+  }, [selectedEntityId, deleteSelectedEntity, clearSelection])
+
+  // Add keyboard event listener
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [handleKeyDown])
 
   return (
     <div ref={containerRef} className='floor-plan-editor'>

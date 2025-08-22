@@ -26,7 +26,10 @@ import {
   moveWall,
   addOpeningToWall,
   updateOrCreateCorner,
-  switchCornerMainWalls
+  switchCornerMainWalls,
+  deletePoint,
+  deleteWall,
+  deleteRoom
 } from '@/model/operations'
 import { createLength } from '@/types/geometry'
 
@@ -45,6 +48,9 @@ interface ModelActions {
   moveWall: (wallId: WallId, deltaX: number, deltaY: number) => void
   switchCornerMainWalls: (cornerId: CornerId, newWall1Id: WallId, newWall2Id: WallId) => void
   getActiveFloorBounds: (floorId: FloorId) => Bounds2D | null
+  deletePoint: (pointId: PointId, floorId: FloorId) => void
+  deleteWall: (wallId: WallId, floorId: FloorId) => void
+  deleteRoom: (roomId: RoomId, floorId: FloorId) => void
 }
 
 type ModelStore = ModelState & ModelActions
@@ -257,6 +263,24 @@ export const useModelStore = create<ModelStore>()(
           return null
         }
         return calculateFloorBounds(floorId, state)
+      },
+
+      deletePoint: (pointId: PointId, floorId: FloorId) => {
+        const state = get()
+        const updatedState = deletePoint(state, pointId, floorId)
+        set(updatedState, false, 'deletePoint')
+      },
+
+      deleteWall: (wallId: WallId, floorId: FloorId) => {
+        const state = get()
+        const updatedState = deleteWall(state, wallId, floorId)
+        set(updatedState, false, 'deleteWall')
+      },
+
+      deleteRoom: (roomId: RoomId, floorId: FloorId) => {
+        const state = get()
+        const updatedState = deleteRoom(state, roomId, floorId)
+        set(updatedState, false, 'deleteRoom')
       }
     }),
     {

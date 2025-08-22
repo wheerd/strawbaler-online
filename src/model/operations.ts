@@ -15,7 +15,8 @@ import type {
   WallId,
   PointId,
   FloorId,
-  CornerId
+  CornerId,
+  RoomId
 } from '@/types/ids'
 import {
   createWallId,
@@ -768,6 +769,148 @@ export function removeWallFromFloor (state: ModelState, wallId: WallId, floorId:
   updatedState.floors.set(floorId, updatedFloor)
   updatedState.updatedAt = new Date()
   return updatedState
+}
+
+export function removePointFromFloor (state: ModelState, pointId: PointId, floorId: FloorId): ModelState {
+  const point = state.points.get(pointId)
+  const floor = state.floors.get(floorId)
+
+  if (point == null || floor == null) return state
+
+  const updatedState = { ...state }
+  updatedState.points = new Map(state.points)
+  updatedState.floors = new Map(state.floors)
+
+  updatedState.points.delete(pointId)
+
+  const updatedFloor = {
+    ...floor,
+    pointIds: floor.pointIds.filter(id => id !== pointId)
+  }
+
+  updatedState.floors.set(floorId, updatedFloor)
+  updatedState.updatedAt = new Date()
+  return updatedState
+}
+
+export function removeRoomFromFloor (state: ModelState, roomId: RoomId, floorId: FloorId): ModelState {
+  const room = state.rooms.get(roomId)
+  const floor = state.floors.get(floorId)
+
+  if (room == null || floor == null) return state
+
+  const updatedState = { ...state }
+  updatedState.rooms = new Map(state.rooms)
+  updatedState.floors = new Map(state.floors)
+
+  updatedState.rooms.delete(roomId)
+
+  const updatedFloor = {
+    ...floor,
+    roomIds: floor.roomIds.filter(id => id !== roomId)
+  }
+
+  updatedState.floors.set(floorId, updatedFloor)
+  updatedState.updatedAt = new Date()
+  return updatedState
+}
+
+export function deletePoint (state: ModelState, pointId: PointId, floorId: FloorId): ModelState {
+  const point = state.points.get(pointId)
+  const floor = state.floors.get(floorId)
+
+  // Return unchanged state if point or floor doesn't exist
+  if (point == null || floor == null) {
+    return { ...state, updatedAt: new Date() }
+  }
+
+  // Find all walls connected to this point
+  const connectedWalls = findWallsConnectedToPoint(state, pointId)
+
+  // Start with removing the point
+  let updatedState = removePointFromFloor(state, pointId, floorId)
+
+  // Remove all connected walls (cascading deletion)
+  for (const wall of connectedWalls) {
+    updatedState = removeWallFromFloor(updatedState, wall.id, floorId)
+
+    // Find rooms that contain this wall and remove them too
+    const roomsWithWall = findRoomsContainingWall(updatedState, wall.id)
+    for (const room of roomsWithWall) {
+      updatedState = removeRoomFromFloor(updatedState, room.id, floorId)
+    }
+
+    // Update corners at the other endpoint of the wall
+    const otherPointId = wall.startPointId === pointId ? wall.endPointId : wall.startPointId
+    if (updatedState.points.has(otherPointId)) {
+      updatedState = updateOrCreateCorner(updatedState, otherPointId)
+    }
+  }
+
+  // Remove any corner at this point
+  const existingCorner = findExistingCornerAtPoint(state, pointId)
+  if (existingCorner != null) {
+    updatedState = removeCornerReferences(updatedState, existingCorner)
+    updatedState = { ...updatedState }
+    updatedState.corners = new Map(updatedState.corners)
+    updatedState.corners.delete(existingCorner.id)
+  }
+
+  // Update state bounds
+  const bounds = calculateStateBounds(updatedState)
+  updatedState = { ...updatedState, bounds: bounds ?? undefined }
+
+  return updatedState
+}
+
+export function deleteWall (state: ModelState, wallId: WallId, floorId: FloorId): ModelState {
+  const wall = state.walls.get(wallId)
+  const floor = state.floors.get(floorId)
+
+  // Return unchanged state if wall or floor doesn't exist
+  if (wall == null || floor == null) {
+    return { ...state, updatedAt: new Date() }
+  }
+
+  // Find rooms that contain this wall and remove them
+  const roomsWithWall = findRoomsContainingWall(state, wallId)
+
+  let updatedState = removeWallFromFloor(state, wallId, floorId)
+
+  // Remove rooms that contained this wall
+  for (const room of roomsWithWall) {
+    updatedState = removeRoomFromFloor(updatedState, room.id, floorId)
+  }
+
+  // Update corners at both endpoints
+  if (updatedState.points.has(wall.startPointId)) {
+    updatedState = updateOrCreateCorner(updatedState, wall.startPointId)
+  }
+  if (updatedState.points.has(wall.endPointId)) {
+    updatedState = updateOrCreateCorner(updatedState, wall.endPointId)
+  }
+
+  // Update state bounds
+  const bounds = calculateStateBounds(updatedState)
+  updatedState = { ...updatedState, bounds: bounds ?? undefined }
+
+  return updatedState
+}
+
+export function deleteRoom (state: ModelState, roomId: RoomId, floorId: FloorId): ModelState {
+  return removeRoomFromFloor(state, roomId, floorId)
+}
+
+export function findRoomsContainingWall (state: ModelState, wallId: WallId): Room[] {
+  const roomsWithWall: Room[] = []
+
+  for (const room of state.rooms.values()) {
+    if (room.wallIds.includes(wallId)) {
+      roomsWithWall.push(room)
+    }
+  }
+
+  return roomsWithWall
 }
 
 // Wall shape calculation (computed property implementation)

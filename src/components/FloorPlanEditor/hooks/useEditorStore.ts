@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createPoint2D, type Point2D } from '@/types/geometry'
 import type { FloorId, PointId } from '@/types/ids'
+import { isPointId, isWallId, isRoomId } from '@/types/ids'
 import { type SnapResult } from '@/model/snapping'
 
 export type EditorTool = 'select' | 'wall' | 'room'
@@ -59,6 +60,7 @@ export interface EditorActions {
   setSelectedEntity: (entityId?: string) => void
   selectEntity: (entityId: string) => void
   clearSelection: () => void
+  deleteSelectedEntity: () => void
   setViewMode: (viewMode: ViewMode) => void
   setViewport: (viewport: Partial<ViewportState>) => void
   setStageDimensions: (width: number, height: number) => void
@@ -169,6 +171,33 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
 
   clearSelection: () => {
     set({ selectedEntityId: undefined })
+  },
+
+  deleteSelectedEntity: () => {
+    const state = get()
+    if (state.selectedEntityId == null || state.activeFloorId == null) return
+
+    const entityId = state.selectedEntityId
+    const floorId = state.activeFloorId
+
+    // Import the model store dynamically to avoid circular dependencies
+    import('@/model/store').then(({ useModelStore }) => {
+      const modelStore = useModelStore.getState()
+
+      // Use type guards to determine entity type and call appropriate delete function
+      if (isPointId(entityId)) {
+        modelStore.deletePoint(entityId, floorId)
+      } else if (isWallId(entityId)) {
+        modelStore.deleteWall(entityId, floorId)
+      } else if (isRoomId(entityId)) {
+        modelStore.deleteRoom(entityId, floorId)
+      }
+
+      // Clear selection after deletion
+      set({ selectedEntityId: undefined })
+    }).catch((error) => {
+      console.error('Failed to delete entity:', error)
+    })
   },
 
   setViewMode: (viewMode: ViewMode) => {

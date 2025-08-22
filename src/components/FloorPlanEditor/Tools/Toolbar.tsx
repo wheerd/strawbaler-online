@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useActiveTool, useEditorStore, useActiveFloorId, useViewport } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useActiveTool, useEditorStore, useActiveFloorId, useViewport, useSelectedEntity } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { useModelStore } from '@/model/store'
 import { FloorSelector } from './FloorSelector'
 import { calculateFloorBounds } from '@/model/operations'
@@ -9,12 +9,14 @@ export function Toolbar (): React.JSX.Element {
   const activeTool = useActiveTool()
   const activeFloorId = useActiveFloorId()
   const viewport = useViewport()
+  const selectedEntityId = useSelectedEntity()
 
   // Use individual selectors instead of useEditorActions() to avoid object creation
   const setActiveTool = useEditorStore(state => state.setActiveTool)
   const setShowGrid = useEditorStore(state => state.setShowGrid)
   const setGridSize = useEditorStore(state => state.setGridSize)
   const setViewport = useEditorStore(state => state.setViewport)
+  const deleteSelectedEntity = useEditorStore(state => state.deleteSelectedEntity)
 
   // Use individual selectors for model actions
   const addPoint = useModelStore(state => state.addPoint)
@@ -84,6 +86,12 @@ export function Toolbar (): React.JSX.Element {
     })
   }, [activeFloorId, viewport, setViewport])
 
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedEntityId != null) {
+      deleteSelectedEntity()
+    }
+  }, [selectedEntityId, deleteSelectedEntity])
+
   return (
     <div className='toolbar'>
       <div className='tool-group'>
@@ -107,6 +115,15 @@ export function Toolbar (): React.JSX.Element {
           title='Add Sample Room'
         >
           Sample
+        </button>
+        <button
+          className={`tool-button ${selectedEntityId == null ? 'disabled' : ''}`}
+          onClick={handleDeleteSelected}
+          disabled={selectedEntityId == null}
+          title={selectedEntityId != null ? `Delete selected ${selectedEntityId.split('_')[0]}` : 'No selection to delete'}
+        >
+          <span style={{ marginRight: '8px' }}>🗑️</span>
+          Delete
         </button>
       </div>
 

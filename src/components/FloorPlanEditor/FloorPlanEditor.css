@@ -54,9 +54,11 @@
   border-color: #007acc;
 }
 
-.tool-button:disabled {
+.tool-button:disabled,
+.tool-button.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .floor-selector {
