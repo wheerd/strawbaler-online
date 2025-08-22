@@ -8,6 +8,7 @@
 - `pnpm preview` - Preview production build
 - `pnpm add <package>` - Add dependency
 - `npx tsc --noEmit --skipLibCheck` - TypeScript check only
+- `pnpm audit --audit-level moderate` Security audit
 
 ## Code Style
 - **TypeScript**: Use strict mode with all safety checks enabled
