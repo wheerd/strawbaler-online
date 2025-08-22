@@ -288,3 +288,64 @@ export function radiansToDegrees (angle: Angle): number {
 export function degreesToRadians (degrees: number): Angle {
   return createAngle((degrees * Math.PI) / 180)
 }
+
+// Line representation for intersection calculations
+export interface Line2D {
+  point: Point2D
+  direction: Point2D // Normalized direction vector
+}
+
+// Calculate intersection of two infinite lines
+export function lineIntersection (line1: Line2D, line2: Line2D): Point2D | null {
+  const { point: p1, direction: d1 } = line1
+  const { point: p2, direction: d2 } = line2
+
+  // Check if lines are parallel (cross product of directions is zero)
+  const crossProduct = d1.x * d2.y - d1.y * d2.x
+  if (Math.abs(crossProduct) < 1e-10) {
+    return null // Lines are parallel
+  }
+
+  // Calculate parameter t for line1: p1 + t * d1
+  const dp = createPoint2D(p2.x - p1.x, p2.y - p1.y)
+  const t = (dp.x * d2.y - dp.y * d2.x) / crossProduct
+
+  // Calculate intersection point
+  return createPoint2D(
+    p1.x + t * d1.x,
+    p1.y + t * d1.y
+  )
+}
+
+// Create a line from two points
+export function lineFromPoints (p1: Point2D, p2: Point2D): Line2D | null {
+  const dx = p2.x - p1.x
+  const dy = p2.y - p1.y
+  const length = Math.sqrt(dx * dx + dy * dy)
+
+  if (length === 0) return null
+
+  return {
+    point: p1,
+    direction: createPoint2D(dx / length, dy / length)
+  }
+}
+
+// Create a line from a point and angle
+export function lineFromPointAndAngle (point: Point2D, angle: Angle): Line2D {
+  return {
+    point,
+    direction: createPoint2D(Math.cos(angle), Math.sin(angle))
+  }
+}
+
+// Distance from point to infinite line
+export function distanceToInfiniteLine (point: Point2D, line: Line2D): Length {
+  // Vector from line point to target point
+  const dx = point.x - line.point.x
+  const dy = point.y - line.point.y
+
+  // Calculate perpendicular distance using cross product
+  const crossProduct = Math.abs(dx * line.direction.y - dy * line.direction.x)
+  return createLength(crossProduct)
+}

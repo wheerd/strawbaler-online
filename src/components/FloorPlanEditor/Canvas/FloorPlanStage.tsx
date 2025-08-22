@@ -255,7 +255,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
       <WallLayer />
       <CornerLayer />
       <PointLayer />
-      <WallPreviewLayer wallDrawingStart={wallDrawingStart ?? null} />
+      <WallPreviewLayer wallDrawingStart={wallDrawingStart ?? null} stageWidth={width} stageHeight={height} />
       <SelectionLayer />
     </Stage>
   )

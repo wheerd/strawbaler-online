@@ -1,5 +1,5 @@
 import { Layer, Line, Circle } from 'react-konva'
-import { useActiveTool, useIsDrawing, useShowSnapPreview, useSnapPreviewPoint, useActiveFloorId } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useActiveTool, useIsDrawing, useShowSnapPreview, useSnapPreviewPoint, useActiveFloorId, useViewport } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { usePoints, useModelStore } from '@/model/store'
 import {
   findSnapPoint,
@@ -9,14 +9,17 @@ import type { Point2D } from '@/types/geometry'
 
 interface WallPreviewLayerProps {
   wallDrawingStart: Point2D | null
+  stageWidth: number
+  stageHeight: number
 }
 
-export function WallPreviewLayer ({ wallDrawingStart }: WallPreviewLayerProps): React.JSX.Element {
+export function WallPreviewLayer ({ wallDrawingStart, stageWidth, stageHeight }: WallPreviewLayerProps): React.JSX.Element {
   const activeTool = useActiveTool()
   const isDrawing = useIsDrawing()
   const showSnapPreview = useShowSnapPreview()
   const snapPreviewPoint = useSnapPreviewPoint()
   const activeFloorId = useActiveFloorId()
+  const viewport = useViewport()
   const points = usePoints()
   const modelState = useModelStore()
 
@@ -30,6 +33,12 @@ export function WallPreviewLayer ({ wallDrawingStart }: WallPreviewLayerProps): 
   if (isDrawing && (wallDrawingStart != null) && (snapPreviewPoint != null)) {
     snapResult = findSnapPoint(modelState, snapPreviewPoint, wallDrawingStart, activeFloorId, false)
   }
+
+  // Calculate infinite line extent accounting for zoom level and stage dimensions
+  // Transform stage dimensions to world coordinates to ensure lines span beyond visible area
+  const worldWidth = stageWidth / viewport.zoom
+  const worldHeight = stageHeight / viewport.zoom
+  const lineExtent = Math.max(worldWidth, worldHeight) * 2
 
   return (
     <Layer name='wall-preview' listening={false}>
@@ -81,7 +90,7 @@ export function WallPreviewLayer ({ wallDrawingStart }: WallPreviewLayerProps): 
           x={snapResult.position.x}
           y={snapResult.position.y}
           radius={15}
-          fill={snapResult.type === 'point' ? '#ff6600' : '#0066ff'}
+          fill={snapResult.snapType === 'intersection' ? '#ff00ff' : snapResult.type === 'point' ? '#ff6600' : '#0066ff'}
           stroke='#ffffff'
           strokeWidth={3}
           opacity={0.9}
@@ -90,35 +99,14 @@ export function WallPreviewLayer ({ wallDrawingStart }: WallPreviewLayerProps): 
       )}
 
       {/* Show active snap line if snapping to a line */}
-      {(snapResult != null) && snapResult.type === 'line' && (snapResult.line != null) && (snapPreviewPoint != null) && (
+      {(snapResult != null) && snapResult.type === 'line' && (snapResult.line != null) && (
         <Line
-          points={(() => {
-            const line = snapResult.line
-            const lineExtent = 2000 // Extend line in both directions
-
-            if (line.type === 'horizontal') {
-              return [
-                snapPreviewPoint.x - lineExtent, line.position.y,
-                snapPreviewPoint.x + lineExtent, line.position.y
-              ]
-            } else if (line.type === 'vertical') {
-              return [
-                line.position.x, snapPreviewPoint.y - lineExtent,
-                line.position.x, snapPreviewPoint.y + lineExtent
-              ]
-            } else if (line.type === 'extension') {
-              return [
-                line.position.x - lineExtent * line.direction.x, line.position.y - lineExtent * line.direction.y,
-                line.position.x + lineExtent * line.direction.x, line.position.y + lineExtent * line.direction.y
-              ]
-            } else if (line.type === 'perpendicular') {
-              return [
-                line.position.x - lineExtent * line.direction.x, line.position.y - lineExtent * line.direction.y,
-                line.position.x + lineExtent * line.direction.x, line.position.y + lineExtent * line.direction.y
-              ]
-            }
-            return []
-          })()}
+          points={[
+            snapResult.line.position.x - lineExtent * snapResult.line.direction.x,
+            snapResult.line.position.y - lineExtent * snapResult.line.direction.y,
+            snapResult.line.position.x + lineExtent * snapResult.line.direction.x,
+            snapResult.line.position.y + lineExtent * snapResult.line.direction.y
+          ]}
           stroke={(() => {
             const colors = {
               horizontal: '#0066ff',
@@ -134,6 +122,34 @@ export function WallPreviewLayer ({ wallDrawingStart }: WallPreviewLayerProps): 
           listening={false}
         />
       )}
+
+      {/* Show intersection lines when snapping to intersection */}
+      {(snapResult != null) && snapResult.snapType === 'intersection' && (snapResult.intersectionLines != null) &&
+        snapResult.intersectionLines.map((line, index) => (
+          <Line
+            key={`intersection-line-${index}`}
+            points={[
+              line.position.x - lineExtent * line.direction.x,
+              line.position.y - lineExtent * line.direction.y,
+              line.position.x + lineExtent * line.direction.x,
+              line.position.y + lineExtent * line.direction.y
+            ]}
+            stroke={(() => {
+              const colors = {
+                horizontal: '#0066ff',
+                vertical: '#6600ff',
+                extension: '#ff6600',
+                perpendicular: '#00ff00'
+              }
+              return colors[line.type] ?? '#666666'
+            })()}
+            strokeWidth={20}
+            dash={[10, 5]}
+            opacity={0.7}
+            listening={false}
+          />
+        ))}
+
     </Layer>
   )
 }

@@ -14,5 +14,10 @@ export {
   isPointNearLine,
   formatLength as formatDistance,
   formatArea,
-  offsetToPosition
+  offsetToPosition,
+  lineIntersection,
+  lineFromPoints,
+  lineFromPointAndAngle,
+  distanceToInfiniteLine,
+  type Line2D
 } from '@/types/geometry'
