@@ -6,6 +6,7 @@ import { useModelStore } from '@/model/store'
 import { defaultSnappingService } from '@/model/snapping/SnappingService'
 import { useSnappingContext } from '@/components/FloorPlanEditor/hooks/useSnappingContext'
 import { createPoint2D, type Point2D, distanceSquared } from '@/types/geometry'
+import { findNearestPoint, SNAP_CONFIG } from '@/model/operations'
 import { GridLayer } from './GridLayer'
 import { WallLayer } from './WallLayer'
 import { WallPreviewLayer } from './WallPreviewLayer'
@@ -49,6 +50,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
   const addWall = useModelStore(state => state.addWall)
   const moveWall = useModelStore(state => state.moveWall)
   const movePoint = useModelStore(state => state.movePoint)
+  const mergePoints = useModelStore(state => state.mergePoints)
 
   // Update stage dimensions in the store when they change
   useEffect(() => {
@@ -208,10 +210,35 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
     dragState, dragStartPos, moveWall, movePoint])
 
   const handleMouseUp = useCallback((): void => {
+    // Check for point merging when finishing point drag (only in select mode)
+    if (dragState.isDragging && dragState.dragType === 'point' && dragState.dragEntityId != null && activeTool === 'select') {
+      const stage = stageRef.current
+      const pointer = stage?.getPointerPosition()
+
+      if (pointer != null) {
+        const currentPos = getStageCoordinates(pointer)
+        const draggedPointId = dragState.dragEntityId as import('../../../types/ids').PointId
+
+        // Create a temporary state without the dragged point to find merge candidates
+        const tempState = {
+          ...modelState,
+          points: new Map([...modelState.points].filter(([id]) => id !== draggedPointId))
+        }
+
+        // Find the nearest point within merge distance (same as point snap distance)
+        const nearestPoint = findNearestPoint(tempState, currentPos, SNAP_CONFIG.pointSnapDistance)
+
+        if (nearestPoint != null) {
+          // Merge the dragged point into the nearest point
+          mergePoints(nearestPoint.id, draggedPointId, activeFloorId)
+        }
+      }
+    }
+
     setDragStart(null)
     setDragStartPos(null)
     endDrag()
-  }, [endDrag])
+  }, [endDrag, dragState, getStageCoordinates, modelState, mergePoints, activeFloorId, findNearestPoint, activeTool])
 
   // Handle escape key to cancel wall drawing
   useEffect(() => {

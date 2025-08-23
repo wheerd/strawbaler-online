@@ -647,6 +647,97 @@ export function findSnapPoint (
   return findLineSnapPosition(target, fromPoint, snapLines)
 }
 
+export function mergePoints (
+  state: ModelState,
+  targetPointId: PointId,
+  sourcePointId: PointId,
+  floorId: FloorId
+): ModelState {
+  if (targetPointId === sourcePointId) return state
+
+  const targetPoint = state.points.get(targetPointId)
+  const sourcePoint = state.points.get(sourcePointId)
+  if (targetPoint == null || sourcePoint == null) return state
+
+  const floor = state.floors.get(floorId)
+  if (floor == null) return state
+
+  // Check that both points are on the same floor
+  if (!floor.pointIds.includes(targetPointId) || !floor.pointIds.includes(sourcePointId)) {
+    return state
+  }
+
+  let updatedState = { ...state }
+  updatedState.walls = new Map(state.walls)
+  updatedState.floors = new Map(state.floors)
+
+  // Find all walls connected to the source point and redirect them to target
+  const connectedWalls = findWallsConnectedToPoint(state, sourcePointId)
+
+  for (const wall of connectedWalls) {
+    const updatedWall = {
+      ...wall,
+      startPointId: wall.startPointId === sourcePointId ? targetPointId : wall.startPointId,
+      endPointId: wall.endPointId === sourcePointId ? targetPointId : wall.endPointId
+    }
+
+    // Check for degenerate walls (start and end are the same point)
+    if (updatedWall.startPointId === updatedWall.endPointId) {
+      // Remove degenerate wall
+      updatedState = removeWallFromFloor(updatedState, wall.id, floorId)
+
+      // Remove rooms containing this wall
+      const roomsWithWall = findRoomsContainingWall(updatedState, wall.id)
+      for (const room of roomsWithWall) {
+        updatedState = removeRoomFromFloor(updatedState, room.id, floorId)
+      }
+    } else {
+      // Check if this creates a duplicate wall (same start and end points)
+      const isDuplicate = Array.from(updatedState.walls.values()).some(existingWall =>
+        existingWall.id !== wall.id &&
+        ((existingWall.startPointId === updatedWall.startPointId && existingWall.endPointId === updatedWall.endPointId) ||
+         (existingWall.startPointId === updatedWall.endPointId && existingWall.endPointId === updatedWall.startPointId))
+      )
+
+      if (isDuplicate) {
+        // Remove duplicate wall
+        updatedState = removeWallFromFloor(updatedState, wall.id, floorId)
+
+        // Remove rooms containing this wall
+        const roomsWithWall = findRoomsContainingWall(updatedState, wall.id)
+        for (const room of roomsWithWall) {
+          updatedState = removeRoomFromFloor(updatedState, room.id, floorId)
+        }
+      } else {
+        // Update wall with new connection
+        const updatedWallWithLength = {
+          ...updatedWall,
+          length: getWallLength(updatedWall, updatedState)
+        }
+        updatedState.walls.set(wall.id, updatedWallWithLength)
+      }
+    }
+  }
+
+  // Remove the source point
+  updatedState = removePointFromFloor(updatedState, sourcePointId, floorId)
+
+  // Update corners at the target point
+  updatedState = updateOrCreateCorner(updatedState, targetPointId)
+
+  // Remove any corner that was at the source point
+  const existingSourceCorner = findExistingCornerAtPoint(state, sourcePointId)
+  if (existingSourceCorner != null) {
+    updatedState = removeCornerReferences(updatedState, existingSourceCorner)
+    updatedState = { ...updatedState }
+    updatedState.corners = new Map(updatedState.corners)
+    updatedState.corners.delete(existingSourceCorner.id)
+  }
+
+  updatedState.updatedAt = new Date()
+  return updatedState
+}
+
 export function movePoint (
   state: ModelState,
   pointId: PointId,

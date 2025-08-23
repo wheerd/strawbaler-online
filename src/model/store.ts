@@ -24,6 +24,7 @@ import {
   calculateRoomArea,
   movePoint,
   moveWall,
+  mergePoints,
   addOpeningToWall,
   updateOrCreateCorner,
   switchCornerMainWalls,
@@ -46,6 +47,7 @@ interface ModelActions {
   removeWall: (wallId: WallId, floorId: FloorId) => void
   movePoint: (pointId: PointId, position: Point2D) => void
   moveWall: (wallId: WallId, deltaX: number, deltaY: number) => void
+  mergePoints: (targetPointId: PointId, sourcePointId: PointId, floorId: FloorId) => void
   switchCornerMainWalls: (cornerId: CornerId, newWall1Id: WallId, newWall2Id: WallId) => void
   getActiveFloorBounds: (floorId: FloorId) => Bounds2D | null
   deletePoint: (pointId: PointId, floorId: FloorId) => void
@@ -281,6 +283,12 @@ export const useModelStore = create<ModelStore>()(
         const state = get()
         const updatedState = deleteRoom(state, roomId, floorId)
         set(updatedState, false, 'deleteRoom')
+      },
+
+      mergePoints: (targetPointId: PointId, sourcePointId: PointId, floorId: FloorId) => {
+        const state = get()
+        const updatedState = mergePoints(state, targetPointId, sourcePointId, floorId)
+        set(updatedState, false, 'mergePoints')
       }
     }),
     {

@@ -21,6 +21,14 @@
 ## Testing
 - **Framework**: Vitest with React Testing Library and jest-dom matchers
 - **Setup**: Tests auto-cleanup, globals enabled, jsdom environment
+- **File Naming**: Test files must have the same base name as the code being tested
+  - For `operations.ts` → `operations.test.ts` (main tests)
+  - For specific functions in `operations.ts` → `operations.functionName.test.ts` (focused tests)
+  - For `Component.tsx` → `Component.test.tsx`
+- **Test Organization**: 
+  - Use focused test files for complex functions that need extensive testing
+  - Group related functionality tests in the same file when appropriate
+  - Always test both success and failure cases
 - **Single Test**: `npm run test -- ComponentName` or `npm run test -- path/to/test`
 
 ## Error Handling
