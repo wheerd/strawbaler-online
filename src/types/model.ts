@@ -129,8 +129,6 @@ export interface Floor {
   pointIds: PointId[]
   slabIds: SlabId[]
   roofIds: RoofId[]
-  readonly area: Area // Computed from walls and rooms
-  readonly bounds?: Bounds2D
 }
 
 // Model state for the application
