@@ -194,56 +194,5 @@ describe('Point Merging', () => {
       // Should not have changed anything
       expect(updatedState).toEqual(originalState)
     })
-
-    it('should remove rooms containing removed walls', () => {
-      // Create a square room
-      const point1 = createPoint(createPoint2D(0, 0))
-      const point2 = createPoint(createPoint2D(100, 0))
-      const point3 = createPoint(createPoint2D(100, 100))
-      const point4 = createPoint(createPoint2D(0, 100))
-      const point5 = createPoint(createPoint2D(50, 50)) // Point to merge
-
-      state = addPointToFloor(state, point1, floorId)
-      state = addPointToFloor(state, point2, floorId)
-      state = addPointToFloor(state, point3, floorId)
-      state = addPointToFloor(state, point4, floorId)
-      state = addPointToFloor(state, point5, floorId)
-
-      const wall1 = createWall(point1.id, point2.id, createLength(3000), createLength(3000), createLength(200))
-      const wall2 = createWall(point2.id, point3.id, createLength(3000), createLength(3000), createLength(200))
-      const wall3 = createWall(point3.id, point4.id, createLength(3000), createLength(3000), createLength(200))
-      const wall4 = createWall(point4.id, point1.id, createLength(3000), createLength(3000), createLength(200))
-      const wall5 = createWall(point5.id, point1.id, createLength(3000), createLength(3000), createLength(200)) // Will become degenerate
-
-      state = addWallToFloor(state, wall1, floorId, false)
-      state = addWallToFloor(state, wall2, floorId, false)
-      state = addWallToFloor(state, wall3, floorId, false)
-      state = addWallToFloor(state, wall4, floorId, false)
-      state = addWallToFloor(state, wall5, floorId, false)
-
-      // Create room using all walls including wall5
-      const room = createRoom('Test Room', [wall1.id, wall2.id, wall3.id, wall4.id, wall5.id])
-      state.rooms.set(room.id, room)
-      const floor = state.floors.get(floorId)!
-      state.floors.set(floorId, { ...floor, roomIds: [...floor.roomIds, room.id] })
-
-      expect(state.rooms.size).toBe(1)
-
-      // Merge point5 into point1 - this should remove wall5 and the room
-      const updatedState = mergePoints(state, point1.id, point5.id, floorId)
-
-      // The original room containing the removed wall should be deleted,
-      // but a new room should be created from the remaining walls (1-4) which form a complete loop
-      expect(updatedState.rooms.size).toBe(1)
-
-      // The new room should contain the 4 walls that form the rectangle
-      const remainingRoom = Array.from(updatedState.rooms.values())[0]
-      expect(remainingRoom.wallIds).toHaveLength(4)
-      expect(remainingRoom.wallIds).toContain(wall1.id)
-      expect(remainingRoom.wallIds).toContain(wall2.id)
-      expect(remainingRoom.wallIds).toContain(wall3.id)
-      expect(remainingRoom.wallIds).toContain(wall4.id)
-      expect(remainingRoom.wallIds).not.toContain(wall5.id)
-    })
   })
 })

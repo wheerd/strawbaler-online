@@ -34,7 +34,7 @@ describe('Sample Building Creation', () => {
 
     // The room should have 4 walls
     const room = Array.from(finalState.rooms.values())[0]
-    expect(room.wallIds).toHaveLength(4)
+    expect(room.outerBoundary.wallIds).toHaveLength(4)
   })
 
   it('should create properly ordered room polygon', () => {
@@ -64,9 +64,9 @@ describe('Sample Building Creation', () => {
     const room = Array.from(finalState.rooms.values())[0]
 
     // Room should contain all 4 walls
-    expect(room.wallIds).toContain(wall1.id)
-    expect(room.wallIds).toContain(wall2.id)
-    expect(room.wallIds).toContain(wall3.id)
-    expect(room.wallIds).toContain(wall4.id)
+    expect(room.outerBoundary.wallIds).toContain(wall1.id)
+    expect(room.outerBoundary.wallIds).toContain(wall2.id)
+    expect(room.outerBoundary.wallIds).toContain(wall3.id)
+    expect(room.outerBoundary.wallIds).toContain(wall4.id)
   })
 })

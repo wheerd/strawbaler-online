@@ -12,7 +12,6 @@ import {
   addPointToFloor,
   addWallToFloor,
   addRoomToFloor,
-  findRoomsContainingWall,
   updateOrCreateCorner
 } from './operations'
 import { createFloorLevel } from '@/types/model'
@@ -70,30 +69,8 @@ describe('Deletion Operations', () => {
     state = updateOrCreateCorner(state, point3.id)
 
     // Create a room using the walls
-    room1 = createRoom('Test Room', [wall1.id, wall2.id])
+    room1 = createRoom('Test Room', [wall1.id, wall2.id], [point1.id, point2.id, point3.id])
     state = addRoomToFloor(state, room1, floor.id)
-  })
-
-  describe('findRoomsContainingWall', () => {
-    it('finds rooms that contain a specific wall', () => {
-      const roomsWithWall1 = findRoomsContainingWall(state, wall1.id)
-      expect(roomsWithWall1).toHaveLength(1)
-      expect(roomsWithWall1[0].id).toBe(room1.id)
-    })
-
-    it('returns empty array for walls not in any room', () => {
-      const wall3 = createWall(
-        point1.id,
-        point3.id,
-        createLength(3000),
-        createLength(3000),
-        createLength(200)
-      )
-      state = addWallToFloor(state, wall3, floor.id, false)
-
-      const roomsWithWall3 = findRoomsContainingWall(state, wall3.id)
-      expect(roomsWithWall3).toHaveLength(0)
-    })
   })
 
   describe('deleteRoom', () => {
@@ -286,7 +263,7 @@ describe('Deletion Operations', () => {
       state = updateOrCreateCorner(state, point4.id)
 
       // Create another room
-      const room2 = createRoom('Room 2', [wall2.id, wall3.id])
+      const room2 = createRoom('Room 2', [wall2.id, wall3.id], [point2.id, point3.id, point4.id])
       state = addRoomToFloor(state, room2, floor.id)
     })
 

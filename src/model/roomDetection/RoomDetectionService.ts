@@ -117,13 +117,13 @@ export class RoomDetectionService implements IRoomDetectionService {
         wallIds: updatedWallIds,
         outerBoundary: {
           wallIds: updatedWallIds,
-          pointIds: room.outerBoundary.pointIds
+          pointIds: room.outerBoundary?.pointIds || []
         },
-        holes: room.holes.map(hole => ({
+        holes: (room.holes || []).map(hole => ({
           wallIds: Array.from(hole.wallIds),
           pointIds: hole.pointIds
         })),
-        interiorWallIds: Array.from(room.interiorWallIds)
+        interiorWallIds: Array.from(room.interiorWallIds || new Set())
       }
       
       if (!this.engine.validateRoom(roomDef, state)) {
@@ -172,14 +172,14 @@ export class RoomDetectionService implements IRoomDetectionService {
         name: room.name,
         wallIds: Array.from(room.wallIds),
         outerBoundary: {
-          wallIds: Array.from(room.outerBoundary.wallIds),
-          pointIds: room.outerBoundary.pointIds
+          wallIds: Array.from(room.outerBoundary?.wallIds || new Set()),
+          pointIds: room.outerBoundary?.pointIds || []
         },
-        holes: room.holes.map(hole => ({
+        holes: (room.holes || []).map(hole => ({
           wallIds: Array.from(hole.wallIds),
           pointIds: hole.pointIds
         })),
-        interiorWallIds: Array.from(room.interiorWallIds)
+        interiorWallIds: Array.from(room.interiorWallIds || new Set())
       }
 
       if (this.engine.validateRoom(roomDef, state)) {
@@ -209,11 +209,11 @@ export class RoomDetectionService implements IRoomDetectionService {
       const point = state.points.get(pointId)
       if (point == null) continue
 
-      const hasValidRoom = validRooms.some(roomId => {
-        const room = state.rooms.get(roomId)
-        return room?.outerBoundary.pointIds.includes(pointId) === true ||
-               room?.holes.some(hole => hole.pointIds.includes(pointId)) === true
-      })
+       const hasValidRoom = validRooms.some(roomId => {
+         const room = state.rooms.get(roomId)
+         return room?.outerBoundary?.pointIds.includes(pointId) === true ||
+                room?.holes?.some(hole => hole.pointIds.includes(pointId)) === true
+       })
 
       if (!hasValidRoom) {
         orphanedPoints.push(pointId)
@@ -491,14 +491,14 @@ export class RoomDetectionService implements IRoomDetectionService {
     for (const pointId of floor.pointIds) {
       const roomIds = new Set<RoomId>()
       
-      // Find which room definitions include this point
-      for (const roomDef of result.roomsToCreate) {
-        if (roomDef.outerBoundary.pointIds.includes(pointId) ||
-            roomDef.holes.some(hole => hole.pointIds.includes(pointId))) {
-          // Use temporary room ID - will be replaced when rooms are actually created
-          roomIds.add(createRoomId())
-        }
-      }
+       // Find which room definitions include this point
+       for (const roomDef of result.roomsToCreate) {
+         if (roomDef.outerBoundary?.pointIds.includes(pointId) ||
+             roomDef.holes?.some(hole => hole.pointIds.includes(pointId))) {
+           // Use temporary room ID - will be replaced when rooms are actually created
+           roomIds.add(createRoomId())
+         }
+       }
 
       result.pointAssignments.push({
         pointId,

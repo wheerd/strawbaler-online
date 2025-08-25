@@ -3,6 +3,7 @@ import { devtools } from 'zustand/middleware'
 import type { ModelState, Wall, Room, Point, Opening, Floor, Slab, Roof, FloorLevel, Corner } from '@/types/model'
 import type { WallId, PointId, FloorId, RoomId, SlabId, RoofId, CornerId } from '@/types/ids'
 import type { Point2D, Bounds2D, Length } from '@/types/geometry'
+import { createArea } from '@/types/geometry'
 import {
   createEmptyModelState,
   createFloor,
@@ -31,8 +32,7 @@ import {
   deletePoint,
   deleteWall,
   deleteRoom,
-  cleanupModelConsistency,
-  updateRoomsAfterWallChange
+
 } from '@/model/operations'
 import { 
   defaultRoomDetectionService, 
@@ -103,10 +103,20 @@ function applyRoomDetectionResult(state: ModelState, result: RoomDetectionResult
       const existingRoom = updatedState.rooms.get(roomId)
       if (existingRoom != null) {
         const updatedRoom = {
-          ...existingRoom,
+          id: roomId,
           name: definition.name,
           wallIds: new Set(definition.wallIds),
-          pointIds: definition.pointIds
+          outerBoundary: {
+            pointIds: definition.outerBoundary.pointIds,
+            wallIds: new Set(definition.outerBoundary.wallIds)
+          },
+          holes: definition.holes.map(hole => ({
+            pointIds: hole.pointIds,
+            wallIds: new Set(hole.wallIds)
+          })),
+          interiorWallIds: new Set(definition.interiorWallIds),
+          area: createArea(0),
+          polygon: { outer: { points: [] }, holes: [] }
         }
         updatedRoom.area = calculateRoomArea(updatedRoom, updatedState)
         updatedState.rooms.set(roomId, updatedRoom)
@@ -115,7 +125,7 @@ function applyRoomDetectionResult(state: ModelState, result: RoomDetectionResult
 
   // Create new rooms
   for (const definition of result.roomsToCreate) {
-    const newRoom = createRoom(definition.name, definition.wallIds, definition.pointIds)
+    const newRoom = createRoom(definition.name, definition.wallIds, definition.outerBoundary.pointIds)
     const roomWithArea = {
       ...newRoom,
       area: calculateRoomArea(newRoom, updatedState)
@@ -399,15 +409,11 @@ export const useModelStore = create<ModelStore>()(
       },
 
       cleanupModel: () => {
-        const state = get()
-        const updatedState = cleanupModelConsistency(state)
-        set(updatedState, false, 'cleanupModel')
+        // No-op for now - old cleanup functions removed
       },
 
-      validateRoomsOnFloor: (floorId: FloorId) => {
-        const state = get()
-        const updatedState = updateRoomsAfterWallChange(state, floorId)
-        set(updatedState, false, 'validateRoomsOnFloor')
+      validateRoomsOnFloor: () => {
+        // No-op for now - old validation functions removed
       },
 
       detectAndUpdateRooms: (floorId: FloorId) => {

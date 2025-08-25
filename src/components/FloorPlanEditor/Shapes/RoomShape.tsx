@@ -9,15 +9,16 @@ interface RoomShapeProps {
 }
 
 function getRoomPolygonPoints (room: Room, walls: ReturnType<typeof useWalls>, pointMap: ReturnType<typeof usePoints>): number[] {
-  if (room.wallIds.length === 0) return []
+  const wallIdsArray = Array.from(room.wallIds)
+  if (wallIdsArray.length === 0) return []
 
   // Use the same approach as the face detection algorithm to get properly ordered points
   const orderedPoints: number[] = []
 
   // Find the polygon points by tracing the walls in order
-  for (let i = 0; i < room.wallIds.length; i++) {
-    const currentWallId = room.wallIds[i]
-    const nextWallId = room.wallIds[(i + 1) % room.wallIds.length]
+  for (let i = 0; i < wallIdsArray.length; i++) {
+    const currentWallId = wallIdsArray[i]
+    const nextWallId = wallIdsArray[(i + 1) % wallIdsArray.length]
 
     const currentWall = walls.get(currentWallId)
     const nextWall = walls.get(nextWallId)
