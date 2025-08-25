@@ -3,6 +3,9 @@ import { cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import 'vitest-canvas-mock'
 
+// Mock Zustand for consistent testing
+vi.mock('zustand')
+
 // Mock canvas before any imports
 beforeAll(() => {
   // Mock the problematic canvas module completely
