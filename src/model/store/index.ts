@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { temporal } from 'zundo'
-import type { Wall, Room, Point, Floor, Corner, Slab, Roof } from '@/types/model'
-import type { WallId, FloorId, RoomId, PointId, SlabId, RoofId } from '@/types/ids'
+import type { Wall, Room, Point, Floor, Corner } from '@/types/model'
+import type { WallId, FloorId, RoomId, PointId } from '@/types/ids'
 import { createWallsSlice } from './slices/wallsSlice'
 import { createPointsSlice } from './slices/pointsSlice'
 import { createRoomsSlice } from './slices/roomsSlice'
@@ -14,13 +14,13 @@ import type { Store } from './types'
 export const useModelStore = create<Store>()(
   temporal(
     devtools(
-      (...a) => {                
+      (...a) => {
         return {
           ...createWallsSlice(...a),
           ...createPointsSlice(...a),
           ...createRoomsSlice(...a),
           ...createFloorsSlice(...a),
-          ...createCornersSlice(...a),
+          ...createCornersSlice(...a)
         }
       },
       { name: 'model-store' }
@@ -32,19 +32,19 @@ export const useModelStore = create<Store>()(
       onSave: (pastState: Store, currentState: Store) => {
         // Only save significant changes to history
         // Don't save if only timestamps changed
-        const significantChange = 
+        const significantChange =
           pastState.walls.size !== currentState.walls.size ||
           pastState.rooms.size !== currentState.rooms.size ||
           pastState.points.size !== currentState.points.size ||
           pastState.floors.size !== currentState.floors.size
-          
+
         return significantChange
       }
     }
   )
 )
 
-// Undo/redo hooks  
+// Undo/redo hooks
 export const useUndo = () => useModelStore.temporal.getState().undo
 export const useRedo = () => useModelStore.temporal.getState().redo
 export const useCanUndo = () => useModelStore.temporal.getState().pastStates.length > 0
@@ -56,8 +56,6 @@ export const useWalls = (): Map<WallId, Wall> => useModelStore(state => state.wa
 export const useRooms = (): Map<RoomId, Room> => useModelStore(state => state.rooms)
 export const usePoints = (): Map<PointId, Point> => useModelStore(state => state.points)
 export const useCorners = (): Map<PointId, Corner> => useModelStore(state => state.corners)
-export const useSlabs = (): Map<SlabId, Slab> => useModelStore(state => state.slabs)
-export const useRoofs = (): Map<RoofId, Roof> => useModelStore(state => state.roofs)
 
 // Export types
 export type { Store, StoreActions, StoreState } from './types'
