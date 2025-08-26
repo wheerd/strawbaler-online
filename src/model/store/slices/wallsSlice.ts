@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand'
-import type { Wall, Opening } from '@/types/model'
+import type { Wall, Opening, WallType, OutsideDirection } from '@/types/model'
 import type { WallId, PointId, RoomId } from '@/types/ids'
 import type { Length } from '@/types/geometry'
 import { createWallId } from '@/types/ids'
@@ -11,14 +11,14 @@ export interface WallsState {
 
 export interface WallsActions {
   // CRUD operations
-  addOuterWall: (startPointId: PointId, endPointId: PointId, outsideDirection: 'left' | 'right', thickness?: Length) => Wall
+  addOuterWall: (startPointId: PointId, endPointId: PointId, outsideDirection: OutsideDirection, thickness?: Length) => Wall
   addStructuralWall: (startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
   addPartitionWall: (startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
   addOtherWall: (startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
   removeWall: (wallId: WallId) => void
 
-  updateWallType: (wallId: WallId, type: 'outer' | 'structural' | 'partition' | 'other') => void
-  updateWallOutsideDirection: (wallId: WallId, outsideDirection: 'left' | 'right' | null) => void
+  updateWallType: (wallId: WallId, type: WallType) => void
+  updateWallOutsideDirection: (wallId: WallId, outsideDirection: OutsideDirection | null) => void
   updateWallThickness: (wallId: WallId, thickness: Length) => void
 
   // Openings
@@ -40,7 +40,7 @@ export interface WallsActions {
   // Getters
   getWallById: (wallId: WallId) => Wall | null
   getWalls: () => Wall[]
-  getWallsByType: (type: 'outer' | 'structural' | 'partition' | 'other') => Wall[]
+  getWallsByType: (type: WallType) => Wall[]
   getWallsConnectedToPoint: (pointId: PointId) => Wall[]
 }
 
@@ -53,7 +53,7 @@ const DEFAULT_PARTITION_WALL_THICKNESS = createLength(180) // 18cm
 const DEFAULT_OTHER_WALL_THICKNESS = createLength(200) // 20cm
 
 // Helper function to create a wall
-const createWall = (startPointId: PointId, endPointId: PointId, type: 'outer' | 'structural' | 'partition' | 'other', thickness: Length, outsideDirection?: 'left' | 'right'): Wall => {
+const createWall = (startPointId: PointId, endPointId: PointId, type: WallType, thickness: Length, outsideDirection?: OutsideDirection): Wall => {
   if (startPointId === endPointId) {
     throw new Error('Wall start and end points cannot be the same')
   }
@@ -136,7 +136,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
   },
 
   // Update operations
-  updateWallType: (wallId: WallId, type: 'outer' | 'structural' | 'partition' | 'other') => {
+  updateWallType: (wallId: WallId, type: WallType) => {
     set(state => {
       const wall = state.walls.get(wallId)
       if (wall == null) return state
@@ -154,7 +154,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
     })
   },
 
-  updateWallOutsideDirection: (wallId: WallId, outsideDirection: 'left' | 'right' | null) => {
+  updateWallOutsideDirection: (wallId: WallId, outsideDirection: OutsideDirection | null) => {
     set(state => {
       const wall = state.walls.get(wallId)
       if (wall == null) return state
@@ -427,7 +427,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
     return Array.from(get().walls.values())
   },
 
-  getWallsByType: (type: 'outer' | 'structural' | 'partition' | 'other') => {
+  getWallsByType: (type: WallType) => {
     return Array.from(get().walls.values()).filter(wall => wall.type === type)
   },
 

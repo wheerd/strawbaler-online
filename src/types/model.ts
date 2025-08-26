@@ -1,16 +1,18 @@
 import type { WallId, PointId, RoomId, FloorId, SlabId, RoofId } from '@/types/ids'
-import type {
-  Length,
-  Area,
-  Angle,
-  Point2D,
-  Bounds2D,
-  Polygon2D,
-  PolygonWithHoles2D
-} from '@/types/geometry'
+import type { Length, Point2D } from '@/types/geometry'
 
 // Floor level branded type
 export type FloorLevel = number & { __brand: 'FloorLevel' }
+
+// Wall types
+export type WallType = 'outer' | 'structural' | 'partition' | 'other'
+export type OutsideDirection = 'left' | 'right'
+
+// Opening types
+export type OpeningType = 'door' | 'window' | 'passage'
+
+// Roof types
+export type RoofOrientation = 'flat' | 'pitched' | 'gable'
 
 // Floor level validation and creation
 export const createFloorLevel = (value: number): FloorLevel => {
@@ -51,8 +53,8 @@ export interface Wall {
 
   openings?: Opening[]
 
-  type: 'outer' | 'structural' | 'partition' | 'other'
-  outsideDirection?: 'left' | 'right' // Relative to the wall direction (start -> end), only for outer walls
+  type: WallType
+  outsideDirection?: OutsideDirection // Relative to the wall direction (start -> end), only for outer walls
 
   // Room tracking - left and right relative to wall direction (start -> end)
   leftRoomId?: RoomId
@@ -61,7 +63,7 @@ export interface Wall {
 
 // Opening in a wall (door, window, etc.)
 export interface Opening {
-  type: 'door' | 'window' | 'passage'
+  type: OpeningType
   offsetFromStart: Length // Offset in mm from wall start point
   width: Length
   height: Length
@@ -71,22 +73,20 @@ export interface Opening {
 // Slab entity
 export interface Slab {
   id: SlabId
-  polygon: PolygonWithHoles2D
+  outer: PointId[] // Outer boundary, ordered clockwise
+  holes: PointId[][] // Inner boundaries (holes), each ordered counter-clockwise
   thickness: Length
-  readonly area: Area // Computed
 }
 
 // Slab entity
 export interface Roof {
   id: RoofId
-  polygon: Polygon2D
+  polygon: PointId[] // Outer boundary, ordered clockwise
   thickness: Length
   overhang: Length
-  readonly slope: Angle
-  orientation: 'flat' | 'pitched' | 'gable'
+  orientation: RoofOrientation
   ridgeHeight: Length
   eaveHeight: Length
-  readonly area: Area // Computed
 }
 
 // Room/space boundary definition
@@ -119,18 +119,4 @@ export interface Floor {
   pointIds: PointId[]
   slabIds: SlabId[]
   roofIds: RoofId[]
-}
-
-// Model state for the application
-export interface ModelState {
-  floors: Map<FloorId, Floor>
-  walls: Map<WallId, Wall>
-  rooms: Map<RoomId, Room>
-  points: Map<PointId, Point>
-  corners: Map<PointId, Corner>
-  slabs: Map<SlabId, Slab>
-  roofs: Map<RoofId, Roof>
-  readonly bounds?: Bounds2D
-  createdAt: Date
-  updatedAt: Date
 }
