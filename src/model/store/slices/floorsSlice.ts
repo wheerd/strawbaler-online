@@ -34,6 +34,27 @@ export interface FloorsActions {
 
 export type FloorsSlice = FloorsState & FloorsActions
 
+// Validation functions
+const validateFloorName = (name: string): void => {
+  if (!name || name.trim().length === 0) {
+    throw new Error('Floor name cannot be empty')
+  }
+}
+
+const validateFloorHeight = (height: Length): void => {
+  if (Number(height) <= 0) {
+    throw new Error('Floor height must be greater than 0')
+  }
+}
+
+const validateUniqueFloorLevel = (floors: Map<FloorId, Floor>, level: FloorLevel, excludeFloorId?: FloorId): void => {
+  for (const [floorId, floor] of floors) {
+    if (floorId !== excludeFloorId && floor.level === level) {
+      throw new Error(`Floor level ${level} already exists`)
+    }
+  }
+}
+
 export const createFloorsSlice: StateCreator<
   FloorsSlice,
   [],
@@ -44,12 +65,21 @@ export const createFloorsSlice: StateCreator<
 
   // CRUD operations
   addFloor: (name: string, level: FloorLevel, height?: Length) => {
+    const state = get()
+    
+    // Validate inputs
+    validateFloorName(name)
+    validateUniqueFloorLevel(state.floors, level)
+    
     const floorId = createFloorId()
-    const defaultHeight = height || createLength(3000) // Default 3m height
+    const defaultHeight = height !== undefined ? height : createLength(3000) // Default 3m height
+    
+    // Validate height
+    validateFloorHeight(defaultHeight)
     
     const floor: Floor = {
       id: floorId,
-      name,
+      name: name.trim(),
       level,
       height: defaultHeight,
       wallIds: [],
@@ -80,13 +110,16 @@ export const createFloorsSlice: StateCreator<
 
   // Floor modifications
   updateFloorName: (floorId: FloorId, name: string) => {
+    // Validate name
+    validateFloorName(name)
+    
     set((state) => {
       const floor = state.floors.get(floorId)
       if (!floor) return state
       
       const updatedFloor: Floor = {
         ...floor,
-        name
+        name: name.trim()
       }
       
       return {
@@ -101,6 +134,9 @@ export const createFloorsSlice: StateCreator<
       const floor = state.floors.get(floorId)
       if (!floor) return state
       
+      // Validate unique level (excluding current floor)
+      validateUniqueFloorLevel(state.floors, level, floorId)
+      
       const updatedFloor: Floor = {
         ...floor,
         level
@@ -114,6 +150,9 @@ export const createFloorsSlice: StateCreator<
   },
 
   updateFloorHeight: (floorId: FloorId, height: Length) => {
+    // Validate height
+    validateFloorHeight(height)
+    
     set((state) => {
       const floor = state.floors.get(floorId)
       if (!floor) return state

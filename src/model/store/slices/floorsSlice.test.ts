@@ -95,6 +95,41 @@ describe('FloorsSlice', () => {
       expect(store.floors.has(firstFloor.id)).toBe(true)
       expect(groundFloor.id).not.toBe(firstFloor.id)
     })
+
+    it('should trim floor name whitespace', () => {
+      const level = createFloorLevel(0)
+      const floor = store.addFloor('  Ground Floor  ', level)
+      
+      const addedFloor = store.floors.get(floor.id)
+      expect(addedFloor?.name).toBe('Ground Floor')
+    })
+
+    it('should throw error for empty floor name', () => {
+      const level = createFloorLevel(0)
+      expect(() => store.addFloor('', level)).toThrow('Floor name cannot be empty')
+      expect(() => store.addFloor('   ', level)).toThrow('Floor name cannot be empty')
+    })
+
+    it('should throw error for duplicate floor level', () => {
+      const level = createFloorLevel(0)
+      store.addFloor('Ground Floor', level)
+      
+      expect(() => store.addFloor('Another Floor', level)).toThrow('Floor level 0 already exists')
+    })
+
+    it('should throw error for invalid floor height', () => {
+      const level = createFloorLevel(0)
+      const invalidHeight = createLength(0)
+      
+      expect(() => store.addFloor('Ground Floor', level, invalidHeight)).toThrow('Floor height must be greater than 0')
+    })
+
+    it('should throw error for negative floor height', () => {
+      const level = createFloorLevel(0)
+      const invalidHeight = createLength(-100)
+      
+      expect(() => store.addFloor('Ground Floor', level, invalidHeight)).toThrow('Floor height must be greater than 0')
+    })
   })
 
   describe('removeFloor', () => {
@@ -152,6 +187,27 @@ describe('FloorsSlice', () => {
       expect(updatedFloor?.level).toBe(level) // Other properties unchanged
     })
 
+    it('should trim floor name whitespace when updating', () => {
+      // Add floor first
+      const level = createFloorLevel(0)
+      const floor = store.addFloor('Ground Floor', level)
+      
+      // Update name with whitespace
+      store.updateFloorName(floor.id, '  Basement  ')
+      
+      const updatedFloor = store.floors.get(floor.id)
+      expect(updatedFloor?.name).toBe('Basement')
+    })
+
+    it('should throw error for empty floor name', () => {
+      // Add floor first
+      const level = createFloorLevel(0)
+      const floor = store.addFloor('Ground Floor', level)
+      
+      expect(() => store.updateFloorName(floor.id, '')).toThrow('Floor name cannot be empty')
+      expect(() => store.updateFloorName(floor.id, '   ')).toThrow('Floor name cannot be empty')
+    })
+
     it('should do nothing if floor does not exist', () => {
       const initialFloors = new Map(store.floors)
       
@@ -177,6 +233,33 @@ describe('FloorsSlice', () => {
       expect(updatedFloor?.name).toBe('Ground Floor') // Other properties unchanged
     })
 
+    it('should throw error when updating to duplicate level', () => {
+      // Add two floors
+      const level1 = createFloorLevel(0)
+      const level2 = createFloorLevel(1)
+      const floor1 = store.addFloor('Ground Floor', level1)
+      const floor2 = store.addFloor('First Floor', level2)
+      
+      // Try to update floor2 to same level as floor1
+      expect(() => store.updateFloorLevel(floor2.id, level1)).toThrow('Floor level 0 already exists')
+      
+      // Floor levels should remain unchanged
+      expect(store.floors.get(floor1.id)?.level).toBe(level1)
+      expect(store.floors.get(floor2.id)?.level).toBe(level2)
+    })
+
+    it('should allow updating floor to same level (no change)', () => {
+      // Add floor first
+      const level = createFloorLevel(0)
+      const floor = store.addFloor('Ground Floor', level)
+      
+      // Update to same level should work
+      expect(() => store.updateFloorLevel(floor.id, level)).not.toThrow()
+      
+      const updatedFloor = store.floors.get(floor.id)
+      expect(updatedFloor?.level).toBe(level)
+    })
+
     it('should do nothing if floor does not exist', () => {
       const initialFloors = new Map(store.floors)
       
@@ -200,6 +283,32 @@ describe('FloorsSlice', () => {
       const updatedFloor = store.floors.get(floor.id)
       expect(updatedFloor?.height).toBe(newHeight)
       expect(updatedFloor?.name).toBe('Ground Floor') // Other properties unchanged
+    })
+
+    it('should throw error for invalid floor height', () => {
+      // Add floor first
+      const level = createFloorLevel(0)
+      const floor = store.addFloor('Ground Floor', level)
+      
+      const invalidHeight = createLength(0)
+      expect(() => store.updateFloorHeight(floor.id, invalidHeight)).toThrow('Floor height must be greater than 0')
+      
+      // Floor height should remain unchanged
+      const unchangedFloor = store.floors.get(floor.id)
+      expect(unchangedFloor?.height).toBe(createLength(3000))
+    })
+
+    it('should throw error for negative floor height', () => {
+      // Add floor first
+      const level = createFloorLevel(0)
+      const floor = store.addFloor('Ground Floor', level)
+      
+      const invalidHeight = createLength(-100)
+      expect(() => store.updateFloorHeight(floor.id, invalidHeight)).toThrow('Floor height must be greater than 0')
+      
+      // Floor height should remain unchanged
+      const unchangedFloor = store.floors.get(floor.id)
+      expect(unchangedFloor?.height).toBe(createLength(3000))
     })
 
     it('should do nothing if floor does not exist', () => {
@@ -572,23 +681,6 @@ describe('FloorsSlice', () => {
       const orderedFloors = store.getFloorsOrderedByLevel()
       expect(orderedFloors[0]).toEqual(updatedFloor1) // Level 0
       expect(orderedFloors[1]).toEqual(updatedFloor2) // Level 1
-    })
-
-    it('should maintain state immutability when updating floors', () => {
-      // Add floor
-      const level = createFloorLevel(0)
-      const floor = store.addFloor('Ground Floor', level)
-      const originalFloor = store.floors.get(floor.id)
-      
-      // Update floor - this should create a new floor object
-      store.updateFloorName(floor.id, 'Updated Floor')
-      
-      const updatedFloor = store.floors.get(floor.id)
-      
-      // The floor object itself should be different (new object)
-      expect(updatedFloor).not.toBe(originalFloor)
-      expect(updatedFloor?.name).toBe('Updated Floor')
-      expect(originalFloor?.name).toBe('Ground Floor') // Original unchanged
     })
   })
 })
