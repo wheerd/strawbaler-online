@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand'
 import type { Room } from '@/types/model'
-import type { WallId, PointId, RoomId } from '@/types/ids'
+import type { WallId, PointId, RoomId, FloorId } from '@/types/ids'
 import { createRoomId } from '@/types/ids'
 
 export interface RoomsState {
@@ -8,8 +8,8 @@ export interface RoomsState {
 }
 
 export interface RoomsActions {
-  // CRUD operations
-  addRoom: (name: string, pointIds: PointId[], wallIds: WallId[]) => Room
+  // CRUD operations - Enhanced with floorId
+  addRoom: (floorId: FloorId, name: string, pointIds: PointId[], wallIds: WallId[]) => Room
   removeRoom: (roomId: RoomId) => void
 
   // Room modifications
@@ -20,8 +20,11 @@ export interface RoomsActions {
 
   // Room queries
   getRoomById: (roomId: RoomId) => Room | null
-  getRoomsContainingWall: (wallId: WallId) => Room[]
-  getRoomsContainingPoint: (pointId: PointId) => Room[]
+  getRoomsContainingWall: (wallId: WallId, floorId?: FloorId) => Room[]
+  getRoomsContainingPoint: (pointId: PointId, floorId?: FloorId) => Room[]
+  
+  // NEW: Floor filtering methods
+  getRoomsByFloor: (floorId: FloorId) => Room[]
 
   // Room entity management
   addInteriorWallToRoom: (roomId: RoomId, wallId: WallId) => void
@@ -67,13 +70,14 @@ RoomsSlice
 > = (set, get) => ({
   rooms: new Map(),
 
-  addRoom: (name: string, pointIds: PointId[], wallIds: WallId[]) => {
+  addRoom: (floorId: FloorId, name: string, pointIds: PointId[], wallIds: WallId[]) => {
     validateRoomName(name)
     validateBoundary(pointIds, wallIds)
 
     const roomId = createRoomId()
     const room: Room = {
       id: roomId,
+      floorId,
       name: name.trim(),
       outerBoundary: {
         pointIds,

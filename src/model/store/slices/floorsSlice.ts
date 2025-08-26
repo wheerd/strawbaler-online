@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand'
 import type { Floor, FloorLevel } from '@/types/model'
-import type { FloorId, WallId, RoomId, PointId } from '@/types/ids'
+import type { FloorId } from '@/types/ids'
 import { createFloorId } from '@/types/ids'
 import type { Length } from '@/types/geometry'
 import { createLength } from '@/types/geometry'
@@ -22,14 +22,6 @@ export interface FloorsActions {
   // Floor queries
   getFloorById: (floorId: FloorId) => Floor | null
   getFloorsOrderedByLevel: () => Floor[]
-
-  // Floor entity management
-  addWallToFloor: (floorId: FloorId, wallId: WallId) => void
-  removeWallFromFloor: (floorId: FloorId, wallId: WallId) => void
-  addRoomToFloor: (floorId: FloorId, roomId: RoomId) => void
-  removeRoomFromFloor: (floorId: FloorId, roomId: RoomId) => void
-  addPointToFloor: (floorId: FloorId, pointId: PointId) => void
-  removePointFromFloor: (floorId: FloorId, pointId: PointId) => void
 }
 
 export type FloorsSlice = FloorsState & FloorsActions
@@ -81,12 +73,7 @@ FloorsSlice
       id: floorId,
       name: name.trim(),
       level,
-      height: defaultHeight,
-      wallIds: [],
-      roomIds: [],
-      pointIds: [],
-      slabIds: [],
-      roofIds: []
+      height: defaultHeight
     }
 
     set((state) => ({
@@ -179,117 +166,5 @@ FloorsSlice
     const state = get()
     const floors = Array.from(state.floors.values())
     return floors.sort((a, b) => a.level - b.level)
-  },
-
-  // Floor entity management
-  addWallToFloor: (floorId: FloorId, wallId: WallId) => {
-    set((state) => {
-      const floor = state.floors.get(floorId)
-      if (floor == null) return state
-
-      // Don't add if already present
-      if (floor.wallIds.includes(wallId)) return state
-
-      const updatedFloor: Floor = {
-        ...floor,
-        wallIds: [...floor.wallIds, wallId]
-      }
-
-      return {
-        ...state,
-        floors: new Map(state.floors).set(floorId, updatedFloor)
-      }
-    })
-  },
-
-  removeWallFromFloor: (floorId: FloorId, wallId: WallId) => {
-    set((state) => {
-      const floor = state.floors.get(floorId)
-      if (floor == null) return state
-
-      const updatedFloor: Floor = {
-        ...floor,
-        wallIds: floor.wallIds.filter(id => id !== wallId)
-      }
-
-      return {
-        ...state,
-        floors: new Map(state.floors).set(floorId, updatedFloor)
-      }
-    })
-  },
-
-  addRoomToFloor: (floorId: FloorId, roomId: RoomId) => {
-    set((state) => {
-      const floor = state.floors.get(floorId)
-      if (floor == null) return state
-
-      // Don't add if already present
-      if (floor.roomIds.includes(roomId)) return state
-
-      const updatedFloor: Floor = {
-        ...floor,
-        roomIds: [...floor.roomIds, roomId]
-      }
-
-      return {
-        ...state,
-        floors: new Map(state.floors).set(floorId, updatedFloor)
-      }
-    })
-  },
-
-  removeRoomFromFloor: (floorId: FloorId, roomId: RoomId) => {
-    set((state) => {
-      const floor = state.floors.get(floorId)
-      if (floor == null) return state
-
-      const updatedFloor: Floor = {
-        ...floor,
-        roomIds: floor.roomIds.filter(id => id !== roomId)
-      }
-
-      return {
-        ...state,
-        floors: new Map(state.floors).set(floorId, updatedFloor)
-      }
-    })
-  },
-
-  addPointToFloor: (floorId: FloorId, pointId: PointId) => {
-    set((state) => {
-      const floor = state.floors.get(floorId)
-      if (floor == null) return state
-
-      // Don't add if already present
-      if (floor.pointIds.includes(pointId)) return state
-
-      const updatedFloor: Floor = {
-        ...floor,
-        pointIds: [...floor.pointIds, pointId]
-      }
-
-      return {
-        ...state,
-        floors: new Map(state.floors).set(floorId, updatedFloor)
-      }
-    })
-  },
-
-  removePointFromFloor: (floorId: FloorId, pointId: PointId) => {
-    set((state) => {
-      const floor = state.floors.get(floorId)
-      if (floor == null) return state
-
-      const updatedFloor: Floor = {
-        ...floor,
-        pointIds: floor.pointIds.filter(id => id !== pointId)
-      }
-
-      return {
-        ...state,
-        floors: new Map(state.floors).set(floorId, updatedFloor)
-      }
-    })
   }
 })

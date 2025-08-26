@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand'
 import type { Point } from '@/types/model'
-import type { PointId, RoomId } from '@/types/ids'
+import type { PointId, RoomId, FloorId } from '@/types/ids'
 import { createPointId } from '@/types/ids'
 import type { Point2D, Length } from '@/types/geometry'
 import { distanceSquared } from '@/types/geometry'
@@ -10,8 +10,8 @@ export interface PointsState {
 }
 
 export interface PointsActions {
-  // CRUD operations
-  addPoint: (position: Point2D) => Point
+  // CRUD operations - Enhanced with floorId
+  addPoint: (floorId: FloorId, position: Point2D) => Point
   removePoint: (pointId: PointId) => void
 
   // Point modifications
@@ -19,8 +19,11 @@ export interface PointsActions {
 
   // Point queries
   getPointById: (pointId: PointId) => Point | null
-  findNearestPoint: (target: Point2D, maxDistance?: Length) => Point | null
+  findNearestPoint: (target: Point2D, maxDistance?: Length, floorId?: FloorId) => Point | null
   getPoints: () => Point[]
+
+  // NEW: Floor filtering methods
+  getPointsByFloor: (floorId: FloorId) => Point[]
 
   // Floor entity management
   addRoomToPoint: (pointId: PointId, roomId: RoomId) => void
@@ -38,18 +41,17 @@ PointsSlice
   points: new Map<PointId, Point>(),
 
   // CRUD operations
-  addPoint: (position: Point2D) => {
-    const pointId = createPointId()
-
+  addPoint: (floorId: FloorId, position: Point2D) => {
     const point: Point = {
-      id: pointId,
+      id: createPointId(),
+      floorId,
       position,
       roomIds: new Set<RoomId>()
     }
 
     set((state) => ({
       ...state,
-      points: new Map(state.points).set(pointId, point)
+      points: new Map(state.points).set(point.id, point)
     }))
 
     return point
@@ -90,13 +92,18 @@ PointsSlice
     return state.points.get(pointId) ?? null
   },
 
-  findNearestPoint: (target: Point2D, maxDistance?: Length) => {
+  findNearestPoint: (target: Point2D, maxDistance?: Length, floorId?: FloorId) => {
     const state = get()
 
     let nearestPoint: Point | null = null
     let minDistanceSquared = maxDistance !== undefined ? maxDistance * maxDistance : Infinity
 
     for (const point of state.points.values()) {
+      // Filter by floor if specified
+      if (floorId != null && point.floorId !== floorId) {
+        continue
+      }
+
       const distSquared = distanceSquared(point.position, target)
 
       // Update nearest if this is closer
@@ -112,6 +119,12 @@ PointsSlice
   getPoints: () => {
     const state = get()
     return Array.from(state.points.values())
+  },
+
+  // NEW: Floor filtering methods
+  getPointsByFloor: (floorId: FloorId) => {
+    const state = get()
+    return Array.from(state.points.values()).filter(point => point.floorId === floorId)
   },
 
   // Floor entity management

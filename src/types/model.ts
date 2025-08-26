@@ -25,6 +25,7 @@ export const createFloorLevel = (value: number): FloorLevel => {
 // Connection point for wall endpoints
 export interface Point {
   id: PointId
+  floorId: FloorId // Immutable - set at creation time
   position: Point2D
   roomIds: Set<RoomId> // Rooms that this point belongs to
 }
@@ -42,6 +43,7 @@ export interface Corner {
 // Wall entity
 export interface Wall {
   id: WallId
+  floorId: FloorId // Immutable - set at creation time
 
   startPointId: PointId
   startTouches?: WallOrCornerId
@@ -73,14 +75,16 @@ export interface Opening {
 // Slab entity
 export interface Slab {
   id: SlabId
+  floorId: FloorId // Immutable - set at creation time
   outer: PointId[] // Outer boundary, ordered clockwise
   holes: PointId[][] // Inner boundaries (holes), each ordered counter-clockwise
   thickness: Length
 }
 
-// Slab entity
+// Roof entity
 export interface Roof {
   id: RoofId
+  floorId: FloorId // Immutable - set at creation time
   polygon: PointId[] // Outer boundary, ordered clockwise
   thickness: Length
   overhang: Length
@@ -98,6 +102,7 @@ export interface RoomBoundary {
 // Room/space
 export interface Room {
   id: RoomId
+  floorId: FloorId // Immutable - set at creation time
   name: string
 
   // Geometric structure supporting holes
@@ -114,9 +119,4 @@ export interface Floor {
   name: string
   level: FloorLevel // Floor level (0 = ground floor, 1 = first floor, etc.)
   height: Length
-  wallIds: WallId[]
-  roomIds: RoomId[]
-  pointIds: PointId[]
-  slabIds: SlabId[]
-  roofIds: RoofId[]
 }

@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand'
 import type { Wall, Opening, WallType, OutsideDirection } from '@/types/model'
-import type { WallId, PointId, RoomId } from '@/types/ids'
+import type { WallId, PointId, RoomId, FloorId } from '@/types/ids'
 import type { Length } from '@/types/geometry'
 import { createWallId } from '@/types/ids'
 import { createLength } from '@/types/geometry'
@@ -10,11 +10,11 @@ export interface WallsState {
 }
 
 export interface WallsActions {
-  // CRUD operations
-  addOuterWall: (startPointId: PointId, endPointId: PointId, outsideDirection: OutsideDirection, thickness?: Length) => Wall
-  addStructuralWall: (startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
-  addPartitionWall: (startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
-  addOtherWall: (startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
+  // CRUD operations - Enhanced with floorId
+  addOuterWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, outsideDirection: OutsideDirection, thickness?: Length) => Wall
+  addStructuralWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
+  addPartitionWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
+  addOtherWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
   removeWall: (wallId: WallId) => void
 
   updateWallType: (wallId: WallId, type: WallType) => void
@@ -40,8 +40,11 @@ export interface WallsActions {
   // Getters
   getWallById: (wallId: WallId) => Wall | null
   getWalls: () => Wall[]
-  getWallsByType: (type: WallType) => Wall[]
-  getWallsConnectedToPoint: (pointId: PointId) => Wall[]
+  getWallsByType: (type: WallType, floorId?: FloorId) => Wall[]
+  getWallsConnectedToPoint: (pointId: PointId, floorId?: FloorId) => Wall[]
+  
+  // NEW: Floor filtering methods
+  getWallsByFloor: (floorId: FloorId) => Wall[]
 }
 
 export type WallsSlice = WallsState & WallsActions
@@ -53,7 +56,7 @@ const DEFAULT_PARTITION_WALL_THICKNESS = createLength(180) // 18cm
 const DEFAULT_OTHER_WALL_THICKNESS = createLength(200) // 20cm
 
 // Helper function to create a wall
-const createWall = (startPointId: PointId, endPointId: PointId, type: WallType, thickness: Length, outsideDirection?: OutsideDirection): Wall => {
+const createWall = (floorId: FloorId, startPointId: PointId, endPointId: PointId, type: WallType, thickness: Length, outsideDirection?: OutsideDirection): Wall => {
   if (startPointId === endPointId) {
     throw new Error('Wall start and end points cannot be the same')
   }
@@ -64,6 +67,7 @@ const createWall = (startPointId: PointId, endPointId: PointId, type: WallType, 
 
   const wall: Wall = {
     id: createWallId(),
+    floorId,
     startPointId,
     endPointId,
     thickness,
@@ -79,10 +83,10 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
   walls: new Map(),
 
   // CRUD operations
-  addOuterWall: (startPointId: PointId, endPointId: PointId, outsideDirection: 'left' | 'right', thickness?: Length) => {
+  addOuterWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, outsideDirection: OutsideDirection, thickness?: Length) => {
     const wallThickness = thickness ?? DEFAULT_OUTER_WALL_THICKNESS
 
-    const wall = createWall(startPointId, endPointId, 'outer', wallThickness, outsideDirection)
+    const wall = createWall(floorId, startPointId, endPointId, 'outer', wallThickness, outsideDirection)
 
     set(state => ({
       walls: new Map(state.walls).set(wall.id, wall)
@@ -91,10 +95,10 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
     return wall
   },
 
-  addStructuralWall: (startPointId: PointId, endPointId: PointId, thickness?: Length) => {
+  addStructuralWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, thickness?: Length) => {
     const wallThickness = thickness ?? DEFAULT_STRUCTURAL_WALL_THICKNESS
 
-    const wall = createWall(startPointId, endPointId, 'structural', wallThickness)
+    const wall = createWall(floorId, startPointId, endPointId, 'structural', wallThickness)
 
     set(state => ({
       walls: new Map(state.walls).set(wall.id, wall)
@@ -103,10 +107,10 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
     return wall
   },
 
-  addPartitionWall: (startPointId: PointId, endPointId: PointId, thickness?: Length) => {
+  addPartitionWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, thickness?: Length) => {
     const wallThickness = thickness ?? DEFAULT_PARTITION_WALL_THICKNESS
 
-    const wall = createWall(startPointId, endPointId, 'partition', wallThickness)
+    const wall = createWall(floorId, startPointId, endPointId, 'partition', wallThickness)
 
     set(state => ({
       walls: new Map(state.walls).set(wall.id, wall)
@@ -115,10 +119,10 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
     return wall
   },
 
-  addOtherWall: (startPointId: PointId, endPointId: PointId, thickness?: Length) => {
+  addOtherWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, thickness?: Length) => {
     const wallThickness = thickness ?? DEFAULT_OTHER_WALL_THICKNESS
 
-    const wall = createWall(startPointId, endPointId, 'other', wallThickness)
+    const wall = createWall(floorId, startPointId, endPointId, 'other', wallThickness)
 
     set(state => ({
       walls: new Map(state.walls).set(wall.id, wall)
@@ -427,13 +431,20 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
     return Array.from(get().walls.values())
   },
 
-  getWallsByType: (type: WallType) => {
-    return Array.from(get().walls.values()).filter(wall => wall.type === type)
+  getWallsByType: (type: WallType, floorId?: FloorId) => {
+    const walls = Array.from(get().walls.values()).filter(wall => wall.type === type)
+    return floorId != null ? walls.filter(wall => wall.floorId === floorId) : walls
   },
 
-  getWallsConnectedToPoint: (pointId: PointId) => {
-    return Array.from(get().walls.values()).filter(
+  getWallsConnectedToPoint: (pointId: PointId, floorId?: FloorId) => {
+    const walls = Array.from(get().walls.values()).filter(
       wall => wall.startPointId === pointId || wall.endPointId === pointId
     )
+    return floorId != null ? walls.filter(wall => wall.floorId === floorId) : walls
+  },
+
+  // NEW: Floor filtering methods
+  getWallsByFloor: (floorId: FloorId) => {
+    return Array.from(get().walls.values()).filter(wall => wall.floorId === floorId)
   }
 })
