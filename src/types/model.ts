@@ -45,23 +45,18 @@ export interface Wall {
   startTouches?: WallOrCornerId
   endPointId: PointId
   endTouches?: WallOrCornerId
+  touchedBy?: WallId[]
 
-  heightAtStart: Length
-  heightAtEnd: Length
   thickness: Length
 
-  touchedBy?: WallId[]
   openings?: Opening[]
 
   type: 'outer' | 'structural' | 'partition' | 'other'
-  outsideDirection?: 'left' | 'right' // Relative to the wall's start point
+  outsideDirection?: 'left' | 'right' // Relative to the wall direction (start -> end), only for outer walls
 
   // Room tracking - left and right relative to wall direction (start -> end)
   leftRoomId?: RoomId
   rightRoomId?: RoomId
-
-  readonly shape: Polygon2D // Computed
-  readonly length: Length // Computed
 }
 
 // Opening in a wall (door, window, etc.)
