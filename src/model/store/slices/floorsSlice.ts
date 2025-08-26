@@ -13,16 +13,16 @@ export interface FloorsActions {
   // CRUD operations
   addFloor: (name: string, level: FloorLevel, height?: Length) => Floor
   removeFloor: (floorId: FloorId) => void
-  
+
   // Floor modifications
   updateFloorName: (floorId: FloorId, name: string) => void
   updateFloorLevel: (floorId: FloorId, level: FloorLevel) => void
   updateFloorHeight: (floorId: FloorId, height: Length) => void
-  
+
   // Floor queries
   getFloorById: (floorId: FloorId) => Floor | null
   getFloorsOrderedByLevel: () => Floor[]
-  
+
   // Floor entity management
   addWallToFloor: (floorId: FloorId, wallId: WallId) => void
   removeWallFromFloor: (floorId: FloorId, wallId: WallId) => void
@@ -56,27 +56,27 @@ const validateUniqueFloorLevel = (floors: Map<FloorId, Floor>, level: FloorLevel
 }
 
 export const createFloorsSlice: StateCreator<
-  FloorsSlice,
-  [],
-  [],
-  FloorsSlice
+FloorsSlice,
+[],
+[],
+FloorsSlice
 > = (set, get) => ({
   floors: new Map<FloorId, Floor>(),
 
   // CRUD operations
   addFloor: (name: string, level: FloorLevel, height?: Length) => {
     const state = get()
-    
+
     // Validate inputs
     validateFloorName(name)
     validateUniqueFloorLevel(state.floors, level)
-    
+
     const floorId = createFloorId()
     const defaultHeight = height !== undefined ? height : createLength(3000) // Default 3m height
-    
+
     // Validate height
     validateFloorHeight(defaultHeight)
-    
+
     const floor: Floor = {
       id: floorId,
       name: name.trim(),
@@ -88,12 +88,12 @@ export const createFloorsSlice: StateCreator<
       slabIds: [],
       roofIds: []
     }
-    
+
     set((state) => ({
       ...state,
       floors: new Map(state.floors).set(floorId, floor)
     }))
-    
+
     return floor
   },
 
@@ -112,16 +112,16 @@ export const createFloorsSlice: StateCreator<
   updateFloorName: (floorId: FloorId, name: string) => {
     // Validate name
     validateFloorName(name)
-    
+
     set((state) => {
       const floor = state.floors.get(floorId)
-      if (!floor) return state
-      
+      if (floor == null) return state
+
       const updatedFloor: Floor = {
         ...floor,
         name: name.trim()
       }
-      
+
       return {
         ...state,
         floors: new Map(state.floors).set(floorId, updatedFloor)
@@ -132,16 +132,16 @@ export const createFloorsSlice: StateCreator<
   updateFloorLevel: (floorId: FloorId, level: FloorLevel) => {
     set((state) => {
       const floor = state.floors.get(floorId)
-      if (!floor) return state
-      
+      if (floor == null) return state
+
       // Validate unique level (excluding current floor)
       validateUniqueFloorLevel(state.floors, level, floorId)
-      
+
       const updatedFloor: Floor = {
         ...floor,
         level
       }
-      
+
       return {
         ...state,
         floors: new Map(state.floors).set(floorId, updatedFloor)
@@ -152,16 +152,16 @@ export const createFloorsSlice: StateCreator<
   updateFloorHeight: (floorId: FloorId, height: Length) => {
     // Validate height
     validateFloorHeight(height)
-    
+
     set((state) => {
       const floor = state.floors.get(floorId)
-      if (!floor) return state
-      
+      if (floor == null) return state
+
       const updatedFloor: Floor = {
         ...floor,
         height
       }
-      
+
       return {
         ...state,
         floors: new Map(state.floors).set(floorId, updatedFloor)
@@ -172,7 +172,7 @@ export const createFloorsSlice: StateCreator<
   // Floor queries
   getFloorById: (floorId: FloorId) => {
     const state = get()
-    return state.floors.get(floorId) || null
+    return state.floors.get(floorId) ?? null
   },
 
   getFloorsOrderedByLevel: () => {
@@ -185,16 +185,16 @@ export const createFloorsSlice: StateCreator<
   addWallToFloor: (floorId: FloorId, wallId: WallId) => {
     set((state) => {
       const floor = state.floors.get(floorId)
-      if (!floor) return state
-      
+      if (floor == null) return state
+
       // Don't add if already present
       if (floor.wallIds.includes(wallId)) return state
-      
+
       const updatedFloor: Floor = {
         ...floor,
         wallIds: [...floor.wallIds, wallId]
       }
-      
+
       return {
         ...state,
         floors: new Map(state.floors).set(floorId, updatedFloor)
@@ -205,13 +205,13 @@ export const createFloorsSlice: StateCreator<
   removeWallFromFloor: (floorId: FloorId, wallId: WallId) => {
     set((state) => {
       const floor = state.floors.get(floorId)
-      if (!floor) return state
-      
+      if (floor == null) return state
+
       const updatedFloor: Floor = {
         ...floor,
         wallIds: floor.wallIds.filter(id => id !== wallId)
       }
-      
+
       return {
         ...state,
         floors: new Map(state.floors).set(floorId, updatedFloor)
@@ -222,16 +222,16 @@ export const createFloorsSlice: StateCreator<
   addRoomToFloor: (floorId: FloorId, roomId: RoomId) => {
     set((state) => {
       const floor = state.floors.get(floorId)
-      if (!floor) return state
-      
+      if (floor == null) return state
+
       // Don't add if already present
       if (floor.roomIds.includes(roomId)) return state
-      
+
       const updatedFloor: Floor = {
         ...floor,
         roomIds: [...floor.roomIds, roomId]
       }
-      
+
       return {
         ...state,
         floors: new Map(state.floors).set(floorId, updatedFloor)
@@ -242,13 +242,13 @@ export const createFloorsSlice: StateCreator<
   removeRoomFromFloor: (floorId: FloorId, roomId: RoomId) => {
     set((state) => {
       const floor = state.floors.get(floorId)
-      if (!floor) return state
-      
+      if (floor == null) return state
+
       const updatedFloor: Floor = {
         ...floor,
         roomIds: floor.roomIds.filter(id => id !== roomId)
       }
-      
+
       return {
         ...state,
         floors: new Map(state.floors).set(floorId, updatedFloor)
@@ -259,16 +259,16 @@ export const createFloorsSlice: StateCreator<
   addPointToFloor: (floorId: FloorId, pointId: PointId) => {
     set((state) => {
       const floor = state.floors.get(floorId)
-      if (!floor) return state
-      
+      if (floor == null) return state
+
       // Don't add if already present
       if (floor.pointIds.includes(pointId)) return state
-      
+
       const updatedFloor: Floor = {
         ...floor,
         pointIds: [...floor.pointIds, pointId]
       }
-      
+
       return {
         ...state,
         floors: new Map(state.floors).set(floorId, updatedFloor)
@@ -279,13 +279,13 @@ export const createFloorsSlice: StateCreator<
   removePointFromFloor: (floorId: FloorId, pointId: PointId) => {
     set((state) => {
       const floor = state.floors.get(floorId)
-      if (!floor) return state
-      
+      if (floor == null) return state
+
       const updatedFloor: Floor = {
         ...floor,
         pointIds: floor.pointIds.filter(id => id !== pointId)
       }
-      
+
       return {
         ...state,
         floors: new Map(state.floors).set(floorId, updatedFloor)
