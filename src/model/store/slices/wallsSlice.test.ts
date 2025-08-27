@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createWallsSlice, type WallsSlice } from './wallsSlice'
-import { createWallId, createPointId, createRoomId } from '@/types/ids'
+import { createWallId, createPointId, createRoomId, createFloorId } from '@/types/ids'
 import { createLength } from '@/types/geometry'
 
 // Mock Zustand following the official testing guide
@@ -10,12 +10,14 @@ describe('WallsSlice', () => {
   let store: WallsSlice
   let mockSet: any
   let mockGet: any
+  let testFloorId: any
 
   beforeEach(() => {
     // Create the slice directly without using create()
     mockSet = vi.fn()
     mockGet = vi.fn()
     const mockStore = {} as any
+    testFloorId = createFloorId()
 
     store = createWallsSlice(mockSet, mockGet, mockStore)
 
@@ -37,7 +39,7 @@ describe('WallsSlice', () => {
     it('should add an outer wall with correct properties', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addOuterWall(startPoint, endPoint, 'left')
+      const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
       expect(store.walls.size).toBe(1)
       expect(store.walls.has(wall.id)).toBe(true)
@@ -61,7 +63,7 @@ describe('WallsSlice', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
       const customThickness = createLength(250)
-      const wall = store.addOuterWall(startPoint, endPoint, 'right', customThickness)
+      const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'right', customThickness)
 
       const addedWall = store.walls.get(wall.id)
       expect(addedWall?.thickness).toBe(customThickness)
@@ -70,14 +72,14 @@ describe('WallsSlice', () => {
 
     it('should throw error for same start and end points', () => {
       const pointId = createPointId()
-      expect(() => store.addOuterWall(pointId, pointId, 'left')).toThrow('Wall start and end points cannot be the same')
+      expect(() => store.addOuterWall(testFloorId, pointId, pointId, 'left')).toThrow('Wall start and end points cannot be the same')
     })
 
     it('should throw error for invalid thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      expect(() => store.addOuterWall(startPoint, endPoint, 'left', createLength(0))).toThrow('Wall thickness must be greater than 0')
-      expect(() => store.addOuterWall(startPoint, endPoint, 'left', createLength(-100))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addOuterWall(testFloorId, startPoint, endPoint, 'left', createLength(0))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addOuterWall(testFloorId, startPoint, endPoint, 'left', createLength(-100))).toThrow('Wall thickness must be greater than 0')
     })
   })
 
@@ -85,7 +87,7 @@ describe('WallsSlice', () => {
     it('should add a structural wall with correct properties', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addStructuralWall(startPoint, endPoint)
+      const wall = store.addStructuralWall(testFloorId, startPoint, endPoint)
 
       expect(store.walls.size).toBe(1)
       expect(store.walls.has(wall.id)).toBe(true)
@@ -103,7 +105,7 @@ describe('WallsSlice', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
       const customThickness = createLength(300)
-      const wall = store.addStructuralWall(startPoint, endPoint, customThickness)
+      const wall = store.addStructuralWall(testFloorId, startPoint, endPoint, customThickness)
 
       const addedWall = store.walls.get(wall.id)
       expect(addedWall?.thickness).toBe(customThickness)
@@ -112,8 +114,8 @@ describe('WallsSlice', () => {
     it('should throw error for invalid thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      expect(() => store.addStructuralWall(startPoint, endPoint, createLength(0))).toThrow('Wall thickness must be greater than 0')
-      expect(() => store.addStructuralWall(startPoint, endPoint, createLength(-50))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addStructuralWall(testFloorId, startPoint, endPoint, createLength(0))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addStructuralWall(testFloorId, startPoint, endPoint, createLength(-50))).toThrow('Wall thickness must be greater than 0')
     })
   })
 
@@ -121,7 +123,7 @@ describe('WallsSlice', () => {
     it('should add a partition wall with correct properties', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addPartitionWall(startPoint, endPoint)
+      const wall = store.addPartitionWall(testFloorId, startPoint, endPoint)
 
       expect(store.walls.size).toBe(1)
       expect(store.walls.has(wall.id)).toBe(true)
@@ -138,8 +140,8 @@ describe('WallsSlice', () => {
     it('should throw error for invalid thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      expect(() => store.addPartitionWall(startPoint, endPoint, createLength(0))).toThrow('Wall thickness must be greater than 0')
-      expect(() => store.addPartitionWall(startPoint, endPoint, createLength(-25))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addPartitionWall(testFloorId, startPoint, endPoint, createLength(0))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addPartitionWall(testFloorId, startPoint, endPoint, createLength(-25))).toThrow('Wall thickness must be greater than 0')
     })
   })
 
@@ -147,7 +149,7 @@ describe('WallsSlice', () => {
     it('should add an other type wall with correct properties', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addOtherWall(startPoint, endPoint)
+      const wall = store.addOtherWall(testFloorId, startPoint, endPoint)
 
       expect(store.walls.size).toBe(1)
       expect(store.walls.has(wall.id)).toBe(true)
@@ -164,8 +166,8 @@ describe('WallsSlice', () => {
     it('should throw error for invalid thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      expect(() => store.addOtherWall(startPoint, endPoint, createLength(0))).toThrow('Wall thickness must be greater than 0')
-      expect(() => store.addOtherWall(startPoint, endPoint, createLength(-75))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addOtherWall(testFloorId, startPoint, endPoint, createLength(0))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addOtherWall(testFloorId, startPoint, endPoint, createLength(-75))).toThrow('Wall thickness must be greater than 0')
     })
   })
 
@@ -173,7 +175,7 @@ describe('WallsSlice', () => {
     it('should remove an existing wall', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addOuterWall(startPoint, endPoint, 'left')
+      const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
       expect(store.walls.size).toBe(1)
 
       store.removeWall(wall.id)
@@ -196,7 +198,7 @@ describe('WallsSlice', () => {
     it('should update wall type', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addOuterWall(startPoint, endPoint, 'left')
+      const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
       store.updateWallType(wall.id, 'structural')
 
@@ -207,7 +209,7 @@ describe('WallsSlice', () => {
     it('should preserve other properties when updating type', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addPartitionWall(startPoint, endPoint)
+      const wall = store.addPartitionWall(testFloorId, startPoint, endPoint)
 
       store.updateWallType(wall.id, 'other')
 
@@ -231,7 +233,7 @@ describe('WallsSlice', () => {
     it('should update outside direction', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addOuterWall(startPoint, endPoint, 'left')
+      const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
       store.updateWallOutsideDirection(wall.id, 'right')
 
@@ -242,7 +244,7 @@ describe('WallsSlice', () => {
     it('should remove outside direction when set to null', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addOuterWall(startPoint, endPoint, 'left')
+      const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
       store.updateWallOutsideDirection(wall.id, null)
 
@@ -255,7 +257,7 @@ describe('WallsSlice', () => {
     it('should update wall thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addOuterWall(startPoint, endPoint, 'left')
+      const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
       const newThickness = createLength(300)
       store.updateWallThickness(wall.id, newThickness)
@@ -267,7 +269,7 @@ describe('WallsSlice', () => {
     it('should throw error for invalid thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addOuterWall(startPoint, endPoint, 'left')
+      const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
       expect(() => store.updateWallThickness(wall.id, createLength(0))).toThrow('Wall thickness must be greater than 0')
       expect(() => store.updateWallThickness(wall.id, createLength(-100))).toThrow('Wall thickness must be greater than 0')
@@ -279,7 +281,7 @@ describe('WallsSlice', () => {
       it('should add a door opening to wall', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         store.addDoorToWall(wall.id, createLength(500), createLength(800), createLength(2100))
 
@@ -296,7 +298,7 @@ describe('WallsSlice', () => {
       it('should add multiple openings to wall', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         store.addDoorToWall(wall.id, createLength(500), createLength(800), createLength(2100))
         store.addDoorToWall(wall.id, createLength(2000), createLength(900), createLength(2100))
@@ -308,7 +310,7 @@ describe('WallsSlice', () => {
       it('should throw error for invalid parameters', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         expect(() => store.addDoorToWall(wall.id, createLength(-100), createLength(800), createLength(2100))).toThrow('Opening offset from start must be non-negative')
         expect(() => store.addDoorToWall(wall.id, createLength(500), createLength(0), createLength(2100))).toThrow('Opening width must be greater than 0')
@@ -320,7 +322,7 @@ describe('WallsSlice', () => {
       it('should add a window opening to wall', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         store.addWindowToWall(wall.id, createLength(1000), createLength(1200), createLength(1000), createLength(900))
 
@@ -338,7 +340,7 @@ describe('WallsSlice', () => {
       it('should throw error for negative sill height', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         expect(() => store.addWindowToWall(wall.id, createLength(1000), createLength(1200), createLength(1000), createLength(-100))).toThrow('Window sill height must be non-negative')
       })
@@ -348,7 +350,7 @@ describe('WallsSlice', () => {
       it('should add a passage opening to wall', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         store.addPassageToWall(wall.id, createLength(750), createLength(1000), createLength(2100))
 
@@ -367,7 +369,7 @@ describe('WallsSlice', () => {
       it('should remove opening at valid index', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         store.addDoorToWall(wall.id, createLength(500), createLength(800), createLength(2100))
         store.addWindowToWall(wall.id, createLength(1000), createLength(1200), createLength(1000), createLength(900))
@@ -382,7 +384,7 @@ describe('WallsSlice', () => {
       it('should handle invalid index gracefully', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         store.addDoorToWall(wall.id, createLength(500), createLength(800), createLength(2100))
 
@@ -397,7 +399,7 @@ describe('WallsSlice', () => {
       it('should clear openings array when removing last opening', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         store.addDoorToWall(wall.id, createLength(500), createLength(800), createLength(2100))
         store.removeOpeningFromWall(wall.id, 0)
@@ -413,7 +415,7 @@ describe('WallsSlice', () => {
       it('should update start touches', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const touchWallId = createWallId()
         store.updateWallStartTouches(wall.id, touchWallId)
@@ -425,7 +427,7 @@ describe('WallsSlice', () => {
       it('should clear start touches when set to null', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const touchWallId = createWallId()
         store.updateWallStartTouches(wall.id, touchWallId)
@@ -440,7 +442,7 @@ describe('WallsSlice', () => {
       it('should update end touches', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const touchPointId = createPointId()
         store.updateWallEndTouches(wall.id, touchPointId)
@@ -454,7 +456,7 @@ describe('WallsSlice', () => {
       it('should add wall to touchedBy array', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const touchingWallId = createWallId()
         store.addWallTouchedBy(wall.id, touchingWallId)
@@ -466,7 +468,7 @@ describe('WallsSlice', () => {
       it('should not add duplicate walls', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const touchingWallId = createWallId()
         store.addWallTouchedBy(wall.id, touchingWallId)
@@ -481,7 +483,7 @@ describe('WallsSlice', () => {
       it('should remove wall from touchedBy array', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const touchingWall1 = createWallId()
         const touchingWall2 = createWallId()
@@ -497,7 +499,7 @@ describe('WallsSlice', () => {
       it('should clear touchedBy when removing last wall', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const touchingWallId = createWallId()
         store.addWallTouchedBy(wall.id, touchingWallId)
@@ -514,7 +516,7 @@ describe('WallsSlice', () => {
       it('should update left room', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const roomId = createRoomId()
         store.updateWallLeftRoom(wall.id, roomId)
@@ -526,7 +528,7 @@ describe('WallsSlice', () => {
       it('should clear left room when set to null', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const roomId = createRoomId()
         store.updateWallLeftRoom(wall.id, roomId)
@@ -541,7 +543,7 @@ describe('WallsSlice', () => {
       it('should update right room', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const wall = store.addOuterWall(startPoint, endPoint, 'left')
+        const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const roomId = createRoomId()
         store.updateWallRightRoom(wall.id, roomId)
@@ -557,7 +559,7 @@ describe('WallsSlice', () => {
       it('should return existing wall', () => {
         const startPoint = createPointId()
         const endPoint = createPointId()
-        const addedWall = store.addOuterWall(startPoint, endPoint, 'left')
+        const addedWall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
         const result = store.getWallById(addedWall.id)
 
@@ -585,8 +587,8 @@ describe('WallsSlice', () => {
         const startPoint2 = createPointId()
         const endPoint2 = createPointId()
 
-        const wall1 = store.addOuterWall(startPoint1, endPoint1, 'left')
-        const wall2 = store.addStructuralWall(startPoint2, endPoint2)
+        const wall1 = store.addOuterWall(testFloorId, startPoint1, endPoint1, 'left')
+        const wall2 = store.addStructuralWall(testFloorId, startPoint2, endPoint2)
 
         const walls = store.getWalls()
         expect(walls).toHaveLength(2)
@@ -604,9 +606,9 @@ describe('WallsSlice', () => {
         const startPoint3 = createPointId()
         const endPoint3 = createPointId()
 
-        const outerWall = store.addOuterWall(startPoint1, endPoint1, 'left')
-        const structuralWall = store.addStructuralWall(startPoint2, endPoint2)
-        const partitionWall = store.addPartitionWall(startPoint3, endPoint3)
+        const outerWall = store.addOuterWall(testFloorId, startPoint1, endPoint1, 'left')
+        const structuralWall = store.addStructuralWall(testFloorId, startPoint2, endPoint2)
+        const partitionWall = store.addPartitionWall(testFloorId, startPoint3, endPoint3)
 
         const outerWalls = store.getWallsByType('outer')
         const structuralWalls = store.getWallsByType('structural')
@@ -628,9 +630,9 @@ describe('WallsSlice', () => {
         const isolatedPoint1 = createPointId()
         const isolatedPoint2 = createPointId()
 
-        const wall1 = store.addOuterWall(sharedPoint, endPoint1, 'left')
-        const wall2 = store.addStructuralWall(sharedPoint, endPoint2)
-        const isolatedWall = store.addPartitionWall(isolatedPoint1, isolatedPoint2)
+        const wall1 = store.addOuterWall(testFloorId, sharedPoint, endPoint1, 'left')
+        const wall2 = store.addStructuralWall(testFloorId, sharedPoint, endPoint2)
+        const isolatedWall = store.addPartitionWall(testFloorId, isolatedPoint1, isolatedPoint2)
 
         const connectedWalls = store.getWallsConnectedToPoint(sharedPoint)
         const isolatedWalls = store.getWallsConnectedToPoint(createPointId())
@@ -642,6 +644,77 @@ describe('WallsSlice', () => {
         expect(isolatedWalls).toEqual([])
       })
     })
+
+    describe('getWallsByFloor', () => {
+      it('should return empty array when no walls exist', () => {
+        const walls = store.getWallsByFloor(testFloorId)
+        expect(walls).toEqual([])
+      })
+
+      it('should return walls for specific floor', () => {
+        const floor1Id = createFloorId()
+        const floor2Id = createFloorId()
+
+        const startPoint1 = createPointId()
+        const endPoint1 = createPointId()
+        const startPoint2 = createPointId()
+        const endPoint2 = createPointId()
+        const startPoint3 = createPointId()
+        const endPoint3 = createPointId()
+
+        const floor1Wall1 = store.addOuterWall(floor1Id, startPoint1, endPoint1, 'left')
+        const floor1Wall2 = store.addStructuralWall(floor1Id, startPoint2, endPoint2)
+        const floor2Wall = store.addPartitionWall(floor2Id, startPoint3, endPoint3)
+
+        const floor1Walls = store.getWallsByFloor(floor1Id)
+        const floor2Walls = store.getWallsByFloor(floor2Id)
+
+        expect(floor1Walls).toHaveLength(2)
+        expect(floor1Walls).toContain(floor1Wall1)
+        expect(floor1Walls).toContain(floor1Wall2)
+        expect(floor1Walls).not.toContain(floor2Wall)
+
+        expect(floor2Walls).toHaveLength(1)
+        expect(floor2Walls).toContain(floor2Wall)
+        expect(floor2Walls).not.toContain(floor1Wall1)
+        expect(floor2Walls).not.toContain(floor1Wall2)
+      })
+
+      it('should return empty array for non-existent floor', () => {
+        const startPoint = createPointId()
+        const endPoint = createPointId()
+        store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
+
+        const nonExistentFloorId = createFloorId()
+        const walls = store.getWallsByFloor(nonExistentFloorId)
+
+        expect(walls).toEqual([])
+      })
+
+      it('should return all walls when multiple walls exist on same floor', () => {
+        const startPoint1 = createPointId()
+        const endPoint1 = createPointId()
+        const startPoint2 = createPointId()
+        const endPoint2 = createPointId()
+        const startPoint3 = createPointId()
+        const endPoint3 = createPointId()
+        const startPoint4 = createPointId()
+        const endPoint4 = createPointId()
+
+        const wall1 = store.addOuterWall(testFloorId, startPoint1, endPoint1, 'left')
+        const wall2 = store.addStructuralWall(testFloorId, startPoint2, endPoint2)
+        const wall3 = store.addPartitionWall(testFloorId, startPoint3, endPoint3)
+        const wall4 = store.addOtherWall(testFloorId, startPoint4, endPoint4)
+
+        const walls = store.getWallsByFloor(testFloorId)
+
+        expect(walls).toHaveLength(4)
+        expect(walls).toContain(wall1)
+        expect(walls).toContain(wall2)
+        expect(walls).toContain(wall3)
+        expect(walls).toContain(wall4)
+      })
+    })
   })
 
   describe('complex scenarios', () => {
@@ -651,8 +724,8 @@ describe('WallsSlice', () => {
       const point2 = createPointId()
       const point3 = createPointId()
 
-      const outerWall = store.addOuterWall(point1, point2, 'left')
-      const partitionWall = store.addPartitionWall(point2, point3)
+      const outerWall = store.addOuterWall(testFloorId, point1, point2, 'left')
+      const partitionWall = store.addPartitionWall(testFloorId, point2, point3)
 
       // Add openings
       store.addDoorToWall(outerWall.id, createLength(500), createLength(800), createLength(2100))
@@ -701,7 +774,7 @@ describe('WallsSlice', () => {
     it('should maintain data consistency after multiple operations', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      const wall = store.addOuterWall(startPoint, endPoint, 'left', createLength(250))
+      const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left', createLength(250))
 
       // Add openings
       store.addDoorToWall(wall.id, createLength(500), createLength(800), createLength(2100))

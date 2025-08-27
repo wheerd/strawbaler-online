@@ -42,8 +42,6 @@ export interface WallsActions {
   getWalls: () => Wall[]
   getWallsByType: (type: WallType, floorId?: FloorId) => Wall[]
   getWallsConnectedToPoint: (pointId: PointId, floorId?: FloorId) => Wall[]
-  
-  // NEW: Floor filtering methods
   getWallsByFloor: (floorId: FloorId) => Wall[]
 }
 
