@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { temporal } from 'zundo'
 import type { Wall, Room, Point, Floor, Corner } from '@/types/model'
+import { createFloorLevel } from '@/types/model'
 import type { WallId, FloorId, RoomId, PointId } from '@/types/ids'
 import { createWallsSlice } from './slices/wallsSlice'
 import { createPointsSlice } from './slices/pointsSlice'
@@ -29,7 +30,6 @@ export const useModelStore = create<Store>()(
         // Initialize with a default ground floor
         setTimeout(() => {
           if (store.floors.size === 0) {
-            const { createFloorLevel } = require('@/types/model') // eslint-disable-line @typescript-eslint/no-var-requires
             store.addFloor('Ground Floor', createFloorLevel(0))
           }
         }, 0)

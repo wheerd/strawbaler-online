@@ -6,7 +6,8 @@ import {
   type WallLoopTrace,
   type LoopDirection,
   type RoomSide,
-  type RoomDefinition
+  type RoomDefinition,
+  type RoomBoundaryDefinition
 } from './types'
 
 /**
@@ -255,7 +256,7 @@ export class RoomDetectionEngine {
     }
 
     // Process holes
-    const holes: Array<import('./types').RoomBoundaryDefinition> = []
+    const holes: RoomBoundaryDefinition[] = []
     const allWallIds = [...outerWallIds]
 
     for (const holeWalls of holeWallIds) {

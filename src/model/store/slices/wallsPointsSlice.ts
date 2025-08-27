@@ -13,10 +13,10 @@ export interface WallsPointsActions {
 export type WallsPointsSlice = WallsPointsActions
 
 export const createWallsPointsSlice: StateCreator<
-  WallsSlice & PointsSlice,
-  [],
-  [],
-  WallsPointsSlice
+WallsSlice & PointsSlice,
+[],
+[],
+WallsPointsSlice
 > = (set, get) => ({
 
   getWallLength: (wallId: WallId): Length => {
@@ -52,7 +52,7 @@ export const createWallsPointsSlice: StateCreator<
 
     // Update each wall to reference the target point instead
     for (const wall of connectedWalls) {
-      let updatedWall = { ...wall }
+      const updatedWall = { ...wall }
 
       if (wall.startPointId === sourcePointId) {
         updatedWall.startPointId = targetPointId
@@ -108,7 +108,7 @@ export const createWallsPointsSlice: StateCreator<
     state.removePoint(sourcePointId)
   },
 
-  moveWall(wallId: WallId, deltaX: Length, deltaY: Length): void {
+  moveWall (wallId: WallId, deltaX: Length, deltaY: Length): void {
     const state = get()
     const wall = state.walls.get(wallId)
     if (wall == null) return

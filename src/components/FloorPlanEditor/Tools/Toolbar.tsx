@@ -30,7 +30,7 @@ export function Toolbar (): React.JSX.Element {
 
   const createSampleBuilding = useCallback(() => {
     // Create a 3m x 4m room (3000mm x 4000mm) with realistic dimensions
-    const point1 = addPoint(activeFloorId, createPoint2D(0, 0), ) // Bottom-left
+    const point1 = addPoint(activeFloorId, createPoint2D(0, 0)) // Bottom-left
     const point2 = addPoint(activeFloorId, createPoint2D(4000, 0)) // Bottom-right (4m wide)
     const point3 = addPoint(activeFloorId, createPoint2D(4000, 3000)) // Top-right (3m deep)
     const point4 = addPoint(activeFloorId, createPoint2D(0, 3000)) // Top-left

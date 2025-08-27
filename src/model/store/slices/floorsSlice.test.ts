@@ -366,7 +366,7 @@ describe('FloorsSlice', () => {
   })
 
   // Note: Floor entity management is now handled by the entities themselves
-  // when they are created with a floorId parameter. The floors slice focuses 
+  // when they are created with a floorId parameter. The floors slice focuses
   // on managing floor properties only.
 
   describe('complex scenarios', () => {

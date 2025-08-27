@@ -24,11 +24,11 @@ export interface IRoomDetectionService {
 export class RoomDetectionService implements IRoomDetectionService {
   private autoDetectionEnabled: boolean = true
 
-  setAutoDetectionEnabled(enabled: boolean): void {
+  setAutoDetectionEnabled (enabled: boolean): void {
     this.autoDetectionEnabled = enabled
   }
 
-  isAutoDetectionEnabled(): boolean {
+  isAutoDetectionEnabled (): boolean {
     return this.autoDetectionEnabled
   }
 }

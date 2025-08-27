@@ -317,7 +317,7 @@ describe('CornersSlice', () => {
       const allCorners = store.getAllCorners()
       const floor1Corners = store.getCornersByFloor(floorId1)
       const floor2Corners = store.getCornersByFloor(floorId2)
-      
+
       expect(allCorners.length).toBe(3)
       expect(floor1Corners.length + floor2Corners.length).toBe(3)
     })

@@ -13,7 +13,7 @@ import { PointLayer } from './PointLayer'
 import { RoomLayer } from './RoomLayer'
 import { CornerLayer } from './CornerLayer'
 import type { SnapResult } from '@/model/store/services/snapping'
-import type { WallId } from '@/model'
+import type { PointId, WallId } from '@/model'
 
 interface FloorPlanStageProps {
   width: number
@@ -196,7 +196,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
       const currentPos = getStageCoordinates(pointer)
       const snapPos = findSnapPoint(currentPos)
 
-      movePoint(dragState.dragEntityId as import('../../../types/ids').PointId, snapPos?.position ?? currentPos)
+      movePoint(dragState.dragEntityId as PointId, snapPos?.position ?? currentPos)
       return
     }
 
@@ -217,7 +217,7 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
 
       if (pointer != null) {
         const currentPos = getStageCoordinates(pointer)
-        const draggedPointId = dragState.dragEntityId as import('../../../types/ids').PointId
+        const draggedPointId = dragState.dragEntityId as PointId
 
         const nearestPoint = findNearestPoint(activeFloorId, currentPos, createLength(200), draggedPointId)
 

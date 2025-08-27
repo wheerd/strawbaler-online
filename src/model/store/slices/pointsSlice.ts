@@ -29,16 +29,16 @@ export interface PointsActions {
   addRoomToPoint: (pointId: PointId, roomId: RoomId) => void
   removeRoomFromPoint: (pointId: PointId, roomId: RoomId) => void
 
-  getFloorBounds(floorId: FloorId): Bounds2D | null
+  getFloorBounds: (floorId: FloorId) => Bounds2D | null
 }
 
 export type PointsSlice = PointsState & PointsActions
 
 export const createPointsSlice: StateCreator<
-  PointsSlice,
-  [["zustand/devtools", never]],
-  [],
-  PointsSlice
+PointsSlice,
+[['zustand/devtools', never]],
+[],
+PointsSlice
 > = (set, get) => ({
   points: new Map<PointId, Point>(),
 

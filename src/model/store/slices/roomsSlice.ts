@@ -22,7 +22,7 @@ export interface RoomsActions {
   getRoomById: (roomId: RoomId) => Room | null
   getRoomsContainingWall: (wallId: WallId, floorId?: FloorId) => Room[]
   getRoomsContainingPoint: (pointId: PointId, floorId?: FloorId) => Room[]
-  
+
   // NEW: Floor filtering methods
   getRoomsByFloor: (floorId: FloorId) => Room[]
 
@@ -175,6 +175,11 @@ RoomsSlice
 
   getRoomById: (roomId: RoomId) => {
     return get().rooms.get(roomId) ?? null
+  },
+
+  getRoomsByFloor (floorId) {
+    const { rooms } = get()
+    return Array.from(rooms.values()).filter(room => room.floorId === floorId)
   },
 
   getRoomsContainingWall: (wallId: WallId) => {
