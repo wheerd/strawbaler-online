@@ -1,4 +1,5 @@
-import type { ModelState, Wall, Room, Point } from '@/types/model'
+import type { Wall, Room, Point } from '@/types/model'
+import type { ModelState } from '@/model/store/modelStateAdapter'
 import type { WallId, PointId, FloorId } from '@/types/ids'
 import type { Point2D, Area } from '@/types/geometry'
 import { calculatePolygonArea, createPoint2D } from '@/types/geometry'
