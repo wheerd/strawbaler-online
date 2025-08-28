@@ -40,30 +40,48 @@ export class RoomDetectionService implements IRoomDetectionService {
   }
 
   detectRooms (floorId: FloorId): void {
-    if (!this.autoDetectionEnabled) return
-
+    // Always detect rooms, even if auto-detection is disabled
+    const store = this.get()
     const graph = this.buildRoomDetectionGraph(floorId)
 
     // Find all minimal wall loops (potential rooms)
     const loops = this.engine.findMinimalWallLoops(graph)
 
-    // Clear existing rooms on this floor first
-    const store = this.get()
+    // Get existing rooms on this floor to avoid duplicates and generate proper names
     const existingRooms = Array.from(store.rooms.values())
       .filter(room => room.floorId === floorId)
 
-    existingRooms.forEach(room => {
-      store.removeRoom(room.id)
+    // Convert existing rooms to comparable format
+    const existingRoomBoundaries = existingRooms.map(room => ({
+      room,
+      pointIds: new Set(room.outerBoundary.pointIds)
+    }))
+
+    // Create room definitions from detected loops
+    const newRoomDefinitions: RoomDefinition[] = []
+
+    loops.forEach((loop) => {
+      const loopPointIds = new Set(loop.pointIds)
+
+      // Check if this loop matches an existing room (compare only point IDs)
+      const existingRoom = existingRoomBoundaries.find(existing =>
+        this.areBoundariesEqual(loopPointIds, existing.pointIds)
+      )
+
+      // Only add if it doesn't already exist
+      if (existingRoom == null) {
+        const roomName = this.generateUniqueRoomName(existingRooms, newRoomDefinitions)
+        const roomDefinition = this.engine.createRoomFromLoop(loop, roomName, graph)
+
+        if (roomDefinition != null) {
+          newRoomDefinitions.push(roomDefinition)
+        }
+      }
     })
 
-    // Create rooms from detected loops
-    loops.forEach((loop, index) => {
-      const roomName = `Room ${index + 1}`
-      const roomDefinition = this.engine.createRoomFromLoop(loop, roomName, graph)
-
-      if (roomDefinition != null) {
-        this.createRoomFromDefinition(roomDefinition, floorId)
-      }
+    // Create only the new rooms
+    newRoomDefinitions.forEach(definition => {
+      this.createRoomFromDefinition(definition, floorId)
     })
   }
 
@@ -185,6 +203,51 @@ export class RoomDetectionService implements IRoomDetectionService {
     }
 
     return { points, edges, walls }
+  }
+
+  /**
+   * Check if two room boundaries are equal (same point IDs)
+   */
+  private areBoundariesEqual (
+    loopPointIds: Set<PointId>,
+    existingPointIds: Set<PointId>
+  ): boolean {
+    // Check if sets have the same size and same elements
+    if (loopPointIds.size !== existingPointIds.size) {
+      return false
+    }
+
+    // Check if all points match
+    for (const pointId of loopPointIds) {
+      if (!existingPointIds.has(pointId)) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  /**
+   * Generate a unique room name following the "Room {number}" pattern
+   */
+  private generateUniqueRoomName (
+    existingRooms: Array<{ name: string }>,
+    newRoomDefinitions: Array<{ name: string }>
+  ): string {
+    const allExistingNames = new Set([
+      ...existingRooms.map(room => room.name),
+      ...newRoomDefinitions.map(def => def.name)
+    ])
+
+    let roomNumber = 1
+    let candidateName = `Room ${roomNumber}`
+
+    while (allExistingNames.has(candidateName)) {
+      roomNumber++
+      candidateName = `Room ${roomNumber}`
+    }
+
+    return candidateName
   }
 
   /**
