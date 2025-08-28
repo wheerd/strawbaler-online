@@ -63,7 +63,7 @@ pnpm build        # Build for production
 - **State Management**: Zustand with immutable updates
 - **Testing**: Vitest + React Testing Library + jsdom
 - **Build Tool**: Vite
-- **Code Style**: ts-standard
+- **Code Style**: neostandard
 
 ### Project Structure
 ```
