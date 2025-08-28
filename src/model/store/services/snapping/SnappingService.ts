@@ -18,7 +18,7 @@ import { type SnapResult, type SnappingContext, type SnapConfig, DEFAULT_SNAP_CO
 export class SnappingService {
   private readonly snapConfig: SnapConfig
 
-  constructor (snapConfig: Partial<SnapConfig> = {}) {
+  constructor(snapConfig: Partial<SnapConfig> = {}) {
     this.snapConfig = { ...DEFAULT_SNAP_CONFIG, ...snapConfig }
   }
 
@@ -26,14 +26,9 @@ export class SnappingService {
    * Find the snap result for a target point
    * This is the main function that should be used by all components
    */
-  findSnapResult (
-    target: Point2D,
-    context: SnappingContext
-  ): SnapResult | null {
+  findSnapResult(target: Point2D, context: SnappingContext): SnapResult | null {
     // Step 1: Try point snapping first (highest priority)
-    const pointSnapResult = this.findPointSnapPosition(
-      target, context
-    )
+    const pointSnapResult = this.findPointSnapPosition(target, context)
 
     if (pointSnapResult != null) return pointSnapResult
 
@@ -47,10 +42,7 @@ export class SnappingService {
    * Convenience method to get just the snapped position
    * Returns the target point if no snap is found
    */
-  findSnapPosition (
-    target: Point2D,
-    context: SnappingContext
-  ): Point2D {
+  findSnapPosition(target: Point2D, context: SnappingContext): Point2D {
     const result = this.findSnapResult(target, context)
     return result?.position ?? target
   }
@@ -58,9 +50,7 @@ export class SnappingService {
   /**
    * Find existing points for direct point snapping
    */
-  private findPointSnapPosition (
-    target: Point2D, context: SnappingContext
-  ): SnapResult | null {
+  private findPointSnapPosition(target: Point2D, context: SnappingContext): SnapResult | null {
     let bestPoint: Point | null = null
     let bestDistanceSq = this.snapConfig.pointSnapDistance ** 2
 
@@ -74,15 +64,13 @@ export class SnappingService {
       }
     }
 
-    return (bestPoint != null) ? { position: bestPoint.position, pointId: bestPoint.id } : null
+    return bestPoint != null ? { position: bestPoint.position, pointId: bestPoint.id } : null
   }
 
   /**
    * Generate snap lines for architectural alignment
    */
-  private generateSnapLines (
-    context: SnappingContext
-  ): Line2D[] {
+  private generateSnapLines(context: SnappingContext): Line2D[] {
     const snapLines: Line2D[] = []
 
     // 1. Add horizontal and vertical lines through all points
@@ -91,15 +79,13 @@ export class SnappingService {
       snapLines.push({
         point: point.position,
         direction: createVector2D(1, 0)
-      }
-      )
+      })
 
       // Vertical line through point
       snapLines.push({
         point: point.position,
         direction: createVector2D(0, 1)
-      }
-      )
+      })
     }
 
     // 2. Add horizontal and vertical lines through reference point (if any)
@@ -108,15 +94,13 @@ export class SnappingService {
       snapLines.push({
         point: context.referencePoint,
         direction: createVector2D(1, 0)
-      }
-      )
+      })
 
       // Vertical line through point
       snapLines.push({
         point: context.referencePoint,
         direction: createVector2D(0, 1)
-      }
-      )
+      })
     }
 
     // 3. Add extension and perpendicular lines for reference line segments (if any)
@@ -144,13 +128,9 @@ export class SnappingService {
   /**
    * Find snap position on lines or line intersections
    */
-  private findLineSnapPosition (
-    target: Point2D,
-    snapLines: Line2D[],
-    context: SnappingContext
-  ): SnapResult | null {
+  private findLineSnapPosition(target: Point2D, snapLines: Line2D[], context: SnappingContext): SnapResult | null {
     const minDistanceSquared = this.snapConfig.minDistance ** 2
-    const nearbyLines: Array<{ line: Line2D, distance: number, projectedPosition: Point2D }> = []
+    const nearbyLines: Array<{ line: Line2D; distance: number; projectedPosition: Point2D }> = []
     let closestDist = Number(this.snapConfig.lineSnapDistance)
     let closestIndex = -1
 
@@ -158,7 +138,10 @@ export class SnappingService {
       const distance = Number(distanceToInfiniteLine(target, line))
       if (distance <= this.snapConfig.lineSnapDistance) {
         const projectedPosition = projectPointOntoLine(target, line)
-        if (context.referencePoint == null || distanceSquared(projectedPosition, context.referencePoint) >= minDistanceSquared) {
+        if (
+          context.referencePoint == null ||
+          distanceSquared(projectedPosition, context.referencePoint) >= minDistanceSquared
+        ) {
           nearbyLines.push({ line, distance, projectedPosition })
           if (distance < closestDist) {
             closestDist = distance
@@ -189,7 +172,10 @@ export class SnappingService {
 
         if (distanceSquared(target, intersection) > lineSnapDistSq) continue
 
-        if (context.referencePoint == null || distanceSquared(intersection, context.referencePoint) >= minDistanceSquared) {
+        if (
+          context.referencePoint == null ||
+          distanceSquared(intersection, context.referencePoint) >= minDistanceSquared
+        ) {
           return { position: intersection, lines: [line1.line, line2.line] }
         }
       }

@@ -18,7 +18,7 @@ export class RoomDetectionEngine {
   /**
    * Find all minimal wall loops (potential rooms) on a floor
    */
-  findMinimalWallLoops (graph: RoomDetectionGraph): WallLoopTrace[] {
+  findMinimalWallLoops(graph: RoomDetectionGraph): WallLoopTrace[] {
     const loops: WallLoopTrace[] = []
     const processedEdges = new Set<string>()
 
@@ -49,7 +49,7 @@ export class RoomDetectionEngine {
    * Trace a wall loop starting from a given wall in a specific direction
    * Uses DFS with smallest angle selection to find minimal cycles
    */
-  traceWallLoop (startPointId: PointId, endPointId: PointId, graph: RoomDetectionGraph): WallLoopTrace | null {
+  traceWallLoop(startPointId: PointId, endPointId: PointId, graph: RoomDetectionGraph): WallLoopTrace | null {
     const visited = new Set<PointId>()
     const wallsUsed = new Set<WallId>()
     const pointPath: PointId[] = [startPointId, endPointId]
@@ -82,7 +82,7 @@ export class RoomDetectionEngine {
   /**
    * DFS helper function for tracing wall loops
    */
-  private dfsTraceLoop (
+  private dfsTraceLoop(
     currentPoint: PointId,
     targetPoint: PointId,
     graph: RoomDetectionGraph,
@@ -90,7 +90,7 @@ export class RoomDetectionEngine {
     wallsUsed: Set<WallId>,
     pointPath: PointId[],
     wallPath: WallId[]
-  ): { pointPath: PointId[], wallPath: WallId[] } | null {
+  ): { pointPath: PointId[]; wallPath: WallId[] } | null {
     // If we've reached the target point and have at least 3 points, we found a cycle
     if (currentPoint === targetPoint && pointPath.length >= 3) {
       // Don't add the target point again since it's already at the start
@@ -159,12 +159,12 @@ export class RoomDetectionEngine {
   /**
    * Sort edges by angle from the previous direction, selecting smallest angles first
    */
-  private sortEdgesByAngle (
+  private sortEdgesByAngle(
     currentPoint: PointId,
     pointPath: PointId[],
     graph: RoomDetectionGraph,
-    edges: Array<{ endPointId: PointId, wallId: WallId }>
-  ): Array<{ endPointId: PointId, wallId: WallId }> {
+    edges: Array<{ endPointId: PointId; wallId: WallId }>
+  ): Array<{ endPointId: PointId; wallId: WallId }> {
     if (pointPath.length < 2) {
       return edges
     }
@@ -178,10 +178,7 @@ export class RoomDetectionEngine {
     }
 
     // Calculate incoming direction
-    const incomingAngle = Math.atan2(
-      currentPos.y - previousPos.y,
-      currentPos.x - previousPos.x
-    )
+    const incomingAngle = Math.atan2(currentPos.y - previousPos.y, currentPos.x - previousPos.x)
 
     // Calculate angle for each outgoing edge and sort by smallest turn angle
     const edgesWithAngles = edges.map(edge => {
@@ -190,10 +187,7 @@ export class RoomDetectionEngine {
         return { edge, angle: 0, turnAngle: Math.PI * 2 }
       }
 
-      const outgoingAngle = Math.atan2(
-        nextPos.y - currentPos.y,
-        nextPos.x - currentPos.x
-      )
+      const outgoingAngle = Math.atan2(nextPos.y - currentPos.y, nextPos.x - currentPos.x)
 
       // Calculate turn angle (difference from incoming direction)
       let turnAngle = outgoingAngle - incomingAngle
@@ -211,7 +205,7 @@ export class RoomDetectionEngine {
     return edgesWithAngles.map(item => item.edge)
   }
 
-  toPolygon (traceWallLoop: WallLoopTrace, graph: RoomDetectionGraph): Polygon2D {
+  toPolygon(traceWallLoop: WallLoopTrace, graph: RoomDetectionGraph): Polygon2D {
     const points: Point2D[] = []
     for (const pointId of traceWallLoop.pointIds) {
       const point = graph.points.get(pointId)
@@ -222,7 +216,7 @@ export class RoomDetectionEngine {
     return { points }
   }
 
-  determineRoomSide (boundary: RoomBoundaryDefinition, wall: Wall): RoomSide {
+  determineRoomSide(boundary: RoomBoundaryDefinition, wall: Wall): RoomSide {
     if (boundary.pointIds.length < 3) {
       throw new Error('Invalid boundary, must have at least 3 points')
     }
@@ -253,7 +247,7 @@ export class RoomDetectionEngine {
   /**
    * Create a room definition from a wall loop
    */
-  createRoomFromLoop (loop: WallLoopTrace, name: string, _graph: RoomDetectionGraph): RoomDefinition | null {
+  createRoomFromLoop(loop: WallLoopTrace, name: string, _graph: RoomDetectionGraph): RoomDefinition | null {
     if (loop.pointIds.length < 3 || loop.wallIds.length < 3) {
       return null
     }
@@ -274,7 +268,12 @@ export class RoomDetectionEngine {
   /**
    * Create a complete room definition with holes from multiple wall loops
    */
-  createRoomWithHoles (outer: WallLoopTrace, holes: WallLoopTrace[], name: string, _graph: RoomDetectionGraph): RoomDefinition | null {
+  createRoomWithHoles(
+    outer: WallLoopTrace,
+    holes: WallLoopTrace[],
+    name: string,
+    _graph: RoomDetectionGraph
+  ): RoomDefinition | null {
     if (outer.pointIds.length < 3 || outer.wallIds.length < 3) {
       return null
     }
@@ -300,7 +299,7 @@ export class RoomDetectionEngine {
   /**
    * Check if one wall loop is completely inside another
    */
-  isLoopInsideLoop (outer: WallLoopTrace, inner: WallLoopTrace, graph: RoomDetectionGraph): boolean {
+  isLoopInsideLoop(outer: WallLoopTrace, inner: WallLoopTrace, graph: RoomDetectionGraph): boolean {
     const outerPolygon = this.toPolygon(outer, graph)
 
     // Check if all points of the inner loop are inside the outer polygon
@@ -317,7 +316,7 @@ export class RoomDetectionEngine {
   /**
    * Identify interior walls that are completely inside a room
    */
-  findInteriorWalls (roomDefinition: RoomDefinition, graph: RoomDetectionGraph): WallId[] {
+  findInteriorWalls(roomDefinition: RoomDefinition, graph: RoomDetectionGraph): WallId[] {
     const interiorWalls: WallId[] = []
     const boundaryWallIds = new Set([
       ...roomDefinition.outerBoundary.wallIds,
@@ -336,14 +335,16 @@ export class RoomDetectionEngine {
       const startPoint = graph.points.get(wall.startPointId)
       const endPoint = graph.points.get(wall.endPointId)
 
-      if (startPoint != null && endPoint != null &&
+      if (
+        startPoint != null &&
+        endPoint != null &&
         isPointInPolygon(startPoint, outerPolygon) &&
-        isPointInPolygon(endPoint, outerPolygon)) {
+        isPointInPolygon(endPoint, outerPolygon)
+      ) {
         // Also check that the wall doesn't cross any hole boundaries
         let isInsideHole = false
         for (const holePolygon of holePolygons) {
-          if (isPointInPolygon(startPoint, holePolygon) ||
-            isPointInPolygon(endPoint, holePolygon)) {
+          if (isPointInPolygon(startPoint, holePolygon) || isPointInPolygon(endPoint, holePolygon)) {
             isInsideHole = true
             break
           }

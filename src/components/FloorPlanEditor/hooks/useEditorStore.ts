@@ -70,7 +70,7 @@ export interface EditorActions {
 
 type EditorStore = EditorState & EditorActions
 
-function createInitialState (defaultFloorId: FloorId): EditorState {
+function createInitialState(defaultFloorId: FloorId): EditorState {
   return {
     activeTool: 'select',
     isDrawing: false,
@@ -180,23 +180,25 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
     const entityId = state.selectedEntityId
 
     // Import the model store dynamically to avoid circular dependencies
-    import('@/model/store').then(({ useModelStore }) => {
-      const modelStore = useModelStore.getState()
+    import('@/model/store')
+      .then(({ useModelStore }) => {
+        const modelStore = useModelStore.getState()
 
-      // Use type guards to determine entity type and call appropriate remove function
-      if (isPointId(entityId)) {
-        modelStore.removePoint(entityId)
-      } else if (isWallId(entityId)) {
-        modelStore.removeWall(entityId)
-      } else if (isRoomId(entityId)) {
-        modelStore.removeRoom(entityId)
-      }
+        // Use type guards to determine entity type and call appropriate remove function
+        if (isPointId(entityId)) {
+          modelStore.removePoint(entityId)
+        } else if (isWallId(entityId)) {
+          modelStore.removeWall(entityId)
+        } else if (isRoomId(entityId)) {
+          modelStore.removeRoom(entityId)
+        }
 
-      // Clear selection after deletion
-      set({ selectedEntityId: undefined })
-    }).catch((error) => {
-      console.error('Failed to delete entity:', error)
-    })
+        // Clear selection after deletion
+        set({ selectedEntityId: undefined })
+      })
+      .catch(error => {
+        console.error('Failed to delete entity:', error)
+      })
   },
 
   setViewMode: (viewMode: ViewMode) => {
@@ -223,18 +225,18 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
     console.log('fitToView called - implementation will be in the component')
   },
 
-  updateSnapReference (fromPoint, fromPointId) {
+  updateSnapReference(fromPoint, fromPointId) {
     set({
       currentSnapFromPoint: fromPoint ?? undefined,
       currentSnapFromPointId: fromPointId ?? undefined
     })
   },
 
-  updateSnapResult (result) {
+  updateSnapResult(result) {
     set({ currentSnapResult: result ?? undefined })
   },
 
-  updateSnapTarget (target) {
+  updateSnapTarget(target) {
     set({ currentSnapTarget: target })
   },
 
@@ -262,7 +264,8 @@ export const useDragState = (): DragState => useEditorStore(state => state.dragS
 export const useCurrentSnapResult = (): SnapResult | undefined => useEditorStore(state => state.currentSnapResult)
 export const useCurrentSnapTarget = (): Point2D | undefined => useEditorStore(state => state.currentSnapTarget)
 export const useCurrentSnapFromPoint = (): Point2D | undefined => useEditorStore(state => state.currentSnapFromPoint)
-export const useCurrentSnapFromPointId = (): PointId | undefined => useEditorStore(state => state.currentSnapFromPointId)
+export const useCurrentSnapFromPointId = (): PointId | undefined =>
+  useEditorStore(state => state.currentSnapFromPointId)
 export const useShowGrid = (): boolean => useEditorStore(state => state.showGrid)
 export const useEditorGridSize = (): number => useEditorStore(state => state.gridSize)
 export const useShowRoomLabels = (): boolean => useEditorStore(state => state.showRoomLabels)

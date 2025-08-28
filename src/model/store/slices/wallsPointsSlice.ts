@@ -12,13 +12,7 @@ export interface WallsPointsActions {
 
 export type WallsPointsSlice = WallsPointsActions
 
-export const createWallsPointsSlice: StateCreator<
-WallsSlice & PointsSlice,
-[],
-[],
-WallsPointsSlice
-> = (set, get) => ({
-
+export const createWallsPointsSlice: StateCreator<WallsSlice & PointsSlice, [], [], WallsPointsSlice> = (set, get) => ({
   getWallLength: (wallId: WallId): Length => {
     const state = get()
     const wall = state.getWallById(wallId)
@@ -73,10 +67,10 @@ WallsPointsSlice
         if (existingWall.id === wall.id) continue // Skip the current wall
 
         // Check if this wall duplicates an existing wall (same endpoints in either direction)
-        const sameDirection = (updatedWall.startPointId === existingWall.startPointId &&
-          updatedWall.endPointId === existingWall.endPointId)
-        const reverseDirection = (updatedWall.startPointId === existingWall.endPointId &&
-          updatedWall.endPointId === existingWall.startPointId)
+        const sameDirection =
+          updatedWall.startPointId === existingWall.startPointId && updatedWall.endPointId === existingWall.endPointId
+        const reverseDirection =
+          updatedWall.startPointId === existingWall.endPointId && updatedWall.endPointId === existingWall.startPointId
 
         if (sameDirection || reverseDirection) {
           wallsToRemove.add(wall.id)
@@ -108,7 +102,7 @@ WallsPointsSlice
     state.removePoint(sourcePointId)
   },
 
-  moveWall (wallId: WallId, deltaX: Length, deltaY: Length): void {
+  moveWall(wallId: WallId, deltaX: Length, deltaY: Length): void {
     const state = get()
     const wall = state.walls.get(wallId)
     if (wall == null) return
@@ -139,15 +133,9 @@ WallsPointsSlice
     updatedState.points = new Map(state.points)
     updatedState.walls = new Map(state.walls)
 
-    const newStartPosition: Point2D = createPoint2D(
-      startPoint.position.x + moveX,
-      startPoint.position.y + moveY
-    )
+    const newStartPosition: Point2D = createPoint2D(startPoint.position.x + moveX, startPoint.position.y + moveY)
 
-    const newEndPosition: Point2D = createPoint2D(
-      endPoint.position.x + moveX,
-      endPoint.position.y + moveY
-    )
+    const newEndPosition: Point2D = createPoint2D(endPoint.position.x + moveX, endPoint.position.y + moveY)
 
     const updatedStartPoint = { ...startPoint, position: newStartPosition }
     const updatedEndPoint = { ...endPoint, position: newEndPosition }

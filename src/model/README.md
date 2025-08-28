@@ -5,14 +5,18 @@ This directory contains comprehensive unit tests for the Strawbaler model system
 ## Test Files
 
 ### ✅ `operations.test.ts` (26 tests - All Passing)
+
 Tests all model operations functions:
+
 - **Factory Functions**: Creating buildings, floors, walls, rooms, connection points, openings
 - **Geometric Calculations**: Wall length, angles, room area, building bounds
 - **Opening Positioning**: Offset-based positioning, validation, overlap detection
 - **Building Operations**: Adding/removing entities, maintaining relationships
 
 ### ✅ `store-simple.test.ts` (9 tests - All Passing)
+
 Tests Zustand store functionality:
+
 - **Initial State**: Correct initialization with building and ground floor
 - **Building Operations**: Creating buildings, adding floors/walls/rooms
 - **Entity Management**: Connection points, openings with validation
@@ -25,6 +29,7 @@ Tests Zustand store functionality:
 The tests cover:
 
 ### Core Model Operations ✅
+
 - Building creation and initialization
 - Entity creation (walls, rooms, floors, openings, connection points)
 - Geometric calculations (lengths, angles, areas, bounds)
@@ -32,6 +37,7 @@ The tests cover:
 - Entity relationships and cleanup
 
 ### Zustand Store ✅
+
 - State initialization and management
 - All store actions and their effects
 - Selection state management
@@ -39,6 +45,7 @@ The tests cover:
 - Error handling and validation
 
 ### Key Features Tested ✅
+
 - **Offset-based opening positioning** - Openings positioned by mm offset from wall start
 - **Validation** - Opening overlap and bounds checking
 - **State consistency** - Proper cleanup when removing entities

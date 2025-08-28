@@ -2,14 +2,19 @@ import { Circle } from 'react-konva'
 import type Konva from 'konva'
 import { useCallback, useRef } from 'react'
 import type { Point } from '@/types/model'
-import { useSelectedEntity, useEditorStore, useDragState, useActiveTool } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import {
+  useSelectedEntity,
+  useEditorStore,
+  useDragState,
+  useActiveTool
+} from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import type { Point2D } from '@/types/geometry'
 
 interface PointShapeProps {
   point: Point
 }
 
-export function PointShape ({ point }: PointShapeProps): React.JSX.Element {
+export function PointShape({ point }: PointShapeProps): React.JSX.Element {
   // Use individual selectors to avoid object creation
   const selectedEntity = useSelectedEntity()
   const selectEntity = useEditorStore(state => state.selectEntity)
@@ -21,48 +26,54 @@ export function PointShape ({ point }: PointShapeProps): React.JSX.Element {
   const isSelected = selectedEntity === point.id
   const isDragging = dragState.isDragging && dragState.dragEntityId === point.id && dragState.dragType === 'point'
 
-  const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
-    // In wall creation mode, allow the stage to handle the click
-    if (activeTool === 'wall') {
-      return // Don't cancel bubbling, let the stage handle it
-    }
+  const handleClick = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>): void => {
+      // In wall creation mode, allow the stage to handle the click
+      if (activeTool === 'wall') {
+        return // Don't cancel bubbling, let the stage handle it
+      }
 
-    // If we just finished dragging, don't process the click (prevents deselection)
-    if (hasDraggedRef.current) {
-      hasDraggedRef.current = false
+      // If we just finished dragging, don't process the click (prevents deselection)
+      if (hasDraggedRef.current) {
+        hasDraggedRef.current = false
+        e.cancelBubble = true
+        return
+      }
+
+      // Default behavior: stop propagation and toggle selection
       e.cancelBubble = true
-      return
-    }
+      selectEntity(point.id)
+    },
+    [selectEntity, point.id, activeTool]
+  )
 
-    // Default behavior: stop propagation and toggle selection
-    e.cancelBubble = true
-    selectEntity(point.id)
-  }, [selectEntity, point.id, activeTool])
+  const handleMouseDown = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>): void => {
+      if (e.evt.button !== 0) return // Only left click
 
-  const handleMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
-    if (e.evt.button !== 0) return // Only left click
+      // In wall creation mode, let the stage handle the mouseDown
+      if (activeTool === 'wall') {
+        return // Don't cancel bubbling, let the stage handle it
+      }
 
-    // In wall creation mode, let the stage handle the mouseDown
-    if (activeTool === 'wall') {
-      return // Don't cancel bubbling, let the stage handle it
-    }
+      e.cancelBubble = true
 
-    e.cancelBubble = true
+      // Reset drag flag
+      hasDraggedRef.current = false
 
-    // Reset drag flag
-    hasDraggedRef.current = false
+      // Select the point when starting to drag
+      selectEntity(point.id)
 
-    // Select the point when starting to drag
-    selectEntity(point.id)
-
-    const stage = e.target.getStage()
-    const pointer = stage?.getPointerPosition()
-    if (pointer != null) {
-      startDrag('point', pointer as Point2D, point.id)
-      // Mark that we started a drag operation
-      hasDraggedRef.current = true
-    }
-  }, [startDrag, selectEntity, point.id, activeTool])
+      const stage = e.target.getStage()
+      const pointer = stage?.getPointerPosition()
+      if (pointer != null) {
+        startDrag('point', pointer as Point2D, point.id)
+        // Mark that we started a drag operation
+        hasDraggedRef.current = true
+      }
+    },
+    [startDrag, selectEntity, point.id, activeTool]
+  )
 
   return (
     <Circle
@@ -70,7 +81,7 @@ export function PointShape ({ point }: PointShapeProps): React.JSX.Element {
       y={point.position.y}
       radius={50} // Much larger radius for visibility at real-world scale
       fill={isSelected ? '#007acc' : isDragging ? '#ff6b35' : '#666666'}
-      stroke='#333333'
+      stroke="#333333"
       strokeWidth={10} // Thicker stroke for visibility
       onClick={activeTool === 'wall' ? undefined : handleClick}
       onTap={activeTool === 'wall' ? undefined : handleClick}

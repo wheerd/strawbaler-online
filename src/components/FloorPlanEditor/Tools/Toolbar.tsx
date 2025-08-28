@@ -1,10 +1,16 @@
 import { useCallback } from 'react'
-import { useActiveTool, useEditorStore, useActiveFloorId, useViewport, useSelectedEntity } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import {
+  useActiveTool,
+  useEditorStore,
+  useActiveFloorId,
+  useViewport,
+  useSelectedEntity
+} from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { useModelStore } from '@/model/store'
 import { FloorSelector } from './FloorSelector'
 import { createPoint2D, createLength } from '@/types/geometry'
 
-export function Toolbar (): React.JSX.Element {
+export function Toolbar(): React.JSX.Element {
   const activeTool = useActiveTool()
   const activeFloorId = useActiveFloorId()
   const viewport = useViewport()
@@ -91,8 +97,8 @@ export function Toolbar (): React.JSX.Element {
   }, [selectedEntityId, deleteSelectedEntity])
 
   return (
-    <div className='toolbar'>
-      <div className='tool-group'>
+    <div className="toolbar">
+      <div className="tool-group">
         {tools.map(tool => (
           <button
             key={tool.id}
@@ -106,62 +112,40 @@ export function Toolbar (): React.JSX.Element {
         ))}
       </div>
 
-      <div className='tool-group'>
-        <button
-          className='tool-button'
-          onClick={createSampleBuilding}
-          title='Add Sample Room'
-        >
+      <div className="tool-group">
+        <button className="tool-button" onClick={createSampleBuilding} title="Add Sample Room">
           Sample
         </button>
         <button
           className={`tool-button ${selectedEntityId == null ? 'disabled' : ''}`}
           onClick={handleDeleteSelected}
           disabled={selectedEntityId == null}
-          title={selectedEntityId != null ? `Delete selected ${selectedEntityId.split('_')[0]}` : 'No selection to delete'}
+          title={
+            selectedEntityId != null ? `Delete selected ${selectedEntityId.split('_')[0]}` : 'No selection to delete'
+          }
         >
           <span style={{ marginRight: '8px' }}>🗑️</span>
           Delete
         </button>
       </div>
 
-      <div className='tool-group'>
-        <button
-          className='tool-button'
-          onClick={() => setShowGrid(true)}
-          title='Show Grid'
-        >
+      <div className="tool-group">
+        <button className="tool-button" onClick={() => setShowGrid(true)} title="Show Grid">
           Grid
         </button>
-        <button
-          className='tool-button'
-          onClick={() => setGridSize(250)}
-          title='Fine Grid - 250mm'
-        >
+        <button className="tool-button" onClick={() => setGridSize(250)} title="Fine Grid - 250mm">
           250mm
         </button>
-        <button
-          className='tool-button'
-          onClick={() => setGridSize(500)}
-          title='Medium Grid - 500mm'
-        >
+        <button className="tool-button" onClick={() => setGridSize(500)} title="Medium Grid - 500mm">
           500mm
         </button>
-        <button
-          className='tool-button'
-          onClick={() => setGridSize(1000)}
-          title='Large Grid - 1m'
-        >
+        <button className="tool-button" onClick={() => setGridSize(1000)} title="Large Grid - 1m">
           1m
         </button>
       </div>
 
-      <div className='tool-group'>
-        <button
-          className='tool-button'
-          onClick={fitToView}
-          title='Fit active floor to view'
-        >
+      <div className="tool-group">
+        <button className="tool-button" onClick={fitToView} title="Fit active floor to view">
           <span style={{ marginRight: '8px' }}>🔍</span>
           Fit View
         </button>

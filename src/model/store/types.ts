@@ -7,14 +7,13 @@ import type { WallsPointsActions } from './slices/wallsPointsSlice'
 
 export interface StoreState extends WallsState, PointsState, RoomsState, FloorsState, CornersState {}
 
-export interface StoreActions extends
-  WallsActions,
-  PointsActions,
-  RoomsActions,
-  FloorsActions,
-  CornersActions,
-  WallsPointsActions {
-
+export interface StoreActions
+  extends WallsActions,
+    PointsActions,
+    RoomsActions,
+    FloorsActions,
+    CornersActions,
+    WallsPointsActions {
   reset: () => void
 }
 

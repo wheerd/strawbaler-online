@@ -11,7 +11,7 @@ beforeAll(() => {
   // Mock the problematic canvas module completely
   vi.mock('canvas', () => ({
     default: {},
-    Canvas: function MockCanvas () {
+    Canvas: function MockCanvas() {
       return {}
     },
     createCanvas: () => ({}),
@@ -57,17 +57,22 @@ const propsAttrs = (props: any): Record<string, any> => {
 vi.mock('react-konva', async () => {
   const React = await import('react')
   return {
-    Stage: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'stage', ...propsAttrs(props) }, children),
-    Layer: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'layer', ...propsAttrs(props) }, children),
-    Line: ({ points, ...props }: any) => React.createElement('div', {
-      'data-testid': 'wall-line',
-      ...propsAttrs(props)
-    }),
-    Group: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'group', ...propsAttrs(props) }, children),
-    Arrow: ({ points, ...props }: any) => React.createElement('div', {
-      'data-testid': 'direction-arrow',
-      ...propsAttrs(props)
-    }),
+    Stage: ({ children, ...props }: any) =>
+      React.createElement('div', { 'data-testid': 'stage', ...propsAttrs(props) }, children),
+    Layer: ({ children, ...props }: any) =>
+      React.createElement('div', { 'data-testid': 'layer', ...propsAttrs(props) }, children),
+    Line: ({ points, ...props }: any) =>
+      React.createElement('div', {
+        'data-testid': 'wall-line',
+        ...propsAttrs(props)
+      }),
+    Group: ({ children, ...props }: any) =>
+      React.createElement('div', { 'data-testid': 'group', ...propsAttrs(props) }, children),
+    Arrow: ({ points, ...props }: any) =>
+      React.createElement('div', {
+        'data-testid': 'direction-arrow',
+        ...propsAttrs(props)
+      }),
     Circle: ({ ...props }: any) => React.createElement('div', { 'data-testid': 'circle', ...propsAttrs(props) }),
     Text: ({ text, ...props }: any) => React.createElement('div', { 'data-testid': 'text', ...propsAttrs(props) }, text)
   }

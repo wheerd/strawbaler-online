@@ -5,6 +5,7 @@ This guide helps you set up your GitHub repository to take full advantage of the
 ## Initial Setup
 
 1. **Create GitHub Repository**
+
    ```bash
    # If you haven't already, create a new repository on GitHub
    # Then connect your local repository:
@@ -24,24 +25,30 @@ This guide helps you set up your GitHub repository to take full advantage of the
 For the workflows to function correctly, ensure these permissions are set:
 
 ### Repository Settings > Actions > General
+
 - **Actions permissions**: Allow all actions and reusable workflows
 - **Workflow permissions**: Read and write permissions
 - **Allow GitHub Actions to create and approve pull requests**: ✅ Enabled
 
 ### Required for Dependency Updates
+
 The dependency update workflow will create pull requests automatically. Make sure:
+
 - Branch protection rules allow the workflow to create PRs
 - Auto-merge can be enabled if desired
 
 ## Security Features
 
 ### CodeQL Analysis
+
 The security workflow includes CodeQL analysis, which:
+
 - Analyzes code for security vulnerabilities
 - Runs automatically on pushes and PRs
 - Results appear in the Security tab
 
 ### Dependency Scanning
+
 - Weekly security audits via `pnpm audit`
 - Automated dependency updates via pull requests
 - Vulnerability alerts in the Security tab
@@ -51,6 +58,7 @@ The security workflow includes CodeQL analysis, which:
 To create a release:
 
 1. **Tag a release**:
+
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
@@ -65,15 +73,17 @@ To create a release:
 ## Customization
 
 ### Modify Workflows
+
 All workflows are in `.github/workflows/` and can be customized:
 
 - **ci.yml**: Main CI pipeline
-- **deploy-preview.yml**: PR preview builds  
+- **deploy-preview.yml**: PR preview builds
 - **security.yml**: Security scanning
 - **release.yml**: Release automation
 - **update-dependencies.yml**: Dependency management
 
 ### Branch Protection
+
 Consider adding branch protection rules for `main`:
 
 1. Go to Settings > Branches
@@ -84,23 +94,30 @@ Consider adding branch protection rules for `main`:
    - Include CI workflow checks
 
 ### Secrets
+
 No secrets are currently required, but you may want to add:
+
 - `CODECOV_TOKEN` for code coverage reporting
 - Deployment tokens for hosting services
 
 ## Monitoring
 
 ### GitHub Actions Tab
+
 Monitor workflow runs in the Actions tab of your repository.
 
 ### Security Tab
+
 Check for:
+
 - Dependabot alerts
-- CodeQL findings  
+- CodeQL findings
 - Security advisories
 
 ### Insights
+
 Use repository insights to track:
+
 - Commit activity
 - Code frequency
 - Dependency graph
@@ -126,6 +143,7 @@ Use repository insights to track:
    - Verify all dependencies are properly installed
 
 ### Getting Help
+
 - Check workflow logs in the Actions tab
 - Review this setup guide
 - Open an issue in the repository

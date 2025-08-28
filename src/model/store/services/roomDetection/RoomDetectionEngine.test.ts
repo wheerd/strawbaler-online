@@ -377,10 +377,12 @@ describe('RoomDetectionEngine', () => {
           pointIds: [outerP1, outerP2, outerP3, outerP4],
           wallIds: [boundaryW1, boundaryW2, boundaryW3, boundaryW4]
         },
-        holes: [{
-          pointIds: [holeP1, holeP2, holeP3],
-          wallIds: [holeW1, holeW2, holeW3]
-        }],
+        holes: [
+          {
+            pointIds: [holeP1, holeP2, holeP3],
+            wallIds: [holeW1, holeW2, holeW3]
+          }
+        ],
         interiorWallIds: []
       }
 
@@ -536,10 +538,34 @@ describe('RoomDetectionEngine', () => {
           [p4, createPoint2D(0, 10)]
         ]),
         edges: new Map([
-          [p1, [{ endPointId: p2, wallId: w1 }, { endPointId: p4, wallId: w4 }]],
-          [p2, [{ endPointId: p3, wallId: w2 }, { endPointId: p1, wallId: w1 }]],
-          [p3, [{ endPointId: p4, wallId: w3 }, { endPointId: p2, wallId: w2 }]],
-          [p4, [{ endPointId: p1, wallId: w4 }, { endPointId: p3, wallId: w3 }]]
+          [
+            p1,
+            [
+              { endPointId: p2, wallId: w1 },
+              { endPointId: p4, wallId: w4 }
+            ]
+          ],
+          [
+            p2,
+            [
+              { endPointId: p3, wallId: w2 },
+              { endPointId: p1, wallId: w1 }
+            ]
+          ],
+          [
+            p3,
+            [
+              { endPointId: p4, wallId: w3 },
+              { endPointId: p2, wallId: w2 }
+            ]
+          ],
+          [
+            p4,
+            [
+              { endPointId: p1, wallId: w4 },
+              { endPointId: p3, wallId: w3 }
+            ]
+          ]
         ]),
         walls: new Map([
           [w1, { startPointId: p1, endPointId: p2 }],
@@ -589,30 +615,45 @@ describe('RoomDetectionEngine', () => {
           [p5, createPoint2D(5, 5)] // Center
         ]),
         edges: new Map([
-          [p1, [
-            { endPointId: p2, wallId: w1 },
-            { endPointId: p4, wallId: w4 },
-            { endPointId: p5, wallId: w5 }
-          ]],
-          [p2, [
-            { endPointId: p3, wallId: w2 },
-            { endPointId: p1, wallId: w1 },
-            { endPointId: p5, wallId: w6 }
-          ]],
-          [p3, [
-            { endPointId: p4, wallId: w3 },
-            { endPointId: p2, wallId: w2 },
-            { endPointId: p5, wallId: w7 }
-          ]],
-          [p4, [
-            { endPointId: p1, wallId: w4 },
-            { endPointId: p3, wallId: w3 }
-          ]],
-          [p5, [
-            { endPointId: p1, wallId: w5 },
-            { endPointId: p2, wallId: w6 },
-            { endPointId: p3, wallId: w7 }
-          ]]
+          [
+            p1,
+            [
+              { endPointId: p2, wallId: w1 },
+              { endPointId: p4, wallId: w4 },
+              { endPointId: p5, wallId: w5 }
+            ]
+          ],
+          [
+            p2,
+            [
+              { endPointId: p3, wallId: w2 },
+              { endPointId: p1, wallId: w1 },
+              { endPointId: p5, wallId: w6 }
+            ]
+          ],
+          [
+            p3,
+            [
+              { endPointId: p4, wallId: w3 },
+              { endPointId: p2, wallId: w2 },
+              { endPointId: p5, wallId: w7 }
+            ]
+          ],
+          [
+            p4,
+            [
+              { endPointId: p1, wallId: w4 },
+              { endPointId: p3, wallId: w3 }
+            ]
+          ],
+          [
+            p5,
+            [
+              { endPointId: p1, wallId: w5 },
+              { endPointId: p2, wallId: w6 },
+              { endPointId: p3, wallId: w7 }
+            ]
+          ]
         ]),
         walls: new Map([
           [w1, { startPointId: p1, endPointId: p2 }],
@@ -651,7 +692,13 @@ describe('RoomDetectionEngine', () => {
         ]),
         edges: new Map([
           [p1, [{ endPointId: p2, wallId: w1 }]],
-          [p2, [{ endPointId: p3, wallId: w2 }, { endPointId: p1, wallId: w1 }]],
+          [
+            p2,
+            [
+              { endPointId: p3, wallId: w2 },
+              { endPointId: p1, wallId: w1 }
+            ]
+          ],
           [p3, [{ endPointId: p2, wallId: w2 }]]
         ]),
         walls: new Map([
@@ -683,9 +730,7 @@ describe('RoomDetectionEngine', () => {
           [p2, [{ endPointId: p1, wallId: w1 }]], // Same wall, different direction
           [p3, []] // Isolated point
         ]),
-        walls: new Map([
-          [w1, { startPointId: p1, endPointId: p2 }]
-        ])
+        walls: new Map([[w1, { startPointId: p1, endPointId: p2 }]])
       }
 
       const result = engine.traceWallLoop(p1, p2, graph)

@@ -2,7 +2,12 @@ import { Line, Group, Arrow, Text } from 'react-konva'
 import type Konva from 'konva'
 import { useCallback, useRef } from 'react'
 import type { Wall } from '@/types/model'
-import { useSelectedEntity, useEditorStore, useDragState, useActiveTool } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import {
+  useSelectedEntity,
+  useEditorStore,
+  useDragState,
+  useActiveTool
+} from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { usePoints, useCorners, useWallLength } from '@/model/store'
 import type { Point2D } from '@/types/geometry'
 
@@ -10,7 +15,7 @@ interface WallShapeProps {
   wall: Wall
 }
 
-export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
+export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
   // Use individual selectors to avoid object creation
   const selectedEntity = useSelectedEntity()
   const selectEntity = useEditorStore(state => state.selectEntity)
@@ -33,51 +38,57 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
   const isDragging = dragState.isDragging && dragState.dragEntityId === wall.id && dragState.dragType === 'wall'
 
   // Check if this wall is a main wall of a selected corner
-  const isMainWallOfSelectedCorner = Array.from(corners.values()).some(corner =>
-    selectedEntity === corner.pointId && (corner.wall1Id === wall.id || corner.wall2Id === wall.id)
+  const isMainWallOfSelectedCorner = Array.from(corners.values()).some(
+    corner => selectedEntity === corner.pointId && (corner.wall1Id === wall.id || corner.wall2Id === wall.id)
   )
 
-  const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
-    // In wall creation mode, allow the stage to handle the click
-    if (activeTool === 'wall') {
-      return // Don't cancel bubbling, let the stage handle it
-    }
+  const handleClick = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>): void => {
+      // In wall creation mode, allow the stage to handle the click
+      if (activeTool === 'wall') {
+        return // Don't cancel bubbling, let the stage handle it
+      }
 
-    // If we just finished dragging, don't process the click (prevents deselection)
-    if (hasDraggedRef.current) {
-      hasDraggedRef.current = false
+      // If we just finished dragging, don't process the click (prevents deselection)
+      if (hasDraggedRef.current) {
+        hasDraggedRef.current = false
+        e.cancelBubble = true
+        return
+      }
+
       e.cancelBubble = true
-      return
-    }
+      selectEntity(wall.id)
+    },
+    [selectEntity, wall.id, activeTool]
+  )
 
-    e.cancelBubble = true
-    selectEntity(wall.id)
-  }, [selectEntity, wall.id, activeTool])
+  const handleMouseDown = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>): void => {
+      if (e.evt.button !== 0) return // Only left click
 
-  const handleMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
-    if (e.evt.button !== 0) return // Only left click
+      // In wall creation mode, allow the stage to handle the mouseDown
+      if (activeTool === 'wall') {
+        return // Don't cancel bubbling, let the stage handle it
+      }
 
-    // In wall creation mode, allow the stage to handle the mouseDown
-    if (activeTool === 'wall') {
-      return // Don't cancel bubbling, let the stage handle it
-    }
+      e.cancelBubble = true
 
-    e.cancelBubble = true
+      // Reset drag flag
+      hasDraggedRef.current = false
 
-    // Reset drag flag
-    hasDraggedRef.current = false
+      // Select the wall when starting to drag (use setSelectedEntity to avoid toggle)
+      setSelectedEntity(wall.id)
 
-    // Select the wall when starting to drag (use setSelectedEntity to avoid toggle)
-    setSelectedEntity(wall.id)
-
-    const stage = e.target.getStage()
-    const pointer = stage?.getPointerPosition()
-    if (pointer != null) {
-      startDrag('wall', pointer as Point2D, wall.id)
-      // Mark that we started a drag operation
-      hasDraggedRef.current = true
-    }
-  }, [startDrag, setSelectedEntity, wall.id, activeTool])
+      const stage = e.target.getStage()
+      const pointer = stage?.getPointerPosition()
+      if (pointer != null) {
+        startDrag('wall', pointer as Point2D, wall.id)
+        // Mark that we started a drag operation
+        hasDraggedRef.current = true
+      }
+    },
+    [startDrag, setSelectedEntity, wall.id, activeTool]
+  )
 
   // Determine wall color based on state
   const getWallColor = (): string => {
@@ -124,7 +135,7 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
         points={[startPoint.position.x, startPoint.position.y, endPoint.position.x, endPoint.position.y]}
         stroke={getWallColor()}
         strokeWidth={wall.thickness}
-        lineCap='round'
+        lineCap="round"
         onClick={activeTool === 'wall' ? undefined : handleClick}
         onTap={activeTool === 'wall' ? undefined : handleClick}
         onMouseDown={activeTool === 'wall' ? undefined : handleMouseDown}
@@ -137,8 +148,8 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
         <>
           <Arrow
             points={[arrow1X, arrow1Y, arrow1X + normalX * 150, arrow1Y + normalY * 150]} // Much longer arrows
-            stroke='#007acc'
-            fill='#007acc'
+            stroke="#007acc"
+            fill="#007acc"
             strokeWidth={15} // Much thicker stroke
             pointerLength={60} // Much larger pointer
             pointerWidth={60} // Much wider pointer
@@ -146,8 +157,8 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
           />
           <Arrow
             points={[arrow2X, arrow2Y, arrow2X - normalX * 150, arrow2Y - normalY * 150]} // Much longer arrows
-            stroke='#007acc'
-            fill='#007acc'
+            stroke="#007acc"
+            fill="#007acc"
             strokeWidth={15} // Much thicker stroke
             pointerLength={60} // Much larger pointer
             pointerWidth={60} // Much wider pointer
@@ -159,16 +170,16 @@ export function WallShape ({ wall }: WallShapeProps): React.JSX.Element | null {
             y={midY}
             text={`${(getWallLength(wall.id) / 1000).toFixed(2)}m`} // Use model's computed length in meters
             fontSize={60}
-            fontFamily='Arial'
-            fontStyle='bold'
-            fill='white'
-            align='center'
-            verticalAlign='middle'
+            fontFamily="Arial"
+            fontStyle="bold"
+            fill="white"
+            align="center"
+            verticalAlign="middle"
             width={200}
             offsetX={100} // Center horizontally
             offsetY={30} // Center vertically
             rotation={wallAngleDegrees} // Rotate text to align with wall
-            shadowColor='black'
+            shadowColor="black"
             shadowBlur={8}
             shadowOpacity={0.6}
             listening={false}

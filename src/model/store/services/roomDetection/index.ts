@@ -1,10 +1,6 @@
 // Main exports for the room detection system
 export { RoomDetectionEngine } from './RoomDetectionEngine'
-export {
-  RoomDetectionService,
-  type IRoomDetectionService,
-  defaultRoomDetectionService
-} from './RoomDetectionService'
+export { RoomDetectionService, type IRoomDetectionService, defaultRoomDetectionService } from './RoomDetectionService'
 export {
   type RoomDetectionResult,
   type RoomDefinition,

@@ -5,7 +5,7 @@ import { useFloors } from '@/model/store'
 import { useEditorStore, useSelectedEntity } from './hooks/useEditorStore'
 import './FloorPlanEditor.css'
 
-export function FloorPlanEditor (): React.JSX.Element {
+export function FloorPlanEditor(): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const floors = useFloors()
@@ -33,8 +33,7 @@ export function FloorPlanEditor (): React.JSX.Element {
       }
 
       setDimensions(prevDimensions => {
-        if (prevDimensions.width !== newDimensions.width ||
-            prevDimensions.height !== newDimensions.height) {
+        if (prevDimensions.width !== newDimensions.width || prevDimensions.height !== newDimensions.height) {
           return newDimensions
         }
         return prevDimensions
@@ -57,16 +56,19 @@ export function FloorPlanEditor (): React.JSX.Element {
   }, [updateDimensions])
 
   // Handle delete key
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (event.key === 'Delete' || event.key === 'Backspace') {
-      if (selectedEntityId != null) {
-        event.preventDefault()
-        deleteSelectedEntity()
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        if (selectedEntityId != null) {
+          event.preventDefault()
+          deleteSelectedEntity()
+        }
+      } else if (event.key === 'Escape') {
+        clearSelection()
       }
-    } else if (event.key === 'Escape') {
-      clearSelection()
-    }
-  }, [selectedEntityId, deleteSelectedEntity, clearSelection])
+    },
+    [selectedEntityId, deleteSelectedEntity, clearSelection]
+  )
 
   // Add keyboard event listener
   useEffect(() => {
@@ -77,13 +79,10 @@ export function FloorPlanEditor (): React.JSX.Element {
   }, [handleKeyDown])
 
   return (
-    <div ref={containerRef} className='floor-plan-editor'>
+    <div ref={containerRef} className="floor-plan-editor">
       <Toolbar />
-      <div className='canvas-container'>
-        <FloorPlanStage
-          width={dimensions.width}
-          height={dimensions.height}
-        />
+      <div className="canvas-container">
+        <FloorPlanStage width={dimensions.width} height={dimensions.height} />
       </div>
     </div>
   )

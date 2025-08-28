@@ -1,7 +1,15 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { Stage } from 'react-konva'
 import type Konva from 'konva'
-import { useEditorStore, useViewport, useActiveTool, useIsDrawing, useActiveFloorId, useWallDrawingStart, useCurrentSnapFromPointId } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import {
+  useEditorStore,
+  useViewport,
+  useActiveTool,
+  useIsDrawing,
+  useActiveFloorId,
+  useWallDrawingStart,
+  useCurrentSnapFromPointId
+} from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { useModelStore } from '@/model/store'
 import { defaultSnappingService } from '@/model/store/services/snapping/SnappingService'
 import { useSnappingContext } from '@/components/FloorPlanEditor/hooks/useSnappingContext'
@@ -20,14 +28,14 @@ interface FloorPlanStageProps {
   height: number
 }
 
-export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.JSX.Element {
+export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JSX.Element {
   const stageRef = useRef<Konva.Stage>(null)
   const viewport = useViewport()
   const activeTool = useActiveTool()
   const isDrawing = useIsDrawing()
   const activeFloorId = useActiveFloorId()
   const wallDrawingStart = useWallDrawingStart()
-  const [dragStart, setDragStart] = useState<{ pos: { x: number, y: number }, viewport: typeof viewport } | null>(null)
+  const [dragStart, setDragStart] = useState<{ pos: { x: number; y: number }; viewport: typeof viewport } | null>(null)
   const [dragStartPos, setDragStartPos] = useState<Point2D | null>(null)
 
   // Use individual selectors instead of useEditorActions() to avoid object creation
@@ -59,159 +67,216 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
   }, [width, height, setStageDimensions])
 
   // Helper function to get stage coordinates from pointer
-  const getStageCoordinates = useCallback((pointer: { x: number, y: number }): Point2D => {
-    return createPoint2D(
-      (pointer.x - viewport.panX) / viewport.zoom,
-      (pointer.y - viewport.panY) / viewport.zoom
-    )
-  }, [viewport])
+  const getStageCoordinates = useCallback(
+    (pointer: { x: number; y: number }): Point2D => {
+      return createPoint2D((pointer.x - viewport.panX) / viewport.zoom, (pointer.y - viewport.panY) / viewport.zoom)
+    },
+    [viewport]
+  )
 
   const currentSnapFromPointId = useCurrentSnapFromPointId()
 
   // Helper function to find snap point and update unified snap state
   // Now much more efficient with memoized context and point ID tracking
-  const findSnapPoint = useCallback((point: Point2D): SnapResult | null => {
-    updateSnapTarget(point)
-    const snapResult = defaultSnappingService.findSnapResult(point, snappingContext)
-    updateSnapResult(snapResult)
-    return snapResult
-  }, [snappingContext, wallDrawingStart, currentSnapFromPointId, updateSnapTarget, modelState, updateSnapResult, viewport.zoom])
+  const findSnapPoint = useCallback(
+    (point: Point2D): SnapResult | null => {
+      updateSnapTarget(point)
+      const snapResult = defaultSnappingService.findSnapResult(point, snappingContext)
+      updateSnapResult(snapResult)
+      return snapResult
+    },
+    [
+      snappingContext,
+      wallDrawingStart,
+      currentSnapFromPointId,
+      updateSnapTarget,
+      modelState,
+      updateSnapResult,
+      viewport.zoom
+    ]
+  )
 
-  const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
-    e.evt.preventDefault()
+  const handleWheel = useCallback(
+    (e: Konva.KonvaEventObject<WheelEvent>) => {
+      e.evt.preventDefault()
 
-    const stage = e.target.getStage()
-    if (stage == null) return
+      const stage = e.target.getStage()
+      if (stage == null) return
 
-    const pointer = stage.getPointerPosition()
-    if (pointer == null) return
+      const pointer = stage.getPointerPosition()
+      if (pointer == null) return
 
-    const scaleBy = 1.1
-    const zoomFactor = e.evt.deltaY > 0 ? 1 / scaleBy : scaleBy
-    const newZoom = Math.max(0.1, Math.min(10, viewport.zoom * zoomFactor))
+      const scaleBy = 1.1
+      const zoomFactor = e.evt.deltaY > 0 ? 1 / scaleBy : scaleBy
+      const newZoom = Math.max(0.1, Math.min(10, viewport.zoom * zoomFactor))
 
-    const zoomRatio = newZoom / viewport.zoom
-    const newPanX = pointer.x - (pointer.x - viewport.panX) * zoomRatio
-    const newPanY = pointer.y - (pointer.y - viewport.panY) * zoomRatio
+      const zoomRatio = newZoom / viewport.zoom
+      const newPanX = pointer.x - (pointer.x - viewport.panX) * zoomRatio
+      const newPanY = pointer.y - (pointer.y - viewport.panY) * zoomRatio
 
-    setViewport({
-      zoom: newZoom,
-      panX: newPanX,
-      panY: newPanY
-    })
-  }, [viewport, setViewport])
+      setViewport({
+        zoom: newZoom,
+        panX: newPanX,
+        panY: newPanY
+      })
+    },
+    [viewport, setViewport]
+  )
 
-  const handleMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    const stage = e.target.getStage()
-    if (stage == null) return
+  const handleMouseDown = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      const stage = e.target.getStage()
+      if (stage == null) return
 
-    const pointer = stage.getPointerPosition()
-    if (pointer == null) return
+      const pointer = stage.getPointerPosition()
+      if (pointer == null) return
 
-    // Handle panning (middle mouse or shift+left click)
-    if (e.evt.button === 1 || (e.evt.button === 0 && e.evt.shiftKey)) {
-      setDragStart({ pos: pointer, viewport: { ...viewport } })
-      startDrag('pan', pointer as Point2D)
-      return
-    }
-
-    // Handle wall tool
-    if (activeTool === 'wall') {
-      const stageCoords = getStageCoordinates(pointer)
-      const snapResult = findSnapPoint(stageCoords)
-      const snapCoords = snapResult?.position ?? stageCoords
-
-      if (!isDrawing) {
-        // Start drawing wall - use snapped coordinates which might be an existing point
-        setWallDrawingStart(snapCoords)
-        console.log('setting snap reference', stageCoords, snapResult?.pointId ?? null, snapCoords)
-        updateSnapReference(snapCoords, snapResult?.pointId ?? null)
-        setIsDrawing(true)
-      } else if (wallDrawingStart != null) {
-        const wallLength = distanceSquared(wallDrawingStart, snapCoords)
-        if (wallLength >= 50 ** 2) {
-          const startPoint = (snappingContext.referencePointId != null) ? modelState.points.get(snappingContext.referencePointId) : addPoint(activeFloorId, wallDrawingStart)
-          const endPoint = ((snapResult?.pointId) != null) ? modelState.points.get(snapResult.pointId) : addPoint(activeFloorId, snapCoords)
-
-          if ((startPoint != null) && (endPoint != null)) {
-            addWall(activeFloorId, startPoint.id, endPoint.id)
-          }
-
-          setWallDrawingStart(undefined)
-          setIsDrawing(false)
-          clearSnapState()
-        }
-        // If wall is too short, just ignore the click (don't create wall)
+      // Handle panning (middle mouse or shift+left click)
+      if (e.evt.button === 1 || (e.evt.button === 0 && e.evt.shiftKey)) {
+        setDragStart({ pos: pointer, viewport: { ...viewport } })
+        startDrag('pan', pointer as Point2D)
+        return
       }
-      return
-    }
 
-    // Only start selection drag when clicking on empty space (Stage or Grid)
-    if (e.target === stage || e.target.getClassName() === 'Stage' || e.target.getClassName() === 'Line') {
-      startDrag('selection', pointer as Point2D)
-    }
-  }, [viewport, startDrag, activeTool, isDrawing, wallDrawingStart, getStageCoordinates, findSnapPoint,
-    setWallDrawingStart, setIsDrawing, addWall, activeFloorId, updateSnapReference])
+      // Handle wall tool
+      if (activeTool === 'wall') {
+        const stageCoords = getStageCoordinates(pointer)
+        const snapResult = findSnapPoint(stageCoords)
+        const snapCoords = snapResult?.position ?? stageCoords
+
+        if (!isDrawing) {
+          // Start drawing wall - use snapped coordinates which might be an existing point
+          setWallDrawingStart(snapCoords)
+          console.log('setting snap reference', stageCoords, snapResult?.pointId ?? null, snapCoords)
+          updateSnapReference(snapCoords, snapResult?.pointId ?? null)
+          setIsDrawing(true)
+        } else if (wallDrawingStart != null) {
+          const wallLength = distanceSquared(wallDrawingStart, snapCoords)
+          if (wallLength >= 50 ** 2) {
+            const startPoint =
+              snappingContext.referencePointId != null
+                ? modelState.points.get(snappingContext.referencePointId)
+                : addPoint(activeFloorId, wallDrawingStart)
+            const endPoint =
+              snapResult?.pointId != null
+                ? modelState.points.get(snapResult.pointId)
+                : addPoint(activeFloorId, snapCoords)
+
+            if (startPoint != null && endPoint != null) {
+              addWall(activeFloorId, startPoint.id, endPoint.id)
+            }
+
+            setWallDrawingStart(undefined)
+            setIsDrawing(false)
+            clearSnapState()
+          }
+          // If wall is too short, just ignore the click (don't create wall)
+        }
+        return
+      }
+
+      // Only start selection drag when clicking on empty space (Stage or Grid)
+      if (e.target === stage || e.target.getClassName() === 'Stage' || e.target.getClassName() === 'Line') {
+        startDrag('selection', pointer as Point2D)
+      }
+    },
+    [
+      viewport,
+      startDrag,
+      activeTool,
+      isDrawing,
+      wallDrawingStart,
+      getStageCoordinates,
+      findSnapPoint,
+      setWallDrawingStart,
+      setIsDrawing,
+      addWall,
+      activeFloorId,
+      updateSnapReference
+    ]
+  )
 
   // Handle drag initiation from wall shapes
   useEffect(() => {
-    if (dragState.isDragging && dragState.dragType === 'wall' && (dragStartPos == null)) {
+    if (dragState.isDragging && dragState.dragType === 'wall' && dragStartPos == null) {
       const stageCoords = getStageCoordinates(dragState.startPos)
       setDragStartPos(stageCoords)
     }
   }, [dragState, dragStartPos, getStageCoordinates])
 
-  const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    const stage = e.target.getStage()
-    if (stage == null) return
+  const handleMouseMove = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      const stage = e.target.getStage()
+      if (stage == null) return
 
-    const pointer = stage.getPointerPosition()
-    if (pointer == null) return
+      const pointer = stage.getPointerPosition()
+      if (pointer == null) return
 
-    // Handle panning
-    if (dragStart != null && ((e.evt.buttons === 4) || (e.evt.buttons === 1 && e.evt.shiftKey))) {
-      const deltaX = pointer.x - dragStart.pos.x
-      const deltaY = pointer.y - dragStart.pos.y
+      // Handle panning
+      if (dragStart != null && (e.evt.buttons === 4 || (e.evt.buttons === 1 && e.evt.shiftKey))) {
+        const deltaX = pointer.x - dragStart.pos.x
+        const deltaY = pointer.y - dragStart.pos.y
 
-      setViewport({
-        zoom: dragStart.viewport.zoom,
-        panX: dragStart.viewport.panX + deltaX,
-        panY: dragStart.viewport.panY + deltaY
-      })
-      return
-    }
+        setViewport({
+          zoom: dragStart.viewport.zoom,
+          panX: dragStart.viewport.panX + deltaX,
+          panY: dragStart.viewport.panY + deltaY
+        })
+        return
+      }
 
-    // Handle wall dragging
-    if (dragState.isDragging && dragState.dragType === 'wall' && dragState.dragEntityId != null && (dragStartPos != null)) {
-      const currentPos = getStageCoordinates(pointer)
-      const delta = direction(dragStartPos, currentPos)
+      // Handle wall dragging
+      if (
+        dragState.isDragging &&
+        dragState.dragType === 'wall' &&
+        dragState.dragEntityId != null &&
+        dragStartPos != null
+      ) {
+        const currentPos = getStageCoordinates(pointer)
+        const delta = direction(dragStartPos, currentPos)
 
-      moveWall(dragState.dragEntityId as WallId, delta.x, delta.y)
-      setDragStartPos(currentPos)
-      return
-    }
+        moveWall(dragState.dragEntityId as WallId, delta.x, delta.y)
+        setDragStartPos(currentPos)
+        return
+      }
 
-    // Handle connection point dragging
-    if (dragState.isDragging && dragState.dragType === 'point' && dragState.dragEntityId != null) {
-      const currentPos = getStageCoordinates(pointer)
-      const snapPos = findSnapPoint(currentPos)
+      // Handle connection point dragging
+      if (dragState.isDragging && dragState.dragType === 'point' && dragState.dragEntityId != null) {
+        const currentPos = getStageCoordinates(pointer)
+        const snapPos = findSnapPoint(currentPos)
 
-      movePoint(dragState.dragEntityId as PointId, snapPos?.position ?? currentPos)
-      return
-    }
+        movePoint(dragState.dragEntityId as PointId, snapPos?.position ?? currentPos)
+        return
+      }
 
-    // Handle wall tool preview with architectural snapping
-    if (activeTool === 'wall') {
-      const stageCoords = getStageCoordinates(pointer)
-      // findSnapPoint will automatically update unified snap state for preview
-      findSnapPoint(stageCoords)
-    }
-  }, [dragStart, setViewport, activeTool, getStageCoordinates, findSnapPoint,
-    dragState, dragStartPos, moveWall, movePoint])
+      // Handle wall tool preview with architectural snapping
+      if (activeTool === 'wall') {
+        const stageCoords = getStageCoordinates(pointer)
+        // findSnapPoint will automatically update unified snap state for preview
+        findSnapPoint(stageCoords)
+      }
+    },
+    [
+      dragStart,
+      setViewport,
+      activeTool,
+      getStageCoordinates,
+      findSnapPoint,
+      dragState,
+      dragStartPos,
+      moveWall,
+      movePoint
+    ]
+  )
 
   const handleMouseUp = useCallback((): void => {
     // Check for point merging when finishing point drag (only in select mode)
-    if (dragState.isDragging && dragState.dragType === 'point' && dragState.dragEntityId != null && activeTool === 'select') {
+    if (
+      dragState.isDragging &&
+      dragState.dragType === 'point' &&
+      dragState.dragEntityId != null &&
+      activeTool === 'select'
+    ) {
       const stage = stageRef.current
       const pointer = stage?.getPointerPosition()
 
@@ -262,7 +327,11 @@ export function FloorPlanStage ({ width, height }: FloorPlanStageProps): React.J
       onMouseUp={handleMouseUp}
       draggable={false}
     >
-      <GridLayer width={width} height={height} viewport={{ zoom: viewport.zoom, panX: viewport.panX, panY: viewport.panY }} />
+      <GridLayer
+        width={width}
+        height={height}
+        viewport={{ zoom: viewport.zoom, panX: viewport.panX, panY: viewport.panY }}
+      />
       <RoomLayer />
       <WallLayer />
       <CornerLayer />

@@ -14,13 +14,13 @@ interface GridLayerProps {
   viewport: ViewportState
 }
 
-export function GridLayer ({ width = 800, height = 600, viewport }: GridLayerProps): React.JSX.Element {
+export function GridLayer({ width = 800, height = 600, viewport }: GridLayerProps): React.JSX.Element {
   // Use individual selectors instead of useGridSettings() to avoid object creation
   const showGrid = useEditorStore(state => state.showGrid)
   const gridSize = useEditorStore(state => state.gridSize)
 
   if (!showGrid) {
-    return <Layer name='grid' />
+    return <Layer name="grid" />
   }
 
   const lines: React.JSX.Element[] = []
@@ -35,7 +35,7 @@ export function GridLayer ({ width = 800, height = 600, viewport }: GridLayerPro
       <Line
         key={`v-${x}`}
         points={[x, startY, x, endY]}
-        stroke='#cccccc' // Darker for better visibility
+        stroke="#cccccc" // Darker for better visibility
         strokeWidth={3} // Much thicker for visibility at real-world scale
         listening={false}
       />
@@ -47,7 +47,7 @@ export function GridLayer ({ width = 800, height = 600, viewport }: GridLayerPro
       <Line
         key={`h-${y}`}
         points={[startX, y, endX, y]}
-        stroke='#cccccc' // Darker for better visibility
+        stroke="#cccccc" // Darker for better visibility
         strokeWidth={3} // Much thicker for visibility at real-world scale
         listening={false}
       />
@@ -55,7 +55,7 @@ export function GridLayer ({ width = 800, height = 600, viewport }: GridLayerPro
   }
 
   return (
-    <Layer name='grid' listening={false}>
+    <Layer name="grid" listening={false}>
       {lines}
     </Layer>
   )

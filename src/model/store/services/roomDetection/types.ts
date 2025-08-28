@@ -4,7 +4,7 @@ import type { Point2D } from '@/types/geometry'
 // Result of room detection operations
 export interface RoomDetectionResult {
   roomsToCreate: RoomDefinition[]
-  roomsToUpdate: Array<{ roomId: RoomId, definition: RoomDefinition }>
+  roomsToUpdate: Array<{ roomId: RoomId; definition: RoomDefinition }>
   roomsToDelete: RoomId[]
   wallAssignments: WallRoomAssignment[]
   pointAssignments: PointRoomAssignment[]
@@ -76,10 +76,14 @@ export type LoopDirection = 'left' | 'right'
 // Room side relative to wall direction
 export type RoomSide = 'left' | 'right'
 
-export interface RoomDetectionEdge { endPointId: PointId, wallId: WallId }
+export interface RoomDetectionEdge {
+  endPointId: PointId
+  wallId: WallId
+}
 
 export interface RoomDetectionGraph {
   points: Map<PointId, Point2D>
-  edges: Map<PointId, RoomDetectionEdge[]> // Edges are undirected, so if this map contains p1 -> p2, it also contains p2 -> p1
-  walls: Map<WallId, { startPointId: PointId, endPointId: PointId }>
+  // Edges are undirected, so if this map contains p1 -> p2, it also contains p2 -> p1
+  edges: Map<PointId, RoomDetectionEdge[]>
+  walls: Map<WallId, { startPointId: PointId; endPointId: PointId }>
 }

@@ -1,6 +1,15 @@
 import { describe, it, beforeEach, expect, vi } from 'vitest'
 import { RoomDetectionService } from './RoomDetectionService'
-import { createFloorLevel, type FloorId, type Point, type PointId, type StoreState, type Wall, type WallId, type RoomId } from '@/model'
+import {
+  createFloorLevel,
+  type FloorId,
+  type Point,
+  type PointId,
+  type StoreState,
+  type Wall,
+  type WallId,
+  type RoomId
+} from '@/model'
 import { createLength, createPoint2D } from '@/types/geometry'
 
 describe('RoomDetectionService', () => {
@@ -16,7 +25,9 @@ describe('RoomDetectionService', () => {
       walls: new Map(),
       points: new Map(),
       rooms: new Map(),
-      floors: new Map([[floorId, { id: floorId, level: createFloorLevel(1), name: 'First Floor', height: createLength(3000) }]]),
+      floors: new Map([
+        [floorId, { id: floorId, level: createFloorLevel(1), name: 'First Floor', height: createLength(3000) }]
+      ]),
       corners: new Map(),
       // Add mock store actions for testing
       addRoom: vi.fn((floorId: FloorId, name: string, pointIds: PointId[], wallIds: WallId[]) => {
@@ -53,7 +64,7 @@ describe('RoomDetectionService', () => {
         const wall = store.walls.get(wallId)
         if (wall != null) {
           if (roomId != null) {
-            (wall as any).leftRoomId = roomId
+            ;(wall as any).leftRoomId = roomId
           } else {
             delete (wall as any).leftRoomId
           }
@@ -63,7 +74,7 @@ describe('RoomDetectionService', () => {
         const wall = store.walls.get(wallId)
         if (wall != null) {
           if (roomId != null) {
-            (wall as any).rightRoomId = roomId
+            ;(wall as any).rightRoomId = roomId
           } else {
             delete (wall as any).rightRoomId
           }
@@ -71,7 +82,12 @@ describe('RoomDetectionService', () => {
       })
     } as any
 
-    service = new RoomDetectionService(() => store as any, (partial) => { Object.assign(store, partial) })
+    service = new RoomDetectionService(
+      () => store as any,
+      partial => {
+        Object.assign(store, partial)
+      }
+    )
 
     points = []
     for (let x = 0; x < 4; x++) {
@@ -87,10 +103,38 @@ describe('RoomDetectionService', () => {
 
   describe('updateRoomsAfterWallAddition', () => {
     it('should detect rooms when walls are added', () => {
-      const wall1: Wall = { id: 'wall1' as WallId, startPointId: points[0][0].id, endPointId: points[0][3].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall2: Wall = { id: 'wall2' as WallId, startPointId: points[0][0].id, endPointId: points[3][0].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall3: Wall = { id: 'wall3' as WallId, startPointId: points[3][0].id, endPointId: points[3][3].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall4: Wall = { id: 'wall4' as WallId, startPointId: points[3][3].id, endPointId: points[0][3].id, floorId, thickness: createLength(400), type: 'other' }
+      const wall1: Wall = {
+        id: 'wall1' as WallId,
+        startPointId: points[0][0].id,
+        endPointId: points[0][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall2: Wall = {
+        id: 'wall2' as WallId,
+        startPointId: points[0][0].id,
+        endPointId: points[3][0].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall3: Wall = {
+        id: 'wall3' as WallId,
+        startPointId: points[3][0].id,
+        endPointId: points[3][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall4: Wall = {
+        id: 'wall4' as WallId,
+        startPointId: points[3][3].id,
+        endPointId: points[0][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
       store.walls.set(wall1.id, wall1)
       store.walls.set(wall2.id, wall2)
       store.walls.set(wall3.id, wall3)
@@ -107,10 +151,38 @@ describe('RoomDetectionService', () => {
     it('should always detect rooms even when auto-detection is disabled', () => {
       service.setAutoDetectionEnabled(false)
 
-      const wall1: Wall = { id: 'wall1' as WallId, startPointId: points[0][0].id, endPointId: points[0][3].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall2: Wall = { id: 'wall2' as WallId, startPointId: points[0][0].id, endPointId: points[3][0].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall3: Wall = { id: 'wall3' as WallId, startPointId: points[3][0].id, endPointId: points[3][3].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall4: Wall = { id: 'wall4' as WallId, startPointId: points[3][3].id, endPointId: points[0][3].id, floorId, thickness: createLength(400), type: 'other' }
+      const wall1: Wall = {
+        id: 'wall1' as WallId,
+        startPointId: points[0][0].id,
+        endPointId: points[0][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall2: Wall = {
+        id: 'wall2' as WallId,
+        startPointId: points[0][0].id,
+        endPointId: points[3][0].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall3: Wall = {
+        id: 'wall3' as WallId,
+        startPointId: points[3][0].id,
+        endPointId: points[3][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall4: Wall = {
+        id: 'wall4' as WallId,
+        startPointId: points[3][3].id,
+        endPointId: points[0][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
       store.walls.set(wall1.id, wall1)
       store.walls.set(wall2.id, wall2)
       store.walls.set(wall3.id, wall3)
@@ -127,10 +199,38 @@ describe('RoomDetectionService', () => {
 
     it('should not duplicate existing rooms', () => {
       // Create walls forming a square
-      const wall1: Wall = { id: 'wall1' as WallId, startPointId: points[0][0].id, endPointId: points[0][3].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall2: Wall = { id: 'wall2' as WallId, startPointId: points[0][0].id, endPointId: points[3][0].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall3: Wall = { id: 'wall3' as WallId, startPointId: points[3][0].id, endPointId: points[3][3].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall4: Wall = { id: 'wall4' as WallId, startPointId: points[3][3].id, endPointId: points[0][3].id, floorId, thickness: createLength(400), type: 'other' }
+      const wall1: Wall = {
+        id: 'wall1' as WallId,
+        startPointId: points[0][0].id,
+        endPointId: points[0][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall2: Wall = {
+        id: 'wall2' as WallId,
+        startPointId: points[0][0].id,
+        endPointId: points[3][0].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall3: Wall = {
+        id: 'wall3' as WallId,
+        startPointId: points[3][0].id,
+        endPointId: points[3][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall4: Wall = {
+        id: 'wall4' as WallId,
+        startPointId: points[3][3].id,
+        endPointId: points[0][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
       store.walls.set(wall1.id, wall1)
       store.walls.set(wall2.id, wall2)
       store.walls.set(wall3.id, wall3)
@@ -139,12 +239,16 @@ describe('RoomDetectionService', () => {
       // First detection should create rooms
       service.detectRooms(floorId)
       const firstRoomCount = store.rooms.size
-      const firstRoomNames = Array.from(store.rooms.values()).map(room => room.name).sort()
+      const firstRoomNames = Array.from(store.rooms.values())
+        .map(room => room.name)
+        .sort()
 
       // Second detection should not create duplicates - room count should stay the same
       service.detectRooms(floorId)
       expect(store.rooms.size).toBe(firstRoomCount)
-      const secondRoomNames = Array.from(store.rooms.values()).map(room => room.name).sort()
+      const secondRoomNames = Array.from(store.rooms.values())
+        .map(room => room.name)
+        .sort()
       expect(secondRoomNames).toEqual(firstRoomNames)
     })
 
@@ -165,17 +269,48 @@ describe('RoomDetectionService', () => {
         id: 'existing-room' as RoomId,
         floorId,
         name: 'Room 1',
-        outerBoundary: { pointIds: [points[1][1].id, points[1][2].id, points[2][2].id], wallIds: new Set(['existing-wall'] as WallId[]) },
+        outerBoundary: {
+          pointIds: [points[1][1].id, points[1][2].id, points[2][2].id],
+          wallIds: new Set(['existing-wall'] as WallId[])
+        },
         holes: [],
         interiorWallIds: new Set<WallId>()
       }
       store.rooms.set(existingRoom.id, existingRoom)
 
       // Create walls forming a square (different from existing room)
-      const wall1: Wall = { id: 'wall1' as WallId, startPointId: points[0][0].id, endPointId: points[0][3].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall2: Wall = { id: 'wall2' as WallId, startPointId: points[0][0].id, endPointId: points[3][0].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall3: Wall = { id: 'wall3' as WallId, startPointId: points[3][0].id, endPointId: points[3][3].id, floorId, thickness: createLength(400), type: 'other' }
-      const wall4: Wall = { id: 'wall4' as WallId, startPointId: points[3][3].id, endPointId: points[0][3].id, floorId, thickness: createLength(400), type: 'other' }
+      const wall1: Wall = {
+        id: 'wall1' as WallId,
+        startPointId: points[0][0].id,
+        endPointId: points[0][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall2: Wall = {
+        id: 'wall2' as WallId,
+        startPointId: points[0][0].id,
+        endPointId: points[3][0].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall3: Wall = {
+        id: 'wall3' as WallId,
+        startPointId: points[3][0].id,
+        endPointId: points[3][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
+      const wall4: Wall = {
+        id: 'wall4' as WallId,
+        startPointId: points[3][3].id,
+        endPointId: points[0][3].id,
+        floorId,
+        thickness: createLength(400),
+        type: 'other'
+      }
       store.walls.set(wall1.id, wall1)
       store.walls.set(wall2.id, wall2)
       store.walls.set(wall3.id, wall3)
@@ -185,7 +320,9 @@ describe('RoomDetectionService', () => {
 
       // Should have existing room plus new detected rooms
       expect(store.rooms.size).toBeGreaterThan(1)
-      const roomNames = Array.from(store.rooms.values()).map(room => room.name).sort()
+      const roomNames = Array.from(store.rooms.values())
+        .map(room => room.name)
+        .sort()
       expect(roomNames).toContain('Room 1') // existing
 
       // Check that new rooms don't duplicate "Room 1" name

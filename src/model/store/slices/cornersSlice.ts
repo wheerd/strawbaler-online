@@ -25,12 +25,7 @@ export interface CornersActions {
 export type CornersSlice = CornersState & CornersActions
 
 // Create the corners slice (implementation placeholder)
-export const createCornersSlice: StateCreator<
-CornersSlice,
-[],
-[],
-CornersSlice
-> = (set, get) => ({
+export const createCornersSlice: StateCreator<CornersSlice, [], [], CornersSlice> = (set, get) => ({
   corners: new Map<PointId, Corner>(),
 
   addCorner: (pointId: PointId, floorId: FloorId, wall1Id: WallId, wall2Id: WallId, otherWallIds?: WallId[]) => {
@@ -56,7 +51,7 @@ CornersSlice
       otherWallIds
     }
 
-    set((state) => ({
+    set(state => ({
       ...state,
       corners: new Map(state.corners).set(pointId, corner)
     }))
@@ -65,7 +60,7 @@ CornersSlice
   },
 
   removeCorner: (pointId: PointId) => {
-    set((state) => {
+    set(state => {
       const newCorners = new Map(state.corners)
       newCorners.delete(pointId)
       return {
@@ -76,7 +71,7 @@ CornersSlice
   },
 
   updateCornerMainWalls: (pointId: PointId, newWall1Id: WallId, newWall2Id: WallId) => {
-    set((state) => {
+    set(state => {
       const corner = state.corners.get(pointId)
       if (corner == null) return state
 
@@ -87,11 +82,14 @@ CornersSlice
       }
 
       // Get all connected walls
-      const allWallIds = [corner.wall1Id, corner.wall2Id, ...((corner.otherWallIds != null) ? corner.otherWallIds : [])]
+      const allWallIds = [corner.wall1Id, corner.wall2Id, ...(corner.otherWallIds != null ? corner.otherWallIds : [])]
 
       // Validate that both new main walls are already connected to this corner
       if (!allWallIds.includes(newWall1Id) || !allWallIds.includes(newWall2Id)) {
-        console.warn(`Cannot set main walls ${newWall1Id}, ${newWall2Id} - they must already be connected to corner at point ${pointId}`)
+        console.warn(
+          `Cannot set main walls ${newWall1Id}, ${newWall2Id} ` +
+            `- they must already be connected to corner at point ${pointId}`
+        )
         return state
       }
 
@@ -113,7 +111,7 @@ CornersSlice
   },
 
   addWallToCorner: (pointId: PointId, wallId: WallId) => {
-    set((state) => {
+    set(state => {
       const corner = state.corners.get(pointId)
       if (corner == null) return state
 
@@ -123,7 +121,7 @@ CornersSlice
       }
 
       // Add to otherWallIds if not already present
-      const otherWallIds = (corner.otherWallIds != null) ? corner.otherWallIds : []
+      const otherWallIds = corner.otherWallIds != null ? corner.otherWallIds : []
       if (!otherWallIds.includes(wallId)) {
         const updatedCorner: Corner = {
           ...corner,
@@ -141,11 +139,11 @@ CornersSlice
   },
 
   removeWallFromCorner: (pointId: PointId, wallId: WallId) => {
-    set((state) => {
+    set(state => {
       const corner = state.corners.get(pointId)
       if (corner == null) return state
 
-      const otherWallIds = (corner.otherWallIds != null) ? corner.otherWallIds : []
+      const otherWallIds = corner.otherWallIds != null ? corner.otherWallIds : []
       let newWall1Id = corner.wall1Id
       let newWall2Id = corner.wall2Id
       let newOtherWallIds = [...otherWallIds]

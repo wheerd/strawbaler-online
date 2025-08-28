@@ -25,22 +25,22 @@ export class RoomDetectionService implements IRoomDetectionService {
   private readonly get: () => StoreState & StoreActions
   private readonly engine: RoomDetectionEngine
 
-  constructor (get: () => StoreState & StoreActions, _set: (partial: Partial<StoreState & StoreActions>) => void) {
+  constructor(get: () => StoreState & StoreActions, _set: (partial: Partial<StoreState & StoreActions>) => void) {
     this.get = get
     // _set is kept for future use but not stored as instance variable
     this.autoDetectionEnabled = true
     this.engine = new RoomDetectionEngine()
   }
 
-  setAutoDetectionEnabled (enabled: boolean): void {
+  setAutoDetectionEnabled(enabled: boolean): void {
     this.autoDetectionEnabled = enabled
   }
 
-  isAutoDetectionEnabled (): boolean {
+  isAutoDetectionEnabled(): boolean {
     return this.autoDetectionEnabled
   }
 
-  detectRooms (floorId: FloorId): void {
+  detectRooms(floorId: FloorId): void {
     // Always detect rooms, even if auto-detection is disabled
     const store = this.get()
     const graph = this.buildRoomDetectionGraph(floorId)
@@ -49,8 +49,7 @@ export class RoomDetectionService implements IRoomDetectionService {
     const loops = this.engine.findMinimalWallLoops(graph)
 
     // Get existing rooms on this floor to avoid duplicates and generate proper names
-    const existingRooms = Array.from(store.rooms.values())
-      .filter(room => room.floorId === floorId)
+    const existingRooms = Array.from(store.rooms.values()).filter(room => room.floorId === floorId)
 
     // Convert existing rooms to comparable format
     const existingRoomBoundaries = existingRooms.map(room => ({
@@ -61,7 +60,7 @@ export class RoomDetectionService implements IRoomDetectionService {
     // Create room definitions from detected loops
     const newRoomDefinitions: RoomDefinition[] = []
 
-    loops.forEach((loop) => {
+    loops.forEach(loop => {
       const loopPointIds = new Set(loop.pointIds)
 
       // Check if this loop matches an existing room (compare only point IDs)
@@ -86,7 +85,7 @@ export class RoomDetectionService implements IRoomDetectionService {
     })
   }
 
-  detectRoomAtPoint (floorId: FloorId, point: Point2D): void {
+  detectRoomAtPoint(floorId: FloorId, point: Point2D): void {
     if (!this.autoDetectionEnabled) return
 
     const graph = this.buildRoomDetectionGraph(floorId)
@@ -96,10 +95,7 @@ export class RoomDetectionService implements IRoomDetectionService {
     let minDistance = Infinity
 
     for (const [pointId, graphPoint] of graph.points) {
-      const distance = Math.sqrt(
-        Math.pow(point.x - graphPoint.x, 2) +
-        Math.pow(point.y - graphPoint.y, 2)
-      )
+      const distance = Math.sqrt(Math.pow(point.x - graphPoint.x, 2) + Math.pow(point.y - graphPoint.y, 2))
       if (distance < minDistance) {
         minDistance = distance
         nearestPointId = pointId
@@ -126,14 +122,16 @@ export class RoomDetectionService implements IRoomDetectionService {
     }
   }
 
-  updateRoomsAfterWallRemoval (removedWall: Wall): void {
+  updateRoomsAfterWallRemoval(removedWall: Wall): void {
     if (!this.autoDetectionEnabled) return
 
     const store = this.get()
     if (removedWall.leftRoomId === removedWall.rightRoomId) {
       // If both sides of the removed wall referenced the same room, it must be an interior wall
       const affectedRoomId = removedWall.leftRoomId
-      if (affectedRoomId) { store.removeInteriorWallFromRoom(affectedRoomId, removedWall.id) }
+      if (affectedRoomId) {
+        store.removeInteriorWallFromRoom(affectedRoomId, removedWall.id)
+      }
     }
 
     if (removedWall.leftRoomId && removedWall.rightRoomId && removedWall.leftRoomId !== removedWall.rightRoomId) {
@@ -158,9 +156,24 @@ export class RoomDetectionService implements IRoomDetectionService {
     }
   }
 
-  private mergeRoomWithRemovedWall (removedWall: Wall, leftRoom: Room, rightRoom: Room, store: StoreState & StoreActions, leftRoomId: RoomId, rightRoomId: RoomId) {
-    const leftRoomPoints = this.shiftPointsByRemoving(leftRoom.outerBoundary.pointIds, removedWall.startPointId, removedWall.endPointId)
-    const rightRoomPoints = this.shiftPointsByRemoving(rightRoom.outerBoundary.pointIds, removedWall.startPointId, removedWall.endPointId)
+  private mergeRoomWithRemovedWall(
+    removedWall: Wall,
+    leftRoom: Room,
+    rightRoom: Room,
+    store: StoreState & StoreActions,
+    leftRoomId: RoomId,
+    rightRoomId: RoomId
+  ) {
+    const leftRoomPoints = this.shiftPointsByRemoving(
+      leftRoom.outerBoundary.pointIds,
+      removedWall.startPointId,
+      removedWall.endPointId
+    )
+    const rightRoomPoints = this.shiftPointsByRemoving(
+      rightRoom.outerBoundary.pointIds,
+      removedWall.startPointId,
+      removedWall.endPointId
+    )
 
     if (leftRoomPoints[0] !== rightRoomPoints[rightRoomPoints.length - 1]) {
       throw new Error('Invalid room boundaries after wall removal')
@@ -170,15 +183,21 @@ export class RoomDetectionService implements IRoomDetectionService {
     }
 
     // Check if there are wall fragments left that are now interior walls
-    const interiorWallPointPairs: Array<{ start: PointId; end: PointId } > = []
-    while (leftRoomPoints.length > 2 && rightRoomPoints.length > 2 &&
-      leftRoomPoints[1] === rightRoomPoints[rightRoomPoints.length - 2]) {
+    const interiorWallPointPairs: Array<{ start: PointId; end: PointId }> = []
+    while (
+      leftRoomPoints.length > 2 &&
+      rightRoomPoints.length > 2 &&
+      leftRoomPoints[1] === rightRoomPoints[rightRoomPoints.length - 2]
+    ) {
       interiorWallPointPairs.push({ start: leftRoomPoints[0], end: leftRoomPoints[1] })
       leftRoomPoints.shift()
       rightRoomPoints.pop()
     }
-    while (leftRoomPoints.length > 2 && rightRoomPoints.length > 2 &&
-      rightRoomPoints[1] === leftRoomPoints[leftRoomPoints.length - 2]) {
+    while (
+      leftRoomPoints.length > 2 &&
+      rightRoomPoints.length > 2 &&
+      rightRoomPoints[1] === leftRoomPoints[leftRoomPoints.length - 2]
+    ) {
       interiorWallPointPairs.push({ start: rightRoomPoints[0], end: rightRoomPoints[1] })
       rightRoomPoints.shift()
       leftRoomPoints.pop()
@@ -191,25 +210,35 @@ export class RoomDetectionService implements IRoomDetectionService {
     }
 
     const combinedOuterPoints = [...leftRoomPoints.slice(1), ...rightRoomPoints.slice(1)]
-    const allOriginalWalls = Array.from(new Set([...leftRoom.outerBoundary.wallIds, ...rightRoom.outerBoundary.wallIds])).map(id => store.walls.get(id)).filter(wall => wall) as Wall[]
+    const allOriginalWalls = Array.from(
+      new Set([...leftRoom.outerBoundary.wallIds, ...rightRoom.outerBoundary.wallIds])
+    )
+      .map(id => store.walls.get(id))
+      .filter(wall => wall) as Wall[]
 
-    const newOuterWallIds = allOriginalWalls.filter(wall => {
-      if (wall.id === removedWall.id) return false
-      if (combinedOuterPoints.indexOf(wall.startPointId) === -1) return false
-      if (combinedOuterPoints.indexOf(wall.endPointId) === -1) return false
-      return true
-    }).map(wall => wall.id)
+    const newOuterWallIds = allOriginalWalls
+      .filter(wall => {
+        if (wall.id === removedWall.id) return false
+        if (combinedOuterPoints.indexOf(wall.startPointId) === -1) return false
+        if (combinedOuterPoints.indexOf(wall.endPointId) === -1) return false
+        return true
+      })
+      .map(wall => wall.id)
 
-    const newInteriorWallIds = allOriginalWalls.filter(wall => {
-      if (wall.id === removedWall.id) return false
-      for (const pair of interiorWallPointPairs) {
-        if ((wall.startPointId === pair.start && wall.endPointId === pair.end) ||
-          (wall.startPointId === pair.end && wall.endPointId === pair.start)) {
-          return true
+    const newInteriorWallIds = allOriginalWalls
+      .filter(wall => {
+        if (wall.id === removedWall.id) return false
+        for (const pair of interiorWallPointPairs) {
+          if (
+            (wall.startPointId === pair.start && wall.endPointId === pair.end) ||
+            (wall.startPointId === pair.end && wall.endPointId === pair.start)
+          ) {
+            return true
+          }
         }
-      }
-      return false
-    }).map(wall => wall.id)
+        return false
+      })
+      .map(wall => wall.id)
 
     // Create a new room definition for the merged room
     const mergedRoomDefinition: RoomDefinition = {
@@ -242,7 +271,7 @@ export class RoomDetectionService implements IRoomDetectionService {
     this.createRoomFromDefinition(mergedRoomDefinition, removedWall.floorId)
   }
 
-  shiftPointsByRemoving (cycle: PointId[], startPointId: PointId, endPointId: PointId): PointId[] {
+  shiftPointsByRemoving(cycle: PointId[], startPointId: PointId, endPointId: PointId): PointId[] {
     const startIndex = cycle.indexOf(startPointId)
     const endIndex = cycle.indexOf(endPointId)
 
@@ -265,7 +294,7 @@ export class RoomDetectionService implements IRoomDetectionService {
     return [...cycle.slice(splitIndex + 1), ...cycle.slice(0, splitIndex + 1)]
   }
 
-  updateRoomsAfterWallAddition (floorId: FloorId, addedWallId: WallId): void {
+  updateRoomsAfterWallAddition(floorId: FloorId, addedWallId: WallId): void {
     if (!this.autoDetectionEnabled) return
 
     const store = this.get()
@@ -274,8 +303,7 @@ export class RoomDetectionService implements IRoomDetectionService {
     if (wall == null) return
 
     // Check if adding this wall affects existing rooms (might split them)
-    const existingRooms = Array.from(store.rooms.values())
-      .filter(room => room.floorId === floorId)
+    const existingRooms = Array.from(store.rooms.values()).filter(room => room.floorId === floorId)
 
     const affectedRooms = existingRooms.filter(room => {
       // Check if the new wall might be inside this room or affect its boundary
@@ -306,10 +334,9 @@ export class RoomDetectionService implements IRoomDetectionService {
       const newLoops = loops.filter(loop => loop.wallIds.includes(addedWallId))
 
       // Get existing rooms to avoid duplicates and generate proper names
-      const existingRoomsAfterCheck = Array.from(store.rooms.values())
-        .filter(room => room.floorId === floorId)
+      const existingRoomsAfterCheck = Array.from(store.rooms.values()).filter(room => room.floorId === floorId)
 
-      newLoops.forEach((loop) => {
+      newLoops.forEach(loop => {
         const roomName = this.generateUniqueRoomName(existingRoomsAfterCheck, [])
         const roomDefinition = this.engine.createRoomFromLoop(loop, roomName, graph)
 
@@ -323,11 +350,11 @@ export class RoomDetectionService implements IRoomDetectionService {
   /**
    * Build a RoomDetectionGraph from the current store state for a given floor
    */
-  private buildRoomDetectionGraph (floorId: FloorId): RoomDetectionGraph {
+  private buildRoomDetectionGraph(floorId: FloorId): RoomDetectionGraph {
     const store = this.get()
     const points = new Map<PointId, Point2D>()
-    const edges = new Map<PointId, Array<{ endPointId: PointId, wallId: WallId }>>()
-    const walls = new Map<WallId, { startPointId: PointId, endPointId: PointId }>()
+    const edges = new Map<PointId, Array<{ endPointId: PointId; wallId: WallId }>>()
+    const walls = new Map<WallId, { startPointId: PointId; endPointId: PointId }>()
 
     // Collect points and walls for this floor
     for (const point of store.points.values()) {
@@ -359,10 +386,7 @@ export class RoomDetectionService implements IRoomDetectionService {
   /**
    * Check if two room boundaries are equal (same point IDs)
    */
-  private areBoundariesEqual (
-    loopPointIds: Set<PointId>,
-    existingPointIds: Set<PointId>
-  ): boolean {
+  private areBoundariesEqual(loopPointIds: Set<PointId>, existingPointIds: Set<PointId>): boolean {
     // Check if sets have the same size and same elements
     if (loopPointIds.size !== existingPointIds.size) {
       return false
@@ -381,7 +405,7 @@ export class RoomDetectionService implements IRoomDetectionService {
   /**
    * Generate a unique room name following the "Room {number}" pattern
    */
-  private generateUniqueRoomName (
+  private generateUniqueRoomName(
     existingRooms: Array<{ name: string }>,
     newRoomDefinitions: Array<{ name: string }>
   ): string {
@@ -404,7 +428,7 @@ export class RoomDetectionService implements IRoomDetectionService {
   /**
    * Clean up room references from walls and points
    */
-  private cleanupRoomReferences (roomIds: RoomId[]): void {
+  private cleanupRoomReferences(roomIds: RoomId[]): void {
     const store = this.get()
     const roomIdSet = new Set(roomIds)
 
@@ -431,7 +455,7 @@ export class RoomDetectionService implements IRoomDetectionService {
   /**
    * Create a room in the store from a room definition
    */
-  private createRoomFromDefinition (definition: RoomDefinition, floorId: FloorId): void {
+  private createRoomFromDefinition(definition: RoomDefinition, floorId: FloorId): void {
     const store = this.get()
 
     // Use the store's addRoom method which expects arrays, not sets
@@ -460,7 +484,7 @@ export class RoomDetectionService implements IRoomDetectionService {
     })
 
     // Add holes if any exist
-    definition.holes.forEach((hole: { pointIds: PointId[], wallIds: WallId[] }) => {
+    definition.holes.forEach((hole: { pointIds: PointId[]; wallIds: WallId[] }) => {
       store.addHoleToRoom(room.id, hole.pointIds, hole.wallIds)
 
       // Update hole points with room IDs

@@ -62,12 +62,7 @@ const validateBoundary = (pointIds: PointId[], wallIds: WallId[]): void => {
   }
 }
 
-export const createRoomsSlice: StateCreator<
-RoomsSlice,
-[],
-[],
-RoomsSlice
-> = (set, get) => ({
+export const createRoomsSlice: StateCreator<RoomsSlice, [], [], RoomsSlice> = (set, get) => ({
   rooms: new Map(),
 
   addRoom: (floorId: FloorId, name: string, pointIds: PointId[], wallIds: WallId[]) => {
@@ -160,7 +155,7 @@ RoomsSlice
   removeHoleFromRoom: (roomId: RoomId, holeIndex: number) => {
     set(state => {
       const room = state.rooms.get(roomId)
-      if ((room == null) || holeIndex < 0 || holeIndex >= room.holes.length) return state
+      if (room == null || holeIndex < 0 || holeIndex >= room.holes.length) return state
 
       const updatedHoles = room.holes.filter((_, index) => index !== holeIndex)
       const updatedRoom = {
@@ -177,7 +172,7 @@ RoomsSlice
     return get().rooms.get(roomId) ?? null
   },
 
-  getRoomsByFloor (floorId) {
+  getRoomsByFloor(floorId) {
     const { rooms } = get()
     return Array.from(rooms.values()).filter(room => room.floorId === floorId)
   },
@@ -187,9 +182,11 @@ RoomsSlice
     const result: Room[] = []
 
     for (const room of rooms.values()) {
-      if (room.outerBoundary.wallIds.has(wallId) ||
-          room.holes.some(hole => hole.wallIds.has(wallId)) ||
-          room.interiorWallIds.has(wallId)) {
+      if (
+        room.outerBoundary.wallIds.has(wallId) ||
+        room.holes.some(hole => hole.wallIds.has(wallId)) ||
+        room.interiorWallIds.has(wallId)
+      ) {
         result.push(room)
       }
     }
@@ -202,8 +199,7 @@ RoomsSlice
     const result: Room[] = []
 
     for (const room of rooms.values()) {
-      if (room.outerBoundary.pointIds.includes(pointId) ||
-          room.holes.some(hole => hole.pointIds.includes(pointId))) {
+      if (room.outerBoundary.pointIds.includes(pointId) || room.holes.some(hole => hole.pointIds.includes(pointId))) {
         result.push(room)
       }
     }

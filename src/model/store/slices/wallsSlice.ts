@@ -11,7 +11,13 @@ export interface WallsState {
 
 export interface WallsActions {
   // CRUD operations - Enhanced with floorId
-  addOuterWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, outsideDirection: OutsideDirection, thickness?: Length) => Wall
+  addOuterWall: (
+    floorId: FloorId,
+    startPointId: PointId,
+    endPointId: PointId,
+    outsideDirection: OutsideDirection,
+    thickness?: Length
+  ) => Wall
   addStructuralWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
   addPartitionWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
   addOtherWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, thickness?: Length) => Wall
@@ -54,7 +60,14 @@ const DEFAULT_PARTITION_WALL_THICKNESS = createLength(180) // 18cm
 const DEFAULT_OTHER_WALL_THICKNESS = createLength(200) // 20cm
 
 // Helper function to create a wall
-const createWall = (floorId: FloorId, startPointId: PointId, endPointId: PointId, type: WallType, thickness: Length, outsideDirection?: OutsideDirection): Wall => {
+const createWall = (
+  floorId: FloorId,
+  startPointId: PointId,
+  endPointId: PointId,
+  type: WallType,
+  thickness: Length,
+  outsideDirection?: OutsideDirection
+): Wall => {
   if (startPointId === endPointId) {
     throw new Error('Wall start and end points cannot be the same')
   }
@@ -81,7 +94,13 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
   walls: new Map(),
 
   // CRUD operations
-  addOuterWall: (floorId: FloorId, startPointId: PointId, endPointId: PointId, outsideDirection: OutsideDirection, thickness?: Length) => {
+  addOuterWall: (
+    floorId: FloorId,
+    startPointId: PointId,
+    endPointId: PointId,
+    outsideDirection: OutsideDirection,
+    thickness?: Length
+  ) => {
     const wallThickness = thickness ?? DEFAULT_OUTER_WALL_THICKNESS
 
     const wall = createWall(floorId, startPointId, endPointId, 'outer', wallThickness, outsideDirection)
@@ -212,7 +231,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
         height
       }
 
-      const openings = (wall.openings != null) ? [...wall.openings] : []
+      const openings = wall.openings != null ? [...wall.openings] : []
       openings.push(newOpening)
 
       const updatedWall = { ...wall, openings }
@@ -249,7 +268,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
         sillHeight
       }
 
-      const openings = (wall.openings != null) ? [...wall.openings] : []
+      const openings = wall.openings != null ? [...wall.openings] : []
       openings.push(newOpening)
 
       const updatedWall = { ...wall, openings }
@@ -282,7 +301,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
         height
       }
 
-      const openings = (wall.openings != null) ? [...wall.openings] : []
+      const openings = wall.openings != null ? [...wall.openings] : []
       openings.push(newOpening)
 
       const updatedWall = { ...wall, openings }
@@ -296,7 +315,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
   removeOpeningFromWall: (wallId: WallId, openingIndex: number) => {
     set(state => {
       const wall = state.walls.get(wallId)
-      if ((wall == null) || (wall.openings == null)) return state
+      if (wall == null || wall.openings == null) return state
 
       if (openingIndex < 0 || openingIndex >= wall.openings.length) {
         return state // Invalid index, do nothing
@@ -324,7 +343,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
 
       const updatedWall = {
         ...wall,
-        ...((touches != null) ? { startTouches: touches } : { startTouches: undefined })
+        ...(touches != null ? { startTouches: touches } : { startTouches: undefined })
       }
 
       const newWalls = new Map(state.walls)
@@ -340,7 +359,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
 
       const updatedWall = {
         ...wall,
-        ...((touches != null) ? { endTouches: touches } : { endTouches: undefined })
+        ...(touches != null ? { endTouches: touches } : { endTouches: undefined })
       }
 
       const newWalls = new Map(state.walls)
@@ -354,7 +373,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
       const wall = state.walls.get(wallId)
       if (wall == null) return state
 
-      const touchedBy = (wall.touchedBy != null) ? [...wall.touchedBy] : []
+      const touchedBy = wall.touchedBy != null ? [...wall.touchedBy] : []
 
       // Don't add duplicates
       if (!touchedBy.includes(touchedByWallId)) {
@@ -372,7 +391,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
   removeWallTouchedBy: (wallId: WallId, touchedByWallId: WallId) => {
     set(state => {
       const wall = state.walls.get(wallId)
-      if ((wall == null) || (wall.touchedBy == null)) return state
+      if (wall == null || wall.touchedBy == null) return state
 
       const touchedBy = wall.touchedBy.filter(id => id !== touchedByWallId)
 
@@ -395,7 +414,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
 
       const updatedWall = {
         ...wall,
-        ...((roomId != null) ? { leftRoomId: roomId } : { leftRoomId: undefined })
+        ...(roomId != null ? { leftRoomId: roomId } : { leftRoomId: undefined })
       }
 
       const newWalls = new Map(state.walls)
@@ -411,7 +430,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
 
       const updatedWall = {
         ...wall,
-        ...((roomId != null) ? { rightRoomId: roomId } : { rightRoomId: undefined })
+        ...(roomId != null ? { rightRoomId: roomId } : { rightRoomId: undefined })
       }
 
       const newWalls = new Map(state.walls)

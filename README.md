@@ -8,7 +8,7 @@ A modern web-based floor plan editor specifically designed for strawbale constru
 ## ✨ Features
 
 - **Interactive Floor Plan Editor**: Draw walls, rooms, and connection points
-- **Strawbale-Specific Tools**: Optimized for strawbale construction workflows  
+- **Strawbale-Specific Tools**: Optimized for strawbale construction workflows
 - **Real-time Preview**: See your floor plan as you build it
 - **Modern Tech Stack**: React 19, TypeScript, Vite, and Zustand
 - **Comprehensive Testing**: 31+ tests covering core functionality
@@ -17,7 +17,8 @@ A modern web-based floor plan editor specifically designed for strawbale constru
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - pnpm (recommended) or npm
 
 ### Installation
@@ -45,11 +46,12 @@ pnpm preview      # Preview production build locally
 
 # Testing
 pnpm test         # Run all tests
-pnpm test -- run  # Run tests once (CI mode)
 
 # Code Quality
 pnpm lint         # Check code style and formatting
 pnpm lint:fix     # Auto-fix linting issues
+pnpm format       # Auto format with prettier
+pnpm format:check # Check formatting with prettier
 
 # Building
 pnpm build        # Build for production
@@ -58,6 +60,7 @@ pnpm build        # Build for production
 ## 🏗️ Architecture
 
 ### Tech Stack
+
 - **Frontend**: React 19 with TypeScript
 - **Canvas Rendering**: Konva.js with react-konva
 - **State Management**: Zustand with immutable updates
@@ -66,6 +69,7 @@ pnpm build        # Build for production
 - **Code Style**: neostandard
 
 ### Project Structure
+
 ```
 src/
 ├── components/
@@ -82,6 +86,7 @@ src/
 ## 🔧 Development
 
 ### Running Tests
+
 ```bash
 # Run all tests with coverage
 pnpm test
@@ -94,6 +99,7 @@ pnpm test -- --watch
 ```
 
 ### Code Style
+
 This project uses ts-standard for consistent code formatting:
 
 ```bash
@@ -107,6 +113,7 @@ pnpm lint:fix
 ## 🚢 Deployment
 
 ### Production Build
+
 ```bash
 pnpm build
 ```
@@ -114,10 +121,11 @@ pnpm build
 The `dist/` folder contains the production-ready static files.
 
 ### GitHub Actions
+
 This project includes comprehensive CI/CD workflows:
 
 - **CI**: Tests, linting, and builds on every push/PR
-- **Security**: Dependency auditing and CodeQL analysis  
+- **Security**: Dependency auditing and CodeQL analysis
 - **Release**: Automated releases on git tags
 - **Dependencies**: Weekly automated dependency updates
 

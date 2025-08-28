@@ -50,71 +50,65 @@ export interface PolygonWithHoles2D {
 }
 
 // Geometry utility functions
-export function distance (p1: Point2D, p2: Point2D): Length {
+export function distance(p1: Point2D, p2: Point2D): Length {
   const dx = p2.x - p1.x
   const dy = p2.y - p1.y
   return createLength(Math.sqrt(dx * dx + dy * dy))
 }
 
-export function distanceSquared (p1: Point2D, p2: Point2D): number {
+export function distanceSquared(p1: Point2D, p2: Point2D): number {
   const dx = p2.x - p1.x
   const dy = p2.y - p1.y
   return dx * dx + dy * dy
 }
 
-export function midpoint (p1: Point2D, p2: Point2D): Point2D {
+export function midpoint(p1: Point2D, p2: Point2D): Point2D {
   return createPoint2D((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
 }
 
-export function angle (from: Point2D, to: Point2D): Angle {
+export function angle(from: Point2D, to: Point2D): Angle {
   const dx = to.x - from.x
   const dy = to.y - from.y
   return createAngle(Math.atan2(dy, dx))
 }
 
-export function normalizeAngle (angle: Angle): Angle {
+export function normalizeAngle(angle: Angle): Angle {
   let normalized = Number(angle)
   while (normalized > Math.PI) normalized -= 2 * Math.PI
   while (normalized < -Math.PI) normalized += 2 * Math.PI
   return createAngle(normalized)
 }
 
-export function pointOnLine (start: Point2D, end: Point2D, t: number): Point2D {
-  return createPoint2D(
-    start.x + (end.x - start.x) * t,
-    start.y + (end.y - start.y) * t
-  )
+export function pointOnLine(start: Point2D, end: Point2D, t: number): Point2D {
+  return createPoint2D(start.x + (end.x - start.x) * t, start.y + (end.y - start.y) * t)
 }
 
-export function vectorFromAngle (angle: Angle, length: Length = createLength(1)): Vector2D {
+export function vectorFromAngle(angle: Angle, length: Length = createLength(1)): Vector2D {
   return {
     x: createLength(Math.cos(angle) * length),
     y: createLength(Math.sin(angle) * length)
   }
 }
 
-export function addVector (point: Point2D, vector: Vector2D): Point2D {
+export function addVector(point: Point2D, vector: Vector2D): Point2D {
   return createPoint2D(point.x + vector.x, point.y + vector.y)
 }
 
-export function direction (source: Point2D, target: Point2D): Vector2D {
+export function direction(source: Point2D, target: Point2D): Vector2D {
   return createVector2D(target.x - source.x, target.y - source.y)
 }
 
-export function normalizeVector (vector: Vector2D): Vector2D {
+export function normalizeVector(vector: Vector2D): Vector2D {
   const len = Math.sqrt(vector.x * vector.x + vector.y * vector.y)
   if (len === 0) return createVector2D(0, 0)
   return createVector2D(vector.x / len, vector.y / len)
 }
 
-export function snapToGrid (point: Point2D, gridSize: Length): Point2D {
-  return createPoint2D(
-    Math.round(point.x / gridSize) * gridSize,
-    Math.round(point.y / gridSize) * gridSize
-  )
+export function snapToGrid(point: Point2D, gridSize: Length): Point2D {
+  return createPoint2D(Math.round(point.x / gridSize) * gridSize, Math.round(point.y / gridSize) * gridSize)
 }
 
-export function expandBounds (bounds: Bounds2D, padding: Length): Bounds2D {
+export function expandBounds(bounds: Bounds2D, padding: Length): Bounds2D {
   return {
     minX: createAbsoluteOffset(bounds.minX - padding),
     minY: createAbsoluteOffset(bounds.minY - padding),
@@ -123,14 +117,11 @@ export function expandBounds (bounds: Bounds2D, padding: Length): Bounds2D {
   }
 }
 
-export function pointInBounds (point: Point2D, bounds: Bounds2D): boolean {
-  return point.x >= bounds.minX &&
-         point.x <= bounds.maxX &&
-         point.y >= bounds.minY &&
-         point.y <= bounds.maxY
+export function pointInBounds(point: Point2D, bounds: Bounds2D): boolean {
+  return point.x >= bounds.minX && point.x <= bounds.maxX && point.y >= bounds.minY && point.y <= bounds.maxY
 }
 
-export function boundsFromPoints (points: Point2D[]): Bounds2D | null {
+export function boundsFromPoints(points: Point2D[]): Bounds2D | null {
   if (points.length === 0) return null
 
   let minX = Infinity
@@ -153,7 +144,7 @@ export function boundsFromPoints (points: Point2D[]): Bounds2D | null {
   }
 }
 
-export function isPointNearLine (
+export function isPointNearLine(
   point: Point2D,
   lineStart: Point2D,
   lineEnd: Point2D,
@@ -187,7 +178,7 @@ export function isPointNearLine (
   return distance(point, closestPoint) <= tolerance
 }
 
-export function offsetToPosition (startPoint: Point2D, endPoint: Point2D, offset: Length): Point2D {
+export function offsetToPosition(startPoint: Point2D, endPoint: Point2D, offset: Length): Point2D {
   const dx = endPoint.x - startPoint.x
   const dy = endPoint.y - startPoint.y
   const length = Math.sqrt(dx * dx + dy * dy)
@@ -203,7 +194,7 @@ export function offsetToPosition (startPoint: Point2D, endPoint: Point2D, offset
 }
 
 // Formatting utilities
-export function formatLength (length: Length, unit: 'mm' | 'cm' | 'm' = 'm'): string {
+export function formatLength(length: Length, unit: 'mm' | 'cm' | 'm' = 'm'): string {
   switch (unit) {
     case 'mm':
       return `${length.toFixed(0)}mm`
@@ -216,7 +207,7 @@ export function formatLength (length: Length, unit: 'mm' | 'cm' | 'm' = 'm'): st
   }
 }
 
-export function formatArea (area: Area, unit: 'mm²' | 'cm²' | 'm²' = 'm²'): string {
+export function formatArea(area: Area, unit: 'mm²' | 'cm²' | 'm²' = 'm²'): string {
   switch (unit) {
     case 'mm²':
       return `${area.toFixed(0)}mm²`
@@ -230,7 +221,7 @@ export function formatArea (area: Area, unit: 'mm²' | 'cm²' | 'm²' = 'm²'): 
 }
 
 // Polygon utilities
-export function calculatePolygonArea (polygon: Polygon2D): Area {
+export function calculatePolygonArea(polygon: Polygon2D): Area {
   const points = polygon.points
   if (points.length < 3) return createArea(0)
 
@@ -244,7 +235,7 @@ export function calculatePolygonArea (polygon: Polygon2D): Area {
   return createArea(Math.abs(area) / 2)
 }
 
-export function calculatePolygonWithHolesArea (polygon: PolygonWithHoles2D): Area {
+export function calculatePolygonWithHolesArea(polygon: PolygonWithHoles2D): Area {
   let totalArea = calculatePolygonArea(polygon.outer)
 
   for (const hole of polygon.holes) {
@@ -255,7 +246,7 @@ export function calculatePolygonWithHolesArea (polygon: PolygonWithHoles2D): Are
 }
 
 // Corner angle calculation utilities
-export function calculateCornerAngle (wall1Start: Point2D, cornerPoint: Point2D, wall2End: Point2D): Angle {
+export function calculateCornerAngle(wall1Start: Point2D, cornerPoint: Point2D, wall2End: Point2D): Angle {
   // Vector from corner to wall1 start
   const vec1 = {
     x: wall1Start.x - cornerPoint.x,
@@ -283,7 +274,7 @@ export function calculateCornerAngle (wall1Start: Point2D, cornerPoint: Point2D,
   return createAngle(angleRad)
 }
 
-export function determineCornerType (wallCount: number, angle: Angle): 'corner' | 'straight' | 'tee' | 'cross' {
+export function determineCornerType(wallCount: number, angle: Angle): 'corner' | 'straight' | 'tee' | 'cross' {
   const angleInRadians = Number(angle)
   // Use a very small tolerance to handle only floating point precision errors
   const tolerance = 1e-10 // ~0.0000000057 degrees
@@ -303,11 +294,11 @@ export function determineCornerType (wallCount: number, angle: Angle): 'corner' 
   return 'corner'
 }
 
-export function radiansToDegrees (angle: Angle): number {
+export function radiansToDegrees(angle: Angle): number {
   return (Number(angle) * 180) / Math.PI
 }
 
-export function degreesToRadians (degrees: number): Angle {
+export function degreesToRadians(degrees: number): Angle {
   return createAngle((degrees * Math.PI) / 180)
 }
 
@@ -323,7 +314,7 @@ export interface LineSegment2D {
 }
 
 // Calculate intersection of two infinite lines
-export function lineIntersection (line1: Line2D, line2: Line2D): Point2D | null {
+export function lineIntersection(line1: Line2D, line2: Line2D): Point2D | null {
   const { point: p1, direction: d1 } = line1
   const { point: p2, direction: d2 } = line2
 
@@ -339,14 +330,11 @@ export function lineIntersection (line1: Line2D, line2: Line2D): Point2D | null 
   const dp = createVector2D(Number(p2.x) - Number(p1.x), Number(p2.y) - Number(p1.y))
   const t1 = (Number(dp.x) * Number(d2.y) - Number(dp.y) * Number(d2.x)) / cross
 
-  return createPoint2D(
-    Number(p1.x) + t1 * Number(d1.x),
-    Number(p1.y) + t1 * Number(d1.y)
-  )
+  return createPoint2D(Number(p1.x) + t1 * Number(d1.x), Number(p1.y) + t1 * Number(d1.y))
 }
 
 // Create a line from two points
-export function lineFromPoints (p1: Point2D, p2: Point2D): Line2D | null {
+export function lineFromPoints(p1: Point2D, p2: Point2D): Line2D | null {
   const dx = p2.x - p1.x
   const dy = p2.y - p1.y
   const length = Math.sqrt(dx * dx + dy * dy)
@@ -360,7 +348,7 @@ export function lineFromPoints (p1: Point2D, p2: Point2D): Line2D | null {
 }
 
 // Create a line from a point and angle
-export function lineFromPointAndAngle (point: Point2D, angle: Angle): Line2D {
+export function lineFromPointAndAngle(point: Point2D, angle: Angle): Line2D {
   return {
     point,
     direction: createVector2D(Math.cos(angle), Math.sin(angle))
@@ -368,7 +356,7 @@ export function lineFromPointAndAngle (point: Point2D, angle: Angle): Line2D {
 }
 
 // Distance from point to infinite line
-export function distanceToInfiniteLine (point: Point2D, line: Line2D): Length {
+export function distanceToInfiniteLine(point: Point2D, line: Line2D): Length {
   // Vector from line point to target point
   const dx = point.x - line.point.x
   const dy = point.y - line.point.y
@@ -379,7 +367,7 @@ export function distanceToInfiniteLine (point: Point2D, line: Line2D): Length {
 }
 
 // Project a point onto a line (returns closest point on the line)
-export function projectPointOntoLine (point: Point2D, line: Line2D): Point2D {
+export function projectPointOntoLine(point: Point2D, line: Line2D): Point2D {
   // Vector from line point to target point
   const toPoint = createVector2D(point.x - line.point.x, point.y - line.point.y)
 
@@ -392,30 +380,31 @@ export function projectPointOntoLine (point: Point2D, line: Line2D): Point2D {
   )
 }
 
-export function lineFromSegment (segment: LineSegment2D): Line2D {
+export function lineFromSegment(segment: LineSegment2D): Line2D {
   return {
     point: segment.start,
-    direction: normalizeVector(createVector2D((segment.end.x - segment.start.x), (segment.end.y - segment.start.y)))
+    direction: normalizeVector(createVector2D(segment.end.x - segment.start.x, segment.end.y - segment.start.y))
   }
 }
 
-export function isPointInPolygon (point: Point2D, polygon: Polygon2D): boolean {
+export function isPointInPolygon(point: Point2D, polygon: Polygon2D): boolean {
   const { points } = polygon
   let inside = false
 
   for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
-    const xi = points[i].x; const yi = points[i].y
-    const xj = points[j].x; const yj = points[j].y
+    const xi = points[i].x
+    const yi = points[i].y
+    const xj = points[j].x
+    const yj = points[j].y
 
-    const intersect = ((yi > point.y) !== (yj > point.y)) &&
-                      (point.x < (xj - xi) * (point.y - yi) / (yj - yi + 1e-10) + xi)
+    const intersect = yi > point.y !== yj > point.y && point.x < ((xj - xi) * (point.y - yi)) / (yj - yi + 1e-10) + xi
     if (intersect) inside = !inside
   }
 
   return inside
 }
 
-export function polygonIsClockwise (polygon: Polygon2D): boolean {
+export function polygonIsClockwise(polygon: Polygon2D): boolean {
   const { points } = polygon
   let sum = 0
 

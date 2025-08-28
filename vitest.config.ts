@@ -13,8 +13,8 @@ export default defineConfig({
       '@/model': resolve(__dirname, './src/model'),
       '@/types': resolve(__dirname, './src/types'),
       '@/assets': resolve(__dirname, './src/assets'),
-      '@/test': resolve(__dirname, './src/test'),
-    },
+      '@/test': resolve(__dirname, './src/test')
+    }
   },
   test: {
     globals: true,
@@ -26,5 +26,5 @@ export default defineConfig({
         inline: ['konva', 'react-konva']
       }
     }
-  },
+  }
 })

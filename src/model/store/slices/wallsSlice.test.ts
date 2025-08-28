@@ -72,14 +72,20 @@ describe('WallsSlice', () => {
 
     it('should throw error for same start and end points', () => {
       const pointId = createPointId()
-      expect(() => store.addOuterWall(testFloorId, pointId, pointId, 'left')).toThrow('Wall start and end points cannot be the same')
+      expect(() => store.addOuterWall(testFloorId, pointId, pointId, 'left')).toThrow(
+        'Wall start and end points cannot be the same'
+      )
     })
 
     it('should throw error for invalid thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      expect(() => store.addOuterWall(testFloorId, startPoint, endPoint, 'left', createLength(0))).toThrow('Wall thickness must be greater than 0')
-      expect(() => store.addOuterWall(testFloorId, startPoint, endPoint, 'left', createLength(-100))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addOuterWall(testFloorId, startPoint, endPoint, 'left', createLength(0))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
+      expect(() => store.addOuterWall(testFloorId, startPoint, endPoint, 'left', createLength(-100))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
     })
   })
 
@@ -114,8 +120,12 @@ describe('WallsSlice', () => {
     it('should throw error for invalid thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      expect(() => store.addStructuralWall(testFloorId, startPoint, endPoint, createLength(0))).toThrow('Wall thickness must be greater than 0')
-      expect(() => store.addStructuralWall(testFloorId, startPoint, endPoint, createLength(-50))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addStructuralWall(testFloorId, startPoint, endPoint, createLength(0))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
+      expect(() => store.addStructuralWall(testFloorId, startPoint, endPoint, createLength(-50))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
     })
   })
 
@@ -140,8 +150,12 @@ describe('WallsSlice', () => {
     it('should throw error for invalid thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      expect(() => store.addPartitionWall(testFloorId, startPoint, endPoint, createLength(0))).toThrow('Wall thickness must be greater than 0')
-      expect(() => store.addPartitionWall(testFloorId, startPoint, endPoint, createLength(-25))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addPartitionWall(testFloorId, startPoint, endPoint, createLength(0))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
+      expect(() => store.addPartitionWall(testFloorId, startPoint, endPoint, createLength(-25))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
     })
   })
 
@@ -166,8 +180,12 @@ describe('WallsSlice', () => {
     it('should throw error for invalid thickness', () => {
       const startPoint = createPointId()
       const endPoint = createPointId()
-      expect(() => store.addOtherWall(testFloorId, startPoint, endPoint, createLength(0))).toThrow('Wall thickness must be greater than 0')
-      expect(() => store.addOtherWall(testFloorId, startPoint, endPoint, createLength(-75))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addOtherWall(testFloorId, startPoint, endPoint, createLength(0))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
+      expect(() => store.addOtherWall(testFloorId, startPoint, endPoint, createLength(-75))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
     })
   })
 
@@ -272,7 +290,9 @@ describe('WallsSlice', () => {
       const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
       expect(() => store.updateWallThickness(wall.id, createLength(0))).toThrow('Wall thickness must be greater than 0')
-      expect(() => store.updateWallThickness(wall.id, createLength(-100))).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.updateWallThickness(wall.id, createLength(-100))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
     })
   })
 
@@ -312,9 +332,15 @@ describe('WallsSlice', () => {
         const endPoint = createPointId()
         const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
-        expect(() => store.addDoorToWall(wall.id, createLength(-100), createLength(800), createLength(2100))).toThrow('Opening offset from start must be non-negative')
-        expect(() => store.addDoorToWall(wall.id, createLength(500), createLength(0), createLength(2100))).toThrow('Opening width must be greater than 0')
-        expect(() => store.addDoorToWall(wall.id, createLength(500), createLength(800), createLength(0))).toThrow('Opening height must be greater than 0')
+        expect(() => store.addDoorToWall(wall.id, createLength(-100), createLength(800), createLength(2100))).toThrow(
+          'Opening offset from start must be non-negative'
+        )
+        expect(() => store.addDoorToWall(wall.id, createLength(500), createLength(0), createLength(2100))).toThrow(
+          'Opening width must be greater than 0'
+        )
+        expect(() => store.addDoorToWall(wall.id, createLength(500), createLength(800), createLength(0))).toThrow(
+          'Opening height must be greater than 0'
+        )
       })
     })
 
@@ -342,7 +368,9 @@ describe('WallsSlice', () => {
         const endPoint = createPointId()
         const wall = store.addOuterWall(testFloorId, startPoint, endPoint, 'left')
 
-        expect(() => store.addWindowToWall(wall.id, createLength(1000), createLength(1200), createLength(1000), createLength(-100))).toThrow('Window sill height must be non-negative')
+        expect(() =>
+          store.addWindowToWall(wall.id, createLength(1000), createLength(1200), createLength(1000), createLength(-100))
+        ).toThrow('Window sill height must be non-negative')
       })
     })
 

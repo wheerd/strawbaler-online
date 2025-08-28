@@ -5,70 +5,59 @@ The model now uses Zustand for state management with offset-based opening positi
 ## Basic Usage
 
 ```tsx
-import { 
-  useModelStore, 
-  useModelActions, 
-  useBuilding,
-  createOpening,
-  getOpeningPosition
-} from './src/model';
+import { useModelStore, useModelActions, useBuilding, createOpening, getOpeningPosition } from './src/model'
 
 // Use selective state (optimized - only re-renders when building changes)
 function BuildingInfo() {
-  const building = useBuilding();
-  const actions = useModelActions();
-  
+  const building = useBuilding()
+  const actions = useModelActions()
+
   return (
     <div>
       <h1>{building.name}</h1>
       <p>Floors: {building.floors.length}</p>
       <p>Walls: {building.walls.size}</p>
-      <button onClick={() => actions.createBuilding('New Project')}>
-        Create New Building
-      </button>
+      <button onClick={() => actions.createBuilding('New Project')}>Create New Building</button>
     </div>
-  );
+  )
 }
 
 // Working with openings (offset-based positioning)
-function OpeningEditor({ wallId, building }: { wallId: WallId, building: Building }) {
-  const { addOpening } = useModelActions();
-  
+function OpeningEditor({ wallId, building }: { wallId: WallId; building: Building }) {
+  const { addOpening } = useModelActions()
+
   const handleAddOpening = () => {
     // Create opening 1000mm from wall start
     const opening = createOpening(
       wallId,
       'door',
-      1000,  // offsetFromStart in mm
-      800,   // width in mm
-      2100   // height in mm
-    );
-    
+      1000, // offsetFromStart in mm
+      800, // width in mm
+      2100 // height in mm
+    )
+
     try {
-      addOpening(opening);
+      addOpening(opening)
     } catch (error) {
-      alert('Could not add opening: ' + error.message);
+      alert('Could not add opening: ' + error.message)
     }
-  };
-  
-  // Get absolute position of an opening
-  const opening = building.openings.get(openingId);
-  if (opening) {
-    const absolutePosition = getOpeningPosition(opening, building);
-    console.log('Opening is at:', absolutePosition);
   }
-  
-  return (
-    <button onClick={handleAddOpening}>
-      Add Door
-    </button>
-  );
+
+  // Get absolute position of an opening
+  const opening = building.openings.get(openingId)
+  if (opening) {
+    const absolutePosition = getOpeningPosition(opening, building)
+    console.log('Opening is at:', absolutePosition)
+  }
+
+  return <button onClick={handleAddOpening}>Add Door</button>
 }
 ```
 
 ## Available Hooks
 
 ### State Selectors (Optimized)
+
 - `useBuilding()` - Current building
 - `useActiveFloor()` - Currently active floor
 - `useActiveFloorId()` - Active floor ID
@@ -77,30 +66,31 @@ function OpeningEditor({ wallId, building }: { wallId: WallId, building: Buildin
 - `useGridSettings()` - Grid size and snap settings
 
 ### Actions
+
 ```tsx
-const actions = useModelActions();
+const actions = useModelActions()
 
 // Building operations
-actions.createBuilding('My Building');
+actions.createBuilding('My Building')
 
 // Add entities
-actions.addWall(wall);
-actions.addRoom(room);
-actions.addPoint(point);
-actions.addOpening(opening);  // Will validate position
-actions.addFloor(floor);
+actions.addWall(wall)
+actions.addRoom(room)
+actions.addPoint(point)
+actions.addOpening(opening) // Will validate position
+actions.addFloor(floor)
 
 // Remove entities
-actions.removeWall(wallId);
+actions.removeWall(wallId)
 
 // View operations
-actions.setActiveFloor(floorId);
-actions.setSelectedEntities([id1, id2]);
-actions.toggleEntitySelection(entityId);
-actions.clearSelection();
-actions.setViewMode('3d');
-actions.setGridSize(25);
-actions.setSnapToGrid(true);
+actions.setActiveFloor(floorId)
+actions.setSelectedEntities([id1, id2])
+actions.toggleEntitySelection(entityId)
+actions.clearSelection()
+actions.setViewMode('3d')
+actions.setGridSize(25)
+actions.setSnapToGrid(true)
 ```
 
 ## Opening Positioning
@@ -108,26 +98,26 @@ actions.setSnapToGrid(true);
 Openings now use **offset-based positioning** from the wall's start point:
 
 ```tsx
-import { createOpening, getOpeningPosition, isOpeningValidOnWall } from './src/model';
+import { createOpening, getOpeningPosition, isOpeningValidOnWall } from './src/model'
 
 // Create opening 500mm from wall start
 const door = createOpening(
   wallId,
   'door',
-  500,    // offsetFromStart: 500mm from wall start point
-  900,    // width: 900mm wide
-  2100    // height: 2100mm tall
-);
+  500, // offsetFromStart: 500mm from wall start point
+  900, // width: 900mm wide
+  2100 // height: 2100mm tall
+)
 
 // Validate opening placement
 if (isOpeningValidOnWall(door, building)) {
-  addOpening(door);
+  addOpening(door)
 } else {
-  console.log('Opening would overlap or exceed wall bounds');
+  console.log('Opening would overlap or exceed wall bounds')
 }
 
 // Get absolute world coordinates
-const absolutePos = getOpeningPosition(door, building);
+const absolutePos = getOpeningPosition(door, building)
 ```
 
 ## Key Features

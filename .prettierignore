@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Generated files
+__snapshots__/

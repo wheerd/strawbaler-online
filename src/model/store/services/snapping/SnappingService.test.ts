@@ -190,7 +190,8 @@ describe('SnappingService', () => {
         referencePoint: createPoint2D(100, 100)
       }
 
-      // Target that would snap to horizontal line through reference point but is too close (within 50mm default minDistance)
+      // Target that would snap to horizontal line through reference point
+      // but is too close (within 50mm default minDistance)
       const target = createPoint2D(130, 105) // 5mm from horizontal line, 31mm from reference point
       const result = service.findSnapResult(target, context)
 

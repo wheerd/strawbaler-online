@@ -8,7 +8,7 @@ This directory contains the new sliced store architecture that provides better s
 /store/
 ├── slices/           # Domain-specific CRUD operations
 │   └── wallsSlice.ts # Wall entity operations
-├── services/         # Complex business logic that spans multiple slices  
+├── services/         # Complex business logic that spans multiple slices
 │   └── ModelService.ts # Orchestrates multi-entity operations
 ├── index.ts          # Main store composition with undo/redo
 ├── types.ts          # Store-specific types
@@ -18,18 +18,21 @@ This directory contains the new sliced store architecture that provides better s
 ## Design Principles
 
 ### 1. **Slices for CRUD Operations**
+
 - Each slice handles one entity type (walls, rooms, points, etc.)
 - Simple, focused operations that update state
 - Easy to test in isolation
 - Clear responsibilities
 
 ### 2. **Services for Business Logic**
+
 - Complex operations that involve multiple entities
 - Orchestrate multiple slice operations
 - Handle async operations and side effects
 - Testable with mocked dependencies
 
 ### 3. **Automatic Undo/Redo**
+
 - Built-in with Zustand + Zundo middleware
 - Configurable granularity
 - Only saves significant state changes
@@ -38,13 +41,14 @@ This directory contains the new sliced store architecture that provides better s
 ## Example Usage
 
 ### Simple Operations (Use Slices Directly)
+
 ```typescript
 import { useModelStore } from './store'
 
 function WallEditor() {
   const addWall = useModelStore(state => state.addWall)
   const removeWall = useModelStore(state => state.removeWall)
-  
+
   // Direct slice operations
   const wall = addWall(point1Id, point2Id, floorId)
   removeWall(wall.id, floorId)
@@ -52,18 +56,18 @@ function WallEditor() {
 ```
 
 ### Complex Operations (Use Services)
+
 ```typescript
 import { modelService } from './store'
 
 function ComplexWallEditor() {
   // Service orchestrates multiple operations
-  const wall = await modelService.addWallWithRoomDetection(
-    point1Id, point2Id, floorId
-  )
+  const wall = await modelService.addWallWithRoomDetection(point1Id, point2Id, floorId)
 }
 ```
 
 ### Undo/Redo
+
 ```typescript
 import { useUndo, useRedo, useCanUndo, useCanRedo } from './store'
 
@@ -72,7 +76,7 @@ function UndoRedoButtons() {
   const redo = useRedo()
   const canUndo = useCanUndo()
   const canRedo = useCanRedo()
-  
+
   return (
     <>
       <button disabled={!canUndo} onClick={undo}>Undo</button>
@@ -85,6 +89,7 @@ function UndoRedoButtons() {
 ## Testing Strategy
 
 ### Slice Testing (Unit Tests)
+
 ```typescript
 // Test individual slice operations
 describe('WallsSlice', () => {
@@ -96,6 +101,7 @@ describe('WallsSlice', () => {
 ```
 
 ### Service Testing (Integration Tests)
+
 ```typescript
 // Test business logic with mocked slices
 describe('ModelService', () => {
@@ -107,6 +113,7 @@ describe('ModelService', () => {
 ```
 
 ### Store Testing (E2E Tests)
+
 ```typescript
 // Test complete workflows
 describe('ModelStore Integration', () => {
@@ -119,26 +126,31 @@ describe('ModelStore Integration', () => {
 ## Benefits
 
 ### ✅ **Maintainability**
+
 - Clear separation of concerns
 - Focused responsibilities
 - Easy to understand and modify
 
 ### ✅ **Testability**
+
 - Test slices, services, and store independently
 - Mock dependencies easily
 - Fast, focused tests
 
 ### ✅ **Undo/Redo**
+
 - Built-in with zero additional complexity
 - Configurable granularity
 - Automatic state management
 
 ### ✅ **Performance**
+
 - Granular subscriptions with selectors
 - Efficient re-renders
 - Batch operations when needed
 
-### ✅ **Developer Experience**  
+### ✅ **Developer Experience**
+
 - TypeScript support throughout
 - Clear APIs for common and complex operations
 - Intuitive mental model
@@ -147,7 +159,7 @@ describe('ModelStore Integration', () => {
 
 1. ✅ **Phase 1**: Extract walls slice (completed)
 2. **Phase 2**: Extract points slice
-3. **Phase 3**: Extract rooms slice  
+3. **Phase 3**: Extract rooms slice
 4. **Phase 4**: Extract remaining entities (floors, corners, etc.)
 5. **Phase 5**: Move remaining operations to services
 6. **Phase 6**: Update components to use new store

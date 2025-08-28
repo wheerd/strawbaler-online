@@ -9,7 +9,7 @@ interface RoomShapeProps {
   room: Room
 }
 
-function getRoomCenter (points: number[]): { x: number, y: number } {
+function getRoomCenter(points: number[]): { x: number; y: number } {
   if (points.length < 6) return { x: 0, y: 0 }
 
   let sumX = 0
@@ -27,7 +27,7 @@ function getRoomCenter (points: number[]): { x: number, y: number } {
   }
 }
 
-export function RoomShape ({ room }: RoomShapeProps): React.JSX.Element | null {
+export function RoomShape({ room }: RoomShapeProps): React.JSX.Element | null {
   // Use individual selectors to avoid object creation
   const selectedEntity = useSelectedEntity()
   const selectEntity = useEditorStore(state => state.selectEntity)
@@ -36,10 +36,13 @@ export function RoomShape ({ room }: RoomShapeProps): React.JSX.Element | null {
   const pointMap = usePoints()
 
   const isSelected = selectedEntity === room.id
-  const points = room.outerBoundary.pointIds.map((pointId: PointId) => {
-    const point = pointMap.get(pointId)
-    return point?.position
-  }).filter((pos): pos is Point2D => pos !== undefined).flatMap(pos => [pos.x, pos.y])
+  const points = room.outerBoundary.pointIds
+    .map((pointId: PointId) => {
+      const point = pointMap.get(pointId)
+      return point?.position
+    })
+    .filter((pos): pos is Point2D => pos !== undefined)
+    .flatMap(pos => [pos.x, pos.y])
 
   if (points.length < 6) {
     return null
@@ -74,17 +77,17 @@ export function RoomShape ({ room }: RoomShapeProps): React.JSX.Element | null {
           y={center.y}
           text={room.name}
           fontSize={80} // Much larger font for real-world scale
-          fontFamily='Arial'
-          fontStyle='bold' // Make text bold for better visibility
-          fill='#333333'
-          align='center'
-          verticalAlign='middle'
+          fontFamily="Arial"
+          fontStyle="bold" // Make text bold for better visibility
+          fill="#333333"
+          align="center"
+          verticalAlign="middle"
           width={room.name.length * 50} // Approximate width for proper centering
           height={100} // Height for proper vertical centering
           offsetX={(room.name.length * 50) / 2} // Center horizontally
           offsetY={50} // Center vertically
           // Add shadow for better readability
-          shadowColor='white'
+          shadowColor="white"
           shadowBlur={10}
           shadowOpacity={0.8}
           listening={false}

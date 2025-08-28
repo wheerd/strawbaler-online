@@ -9,7 +9,7 @@ interface CornerShapeProps {
   corner: Corner
 }
 
-export function CornerShape ({ corner }: CornerShapeProps): React.JSX.Element | null {
+export function CornerShape({ corner }: CornerShapeProps): React.JSX.Element | null {
   const selectedEntity = useSelectedEntity()
   const selectEntity = useEditorStore(state => state.selectEntity)
   const cornerPoint = usePoint(corner.pointId)
@@ -20,10 +20,13 @@ export function CornerShape ({ corner }: CornerShapeProps): React.JSX.Element | 
 
   const isSelected = selectedEntity === corner.pointId
 
-  const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>): void => {
-    e.cancelBubble = true
-    selectEntity(corner.pointId)
-  }, [selectEntity, corner.pointId])
+  const handleClick = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>): void => {
+      e.cancelBubble = true
+      selectEntity(corner.pointId)
+    },
+    [selectEntity, corner.pointId]
+  )
 
   return (
     <Group
@@ -35,8 +38,8 @@ export function CornerShape ({ corner }: CornerShapeProps): React.JSX.Element | 
       {/* Background circle for better visibility - much larger */}
       <Circle
         radius={80}
-        fill='white'
-        stroke='#007acc'
+        fill="white"
+        stroke="#007acc"
         strokeWidth={isSelected ? 15 : 8} // Much thicker stroke
         opacity={0.95}
         // Allow clicking only on the background circle
@@ -49,7 +52,7 @@ export function CornerShape ({ corner }: CornerShapeProps): React.JSX.Element | 
       {isSelected && (
         <Circle
           radius={120} // Much larger selection ring
-          stroke='#007acc'
+          stroke="#007acc"
           strokeWidth={15} // Thicker selection stroke
           dash={[20, 20]} // Larger dash pattern
           listening={false}

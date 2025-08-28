@@ -97,14 +97,18 @@ describe('roomsSlice', () => {
       const pointIds = [createPointId(), createPointId()]
       const wallIds = [createWallId(), createWallId(), createWallId()]
 
-      expect(() => store.addRoom(testFloorId, 'Test Room', pointIds, wallIds)).toThrow('Point IDs and wall IDs must have the same length')
+      expect(() => store.addRoom(testFloorId, 'Test Room', pointIds, wallIds)).toThrow(
+        'Point IDs and wall IDs must have the same length'
+      )
     })
 
     it('should throw error when boundary has less than 3 elements', () => {
       const pointIds = [createPointId(), createPointId()]
       const wallIds = [createWallId(), createWallId()]
 
-      expect(() => store.addRoom(testFloorId, 'Test Room', pointIds, wallIds)).toThrow('Room boundary must have at least 3 points and walls')
+      expect(() => store.addRoom(testFloorId, 'Test Room', pointIds, wallIds)).toThrow(
+        'Room boundary must have at least 3 points and walls'
+      )
     })
 
     it('should throw error for duplicate point IDs', () => {
@@ -112,7 +116,9 @@ describe('roomsSlice', () => {
       const pointIds = [pointId, pointId, createPointId()]
       const wallIds = [createWallId(), createWallId(), createWallId()]
 
-      expect(() => store.addRoom(testFloorId, 'Test Room', pointIds, wallIds)).toThrow('Point IDs must not contain duplicates')
+      expect(() => store.addRoom(testFloorId, 'Test Room', pointIds, wallIds)).toThrow(
+        'Point IDs must not contain duplicates'
+      )
     })
 
     it('should throw error for duplicate wall IDs', () => {
@@ -120,7 +126,9 @@ describe('roomsSlice', () => {
       const pointIds = [createPointId(), createPointId(), createPointId()]
       const wallIds = [wallId, wallId, createWallId()]
 
-      expect(() => store.addRoom(testFloorId, 'Test Room', pointIds, wallIds)).toThrow('Wall IDs must not contain duplicates')
+      expect(() => store.addRoom(testFloorId, 'Test Room', pointIds, wallIds)).toThrow(
+        'Wall IDs must not contain duplicates'
+      )
     })
   })
 
@@ -237,7 +245,9 @@ describe('roomsSlice', () => {
       const newPointIds = [createPointId(), createPointId()]
       const newWallIds = [createWallId(), createWallId(), createWallId()]
 
-      expect(() => store.updateRoomBoundary(roomId, newPointIds, newWallIds)).toThrow('Point IDs and wall IDs must have the same length')
+      expect(() => store.updateRoomBoundary(roomId, newPointIds, newWallIds)).toThrow(
+        'Point IDs and wall IDs must have the same length'
+      )
     })
 
     it('should throw error when boundary has less than 3 elements', () => {
@@ -245,7 +255,9 @@ describe('roomsSlice', () => {
       const newPointIds = [createPointId(), createPointId()]
       const newWallIds = [createWallId(), createWallId()]
 
-      expect(() => store.updateRoomBoundary(roomId, newPointIds, newWallIds)).toThrow('Room boundary must have at least 3 points and walls')
+      expect(() => store.updateRoomBoundary(roomId, newPointIds, newWallIds)).toThrow(
+        'Room boundary must have at least 3 points and walls'
+      )
     })
 
     it('should throw error for duplicate point IDs', () => {
@@ -254,7 +266,9 @@ describe('roomsSlice', () => {
       const newPointIds = [pointId, pointId, createPointId()]
       const newWallIds = [createWallId(), createWallId(), createWallId()]
 
-      expect(() => store.updateRoomBoundary(roomId, newPointIds, newWallIds)).toThrow('Point IDs must not contain duplicates')
+      expect(() => store.updateRoomBoundary(roomId, newPointIds, newWallIds)).toThrow(
+        'Point IDs must not contain duplicates'
+      )
     })
 
     it('should throw error for duplicate wall IDs', () => {
@@ -263,7 +277,9 @@ describe('roomsSlice', () => {
       const newPointIds = [createPointId(), createPointId(), createPointId()]
       const newWallIds = [wallId, wallId, createWallId()]
 
-      expect(() => store.updateRoomBoundary(roomId, newPointIds, newWallIds)).toThrow('Wall IDs must not contain duplicates')
+      expect(() => store.updateRoomBoundary(roomId, newPointIds, newWallIds)).toThrow(
+        'Wall IDs must not contain duplicates'
+      )
     })
   })
 
@@ -290,7 +306,9 @@ describe('roomsSlice', () => {
       const holePointIds = [createPointId(), createPointId()]
       const holeWallIds = [createWallId(), createWallId(), createWallId()]
 
-      expect(() => store.addHoleToRoom(roomId, holePointIds, holeWallIds)).toThrow('Point IDs and wall IDs must have the same length')
+      expect(() => store.addHoleToRoom(roomId, holePointIds, holeWallIds)).toThrow(
+        'Point IDs and wall IDs must have the same length'
+      )
     })
 
     it('should throw error when hole has less than 3 elements', () => {
@@ -298,7 +316,9 @@ describe('roomsSlice', () => {
       const holePointIds = [createPointId(), createPointId()]
       const holeWallIds = [createWallId(), createWallId()]
 
-      expect(() => store.addHoleToRoom(roomId, holePointIds, holeWallIds)).toThrow('Room boundary must have at least 3 points and walls')
+      expect(() => store.addHoleToRoom(roomId, holePointIds, holeWallIds)).toThrow(
+        'Room boundary must have at least 3 points and walls'
+      )
     })
 
     it('should throw error for duplicate point IDs in hole', () => {
@@ -307,7 +327,9 @@ describe('roomsSlice', () => {
       const holePointIds = [pointId, pointId, createPointId()]
       const holeWallIds = [createWallId(), createWallId(), createWallId()]
 
-      expect(() => store.addHoleToRoom(roomId, holePointIds, holeWallIds)).toThrow('Point IDs must not contain duplicates')
+      expect(() => store.addHoleToRoom(roomId, holePointIds, holeWallIds)).toThrow(
+        'Point IDs must not contain duplicates'
+      )
     })
 
     it('should throw error for duplicate wall IDs in hole', () => {
@@ -316,7 +338,9 @@ describe('roomsSlice', () => {
       const holePointIds = [createPointId(), createPointId(), createPointId()]
       const holeWallIds = [wallId, wallId, createWallId()]
 
-      expect(() => store.addHoleToRoom(roomId, holePointIds, holeWallIds)).toThrow('Wall IDs must not contain duplicates')
+      expect(() => store.addHoleToRoom(roomId, holePointIds, holeWallIds)).toThrow(
+        'Wall IDs must not contain duplicates'
+      )
     })
 
     it('should do nothing when room does not exist', () => {

@@ -12,67 +12,67 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 10
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'pnpm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: Update dependencies
-      run: |
-        # Update all dependencies to latest compatible versions
-        pnpm update
-        
-        # Check if there are any changes
-        if [ -n "$(git diff --name-only)" ]; then
-          echo "dependencies_updated=true" >> $GITHUB_ENV
-        else
-          echo "dependencies_updated=false" >> $GITHUB_ENV
-        fi
+      - name: Update dependencies
+        run: |
+          # Update all dependencies to latest compatible versions
+          pnpm update
 
-    - name: Run tests after update
-      if: env.dependencies_updated == 'true'
-      run: pnpm run test
+          # Check if there are any changes
+          if [ -n "$(git diff --name-only)" ]; then
+            echo "dependencies_updated=true" >> $GITHUB_ENV
+          else
+            echo "dependencies_updated=false" >> $GITHUB_ENV
+          fi
 
-    - name: Build project after update
-      if: env.dependencies_updated == 'true'
-      run: pnpm run build
+      - name: Run tests after update
+        if: env.dependencies_updated == 'true'
+        run: pnpm run test
 
-    - name: Create Pull Request
-      if: env.dependencies_updated == 'true'
-      uses: peter-evans/create-pull-request@v6
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: 'chore: update dependencies'
-        title: '🔄 Automated dependency updates'
-        body: |
-          ## 🔄 Dependency Updates
-          
-          This PR contains automated dependency updates.
-          
-          ### Changes
-          - Updated dependencies to latest compatible versions
-          - All tests passing ✅
-          - Build successful ✅
-          
-          ### Review checklist
-          - [ ] Check for any breaking changes in updated packages
-          - [ ] Verify all features still work as expected
-          - [ ] Review any new security vulnerabilities
-          
-          _This PR was created automatically by the update-dependencies workflow._
-        branch: chore/update-dependencies
-        delete-branch: true
+      - name: Build project after update
+        if: env.dependencies_updated == 'true'
+        run: pnpm run build
+
+      - name: Create Pull Request
+        if: env.dependencies_updated == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: '🔄 Automated dependency updates'
+          body: |
+            ## 🔄 Dependency Updates
+
+            This PR contains automated dependency updates.
+
+            ### Changes
+            - Updated dependencies to latest compatible versions
+            - All tests passing ✅
+            - Build successful ✅
+
+            ### Review checklist
+            - [ ] Check for any breaking changes in updated packages
+            - [ ] Verify all features still work as expected
+            - [ ] Review any new security vulnerabilities
+
+            _This PR was created automatically by the update-dependencies workflow._
+          branch: chore/update-dependencies
+          delete-branch: true

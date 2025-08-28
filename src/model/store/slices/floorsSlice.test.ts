@@ -26,7 +26,7 @@ describe('FloorsSlice', () => {
     mockGet.mockImplementation(() => store)
 
     // Mock the set function to actually update the store
-    mockSet.mockImplementation((updater) => {
+    mockSet.mockImplementation(updater => {
       if (typeof updater === 'function') {
         const newState = updater(store)
         Object.assign(store, newState)

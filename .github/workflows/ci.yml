@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   test:
@@ -16,116 +16,116 @@ jobs:
         node-version: [18.x, 20.x]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 10
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: Type check
-      run: pnpm exec tsc --noEmit --skipLibCheck
+      - name: Type check
+        run: pnpm exec tsc --noEmit --skipLibCheck
 
-    - name: Run tests
-      run: pnpm run test
+      - name: Run tests
+        run: pnpm run test
 
-    - name: Build project
-      run: pnpm run build
+      - name: Build project
+        run: pnpm run build
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      if: matrix.node-version == '20.x'
-      with:
-        name: build-artifacts
-        path: dist/
-        retention-days: 7
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: matrix.node-version == '20.x'
+        with:
+          name: build-artifacts
+          path: dist/
+          retention-days: 7
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
     continue-on-error: true # Allow lint failures for now, but report them
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 10
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'pnpm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: Run linter
-      run: pnpm run lint
+      - name: Run linter
+        run: pnpm run lint
 
-    - name: Check lint fixes available
-      if: failure()
-      run: |
-        echo "::warning::Linting issues found. Run 'pnpm run lint:fix' to auto-fix some issues."
-        pnpm run lint:fix --dry-run || true
+      - name: Check lint fixes available
+        if: failure()
+        run: |
+          echo "::warning::Linting issues found. Run 'pnpm run lint:fix' to auto-fix some issues."
+          pnpm run lint:fix --dry-run || true
 
   quality-check:
     name: Code Quality
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 10
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'pnpm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: Check for TODO/FIXME comments
-      run: |
-        echo "Checking for TODO/FIXME comments..."
-        if grep -r "TODO\|FIXME" src/ --include="*.ts" --include="*.tsx" --exclude-dir=node_modules; then
-          echo "::notice::Found TODO/FIXME comments in code"
-        else
-          echo "No TODO/FIXME comments found"
-        fi
-
-    - name: Bundle size check
-      run: |
-        pnpm run build
-        echo "Bundle sizes:"
-        ls -lh dist/assets/
-        
-        # Check if main bundle is larger than 1MB
-        MAIN_JS=$(find dist/assets -name "*.js" -type f | head -1)
-        if [ -f "$MAIN_JS" ]; then
-          SIZE=$(stat -f%z "$MAIN_JS" 2>/dev/null || stat -c%s "$MAIN_JS")
-          if [ $SIZE -gt 1048576 ]; then
-            echo "::warning::Main bundle is larger than 1MB ($SIZE bytes). Consider code splitting."
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "Checking for TODO/FIXME comments..."
+          if grep -r "TODO\|FIXME" src/ --include="*.ts" --include="*.tsx" --exclude-dir=node_modules; then
+            echo "::notice::Found TODO/FIXME comments in code"
           else
-            echo "✅ Bundle size is acceptable ($SIZE bytes)"
+            echo "No TODO/FIXME comments found"
           fi
-        fi
+
+      - name: Bundle size check
+        run: |
+          pnpm run build
+          echo "Bundle sizes:"
+          ls -lh dist/assets/
+
+          # Check if main bundle is larger than 1MB
+          MAIN_JS=$(find dist/assets -name "*.js" -type f | head -1)
+          if [ -f "$MAIN_JS" ]; then
+            SIZE=$(stat -f%z "$MAIN_JS" 2>/dev/null || stat -c%s "$MAIN_JS")
+            if [ $SIZE -gt 1048576 ]; then
+              echo "::warning::Main bundle is larger than 1MB ($SIZE bytes). Consider code splitting."
+            else
+              echo "✅ Bundle size is acceptable ($SIZE bytes)"
+            fi
+          fi

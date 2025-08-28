@@ -34,12 +34,10 @@ export interface PointsActions {
 
 export type PointsSlice = PointsState & PointsActions
 
-export const createPointsSlice: StateCreator<
-PointsSlice,
-[['zustand/devtools', never]],
-[],
-PointsSlice
-> = (set, get) => ({
+export const createPointsSlice: StateCreator<PointsSlice, [['zustand/devtools', never]], [], PointsSlice> = (
+  set,
+  get
+) => ({
   points: new Map<PointId, Point>(),
 
   // CRUD operations
@@ -51,7 +49,7 @@ PointsSlice
       roomIds: new Set<RoomId>()
     }
 
-    set((state) => ({
+    set(state => ({
       ...state,
       points: new Map(state.points).set(point.id, point)
     }))
@@ -60,7 +58,7 @@ PointsSlice
   },
 
   removePoint: (pointId: PointId) => {
-    set((state) => {
+    set(state => {
       const newPoints = new Map(state.points)
       newPoints.delete(pointId)
       return {
@@ -72,7 +70,7 @@ PointsSlice
 
   // Point modifications
   movePoint: (pointId: PointId, position: Point2D) => {
-    set((state) => {
+    set(state => {
       const point = state.points.get(pointId)
       if (point == null) return state
 
@@ -135,7 +133,7 @@ PointsSlice
 
   // Floor entity management
   addRoomToPoint: (pointId: PointId, roomId: RoomId) => {
-    set((state) => {
+    set(state => {
       const point = state.points.get(pointId)
       if (point == null) return state
 
@@ -155,7 +153,7 @@ PointsSlice
   },
 
   removeRoomFromPoint: (pointId: PointId, roomId: RoomId) => {
-    set((state) => {
+    set(state => {
       const point = state.points.get(pointId)
       if (point == null) return state
 
@@ -175,7 +173,9 @@ PointsSlice
   },
 
   getFloorBounds: (floorId: FloorId): Bounds2D | null => {
-    const pointsOnFloor = get().getPointsByFloor(floorId).map(p => p.position)
+    const pointsOnFloor = get()
+      .getPointsByFloor(floorId)
+      .map(p => p.position)
     return boundsFromPoints(pointsOnFloor)
   }
 })

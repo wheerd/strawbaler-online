@@ -1,6 +1,16 @@
 import { describe, it, beforeEach, expect, vi } from 'vitest'
 import { RoomDetectionService } from './RoomDetectionService'
-import { createFloorLevel, type FloorId, type Point, type PointId, type Wall, type WallId, type RoomId, type Room, createPointId } from '@/model'
+import {
+  createFloorLevel,
+  type FloorId,
+  type Point,
+  type PointId,
+  type Wall,
+  type WallId,
+  type RoomId,
+  type Room,
+  createPointId
+} from '@/model'
 import { createLength, createPoint2D } from '@/types/geometry'
 
 describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
@@ -11,7 +21,13 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
   let roomCounter = 0
 
   // Helper function to create walls with less boilerplate
-  const createWall = (id: string, startPoint: Point, endPoint: Point, leftRoomId?: RoomId, rightRoomId?: RoomId): Wall => ({
+  const createWall = (
+    id: string,
+    startPoint: Point,
+    endPoint: Point,
+    leftRoomId?: RoomId,
+    rightRoomId?: RoomId
+  ): Wall => ({
     id: id as WallId,
     startPointId: startPoint.id,
     endPointId: endPoint.id,
@@ -29,7 +45,9 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
       walls: new Map(),
       points: new Map(),
       rooms: new Map(),
-      floors: new Map([[floorId, { id: floorId, level: createFloorLevel(1), name: 'First Floor', height: createLength(3000) }]]),
+      floors: new Map([
+        [floorId, { id: floorId, level: createFloorLevel(1), name: 'First Floor', height: createLength(3000) }]
+      ]),
       corners: new Map(),
       // Mock store actions
       addRoom: vi.fn((floorId: FloorId, name: string, pointIds: PointId[], wallIds: WallId[]) => {
@@ -82,7 +100,7 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
         const wall = store.walls.get(wallId)
         if (wall) {
           if (roomId !== null) {
-            (wall as any).leftRoomId = roomId
+            ;(wall as any).leftRoomId = roomId
           } else {
             delete (wall as any).leftRoomId
           }
@@ -92,7 +110,7 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
         const wall = store.walls.get(wallId)
         if (wall) {
           if (roomId !== null) {
-            (wall as any).rightRoomId = roomId
+            ;(wall as any).rightRoomId = roomId
           } else {
             delete (wall as any).rightRoomId
           }
@@ -100,7 +118,12 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
       })
     } as any
 
-    service = new RoomDetectionService(() => store as any, (partial) => { Object.assign(store, partial) })
+    service = new RoomDetectionService(
+      () => store as any,
+      partial => {
+        Object.assign(store, partial)
+      }
+    )
 
     // Create a 4x4 grid of points
     points = []
@@ -144,7 +167,10 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
         id: roomId,
         floorId,
         name: 'Test Room',
-        outerBoundary: { pointIds: [points[0][0].id, points[1][0].id, points[1][1].id, points[0][1].id], wallIds: new Set() },
+        outerBoundary: {
+          pointIds: [points[0][0].id, points[1][0].id, points[1][1].id, points[0][1].id],
+          wallIds: new Set()
+        },
         holes: [],
         interiorWallIds: new Set(['wall1' as WallId])
       }
@@ -206,7 +232,7 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
       // - Bottom segment (points[1][2] to points[1][3]) - remains as interior wall
       // When middle segment is removed, rooms 1 and 2 merge into room 3
 
-      const leftRoomId = 'room1' as RoomId  // Room 1 (left side)
+      const leftRoomId = 'room1' as RoomId // Room 1 (left side)
       const rightRoomId = 'room2' as RoomId // Room 2 (right side)
 
       // Set up room references on all the shared points along the divider
@@ -237,10 +263,25 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
         floorId,
         name: 'Room 1',
         outerBoundary: {
-          pointIds: [points[0][0].id, points[1][0].id, points[1][1].id, points[1][2].id, points[1][3].id, points[0][3].id, points[0][2].id, points[0][1].id],
+          pointIds: [
+            points[0][0].id,
+            points[1][0].id,
+            points[1][1].id,
+            points[1][2].id,
+            points[1][3].id,
+            points[0][3].id,
+            points[0][2].id,
+            points[0][1].id
+          ],
           wallIds: new Set([
-            'left-bottom' as WallId, 'top-segment' as WallId, 'middle-segment' as WallId, 'bottom-segment' as WallId,
-            'left-top' as WallId, 'left-outer-3' as WallId, 'left-outer-2' as WallId, 'left-outer-1' as WallId
+            'left-bottom' as WallId,
+            'top-segment' as WallId,
+            'middle-segment' as WallId,
+            'bottom-segment' as WallId,
+            'left-top' as WallId,
+            'left-outer-3' as WallId,
+            'left-outer-2' as WallId,
+            'left-outer-1' as WallId
           ])
         },
         holes: [],
@@ -253,10 +294,25 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
         floorId,
         name: 'Room 2',
         outerBoundary: {
-          pointIds: [points[1][0].id, points[2][0].id, points[2][1].id, points[2][2].id, points[2][3].id, points[1][3].id, points[1][2].id, points[1][1].id],
+          pointIds: [
+            points[1][0].id,
+            points[2][0].id,
+            points[2][1].id,
+            points[2][2].id,
+            points[2][3].id,
+            points[1][3].id,
+            points[1][2].id,
+            points[1][1].id
+          ],
           wallIds: new Set([
-            'right-bottom' as WallId, 'right-outer-1' as WallId, 'right-outer-2' as WallId, 'right-outer-3' as WallId,
-            'right-top' as WallId, 'bottom-segment' as WallId, 'middle-segment' as WallId, 'top-segment' as WallId
+            'right-bottom' as WallId,
+            'right-outer-1' as WallId,
+            'right-outer-2' as WallId,
+            'right-outer-3' as WallId,
+            'right-top' as WallId,
+            'bottom-segment' as WallId,
+            'middle-segment' as WallId,
+            'top-segment' as WallId
           ])
         },
         holes: [],
@@ -287,8 +343,19 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
 
       // Add all walls to store
       const allWalls = [
-        leftBottom, topSegment, middleSegment, bottomSegment, leftTop, leftOuter3, leftOuter2, leftOuter1,
-        rightBottom, rightOuter1, rightOuter2, rightOuter3, rightTop
+        leftBottom,
+        topSegment,
+        middleSegment,
+        bottomSegment,
+        leftTop,
+        leftOuter3,
+        leftOuter2,
+        leftOuter1,
+        rightBottom,
+        rightOuter1,
+        rightOuter2,
+        rightOuter3,
+        rightTop
       ]
       allWalls.forEach(wall => store.walls.set(wall.id, wall))
 
@@ -407,10 +474,12 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
           pointIds: [points[0][0].id, points[1][0].id, points[1][1].id, points[0][1].id],
           wallIds: new Set(['wall1' as WallId])
         },
-        holes: [{
-          pointIds: [points[0][2].id, points[0][3].id, points[1][3].id],
-          wallIds: new Set(['hole1' as WallId])
-        }],
+        holes: [
+          {
+            pointIds: [points[0][2].id, points[0][3].id, points[1][3].id],
+            wallIds: new Set(['hole1' as WallId])
+          }
+        ],
         interiorWallIds: new Set()
       }
 
@@ -422,10 +491,12 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
           pointIds: [points[1][0].id, points[2][0].id, points[2][1].id, points[1][1].id],
           wallIds: new Set(['wall1' as WallId])
         },
-        holes: [{
-          pointIds: [points[1][2].id, points[1][3].id, points[2][3].id],
-          wallIds: new Set(['hole2' as WallId])
-        }],
+        holes: [
+          {
+            pointIds: [points[1][2].id, points[1][3].id, points[2][3].id],
+            wallIds: new Set(['hole2' as WallId])
+          }
+        ],
         interiorWallIds: new Set()
       }
 
@@ -563,22 +634,19 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
     it('should throw error when start point is not found in cycle', () => {
       const cycle = [A, B, C]
 
-      expect(() => service.shiftPointsByRemoving(cycle, D, A))
-        .toThrow('Start or end point not found in cycle')
+      expect(() => service.shiftPointsByRemoving(cycle, D, A)).toThrow('Start or end point not found in cycle')
     })
 
     it('should throw error when end point is not found in cycle', () => {
       const cycle = [A, B, C]
 
-      expect(() => service.shiftPointsByRemoving(cycle, A, D))
-        .toThrow('Start or end point not found in cycle')
+      expect(() => service.shiftPointsByRemoving(cycle, A, D)).toThrow('Start or end point not found in cycle')
     })
 
     it('should throw error when start and end points are not adjacent', () => {
       const cycle = [A, B, C, D]
 
-      expect(() => service.shiftPointsByRemoving(cycle, A, C))
-        .toThrow('Start and end points are not adjacent in cycle')
+      expect(() => service.shiftPointsByRemoving(cycle, A, C)).toThrow('Start and end points are not adjacent in cycle')
     })
   })
 
@@ -615,7 +683,12 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
         name: 'Right Room',
         outerBoundary: {
           pointIds: [points[1][0].id, points[2][0].id, points[2][1].id, points[1][1].id],
-          wallIds: new Set(['right-bottom' as WallId, 'right-right' as WallId, 'right-top' as WallId, 'shared' as WallId])
+          wallIds: new Set([
+            'right-bottom' as WallId,
+            'right-right' as WallId,
+            'right-top' as WallId,
+            'shared' as WallId
+          ])
         },
         holes: [],
         interiorWallIds: new Set()
@@ -688,10 +761,22 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
         floorId,
         name: 'L-shaped Room',
         outerBoundary: {
-          pointIds: [points[1][0].id, points[2][0].id, points[2][1].id, points[2][2].id, points[0][2].id, points[0][1].id, points[1][1].id],
+          pointIds: [
+            points[1][0].id,
+            points[2][0].id,
+            points[2][1].id,
+            points[2][2].id,
+            points[0][2].id,
+            points[0][1].id,
+            points[1][1].id
+          ],
           wallIds: new Set([
-            'r2-bottom' as WallId, 'r2-right-1' as WallId, 'r2-right-2' as WallId,
-            'r2-top' as WallId, 'r2-left' as WallId, 'shared-wall' as WallId
+            'r2-bottom' as WallId,
+            'r2-right-1' as WallId,
+            'r2-right-2' as WallId,
+            'r2-top' as WallId,
+            'r2-left' as WallId,
+            'shared-wall' as WallId
           ])
         },
         holes: [],
@@ -747,10 +832,12 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
           pointIds: [points[0][0].id, points[1][0].id, points[1][1].id, points[0][1].id],
           wallIds: new Set(['left-bottom' as WallId, 'shared' as WallId, 'left-top' as WallId, 'left-left' as WallId])
         },
-        holes: [{
-          pointIds: [points[0][2].id, points[0][3].id, points[1][3].id],
-          wallIds: new Set(['hole-left' as WallId])
-        }],
+        holes: [
+          {
+            pointIds: [points[0][2].id, points[0][3].id, points[1][3].id],
+            wallIds: new Set(['hole-left' as WallId])
+          }
+        ],
         interiorWallIds: new Set()
       }
 
@@ -760,12 +847,19 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
         name: 'Right Room with Hole',
         outerBoundary: {
           pointIds: [points[1][0].id, points[2][0].id, points[2][1].id, points[1][1].id],
-          wallIds: new Set(['right-bottom' as WallId, 'right-right' as WallId, 'right-top' as WallId, 'shared' as WallId])
+          wallIds: new Set([
+            'right-bottom' as WallId,
+            'right-right' as WallId,
+            'right-top' as WallId,
+            'shared' as WallId
+          ])
         },
-        holes: [{
-          pointIds: [points[2][2].id, points[2][3].id, points[3][3].id],
-          wallIds: new Set(['hole-right' as WallId])
-        }],
+        holes: [
+          {
+            pointIds: [points[2][2].id, points[2][3].id, points[3][3].id],
+            wallIds: new Set(['hole-right' as WallId])
+          }
+        ],
         interiorWallIds: new Set()
       }
 
@@ -885,7 +979,13 @@ describe('RoomDetectionService - updateRoomsAfterWallRemoval', () => {
         name: 'Room 3',
         outerBoundary: {
           pointIds: [points[1][1].id, points[2][1].id, points[2][2].id, points[0][2].id, points[0][1].id],
-          wallIds: new Set(['shared-2-3' as WallId, 'r3-right' as WallId, 'r3-bottom' as WallId, 'r3-left' as WallId, 'shared-1-3' as WallId])
+          wallIds: new Set([
+            'shared-2-3' as WallId,
+            'r3-right' as WallId,
+            'r3-bottom' as WallId,
+            'r3-left' as WallId,
+            'shared-1-3' as WallId
+          ])
         },
         holes: [],
         interiorWallIds: new Set()

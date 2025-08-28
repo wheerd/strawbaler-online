@@ -47,12 +47,7 @@ const validateUniqueFloorLevel = (floors: Map<FloorId, Floor>, level: FloorLevel
   }
 }
 
-export const createFloorsSlice: StateCreator<
-FloorsSlice,
-[],
-[],
-FloorsSlice
-> = (set, get) => ({
+export const createFloorsSlice: StateCreator<FloorsSlice, [], [], FloorsSlice> = (set, get) => ({
   floors: new Map<FloorId, Floor>(),
 
   // CRUD operations
@@ -76,7 +71,7 @@ FloorsSlice
       height: defaultHeight
     }
 
-    set((state) => ({
+    set(state => ({
       ...state,
       floors: new Map(state.floors).set(floorId, floor)
     }))
@@ -85,7 +80,7 @@ FloorsSlice
   },
 
   removeFloor: (floorId: FloorId) => {
-    set((state) => {
+    set(state => {
       const newFloors = new Map(state.floors)
       newFloors.delete(floorId)
       return {
@@ -100,7 +95,7 @@ FloorsSlice
     // Validate name
     validateFloorName(name)
 
-    set((state) => {
+    set(state => {
       const floor = state.floors.get(floorId)
       if (floor == null) return state
 
@@ -117,7 +112,7 @@ FloorsSlice
   },
 
   updateFloorLevel: (floorId: FloorId, level: FloorLevel) => {
-    set((state) => {
+    set(state => {
       const floor = state.floors.get(floorId)
       if (floor == null) return state
 
@@ -140,7 +135,7 @@ FloorsSlice
     // Validate height
     validateFloorHeight(height)
 
-    set((state) => {
+    set(state => {
       const floor = state.floors.get(floorId)
       if (floor == null) return state
 

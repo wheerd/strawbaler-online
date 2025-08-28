@@ -13,8 +13,8 @@ export default defineConfig({
       '@/model': resolve(__dirname, './src/model'),
       '@/types': resolve(__dirname, './src/types'),
       '@/assets': resolve(__dirname, './src/assets'),
-      '@/test': resolve(__dirname, './src/test'),
-    },
+      '@/test': resolve(__dirname, './src/test')
+    }
   },
   build: {
     rollupOptions: {
@@ -22,35 +22,30 @@ export default defineConfig({
         manualChunks: {
           // Vendor chunk for React and related libraries
           react: ['react', 'react-dom', 'react/jsx-runtime'],
-          
+
           // Canvas chunk for Konva and react-konva
           canvas: ['konva', 'react-konva'],
-          
+
           // State management chunk
           store: ['zustand'],
-          
+
           // Floor plan editor chunk (will be code-split automatically)
           // editor: [
           //   './src/components/FloorPlanEditor/FloorPlanEditor',
           //   './src/components/FloorPlanEditor/Canvas/FloorPlanStage',
           //   './src/components/FloorPlanEditor/hooks/useEditorStore'
           // ],
-          
+
           // Model chunk
-          model: [
-            './src/model/store',
-            './src/types/model',
-            './src/types/geometry',
-            './src/types/ids'
-          ]
-        },
-      },
+          model: ['./src/model/store', './src/types/model', './src/types/geometry', './src/types/ids']
+        }
+      }
     },
     // Set chunk size warning limit to 400kb for canvas libraries
     chunkSizeWarningLimit: 400,
-    
+
     // Additional optimizations
     minify: 'esbuild',
-    sourcemap: false,
-  },
+    sourcemap: false
+  }
 })
