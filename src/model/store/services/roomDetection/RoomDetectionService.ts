@@ -1,5 +1,6 @@
 import type { WallId, FloorId, PointId, RoomId } from '@/types/ids'
 import type { Point2D } from '@/types/geometry'
+import { isPointInPolygon } from '@/types/geometry'
 import type { StoreState, StoreActions } from '../../types'
 import { useModelStore } from '../..'
 import { RoomDetectionEngine } from './RoomDetectionEngine'
@@ -271,7 +272,7 @@ export class RoomDetectionService implements IRoomDetectionService {
     this.createRoomFromDefinition(mergedRoomDefinition, removedWall.floorId)
   }
 
-  shiftPointsByRemoving(cycle: PointId[], startPointId: PointId, endPointId: PointId): PointId[] {
+  private shiftPointsByRemoving(cycle: PointId[], startPointId: PointId, endPointId: PointId): PointId[] {
     const startIndex = cycle.indexOf(startPointId)
     const endIndex = cycle.indexOf(endPointId)
 
@@ -302,29 +303,29 @@ export class RoomDetectionService implements IRoomDetectionService {
 
     if (wall == null) return
 
-    // Check if adding this wall affects existing rooms (might split them)
-    const existingRooms = Array.from(store.rooms.values()).filter(room => room.floorId === floorId)
+    const startPoint = store.points.get(wall.startPointId)
+    const endPoint = store.points.get(wall.endPointId)
 
-    const affectedRooms = existingRooms.filter(room => {
-      // Check if the new wall might be inside this room or affect its boundary
-      const wallStartPoint = store.points.get(wall.startPointId)
-      const wallEndPoint = store.points.get(wall.endPointId)
+    let splitRoom: Room | null = null
+    if (startPoint !== undefined && endPoint !== undefined) {
+      for (const roomId of startPoint.roomIds) {
+        if (endPoint.roomIds.has(roomId)) {
+          const room = store.rooms.get(roomId)
+          if (room !== undefined) {
+            if (
+              room.outerBoundary.pointIds.indexOf(wall.startPointId) !== -1 &&
+              room.outerBoundary.pointIds.indexOf(wall.endPointId) !== -1
+            ) {
+              splitRoom = room
+              break
+            }
+          }
+        }
+      }
+    }
 
-      if (wallStartPoint == null || wallEndPoint == null) return false
-
-      // Simple check: if either endpoint of the new wall is associated with this room
-      return wallStartPoint.roomIds.has(room.id) || wallEndPoint.roomIds.has(room.id)
-    })
-
-    if (affectedRooms.length > 0) {
-      // Clean up affected rooms and re-detect
-      this.cleanupRoomReferences(affectedRooms.map(room => room.id))
-      affectedRooms.forEach(room => {
-        store.removeRoom(room.id)
-      })
-
-      // Trigger full room detection for the floor
-      this.detectRooms(floorId)
+    if (splitRoom) {
+      this.splitRoomAfterWallAddition(wall, splitRoom, store)
     } else {
       // Check if adding this wall creates new room boundaries
       const graph = this.buildRoomDetectionGraph(floorId)
@@ -344,6 +345,163 @@ export class RoomDetectionService implements IRoomDetectionService {
           this.createRoomFromDefinition(roomDefinition, floorId)
         }
       })
+    }
+  }
+
+  private splitRoomAfterWallAddition(wall: Wall, splitRoom: Room, store: StoreState & StoreActions) {
+    // Both endpoints of the wall are in the outer boundary of the split room
+    // Find the indices of the points and split the points array accordingly to form two new rooms
+    // For all holes and interior walls of the original room, check which new room they belong to
+    // Remove original room and add both new rooms
+
+    const { outerBoundary } = splitRoom
+    const { pointIds, wallIds } = outerBoundary
+
+    // Find indices of wall endpoints in the room boundary
+    const startIndex = pointIds.indexOf(wall.startPointId)
+    const endIndex = pointIds.indexOf(wall.endPointId)
+
+    if (startIndex === -1 || endIndex === -1) {
+      throw new Error('Wall endpoints not found in room boundary')
+    }
+
+    // Helper function to find the wall connecting two consecutive points
+    const findWallBetweenPoints = (point1Id: PointId, point2Id: PointId): WallId | null => {
+      for (const wallId of wallIds) {
+        const wallInRoom = store.walls.get(wallId)
+        if (
+          wallInRoom &&
+          ((wallInRoom.startPointId === point1Id && wallInRoom.endPointId === point2Id) ||
+            (wallInRoom.startPointId === point2Id && wallInRoom.endPointId === point1Id))
+        ) {
+          return wallId
+        }
+      }
+      return null
+    }
+
+    // Split the boundary into two parts
+    // We need to create two new rooms, each containing one part of the split boundary plus the new wall
+
+    const room1PointIds: PointId[] = []
+    const room1WallIds: WallId[] = []
+    const room2PointIds: PointId[] = []
+    const room2WallIds: WallId[] = []
+
+    // Determine the direction to traverse for each new room
+    // We'll create room1 from startIndex to endIndex (clockwise)
+    // and room2 from endIndex to startIndex (clockwise)
+
+    let currentIndex = startIndex
+    while (currentIndex !== endIndex) {
+      const nextIndex = (currentIndex + 1) % pointIds.length
+      room1PointIds.push(pointIds[currentIndex])
+
+      // Find the wall connecting current point to next point
+      const wallBetween = findWallBetweenPoints(pointIds[currentIndex], pointIds[nextIndex])
+      if (wallBetween) {
+        room1WallIds.push(wallBetween)
+      }
+
+      currentIndex = nextIndex
+    }
+    room1PointIds.push(pointIds[endIndex]) // Add the end point
+    room1WallIds.push(wall.id) // Add the new wall connecting back to start
+
+    currentIndex = endIndex
+    while (currentIndex !== startIndex) {
+      const nextIndex = (currentIndex + 1) % pointIds.length
+      room2PointIds.push(pointIds[currentIndex])
+
+      // Find the wall connecting current point to next point
+      const wallBetween = findWallBetweenPoints(pointIds[currentIndex], pointIds[nextIndex])
+      if (wallBetween) {
+        room2WallIds.push(wallBetween)
+      }
+
+      currentIndex = nextIndex
+    }
+    room2PointIds.push(pointIds[startIndex]) // Add the start point
+    room2WallIds.push(wall.id) // Add the new wall connecting back to end
+
+    // Get existing rooms for name generation
+    const existingRooms = Array.from(store.rooms.values()).filter(room => room.floorId === splitRoom.floorId)
+
+    // Generate names for new rooms
+    const room1Name = this.generateUniqueRoomName(existingRooms, [])
+    const room2Name = this.generateUniqueRoomName(existingRooms, [{ name: room1Name }])
+
+    // Create polygons for the new rooms to determine which holes and interior walls belong to which room
+    const room1Polygon = {
+      points: room1PointIds.map(pointId => store.points.get(pointId)!.position)
+    }
+    const room2Polygon = {
+      points: room2PointIds.map(pointId => store.points.get(pointId)!.position)
+    }
+
+    // Distribute holes between the new rooms
+    const room1Holes: typeof splitRoom.holes = []
+    const room2Holes: typeof splitRoom.holes = []
+
+    for (const hole of splitRoom.holes) {
+      // Check which room contains the hole by testing if any hole point is inside each room
+      const holePoints = hole.pointIds.map(pointId => store.points.get(pointId)!.position)
+      const samplePoint = holePoints[0] // Use first point as representative
+
+      if (isPointInPolygon(samplePoint, room1Polygon)) {
+        room1Holes.push(hole)
+      } else if (isPointInPolygon(samplePoint, room2Polygon)) {
+        room2Holes.push(hole)
+      }
+      // If hole isn't in either room (edge case), we'll skip it
+    }
+
+    // Distribute interior walls between the new rooms
+    const room1InteriorWalls = new Set<WallId>()
+    const room2InteriorWalls = new Set<WallId>()
+
+    for (const interiorWallId of splitRoom.interiorWallIds) {
+      const interiorWall = store.walls.get(interiorWallId)
+      if (interiorWall) {
+        const startPoint = store.points.get(interiorWall.startPointId)!.position
+        const endPoint = store.points.get(interiorWall.endPointId)!.position
+
+        // Check which room contains the interior wall by testing both endpoints
+        const startInRoom1 = isPointInPolygon(startPoint, room1Polygon)
+        const endInRoom1 = isPointInPolygon(endPoint, room1Polygon)
+        const startInRoom2 = isPointInPolygon(startPoint, room2Polygon)
+        const endInRoom2 = isPointInPolygon(endPoint, room2Polygon)
+
+        if (startInRoom1 && endInRoom1) {
+          room1InteriorWalls.add(interiorWallId)
+        } else if (startInRoom2 && endInRoom2) {
+          room2InteriorWalls.add(interiorWallId)
+        }
+        // If wall spans both rooms or is on the boundary, we'll skip it
+      }
+    }
+
+    // Remove the original room
+    store.removeRoom(splitRoom.id)
+
+    // Create the two new rooms
+    const newRoom1 = store.addRoom(splitRoom.floorId, room1Name, room1PointIds, room1WallIds)
+    const newRoom2 = store.addRoom(splitRoom.floorId, room2Name, room2PointIds, room2WallIds)
+
+    // Add holes to the new rooms
+    for (const hole of room1Holes) {
+      store.addHoleToRoom(newRoom1.id, hole.pointIds, Array.from(hole.wallIds))
+    }
+    for (const hole of room2Holes) {
+      store.addHoleToRoom(newRoom2.id, hole.pointIds, Array.from(hole.wallIds))
+    }
+
+    // Add interior walls to the new rooms
+    for (const wallId of room1InteriorWalls) {
+      store.addInteriorWallToRoom(newRoom1.id, wallId)
+    }
+    for (const wallId of room2InteriorWalls) {
+      store.addInteriorWallToRoom(newRoom2.id, wallId)
     }
   }
 
