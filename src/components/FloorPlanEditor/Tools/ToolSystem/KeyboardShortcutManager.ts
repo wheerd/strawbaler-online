@@ -1,0 +1,245 @@
+import type { ShortcutDefinition, Tool, ToolContext, CanvasEvent } from './types'
+import type { EntityId } from '@/types/ids'
+import { isWallId, isRoomId, isPointId } from '@/types/ids'
+import { createAbsoluteOffset } from '@/types/geometry'
+
+export class KeyboardShortcutManager {
+  private builtInShortcuts: ShortcutDefinition[] = []
+  private toolActivationShortcuts: Map<string, string> = new Map() // key -> toolId
+
+  constructor() {
+    this.initializeBuiltInShortcuts()
+  }
+
+  // Register a tool's activation shortcut
+  registerToolShortcut(tool: Tool): void {
+    if (tool.hotkey) {
+      const normalizedKey = this.normalizeKey(tool.hotkey)
+      this.toolActivationShortcuts.set(normalizedKey, tool.id)
+    }
+  }
+
+  // Unregister a tool's shortcut
+  unregisterToolShortcut(tool: Tool): void {
+    if (tool.hotkey) {
+      const normalizedKey = this.normalizeKey(tool.hotkey)
+      this.toolActivationShortcuts.delete(normalizedKey)
+    }
+  }
+
+  // Main keyboard event handler
+  handleKeyDown(event: KeyboardEvent, context: ToolContext): boolean {
+    const key = this.normalizeKeyFromEvent(event)
+
+    // Priority 1: Active tool's handleKeyDown (highest priority)
+    const activeTool = context.getActiveTool()
+    if (activeTool?.handleKeyDown) {
+      const canvasEvent = this.createCanvasEvent(event, context)
+      if (activeTool.handleKeyDown(canvasEvent)) {
+        return true
+      }
+    }
+
+    // Priority 2: Built-in global shortcuts
+    const availableBuiltInShortcuts = this.getAvailableBuiltInShortcuts(key, context)
+    if (availableBuiltInShortcuts.length > 0) {
+      const shortcut = availableBuiltInShortcuts[0] // Highest priority
+      shortcut.action(context)
+      return true
+    }
+
+    // Priority 3: Tool context actions
+    if (activeTool?.getContextActions) {
+      const contextActions = activeTool.getContextActions(context)
+      const matchingAction = contextActions.find(a => a.hotkey === key)
+      if (matchingAction && (!matchingAction.enabled || matchingAction.enabled())) {
+        matchingAction.action()
+        return true
+      }
+    }
+
+    // Priority 4: Tool activation shortcuts
+    const toolId = this.toolActivationShortcuts.get(key)
+    if (toolId) {
+      return context.activateTool(toolId)
+    }
+
+    return false
+  }
+
+  // Get all available shortcuts for debugging/UI
+  getAllAvailableShortcuts(context: ToolContext): ShortcutDefinition[] {
+    const shortcuts: ShortcutDefinition[] = []
+
+    // Built-in shortcuts (filtered by condition)
+    shortcuts.push(...this.builtInShortcuts.filter(s => !s.condition || s.condition(context)))
+
+    // Tool activation shortcuts
+    for (const [key, toolId] of this.toolActivationShortcuts.entries()) {
+      shortcuts.push({
+        key,
+        action: context => context.activateTool(toolId),
+        priority: 60,
+        scope: 'global',
+        source: `tool-activation:${toolId}`,
+        label: `Activate ${toolId}`
+      })
+    }
+
+    // Active tool context actions
+    const activeTool = context.getActiveTool()
+    if (activeTool?.getContextActions) {
+      const contextActions = activeTool.getContextActions(context)
+      contextActions
+        .filter(action => action.hotkey)
+        .forEach(action => {
+          shortcuts.push({
+            key: action.hotkey!,
+            action: () => action.action(),
+            condition: action.enabled,
+            priority: 70,
+            scope: 'tool',
+            source: `context:${activeTool.id}`,
+            label: action.label
+          })
+        })
+    }
+
+    return shortcuts.sort((a, b) => b.priority - a.priority)
+  }
+
+  private initializeBuiltInShortcuts(): void {
+    this.builtInShortcuts = [
+      // Delete selected entity - works regardless of active tool
+      {
+        key: 'Delete',
+        label: 'Delete Selected',
+        action: context => {
+          const selectedId = context.getSelectedEntityId()
+          if (selectedId) {
+            this.deleteEntity(selectedId, context)
+            context.clearSelection()
+          }
+        },
+        condition: context => context.getSelectedEntityId() !== null,
+        priority: 100,
+        scope: 'global',
+        source: 'builtin:delete'
+      },
+
+      // Alternative delete key
+      {
+        key: 'Backspace',
+        label: 'Delete Selected',
+        action: context => {
+          const selectedId = context.getSelectedEntityId()
+          if (selectedId) {
+            this.deleteEntity(selectedId, context)
+            context.clearSelection()
+          }
+        },
+        condition: context => context.getSelectedEntityId() !== null,
+        priority: 100,
+        scope: 'global',
+        source: 'builtin:delete-backspace'
+      },
+
+      // Escape to clear selection and return to select tool
+      {
+        key: 'Escape',
+        label: 'Cancel/Clear Selection',
+        action: context => {
+          context.clearSelection()
+          // Return to select tool if not already active
+          const activeTool = context.getActiveTool()
+          if (activeTool?.id !== 'basic.select') {
+            context.activateTool('basic.select')
+          }
+        },
+        condition: () => true, // Always available
+        priority: 90,
+        scope: 'global',
+        source: 'builtin:escape'
+      }
+    ]
+  }
+
+  private getAvailableBuiltInShortcuts(key: string, context: ToolContext): ShortcutDefinition[] {
+    return this.builtInShortcuts
+      .filter(shortcut => shortcut.key === key)
+      .filter(shortcut => !shortcut.condition || shortcut.condition(context))
+      .sort((a, b) => b.priority - a.priority)
+  }
+
+  private deleteEntity(entityId: EntityId, context: ToolContext): void {
+    const modelStore = context.getModelStore()
+
+    try {
+      if (isWallId(entityId)) {
+        modelStore.removeWall(entityId)
+      } else if (isRoomId(entityId)) {
+        modelStore.removeRoom(entityId)
+      } else if (isPointId(entityId)) {
+        modelStore.removePoint(entityId)
+      } else {
+        console.warn(`Unknown entity type for deletion: ${entityId}`)
+      }
+    } catch (error) {
+      console.error(`Failed to delete entity ${entityId}:`, error)
+    }
+  }
+
+  private createCanvasEvent(event: KeyboardEvent, context: ToolContext): CanvasEvent {
+    return {
+      type: 'keydown',
+      originalEvent: event,
+      konvaEvent: null as any, // Not needed for keyboard events
+      stageCoordinates: {
+        x: createAbsoluteOffset(0),
+        y: createAbsoluteOffset(0)
+      }, // Not relevant for keyboard
+      target: null,
+      context
+    }
+  }
+
+  private normalizeKey(key: string): string {
+    // Convert key combinations to a standard format
+    const parts = key
+      .toLowerCase()
+      .split('+')
+      .map(part => part.trim())
+    const modifiers = parts.filter(part => ['ctrl', 'shift', 'alt', 'meta'].includes(part))
+    const mainKey = parts.find(part => !['ctrl', 'shift', 'alt', 'meta'].includes(part))
+
+    if (!mainKey) return key
+
+    // Capitalize main key for consistency
+    const normalizedKey = mainKey.charAt(0).toUpperCase() + mainKey.slice(1)
+
+    // Sort modifiers for consistency
+    modifiers.sort()
+    const normalizedModifiers = modifiers.map(mod => mod.charAt(0).toUpperCase() + mod.slice(1))
+
+    return normalizedModifiers.length > 0 ? `${normalizedModifiers.join('+')}+${normalizedKey}` : normalizedKey
+  }
+
+  private normalizeKeyFromEvent(event: KeyboardEvent): string {
+    const modifiers: string[] = []
+    if (event.ctrlKey || event.metaKey) modifiers.push('Ctrl')
+    if (event.shiftKey) modifiers.push('Shift')
+    if (event.altKey) modifiers.push('Alt')
+
+    // Handle special keys
+    let key = event.key
+    if (key === ' ') key = 'Space'
+    if (key === 'Escape') key = 'Escape'
+    if (key === 'Delete') key = 'Delete'
+    if (key === 'Backspace') key = 'Backspace'
+
+    return modifiers.length > 0 ? `${modifiers.join('+')}+${key}` : key
+  }
+}
+
+// Global instance
+export const keyboardShortcutManager = new KeyboardShortcutManager()

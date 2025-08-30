@@ -1,4 +1,5 @@
 import type { Tool, ToolGroup, CanvasEvent } from './types'
+import { keyboardShortcutManager } from './KeyboardShortcutManager'
 
 export interface ToolManagerState {
   activeTool: Tool | null
@@ -36,6 +37,10 @@ export class ToolManager {
       ...this.state,
       tools: newTools
     }
+
+    // Register tool's shortcut if it has one
+    keyboardShortcutManager.registerToolShortcut(tool)
+
     this.notifySubscribers()
   }
 
@@ -192,6 +197,11 @@ export class ToolManager {
   }
 
   reset(): void {
+    // Unregister all tool shortcuts first
+    for (const tool of this.state.tools.values()) {
+      keyboardShortcutManager.unregisterToolShortcut(tool)
+    }
+
     this.deactivateCurrentTool()
     // Create new state with empty maps
     this.state = {

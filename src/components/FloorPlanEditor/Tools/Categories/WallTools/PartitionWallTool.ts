@@ -14,6 +14,7 @@ export class PartitionWallTool implements Tool {
   id = 'wall.partition'
   name = 'Partition Wall'
   icon = '▬'
+  hotkey = 'Shift+w'
   cursor = 'crosshair'
   category = 'walls'
   hasInspector = true
@@ -126,7 +127,7 @@ export class PartitionWallTool implements Tool {
   }
 
   // Context actions
-  getContextActions(): ContextAction[] {
+  getContextActions(_context: ToolContext): ContextAction[] {
     const actions: ContextAction[] = []
 
     actions.push({

@@ -1,4 +1,5 @@
 import type { EntityId } from '@/types/ids'
+import { isWallId, isRoomId, isPointId } from '@/types/ids'
 import type { Tool, ToolContext, ContextAction, Entity, CanvasEvent } from '../../ToolSystem/types'
 import type { Point2D } from '@/types/geometry'
 import { createAbsoluteOffset, createPoint2D, createLength } from '@/types/geometry'
@@ -15,6 +16,7 @@ export class MoveTool implements Tool {
   id = 'basic.move'
   name = 'Move'
   icon = '↔'
+  hotkey = 'm'
   cursor = 'move'
   category = 'basic'
   hasInspector = false
@@ -158,25 +160,30 @@ export class MoveTool implements Tool {
   }
 
   // Context actions
-  getContextActions(selectedEntity?: Entity): ContextAction[] {
+  getContextActions(context: ToolContext): ContextAction[] {
     const actions: ContextAction[] = []
+    const selectedEntityId = context.getSelectedEntityId()
 
-    if (selectedEntity) {
-      actions.push({
-        label: `Move ${this.getEntityType(selectedEntity)}`,
-        action: () => {
-          // Activate move mode (we're already in it)
-        },
-        hotkey: 'M'
-      })
+    if (selectedEntityId) {
+      const selectedEntity = this.getSelectedEntityFromContext(context)
 
-      actions.push({
-        label: 'Reset Position',
-        action: () => {
-          // Reset to original position
-          this.resetEntityPosition(selectedEntity)
-        }
-      })
+      if (selectedEntity) {
+        actions.push({
+          label: `Move ${this.getEntityType(selectedEntity)}`,
+          action: () => {
+            // Activate move mode (we're already in it)
+          },
+          hotkey: 'M'
+        })
+
+        actions.push({
+          label: 'Reset Position',
+          action: () => {
+            // Reset to original position
+            this.resetEntityPosition(selectedEntity)
+          }
+        })
+      }
     }
 
     return actions
@@ -229,6 +236,31 @@ export class MoveTool implements Tool {
     // Reset entity to its original position
     // This would need access to the model store and undo functionality
     console.log(`Resetting position for entity:`, entity)
+  }
+
+  private getSelectedEntityFromContext(context: ToolContext): Entity | undefined {
+    const selectedId = context.getSelectedEntityId()
+    if (!selectedId) return undefined
+
+    const modelStore = context.getModelStore()
+    const activeFloorId = context.getActiveFloorId()
+
+    try {
+      if (isWallId(selectedId)) {
+        const walls = modelStore.getWalls()
+        return walls.find(w => w.id === selectedId)
+      } else if (isRoomId(selectedId)) {
+        const rooms = modelStore.getRoomsByFloor(activeFloorId)
+        return rooms.find(r => r.id === selectedId)
+      } else if (isPointId(selectedId)) {
+        const points = modelStore.getPoints()
+        return points.find(p => p.id === selectedId)
+      }
+    } catch (error) {
+      console.warn(`Failed to get selected entity ${selectedId}:`, error)
+    }
+
+    return undefined
   }
 
   private getEntityId(entity: Entity): EntityId {

@@ -4,38 +4,33 @@ import { useFloors } from '@/model/store'
 import { useEditorStore } from './hooks/useEditorStore'
 import { ToolContextProvider, MainToolbar, PropertiesPanel, initializeToolSystem } from './Tools'
 import { toolManager } from './Tools/ToolSystem/ToolManager'
+import { keyboardShortcutManager } from './Tools/ToolSystem/KeyboardShortcutManager'
+import { useToolContext } from './Tools/ToolSystem/ToolContext'
 import './FloorPlanEditor.css'
 
-export function FloorPlanEditor(): React.JSX.Element {
+// Inner component that has access to ToolContext
+function FloorPlanEditorContent(): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
-  const [isToolSystemReady, setIsToolSystemReady] = useState(false)
+  const toolContext = useToolContext()
 
-  const floors = useFloors()
-  const setActiveFloor = useEditorStore(state => state.setActiveFloor)
-
-  // Initialize tool system once
-  useEffect(() => {
-    if (!isToolSystemReady) {
-      try {
-        initializeToolSystem(toolManager)
-        setIsToolSystemReady(true)
-        console.log('Tool system ready')
-      } catch (error) {
-        console.error('Failed to initialize tool system:', error)
+  // Handle keyboard shortcuts
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (keyboardShortcutManager.handleKeyDown(event, toolContext)) {
+        event.preventDefault()
       }
-    }
-  }, [isToolSystemReady])
+    },
+    [toolContext]
+  )
 
-  // Sync editor store with model store's default floor
+  // Add keyboard event listener
   useEffect(() => {
-    if (floors.size > 0) {
-      const groundFloor = Array.from(floors.values())[0]
-      if (groundFloor != null) {
-        setActiveFloor(groundFloor.id)
-      }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [floors, setActiveFloor])
+  }, [handleKeyDown])
 
   const updateDimensions = useCallback(() => {
     if (containerRef.current != null) {
@@ -71,6 +66,58 @@ export function FloorPlanEditor(): React.JSX.Element {
     }
   }, [updateDimensions])
 
+  return (
+    <div ref={containerRef} className="floor-plan-editor full-screen">
+      {/* Top Toolbar - Tabs for tool groups + tools */}
+      <div className="top-toolbar">
+        <MainToolbar />
+      </div>
+
+      {/* Main Content Area - Canvas + Properties Panel */}
+      <div className="editor-content">
+        {/* Canvas Area */}
+        <div className="canvas-section">
+          <FloorPlanStage width={dimensions.width} height={dimensions.height} />
+        </div>
+
+        {/* Right Properties Panel */}
+        <div className="right-panel">
+          <PropertiesPanel />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function FloorPlanEditor(): React.JSX.Element {
+  const [isToolSystemReady, setIsToolSystemReady] = useState(false)
+
+  const floors = useFloors()
+  const setActiveFloor = useEditorStore(state => state.setActiveFloor)
+
+  // Initialize tool system once
+  useEffect(() => {
+    if (!isToolSystemReady) {
+      try {
+        initializeToolSystem(toolManager)
+        setIsToolSystemReady(true)
+        console.log('Tool system ready')
+      } catch (error) {
+        console.error('Failed to initialize tool system:', error)
+      }
+    }
+  }, [isToolSystemReady])
+
+  // Sync editor store with model store's default floor
+  useEffect(() => {
+    if (floors.size > 0) {
+      const groundFloor = Array.from(floors.values())[0]
+      if (groundFloor != null) {
+        setActiveFloor(groundFloor.id)
+      }
+    }
+  }, [floors, setActiveFloor])
+
   if (!isToolSystemReady) {
     return (
       <div className="floor-plan-editor loading">
@@ -83,25 +130,7 @@ export function FloorPlanEditor(): React.JSX.Element {
 
   return (
     <ToolContextProvider>
-      <div ref={containerRef} className="floor-plan-editor full-screen">
-        {/* Top Toolbar - Tabs for tool groups + tools */}
-        <div className="top-toolbar">
-          <MainToolbar />
-        </div>
-
-        {/* Main Content Area - Canvas + Properties Panel */}
-        <div className="editor-content">
-          {/* Canvas Area */}
-          <div className="canvas-section">
-            <FloorPlanStage width={dimensions.width} height={dimensions.height} />
-          </div>
-
-          {/* Right Properties Panel */}
-          <div className="right-panel">
-            <PropertiesPanel />
-          </div>
-        </div>
-      </div>
+      <FloorPlanEditorContent />
     </ToolContextProvider>
   )
 }

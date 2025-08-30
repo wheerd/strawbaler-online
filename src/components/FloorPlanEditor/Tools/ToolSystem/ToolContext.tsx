@@ -108,7 +108,12 @@ export function ToolContextProvider({ children }: ToolContextProviderProps): Rea
         return toolManager.getActiveTool()
       },
 
-      getViewport: () => viewport
+      getViewport: () => viewport,
+
+      // Tool activation
+      activateTool: (toolId: string): boolean => {
+        return toolManager.activateTool(toolId)
+      }
     }),
     [
       viewport,

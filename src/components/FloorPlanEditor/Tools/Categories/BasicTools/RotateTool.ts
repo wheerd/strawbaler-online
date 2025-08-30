@@ -1,4 +1,5 @@
 import type { EntityId } from '@/types/ids'
+import { isWallId, isRoomId, isPointId } from '@/types/ids'
 import type { Tool, ToolContext, ContextAction, Entity, CanvasEvent } from '../../ToolSystem/types'
 import type { Point2D } from '@/types/geometry'
 import { createLength } from '@/types/geometry'
@@ -16,6 +17,7 @@ export class RotateTool implements Tool {
   id = 'basic.rotate'
   name = 'Rotate'
   icon = '↻'
+  hotkey = 'o'
   cursor = 'grab'
   category = 'basic'
   hasInspector = true
@@ -133,32 +135,37 @@ export class RotateTool implements Tool {
   }
 
   // Context actions
-  getContextActions(selectedEntity?: Entity): ContextAction[] {
+  getContextActions(context: ToolContext): ContextAction[] {
     const actions: ContextAction[] = []
+    const selectedEntityId = context.getSelectedEntityId()
 
-    if (selectedEntity && this.canRotate(selectedEntity)) {
-      actions.push({
-        label: 'Rotate 90°',
-        action: () => this.rotateEntity(selectedEntity, 90),
-        hotkey: 'R'
-      })
+    if (selectedEntityId) {
+      const selectedEntity = this.getSelectedEntityFromContext(context)
 
-      actions.push({
-        label: 'Rotate -90°',
-        action: () => this.rotateEntity(selectedEntity, -90),
-        hotkey: 'Shift+R'
-      })
+      if (selectedEntity && this.canRotate(selectedEntity)) {
+        actions.push({
+          label: 'Rotate 90°',
+          action: () => this.rotateEntity(selectedEntity, 90),
+          hotkey: 'R'
+        })
 
-      actions.push({
-        label: `Rotate ${this.state.rotationStep}°`,
-        action: () => this.rotateEntity(selectedEntity, this.state.rotationStep)
-      })
+        actions.push({
+          label: 'Rotate -90°',
+          action: () => this.rotateEntity(selectedEntity, -90),
+          hotkey: 'Shift+R'
+        })
 
-      actions.push({
-        label: 'Set Rotation Center',
-        action: () => this.setCustomRotationCenter(selectedEntity),
-        enabled: () => this.state.rotationCenter === 'custom'
-      })
+        actions.push({
+          label: `Rotate ${this.state.rotationStep}°`,
+          action: () => this.rotateEntity(selectedEntity, this.state.rotationStep)
+        })
+
+        actions.push({
+          label: 'Set Rotation Center',
+          action: () => this.setCustomRotationCenter(selectedEntity),
+          enabled: () => this.state.rotationCenter === 'custom'
+        })
+      }
     }
 
     return actions
@@ -278,5 +285,30 @@ export class RotateTool implements Tool {
   private setCustomRotationCenter(entity: Entity): void {
     // Set custom rotation center (would open a dialog or enable click-to-set mode)
     console.log(`Setting custom rotation center for ${this.getEntityId(entity)}`)
+  }
+
+  private getSelectedEntityFromContext(context: ToolContext): Entity | undefined {
+    const selectedId = context.getSelectedEntityId()
+    if (!selectedId) return undefined
+
+    const modelStore = context.getModelStore()
+    const activeFloorId = context.getActiveFloorId()
+
+    try {
+      if (isWallId(selectedId)) {
+        const walls = modelStore.getWalls()
+        return walls.find(w => w.id === selectedId)
+      } else if (isRoomId(selectedId)) {
+        const rooms = modelStore.getRoomsByFloor(activeFloorId)
+        return rooms.find(r => r.id === selectedId)
+      } else if (isPointId(selectedId)) {
+        const points = modelStore.getPoints()
+        return points.find(p => p.id === selectedId)
+      }
+    } catch (error) {
+      console.warn(`Failed to get selected entity ${selectedId}:`, error)
+    }
+
+    return undefined
   }
 }

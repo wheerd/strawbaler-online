@@ -6,6 +6,7 @@ export class SelectTool implements Tool {
   id = 'basic.select'
   name = 'Select'
   icon = '↖'
+  hotkey = 'v'
   cursor = 'default'
   category = 'basic'
   hasInspector = false

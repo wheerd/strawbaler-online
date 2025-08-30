@@ -33,8 +33,8 @@ export interface Tool extends BaseTool {
   onActivate?(): void
   onDeactivate?(): void
 
-  // Context actions
-  getContextActions?(selectedEntity?: Entity): ContextAction[]
+  // Context actions - tools can get selected entity from context if needed
+  getContextActions?(context: ToolContext): ContextAction[]
 }
 
 export interface ToolInspectorProps {
@@ -48,6 +48,17 @@ export interface ContextAction {
   enabled?: () => boolean
   hotkey?: string
   icon?: string
+}
+
+// Keyboard shortcut system
+export interface ShortcutDefinition {
+  key: string // e.g., 'Delete', 'Escape', 'Ctrl+C', 'Shift+R'
+  action: (context: ToolContext) => void
+  condition?: (context: ToolContext) => boolean // When this shortcut is active
+  priority: number // Higher priority wins conflicts
+  scope: 'global' | 'selection' | 'tool'
+  source: string // For debugging: 'builtin:delete' or 'tool:basic.select'
+  label?: string // For UI display
 }
 
 export interface CanvasEvent {
@@ -84,4 +95,7 @@ export interface ToolContext {
   getActiveTool(): Tool | null
   getSelectedEntityId(): EntityId | null
   getViewport(): { zoom: number; panX: number; panY: number; stageWidth: number; stageHeight: number }
+
+  // Tool activation
+  activateTool(toolId: string): boolean
 }

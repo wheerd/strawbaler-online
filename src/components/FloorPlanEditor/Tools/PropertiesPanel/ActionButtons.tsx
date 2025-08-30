@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { Entity, Tool, ContextAction } from '../ToolSystem/types'
+import { useToolContext } from '../ToolSystem'
 
 interface ActionButtonsProps {
   entity?: Entity | null
@@ -7,13 +8,15 @@ interface ActionButtonsProps {
 }
 
 export function ActionButtons({ entity, tool }: ActionButtonsProps): React.JSX.Element {
+  const context = useToolContext()
+
   // Get context actions from entity and tool
   const contextActions = useMemo(() => {
     const actions: ContextAction[] = []
 
     // Add tool-specific actions
     if (tool && 'getContextActions' in tool && tool.getContextActions) {
-      const toolActions = tool.getContextActions(entity || undefined)
+      const toolActions = tool.getContextActions(context)
       actions.push(...toolActions)
     }
 

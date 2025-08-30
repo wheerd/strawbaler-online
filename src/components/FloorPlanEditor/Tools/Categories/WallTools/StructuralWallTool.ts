@@ -15,6 +15,7 @@ export class StructuralWallTool implements Tool {
   id = 'wall.structural'
   name = 'Structural Wall'
   icon = '▬'
+  hotkey = 'w'
   cursor = 'crosshair'
   category = 'walls'
   hasInspector = true
