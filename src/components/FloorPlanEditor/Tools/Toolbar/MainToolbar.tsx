@@ -1,10 +1,12 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useToolManager, useToolManagerState } from '../ToolSystem/ToolContext'
-import type { ToolGroup, Tool } from '../ToolSystem/types'
 
 export function MainToolbar(): React.JSX.Element {
   const toolManager = useToolManager()
   const toolManagerState = useToolManagerState()
+
+  // Track active tab (tool group)
+  const [activeTab, setActiveTab] = useState<string | null>(null)
 
   const handleToolSelect = useCallback(
     (toolId: string) => {
@@ -13,8 +15,10 @@ export function MainToolbar(): React.JSX.Element {
     [toolManager]
   )
 
-  const handleToolGroupSelect = useCallback(
+  const handleTabSelect = useCallback(
     (groupId: string) => {
+      setActiveTab(groupId)
+      // Optionally activate the default tool for the group when tab is clicked
       toolManager.activateDefaultToolForGroup(groupId)
     },
     [toolManager]
@@ -23,60 +27,50 @@ export function MainToolbar(): React.JSX.Element {
   // Group tools by category
   const toolGroups = Array.from(toolManagerState.toolGroups.values())
 
-  return (
-    <div className="main-toolbar">
-      <div className="toolbar-section">
-        <h3>Tools</h3>
+  // Auto-select the first tab and determine active tab based on current tool
+  const currentActiveGroup = toolManagerState.activeTool
+    ? toolGroups.find(group => group.tools.some(tool => tool.id === toolManagerState.activeTool?.id))
+    : null
 
+  const effectiveActiveTab = activeTab || currentActiveGroup?.id || toolGroups[0]?.id
+
+  return (
+    <div className="tabbed-toolbar">
+      {/* Tab Headers - Tool Groups */}
+      <div className="toolbar-tabs">
         {toolGroups.map(group => (
-          <ToolGroupButton
+          <button
             key={group.id}
-            group={group}
-            activeTool={toolManagerState.activeTool}
-            onToolSelect={handleToolSelect}
-            onGroupSelect={handleToolGroupSelect}
-          />
+            className={`tab-button ${effectiveActiveTab === group.id ? 'active' : ''}`}
+            onClick={() => handleTabSelect(group.id)}
+          >
+            <span className="tab-icon">{group.icon}</span>
+            <span className="tab-label">{group.name}</span>
+          </button>
         ))}
       </div>
-    </div>
-  )
-}
 
-interface ToolGroupButtonProps {
-  group: ToolGroup
-  activeTool: Tool | null
-  onToolSelect: (toolId: string) => void
-  onGroupSelect: (groupId: string) => void
-}
-
-function ToolGroupButton({ group, activeTool, onToolSelect, onGroupSelect }: ToolGroupButtonProps): React.JSX.Element {
-  const isGroupActive = activeTool && group.tools.some(tool => tool.id === activeTool.id)
-  const activeToolInGroup = activeTool && group.tools.find(tool => tool.id === activeTool.id)
-
-  return (
-    <div className={`tool-group ${isGroupActive ? 'active' : ''}`}>
-      <button className="tool-group-button" onClick={() => onGroupSelect(group.id)} title={group.name}>
-        <span className="tool-icon">{group.icon}</span>
-        <span className="tool-name">{group.name}</span>
-        {activeToolInGroup && <span className="active-tool-indicator">({activeToolInGroup.name})</span>}
-      </button>
-
-      {isGroupActive && group.tools.length > 1 && (
-        <div className="tool-dropdown">
-          {group.tools.map(tool => (
-            <button
-              key={tool.id}
-              className={`tool-option ${activeTool?.id === tool.id ? 'active' : ''}`}
-              onClick={() => onToolSelect(tool.id)}
-              title={tool.name}
-            >
-              <span className="tool-icon">{tool.icon}</span>
-              <span className="tool-name">{tool.name}</span>
-              {tool.hotkey && <span className="tool-hotkey">{tool.hotkey}</span>}
-            </button>
+      {/* Tab Content - Tools in Active Group */}
+      <div className="toolbar-content">
+        {toolGroups
+          .filter(group => group.id === effectiveActiveTab)
+          .map(group => (
+            <div key={group.id} className="tool-group-content">
+              {group.tools.map(tool => (
+                <button
+                  key={tool.id}
+                  className={`tool-button ${toolManagerState.activeTool?.id === tool.id ? 'active' : ''}`}
+                  onClick={() => handleToolSelect(tool.id)}
+                  title={`${tool.name}${tool.hotkey ? ` (${tool.hotkey})` : ''}`}
+                >
+                  <span className="tool-icon">{tool.icon}</span>
+                  <span className="tool-label">{tool.name}</span>
+                  {tool.hotkey && <span className="tool-hotkey">{tool.hotkey}</span>}
+                </button>
+              ))}
+            </div>
           ))}
-        </div>
-      )}
+      </div>
     </div>
   )
 }

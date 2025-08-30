@@ -40,8 +40,8 @@ export function FloorPlanEditor(): React.JSX.Element {
   const updateDimensions = useCallback(() => {
     if (containerRef.current != null) {
       const { offsetWidth, offsetHeight } = containerRef.current
-      const toolbarHeight = 60
-      const propertiesPanelWidth = 300
+      const toolbarHeight = 120 // Increased for tab-style toolbar with two rows
+      const propertiesPanelWidth = 320
 
       const newDimensions = {
         width: Math.max(offsetWidth - propertiesPanelWidth, 400),
@@ -83,21 +83,21 @@ export function FloorPlanEditor(): React.JSX.Element {
 
   return (
     <ToolContextProvider>
-      <div ref={containerRef} className="floor-plan-editor with-tools">
-        {/* Main Toolbar */}
-        <div className="toolbar-section">
+      <div ref={containerRef} className="floor-plan-editor full-screen">
+        {/* Top Toolbar - Tabs for tool groups + tools */}
+        <div className="top-toolbar">
           <MainToolbar />
         </div>
 
-        {/* Main Content Area */}
-        <div className="main-content">
-          {/* Canvas */}
-          <div className="canvas-container">
+        {/* Main Content Area - Canvas + Properties Panel */}
+        <div className="editor-content">
+          {/* Canvas Area */}
+          <div className="canvas-section">
             <FloorPlanStage width={dimensions.width} height={dimensions.height} />
           </div>
 
-          {/* Properties Panel */}
-          <div className="properties-section">
+          {/* Right Properties Panel */}
+          <div className="right-panel">
             <PropertiesPanel />
           </div>
         </div>
