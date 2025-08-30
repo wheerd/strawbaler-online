@@ -1,10 +1,8 @@
 import { useCallback } from 'react'
 import type { ToolInspectorProps } from '../../ToolSystem/types'
-import type { StructuralWallTool, StructuralWallToolState } from '../../Categories/WallTools/StructuralWallTool'
-import type { PartitionWallTool, PartitionWallToolState } from '../../Categories/WallTools/PartitionWallTool'
+import type { BaseWallTool, WallToolState } from '../../Categories/WallTools/BaseWallTool'
 
-type WallTool = StructuralWallTool | PartitionWallTool
-type WallToolState = StructuralWallToolState | PartitionWallToolState
+type WallTool = BaseWallTool
 
 interface WallToolInspectorProps extends ToolInspectorProps {
   tool: WallTool

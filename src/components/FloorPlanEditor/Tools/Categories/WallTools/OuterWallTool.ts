@@ -2,21 +2,21 @@ import { BaseWallTool, type WallTypeConfig } from './BaseWallTool'
 import { createLength } from '@/types/geometry'
 import type { StoreActions, FloorId, PointId } from '@/model'
 
-const STRUCTURAL_WALL_CONFIG: WallTypeConfig = {
-  id: 'wall.structural',
-  name: 'Structural Wall',
+const OUTER_WALL_CONFIG: WallTypeConfig = {
+  id: 'wall.outer',
+  name: 'Outer Wall',
   icon: '▬',
-  hotkey: 'w',
-  defaultThickness: 200, // 200mm default for structural walls
-  defaultMaterial: 'concrete',
-  primaryColor: '#007acc',
-  secondaryColor: '#007acc',
-  label: 'Structural'
+  hotkey: 'Shift+Alt+w',
+  defaultThickness: 250, // 250mm default for outer walls (thicker than structural)
+  defaultMaterial: 'brick',
+  primaryColor: '#666666',
+  secondaryColor: '#666666',
+  label: 'Outer'
 }
 
-export class StructuralWallTool extends BaseWallTool {
+export class OuterWallTool extends BaseWallTool {
   constructor() {
-    super(STRUCTURAL_WALL_CONFIG)
+    super(OUTER_WALL_CONFIG)
   }
 
   protected createWall(
@@ -26,7 +26,7 @@ export class StructuralWallTool extends BaseWallTool {
     endPointId: PointId,
     thickness: number
   ): void {
-    // Create structural wall using model store
+    // Create structural wall for now (outer walls use structural wall method)
     modelStore.addStructuralWall(activeFloorId, startPointId, endPointId, createLength(thickness))
   }
 }
