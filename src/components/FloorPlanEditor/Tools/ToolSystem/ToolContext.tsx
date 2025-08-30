@@ -1,0 +1,156 @@
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { toolManager, type ToolManagerState } from './ToolManager'
+import type { Tool, ToolContext as IToolContext } from './types'
+import { useModelStore } from '@/model/store'
+import { useEditorStore, useActiveFloorId } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { defaultSnappingService } from '@/model/store/services/snapping/SnappingService'
+import { useSnappingContext } from '@/components/FloorPlanEditor/hooks/useSnappingContext'
+import { createPoint2D, type Point2D } from '@/types/geometry'
+import type { PointId } from '@/types/ids'
+import type { SnapResult as ModelSnapResult } from '@/model/store/services/snapping/types'
+
+interface ToolContextProviderProps {
+  children: React.ReactNode
+}
+
+const ToolSystemContext = createContext<{
+  toolManagerState: ToolManagerState
+  toolManager: typeof toolManager
+  toolContext: IToolContext
+} | null>(null)
+
+export function ToolContextProvider({ children }: ToolContextProviderProps): React.JSX.Element {
+  const [toolManagerState, setToolManagerState] = useState<ToolManagerState>(toolManager.getState())
+  const modelStore = useModelStore()
+  const activeFloorId = useActiveFloorId()
+  const viewport = useEditorStore(state => state.viewport)
+  const snappingContext = useSnappingContext()
+
+  // Editor store actions
+  const updateSnapReference = useEditorStore(state => state.updateSnapReference)
+  const updateSnapTarget = useEditorStore(state => state.updateSnapTarget)
+  const updateSnapResult = useEditorStore(state => state.updateSnapResult)
+  const clearSnapState = useEditorStore(state => state.clearSnapState)
+  const selectEntity = useEditorStore(state => state.selectEntity)
+  const clearSelection = useEditorStore(state => state.clearSelection)
+  const selectedEntityId = useEditorStore(state => state.selectedEntityId)
+
+  // Subscribe to tool manager changes
+  useEffect(() => {
+    const unsubscribe = toolManager.subscribe(setToolManagerState)
+    return unsubscribe
+  }, [])
+
+  // Create tool context implementation
+  const toolContext = useMemo<IToolContext>(
+    () => ({
+      // Coordinate conversion
+      getStageCoordinates: (event: { x: number; y: number }): Point2D => {
+        return createPoint2D((event.x - viewport.panX) / viewport.zoom, (event.y - viewport.panY) / viewport.zoom)
+      },
+
+      getScreenCoordinates: (point: Point2D): { x: number; y: number } => {
+        return {
+          x: point.x * viewport.zoom + viewport.panX,
+          y: point.y * viewport.zoom + viewport.panY
+        }
+      },
+
+      // Snapping
+      findSnapPoint: (point: Point2D): ModelSnapResult | null => {
+        updateSnapTarget(point)
+        const snapResult = defaultSnappingService.findSnapResult(point, snappingContext)
+        updateSnapResult(snapResult)
+        return snapResult
+      },
+
+      updateSnapReference: (fromPoint: Point2D | null, fromPointId: string | null): void => {
+        updateSnapReference(fromPoint, fromPointId as PointId | null)
+      },
+
+      updateSnapTarget,
+      clearSnapState,
+
+      // Selection management (single entity only)
+      selectEntity: (entityId: string): void => {
+        selectEntity(entityId)
+      },
+
+      clearSelection,
+
+      // Store access (tools use these directly)
+      getModelStore: () => modelStore,
+      getActiveFloorId: () => activeFloorId,
+
+      // State access
+      getActiveTool: (): Tool | null => {
+        return toolManager.getActiveTool()
+      },
+
+      getSelectedEntityId: (): string | null => {
+        return selectedEntityId ?? null
+      },
+
+      getViewport: () => viewport
+    }),
+    [
+      viewport,
+      activeFloorId,
+      snappingContext,
+      modelStore,
+      updateSnapReference,
+      updateSnapTarget,
+      updateSnapResult,
+      clearSnapState,
+      selectEntity,
+      clearSelection,
+      selectedEntityId
+    ]
+  )
+
+  const contextValue = useMemo(
+    () => ({
+      toolManagerState,
+      toolManager,
+      toolContext
+    }),
+    [toolManagerState, toolContext]
+  )
+
+  return <ToolSystemContext.Provider value={contextValue}>{children}</ToolSystemContext.Provider>
+}
+
+// Hooks
+export function useToolManager() {
+  const context = useContext(ToolSystemContext)
+  if (!context) {
+    throw new Error('useToolManager must be used within a ToolContextProvider')
+  }
+  return context.toolManager
+}
+
+export function useToolManagerState(): ToolManagerState {
+  const context = useContext(ToolSystemContext)
+  if (!context) {
+    throw new Error('useToolManagerState must be used within a ToolContextProvider')
+  }
+  return context.toolManagerState
+}
+
+export function useToolContext(): IToolContext {
+  const context = useContext(ToolSystemContext)
+  if (!context) {
+    throw new Error('useToolContext must be used within a ToolContextProvider')
+  }
+  return context.toolContext
+}
+
+export function useActiveTool(): Tool | null {
+  const state = useToolManagerState()
+  return state.activeTool
+}
+
+export function useActiveToolId(): string | null {
+  const state = useToolManagerState()
+  return state.activeToolId
+}

@@ -1,0 +1,86 @@
+import type { Point2D } from '@/types/geometry'
+import type { Wall, Room, Point, Corner } from '@/types/model'
+import type { SnapResult as ModelSnapResult } from '@/model/store/services/snapping/types'
+import type Konva from 'konva'
+
+export interface BaseTool {
+  id: string
+  name: string
+  icon: string
+  hotkey?: string
+  category?: string
+}
+
+export interface ToolGroup extends BaseTool {
+  tools: Tool[]
+  defaultTool?: string
+}
+
+export interface Tool extends BaseTool {
+  cursor?: string
+  hasInspector?: boolean
+  inspectorComponent?: React.ComponentType<ToolInspectorProps>
+
+  // Event handlers
+  handleMouseDown?(event: MouseEvent, context: ToolContext): boolean
+  handleMouseMove?(event: MouseEvent, context: ToolContext): boolean
+  handleMouseUp?(event: MouseEvent, context: ToolContext): boolean
+  handleKeyDown?(event: KeyboardEvent, context: ToolContext): boolean
+  handleKeyUp?(event: KeyboardEvent, context: ToolContext): boolean
+
+  // Lifecycle methods
+  onActivate?(): void
+  onDeactivate?(): void
+
+  // Context actions
+  getContextActions?(selectedEntity?: Entity): ContextAction[]
+}
+
+export interface ToolInspectorProps {
+  tool: Tool
+  onPropertyChange: (property: string, value: any) => void
+}
+
+export interface ContextAction {
+  label: string
+  action: () => void
+  enabled?: () => boolean
+  hotkey?: string
+  icon?: string
+}
+
+export interface CanvasEvent {
+  type: 'mousedown' | 'mousemove' | 'mouseup' | 'wheel' | 'keydown' | 'keyup'
+  originalEvent: MouseEvent | KeyboardEvent | WheelEvent
+  konvaEvent: Konva.KonvaEventObject<any>
+  stageCoordinates: Point2D
+  target: any
+  context: ToolContext
+}
+
+export type Entity = Wall | Room | Point | Corner
+
+export interface ToolContext {
+  // Coordinate conversion (viewport functionality)
+  getStageCoordinates(event: { x: number; y: number }): Point2D
+  getScreenCoordinates(point: Point2D): { x: number; y: number }
+
+  // Snapping functionality
+  findSnapPoint(point: Point2D): ModelSnapResult | null
+  updateSnapReference(fromPoint: Point2D | null, fromPointId: string | null): void
+  updateSnapTarget(target: Point2D): void
+  clearSnapState(): void
+
+  // Single selection management (much simpler!)
+  selectEntity(entityId: string): void
+  clearSelection(): void
+
+  // Store access (tools use these directly)
+  getModelStore(): any // Tools access model store directly
+  getActiveFloorId(): string
+
+  // State access
+  getActiveTool(): Tool | null
+  getSelectedEntityId(): string | null
+  getViewport(): { zoom: number; panX: number; panY: number; stageWidth: number; stageHeight: number }
+}
