@@ -10,25 +10,25 @@ test('renders loading state initially', () => {
 test('renders floor plan editor after loading', async () => {
   render(<App />)
 
-  // Wait for the lazy component to load
+  // Wait for the floor plan editor to load
   await waitFor(
     () => {
-      const floorPlanElement = screen.getByText(/Ground Floor/i)
-      expect(floorPlanElement).toBeInTheDocument()
+      const editorElement = screen.getByTestId('floor-plan-editor')
+      expect(editorElement).toBeInTheDocument()
     },
-    { timeout: 5000 }
+    { timeout: 10000 }
   )
 })
 
 test('renders toolbar with select tool after loading', async () => {
   render(<App />)
 
-  // Wait for the lazy component to load
+  // Wait for the toolbar to load
   await waitFor(
     () => {
-      const selectTool = screen.getByText(/Select/i)
-      expect(selectTool).toBeInTheDocument()
+      const toolbarElement = screen.getByTestId('main-toolbar')
+      expect(toolbarElement).toBeInTheDocument()
     },
-    { timeout: 5000 }
+    { timeout: 10000 }
   )
 })

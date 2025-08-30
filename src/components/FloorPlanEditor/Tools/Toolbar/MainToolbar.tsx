@@ -35,7 +35,7 @@ export function MainToolbar(): React.JSX.Element {
   const effectiveActiveTab = activeTab || currentActiveGroup?.id || toolGroups[0]?.id
 
   return (
-    <div className="tabbed-toolbar">
+    <div className="tabbed-toolbar" data-testid="main-toolbar">
       {/* Tab Headers - Tool Groups */}
       <div className="toolbar-tabs">
         {toolGroups.map(group => (

@@ -81,7 +81,13 @@ function FloorPlanEditorContent(): React.JSX.Element {
   }, [])
 
   return (
-    <div ref={containerRef} className="floor-plan-editor full-screen" tabIndex={0} onClick={handleClick}>
+    <div
+      ref={containerRef}
+      className="floor-plan-editor full-screen"
+      tabIndex={0}
+      onClick={handleClick}
+      data-testid="floor-plan-editor"
+    >
       {/* Top Toolbar - Tabs for tool groups + tools */}
       <div className="top-toolbar">
         <MainToolbar />
