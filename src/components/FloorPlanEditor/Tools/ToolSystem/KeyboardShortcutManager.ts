@@ -226,7 +226,8 @@ export class KeyboardShortcutManager {
 
   private normalizeKeyFromEvent(event: KeyboardEvent): string {
     const modifiers: string[] = []
-    if (event.ctrlKey || event.metaKey) modifiers.push('Ctrl')
+    if (event.ctrlKey) modifiers.push('Ctrl')
+    if (event.metaKey) modifiers.push('Meta')
     if (event.shiftKey) modifiers.push('Shift')
     if (event.altKey) modifiers.push('Alt')
 
@@ -237,7 +238,13 @@ export class KeyboardShortcutManager {
     if (key === 'Delete') key = 'Delete'
     if (key === 'Backspace') key = 'Backspace'
 
-    return modifiers.length > 0 ? `${modifiers.join('+')}+${key}` : key
+    // Capitalize main key for consistency with normalizeKey
+    const normalizedKey = key.charAt(0).toUpperCase() + key.slice(1)
+
+    // Sort modifiers for consistency with normalizeKey
+    modifiers.sort()
+
+    return modifiers.length > 0 ? `${modifiers.join('+')}+${normalizedKey}` : normalizedKey
   }
 }
 

@@ -13,15 +13,22 @@ function FloorPlanEditorContent(): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const toolContext = useToolContext()
+  const toolContextRef = useRef(toolContext)
+
+  // Keep toolContextRef updated
+  useEffect(() => {
+    toolContextRef.current = toolContext
+  }, [toolContext])
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (keyboardShortcutManager.handleKeyDown(event, toolContext)) {
+      // Use ref to get current context without dependency issues
+      if (keyboardShortcutManager.handleKeyDown(event, toolContextRef.current)) {
         event.preventDefault()
       }
     },
-    [toolContext]
+    [] // Stable handler with no dependencies
   )
 
   // Add keyboard event listener
@@ -66,8 +73,15 @@ function FloorPlanEditorContent(): React.JSX.Element {
     }
   }, [updateDimensions])
 
+  const handleClick = useCallback(() => {
+    // Ensure the editor has focus for keyboard events
+    if (containerRef.current) {
+      containerRef.current.focus()
+    }
+  }, [])
+
   return (
-    <div ref={containerRef} className="floor-plan-editor full-screen">
+    <div ref={containerRef} className="floor-plan-editor full-screen" tabIndex={0} onClick={handleClick}>
       {/* Top Toolbar - Tabs for tool groups + tools */}
       <div className="top-toolbar">
         <MainToolbar />
