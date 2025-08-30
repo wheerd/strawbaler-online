@@ -62,12 +62,14 @@ export function ToolContextProvider({ children }: ToolContextProviderProps): Rea
   // Create tool context implementation
   const toolContext = useMemo<IToolContext>(
     () => ({
-      // Coordinate conversion
+      // Coordinate conversion from screen/stage coordinates to world coordinates
       getStageCoordinates: (event: { x: number; y: number }): Point2D => {
+        // Convert screen coordinates to world coordinates by accounting for pan and zoom
         return createPoint2D((event.x - viewport.panX) / viewport.zoom, (event.y - viewport.panY) / viewport.zoom)
       },
 
       getScreenCoordinates: (point: Point2D): { x: number; y: number } => {
+        // Convert world coordinates back to screen coordinates
         return {
           x: point.x * viewport.zoom + viewport.panX,
           y: point.y * viewport.zoom + viewport.panY

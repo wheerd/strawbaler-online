@@ -1,4 +1,4 @@
-import type { Tool, ToolContext, ContextAction, Entity } from '../../ToolSystem/types'
+import type { Tool, ToolContext, ContextAction, Entity, CanvasEvent } from '../../ToolSystem/types'
 import { createLength } from '@/types/geometry'
 
 interface SelectToolState {
@@ -19,24 +19,25 @@ export class SelectTool implements Tool {
   }
 
   // Event handlers
-  handleMouseDown(event: MouseEvent, context: ToolContext): boolean {
-    const stageCoords = context.getStageCoordinates(event)
-    const entity = this.getEntityAtPoint(stageCoords, context)
+  handleMouseDown(event: CanvasEvent): boolean {
+    const stageCoords = event.stageCoordinates
+    const entity = this.getEntityAtPoint(stageCoords, event.context)
 
     if (entity) {
       // Select the entity
-      context.selectEntity(this.getEntityId(entity))
+      event.context.selectEntity(this.getEntityId(entity))
       return true
     } else {
       // Start selection rectangle
       this.state.isSelecting = true
-      this.state.selectionStart = { x: event.clientX, y: event.clientY }
-      context.clearSelection()
+      const mouseEvent = event.originalEvent as MouseEvent
+      this.state.selectionStart = { x: mouseEvent.clientX, y: mouseEvent.clientY }
+      event.context.clearSelection()
       return true
     }
   }
 
-  handleMouseMove(_event: MouseEvent, _context: ToolContext): boolean {
+  handleMouseMove(_event: CanvasEvent): boolean {
     if (!this.state.isSelecting || !this.state.selectionStart) return false
 
     // Update selection rectangle preview
@@ -44,23 +45,24 @@ export class SelectTool implements Tool {
     return true
   }
 
-  handleMouseUp(event: MouseEvent, context: ToolContext): boolean {
+  handleMouseUp(event: CanvasEvent): boolean {
     if (!this.state.isSelecting || !this.state.selectionStart) return false
 
     // Complete rectangle selection
+    const mouseEvent = event.originalEvent as MouseEvent
     const rect = {
-      x: Math.min(this.state.selectionStart.x, event.clientX),
-      y: Math.min(this.state.selectionStart.y, event.clientY),
-      width: Math.abs(event.clientX - this.state.selectionStart.x),
-      height: Math.abs(event.clientY - this.state.selectionStart.y)
+      x: Math.min(this.state.selectionStart.x, mouseEvent.clientX),
+      y: Math.min(this.state.selectionStart.y, mouseEvent.clientY),
+      width: Math.abs(mouseEvent.clientX - this.state.selectionStart.x),
+      height: Math.abs(mouseEvent.clientY - this.state.selectionStart.y)
     }
 
-    const entitiesInRect = this.getEntitiesInRect(rect, context)
+    const entitiesInRect = this.getEntitiesInRect(rect, event.context)
 
     // Select all entities in rectangle
     if (entitiesInRect.length > 0) {
       // For now, just select the first entity (multi-select would be implemented later)
-      context.selectEntity(this.getEntityId(entitiesInRect[0]))
+      event.context.selectEntity(this.getEntityId(entitiesInRect[0]))
     }
 
     this.state.isSelecting = false
@@ -68,19 +70,20 @@ export class SelectTool implements Tool {
     return true
   }
 
-  handleKeyDown(event: KeyboardEvent, context: ToolContext): boolean {
+  handleKeyDown(event: CanvasEvent): boolean {
+    const keyEvent = event.originalEvent as KeyboardEvent
     // Handle keyboard shortcuts
-    if (event.key === 'Delete' || event.key === 'Backspace') {
-      const selectedId = context.getSelectedEntityId()
+    if (keyEvent.key === 'Delete' || keyEvent.key === 'Backspace') {
+      const selectedId = event.context.getSelectedEntityId()
       if (selectedId) {
         // Delete selected entity (would be implemented in context)
-        context.clearSelection()
+        event.context.clearSelection()
         return true
       }
     }
 
-    if (event.key === 'Escape') {
-      context.clearSelection()
+    if (keyEvent.key === 'Escape') {
+      event.context.clearSelection()
       this.cancelSelection()
       return true
     }

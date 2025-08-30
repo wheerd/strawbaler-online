@@ -1,4 +1,4 @@
-import type { Tool, ToolContext, ContextAction, Entity } from '../../ToolSystem/types'
+import type { Tool, ToolContext, ContextAction, Entity, CanvasEvent } from '../../ToolSystem/types'
 import type { Point2D } from '@/types/geometry'
 import { createAbsoluteOffset, createPoint2D, createLength } from '@/types/geometry'
 
@@ -23,16 +23,17 @@ export class MoveTool implements Tool {
   }
 
   // Event handlers
-  handleMouseDown(event: MouseEvent, context: ToolContext): boolean {
-    const stageCoords = context.getStageCoordinates(event)
-    const entity = this.getEntityAtPoint(stageCoords, context)
+  handleMouseDown(event: CanvasEvent): boolean {
+    const stageCoords = event.stageCoordinates
+    const entity = this.getEntityAtPoint(stageCoords, event.context)
 
     if (entity) {
       // Start dragging the entity (tool handles its own drag state)
       this.state.isDragging = true
       this.state.dragEntity = entity
       this.state.dragStartPoint = stageCoords
-      this.state.dragStartMousePos = createPoint2D(event.clientX, event.clientY)
+      const mouseEvent = event.originalEvent as MouseEvent
+      this.state.dragStartMousePos = createPoint2D(mouseEvent.clientX, mouseEvent.clientY)
 
       // Calculate offset for smooth dragging
       const entityPosition = this.getEntityPosition(entity)
@@ -44,7 +45,7 @@ export class MoveTool implements Tool {
       }
 
       // Select the entity being moved
-      context.selectEntity(this.getEntityId(entity))
+      event.context.selectEntity(this.getEntityId(entity))
 
       console.log(`MoveTool: Started dragging ${this.getEntityId(entity)}`)
       return true
@@ -53,13 +54,13 @@ export class MoveTool implements Tool {
     return false
   }
 
-  handleMouseMove(event: MouseEvent, context: ToolContext): boolean {
+  handleMouseMove(event: CanvasEvent): boolean {
     if (!this.state.isDragging || !this.state.dragEntity || !this.state.dragStartPoint) {
       return false
     }
 
     // Tool handles its own drag update
-    const currentStageCoords = context.getStageCoordinates(event)
+    const currentStageCoords = event.stageCoordinates
     const deltaX = currentStageCoords.x - this.state.dragStartPoint.x
     const deltaY = currentStageCoords.y - this.state.dragStartPoint.y
 
@@ -71,12 +72,12 @@ export class MoveTool implements Tool {
     return true
   }
 
-  handleMouseUp(event: MouseEvent, context: ToolContext): boolean {
+  handleMouseUp(event: CanvasEvent): boolean {
     if (!this.state.isDragging) return false
 
     // Tool handles its own drag completion
     if (this.state.dragEntity) {
-      const finalStageCoords = context.getStageCoordinates(event)
+      const finalStageCoords = event.stageCoordinates
       const totalDeltaX = finalStageCoords.x - this.state.dragStartPoint!.x
       const totalDeltaY = finalStageCoords.y - this.state.dragStartPoint!.y
 
@@ -97,20 +98,21 @@ export class MoveTool implements Tool {
     return true
   }
 
-  handleKeyDown(event: KeyboardEvent, context: ToolContext): boolean {
+  handleKeyDown(event: CanvasEvent): boolean {
+    const keyEvent = event.originalEvent as KeyboardEvent
     // Cancel move with Escape
-    if (event.key === 'Escape' && this.state.isDragging) {
+    if (keyEvent.key === 'Escape' && this.state.isDragging) {
       this.cancelMove()
       return true
     }
 
     // Arrow key nudging
-    const selectedId = context.getSelectedEntityId()
+    const selectedId = event.context.getSelectedEntityId()
     if (selectedId) {
-      const nudgeDistance = event.shiftKey ? 10 : 1 // 10mm or 1mm
+      const nudgeDistance = keyEvent.shiftKey ? 10 : 1 // 10mm or 1mm
       let handled = false
 
-      switch (event.key) {
+      switch (keyEvent.key) {
         case 'ArrowUp':
           this.nudgeEntity(selectedId, 0, -nudgeDistance)
           handled = true

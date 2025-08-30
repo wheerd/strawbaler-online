@@ -1,4 +1,4 @@
-import type { Tool, ToolContext, ContextAction, Entity } from '../../ToolSystem/types'
+import type { Tool, ToolContext, ContextAction, Entity, CanvasEvent } from '../../ToolSystem/types'
 import type { Point2D } from '@/types/geometry'
 import { createLength } from '@/types/geometry'
 
@@ -27,9 +27,9 @@ export class RotateTool implements Tool {
   }
 
   // Event handlers
-  handleMouseDown(event: MouseEvent, context: ToolContext): boolean {
-    const stageCoords = context.getStageCoordinates(event)
-    const entity = this.getEntityAtPoint(stageCoords, context)
+  handleMouseDown(event: CanvasEvent): boolean {
+    const stageCoords = event.stageCoordinates
+    const entity = this.getEntityAtPoint(stageCoords, event.context)
 
     if (entity && this.canRotate(entity)) {
       this.state.isRotating = true
@@ -42,19 +42,19 @@ export class RotateTool implements Tool {
       }
 
       // Select the entity being rotated
-      context.selectEntity(this.getEntityId(entity))
+      event.context.selectEntity(this.getEntityId(entity))
       return true
     }
 
     return false
   }
 
-  handleMouseMove(event: MouseEvent, context: ToolContext): boolean {
+  handleMouseMove(event: CanvasEvent): boolean {
     if (!this.state.isRotating || !this.state.rotateEntity || this.state.startAngle === undefined) {
       return false
     }
 
-    const stageCoords = context.getStageCoordinates(event)
+    const stageCoords = event.stageCoordinates
     const center = this.getRotationCenter(this.state.rotateEntity)
 
     if (center) {
@@ -77,7 +77,7 @@ export class RotateTool implements Tool {
     return false
   }
 
-  handleMouseUp(_event: MouseEvent, _context: ToolContext): boolean {
+  handleMouseUp(_event: CanvasEvent): boolean {
     if (!this.state.isRotating) return false
 
     // Apply the final rotation
@@ -93,20 +93,21 @@ export class RotateTool implements Tool {
     return true
   }
 
-  handleKeyDown(event: KeyboardEvent, context: ToolContext): boolean {
+  handleKeyDown(event: CanvasEvent): boolean {
+    const keyEvent = event.originalEvent as KeyboardEvent
     // Cancel rotation with Escape
-    if (event.key === 'Escape' && this.state.isRotating) {
+    if (keyEvent.key === 'Escape' && this.state.isRotating) {
       this.cancelRotation()
       return true
     }
 
     // Quick rotation with keyboard
-    const selectedId = context.getSelectedEntityId()
+    const selectedId = event.context.getSelectedEntityId()
     if (selectedId) {
       let handled = false
 
-      if (event.key === 'r' || event.key === 'R') {
-        const angle = event.shiftKey ? -90 : 90
+      if (keyEvent.key === 'r' || keyEvent.key === 'R') {
+        const angle = keyEvent.shiftKey ? -90 : 90
         this.quickRotate(selectedId, angle)
         handled = true
       }

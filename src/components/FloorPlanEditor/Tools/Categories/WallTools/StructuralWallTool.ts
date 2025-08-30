@@ -1,4 +1,4 @@
-import type { Tool, ToolContext, ContextAction } from '../../ToolSystem/types'
+import type { Tool, ToolContext, ContextAction, CanvasEvent } from '../../ToolSystem/types'
 import type { Point2D } from '@/types/geometry'
 import { distanceSquared, createLength } from '@/types/geometry'
 
@@ -28,16 +28,16 @@ export class StructuralWallTool implements Tool {
   }
 
   // Event handlers
-  handleMouseDown(event: MouseEvent, context: ToolContext): boolean {
-    const stageCoords = context.getStageCoordinates(event)
-    const snapResult = context.findSnapPoint(stageCoords)
+  handleMouseDown(event: CanvasEvent): boolean {
+    const stageCoords = event.stageCoordinates
+    const snapResult = event.context.findSnapPoint(stageCoords)
     const snapCoords = snapResult?.position ?? stageCoords
 
     if (!this.state.isDrawing) {
       // Start drawing wall
       this.state.isDrawing = true
       this.state.startPoint = snapCoords
-      context.updateSnapReference(snapCoords, snapResult?.pointId ?? null)
+      event.context.updateSnapReference(snapCoords, snapResult?.pointId ?? null)
       console.log('Starting structural wall at', snapCoords)
       return true
     } else if (this.state.startPoint) {
@@ -46,8 +46,8 @@ export class StructuralWallTool implements Tool {
 
       if (wallLength >= 50 ** 2) {
         // Minimum 50mm wall length - create wall using model store directly
-        const modelStore = context.getModelStore()
-        const activeFloorId = context.getActiveFloorId()
+        const modelStore = event.context.getModelStore()
+        const activeFloorId = event.context.getActiveFloorId()
 
         // Get or create points
         const startPointEntity = modelStore.addPoint(activeFloorId, this.state.startPoint)
@@ -68,18 +68,18 @@ export class StructuralWallTool implements Tool {
       // Reset state
       this.state.isDrawing = false
       this.state.startPoint = undefined
-      context.clearSnapState()
+      event.context.clearSnapState()
       return true
     }
 
     return false
   }
 
-  handleMouseMove(event: MouseEvent, context: ToolContext): boolean {
+  handleMouseMove(event: CanvasEvent): boolean {
     if (!this.state.isDrawing || !this.state.startPoint) return false
 
-    const stageCoords = context.getStageCoordinates(event)
-    const snapResult = context.findSnapPoint(stageCoords)
+    const stageCoords = event.stageCoordinates
+    const snapResult = event.context.findSnapPoint(stageCoords)
     const snapCoords = snapResult?.position ?? stageCoords
 
     // Tool handles its own wall preview
@@ -88,20 +88,21 @@ export class StructuralWallTool implements Tool {
     return true
   }
 
-  handleKeyDown(event: KeyboardEvent, context: ToolContext): boolean {
-    if (event.key === 'Escape' && this.state.isDrawing) {
-      this.cancelDrawing(context)
+  handleKeyDown(event: CanvasEvent): boolean {
+    const keyEvent = event.originalEvent as KeyboardEvent
+    if (keyEvent.key === 'Escape' && this.state.isDrawing) {
+      this.cancelDrawing(event.context)
       return true
     }
 
     // Quick thickness adjustment
-    if (event.key === '[' && this.state.thickness > 50) {
+    if (keyEvent.key === '[' && this.state.thickness > 50) {
       this.state.thickness -= 25
       console.log(`Thickness decreased to ${this.state.thickness}mm`)
       return true
     }
 
-    if (event.key === ']' && this.state.thickness < 1000) {
+    if (keyEvent.key === ']' && this.state.thickness < 1000) {
       this.state.thickness += 25
       console.log(`Thickness increased to ${this.state.thickness}mm`)
       return true

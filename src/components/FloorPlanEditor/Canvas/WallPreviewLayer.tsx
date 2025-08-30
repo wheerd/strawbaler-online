@@ -57,10 +57,10 @@ export function WallPreviewLayer({
       )}
 
       {/* Show active snap result */}
-      {snapResult != null && (
+      {snapPreviewPoint != null && (
         <Circle
-          x={snapResult.position.x}
-          y={snapResult.position.y}
+          x={snapPreviewPoint.x}
+          y={snapPreviewPoint.y}
           radius={15}
           fill="#0066ff"
           stroke="#ffffff"

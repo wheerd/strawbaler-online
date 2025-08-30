@@ -23,6 +23,8 @@ export class CanvasEventDispatcher {
       throw new Error('Unable to get pointer position from Konva event')
     }
 
+    // Konva's getPointerPosition() gives coordinates relative to the stage canvas
+    // Convert to world coordinates by accounting for stage transform
     const stageCoordinates = this.toolContext.getStageCoordinates(pointer)
 
     return {

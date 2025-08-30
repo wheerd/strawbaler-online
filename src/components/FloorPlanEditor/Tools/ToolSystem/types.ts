@@ -22,11 +22,11 @@ export interface Tool extends BaseTool {
   inspectorComponent?: React.ComponentType<ToolInspectorProps>
 
   // Event handlers
-  handleMouseDown?(event: MouseEvent, context: ToolContext): boolean
-  handleMouseMove?(event: MouseEvent, context: ToolContext): boolean
-  handleMouseUp?(event: MouseEvent, context: ToolContext): boolean
-  handleKeyDown?(event: KeyboardEvent, context: ToolContext): boolean
-  handleKeyUp?(event: KeyboardEvent, context: ToolContext): boolean
+  handleMouseDown?(event: CanvasEvent): boolean
+  handleMouseMove?(event: CanvasEvent): boolean
+  handleMouseUp?(event: CanvasEvent): boolean
+  handleKeyDown?(event: CanvasEvent): boolean
+  handleKeyUp?(event: CanvasEvent): boolean
 
   // Lifecycle methods
   onActivate?(): void
