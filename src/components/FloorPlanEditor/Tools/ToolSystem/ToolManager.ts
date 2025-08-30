@@ -8,16 +8,6 @@ export interface ToolManagerState {
   toolGroups: Map<string, ToolGroup>
 }
 
-// Debug function to convert state to plain objects for logging
-const debugState = (state: ToolManagerState) => ({
-  activeToolId: state.activeToolId,
-  activeToolName: state.activeTool?.name,
-  toolCount: state.tools.size,
-  toolGroupCount: state.toolGroups.size,
-  toolIds: Array.from(state.tools.keys()),
-  groupIds: Array.from(state.toolGroups.keys())
-})
-
 export class ToolManager {
   private state: ToolManagerState = {
     activeTool: null,
@@ -58,17 +48,14 @@ export class ToolManager {
 
   // Tool activation
   activateTool(toolId: string): boolean {
-    console.log('ToolManager.activateTool called with:', toolId)
     const tool = this.state.tools.get(toolId)
     if (!tool) {
       console.warn(`Tool with id '${toolId}' not found`)
-      console.log('Available tools:', Array.from(this.state.tools.keys()))
       return false
     }
 
     // Deactivate current tool
     if (this.state.activeTool) {
-      console.log('Deactivating tool:', this.state.activeTool.id)
       this.state.activeTool.onDeactivate?.()
     }
 
@@ -78,11 +65,9 @@ export class ToolManager {
       activeTool: tool,
       activeToolId: toolId
     }
-    console.log('Activating tool:', tool.name)
     tool.onActivate?.()
 
     this.notifySubscribers()
-    console.log('Tool activated successfully:', toolId)
     return true
   }
 
@@ -167,8 +152,6 @@ export class ToolManager {
   }
 
   private notifySubscribers(): void {
-    console.log('Notifying', this.subscribers.size, 'subscribers of state change')
-    console.log('Current state:', debugState(this.state))
     this.subscribers.forEach(callback => {
       try {
         callback(this.state)

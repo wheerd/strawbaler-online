@@ -81,7 +81,6 @@ export function CornerInspector({ corner, onChange }: CornerInspectorProps): Rea
 
   const handleFocusCorner = useCallback(() => {
     // Focus/zoom to corner
-    console.log(`Focus on corner at point ${corner.pointId}`)
   }, [corner.pointId])
 
   const getCornerTypeName = (cornerType?: string): string => {
@@ -292,7 +291,6 @@ export function CornerInspector({ corner, onChange }: CornerInspectorProps): Rea
                 className="action-button"
                 onClick={() => {
                   // Auto-detect optimal corner type
-                  console.log(`Auto-detect optimal corner type for ${corner.pointId}`)
                 }}
                 title="Automatically detect best corner type"
               >

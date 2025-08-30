@@ -95,9 +95,8 @@ export function WallInspector({ wall, onChange }: WallInspectorProps): React.JSX
     [onChange]
   )
 
-  const handleCornerAction = useCallback((pointId: string) => {
+  const handleCornerAction = useCallback((_pointId: string) => {
     // This would trigger corner main wall switching
-    console.log(`Switching main walls for corner at point ${pointId}`)
     // Implementation would be added to open corner configuration dialog
   }, [])
 
@@ -226,7 +225,6 @@ export function WallInspector({ wall, onChange }: WallInspectorProps): React.JSX
                       className="remove-opening"
                       onClick={() => {
                         // Remove opening implementation
-                        console.log(`Remove opening ${index} from wall ${wall.id}`)
                       }}
                       title="Remove opening"
                     >

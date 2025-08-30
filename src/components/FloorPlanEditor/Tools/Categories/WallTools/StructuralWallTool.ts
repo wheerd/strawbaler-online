@@ -39,7 +39,6 @@ export class StructuralWallTool implements Tool {
       this.state.isDrawing = true
       this.state.startPoint = snapCoords
       event.context.updateSnapReference(snapCoords, snapResult?.pointId ?? null)
-      console.log('Starting structural wall at', snapCoords)
       return true
     } else if (this.state.startPoint) {
       // Finish drawing wall
@@ -61,9 +60,8 @@ export class StructuralWallTool implements Tool {
           endPointEntity.id,
           createLength(this.state.thickness)
         )
-        console.log('Created structural wall from', this.state.startPoint, 'to', snapCoords)
       } else {
-        console.log('Wall too short, minimum length is 50mm')
+        // TODO: Handle minimum wall length validation
       }
 
       // Reset state
@@ -85,7 +83,6 @@ export class StructuralWallTool implements Tool {
 
     // Tool handles its own wall preview
     this.state.previewEndPoint = snapCoords
-    console.log('StructuralWallTool: Preview from', this.state.startPoint, 'to', snapCoords)
     return true
   }
 
@@ -99,13 +96,11 @@ export class StructuralWallTool implements Tool {
     // Quick thickness adjustment
     if (keyEvent.key === '[' && this.state.thickness > 50) {
       this.state.thickness -= 25
-      console.log(`Thickness decreased to ${this.state.thickness}mm`)
       return true
     }
 
     if (keyEvent.key === ']' && this.state.thickness < 1000) {
       this.state.thickness += 25
-      console.log(`Thickness increased to ${this.state.thickness}mm`)
       return true
     }
 
@@ -114,13 +109,11 @@ export class StructuralWallTool implements Tool {
 
   // Lifecycle methods
   onActivate(): void {
-    console.log('Structural wall tool activated')
     this.state.isDrawing = false
     this.state.startPoint = undefined
   }
 
   onDeactivate(): void {
-    console.log('Structural wall tool deactivated')
     if (this.state.isDrawing) {
       this.state.isDrawing = false
       this.state.startPoint = undefined
@@ -135,7 +128,6 @@ export class StructuralWallTool implements Tool {
       label: 'Switch to Partition Wall',
       action: () => {
         // Implementation would switch to partition wall tool
-        console.log('Switching to partition wall tool')
       },
       hotkey: 'P'
     })
@@ -144,7 +136,6 @@ export class StructuralWallTool implements Tool {
       label: 'Switch to Outer Wall',
       action: () => {
         // Implementation would switch to outer wall tool
-        console.log('Switching to outer wall tool')
       },
       hotkey: 'O'
     })
@@ -179,22 +170,18 @@ export class StructuralWallTool implements Tool {
   // Tool-specific methods
   setThickness(thickness: number): void {
     this.state.thickness = Math.max(50, Math.min(1000, thickness))
-    console.log(`Wall thickness set to ${this.state.thickness}mm`)
   }
 
   setHeight(height: number): void {
     this.state.height = Math.max(1000, Math.min(5000, height)) // Between 1m and 5m
-    console.log(`Wall height set to ${this.state.height}mm`)
   }
 
   setMaterial(material: string): void {
     this.state.material = material
-    console.log(`Wall material set to ${material}`)
   }
 
   // Helper methods
   private cancelDrawing(context?: ToolContext): void {
-    console.log('Cancelling wall drawing')
     this.state.isDrawing = false
     this.state.startPoint = undefined
     if (context) {

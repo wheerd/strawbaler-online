@@ -74,19 +74,16 @@ export function RoomInspector({ room, onChange }: RoomInspectorProps): React.JSX
 
   const handleSplitRoom = useCallback(() => {
     // Implementation for room splitting
-    console.log(`Split room ${room.id}`)
     // This would open a tool or dialog for splitting the room
   }, [room.id])
 
   const handleMergeRooms = useCallback(() => {
     // Implementation for room merging
-    console.log(`Merge room ${room.id} with adjacent rooms`)
     // This would show adjacent rooms and allow selection for merging
   }, [room.id])
 
   const handleFocusRoom = useCallback(() => {
     // Focus/zoom to room
-    console.log(`Focus on room ${room.id}`)
     // This would center the viewport on the room
   }, [room.id])
 

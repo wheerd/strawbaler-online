@@ -50,44 +50,26 @@ export class MoveTool implements Tool {
       // Select the entity being moved
       event.context.selectEntity(this.getEntityId(entity))
 
-      console.log(`MoveTool: Started dragging ${this.getEntityId(entity)}`)
       return true
     }
 
     return false
   }
 
-  handleMouseMove(event: CanvasEvent): boolean {
+  handleMouseMove(_event: CanvasEvent): boolean {
     if (!this.state.isDragging || !this.state.dragEntity || !this.state.dragStartPoint) {
       return false
     }
 
-    // Tool handles its own drag update
-    const currentStageCoords = event.stageCoordinates
-    const deltaX = currentStageCoords.x - this.state.dragStartPoint.x
-    const deltaY = currentStageCoords.y - this.state.dragStartPoint.y
-
-    console.log(`MoveTool: Dragging ${this.getEntityId(this.state.dragEntity)} by (${deltaX}, ${deltaY})`)
-
     // TODO: Apply the drag to the entity in the model store
-    // For now, just log the drag movement
-
     return true
   }
 
-  handleMouseUp(event: CanvasEvent): boolean {
+  handleMouseUp(_event: CanvasEvent): boolean {
     if (!this.state.isDragging) return false
 
     // Tool handles its own drag completion
     if (this.state.dragEntity) {
-      const finalStageCoords = event.stageCoordinates
-      const totalDeltaX = finalStageCoords.x - this.state.dragStartPoint!.x
-      const totalDeltaY = finalStageCoords.y - this.state.dragStartPoint!.y
-
-      console.log(
-        `MoveTool: Finished dragging ${this.getEntityId(this.state.dragEntity)} by (${totalDeltaX}, ${totalDeltaY})`
-      )
-
       // TODO: Apply final position to the entity in the model store
     }
 
@@ -215,7 +197,6 @@ export class MoveTool implements Tool {
 
   private cancelMove(): void {
     if (this.state.isDragging && this.state.dragEntity && this.state.dragStartPoint) {
-      console.log(`MoveTool: Cancelled dragging ${this.getEntityId(this.state.dragEntity)}`)
       // TODO: Reset entity to original position in model store
     }
 
@@ -226,16 +207,14 @@ export class MoveTool implements Tool {
     this.state.dragStartMousePos = undefined
   }
 
-  private nudgeEntity(entityId: EntityId, deltaX: number, deltaY: number): void {
+  private nudgeEntity(_entityId: EntityId, _deltaX: number, _deltaY: number): void {
     // Implementation for nudging entity by small amounts
     // This would need to be implemented in the model store
-    console.log(`Nudging entity ${entityId} by (${deltaX}, ${deltaY})`)
   }
 
-  private resetEntityPosition(entity: Entity): void {
+  private resetEntityPosition(_entity: Entity): void {
     // Reset entity to its original position
     // This would need access to the model store and undo functionality
-    console.log(`Resetting position for entity:`, entity)
   }
 
   private getSelectedEntityFromContext(context: ToolContext): Entity | undefined {

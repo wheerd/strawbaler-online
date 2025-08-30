@@ -248,28 +248,25 @@ export class RotateTool implements Tool {
     return null
   }
 
-  private previewRotation(entity: Entity, center: Point2D, angle: number): void {
+  private previewRotation(_entity: Entity, _center: Point2D, _angle: number): void {
     // Show rotation preview (visual feedback)
     // This would be implemented in the rendering layer
-    console.log(`Previewing rotation of ${this.getEntityId(entity)} by ${(angle * 180) / Math.PI}° around`, center)
   }
 
-  private applyRotation(entity: Entity): void {
+  private applyRotation(_entity: Entity): void {
     // Apply the final rotation to the entity in the model
     // This would be implemented by calling the model store
-    console.log(`Applying rotation to ${this.getEntityId(entity)}`)
   }
 
-  private applyRotationWithAngle(entity: Entity, center: Point2D, angle: number): void {
+  private applyRotationWithAngle(_entity: Entity, _center: Point2D, _angle: number): void {
     // Apply specific rotation angle
     // This would be implemented by calling the model store
-    console.log(`Rotating ${this.getEntityId(entity)} by ${(angle * 180) / Math.PI}° around`, center)
   }
 
   private cancelRotation(): void {
     // Cancel current rotation and restore original position
     if (this.state.rotateEntity) {
-      console.log(`Cancelling rotation of ${this.getEntityId(this.state.rotateEntity)}`)
+      // TODO: Restore original rotation
     }
 
     this.state.isRotating = false
@@ -277,14 +274,12 @@ export class RotateTool implements Tool {
     this.state.startAngle = undefined
   }
 
-  private quickRotate(entityId: EntityId, degrees: number): void {
+  private quickRotate(_entityId: EntityId, _degrees: number): void {
     // Quick rotation for selected entity
-    console.log(`Quick rotating entity ${entityId} by ${degrees}°`)
   }
 
-  private setCustomRotationCenter(entity: Entity): void {
+  private setCustomRotationCenter(_entity: Entity): void {
     // Set custom rotation center (would open a dialog or enable click-to-set mode)
-    console.log(`Setting custom rotation center for ${this.getEntityId(entity)}`)
   }
 
   private getSelectedEntityFromContext(context: ToolContext): Entity | undefined {

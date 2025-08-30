@@ -121,7 +121,6 @@ export function FloorPlanEditor(): React.JSX.Element {
       try {
         initializeToolSystem(toolManager)
         setIsToolSystemReady(true)
-        console.log('Tool system ready')
       } catch (error) {
         console.error('Failed to initialize tool system:', error)
       }

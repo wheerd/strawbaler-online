@@ -32,7 +32,6 @@ export function ActionButtons({ entity, tool }: ActionButtonsProps): React.JSX.E
       actions.push({
         label: 'Focus',
         action: () => {
-          console.log('Focus on entity', entity)
           // Implementation would center viewport on entity
         },
         icon: '🎯'
@@ -42,7 +41,6 @@ export function ActionButtons({ entity, tool }: ActionButtonsProps): React.JSX.E
       actions.push({
         label: 'Copy',
         action: () => {
-          console.log('Copy entity', entity)
           // Implementation would copy entity to clipboard
         },
         hotkey: 'Ctrl+C',

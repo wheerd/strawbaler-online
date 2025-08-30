@@ -38,8 +38,6 @@ export function PropertiesPanel(): React.JSX.Element {
     (property: string, value: any) => {
       if (!selectedEntity || !selectedEntityId) return
 
-      console.log(`Changing ${property} to`, value, 'for entity', selectedEntityId)
-
       // Apply changes to model store based on entity type
       const modelStore = useModelStore.getState()
 
@@ -84,11 +82,7 @@ export function PropertiesPanel(): React.JSX.Element {
 
   // Handle tool property changes
   const handleToolPropertyChange = useCallback(
-    (property: string, value: any) => {
-      if (!activeTool) return
-
-      console.log(`Changing tool ${activeTool.id} property ${property} to`, value)
-
+    (_property: string, _value: any) => {
       // Tool properties are handled directly by the tool inspectors
       // This callback is mainly for triggering re-renders or additional logic
     },

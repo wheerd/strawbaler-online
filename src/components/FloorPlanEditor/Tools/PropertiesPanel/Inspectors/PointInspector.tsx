@@ -44,19 +44,16 @@ export function PointInspector({ point, onChange }: PointInspectorProps): React.
 
   const handleMergeWithNearby = useCallback(() => {
     // Implementation for merging with nearby points
-    console.log(`Merge point ${point.id} with nearby points`)
     // This would find nearby points and offer to merge
   }, [point.id])
 
   const handleDeletePoint = useCallback(() => {
     // Implementation for deleting point
-    console.log(`Delete point ${point.id}`)
     // This would check if deletion is safe and delete if so
   }, [point.id])
 
   const handleFocusPoint = useCallback(() => {
     // Focus/zoom to point
-    console.log(`Focus on point ${point.id}`)
     // This would center the viewport on the point
   }, [point.id])
 

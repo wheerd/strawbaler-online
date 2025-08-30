@@ -222,7 +222,7 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
   fitToView: () => {
     // This will be implemented with the bounds from the model store
     // For now, it's a placeholder that will be called from the component
-    console.log('fitToView called - implementation will be in the component')
+    // TODO: Implement this
   },
 
   updateSnapReference(fromPoint, fromPointId) {

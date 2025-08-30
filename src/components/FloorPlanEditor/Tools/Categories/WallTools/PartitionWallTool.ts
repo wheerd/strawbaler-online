@@ -37,7 +37,6 @@ export class PartitionWallTool implements Tool {
       this.state.isDrawing = true
       this.state.startPoint = snapCoords
       event.context.updateSnapReference(snapCoords, snapResult?.pointId ?? null)
-      console.log('Starting partition wall at', snapCoords)
       return true
     } else if (this.state.startPoint) {
       // Finish drawing wall
@@ -59,9 +58,8 @@ export class PartitionWallTool implements Tool {
           endPointEntity.id,
           createLength(this.state.thickness)
         )
-        console.log('Created partition wall from', this.state.startPoint, 'to', snapCoords)
       } else {
-        console.log('Wall too short, minimum length is 50mm')
+        // TODO: Handle minimum wall length validation
       }
 
       // Reset state
@@ -78,12 +76,10 @@ export class PartitionWallTool implements Tool {
     if (!this.state.isDrawing || !this.state.startPoint) return false
 
     const stageCoords = event.stageCoordinates
-    const snapResult = event.context.findSnapPoint(stageCoords)
-    const snapCoords = snapResult?.position ?? stageCoords
+    event.context.findSnapPoint(stageCoords)
 
     // Tool handles its own wall preview
-    // TODO: Implement preview rendering within the tool (using snapCoords)
-    console.log('Preview wall to:', snapCoords)
+    // TODO: Implement preview rendering within the tool
     return true
   }
 
@@ -97,14 +93,12 @@ export class PartitionWallTool implements Tool {
     // Quick thickness adjustment
     if (keyEvent.key === '[' && this.state.thickness > 50) {
       this.state.thickness -= 25
-      console.log(`Thickness decreased to ${this.state.thickness}mm`)
       return true
     }
 
     if (keyEvent.key === ']' && this.state.thickness < 500) {
       // Partition walls typically thinner
       this.state.thickness += 25
-      console.log(`Thickness increased to ${this.state.thickness}mm`)
       return true
     }
 
@@ -113,13 +107,11 @@ export class PartitionWallTool implements Tool {
 
   // Lifecycle methods
   onActivate(): void {
-    console.log('Partition wall tool activated')
     this.state.isDrawing = false
     this.state.startPoint = undefined
   }
 
   onDeactivate(): void {
-    console.log('Partition wall tool deactivated')
     if (this.state.isDrawing) {
       this.state.isDrawing = false
       this.state.startPoint = undefined
@@ -132,17 +124,13 @@ export class PartitionWallTool implements Tool {
 
     actions.push({
       label: 'Switch to Structural Wall',
-      action: () => {
-        console.log('Switching to structural wall tool')
-      },
+      action: () => {},
       hotkey: 'S'
     })
 
     actions.push({
       label: 'Switch to Outer Wall',
-      action: () => {
-        console.log('Switching to outer wall tool')
-      },
+      action: () => {},
       hotkey: 'O'
     })
 
@@ -176,22 +164,18 @@ export class PartitionWallTool implements Tool {
   // Tool-specific methods
   setThickness(thickness: number): void {
     this.state.thickness = Math.max(50, Math.min(500, thickness)) // Partition walls are thinner
-    console.log(`Partition wall thickness set to ${this.state.thickness}mm`)
   }
 
   setHeight(height: number): void {
     this.state.height = Math.max(1000, Math.min(4000, height)) // Partitions can be shorter
-    console.log(`Partition wall height set to ${this.state.height}mm`)
   }
 
   setMaterial(material: string): void {
     this.state.material = material
-    console.log(`Partition wall material set to ${material}`)
   }
 
   // Helper methods
   private cancelDrawing(context?: ToolContext): void {
-    console.log('Cancelling partition wall drawing')
     this.state.isDrawing = false
     this.state.startPoint = undefined
     if (context) {
