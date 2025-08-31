@@ -4,7 +4,7 @@ import { distanceSquared } from '@/types/geometry'
 import React from 'react'
 import { Line, Circle, Text } from 'react-konva'
 import type { StoreActions, FloorId, PointId } from '@/model'
-import { getWallPreviewVisualization } from '@/components/FloorPlanEditor/visualization/wallVisualization'
+import { getWallVisualization } from '@/components/FloorPlanEditor/visualization/wallVisualization'
 import type { WallType } from '@/types/model'
 
 export interface WallToolState {
@@ -190,7 +190,9 @@ export abstract class BaseWallTool implements Tool {
     const wallTypeId = this.config.id.split('.')[1] as WallType
 
     // Get visualization config using shared utility
-    const wallViz = getWallPreviewVisualization(wallTypeId, this.state.thickness)
+    // For outer wall previews, default to 'right' as outside direction
+    const defaultOutsideDirection: 'left' | 'right' | undefined = wallTypeId === 'outer' ? 'right' : undefined
+    const wallViz = getWallVisualization(wallTypeId, this.state.thickness, defaultOutsideDirection)
 
     const previewElements: React.ReactNode[] = []
     const opacity = 0.4
@@ -224,17 +226,20 @@ export abstract class BaseWallTool implements Tool {
 
     // Plaster edges
     wallViz.edges.forEach((edge, index) => {
-      const isOutside = edge.position === 'outside'
-      const offset = isOutside ? wallViz.strokeWidth / 2 + edge.width / 2 : -(wallViz.strokeWidth / 2) - edge.width / 2
+      // For walls going start->end: positive normal is "left", negative normal is "right"
+      const normalDirection = edge.position === 'left' ? 1 : -1
+
+      // Position edge inside the wall thickness boundary
+      const edgeOffset = (wallViz.strokeWidth / 2 - edge.width / 2) * normalDirection
 
       previewElements.push(
         React.createElement(Line, {
           key: `edge-${edge.position}-${index}`,
           points: [
-            startPoint.x + normalX * offset,
-            startPoint.y + normalY * offset,
-            endPoint.x + normalX * offset,
-            endPoint.y + normalY * offset
+            startPoint.x + normalX * edgeOffset,
+            startPoint.y + normalY * edgeOffset,
+            endPoint.x + normalX * edgeOffset,
+            endPoint.y + normalY * edgeOffset
           ],
           stroke: edge.color,
           strokeWidth: edge.width,

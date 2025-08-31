@@ -85,7 +85,7 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
   )
 
   // Get wall visualization using shared utility
-  const wallViz = getWallVisualization(wall.type, wall.thickness)
+  const wallViz = getWallVisualization(wall.type, wall.thickness, wall.outsideDirection)
 
   // Calculate wall perpendicular direction for arrows and plaster edges
   const wallDx = endPoint.position.x - startPoint.position.x
@@ -150,23 +150,25 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
 
       {/* Plaster edges */}
       {wallViz.edges.map((edge, index) => {
-        const isOutside = edge.position === 'outside'
-        const offset = isOutside
-          ? wallViz.strokeWidth / 2 + edge.width / 2
-          : -(wallViz.strokeWidth / 2) - edge.width / 2
+        // For walls going start->end: positive normal is "left", negative normal is "right"
+        const normalDirection = edge.position === 'left' ? 1 : -1
+
+        // Position edge inside the wall thickness boundary
+        // Edge center is at wall boundary minus half edge width (to keep edge inside)
+        const edgeOffset = (wallViz.strokeWidth / 2 - edge.width / 2) * normalDirection
 
         return (
           <Line
             key={`edge-${edge.position}-${index}`}
             points={[
-              startPoint.position.x + normalX * offset,
-              startPoint.position.y + normalY * offset,
-              endPoint.position.x + normalX * offset,
-              endPoint.position.y + normalY * offset
+              startPoint.position.x + normalX * edgeOffset,
+              startPoint.position.y + normalY * edgeOffset,
+              endPoint.position.x + normalX * edgeOffset,
+              endPoint.position.y + normalY * edgeOffset
             ]}
             stroke={edge.color}
             strokeWidth={edge.width}
-            lineCap="square"
+            lineCap="round"
             listening={false}
           />
         )

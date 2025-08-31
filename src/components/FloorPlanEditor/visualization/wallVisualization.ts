@@ -3,7 +3,7 @@ import type { WallType } from '@/types/model'
 export interface WallEdge {
   color: string
   width: number
-  position: 'outside' | 'inside'
+  position: 'left' | 'right'
 }
 
 export interface WallPattern {
@@ -28,20 +28,31 @@ export const WALL_COLORS = {
 } as const
 
 /**
- * Gets the visualization configuration for a wall based on its type and thickness
+ * Gets the visualization configuration for a wall based on its type, thickness, and outside direction
+ * Returns edges positioned as 'left' or 'right' relative to the wall direction (start -> end)
  */
-export function getWallVisualization(wallType: WallType, thickness: number): WallVisualization {
+export function getWallVisualization(
+  wallType: WallType,
+  thickness: number,
+  outsideDirection?: 'left' | 'right'
+): WallVisualization {
   switch (wallType) {
-    case 'outer':
+    case 'outer': {
+      // For outer walls, use outsideDirection to determine plaster placement
+      // If no outsideDirection is specified, default to 'right' being outside
+      const outsideSide = outsideDirection || 'right'
+      const insideSide = outsideSide === 'left' ? 'right' : 'left'
+
       return {
         mainColor: WALL_COLORS.strawbale,
         strokeWidth: thickness,
         pattern: null,
         edges: [
-          { color: WALL_COLORS.limePlaster, width: 40, position: 'outside' }, // Lime plaster outside
-          { color: WALL_COLORS.clayPlaster, width: 40, position: 'inside' } // Clay plaster inside
+          { color: WALL_COLORS.limePlaster, width: 40, position: outsideSide }, // Lime plaster on outside
+          { color: WALL_COLORS.clayPlaster, width: 40, position: insideSide } // Clay plaster on inside
         ]
       }
+    }
 
     case 'partition':
       return {
@@ -49,8 +60,8 @@ export function getWallVisualization(wallType: WallType, thickness: number): Wal
         strokeWidth: thickness,
         pattern: null,
         edges: [
-          { color: WALL_COLORS.clayPlaster, width: 30, position: 'outside' }, // Clay plaster on one side
-          { color: WALL_COLORS.clayPlaster, width: 30, position: 'inside' } // Clay plaster on other side
+          { color: WALL_COLORS.clayPlaster, width: 30, position: 'left' }, // Clay plaster on left side
+          { color: WALL_COLORS.clayPlaster, width: 30, position: 'right' } // Clay plaster on right side
         ]
       }
 
@@ -60,8 +71,8 @@ export function getWallVisualization(wallType: WallType, thickness: number): Wal
         strokeWidth: thickness,
         pattern: { color: WALL_COLORS.woodSupport, dash: [100, 500] }, // Dashed pattern for wood supports
         edges: [
-          { color: WALL_COLORS.clayPlaster, width: 30, position: 'outside' }, // Clay plaster on one side
-          { color: WALL_COLORS.clayPlaster, width: 30, position: 'inside' } // Clay plaster on other side
+          { color: WALL_COLORS.clayPlaster, width: 30, position: 'left' }, // Clay plaster on left side
+          { color: WALL_COLORS.clayPlaster, width: 30, position: 'right' } // Clay plaster on right side
         ]
       }
 
@@ -74,12 +85,4 @@ export function getWallVisualization(wallType: WallType, thickness: number): Wal
         edges: []
       }
   }
-}
-
-/**
- * Gets a semi-transparent version of the wall visualization for previews
- * Note: opacity should be applied during rendering, not in the visualization config
- */
-export function getWallPreviewVisualization(wallType: WallType, thickness: number): WallVisualization {
-  return getWallVisualization(wallType, thickness)
 }
