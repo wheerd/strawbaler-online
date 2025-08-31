@@ -1,6 +1,6 @@
 import { BaseWallTool, type WallTypeConfig } from './BaseWallTool'
 import { createLength } from '@/types/geometry'
-import type { StoreActions, FloorId, PointId } from '@/model'
+import type { StoreActions, FloorId, PointId, Wall } from '@/model'
 
 const STRUCTURAL_WALL_CONFIG: WallTypeConfig = {
   id: 'wall.structural',
@@ -24,8 +24,8 @@ export class StructuralWallTool extends BaseWallTool {
     startPointId: PointId,
     endPointId: PointId,
     thickness: number
-  ): void {
+  ): Wall {
     // Create structural wall using model store
-    modelStore.addStructuralWall(activeFloorId, startPointId, endPointId, createLength(thickness))
+    return modelStore.addStructuralWall(activeFloorId, startPointId, endPointId, createLength(thickness))
   }
 }

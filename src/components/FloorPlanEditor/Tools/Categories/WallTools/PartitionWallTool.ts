@@ -1,6 +1,6 @@
 import { BaseWallTool, type WallTypeConfig } from './BaseWallTool'
 import { createLength } from '@/types/geometry'
-import type { StoreActions, FloorId, PointId } from '@/model'
+import type { StoreActions, FloorId, PointId, Wall } from '@/model'
 
 const PARTITION_WALL_CONFIG: WallTypeConfig = {
   id: 'wall.partition',
@@ -24,8 +24,8 @@ export class PartitionWallTool extends BaseWallTool {
     startPointId: PointId,
     endPointId: PointId,
     thickness: number
-  ): void {
+  ): Wall {
     // Create partition wall using model store
-    modelStore.addPartitionWall(activeFloorId, startPointId, endPointId, createLength(thickness))
+    return modelStore.addPartitionWall(activeFloorId, startPointId, endPointId, createLength(thickness))
   }
 }

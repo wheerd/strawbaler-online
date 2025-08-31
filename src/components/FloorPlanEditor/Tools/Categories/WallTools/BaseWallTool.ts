@@ -5,7 +5,7 @@ import React from 'react'
 import { Line, Circle, Text } from 'react-konva'
 import type { StoreActions, FloorId, PointId } from '@/model'
 import { getWallVisualization } from '@/components/FloorPlanEditor/visualization/wallVisualization'
-import type { WallType } from '@/types/model'
+import type { Wall, WallType } from '@/types/model'
 
 export interface WallToolState {
   startPoint?: Point2D
@@ -58,7 +58,7 @@ export abstract class BaseWallTool implements Tool {
     startPointId: PointId,
     endPointId: PointId,
     thickness: number
-  ): void
+  ): Wall
 
   // Event handlers (common implementation)
   handleMouseDown(event: CanvasEvent): boolean {
@@ -87,7 +87,11 @@ export abstract class BaseWallTool implements Tool {
         const endPointEntity = modelStore.addPoint(activeFloorId, snapCoords)
 
         // Create wall using abstract method
-        this.createWall(modelStore, activeFloorId, startPointEntity.id, endPointEntity.id, this.state.thickness)
+        const wall = this.createWall(modelStore, activeFloorId, startPointEntity.id, endPointEntity.id, this.state.thickness)
+
+        // Update corners for both endpoints after wall creation
+        this.updateCornersForPoint(modelStore, wall, startPointEntity.id)
+        this.updateCornersForPoint(modelStore, wall, endPointEntity.id)
       } else {
         // TODO: Handle minimum wall length validation
       }
@@ -311,5 +315,19 @@ export abstract class BaseWallTool implements Tool {
   private cancelDrawing(): void {
     this.state.startPoint = undefined
     this.state.previewEndPoint = undefined
+  }
+
+  private updateCornersForPoint(modelStore: StoreActions, wall: Wall, pointId: PointId): void {
+    console.log('corner', wall, pointId)
+    const connectedWalls = modelStore.getWallsConnectedToPoint(pointId, wall.floorId)
+    console.log(connectedWalls)
+    if (connectedWalls.length === 2) {
+      modelStore.addCorner(pointId, wall.floorId, connectedWalls[0].id, connectedWalls[1].id)
+    } else if (connectedWalls.length > 2) {
+      const existingCorner = modelStore.getCorner(pointId)
+      if (existingCorner) {
+        modelStore.addWallToCorner(pointId, wall.id)
+      }
+    }
   }
 }

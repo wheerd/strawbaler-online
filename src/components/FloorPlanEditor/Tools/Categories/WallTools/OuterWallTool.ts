@@ -1,6 +1,6 @@
 import { BaseWallTool, type WallTypeConfig } from './BaseWallTool'
 import { createLength } from '@/types/geometry'
-import type { StoreActions, FloorId, PointId } from '@/model'
+import type { StoreActions, FloorId, PointId, Wall } from '@/model'
 
 const OUTER_WALL_CONFIG: WallTypeConfig = {
   id: 'wall.outer',
@@ -24,7 +24,7 @@ export class OuterWallTool extends BaseWallTool {
     startPointId: PointId,
     endPointId: PointId,
     thickness: number
-  ): void {
-    modelStore.addOuterWall(activeFloorId, startPointId, endPointId, 'left', createLength(thickness))
+  ): Wall {
+    return modelStore.addOuterWall(activeFloorId, startPointId, endPointId, 'left', createLength(thickness))
   }
 }
