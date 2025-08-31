@@ -9,8 +9,6 @@ export interface WallToolState {
   isDrawing: boolean
   startPoint?: Point2D
   thickness: number // mm
-  height: number // mm
-  material: string
   previewEndPoint?: Point2D // Tool handles its own preview
   hoverPoint?: Point2D // Point where mouse is hovering (for start point preview)
 }
@@ -21,7 +19,6 @@ export interface WallTypeConfig {
   icon: string
   hotkey?: string
   defaultThickness: number // mm
-  defaultMaterial: string
   primaryColor: string // Color for main preview elements
   secondaryColor: string // Color for thickness indicators
   label: string // Label to show in length text (e.g., "Structural", "Partition")
@@ -51,9 +48,7 @@ export abstract class BaseWallTool implements Tool {
 
     this.state = {
       isDrawing: false,
-      thickness: config.defaultThickness,
-      height: 2700, // 2.7m default ceiling height
-      material: config.defaultMaterial
+      thickness: config.defaultThickness
     }
   }
 
@@ -134,16 +129,6 @@ export abstract class BaseWallTool implements Tool {
     const keyEvent = event.originalEvent as KeyboardEvent
     if (keyEvent.key === 'Escape' && this.state.isDrawing) {
       this.cancelDrawing(event.context)
-      return true
-    }
-
-    // Quick thickness adjustment
-    if (keyEvent.key === '[' && this.state.thickness > 50) {
-      this.state.thickness -= 25
-      return true
-    }
-    if (keyEvent.key === ']' && this.state.thickness < 1000) {
-      this.state.thickness += 25
       return true
     }
 
@@ -323,36 +308,7 @@ export abstract class BaseWallTool implements Tool {
       hotkey: 'Tab'
     })
 
-    // Thickness presets
-    actions.push(
-      {
-        label: 'Thin Wall (100mm)',
-        action: () => this.setThickness(100)
-      },
-      {
-        label: 'Standard Wall (200mm)',
-        action: () => this.setThickness(200)
-      },
-      {
-        label: 'Thick Wall (300mm)',
-        action: () => this.setThickness(300)
-      }
-    )
-
     return actions
-  }
-
-  // Tool configuration methods
-  setThickness(thickness: number): void {
-    this.state.thickness = Math.max(50, Math.min(1000, thickness))
-  }
-
-  setHeight(height: number): void {
-    this.state.height = Math.max(1000, Math.min(5000, height)) // Between 1m and 5m
-  }
-
-  setMaterial(material: string): void {
-    this.state.material = material
   }
 
   // Helper methods

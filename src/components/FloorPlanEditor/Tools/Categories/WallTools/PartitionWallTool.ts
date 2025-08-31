@@ -7,8 +7,7 @@ const PARTITION_WALL_CONFIG: WallTypeConfig = {
   name: 'Partition Wall',
   icon: '▬',
   hotkey: 'Shift+w',
-  defaultThickness: 100, // 100mm default for partition walls (thinner than structural)
-  defaultMaterial: 'drywall',
+  defaultThickness: 180, // 18cm
   primaryColor: '#ff8800',
   secondaryColor: '#ff8800',
   label: 'Partition'

@@ -7,8 +7,7 @@ const STRUCTURAL_WALL_CONFIG: WallTypeConfig = {
   name: 'Structural Wall',
   icon: '▬',
   hotkey: 'w',
-  defaultThickness: 200, // 200mm default for structural walls
-  defaultMaterial: 'concrete',
+  defaultThickness: 220, // 22cm
   primaryColor: '#007acc',
   secondaryColor: '#007acc',
   label: 'Structural'

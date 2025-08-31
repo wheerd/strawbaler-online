@@ -7,8 +7,7 @@ const OUTER_WALL_CONFIG: WallTypeConfig = {
   name: 'Outer Wall',
   icon: '▬',
   hotkey: 'Shift+Alt+w',
-  defaultThickness: 250, // 250mm default for outer walls (thicker than structural)
-  defaultMaterial: 'brick',
+  defaultThickness: 440, // 44cm
   primaryColor: '#666666',
   secondaryColor: '#666666',
   label: 'Outer'

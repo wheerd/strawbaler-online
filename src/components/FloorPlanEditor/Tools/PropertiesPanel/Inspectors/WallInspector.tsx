@@ -54,17 +54,6 @@ export function WallInspector({ wall, onChange }: WallInspectorProps): React.JSX
     }
   }, [wall.startPointId, wall.endPointId, wall.floorId, wall.id, getWallsAtPoint])
 
-  // Material options
-  const materialOptions = [
-    { value: 'concrete', label: 'Concrete' },
-    { value: 'brick', label: 'Brick' },
-    { value: 'drywall', label: 'Drywall' },
-    { value: 'wood', label: 'Wood Frame' },
-    { value: 'steel', label: 'Steel Frame' },
-    { value: 'block', label: 'Concrete Block' },
-    { value: 'stone', label: 'Stone' }
-  ]
-
   const handleThicknessChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = Math.max(50, Math.min(1000, Number(e.target.value))) // Clamp between 50mm and 1000mm
@@ -84,13 +73,6 @@ export function WallInspector({ wall, onChange }: WallInspectorProps): React.JSX
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value === '' ? undefined : (e.target.value as OutsideDirection)
       onChange('outsideDirection', value)
-    },
-    [onChange]
-  )
-
-  const handleMaterialChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange('material', e.target.value)
     },
     [onChange]
   )
@@ -180,17 +162,6 @@ export function WallInspector({ wall, onChange }: WallInspectorProps): React.JSX
                 </select>
               </div>
             )}
-
-            <div className="property-group">
-              <label htmlFor="wall-material">Material</label>
-              <select id="wall-material" value={(wall as any).material || 'concrete'} onChange={handleMaterialChange}>
-                {materialOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
           {/* Measurements */}
