@@ -1,9 +1,10 @@
-import { Circle, Group } from 'react-konva'
+import { Circle, Group, Line } from 'react-konva'
 import { useCallback } from 'react'
 import type Konva from 'konva'
 import type { Corner } from '@/types/model'
 import { useSelectedEntity, useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
-import { usePoint } from '@/model/store'
+import { usePoint, useWalls, usePoints } from '@/model/store'
+import { calculateCornerMiterPolygon } from '@/components/FloorPlanEditor/visualization/cornerVisualization'
 
 interface CornerShapeProps {
   corner: Corner
@@ -13,6 +14,8 @@ export function CornerShape({ corner }: CornerShapeProps): React.JSX.Element | n
   const selectedEntity = useSelectedEntity()
   const selectEntity = useEditorStore(state => state.selectEntity)
   const cornerPoint = usePoint(corner.pointId)
+  const walls = useWalls()
+  const points = usePoints()
 
   if (cornerPoint == null) {
     return null
@@ -28,36 +31,62 @@ export function CornerShape({ corner }: CornerShapeProps): React.JSX.Element | n
     [selectEntity, corner.pointId]
   )
 
+  // Calculate the miter joint polygon
+  const miterPolygon = calculateCornerMiterPolygon(corner, walls, points)
+
+  // If we have a proper miter polygon, render it instead of the circle
+  if (miterPolygon && miterPolygon.points.length >= 3) {
+    // Convert polygon points to a flat array for Konva Line
+    const polygonArray: number[] = []
+    for (const point of miterPolygon.points) {
+      polygonArray.push(Number(point.x), Number(point.y))
+    }
+    // Close the polygon by adding the first point at the end
+    if (miterPolygon.points.length > 0) {
+      const firstPoint = miterPolygon.points[0]
+      polygonArray.push(Number(firstPoint.x), Number(firstPoint.y))
+    }
+
+    return (
+      <Group listening>
+        {/* Miter joint polygon */}
+        <Line
+          points={polygonArray}
+          fill={miterPolygon.mainColor}
+          stroke={isSelected ? '#007acc' : miterPolygon.mainColor}
+          strokeWidth={isSelected ? 4 : 2}
+          opacity={0.9}
+          closed
+          listening
+          onClick={handleClick}
+          onTap={handleClick}
+        />
+
+        {/* Selection indicator */}
+        {isSelected && (
+          <Line points={polygonArray} stroke="#007acc" strokeWidth={6} dash={[10, 10]} closed listening={false} />
+        )}
+      </Group>
+    )
+  }
+
+  // Fallback to original circle rendering if miter calculation fails
   return (
-    <Group
-      x={cornerPoint.position.x}
-      y={cornerPoint.position.y}
-      // Allow group to listen for interactions on specific children
-      listening
-    >
-      {/* Background circle for better visibility - much larger */}
+    <Group x={cornerPoint.position.x} y={cornerPoint.position.y} listening>
+      {/* Background circle for better visibility */}
       <Circle
         radius={80}
         fill="white"
         stroke="#007acc"
-        strokeWidth={isSelected ? 15 : 8} // Much thicker stroke
+        strokeWidth={isSelected ? 15 : 8}
         opacity={0.95}
-        // Allow clicking only on the background circle
         listening
         onClick={handleClick}
         onTap={handleClick}
       />
 
-      {/* Selection indicator - much larger */}
-      {isSelected && (
-        <Circle
-          radius={120} // Much larger selection ring
-          stroke="#007acc"
-          strokeWidth={15} // Thicker selection stroke
-          dash={[20, 20]} // Larger dash pattern
-          listening={false}
-        />
-      )}
+      {/* Selection indicator */}
+      {isSelected && <Circle radius={120} stroke="#007acc" strokeWidth={15} dash={[20, 20]} listening={false} />}
     </Group>
   )
 }

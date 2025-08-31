@@ -204,6 +204,7 @@ export abstract class BaseWallTool implements Tool {
         points: [startPoint.x, startPoint.y, endPoint.x, endPoint.y],
         stroke: wallViz.mainColor,
         strokeWidth: wallViz.strokeWidth,
+        lineCap: 'butt',
         opacity,
         listening: false
       })
@@ -243,6 +244,7 @@ export abstract class BaseWallTool implements Tool {
           ],
           stroke: edge.color,
           strokeWidth: edge.width,
+          lineCap: 'butt',
           opacity,
           listening: false
         })

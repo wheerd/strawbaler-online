@@ -128,7 +128,7 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
         points={[startPoint.position.x, startPoint.position.y, endPoint.position.x, endPoint.position.y]}
         stroke={finalMainColor}
         strokeWidth={wallViz.strokeWidth}
-        lineCap="round"
+        lineCap="butt"
         onClick={activeTool === 'wall' ? undefined : handleClick}
         onTap={activeTool === 'wall' ? undefined : handleClick}
         onMouseDown={activeTool === 'wall' ? undefined : handleMouseDown}
@@ -168,7 +168,7 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
             ]}
             stroke={edge.color}
             strokeWidth={edge.width}
-            lineCap="round"
+            lineCap="butt"
             listening={false}
           />
         )
