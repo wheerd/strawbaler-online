@@ -1,9 +1,11 @@
-import type { Tool, ToolContext, ContextAction, CanvasEvent, ToolOverlayContext } from '../../ToolSystem/types'
+import type { Tool, ContextAction, CanvasEvent, ToolOverlayContext } from '../../ToolSystem/types'
 import type { Point2D } from '@/types/geometry'
 import { distanceSquared } from '@/types/geometry'
 import React from 'react'
 import { Line, Circle, Text } from 'react-konva'
 import type { StoreActions, FloorId, PointId } from '@/model'
+import { getWallPreviewVisualization } from '@/components/FloorPlanEditor/visualization/wallVisualization'
+import type { WallType } from '@/types/model'
 
 export interface WallToolState {
   isDrawing: boolean
@@ -128,7 +130,7 @@ export abstract class BaseWallTool implements Tool {
   handleKeyDown(event: CanvasEvent): boolean {
     const keyEvent = event.originalEvent as KeyboardEvent
     if (keyEvent.key === 'Escape' && this.state.isDrawing) {
-      this.cancelDrawing(event.context)
+      this.cancelDrawing()
       return true
     }
 
@@ -184,18 +186,8 @@ export abstract class BaseWallTool implements Tool {
     return React.createElement(
       React.Fragment,
       null,
-      // Main wall preview line
-      React.createElement(Line, {
-        points: [this.state.startPoint.x, this.state.startPoint.y, endPoint.x, endPoint.y],
-        stroke: this.config.primaryColor,
-        strokeWidth: this.state.thickness,
-        opacity: 0.6,
-        dash: [20, 15],
-        listening: false
-      }),
-
-      // Wall thickness indicators
-      this.renderThicknessIndicators(this.state.startPoint, endPoint),
+      // Main wall preview with strawbale visualization
+      ...this.renderStrawbalePreview(this.state.startPoint, endPoint),
 
       // End point snap indicator
       React.createElement(Circle, {
@@ -226,41 +218,77 @@ export abstract class BaseWallTool implements Tool {
     )
   }
 
-  private renderThicknessIndicators(startPoint: Point2D, endPoint: Point2D): React.ReactNode {
-    // Calculate perpendicular vector for thickness
+  private renderStrawbalePreview(startPoint: Point2D, endPoint: Point2D): React.ReactNode[] {
+    // Calculate wall perpendicular direction for plaster edges
     const dx = endPoint.x - startPoint.x
     const dy = endPoint.y - startPoint.y
     const length = Math.sqrt(dx * dx + dy * dy)
 
-    if (length === 0) return null
+    if (length === 0) return []
 
-    // Normalize and get perpendicular
-    const perpX = (-dy / length) * (this.state.thickness / 2)
-    const perpY = (dx / length) * (this.state.thickness / 2)
+    // Get perpendicular vector (normal to wall)
+    const normalX = -dy / length
+    const normalY = dx / length
 
-    return React.createElement(
-      React.Fragment,
-      null,
-      // Top edge of wall
+    // Extract wall type from config ID (e.g., 'wall.outer' -> 'outer')
+    const wallTypeId = this.config.id.split('.')[1] as WallType
+
+    // Get visualization config using shared utility
+    const wallViz = getWallPreviewVisualization(wallTypeId, this.state.thickness)
+
+    const previewElements: React.ReactNode[] = []
+    const opacity = 0.4
+
+    // Main wall body
+    previewElements.push(
       React.createElement(Line, {
-        points: [startPoint.x + perpX, startPoint.y + perpY, endPoint.x + perpX, endPoint.y + perpY],
-        stroke: this.config.secondaryColor,
-        strokeWidth: 3,
-        opacity: 0.4,
-        dash: [10, 5],
-        listening: false
-      }),
-
-      // Bottom edge of wall
-      React.createElement(Line, {
-        points: [startPoint.x - perpX, startPoint.y - perpY, endPoint.x - perpX, endPoint.y - perpY],
-        stroke: this.config.secondaryColor,
-        strokeWidth: 3,
-        opacity: 0.4,
-        dash: [10, 5],
+        key: 'main-body',
+        points: [startPoint.x, startPoint.y, endPoint.x, endPoint.y],
+        stroke: wallViz.mainColor,
+        strokeWidth: wallViz.strokeWidth,
+        opacity,
         listening: false
       })
     )
+
+    // Wood support pattern for structural walls
+    if (wallViz.pattern) {
+      previewElements.push(
+        React.createElement(Line, {
+          key: 'wood-supports',
+          points: [startPoint.x, startPoint.y, endPoint.x, endPoint.y],
+          stroke: wallViz.pattern.color,
+          strokeWidth: wallViz.strokeWidth,
+          dash: wallViz.pattern.dash,
+          opacity,
+          listening: false
+        })
+      )
+    }
+
+    // Plaster edges
+    wallViz.edges.forEach((edge, index) => {
+      const isOutside = edge.position === 'outside'
+      const offset = isOutside ? wallViz.strokeWidth / 2 + edge.width / 2 : -(wallViz.strokeWidth / 2) - edge.width / 2
+
+      previewElements.push(
+        React.createElement(Line, {
+          key: `edge-${edge.position}-${index}`,
+          points: [
+            startPoint.x + normalX * offset,
+            startPoint.y + normalY * offset,
+            endPoint.x + normalX * offset,
+            endPoint.y + normalY * offset
+          ],
+          stroke: edge.color,
+          strokeWidth: edge.width,
+          opacity,
+          listening: false
+        })
+      )
+    })
+
+    return previewElements
   }
 
   private renderLengthLabel(startPoint: Point2D, endPoint: Point2D): React.ReactNode {
@@ -286,14 +314,14 @@ export abstract class BaseWallTool implements Tool {
     })
   }
 
-  getContextActions(context: ToolContext): ContextAction[] {
+  getContextActions(): ContextAction[] {
     const actions: ContextAction[] = []
 
     // Wall-specific actions
     if (this.state.isDrawing) {
       actions.push({
         label: 'Cancel Wall',
-        action: () => this.cancelDrawing(context),
+        action: () => this.cancelDrawing(),
         hotkey: 'Escape',
         icon: '✕'
       })
@@ -311,14 +339,16 @@ export abstract class BaseWallTool implements Tool {
     return actions
   }
 
+  // Public methods for tool inspection
+  setThickness(thickness: number): void {
+    this.state.thickness = thickness
+  }
+
   // Helper methods
-  private cancelDrawing(context?: ToolContext): void {
+  private cancelDrawing(): void {
     this.state.isDrawing = false
     this.state.startPoint = undefined
     this.state.previewEndPoint = undefined
     this.state.hoverPoint = undefined
-    if (context) {
-      context.clearSnapState()
-    }
   }
 }

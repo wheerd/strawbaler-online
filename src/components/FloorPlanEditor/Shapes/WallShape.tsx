@@ -2,14 +2,10 @@ import { Line, Group, Arrow, Text } from 'react-konva'
 import type Konva from 'konva'
 import { useCallback, useRef } from 'react'
 import type { Wall } from '@/types/model'
-import {
-  useSelectedEntity,
-  useEditorStore,
-  useDragState,
-  useActiveTool
-} from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useSelectedEntity, useEditorStore, useActiveTool } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { usePoints, useCorners, useWallLength } from '@/model/store'
 import type { Point2D } from '@/types/geometry'
+import { getWallVisualization } from '@/components/FloorPlanEditor/visualization/wallVisualization'
 
 interface WallShapeProps {
   wall: Wall
@@ -23,7 +19,6 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
   const startDrag = useEditorStore(state => state.startDrag)
   const points = usePoints()
   const corners = useCorners()
-  const dragState = useDragState()
   const activeTool = useActiveTool()
   const hasDraggedRef = useRef(false)
   const getWallLength = useWallLength()
@@ -35,7 +30,6 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
   }
 
   const isSelected = selectedEntity === wall.id
-  const isDragging = dragState.isDragging && dragState.dragEntityId === wall.id && dragState.dragType === 'wall'
 
   // Check if this wall is a main wall of a selected corner
   const isMainWallOfSelectedCorner = Array.from(corners.values()).some(
@@ -90,15 +84,10 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
     [startDrag, setSelectedEntity, wall.id, activeTool]
   )
 
-  // Determine wall color based on state
-  const getWallColor = (): string => {
-    if (isSelected) return '#007acc' // Blue for selected wall
-    if (isDragging) return '#ff6b35' // Orange for dragging
-    if (isMainWallOfSelectedCorner) return '#00cc66' // Green for main walls of selected corner
-    return '#333333' // Default gray
-  }
+  // Get wall visualization using shared utility
+  const wallViz = getWallVisualization(wall.type, wall.thickness)
 
-  // Calculate wall perpendicular direction for arrows
+  // Calculate wall perpendicular direction for arrows and plaster edges
   const wallDx = endPoint.position.x - startPoint.position.x
   const wallDy = endPoint.position.y - startPoint.position.y
   const wallLength = Math.sqrt(wallDx * wallDx + wallDy * wallDy)
@@ -123,18 +112,22 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
   }
 
   // Arrow positions offset from wall center - much larger for visibility
-  const arrowOffset = 200 // Much larger offset
+  const arrowOffset = wall.thickness * 0.7 // Much larger offset
   const arrow1X = midX + normalX * arrowOffset
   const arrow1Y = midY + normalY * arrowOffset
   const arrow2X = midX - normalX * arrowOffset
   const arrow2Y = midY - normalY * arrowOffset
 
+  // Selection/state color overrides
+  const finalMainColor = isSelected ? '#007acc' : isMainWallOfSelectedCorner ? '#00cc66' : wallViz.mainColor
+
   return (
     <Group>
+      {/* Main wall body */}
       <Line
         points={[startPoint.position.x, startPoint.position.y, endPoint.position.x, endPoint.position.y]}
-        stroke={getWallColor()}
-        strokeWidth={wall.thickness}
+        stroke={finalMainColor}
+        strokeWidth={wallViz.strokeWidth}
         lineCap="round"
         onClick={activeTool === 'wall' ? undefined : handleClick}
         onTap={activeTool === 'wall' ? undefined : handleClick}
@@ -142,6 +135,42 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
         listening={activeTool !== 'wall'}
         draggable={false}
       />
+
+      {/* Wood support pattern for structural walls */}
+      {wallViz.pattern && (
+        <Line
+          points={[startPoint.position.x, startPoint.position.y, endPoint.position.x, endPoint.position.y]}
+          stroke={wallViz.pattern.color}
+          strokeWidth={wallViz.strokeWidth}
+          lineCap="butt"
+          dash={wallViz.pattern.dash}
+          listening={false}
+        />
+      )}
+
+      {/* Plaster edges */}
+      {wallViz.edges.map((edge, index) => {
+        const isOutside = edge.position === 'outside'
+        const offset = isOutside
+          ? wallViz.strokeWidth / 2 + edge.width / 2
+          : -(wallViz.strokeWidth / 2) - edge.width / 2
+
+        return (
+          <Line
+            key={`edge-${edge.position}-${index}`}
+            points={[
+              startPoint.position.x + normalX * offset,
+              startPoint.position.y + normalY * offset,
+              endPoint.position.x + normalX * offset,
+              endPoint.position.y + normalY * offset
+            ]}
+            stroke={edge.color}
+            strokeWidth={edge.width}
+            lineCap="square"
+            listening={false}
+          />
+        )
+      })}
 
       {/* Direction arrows when selected - much larger for visibility */}
       {isSelected && wallLength > 0 && (

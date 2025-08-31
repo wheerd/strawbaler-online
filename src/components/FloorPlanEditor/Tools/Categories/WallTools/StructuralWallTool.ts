@@ -8,8 +8,8 @@ const STRUCTURAL_WALL_CONFIG: WallTypeConfig = {
   icon: '▬',
   hotkey: 'w',
   defaultThickness: 220, // 22cm
-  primaryColor: '#007acc',
-  secondaryColor: '#007acc',
+  primaryColor: '#DAA520',
+  secondaryColor: '#CD853F',
   label: 'Structural'
 }
 

@@ -2,20 +2,20 @@ import { BaseWallTool, type WallTypeConfig } from './BaseWallTool'
 import { createLength } from '@/types/geometry'
 import type { StoreActions, FloorId, PointId } from '@/model'
 
-const OUTER_WALL_CONFIG: WallTypeConfig = {
-  id: 'wall.outer',
-  name: 'Outer Wall',
+const OTHER_WALL_CONFIG: WallTypeConfig = {
+  id: 'wall.other',
+  name: 'Other Wall',
   icon: '▬',
-  hotkey: 'Shift+Alt+w',
-  defaultThickness: 440, // 44cm
-  primaryColor: '#DAA520',
+  hotkey: 'Alt+w',
+  defaultThickness: 200, // 20cm
+  primaryColor: '#2F2F2F',
   secondaryColor: '#2F2F2F',
-  label: 'Outer'
+  label: 'Other'
 }
 
-export class OuterWallTool extends BaseWallTool {
+export class OtherWallTool extends BaseWallTool {
   constructor() {
-    super(OUTER_WALL_CONFIG)
+    super(OTHER_WALL_CONFIG)
   }
 
   protected createWall(
@@ -25,6 +25,7 @@ export class OuterWallTool extends BaseWallTool {
     endPointId: PointId,
     thickness: number
   ): void {
-    modelStore.addOuterWall(activeFloorId, startPointId, endPointId, 'left', createLength(thickness))
+    // Create other wall using model store
+    modelStore.addOtherWall(activeFloorId, startPointId, endPointId, createLength(thickness))
   }
 }
