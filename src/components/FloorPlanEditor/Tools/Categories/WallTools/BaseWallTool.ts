@@ -8,6 +8,7 @@ import { getWallVisualization } from '@/components/FloorPlanEditor/visualization
 import type { Wall, WallType } from '@/types/model'
 
 export interface WallToolState {
+  startPointId?: PointId
   startPoint?: Point2D
   thickness: number // mm
   previewEndPoint?: Point2D // Tool handles its own preview
@@ -69,6 +70,7 @@ export abstract class BaseWallTool implements Tool {
     if (!this.state.startPoint) {
       // Start drawing wall
       this.state.startPoint = snapCoords
+      this.state.startPointId = snapResult?.pointId
       // Clear any previous preview state to avoid artifacts
       this.state.previewEndPoint = undefined
       event.context.updateSnapReference(snapCoords, snapResult?.pointId ?? null)
@@ -83,15 +85,15 @@ export abstract class BaseWallTool implements Tool {
         const activeFloorId = event.context.getActiveFloorId()
 
         // Get or create points
-        const startPointEntity = modelStore.addPoint(activeFloorId, this.state.startPoint)
-        const endPointEntity = modelStore.addPoint(activeFloorId, snapCoords)
+        const startPointId = this.state.startPointId ?? modelStore.addPoint(activeFloorId, this.state.startPoint).id
+        const endPointId = snapResult?.pointId ?? modelStore.addPoint(activeFloorId, snapCoords).id
 
         // Create wall using abstract method
-        const wall = this.createWall(modelStore, activeFloorId, startPointEntity.id, endPointEntity.id, this.state.thickness)
+        const wall = this.createWall(modelStore, activeFloorId, startPointId, endPointId, this.state.thickness)
 
         // Update corners for both endpoints after wall creation
-        this.updateCornersForPoint(modelStore, wall, startPointEntity.id)
-        this.updateCornersForPoint(modelStore, wall, endPointEntity.id)
+        this.updateCornersForPoint(modelStore, wall, startPointId)
+        this.updateCornersForPoint(modelStore, wall, endPointId)
       } else {
         // TODO: Handle minimum wall length validation
       }
