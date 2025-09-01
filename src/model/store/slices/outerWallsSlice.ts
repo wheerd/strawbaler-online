@@ -10,7 +10,7 @@ export interface OuterWallsState {
 }
 
 export interface OuterWallsActions {
-  addOuterWall: (
+  addOuterWallPolygon: (
     floorId: FloorId,
     boundary: Polygon2D,
     constructionType: OuterWallConstructionType,
@@ -123,7 +123,7 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
   outerWalls: new Map(),
 
   // CRUD operations
-  addOuterWall: (
+  addOuterWallPolygon: (
     floorId: FloorId,
     boundary: Polygon2D,
     constructionType: OuterWallConstructionType,

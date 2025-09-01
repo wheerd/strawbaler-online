@@ -4,8 +4,9 @@ import type { RoomsActions, RoomsState } from './slices/roomsSlice'
 import type { FloorsActions, FloorsState } from './slices/floorsSlice'
 import type { CornersActions, CornersState } from './slices/cornersSlice'
 import type { WallsPointsActions } from './slices/wallsPointsSlice'
+import type { OuterWallsActions, OuterWallsState } from './slices/outerWallsSlice'
 
-export interface StoreState extends WallsState, PointsState, RoomsState, FloorsState, CornersState {}
+export interface StoreState extends WallsState, PointsState, RoomsState, FloorsState, CornersState, OuterWallsState {}
 
 export interface StoreActions
   extends WallsActions,
@@ -13,7 +14,8 @@ export interface StoreActions
     RoomsActions,
     FloorsActions,
     CornersActions,
-    WallsPointsActions {
+    WallsPointsActions,
+    OuterWallsActions {
   reset: () => void
 }
 

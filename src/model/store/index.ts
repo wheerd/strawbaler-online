@@ -1,15 +1,16 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { temporal } from 'zundo'
-import type { Wall, Room, Point, Floor, Corner } from '@/types/model'
+import type { Wall, Room, Point, Floor, Corner, OuterWallPolygon } from '@/types/model'
 import { createFloorLevel } from '@/types/model'
-import type { WallId, FloorId, RoomId, PointId } from '@/types/ids'
+import type { WallId, FloorId, RoomId, PointId, OuterWallId } from '@/types/ids'
 import { createWallsSlice } from './slices/wallsSlice'
 import { createPointsSlice } from './slices/pointsSlice'
 import { createRoomsSlice } from './slices/roomsSlice'
 import { createFloorsSlice } from './slices/floorsSlice'
 import { createCornersSlice } from './slices/cornersSlice'
 import { createWallsPointsSlice } from './slices/wallsPointsSlice'
+import { createOuterWallsSlice } from './slices/outerWallsSlice'
 import type { Store } from './types'
 import type { Length } from '@/types/geometry'
 
@@ -24,7 +25,8 @@ export const useModelStore = create<Store>()(
           ...createRoomsSlice(...a),
           ...createFloorsSlice(...a),
           ...createCornersSlice(...a),
-          ...createWallsPointsSlice(...a)
+          ...createWallsPointsSlice(...a),
+          ...createOuterWallsSlice(...a)
         }
 
         // Initialize with a default ground floor
@@ -75,6 +77,9 @@ export const useFloorPoints = (floorId: FloorId): Point[] => useModelStore(state
 export const usePoint = (pointId: PointId): Point | null => useModelStore(state => state.getPointById)(pointId)
 export const useCorners = (): Map<PointId, Corner> => useModelStore(state => state.corners)
 export const useFloorCorners = (floorId: FloorId): Corner[] => useModelStore(state => state.getCornersByFloor)(floorId)
+export const useOuterWalls = (): Map<OuterWallId, OuterWallPolygon> => useModelStore(state => state.outerWalls)
+export const useFloorOuterWalls = (floorId: FloorId): OuterWallPolygon[] =>
+  useModelStore(state => state.getOuterWallsByFloor)(floorId)
 
 // Export types
 export type { Store, StoreActions, StoreState } from './types'

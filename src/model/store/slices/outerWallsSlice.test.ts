@@ -32,9 +32,9 @@ describe('OuterWallsSlice', () => {
     }
   })
 
-  describe('addOuterWall', () => {
+  describe('addOuterWallPolygon', () => {
     it('should create an outer wall with default thickness', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
 
       const walls = store.getOuterWallsByFloor(testFloorId)
       expect(walls).toHaveLength(1)
@@ -63,7 +63,7 @@ describe('OuterWallsSlice', () => {
     it('should create an outer wall with custom thickness', () => {
       const customThickness = createLength(600)
 
-      store.addOuterWall(testFloorId, testBoundary, 'infill', customThickness)
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'infill', customThickness)
 
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wall = walls[0]
@@ -76,25 +76,25 @@ describe('OuterWallsSlice', () => {
         points: [createPoint2D(0, 0), createPoint2D(1000, 0)] // Only 2 points
       }
 
-      expect(() => store.addOuterWall(testFloorId, invalidBoundary, 'cells-under-tension')).toThrow(
+      expect(() => store.addOuterWallPolygon(testFloorId, invalidBoundary, 'cells-under-tension')).toThrow(
         'Outer wall boundary must have at least 3 points'
       )
     })
 
     it('should throw error for zero or negative thickness', () => {
-      expect(() => store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension', createLength(0))).toThrow(
-        'Wall thickness must be greater than 0'
-      )
+      expect(() =>
+        store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', createLength(0))
+      ).toThrow('Wall thickness must be greater than 0')
 
-      expect(() => store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension', createLength(-100))).toThrow(
-        'Wall thickness must be greater than 0'
-      )
+      expect(() =>
+        store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', createLength(-100))
+      ).toThrow('Wall thickness must be greater than 0')
     })
   })
 
   describe('removeOuterWall', () => {
     it('should remove an outer wall', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wallId = walls[0].id
 
@@ -107,7 +107,7 @@ describe('OuterWallsSlice', () => {
 
   describe('updateOuterWallConstructionType', () => {
     it('should update construction type for a specific segment', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wallId = walls[0].id
 
@@ -124,7 +124,7 @@ describe('OuterWallsSlice', () => {
 
   describe('updateOuterWallThickness', () => {
     it('should update thickness for a specific segment', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wallId = walls[0].id
       const newThickness = createLength(500)
@@ -142,7 +142,7 @@ describe('OuterWallsSlice', () => {
     })
 
     it('should throw error for zero or negative thickness', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wallId = walls[0].id
 
@@ -154,7 +154,7 @@ describe('OuterWallsSlice', () => {
 
   describe('opening operations', () => {
     it('should add opening to wall segment', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wallId = walls[0].id
 
@@ -173,7 +173,7 @@ describe('OuterWallsSlice', () => {
     })
 
     it('should remove opening from wall segment', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wallId = walls[0].id
 
@@ -193,7 +193,7 @@ describe('OuterWallsSlice', () => {
     })
 
     it('should validate opening parameters', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wallId = walls[0].id
 
@@ -223,7 +223,7 @@ describe('OuterWallsSlice', () => {
 
   describe('geometric computation', () => {
     it('should compute correct geometry for all wall segments', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension', createLength(100))
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', createLength(100))
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wall = walls[0]
 
@@ -261,7 +261,7 @@ describe('OuterWallsSlice', () => {
 
     it('should compute outside lines with correct offsets', () => {
       const thickness = createLength(200)
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension', thickness)
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', thickness)
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wall = walls[0]
 
@@ -288,7 +288,7 @@ describe('OuterWallsSlice', () => {
     })
 
     it('should return null for invalid segment index', () => {
-      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
       const walls = store.getOuterWallsByFloor(testFloorId)
       const wallId = walls[0].id
 
@@ -300,8 +300,8 @@ describe('OuterWallsSlice', () => {
       const floor1Id = createFloorId()
       const floor2Id = createFloorId()
 
-      store.addOuterWall(floor1Id, testBoundary, 'cells-under-tension')
-      store.addOuterWall(floor2Id, testBoundary, 'infill')
+      store.addOuterWallPolygon(floor1Id, testBoundary, 'cells-under-tension')
+      store.addOuterWallPolygon(floor2Id, testBoundary, 'infill')
 
       expect(store.getOuterWallsByFloor(floor1Id)).toHaveLength(1)
       expect(store.getOuterWallsByFloor(floor2Id)).toHaveLength(1)

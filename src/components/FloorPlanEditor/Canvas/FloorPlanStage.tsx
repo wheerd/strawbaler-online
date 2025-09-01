@@ -5,6 +5,7 @@ import { useEditorStore, useViewport } from '@/components/FloorPlanEditor/hooks/
 import { useToolContext, useToolManager } from '@/components/FloorPlanEditor/Tools'
 import { useCanvasEventDispatcher } from '@/components/FloorPlanEditor/Tools/EventHandlers/CanvasEventDispatcher'
 import { GridLayer } from './GridLayer'
+import { OuterWallLayer } from './OuterWallLayer'
 import { WallLayer } from './WallLayer'
 import { ToolOverlayLayer } from './ToolOverlayLayer'
 import { PointLayer } from './PointLayer'
@@ -176,6 +177,7 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
         height={height}
         viewport={{ zoom: viewport.zoom, panX: viewport.panX, panY: viewport.panY }}
       />
+      <OuterWallLayer />
       <RoomLayer />
       <WallLayer />
       <CornerLayer />
