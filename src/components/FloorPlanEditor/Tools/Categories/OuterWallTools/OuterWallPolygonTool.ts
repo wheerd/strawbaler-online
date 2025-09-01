@@ -1,12 +1,11 @@
 import type { Tool, ContextAction, CanvasEvent, ToolOverlayContext } from '../../ToolSystem/types'
 import type { Point2D, Polygon2D } from '@/types/geometry'
-import { createLength } from '@/types/geometry'
+import { createLength, distanceSquared, polygonIsClockwise } from '@/types/geometry'
 import React from 'react'
 import { Line, Circle } from 'react-konva'
 
 interface OuterWallPolygonToolState {
   points: Point2D[]
-  isComplete: boolean
 }
 
 export class OuterWallPolygonTool implements Tool {
@@ -18,8 +17,7 @@ export class OuterWallPolygonTool implements Tool {
   readonly hasInspector = false
 
   public state: OuterWallPolygonToolState = {
-    points: [],
-    isComplete: false
+    points: []
   }
 
   handleMouseDown(event: CanvasEvent): boolean {
@@ -27,22 +25,12 @@ export class OuterWallPolygonTool implements Tool {
     const snapResult = event.context.findSnapPoint(stageCoords)
     const snapCoords = snapResult?.position ?? stageCoords
 
-    if (this.state.isComplete) {
-      // Start a new polygon
-      this.state.points = [snapCoords]
-      this.state.isComplete = false
-      return true
-    }
-
     // Check if clicking near the first point to close the polygon
     if (this.state.points.length >= 3) {
       const firstPoint = this.state.points[0]
-      const distanceToFirst = Math.sqrt(
-        Math.pow(snapCoords.x - firstPoint.x, 2) + Math.pow(snapCoords.y - firstPoint.y, 2)
-      )
+      const distanceToFirst = distanceSquared(snapCoords, firstPoint)
 
-      if (distanceToFirst < 20) {
-        // Close polygon if within 20 pixels of start
+      if (distanceToFirst < 1) {
         this.completePolygon(event)
         return true
       }
@@ -50,13 +38,17 @@ export class OuterWallPolygonTool implements Tool {
 
     // Add point to polygon
     this.state.points.push(snapCoords)
+
+    if (this.state.points.length >= 3) {
+      event.context.updateSnapReference(this.state.points[0], null)
+    }
+
     return true
   }
 
   handleMouseMove(event: CanvasEvent): boolean {
     const stageCoords = event.stageCoordinates
-    const snapResult = event.context.findSnapPoint(stageCoords)
-    event.context.updateSnapTarget(snapResult?.position ?? stageCoords)
+    event.context.updateSnapTarget(stageCoords)
     return true
   }
 
@@ -64,8 +56,12 @@ export class OuterWallPolygonTool implements Tool {
     const keyEvent = event.originalEvent as KeyboardEvent
 
     if (keyEvent.key === 'Escape') {
-      this.cancelPolygon()
-      return true
+      // Only handle escape if we have points, otherwise bubble up
+      if (this.state.points.length > 0) {
+        this.cancelPolygon()
+        return true
+      }
+      return false // Bubble up to allow tool cancellation
     }
 
     if (keyEvent.key === 'Enter' && this.state.points.length >= 3) {
@@ -78,12 +74,10 @@ export class OuterWallPolygonTool implements Tool {
 
   onActivate(): void {
     this.state.points = []
-    this.state.isComplete = false
   }
 
   onDeactivate(): void {
     this.state.points = []
-    this.state.isComplete = false
   }
 
   renderOverlay(context: ToolOverlayContext): React.ReactNode {
@@ -93,15 +87,17 @@ export class OuterWallPolygonTool implements Tool {
 
     // Draw existing points
     this.state.points.forEach((point, index) => {
+      const isFirstPoint = index === 0
+
       elements.push(
         React.createElement(Circle, {
           key: `point-${index}`,
           x: point.x,
           y: point.y,
-          radius: 8,
-          fill: index === 0 ? '#ef4444' : '#3b82f6',
+          radius: 20,
+          fill: isFirstPoint ? '#ef4444' : '#3b82f6',
           stroke: '#ffffff',
-          strokeWidth: 2,
+          strokeWidth: 3,
           listening: false
         })
       )
@@ -119,7 +115,7 @@ export class OuterWallPolygonTool implements Tool {
           key: 'polygon-lines',
           points,
           stroke: '#3b82f6',
-          strokeWidth: 2,
+          strokeWidth: 10,
           lineCap: 'round',
           lineJoin: 'round',
           listening: false
@@ -128,7 +124,7 @@ export class OuterWallPolygonTool implements Tool {
     }
 
     // Draw line to current mouse position
-    if (this.state.points.length > 0 && !this.state.isComplete) {
+    if (this.state.points.length > 0) {
       const lastPoint = this.state.points[this.state.points.length - 1]
       const currentPos = context.snapResult?.position || context.snapTarget || context.currentMousePos
 
@@ -138,8 +134,8 @@ export class OuterWallPolygonTool implements Tool {
             key: 'preview-line',
             points: [lastPoint.x, lastPoint.y, currentPos.x, currentPos.y],
             stroke: '#94a3b8',
-            strokeWidth: 1,
-            dash: [5, 5],
+            strokeWidth: 10,
+            dash: [30, 30],
             listening: false
           })
         )
@@ -176,7 +172,13 @@ export class OuterWallPolygonTool implements Tool {
   private completePolygon(event: CanvasEvent | null): void {
     if (this.state.points.length < 3) return
 
-    const polygon: Polygon2D = { points: [...this.state.points] }
+    // Create polygon and ensure clockwise order for outer walls
+    let polygon: Polygon2D = { points: [...this.state.points] }
+
+    // Check if polygon is clockwise, if not reverse it
+    if (!polygonIsClockwise(polygon)) {
+      polygon = { points: [...this.state.points].reverse() }
+    }
 
     if (event) {
       const modelStore = event.context.getModelStore()
@@ -195,11 +197,9 @@ export class OuterWallPolygonTool implements Tool {
     }
 
     this.state.points = []
-    this.state.isComplete = false
   }
 
   private cancelPolygon(): void {
     this.state.points = []
-    this.state.isComplete = false
   }
 }

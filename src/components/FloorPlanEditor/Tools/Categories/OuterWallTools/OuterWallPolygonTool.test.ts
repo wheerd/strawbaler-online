@@ -18,18 +18,15 @@ describe('OuterWallPolygonTool', () => {
     const tool = new OuterWallPolygonTool()
 
     expect(tool.state.points).toEqual([])
-    expect(tool.state.isComplete).toBe(false)
   })
 
   it('should reset state on activation', () => {
     const tool = new OuterWallPolygonTool()
     tool.state.points = [{ x: 100, y: 100 } as any]
-    tool.state.isComplete = true
 
     tool.onActivate()
 
     expect(tool.state.points).toEqual([])
-    expect(tool.state.isComplete).toBe(false)
   })
 
   it('should be registered in outer wall tool group', () => {
