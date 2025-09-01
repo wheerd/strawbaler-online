@@ -11,6 +11,7 @@ export interface SnapResult {
 // Context for snapping operations
 export interface SnappingContext {
   points: Point[]
+  alignPoints?: Point2D[]
   referencePoint?: Point2D
   referencePointId?: PointId
   referenceLineSegments?: LineSegment2D[]

@@ -73,17 +73,22 @@ export class SnappingService {
   private generateSnapLines(context: SnappingContext): Line2D[] {
     const snapLines: Line2D[] = []
 
+    const allPoints = context.points.map(p => p.position)
+    if (context.alignPoints) {
+      allPoints.push(...context.alignPoints)
+    }
+
     // 1. Add horizontal and vertical lines through all points
-    for (const point of context.points) {
+    for (const point of allPoints) {
       // Horizontal line through point
       snapLines.push({
-        point: point.position,
+        point: point,
         direction: createVector2D(1, 0)
       })
 
       // Vertical line through point
       snapLines.push({
-        point: point.position,
+        point: point,
         direction: createVector2D(0, 1)
       })
     }

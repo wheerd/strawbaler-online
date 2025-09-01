@@ -1,11 +1,16 @@
 import type { Tool, ContextAction, CanvasEvent, ToolOverlayContext } from '../../ToolSystem/types'
-import type { Point2D, Polygon2D } from '@/types/geometry'
-import { createLength, distanceSquared, polygonIsClockwise } from '@/types/geometry'
+import type { Point2D, Polygon2D, LineSegment2D } from '@/types/geometry'
+import { createLength, polygonIsClockwise } from '@/types/geometry'
+import type { SnappingContext, SnapResult } from '@/model/store/services/snapping/types'
 import React from 'react'
 import { Line, Circle } from 'react-konva'
+import { SnappingService } from '@/model/store/services/snapping'
+import { createPointId, type FloorId } from '@/model'
 
 interface OuterWallPolygonToolState {
   points: Point2D[]
+  snapResult?: SnapResult
+  snapContext: SnappingContext
 }
 
 export class OuterWallPolygonTool implements Tool {
@@ -17,20 +22,53 @@ export class OuterWallPolygonTool implements Tool {
   readonly hasInspector = false
 
   public state: OuterWallPolygonToolState = {
-    points: []
+    points: [],
+    snapContext: {
+      points: [],
+      alignPoints: [],
+      referenceLineSegments: []
+    }
+  }
+
+  private snapService = new SnappingService()
+
+  private readonly firstPointId = createPointId()
+
+  private updateSnapContext() {
+    const referenceLineSegments: LineSegment2D[] = []
+    for (let i = 1; i < this.state.points.length; i++) {
+      const start = this.state.points[i - 1]
+      const end = this.state.points[i]
+      referenceLineSegments.push({ start, end })
+    }
+
+    this.state.snapContext = {
+      points:
+        this.state.points.length > 0
+          ? [
+              {
+                id: this.firstPointId,
+                position: this.state.points[0],
+                floorId: 'invalid' as FloorId,
+                roomIds: new Set()
+              }
+            ]
+          : [],
+      alignPoints: this.state.points,
+      referencePoint: this.state.points[this.state.points.length - 1],
+      referenceLineSegments
+    }
+    console.log(this.state.snapContext)
   }
 
   handleMouseDown(event: CanvasEvent): boolean {
     const stageCoords = event.stageCoordinates
-    const snapResult = event.context.findSnapPoint(stageCoords)
-    const snapCoords = snapResult?.position ?? stageCoords
+    this.state.snapResult = this.snapService.findSnapResult(stageCoords, this.state.snapContext) ?? undefined
+    const snapCoords = this.state.snapResult?.position ?? stageCoords
 
     // Check if clicking near the first point to close the polygon
     if (this.state.points.length >= 3) {
-      const firstPoint = this.state.points[0]
-      const distanceToFirst = distanceSquared(snapCoords, firstPoint)
-
-      if (distanceToFirst < 1) {
+      if (this.state.snapResult?.pointId === this.firstPointId) {
         this.completePolygon(event)
         return true
       }
@@ -38,17 +76,14 @@ export class OuterWallPolygonTool implements Tool {
 
     // Add point to polygon
     this.state.points.push(snapCoords)
-
-    if (this.state.points.length >= 3) {
-      event.context.updateSnapReference(this.state.points[0], null)
-    }
+    this.updateSnapContext()
 
     return true
   }
 
   handleMouseMove(event: CanvasEvent): boolean {
     const stageCoords = event.stageCoordinates
-    event.context.updateSnapTarget(stageCoords)
+    this.state.snapResult = this.snapService.findSnapResult(stageCoords, this.state.snapContext) ?? undefined
     return true
   }
 
@@ -74,10 +109,12 @@ export class OuterWallPolygonTool implements Tool {
 
   onActivate(): void {
     this.state.points = []
+    this.updateSnapContext()
   }
 
   onDeactivate(): void {
     this.state.points = []
+    this.updateSnapContext()
   }
 
   renderOverlay(context: ToolOverlayContext): React.ReactNode {
@@ -197,9 +234,11 @@ export class OuterWallPolygonTool implements Tool {
     }
 
     this.state.points = []
+    this.updateSnapContext()
   }
 
   private cancelPolygon(): void {
     this.state.points = []
+    this.updateSnapContext()
   }
 }
