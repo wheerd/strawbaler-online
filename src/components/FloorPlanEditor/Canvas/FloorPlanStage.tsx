@@ -59,7 +59,7 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
 
       const scaleBy = 1.1
       const zoomFactor = e.evt.deltaY > 0 ? 1 / scaleBy : scaleBy
-      const newZoom = Math.max(0.1, Math.min(10, viewport.zoom * zoomFactor))
+      const newZoom = Math.max(0.001, Math.min(2, viewport.zoom * zoomFactor))
 
       const zoomRatio = newZoom / viewport.zoom
       const newPanX = pointer.x - (pointer.x - viewport.panX) * zoomRatio

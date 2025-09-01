@@ -156,7 +156,7 @@ describe('OuterWallShape', () => {
               boundaryPoint={testOuterWall.boundary[0]}
               previousSegment={testOuterWall.segments[3]}
               nextSegment={testOuterWall.segments[0]}
-              isSelected={true}
+              isSelected
             />
           </Layer>
         </Stage>
