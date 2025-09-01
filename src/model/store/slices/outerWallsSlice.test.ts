@@ -43,9 +43,21 @@ describe('OuterWallsSlice', () => {
       expect(wall.floorId).toBe(testFloorId)
       expect(wall.boundary).toEqual(testBoundary.points)
       expect(wall.segments).toHaveLength(4) // One segment per side
-      expect(wall.segments[0].constructionType).toBe('cells-under-tension')
-      expect(wall.segments[0].thickness).toBe(440) // Default thickness
-      expect(wall.segments[0].openings).toHaveLength(0)
+
+      const segment = wall.segments[0]
+      expect(segment.constructionType).toBe('cells-under-tension')
+      expect(segment.thickness).toBe(440) // Default thickness
+      expect(segment.openings).toHaveLength(0)
+
+      // Check geometric properties are computed
+      expect(segment.insideLength).toBe(1000) // Distance from (0,0) to (1000,0)
+      expect(segment.outsideLength).toBe(1000)
+      expect(segment.insideLine.start).toEqual(createPoint2D(0, 0))
+      expect(segment.insideLine.end).toEqual(createPoint2D(1000, 0))
+      expect(segment.direction.x).toBe(1)
+      expect(segment.direction.y).toBe(0)
+      expect(segment.outsideDirection.x).toBeCloseTo(0)
+      expect(segment.outsideDirection.y).toBeCloseTo(1) // Should be pointing "up" for horizontal segment
     })
 
     it('should create an outer wall with custom thickness', () => {
@@ -121,6 +133,12 @@ describe('OuterWallsSlice', () => {
 
       const segment = store.getOuterWallSegment(wallId, 0)
       expect(segment?.thickness).toBe(500)
+
+      // Check that geometry was recomputed with new thickness
+      expect(segment?.outsideLine.start.x).toBe(0)
+      expect(segment?.outsideLine.start.y).toBe(500) // Offset by new thickness
+      expect(segment?.outsideLine.end.x).toBe(1000)
+      expect(segment?.outsideLine.end.y).toBe(500)
     })
 
     it('should throw error for zero or negative thickness', () => {
@@ -200,6 +218,66 @@ describe('OuterWallsSlice', () => {
       expect(() => store.addOpeningToOuterWall(wallId, 0, invalidOpening2)).toThrow(
         'Opening width must be greater than 0'
       )
+    })
+  })
+
+  describe('geometric computation', () => {
+    it('should compute correct geometry for all wall segments', () => {
+      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension', createLength(100))
+      const walls = store.getOuterWallsByFloor(testFloorId)
+      const wall = walls[0]
+
+      // Test each segment of the square
+      const segments = wall.segments
+
+      // Bottom wall (0,0) -> (1000,0)
+      expect(segments[0].direction.x).toBe(1)
+      expect(segments[0].direction.y).toBeCloseTo(0)
+      expect(segments[0].outsideDirection.x).toBeCloseTo(0)
+      expect(segments[0].outsideDirection.y).toBe(1)
+      expect(segments[0].insideLength).toBe(1000)
+
+      // Right wall (1000,0) -> (1000,1000)
+      expect(segments[1].direction.x).toBeCloseTo(0)
+      expect(segments[1].direction.y).toBe(1)
+      expect(segments[1].outsideDirection.x).toBe(-1)
+      expect(segments[1].outsideDirection.y).toBeCloseTo(0)
+      expect(segments[1].insideLength).toBe(1000)
+
+      // Top wall (1000,1000) -> (0,1000)
+      expect(segments[2].direction.x).toBe(-1)
+      expect(segments[2].direction.y).toBeCloseTo(0)
+      expect(segments[2].outsideDirection.x).toBeCloseTo(0)
+      expect(segments[2].outsideDirection.y).toBe(-1)
+      expect(segments[2].insideLength).toBe(1000)
+
+      // Left wall (0,1000) -> (0,0)
+      expect(segments[3].direction.x).toBeCloseTo(0)
+      expect(segments[3].direction.y).toBe(-1)
+      expect(segments[3].outsideDirection.x).toBe(1)
+      expect(segments[3].outsideDirection.y).toBeCloseTo(0)
+      expect(segments[3].insideLength).toBe(1000)
+    })
+
+    it('should compute outside lines with correct offsets', () => {
+      const thickness = createLength(200)
+      store.addOuterWall(testFloorId, testBoundary, 'cells-under-tension', thickness)
+      const walls = store.getOuterWallsByFloor(testFloorId)
+      const wall = walls[0]
+
+      // Bottom wall outside line should be offset down (positive Y)
+      const bottomSegment = wall.segments[0]
+      expect(bottomSegment.outsideLine.start.x).toBe(0)
+      expect(bottomSegment.outsideLine.start.y).toBe(200)
+      expect(bottomSegment.outsideLine.end.x).toBe(1000)
+      expect(bottomSegment.outsideLine.end.y).toBe(200)
+
+      // Right wall outside line should be offset right (negative X from inside)
+      const rightSegment = wall.segments[1]
+      expect(rightSegment.outsideLine.start.x).toBe(800) // 1000 - 200
+      expect(rightSegment.outsideLine.start.y).toBe(0)
+      expect(rightSegment.outsideLine.end.x).toBe(800)
+      expect(rightSegment.outsideLine.end.y).toBe(1000)
     })
   })
 

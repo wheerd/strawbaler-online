@@ -1,5 +1,5 @@
 import type { WallId, PointId, RoomId, FloorId, SlabId, RoofId, OuterWallId } from '@/types/ids'
-import type { Length, Point2D } from '@/types/geometry'
+import type { Length, LineSegment2D, Point2D, Vector2D } from '@/types/geometry'
 
 // Floor level branded type
 export type FloorLevel = number & { __brand: 'FloorLevel' }
@@ -140,4 +140,12 @@ export interface OuterWallSegment {
   constructionType: OuterWallConstructionType
 
   openings: Opening[]
+
+  // Geometry, computed from the points automatically
+  insideLength: Length
+  outsideLength: Length
+  insideLine: LineSegment2D
+  outsideLine: LineSegment2D
+  direction: Vector2D // Normalized from start -> end of segment
+  outsideDirection: Vector2D // Normal vector pointing outside
 }

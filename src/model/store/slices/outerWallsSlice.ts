@@ -1,9 +1,9 @@
 import type { StateCreator } from 'zustand'
 import type { OuterWallPolygon, OuterWallConstructionType, OuterWallSegment, Opening } from '@/types/model'
 import type { FloorId, OuterWallId } from '@/types/ids'
-import type { Length, Polygon2D } from '@/types/geometry'
+import type { Length, Polygon2D, Point2D, Vector2D, LineSegment2D } from '@/types/geometry'
 import { createOuterWallId } from '@/types/ids'
-import { createLength } from '@/types/geometry'
+import { createLength, createVector2D, createPoint2D } from '@/types/geometry'
 
 export interface OuterWallsState {
   outerWalls: Map<OuterWallId, OuterWallPolygon>
@@ -34,6 +34,65 @@ export type OuterWallsSlice = OuterWallsState & OuterWallsActions
 // Default wall thickness value
 const DEFAULT_OUTER_WALL_THICKNESS = createLength(440) // 44cm for strawbale walls
 
+// Helper function to compute geometric properties for a single segment
+const computeSegmentGeometry = (
+  startPoint: Point2D,
+  endPoint: Point2D,
+  thickness: Length
+): {
+  insideLength: Length
+  outsideLength: Length
+  insideLine: LineSegment2D
+  outsideLine: LineSegment2D
+  direction: Vector2D
+  outsideDirection: Vector2D
+} => {
+  // Calculate direction vector (normalized from start -> end)
+  const dx = endPoint.x - startPoint.x
+  const dy = endPoint.y - startPoint.y
+  const length = Math.sqrt(dx * dx + dy * dy)
+
+  if (length === 0) {
+    throw new Error('Wall segment cannot have zero length')
+  }
+
+  const direction = createVector2D(dx / length, dy / length)
+
+  // Calculate outside direction (normal vector pointing outside)
+  // For a clockwise polygon, the outside normal is perpendicular right to the direction
+  const outsideDirection = createVector2D(-direction.y, direction.x)
+
+  // Inside line is the original segment
+  const insideLine: LineSegment2D = {
+    start: startPoint,
+    end: endPoint
+  }
+
+  // Outside line is offset by thickness in the outside direction
+  const outsideStart = createPoint2D(
+    startPoint.x + outsideDirection.x * thickness,
+    startPoint.y + outsideDirection.y * thickness
+  )
+  const outsideEnd = createPoint2D(
+    endPoint.x + outsideDirection.x * thickness,
+    endPoint.y + outsideDirection.y * thickness
+  )
+
+  const outsideLine: LineSegment2D = {
+    start: outsideStart,
+    end: outsideEnd
+  }
+
+  return {
+    insideLength: length as Length,
+    outsideLength: length as Length, // For now same as inside length
+    insideLine,
+    outsideLine,
+    direction,
+    outsideDirection
+  }
+}
+
 // Helper function to create segments from boundary points
 const createSegmentsFromBoundary = (
   boundary: Polygon2D,
@@ -44,10 +103,16 @@ const createSegmentsFromBoundary = (
 
   // Create one segment for each side of the polygon
   for (let i = 0; i < boundary.points.length; i++) {
+    const startPoint = boundary.points[i]
+    const endPoint = boundary.points[(i + 1) % boundary.points.length]
+
+    const geometry = computeSegmentGeometry(startPoint, endPoint, thickness)
+
     segments.push({
       thickness,
       constructionType,
-      openings: []
+      openings: [],
+      ...geometry
     })
   }
 
@@ -136,10 +201,18 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
         return state // Invalid index, do nothing
       }
 
+      // Get the boundary points for this segment
+      const startPoint = outerWall.boundary[segmentIndex]
+      const endPoint = outerWall.boundary[(segmentIndex + 1) % outerWall.boundary.length]
+
+      // Recompute geometry with new thickness
+      const geometry = computeSegmentGeometry(startPoint, endPoint, thickness)
+
       const updatedSegments = [...outerWall.segments]
       updatedSegments[segmentIndex] = {
         ...updatedSegments[segmentIndex],
-        thickness
+        thickness,
+        ...geometry
       }
 
       const updatedOuterWall = {
