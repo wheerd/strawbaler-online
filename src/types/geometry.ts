@@ -1,3 +1,10 @@
+// Turf.js integration for robust polygon operations
+import { polygon as turfPolygon, lineString as turfLineString } from '@turf/helpers'
+import { kinks } from '@turf/kinks'
+import { booleanValid } from '@turf/boolean-valid'
+import { lineIntersect } from '@turf/line-intersect'
+import type { Feature, Polygon as GeoJSONPolygon, LineString } from 'geojson'
+
 // Branded numeric types for type safety
 export type AbsoluteOffset = number & { __brand: 'AbsoluteOffset' }
 export type Length = number & { __brand: 'Length' }
@@ -47,6 +54,16 @@ export interface Polygon2D {
 export interface PolygonWithHoles2D {
   outer: Polygon2D
   holes: Polygon2D[]
+}
+
+export interface Line2D {
+  point: Point2D
+  direction: Vector2D // Normalized direction vector
+}
+
+export interface LineSegment2D {
+  start: Point2D
+  end: Point2D
 }
 
 // Geometry utility functions
@@ -302,17 +319,6 @@ export function degreesToRadians(degrees: number): Angle {
   return createAngle((degrees * Math.PI) / 180)
 }
 
-// Line representation for intersection calculations
-export interface Line2D {
-  point: Point2D
-  direction: Vector2D // Normalized direction vector
-}
-
-export interface LineSegment2D {
-  start: Point2D
-  end: Point2D
-}
-
 // Calculate intersection of two infinite lines
 export function lineIntersection(line1: Line2D, line2: Line2D): Point2D | null {
   const { point: p1, direction: d1 } = line1
@@ -442,43 +448,43 @@ export function distanceToLineSegment(point: Point2D, segment: LineSegment2D): L
   return distance(point, closest)
 }
 
-// Helper function to calculate the cross product of two 2D vectors
-function crossProduct2D(v1x: number, v1y: number, v2x: number, v2y: number): number {
-  return v1x * v2y - v1y * v2x
+// Conversion utilities between our types and GeoJSON
+export function polygonToGeoJSON(polygon: Polygon2D): Feature<GeoJSONPolygon> {
+  const coordinates = polygon.points.map(p => [Number(p.x), Number(p.y)])
+  // Ensure the polygon is closed
+  if (coordinates.length > 0) {
+    const first = coordinates[0]
+    const last = coordinates[coordinates.length - 1]
+    if (first[0] !== last[0] || first[1] !== last[1]) {
+      coordinates.push([first[0], first[1]])
+    }
+  }
+  return turfPolygon([coordinates])
 }
 
-// Check if two line segments intersect (excluding endpoints touching)
-export function doLineSegmentsIntersect(seg1: LineSegment2D, seg2: LineSegment2D): boolean {
-  const p1 = seg1.start
-  const q1 = seg1.end
-  const p2 = seg2.start
-  const q2 = seg2.end
-
-  // Calculate direction vectors
-  const d1x = q1.x - p1.x
-  const d1y = q1.y - p1.y
-  const d2x = q2.x - p2.x
-  const d2y = q2.y - p2.y
-
-  // Calculate cross product of direction vectors
-  const denominator = crossProduct2D(d1x, d1y, d2x, d2y)
-
-  // If denominator is 0, lines are parallel
-  if (Math.abs(denominator) < 1e-10) {
-    return false
+export function pointsToGeoJSONPolygon(points: Point2D[]): Feature<GeoJSONPolygon> {
+  const coordinates = points.map(p => [Number(p.x), Number(p.y)])
+  // Ensure the polygon is closed
+  if (coordinates.length > 0) {
+    coordinates.push([coordinates[0][0], coordinates[0][1]])
   }
+  return turfPolygon([coordinates])
+}
 
-  // Calculate parameters for intersection
-  const dx = p2.x - p1.x
-  const dy = p2.y - p1.y
+export function lineSegmentToGeoJSON(segment: LineSegment2D): Feature<LineString> {
+  return turfLineString([
+    [Number(segment.start.x), Number(segment.start.y)],
+    [Number(segment.end.x), Number(segment.end.y)]
+  ])
+}
 
-  const t = crossProduct2D(dx, dy, d2x, d2y) / denominator
-  const u = crossProduct2D(dx, dy, d1x, d1y) / denominator
+// Check if two line segments intersect (using Turf.js)
+export function doLineSegmentsIntersect(seg1: LineSegment2D, seg2: LineSegment2D): boolean {
+  const line1 = lineSegmentToGeoJSON(seg1)
+  const line2 = lineSegmentToGeoJSON(seg2)
 
-  // Check if intersection occurs within both line segments (excluding endpoints)
-  // Use small epsilon to avoid numerical precision issues
-  const epsilon = 1e-10
-  return t > epsilon && t < 1 - epsilon && u > epsilon && u < 1 - epsilon
+  const intersections = lineIntersect(line1, line2)
+  return intersections.features.length > 0
 }
 
 // Check if a point is already used in the polygon (with tolerance for floating point precision)
@@ -524,24 +530,19 @@ export function wouldPolygonSelfIntersect(existingPoints: Point2D[], newPoint: P
 export function wouldClosingPolygonSelfIntersect(points: Point2D[]): boolean {
   if (points.length < 3) return false
 
-  // The closing segment would be from the last point back to the first
-  const closingSegment: LineSegment2D = {
-    start: points[points.length - 1],
-    end: points[0]
-  }
+  try {
+    const polygon = pointsToGeoJSONPolygon(points)
 
-  // Check if this closing segment intersects with any existing segments
-  // (except the first and last segments which it naturally connects to)
-  for (let i = 1; i < points.length - 2; i++) {
-    const existingSegment: LineSegment2D = {
-      start: points[i],
-      end: points[i + 1]
-    }
-
-    if (doLineSegmentsIntersect(closingSegment, existingSegment)) {
+    // Check if the closed polygon is valid
+    if (!booleanValid(polygon)) {
       return true
     }
-  }
 
-  return false
+    // Check if the polygon has self-intersections
+    const selfIntersections = kinks(polygon)
+    return selfIntersections.features.length > 0
+  } catch (error) {
+    // If Turf can't create or validate the polygon, it's likely invalid
+    return true
+  }
 }
