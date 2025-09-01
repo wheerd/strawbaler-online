@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FloorPlanStage } from './Canvas/FloorPlanStage'
+import { GridSizeDisplay } from './GridSizeDisplay'
 import { useFloors } from '@/model/store'
 import { useEditorStore } from './hooks/useEditorStore'
 import { ToolContextProvider, MainToolbar, PropertiesPanel, initializeToolSystem } from './Tools'
@@ -98,6 +99,7 @@ function FloorPlanEditorContent(): React.JSX.Element {
         {/* Canvas Area */}
         <div className="canvas-section">
           <FloorPlanStage width={dimensions.width} height={dimensions.height} />
+          <GridSizeDisplay />
         </div>
 
         {/* Right Properties Panel */}
