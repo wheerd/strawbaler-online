@@ -131,6 +131,7 @@ export interface OuterWallPolygon {
 
   // Per-side wall data
   segments: OuterWallSegment[] // segments[i] goes from boundary[i] -> boundary[(i + 1) % boundary.length]
+  corners: OuterCorner[]
 }
 
 export type OuterWallConstructionType = 'cells-under-tension' | 'infill' | 'strawhenge' | 'non-strawbale'
@@ -148,4 +149,13 @@ export interface OuterWallSegment {
   outsideLine: LineSegment2D
   direction: Vec2 // Normalized from start -> end of segment
   outsideDirection: Vec2 // Normal vector pointing outside
+}
+
+export interface OuterCorner {
+  // This point, the boundary point, and the two adjacent wall edge points define the corner area
+  // Together with the wall areas the form the whole area that the outer wall covers
+  outsidePoint: Vec2
+
+  // Which wall "owns" this corner - this is relevant for construction
+  belongsTo: 'previous' | 'next'
 }

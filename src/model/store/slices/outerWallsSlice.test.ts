@@ -308,4 +308,114 @@ describe('OuterWallsSlice', () => {
       expect(store.getOuterWallsByFloor(createFloorId())).toHaveLength(0)
     })
   })
+
+  describe('corner functionality', () => {
+    it('should create corners with default belongsTo when adding outer wall', () => {
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
+      const walls = store.getOuterWallsByFloor(testFloorId)
+      const wall = walls[0]
+
+      expect(wall.corners).toHaveLength(4)
+      expect(wall.corners[0].belongsTo).toBe('next')
+      expect(wall.corners[1].belongsTo).toBe('next')
+      expect(wall.corners[2].belongsTo).toBe('next')
+      expect(wall.corners[3].belongsTo).toBe('next')
+    })
+
+    it('should calculate corner outside points', () => {
+      const thickness = createLength(200)
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', thickness)
+      const walls = store.getOuterWallsByFloor(testFloorId)
+      const wall = walls[0]
+
+      // Each corner should have an outside point that's not at the boundary point
+      for (const corner of wall.corners) {
+        expect(corner.outsidePoint).toBeDefined()
+        expect(corner.outsidePoint[0]).toBeTypeOf('number')
+        expect(corner.outsidePoint[1]).toBeTypeOf('number')
+      }
+    })
+
+    it('should update corner belongsTo by index', () => {
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
+      const walls = store.getOuterWallsByFloor(testFloorId)
+      const wallId = walls[0].id
+
+      store.updateCornerBelongsTo(wallId, 0, 'previous')
+      store.updateCornerBelongsTo(wallId, 2, 'previous')
+
+      const updatedWalls = store.getOuterWallsByFloor(testFloorId)
+      const updatedWall = updatedWalls[0]
+
+      expect(updatedWall.corners[0].belongsTo).toBe('previous')
+      expect(updatedWall.corners[1].belongsTo).toBe('next')
+      expect(updatedWall.corners[2].belongsTo).toBe('previous')
+      expect(updatedWall.corners[3].belongsTo).toBe('next')
+    })
+
+    it('should ignore invalid corner index when updating belongsTo', () => {
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
+      const walls = store.getOuterWallsByFloor(testFloorId)
+      const wallId = walls[0].id
+      const originalCorners = [...walls[0].corners]
+
+      store.updateCornerBelongsTo(wallId, -1, 'previous')
+      store.updateCornerBelongsTo(wallId, 10, 'previous')
+
+      const unchangedWalls = store.getOuterWallsByFloor(testFloorId)
+      const unchangedWall = unchangedWalls[0]
+
+      // Corners should remain unchanged
+      expect(unchangedWall.corners[0].belongsTo).toBe(originalCorners[0].belongsTo)
+      expect(unchangedWall.corners[1].belongsTo).toBe(originalCorners[1].belongsTo)
+      expect(unchangedWall.corners[2].belongsTo).toBe(originalCorners[2].belongsTo)
+      expect(unchangedWall.corners[3].belongsTo).toBe(originalCorners[3].belongsTo)
+    })
+
+    it('should recalculate corners when thickness changes', () => {
+      const initialThickness = createLength(200)
+      const newThickness = createLength(400)
+
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', initialThickness)
+      const walls = store.getOuterWallsByFloor(testFloorId)
+      const wallId = walls[0].id
+      const originalCorners = walls[0].corners.map(c => ({ ...c, outsidePoint: [...c.outsidePoint] }))
+
+      store.updateOuterWallThickness(wallId, 0, newThickness)
+
+      const updatedWalls = store.getOuterWallsByFloor(testFloorId)
+      const updatedWall = updatedWalls[0]
+
+      // At least one corner should have changed due to thickness change
+      const cornersChanged = updatedWall.corners.some(
+        (corner, index) =>
+          corner.outsidePoint[0] !== originalCorners[index].outsidePoint[0] ||
+          corner.outsidePoint[1] !== originalCorners[index].outsidePoint[1]
+      )
+
+      expect(cornersChanged).toBe(true)
+    })
+
+    it('should preserve belongsTo values when recalculating corners', () => {
+      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
+      const walls = store.getOuterWallsByFloor(testFloorId)
+      const wallId = walls[0].id
+
+      // Set custom belongsTo values
+      store.updateCornerBelongsTo(wallId, 0, 'previous')
+      store.updateCornerBelongsTo(wallId, 2, 'previous')
+
+      // Change thickness to trigger corner recalculation
+      store.updateOuterWallThickness(wallId, 0, createLength(400))
+
+      const updatedWalls = store.getOuterWallsByFloor(testFloorId)
+      const updatedWall = updatedWalls[0]
+
+      // belongsTo values should be preserved
+      expect(updatedWall.corners[0].belongsTo).toBe('previous')
+      expect(updatedWall.corners[1].belongsTo).toBe('next')
+      expect(updatedWall.corners[2].belongsTo).toBe('previous')
+      expect(updatedWall.corners[3].belongsTo).toBe('next')
+    })
+  })
 })

@@ -1,9 +1,9 @@
 import type { StateCreator } from 'zustand'
-import type { OuterWallPolygon, OuterWallConstructionType, OuterWallSegment, Opening } from '@/types/model'
+import type { OuterWallPolygon, OuterWallConstructionType, OuterWallSegment, Opening, OuterCorner } from '@/types/model'
 import type { FloorId, OuterWallId } from '@/types/ids'
 import type { Length, Polygon2D, Vec2, LineSegment2D } from '@/types/geometry'
 import { createOuterWallId } from '@/types/ids'
-import { createLength, createVec2 } from '@/types/geometry'
+import { createLength, createVec2, lineIntersection, lineFromSegment, midpoint } from '@/types/geometry'
 
 export interface OuterWallsState {
   outerWalls: Map<OuterWallId, OuterWallPolygon>
@@ -20,6 +20,7 @@ export interface OuterWallsActions {
 
   updateOuterWallConstructionType: (wallId: OuterWallId, segmentIndex: number, type: OuterWallConstructionType) => void
   updateOuterWallThickness: (wallId: OuterWallId, segmentIndex: number, thickness: Length) => void
+  updateCornerBelongsTo: (wallId: OuterWallId, cornerIndex: number, belongsTo: 'previous' | 'next') => void
 
   addOpeningToOuterWall: (wallId: OuterWallId, segmentIndex: number, opening: Opening) => void
   removeOpeningFromOuterWall: (wallId: OuterWallId, segmentIndex: number, openingIndex: number) => void
@@ -33,6 +34,56 @@ export type OuterWallsSlice = OuterWallsState & OuterWallsActions
 
 // Default wall thickness value
 const DEFAULT_OUTER_WALL_THICKNESS = createLength(440) // 44cm for strawbale walls
+
+// Helper function to calculate corner outside point using already computed segment outside lines
+const calculateCornerOutsidePoint = (
+  previousSegment: OuterWallSegment,
+  nextSegment: OuterWallSegment,
+  boundaryPoint: Vec2
+): Vec2 => {
+  // Convert the outside line segments to infinite lines for intersection
+  const prevOutsideLine = lineFromSegment(previousSegment.outsideLine)
+  const nextOutsideLine = lineFromSegment(nextSegment.outsideLine)
+
+  if (!prevOutsideLine || !nextOutsideLine) {
+    // Fallback for degenerate case
+    return createVec2(boundaryPoint[0], boundaryPoint[1])
+  }
+
+  // Find intersection of the two outside lines
+  const intersection = lineIntersection(prevOutsideLine, nextOutsideLine)
+
+  if (intersection) {
+    return intersection
+  }
+
+  // Fallback: use average of the outside line endpoints closest to the corner
+  const prevEnd = previousSegment.outsideLine.end
+  const nextStart = nextSegment.outsideLine.start
+  return midpoint(prevEnd, nextStart)
+}
+
+// Helper function to create corners from boundary points and segments
+const createCornersFromBoundary = (boundary: Polygon2D, segments: OuterWallSegment[]): OuterCorner[] => {
+  const corners: OuterCorner[] = []
+
+  for (let i = 0; i < boundary.points.length; i++) {
+    const prevIndex = (i - 1 + boundary.points.length) % boundary.points.length
+    const currentPoint = boundary.points[i]
+
+    const previousSegment = segments[prevIndex]
+    const nextSegment = segments[i]
+
+    const outsidePoint = calculateCornerOutsidePoint(previousSegment, nextSegment, currentPoint)
+
+    corners.push({
+      outsidePoint,
+      belongsTo: 'next' // Default to next segment
+    })
+  }
+
+  return corners
+}
 
 // Helper function to compute geometric properties for a single segment
 const computeSegmentGeometry = (
@@ -83,9 +134,15 @@ const computeSegmentGeometry = (
     end: outsideEnd
   }
 
+  // Calculate outside length (same as inside for straight segments)
+  const outsideLength = Math.sqrt(
+    (outsideEnd[0] - outsideStart[0]) * (outsideEnd[0] - outsideStart[0]) +
+      (outsideEnd[1] - outsideStart[1]) * (outsideEnd[1] - outsideStart[1])
+  )
+
   return {
     insideLength: length as Length,
-    outsideLength: length as Length, // For now same as inside length
+    outsideLength: outsideLength as Length,
     insideLine,
     outsideLine,
     direction,
@@ -140,12 +197,14 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
     }
 
     const segments = createSegmentsFromBoundary(boundary, constructionType, wallThickness)
+    const corners = createCornersFromBoundary(boundary, segments)
 
     const outerWall: OuterWallPolygon = {
       id: createOuterWallId(),
       floorId,
       boundary: boundary.points,
-      segments
+      segments,
+      corners
     }
 
     set(state => ({
@@ -215,9 +274,45 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
         ...geometry
       }
 
+      // Recalculate corners since thickness changed
+      const boundary = { points: outerWall.boundary }
+      const updatedCorners = createCornersFromBoundary(boundary, updatedSegments)
+
+      // Preserve existing belongsTo values
+      for (let i = 0; i < updatedCorners.length && i < outerWall.corners.length; i++) {
+        updatedCorners[i].belongsTo = outerWall.corners[i].belongsTo
+      }
+
       const updatedOuterWall = {
         ...outerWall,
-        segments: updatedSegments
+        segments: updatedSegments,
+        corners: updatedCorners
+      }
+
+      const newOuterWalls = new Map(state.outerWalls)
+      newOuterWalls.set(wallId, updatedOuterWall)
+      return { outerWalls: newOuterWalls }
+    })
+  },
+
+  updateCornerBelongsTo: (wallId: OuterWallId, cornerIndex: number, belongsTo: 'previous' | 'next') => {
+    set(state => {
+      const outerWall = state.outerWalls.get(wallId)
+      if (outerWall == null) return state
+
+      if (cornerIndex < 0 || cornerIndex >= outerWall.corners.length) {
+        return state // Invalid index, do nothing
+      }
+
+      const updatedCorners = [...outerWall.corners]
+      updatedCorners[cornerIndex] = {
+        ...updatedCorners[cornerIndex],
+        belongsTo
+      }
+
+      const updatedOuterWall = {
+        ...outerWall,
+        corners: updatedCorners
       }
 
       const newOuterWalls = new Map(state.outerWalls)
