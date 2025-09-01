@@ -109,22 +109,24 @@ export class SnappingService {
     }
 
     // 3. Add extension and perpendicular lines for reference line segments (if any)
-    if (context.referenceLineSegments != null) {
-      for (const segment of context.referenceLineSegments) {
-        const line = lineFromSegment(segment)
+    for (const segment of context.referenceLineSegments ?? []) {
+      const line = lineFromSegment(segment)
 
-        // Extension line (same direction as wall)
-        snapLines.push({
-          point: line.point,
-          direction: line.direction
-        })
+      // Extension line (same direction as wall)
+      snapLines.push({
+        point: line.point,
+        direction: line.direction
+      })
 
-        // Perpendicular line (90 degrees rotated)
-        snapLines.push({
-          point: line.point,
-          direction: createVector2D(-line.direction.y, line.direction.x)
-        })
-      }
+      // Perpendicular lines (90 degrees rotated)
+      snapLines.push({
+        point: segment.start,
+        direction: createVector2D(-line.direction.y, line.direction.x)
+      })
+      snapLines.push({
+        point: segment.end,
+        direction: createVector2D(-line.direction.y, line.direction.x)
+      })
     }
 
     return snapLines
