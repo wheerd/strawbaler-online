@@ -82,13 +82,13 @@ export class SnappingService {
     for (const point of allPoints) {
       // Horizontal line through point
       snapLines.push({
-        point: point,
+        point,
         direction: createVector2D(1, 0)
       })
 
       // Vertical line through point
       snapLines.push({
-        point: point,
+        point,
         direction: createVector2D(0, 1)
       })
     }

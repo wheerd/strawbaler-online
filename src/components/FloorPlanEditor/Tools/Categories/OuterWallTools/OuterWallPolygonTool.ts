@@ -1,6 +1,6 @@
 import type { Tool, ContextAction, CanvasEvent, ToolOverlayContext } from '../../ToolSystem/types'
 import type { Point2D, Polygon2D, LineSegment2D } from '@/types/geometry'
-import { createLength, polygonIsClockwise } from '@/types/geometry'
+import { createLength, createPoint2D, polygonIsClockwise } from '@/types/geometry'
 import type { SnappingContext, SnapResult } from '@/model/store/services/snapping/types'
 import React from 'react'
 import { Line, Circle } from 'react-konva'
@@ -9,6 +9,7 @@ import { createPointId, type FloorId } from '@/model'
 
 interface OuterWallPolygonToolState {
   points: Point2D[]
+  mouse: Point2D
   snapResult?: SnapResult
   snapContext: SnappingContext
 }
@@ -23,6 +24,7 @@ export class OuterWallPolygonTool implements Tool {
 
   public state: OuterWallPolygonToolState = {
     points: [],
+    mouse: createPoint2D(0, 0),
     snapContext: {
       points: [],
       alignPoints: [],
@@ -58,11 +60,12 @@ export class OuterWallPolygonTool implements Tool {
       referencePoint: this.state.points[this.state.points.length - 1],
       referenceLineSegments
     }
-    console.log(this.state.snapContext)
+    this.listeners.forEach(l => l())
   }
 
   handleMouseDown(event: CanvasEvent): boolean {
     const stageCoords = event.stageCoordinates
+    this.state.mouse = stageCoords
     this.state.snapResult = this.snapService.findSnapResult(stageCoords, this.state.snapContext) ?? undefined
     const snapCoords = this.state.snapResult?.position ?? stageCoords
 
@@ -83,7 +86,9 @@ export class OuterWallPolygonTool implements Tool {
 
   handleMouseMove(event: CanvasEvent): boolean {
     const stageCoords = event.stageCoordinates
+    this.state.mouse = stageCoords
     this.state.snapResult = this.snapService.findSnapResult(stageCoords, this.state.snapContext) ?? undefined
+    this.listeners.forEach(l => l())
     return true
   }
 
@@ -115,6 +120,48 @@ export class OuterWallPolygonTool implements Tool {
   onDeactivate(): void {
     this.state.points = []
     this.updateSnapContext()
+  }
+
+  private renderSnapping(context: ToolOverlayContext): React.ReactNode {
+    const elements: React.ReactNode[] = []
+
+    const lines = this.state.snapResult?.lines ?? []
+    for (const i in lines) {
+      const line = lines[i]
+      elements.push(
+        React.createElement(Line, {
+          key: `snap-line-${i}`,
+          points: [
+            line.point.x - context.getInfiniteLineExtent() * line.direction.x,
+            line.point.y - context.getInfiniteLineExtent() * line.direction.y,
+            line.point.x + context.getInfiniteLineExtent() * line.direction.x,
+            line.point.y + context.getInfiniteLineExtent() * line.direction.y
+          ],
+          stroke: '#0066ff',
+          strokeWidth: 8,
+          opacity: 0.5,
+          listening: false
+        })
+      )
+    }
+
+    if (this.state.snapResult?.position || this.state.mouse) {
+      const pos = this.state.snapResult?.position ?? this.state.mouse
+      elements.push(
+        React.createElement(Circle, {
+          x: pos.x,
+          y: pos.y,
+          radius: 15,
+          fill: '#0066ff',
+          stroke: '#ffffff',
+          strokeWidth: 3,
+          opacity: 0.9,
+          listening: false
+        })
+      )
+    }
+
+    return React.createElement(React.Fragment, null, ...elements)
   }
 
   renderOverlay(context: ToolOverlayContext): React.ReactNode {
@@ -163,7 +210,7 @@ export class OuterWallPolygonTool implements Tool {
     // Draw line to current mouse position
     if (this.state.points.length > 0) {
       const lastPoint = this.state.points[this.state.points.length - 1]
-      const currentPos = context.snapResult?.position || context.snapTarget || context.currentMousePos
+      const currentPos = this.state.snapResult?.position ?? this.state.mouse
 
       if (currentPos) {
         elements.push(
@@ -178,6 +225,8 @@ export class OuterWallPolygonTool implements Tool {
         )
       }
     }
+
+    elements.push(this.renderSnapping(context))
 
     return React.createElement(React.Fragment, null, ...elements)
   }
@@ -240,5 +289,14 @@ export class OuterWallPolygonTool implements Tool {
   private cancelPolygon(): void {
     this.state.points = []
     this.updateSnapContext()
+  }
+
+  private listeners: (() => void)[] = []
+
+  onRenderNeeded(listener: () => void): () => void {
+    this.listeners.push(listener)
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener)
+    }
   }
 }

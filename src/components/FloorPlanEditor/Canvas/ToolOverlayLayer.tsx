@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Layer, Line, Circle } from 'react-konva'
 import { useToolContext, useToolManagerState } from '@/components/FloorPlanEditor/Tools'
 import {
@@ -50,6 +50,14 @@ export function ToolOverlayLayer(): React.JSX.Element {
 
   // Get overlay content from active tool
   const overlayContent = activeTool?.renderOverlay?.(overlayContext)
+  const [, forceUpdate] = useState(0)
+  const rerenderListener = () => {
+    forceUpdate(prev => prev + 1)
+  }
+
+  useEffect(() => {
+    return activeTool?.onRenderNeeded?.(rerenderListener)
+  }, [activeTool])
 
   return (
     <Layer name="tool-overlay" listening={false}>

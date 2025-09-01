@@ -39,6 +39,7 @@ export interface Tool extends BaseTool {
 
   // Overlay rendering - tools can render custom preview overlays
   renderOverlay?(context: ToolOverlayContext): React.ReactNode
+  onRenderNeeded?(listener: () => void): () => void
 }
 
 export interface ToolInspectorProps {
