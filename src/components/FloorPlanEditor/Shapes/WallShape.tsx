@@ -2,7 +2,8 @@ import { Line, Group, Arrow, Text } from 'react-konva'
 import type Konva from 'konva'
 import { useCallback, useRef } from 'react'
 import type { Wall } from '@/types/model'
-import { useSelectedEntity, useEditorStore, useActiveTool } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useCurrentSelection, useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
+import { useEditorStore, useActiveTool } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { usePoints, useCorners, useWallLength } from '@/model/store'
 import { createVec2, distance, subtract, normalize, perpendicularCCW, angle } from '@/types/geometry'
 import { getWallVisualization } from '@/components/FloorPlanEditor/visualization/wallVisualization'
@@ -12,10 +13,9 @@ interface WallShapeProps {
 }
 
 export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
-  // Use individual selectors to avoid object creation
-  const selectedEntity = useSelectedEntity()
-  const selectEntity = useEditorStore(state => state.selectEntity)
-  const setSelectedEntity = useEditorStore(state => state.setSelectedEntity)
+  // Use new selection system
+  const selectedEntity = useCurrentSelection()
+  const pushSelection = useSelectionStore(state => state.pushSelection)
   const startDrag = useEditorStore(state => state.startDrag)
   const points = usePoints()
   const corners = useCorners()
@@ -51,9 +51,9 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
       }
 
       e.cancelBubble = true
-      selectEntity(wall.id)
+      pushSelection(wall.id)
     },
-    [selectEntity, wall.id, activeTool]
+    [pushSelection, wall.id, activeTool]
   )
 
   const handleMouseDown = useCallback(
@@ -70,8 +70,8 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
       // Reset drag flag
       hasDraggedRef.current = false
 
-      // Select the wall when starting to drag (use setSelectedEntity to avoid toggle)
-      setSelectedEntity(wall.id)
+      // Select the wall when starting to drag
+      pushSelection(wall.id)
 
       const stage = e.target.getStage()
       const pointer = stage?.getPointerPosition()
@@ -81,7 +81,7 @@ export function WallShape({ wall }: WallShapeProps): React.JSX.Element | null {
         hasDraggedRef.current = true
       }
     },
-    [startDrag, setSelectedEntity, wall.id, activeTool]
+    [startDrag, pushSelection, wall.id, activeTool]
   )
 
   // Get wall visualization using shared utility

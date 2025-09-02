@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { createVec2, type Vec2 } from '@/types/geometry'
-import type { EntityId, FloorId, PointId } from '@/types/ids'
-import { isPointId, isWallId, isRoomId } from '@/types/ids'
+import type { FloorId, PointId } from '@/types/ids'
 import { type SnapResult } from '@/model/store/services/snapping'
 
 export type EditorTool = 'select' | 'wall' | 'room'
@@ -36,7 +35,7 @@ export interface EditorState {
   gridSize: number
   showRoomLabels: boolean
   activeFloorId: FloorId
-  selectedEntityId?: EntityId
+
   viewMode: ViewMode
   viewport: ViewportState
 }
@@ -55,9 +54,6 @@ export interface EditorActions {
   setGridSize: (size: number) => void
   setShowRoomLabels: (show: boolean) => void
   setActiveFloor: (floorId: FloorId) => void
-  setSelectedEntity: (entityId?: EntityId) => void
-  selectEntity: (entityId: EntityId) => void
-  clearSelection: () => void
   deleteSelectedEntity: () => void
   setViewMode: (viewMode: ViewMode) => void
   setViewport: (viewport: Partial<ViewportState>) => void
@@ -81,7 +77,7 @@ function createInitialState(defaultFloorId: FloorId): EditorState {
     gridSize: 500, // 500mm (0.5m) grid for real-world scale
     showRoomLabels: true,
     activeFloorId: defaultFloorId,
-    selectedEntityId: undefined,
+
     viewMode: 'plan',
     viewport: {
       zoom: 0.15, // Better default zoom for real-world scale (3m room ≈ 450px)
@@ -147,52 +143,14 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
 
   setActiveFloor: (floorId: FloorId) => {
     set({
-      activeFloorId: floorId,
-      selectedEntityId: undefined
+      activeFloorId: floorId
     })
   },
 
-  setSelectedEntity: (entityId?: EntityId) => {
-    set({ selectedEntityId: entityId })
-  },
-
-  selectEntity: (entityId: EntityId) => {
-    const state = get()
-    // Toggle selection - if already selected, deselect; otherwise select
-    const selectedEntityId = state.selectedEntityId === entityId ? undefined : entityId
-    set({ selectedEntityId })
-  },
-
-  clearSelection: () => {
-    set({ selectedEntityId: undefined })
-  },
-
   deleteSelectedEntity: () => {
-    const state = get()
-    if (state.selectedEntityId == null) return
-
-    const entityId = state.selectedEntityId
-
-    // Import the model store dynamically to avoid circular dependencies
-    import('@/model/store')
-      .then(({ useModelStore }) => {
-        const modelStore = useModelStore.getState()
-
-        // Use type guards to determine entity type and call appropriate remove function
-        if (isPointId(entityId)) {
-          modelStore.removePoint(entityId)
-        } else if (isWallId(entityId)) {
-          modelStore.removeWall(entityId)
-        } else if (isRoomId(entityId)) {
-          modelStore.removeRoom(entityId)
-        }
-
-        // Clear selection after deletion
-        set({ selectedEntityId: undefined })
-      })
-      .catch(error => {
-        console.error('Failed to delete entity:', error)
-      })
+    // Delete functionality moved to selection store and keyboard shortcut manager
+    // This is kept for backward compatibility but does nothing
+    console.warn('deleteSelectedEntity is deprecated - use selection store with keyboard shortcuts')
   },
 
   setViewMode: (viewMode: ViewMode) => {
@@ -264,6 +222,7 @@ export const useShowGrid = (): boolean => useEditorStore(state => state.showGrid
 export const useEditorGridSize = (): number => useEditorStore(state => state.gridSize)
 export const useShowRoomLabels = (): boolean => useEditorStore(state => state.showRoomLabels)
 export const useActiveFloorId = (): FloorId => useEditorStore(state => state.activeFloorId)
-export const useSelectedEntity = (): string | undefined => useEditorStore(state => state.selectedEntityId)
+// Deprecated - use useCurrentSelection from selection store instead
+// export const useSelectedEntity = (): string | undefined => useEditorStore(state => state.selectedEntityId)
 export const useViewMode = (): ViewMode => useEditorStore(state => state.viewMode)
 export const useViewport = (): ViewportState => useEditorStore(state => state.viewport)

@@ -6,7 +6,8 @@ import { useEditorStore, useActiveFloorId } from '@/components/FloorPlanEditor/h
 import { defaultSnappingService } from '@/model/store/services/snapping/SnappingService'
 import { useSnappingContext } from '@/components/FloorPlanEditor/hooks/useSnappingContext'
 import { createVec2, type Vec2 } from '@/types/geometry'
-import type { EntityId, PointId } from '@/types/ids'
+import type { EntityId, SelectableId, PointId } from '@/types/ids'
+import { useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
 import type { SnapResult as ModelSnapResult } from '@/model/store/services/snapping/types'
 
 interface ToolContextProviderProps {
@@ -31,10 +32,14 @@ export function ToolContextProvider({ children }: ToolContextProviderProps): Rea
   const updateSnapTarget = useEditorStore(state => state.updateSnapTarget)
   const updateSnapResult = useEditorStore(state => state.updateSnapResult)
   const clearSnapState = useEditorStore(state => state.clearSnapState)
-  const selectEntity = useEditorStore(state => state.selectEntity)
-  const clearSelection = useEditorStore(state => state.clearSelection)
-  const selectedEntityId = useEditorStore(state => state.selectedEntityId)
   const setActiveTool = useEditorStore(state => state.setActiveTool)
+
+  // Selection store actions
+  const pushSelection = useSelectionStore(state => state.pushSelection)
+  const popSelectionStore = useSelectionStore(state => state.popSelection)
+  const clearSelectionStore = useSelectionStore(state => state.clearSelection)
+  const getCurrentSelection = useSelectionStore(state => state.getCurrentSelection)
+  const getSelectedEntityId = useSelectionStore(state => state.getSelectedEntityId)
 
   // Subscribe to tool manager changes
   useEffect(() => {
@@ -91,12 +96,29 @@ export function ToolContextProvider({ children }: ToolContextProviderProps): Rea
       updateSnapTarget,
       clearSnapState,
 
-      // Selection management (single entity only)
-      selectEntity,
-      clearSelection,
+      // Hierarchical selection management
+      selectEntity: (entityId: EntityId): void => {
+        pushSelection(entityId)
+      },
+
+      selectSubEntity: (subEntityId: SelectableId): void => {
+        pushSelection(subEntityId)
+      },
+
+      popSelection: (): void => {
+        popSelectionStore()
+      },
+
+      clearSelection: (): void => {
+        clearSelectionStore()
+      },
+
+      getCurrentSelection: (): SelectableId | null => {
+        return getCurrentSelection()
+      },
 
       getSelectedEntityId: (): EntityId | null => {
-        return selectedEntityId ?? null
+        return getSelectedEntityId()
       },
 
       // Store access (tools use these directly)
@@ -124,9 +146,11 @@ export function ToolContextProvider({ children }: ToolContextProviderProps): Rea
       updateSnapTarget,
       updateSnapResult,
       clearSnapState,
-      selectEntity,
-      clearSelection,
-      selectedEntityId
+      pushSelection,
+      popSelectionStore,
+      clearSelectionStore,
+      getCurrentSelection,
+      getSelectedEntityId
     ]
   )
 

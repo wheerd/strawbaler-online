@@ -2,7 +2,7 @@ import { Circle, Group, Line } from 'react-konva'
 import { useCallback } from 'react'
 import type Konva from 'konva'
 import type { Corner } from '@/types/model'
-import { useSelectedEntity, useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useCurrentSelection, useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
 import { usePoint, useWalls, usePoints } from '@/model/store'
 import { calculateCornerMiterPolygon } from '@/components/FloorPlanEditor/visualization/cornerVisualization'
 
@@ -11,8 +11,8 @@ interface CornerShapeProps {
 }
 
 export function CornerShape({ corner }: CornerShapeProps): React.JSX.Element | null {
-  const selectedEntity = useSelectedEntity()
-  const selectEntity = useEditorStore(state => state.selectEntity)
+  const selectedEntity = useCurrentSelection()
+  const pushSelection = useSelectionStore(state => state.pushSelection)
   const cornerPoint = usePoint(corner.pointId)
   const walls = useWalls()
   const points = usePoints()
@@ -26,9 +26,9 @@ export function CornerShape({ corner }: CornerShapeProps): React.JSX.Element | n
   const handleClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>): void => {
       e.cancelBubble = true
-      selectEntity(corner.pointId)
+      pushSelection(corner.pointId)
     },
-    [selectEntity, corner.pointId]
+    [pushSelection, corner.pointId]
   )
 
   // Calculate the miter joint polygon

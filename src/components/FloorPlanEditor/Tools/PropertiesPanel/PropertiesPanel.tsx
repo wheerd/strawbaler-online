@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useModelStore } from '@/model/store'
-import { useSelectedEntity } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useCurrentSelection } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
 import { useActiveTool } from '../ToolSystem/ToolContext'
 import { WallInspector, RoomInspector, PointInspector, CornerInspector } from './Inspectors'
 import { WallToolInspector } from './ToolInspectors/WallToolInspector'
@@ -9,7 +9,7 @@ import type { Entity } from '../ToolSystem/types'
 import type { Wall, Room, Point, Corner } from '@/types/model'
 
 export function PropertiesPanel(): React.JSX.Element {
-  const selectedEntityId = useSelectedEntity()
+  const selectedEntityId = useCurrentSelection()
   const activeTool = useActiveTool()
 
   // Get selected entity from model store

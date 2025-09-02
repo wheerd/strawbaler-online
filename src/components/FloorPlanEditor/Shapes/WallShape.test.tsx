@@ -3,24 +3,24 @@ import { render } from '@testing-library/react'
 import { WallShape } from './WallShape'
 import type { Wall, Point } from '@/types/model'
 import type { PointId } from '@/types/ids'
+import { createWallId as createAnotherWallId, createPointId, createFloorId  } from '@/types/ids'
 import type { Vec2 } from '@/types/geometry'
-import { createWallId, createPointId, createFloorId } from '@/types/ids'
 import { createLength, createVec2 } from '@/types/geometry'
 
-import {
-  useSelectedEntity,
-  useEditorStore,
-  useDragState,
-  useActiveTool
-} from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useEditorStore, useDragState, useActiveTool } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useCurrentSelection, useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
 import { usePoints, useCorners, useWallLength } from '@/model/store'
 
-// Mock the editor store hooks
+// Mock the store hooks
 vi.mock('@/components/FloorPlanEditor/hooks/useEditorStore', () => ({
-  useSelectedEntity: vi.fn(),
   useEditorStore: vi.fn(),
   useDragState: vi.fn(),
   useActiveTool: vi.fn()
+}))
+
+vi.mock('@/components/FloorPlanEditor/hooks/useSelectionStore', () => ({
+  useCurrentSelection: vi.fn(),
+  useSelectionStore: vi.fn()
 }))
 
 // Mock the model store hooks
@@ -49,10 +49,11 @@ describe('WallShape Angle Normalization', () => {
   })
 
   beforeEach(() => {
-    vi.mocked(useSelectedEntity).mockReturnValue(mockWall.id)
+    vi.mocked(useCurrentSelection).mockReturnValue(mockWall.id)
+    vi.mocked(useSelectionStore).mockReturnValue({
+      pushSelection: vi.fn()
+    })
     vi.mocked(useEditorStore).mockReturnValue({
-      selectEntity: vi.fn(),
-      setSelectedEntity: vi.fn(),
       startDrag: vi.fn()
     })
     vi.mocked(useDragState).mockReturnValue({
@@ -187,7 +188,7 @@ describe('WallShape Angle Normalization', () => {
   })
 
   it('should not render text when wall is not selected', () => {
-    vi.mocked(useSelectedEntity).mockReturnValue('different-id')
+    vi.mocked(useCurrentSelection).mockReturnValue(createAnotherWallId())
     vi.mocked(usePoints).mockReturnValue(
       new Map([
         [mockWall.startPointId, createMockPoint(mockWall.startPointId, createVec2(0, 0))],

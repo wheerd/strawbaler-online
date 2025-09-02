@@ -4,7 +4,7 @@ import { Stage, Layer } from 'react-konva'
 import { OuterWallShape } from './OuterWallShape'
 import { OuterCornerShape } from './OuterCornerShape'
 import { createLength, createVec2 } from '@/types/geometry'
-import { createOuterWallId, createFloorId } from '@/types/ids'
+import { createOuterWallId, createFloorId, createWallSegmentId, createOuterCornerId } from '@/types/ids'
 import type { OuterWallPolygon } from '@/types/model'
 
 describe('OuterWallShape', () => {
@@ -14,6 +14,7 @@ describe('OuterWallShape', () => {
     boundary: [createVec2(0, 0), createVec2(1000, 0), createVec2(1000, 1000), createVec2(0, 1000)],
     segments: [
       {
+        id: createWallSegmentId(),
         thickness: createLength(400),
         constructionType: 'cells-under-tension',
         openings: [],
@@ -31,6 +32,7 @@ describe('OuterWallShape', () => {
         outsideDirection: createVec2(0, -1)
       },
       {
+        id: createWallSegmentId(),
         thickness: createLength(400),
         constructionType: 'infill',
         openings: [],
@@ -48,6 +50,7 @@ describe('OuterWallShape', () => {
         outsideDirection: createVec2(1, 0)
       },
       {
+        id: createWallSegmentId(),
         thickness: createLength(400),
         constructionType: 'strawhenge',
         openings: [],
@@ -65,6 +68,7 @@ describe('OuterWallShape', () => {
         outsideDirection: createVec2(0, 1)
       },
       {
+        id: createWallSegmentId(),
         thickness: createLength(400),
         constructionType: 'non-strawbale',
         openings: [],
@@ -84,18 +88,22 @@ describe('OuterWallShape', () => {
     ],
     corners: [
       {
+        id: createOuterCornerId(),
         outsidePoint: createVec2(1400, -400),
         belongsTo: 'next'
       },
       {
+        id: createOuterCornerId(),
         outsidePoint: createVec2(1400, 1400),
         belongsTo: 'previous'
       },
       {
+        id: createOuterCornerId(),
         outsidePoint: createVec2(-400, 1400),
         belongsTo: 'next'
       },
       {
+        id: createOuterCornerId(),
         outsidePoint: createVec2(-400, -400),
         belongsTo: 'previous'
       }

@@ -1,7 +1,8 @@
 import { Line, Text } from 'react-konva'
 import type { Room } from '@/types/model'
 import type { PointId } from '@/types/ids'
-import { useSelectedEntity, useEditorStore, useActiveTool } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useActiveTool, useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useCurrentSelection, useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
 import { usePoints } from '@/model/store'
 import type { Vec2 } from '@/types/geometry'
 
@@ -28,9 +29,9 @@ function getRoomCenter(points: number[]): { x: number; y: number } {
 }
 
 export function RoomShape({ room }: RoomShapeProps): React.JSX.Element | null {
-  // Use individual selectors to avoid object creation
-  const selectedEntity = useSelectedEntity()
-  const selectEntity = useEditorStore(state => state.selectEntity)
+  // Use new selection system
+  const selectedEntity = useCurrentSelection()
+  const pushSelection = useSelectionStore(state => state.pushSelection)
   const showRoomLabels = useEditorStore(state => state.showRoomLabels)
   const activeTool = useActiveTool()
   const pointMap = usePoints()
@@ -56,7 +57,7 @@ export function RoomShape({ room }: RoomShapeProps): React.JSX.Element | null {
       return
     }
 
-    selectEntity(room.id)
+    pushSelection(room.id)
   }
 
   return (

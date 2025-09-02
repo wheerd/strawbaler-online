@@ -2,7 +2,7 @@ import type { Vec2 } from '@/types/geometry'
 import type { Wall, Room, Point, Corner } from '@/types/model'
 import type { SnapResult } from '@/model/store/services/snapping/types'
 import type Konva from 'konva'
-import type { EntityId, FloorId, PointId, StoreActions } from '@/model'
+import type { EntityId, SelectableId, FloorId, PointId, StoreActions } from '@/model'
 import type React from 'react'
 
 export interface BaseTool {
@@ -112,8 +112,10 @@ export interface ToolContext {
   updateSnapTarget(target: Vec2): void
   clearSnapState(): void
 
-  // Single selection management (much simpler!)
+  // Hierarchical selection management
   selectEntity(entityId: EntityId): void
+  selectSubEntity(subEntityId: SelectableId): void
+  popSelection(): void // Go up one level in hierarchy
   clearSelection(): void
 
   // Store access (tools use these directly)
@@ -122,7 +124,8 @@ export interface ToolContext {
 
   // State access
   getActiveTool(): Tool | null
-  getSelectedEntityId(): EntityId | null
+  getCurrentSelection(): SelectableId | null
+  getSelectedEntityId(): EntityId | null // Backward compatibility
   getViewport(): { zoom: number; panX: number; panY: number; stageWidth: number; stageHeight: number }
 
   // Tool activation

@@ -2,12 +2,8 @@ import { Circle } from 'react-konva'
 import type Konva from 'konva'
 import { useCallback, useRef } from 'react'
 import type { Point } from '@/types/model'
-import {
-  useSelectedEntity,
-  useEditorStore,
-  useDragState,
-  useActiveTool
-} from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useEditorStore, useDragState, useActiveTool } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useCurrentSelection, useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
 import { createVec2 } from '@/types/geometry'
 
 interface PointShapeProps {
@@ -15,9 +11,9 @@ interface PointShapeProps {
 }
 
 export function PointShape({ point }: PointShapeProps): React.JSX.Element {
-  // Use individual selectors to avoid object creation
-  const selectedEntity = useSelectedEntity()
-  const selectEntity = useEditorStore(state => state.selectEntity)
+  // Use new selection system
+  const selectedEntity = useCurrentSelection()
+  const pushSelection = useSelectionStore(state => state.pushSelection)
   const startDrag = useEditorStore(state => state.startDrag)
   const dragState = useDragState()
   const activeTool = useActiveTool()
@@ -42,9 +38,9 @@ export function PointShape({ point }: PointShapeProps): React.JSX.Element {
 
       // Default behavior: stop propagation and toggle selection
       e.cancelBubble = true
-      selectEntity(point.id)
+      pushSelection(point.id)
     },
-    [selectEntity, point.id, activeTool]
+    [pushSelection, point.id, activeTool]
   )
 
   const handleMouseDown = useCallback(
@@ -62,7 +58,7 @@ export function PointShape({ point }: PointShapeProps): React.JSX.Element {
       hasDraggedRef.current = false
 
       // Select the point when starting to drag
-      selectEntity(point.id)
+      pushSelection(point.id)
 
       const stage = e.target.getStage()
       const pointer = stage?.getPointerPosition()
@@ -72,7 +68,7 @@ export function PointShape({ point }: PointShapeProps): React.JSX.Element {
         hasDraggedRef.current = true
       }
     },
-    [startDrag, selectEntity, point.id, activeTool]
+    [startDrag, pushSelection, point.id, activeTool]
   )
 
   return (
