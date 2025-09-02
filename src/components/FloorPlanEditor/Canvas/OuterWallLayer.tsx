@@ -8,20 +8,12 @@ export function OuterWallLayer(): React.JSX.Element {
   const activeFloorId = useActiveFloorId()
   const outerWalls = useFloorOuterWalls(activeFloorId)
 
-  // TODO: Implement proper selection state management
-  const selectedWallId: string | null = null
-  const selectedSegmentIndex: number | null = null
-  const selectedCornerIndex: number | null = null
-
   return (
     <Layer name="outer-walls">
       {outerWalls.map(outerWall => (
         <Group key={outerWall.id}>
           {/* Render wall segments */}
-          <OuterWallShape
-            outerWall={outerWall}
-            selectedSegmentIndex={selectedWallId === outerWall.id ? (selectedSegmentIndex ?? undefined) : undefined}
-          />
+          <OuterWallShape outerWall={outerWall} />
 
           {/* Render corner shapes */}
           {outerWall.corners.map((corner, cornerIndex) => {
@@ -32,17 +24,13 @@ export function OuterWallLayer(): React.JSX.Element {
             const nextSegment = outerWall.segments[nextSegmentIndex]
             const boundaryPoint = outerWall.boundary[cornerIndex]
 
-            const isCornerSelected = selectedWallId === outerWall.id && selectedCornerIndex === cornerIndex
-
             return (
               <OuterCornerShape
                 key={`corner-${cornerIndex}`}
                 corner={corner}
-                cornerIndex={cornerIndex}
                 boundaryPoint={boundaryPoint}
                 previousSegment={previousSegment}
                 nextSegment={nextSegment}
-                isSelected={isCornerSelected}
                 outerWallId={outerWall.id}
               />
             )

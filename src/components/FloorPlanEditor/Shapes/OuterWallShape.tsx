@@ -1,32 +1,24 @@
 import { Group, Line, Text } from 'react-konva'
-import { useMemo } from 'react'
 import type { OuterWallPolygon, OuterWallSegment } from '@/types/model'
-import { getWallVisualization } from '@/components/FloorPlanEditor/visualization/wallVisualization'
-import { distance, direction, midpoint, add, scale } from '@/types/geometry'
+import { WALL_COLORS } from '@/components/FloorPlanEditor/visualization/wallVisualization'
+import { direction, midpoint, add, scale } from '@/types/geometry'
+import { useSelectionStore } from '../hooks/useSelectionStore'
 
 interface OuterWallShapeProps {
   outerWall: OuterWallPolygon
-  selectedSegmentIndex?: number
 }
 
 interface SegmentShapeProps {
   segment: OuterWallSegment
   segmentIndex: number
-  isSelected: boolean
 }
 
 function OuterWallSegmentShape({
   segment,
   segmentIndex,
-  isSelected,
   outerWallId
 }: SegmentShapeProps & { outerWallId: string }): React.JSX.Element {
-  // Get wall visualization for outer wall type based on construction type
-  const wallViz = useMemo(() => {
-    // Map outer wall construction types to wall types for visualization
-    const visualizationType = segment.constructionType === 'non-strawbale' ? 'other' : 'outer'
-    return getWallVisualization(visualizationType, segment.thickness)
-  }, [segment.thickness, segment.constructionType])
+  const select = useSelectionStore()
 
   // Calculate segment properties
   const insideStart = segment.insideLine.start
@@ -34,8 +26,8 @@ function OuterWallSegmentShape({
   const outsideStart = segment.outsideLine.start
   const outsideEnd = segment.outsideLine.end
 
-  const segmentLength = distance(insideStart, insideEnd)
-  const segmentMidpoint = midpoint(insideStart, insideEnd)
+  const insideLengthPosition = add(midpoint(insideStart, insideEnd), scale(segment.outsideDirection, -40))
+  const outsideLengthPosition = add(midpoint(outsideStart, outsideEnd), scale(segment.outsideDirection, 40))
 
   // Calculate text rotation to align with segment
   const segmentDirection = direction(insideStart, insideEnd)
@@ -48,8 +40,8 @@ function OuterWallSegmentShape({
     angleDegrees += 180
   }
 
-  const finalMainColor = isSelected ? '#007acc' : wallViz.mainColor
-  const opacity = segment.constructionType === 'non-strawbale' ? 0.7 : 1.0
+  const baseColor = segment.constructionType === 'non-strawbale' ? WALL_COLORS.other : WALL_COLORS.strawbale
+  const finalMainColor = select.isSelected(segment.id) ? '#007acc' : baseColor
 
   return (
     <Group
@@ -72,45 +64,11 @@ function OuterWallSegmentShape({
           outsideStart[1]
         ]}
         fill={finalMainColor}
-        stroke={finalMainColor}
-        strokeWidth={2}
-        opacity={opacity}
+        stroke="#000"
+        strokeWidth={10}
         closed
         listening
       />
-
-      {/* Construction type pattern overlay */}
-      {wallViz.pattern && (
-        <Line
-          points={[insideStart[0], insideStart[1], insideEnd[0], insideEnd[1]]}
-          stroke={wallViz.pattern.color}
-          strokeWidth={segment.thickness * 0.3}
-          lineCap="butt"
-          dash={wallViz.pattern.dash}
-          opacity={opacity}
-          listening={false}
-        />
-      )}
-
-      {/* Plaster edges */}
-      {wallViz.edges.map((edge, edgeIndex) => {
-        // For outer walls: 'left' means inside face, 'right' means outside face
-        // relative to the segment direction
-        const isInsideEdge = edge.position === 'left'
-        const baseLine = isInsideEdge ? segment.insideLine : segment.outsideLine
-
-        return (
-          <Line
-            key={`edge-${edge.position}-${edgeIndex}`}
-            points={[baseLine.start[0], baseLine.start[1], baseLine.end[0], baseLine.end[1]]}
-            stroke={edge.color}
-            strokeWidth={edge.width}
-            lineCap="butt"
-            opacity={opacity}
-            listening={false}
-          />
-        )
-      })}
 
       {/* Render openings in this segment */}
       {segment.openings.map((opening, openingIndex) => {
@@ -118,8 +76,18 @@ function OuterWallSegmentShape({
         const segmentVector = direction(insideStart, insideEnd)
         const offsetDistance = opening.offsetFromStart
         const centerStart = midpoint(insideStart, outsideStart)
+        const offsetStart = scale(segmentVector, offsetDistance)
+        const offsetEnd = add(offsetStart, scale(segmentVector, opening.width))
         const openingStart = add(centerStart, scale(segmentVector, offsetDistance))
         const openingEnd = add(openingStart, scale(segmentVector, opening.width))
+        const openingPolygon = [
+          add(insideStart, offsetStart),
+          add(insideStart, offsetEnd),
+          add(outsideStart, offsetEnd),
+          add(outsideStart, offsetStart)
+        ]
+        const openingPolygonArray = openingPolygon.flatMap(point => [point[0], point[1]])
+        const isOpeningSelected = select.isCurrentSelection(opening.id)
 
         return (
           <Group
@@ -138,11 +106,13 @@ function OuterWallSegmentShape({
           >
             {/* Opening cutout - render as a different colored line */}
             <Line
-              points={[openingStart[0], openingStart[1], openingEnd[0], openingEnd[1]]}
-              stroke="#999"
-              strokeWidth={segment.thickness}
+              points={openingPolygonArray}
+              fill={isOpeningSelected ? '#F99' : '#999'}
+              stroke={isOpeningSelected ? '#cc0014' : 'black'}
+              strokeWidth={10}
               lineCap="butt"
               opacity={0.8}
+              closed
               listening
             />
             {opening.type !== 'passage' && (
@@ -159,58 +129,103 @@ function OuterWallSegmentShape({
       })}
 
       {/* Segment length label when selected */}
-      {isSelected && segmentLength > 0 && (
-        <Text
-          x={segmentMidpoint[0]}
-          y={segmentMidpoint[1]}
-          text={`${(segmentLength / 1000).toFixed(2)}m`}
-          fontSize={40}
-          fontFamily="Arial"
-          fontStyle="bold"
-          fill="white"
-          align="center"
-          verticalAlign="middle"
-          width={150}
-          offsetX={75}
-          offsetY={20}
-          rotation={angleDegrees}
-          shadowColor="black"
-          shadowBlur={6}
-          shadowOpacity={0.8}
-          listening={false}
-        />
+      {select.isCurrentSelection(segment.id) && (
+        <>
+          <Text
+            x={insideLengthPosition[0]}
+            y={insideLengthPosition[1]}
+            text={`${(segment.insideLength / 1000).toFixed(2)}m`}
+            fontSize={40}
+            fontFamily="Arial"
+            fontStyle="bold"
+            fill="black"
+            align="center"
+            verticalAlign="middle"
+            width={150}
+            offsetX={75}
+            offsetY={20}
+            rotation={angleDegrees}
+            shadowColor="white"
+            shadowBlur={6}
+            shadowOpacity={0.8}
+            listening={false}
+          />
+          <Text
+            x={outsideLengthPosition[0]}
+            y={outsideLengthPosition[1]}
+            text={`${(segment.outsideLength / 1000).toFixed(2)}m`}
+            fontSize={40}
+            fontFamily="Arial"
+            fontStyle="bold"
+            fill="black"
+            align="center"
+            verticalAlign="middle"
+            width={150}
+            offsetX={75}
+            offsetY={20}
+            rotation={angleDegrees}
+            shadowColor="white"
+            shadowBlur={6}
+            shadowOpacity={0.8}
+            listening={false}
+          />
+        </>
       )}
     </Group>
   )
 }
 
-export function OuterWallShape({ outerWall, selectedSegmentIndex }: OuterWallShapeProps): React.JSX.Element {
+export function OuterWallShape({ outerWall }: OuterWallShapeProps): React.JSX.Element {
+  const select = useSelectionStore()
+  const isSelected = select.isCurrentSelection(outerWall.id)
+
+  const outerPolygon = outerWall.corners.map(c => c.outsidePoint)
+  const innerPoints = outerWall.boundary.flatMap(point => [point[0], point[1]])
+  const outerPoints = outerPolygon.flatMap(point => [point[0], point[1]])
+
   return (
     <Group name={`outer-wall-${outerWall.id}`} entityId={outerWall.id} entityType="outer-wall" parentIds={[]} listening>
+      <Line points={innerPoints} fill="#AAA" closed listening />
+
       {/* Render each segment */}
       {outerWall.segments.map((segment, index) => {
-        const isSelected = selectedSegmentIndex === index
-
         return (
           <OuterWallSegmentShape
             key={`segment-${index}`}
             segment={segment}
             segmentIndex={index}
-            isSelected={isSelected}
             outerWallId={outerWall.id}
           />
         )
       })}
 
-      {/* Wall boundary outline */}
-      <Line
-        points={outerWall.boundary.flatMap(point => [point[0], point[1]])}
-        stroke="#1e40af"
-        strokeWidth={3}
-        dash={[15, 15]}
-        closed
-        listening
-      />
+      {isSelected && (
+        <>
+          {/* Wall boundary outline */}
+          <Line
+            points={innerPoints}
+            stroke="#1e40af"
+            strokeWidth={30}
+            dash={[50, 50]}
+            lineCap="round"
+            opacity={0.5}
+            closed
+            listening={false}
+          />
+
+          {/* Wall boundary outline */}
+          <Line
+            points={outerPoints}
+            stroke="#1e40af"
+            strokeWidth={30}
+            dash={[50, 50]}
+            lineCap="round"
+            opacity={0.5}
+            closed
+            listening={false}
+          />
+        </>
+      )}
     </Group>
   )
 }
