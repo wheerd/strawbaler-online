@@ -186,13 +186,7 @@ function OuterWallSegmentShape({
 
 export function OuterWallShape({ outerWall, selectedSegmentIndex }: OuterWallShapeProps): React.JSX.Element {
   return (
-    <Group
-      name={`outer-wall-${outerWall.id}`}
-      entityId={outerWall.id}
-      entityType="outer-wall"
-      parentIds={[]}
-      listening
-    >
+    <Group name={`outer-wall-${outerWall.id}`} entityId={outerWall.id} entityType="outer-wall" parentIds={[]} listening>
       {/* Render each segment */}
       {outerWall.segments.map((segment, index) => {
         const isSelected = selectedSegmentIndex === index

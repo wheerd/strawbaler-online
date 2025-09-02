@@ -19,16 +19,16 @@ export const TestDataTool: Tool = {
       // Create a simple rectangular outer wall
       const boundary = {
         points: [
-          createVec2(1000, 1000), // Bottom-left
-          createVec2(4000, 1000), // Bottom-right
-          createVec2(4000, 3000), // Top-right
-          createVec2(1000, 3000) // Top-left
+          createVec2(1000, 4000), // Top-left
+          createVec2(5000, 4000), // Top-right
+          createVec2(5000, 1000), // Bottom-right
+          createVec2(1000, 1000) // Bottom-left
         ]
       }
 
       try {
         // Add the outer wall to the store
-        modelStore.addOuterWallPolygon(activeFloorId, boundary, 'cells-under-tension', createLength(440))
+        modelStore.addOuterWallPolygon(activeFloorId, boundary, 'infill', createLength(440))
 
         // Get the newly created wall
         const outerWalls = modelStore.getOuterWallsByFloor(activeFloorId)
