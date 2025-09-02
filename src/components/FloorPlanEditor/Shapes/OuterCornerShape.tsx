@@ -10,6 +10,7 @@ interface OuterCornerShapeProps {
   previousSegment: OuterWallSegment
   nextSegment: OuterWallSegment
   isSelected: boolean
+  outerWallId: string
 }
 
 export function OuterCornerShape({
@@ -18,7 +19,8 @@ export function OuterCornerShape({
   boundaryPoint,
   previousSegment,
   nextSegment,
-  isSelected
+  isSelected,
+  outerWallId
 }: OuterCornerShapeProps): React.JSX.Element {
   // Create corner polygon from boundary point, outside point, and adjacent segment endpoints
   const cornerPolygon = useMemo(() => {
@@ -56,7 +58,13 @@ export function OuterCornerShape({
   const opacity = belongsToSegment.constructionType === 'non-strawbale' ? 0.7 : 1.0
 
   return (
-    <Group name={`outer-corner-${cornerIndex}`}>
+    <Group
+      name={`outer-corner-${cornerIndex}`}
+      entityId={corner.id}
+      entityType="outer-corner"
+      parentIds={[outerWallId]}
+      listening={true}
+    >
       {/* Corner polygon fill */}
       <Line
         points={polygonArray}
@@ -65,7 +73,7 @@ export function OuterCornerShape({
         strokeWidth={1}
         opacity={opacity}
         closed
-        listening={false}
+        listening={true}
       />
 
       {/* Construction type indicator - different patterns for different types */}

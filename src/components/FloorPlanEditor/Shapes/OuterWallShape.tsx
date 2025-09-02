@@ -15,7 +15,12 @@ interface SegmentShapeProps {
   isSelected: boolean
 }
 
-function OuterWallSegmentShape({ segment, segmentIndex, isSelected }: SegmentShapeProps): React.JSX.Element {
+function OuterWallSegmentShape({
+  segment,
+  segmentIndex,
+  isSelected,
+  outerWallId
+}: SegmentShapeProps & { outerWallId: string }): React.JSX.Element {
   // Get wall visualization for outer wall type based on construction type
   const wallViz = useMemo(() => {
     // Map outer wall construction types to wall types for visualization
@@ -47,7 +52,13 @@ function OuterWallSegmentShape({ segment, segmentIndex, isSelected }: SegmentSha
   const opacity = segment.constructionType === 'non-strawbale' ? 0.7 : 1.0
 
   return (
-    <Group name={`segment-${segmentIndex}`}>
+    <Group
+      name={`segment-${segmentIndex}`}
+      entityId={segment.id}
+      entityType="wall-segment"
+      parentIds={[outerWallId]}
+      listening={true}
+    >
       {/* Main wall body - fill the area between inside and outside lines */}
       <Line
         points={[
@@ -65,7 +76,7 @@ function OuterWallSegmentShape({ segment, segmentIndex, isSelected }: SegmentSha
         strokeWidth={2}
         opacity={opacity}
         closed
-        listening={false}
+        listening={true}
       />
 
       {/* Construction type pattern overlay */}
@@ -101,6 +112,63 @@ function OuterWallSegmentShape({ segment, segmentIndex, isSelected }: SegmentSha
         )
       })}
 
+      {/* Render openings in this segment */}
+      {segment.openings.map((opening, openingIndex) => {
+        // Calculate opening position along the segment
+        const segmentVector = direction(insideStart, insideEnd)
+        const offsetDistance = opening.offsetFromStart
+        const openingStart = [
+          insideStart[0] + segmentVector[0] * offsetDistance,
+          insideStart[1] + segmentVector[1] * offsetDistance
+        ]
+        const openingEnd = [
+          openingStart[0] + segmentVector[0] * opening.width,
+          openingStart[1] + segmentVector[1] * opening.width
+        ]
+
+        return (
+          <Group
+            key={`opening-${openingIndex}`}
+            listening={true}
+            ref={node => {
+              if (node) {
+                // Explicitly set entity attributes on the Konva node
+                node.setAttrs({
+                  entityId: opening.id,
+                  entityType: 'opening',
+                  parentIds: [outerWallId, segment.id]
+                })
+              }
+            }}
+          >
+            {/* Opening cutout - render as a different colored line */}
+            <Line
+              points={[openingStart[0], openingStart[1], openingEnd[0], openingEnd[1]]}
+              stroke={opening.type === 'door' ? '#8B4513' : '#87CEEB'}
+              strokeWidth={segment.thickness}
+              lineCap="butt"
+              opacity={0.8}
+              listening={true}
+            />
+            {/* Opening label */}
+            <Text
+              x={(openingStart[0] + openingEnd[0]) / 2}
+              y={(openingStart[1] + openingEnd[1]) / 2}
+              text={opening.type === 'door' ? 'D' : 'W'}
+              fontSize={20}
+              fontFamily="Arial"
+              fontStyle="bold"
+              fill="white"
+              align="center"
+              verticalAlign="middle"
+              offsetX={10}
+              offsetY={10}
+              listening={false}
+            />
+          </Group>
+        )
+      })}
+
       {/* Segment length label when selected */}
       {isSelected && segmentLength > 0 && (
         <Text
@@ -129,7 +197,13 @@ function OuterWallSegmentShape({ segment, segmentIndex, isSelected }: SegmentSha
 
 export function OuterWallShape({ outerWall, selectedSegmentIndex }: OuterWallShapeProps): React.JSX.Element {
   return (
-    <Group name={`outer-wall-${outerWall.id}`}>
+    <Group
+      name={`outer-wall-${outerWall.id}`}
+      entityId={outerWall.id}
+      entityType="outer-wall"
+      parentIds={[]}
+      listening={true}
+    >
       {/* Render each segment */}
       {outerWall.segments.map((segment, index) => {
         const isSelected = selectedSegmentIndex === index
@@ -140,6 +214,7 @@ export function OuterWallShape({ outerWall, selectedSegmentIndex }: OuterWallSha
             segment={segment}
             segmentIndex={index}
             isSelected={isSelected}
+            outerWallId={outerWall.id}
           />
         )
       })}
@@ -151,7 +226,7 @@ export function OuterWallShape({ outerWall, selectedSegmentIndex }: OuterWallSha
         strokeWidth={3}
         dash={[15, 15]}
         closed
-        listening={false}
+        listening={true}
       />
     </Group>
   )

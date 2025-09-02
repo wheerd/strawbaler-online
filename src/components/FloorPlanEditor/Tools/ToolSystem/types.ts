@@ -4,6 +4,7 @@ import type { SnapResult } from '@/model/store/services/snapping/types'
 import type Konva from 'konva'
 import type { EntityId, SelectableId, FloorId, PointId, StoreActions } from '@/model'
 import type React from 'react'
+import type { EntityHitResult } from '@/components/FloorPlanEditor/services/EntityHitTestService'
 
 export interface BaseTool {
   id: string
@@ -94,7 +95,8 @@ export interface CanvasEvent {
   type: 'mousedown' | 'mousemove' | 'mouseup' | 'wheel' | 'keydown' | 'keyup'
   originalEvent: MouseEvent | KeyboardEvent | WheelEvent
   konvaEvent: Konva.KonvaEventObject<any>
-  stageCoordinates: Vec2
+  stageCoordinates: Vec2 // Transformed coordinates (accounting for pan/zoom)
+  pointerCoordinates?: { x: number; y: number } // Original pointer coordinates for hit testing
   target: any
   context: ToolContext
 }
@@ -111,6 +113,9 @@ export interface ToolContext {
   updateSnapReference(fromPoint: Vec2 | null, fromPointId: PointId | null): void
   updateSnapTarget(target: Vec2): void
   clearSnapState(): void
+
+  // Entity discovery (on-demand) using original pointer coordinates
+  findEntityAt(pointerCoordinates: { x: number; y: number }): EntityHitResult | null
 
   // Hierarchical selection management
   selectEntity(entityId: EntityId): void

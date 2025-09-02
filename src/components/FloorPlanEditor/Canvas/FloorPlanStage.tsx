@@ -4,6 +4,7 @@ import type Konva from 'konva'
 import { useEditorStore, useViewport } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { useToolContext, useToolManager } from '@/components/FloorPlanEditor/Tools'
 import { useCanvasEventDispatcher } from '@/components/FloorPlanEditor/Tools/EventHandlers/CanvasEventDispatcher'
+import { stageReference } from '@/components/FloorPlanEditor/services/StageReference'
 import { GridLayer } from './GridLayer'
 import { OuterWallLayer } from './OuterWallLayer'
 import { WallLayer } from './WallLayer'
@@ -34,6 +35,18 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
   useEffect(() => {
     setStageDimensions(width, height)
   }, [width, height, setStageDimensions])
+
+  // Set global stage reference when stage is ready
+  useEffect(() => {
+    if (stageRef.current) {
+      stageReference.setStage(stageRef.current)
+    }
+
+    return () => {
+      // Clean up stage reference on unmount
+      stageReference.clearStage()
+    }
+  }, [])
 
   // Tool event handler
   const handleToolEvent = useCallback(

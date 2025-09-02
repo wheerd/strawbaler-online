@@ -43,6 +43,7 @@ export function OuterWallLayer(): React.JSX.Element {
                 previousSegment={previousSegment}
                 nextSegment={nextSegment}
                 isSelected={isCornerSelected}
+                outerWallId={outerWall.id}
               />
             )
           })}

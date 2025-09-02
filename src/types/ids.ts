@@ -74,3 +74,6 @@ export const isEntityId = (id: SelectableId): id is EntityId => {
 export const isSubEntityId = (id: SelectableId): id is SubEntityId => {
   return ['segment', 'corner', 'opening'].includes(getIdType(id))
 }
+
+// Entity type definitions for hit testing
+export type EntityType = 'outer-wall' | 'wall-segment' | 'outer-corner' | 'opening'

@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { WallShape } from './WallShape'
 import type { Wall, Point } from '@/types/model'
 import type { PointId } from '@/types/ids'
-import { createWallId as createAnotherWallId, createPointId, createFloorId  } from '@/types/ids'
+import { createWallId as createAnotherWallId, createPointId, createFloorId } from '@/types/ids'
 import type { Vec2 } from '@/types/geometry'
 import { createLength, createVec2 } from '@/types/geometry'
 
@@ -33,7 +33,7 @@ vi.mock('@/model/store', () => ({
 describe('WallShape Angle Normalization', () => {
   const testFloorId = createFloorId()
   const mockWall: Wall = {
-    id: createWallId(),
+    id: createAnotherWallId(),
     floorId: testFloorId,
     startPointId: createPointId(),
     endPointId: createPointId(),

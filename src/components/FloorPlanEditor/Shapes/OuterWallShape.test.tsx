@@ -146,6 +146,7 @@ describe('OuterWallShape', () => {
               previousSegment={testOuterWall.segments[3]}
               nextSegment={testOuterWall.segments[0]}
               isSelected={false}
+              outerWallId={testOuterWall.id}
             />
           </Layer>
         </Stage>
@@ -165,6 +166,7 @@ describe('OuterWallShape', () => {
               previousSegment={testOuterWall.segments[3]}
               nextSegment={testOuterWall.segments[0]}
               isSelected
+              outerWallId={testOuterWall.id}
             />
           </Layer>
         </Stage>

@@ -2,12 +2,16 @@ import type { ToolGroup } from '../../ToolSystem/types'
 import { SelectTool } from './SelectTool'
 import { MoveTool } from './MoveTool'
 import { RotateTool } from './RotateTool'
+import { EntityInspectTool } from './EntityInspectTool'
+import { TestDataTool } from './TestDataTool'
 
 // Export individual tools
 export { SelectTool } from './SelectTool'
 export { MoveTool } from './MoveTool'
 export { RotateTool } from './RotateTool'
 export type { RotateToolState } from './RotateTool'
+export { EntityInspectTool } from './EntityInspectTool'
+export { TestDataTool } from './TestDataTool'
 
 // Create and export tool group
 export const createBasicToolGroup = (): ToolGroup => ({
@@ -15,7 +19,7 @@ export const createBasicToolGroup = (): ToolGroup => ({
   name: 'Basic',
   icon: '↖',
   category: 'basic',
-  tools: [new SelectTool(), new MoveTool(), new RotateTool()],
+  tools: [new SelectTool(), new MoveTool(), new RotateTool(), EntityInspectTool, TestDataTool],
   defaultTool: 'basic.select'
 })
 

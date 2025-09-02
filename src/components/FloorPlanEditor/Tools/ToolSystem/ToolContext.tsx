@@ -9,6 +9,7 @@ import { createVec2, type Vec2 } from '@/types/geometry'
 import type { EntityId, SelectableId, PointId } from '@/types/ids'
 import { useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
 import type { SnapResult as ModelSnapResult } from '@/model/store/services/snapping/types'
+import { entityHitTestService } from '@/components/FloorPlanEditor/services/EntityHitTestService'
 
 interface ToolContextProviderProps {
   children: React.ReactNode
@@ -95,6 +96,11 @@ export function ToolContextProvider({ children }: ToolContextProviderProps): Rea
 
       updateSnapTarget,
       clearSnapState,
+
+      // Entity discovery (on-demand) using original pointer coordinates
+      findEntityAt: (pointerCoordinates: { x: number; y: number }) => {
+        return entityHitTestService.findEntityAt(pointerCoordinates)
+      },
 
       // Hierarchical selection management
       selectEntity: (entityId: EntityId): void => {
