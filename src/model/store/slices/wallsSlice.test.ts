@@ -307,12 +307,17 @@ describe('WallsSlice', () => {
 
         const updatedWall = store.walls.get(wall.id)
         expect(updatedWall?.openings).toHaveLength(1)
-        expect(updatedWall?.openings![0]).toEqual({
+
+        const opening = updatedWall?.openings![0]
+        expect(opening).toMatchObject({
           type: 'door',
           offsetFromStart: createLength(500),
           width: createLength(800),
           height: createLength(2100)
         })
+        // Verify the opening has an auto-generated ID
+        expect(opening?.id).toBeTruthy()
+        expect(typeof opening?.id).toBe('string')
       })
 
       it('should add multiple openings to wall', () => {
@@ -354,13 +359,18 @@ describe('WallsSlice', () => {
 
         const updatedWall = store.walls.get(wall.id)
         expect(updatedWall?.openings).toHaveLength(1)
-        expect(updatedWall?.openings![0]).toEqual({
+
+        const opening = updatedWall?.openings![0]
+        expect(opening).toMatchObject({
           type: 'window',
           offsetFromStart: createLength(1000),
           width: createLength(1200),
           height: createLength(1000),
           sillHeight: createLength(900)
         })
+        // Verify the opening has an auto-generated ID
+        expect(opening?.id).toBeTruthy()
+        expect(typeof opening?.id).toBe('string')
       })
 
       it('should throw error for negative sill height', () => {
@@ -384,12 +394,17 @@ describe('WallsSlice', () => {
 
         const updatedWall = store.walls.get(wall.id)
         expect(updatedWall?.openings).toHaveLength(1)
-        expect(updatedWall?.openings![0]).toEqual({
+
+        const opening = updatedWall?.openings![0]
+        expect(opening).toMatchObject({
           type: 'passage',
           offsetFromStart: createLength(750),
           width: createLength(1000),
           height: createLength(2100)
         })
+        // Verify the opening has an auto-generated ID
+        expect(opening?.id).toBeTruthy()
+        expect(typeof opening?.id).toBe('string')
       })
     })
 

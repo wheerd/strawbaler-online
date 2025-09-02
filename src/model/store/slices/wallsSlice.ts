@@ -2,7 +2,7 @@ import type { StateCreator } from 'zustand'
 import type { Wall, Opening, WallType, OutsideDirection } from '@/types/model'
 import type { WallId, PointId, RoomId, FloorId } from '@/types/ids'
 import type { Length } from '@/types/geometry'
-import { createWallId } from '@/types/ids'
+import { createWallId, createOpeningId } from '@/types/ids'
 import { createLength } from '@/types/geometry'
 
 export interface WallsState {
@@ -225,6 +225,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
       if (wall == null) return state
 
       const newOpening: Opening = {
+        id: createOpeningId(),
         type: 'door',
         offsetFromStart,
         width,
@@ -261,6 +262,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
       if (wall == null) return state
 
       const newOpening: Opening = {
+        id: createOpeningId(),
         type: 'window',
         offsetFromStart,
         width,
@@ -295,6 +297,7 @@ export const createWallsSlice: StateCreator<WallsSlice, [], [], WallsSlice> = (s
       if (wall == null) return state
 
       const newOpening: Opening = {
+        id: createOpeningId(),
         type: 'passage',
         offsetFromStart,
         width,

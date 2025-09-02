@@ -1,4 +1,15 @@
-import type { WallId, PointId, RoomId, FloorId, SlabId, RoofId, OuterWallId } from '@/types/ids'
+import type {
+  WallId,
+  PointId,
+  RoomId,
+  FloorId,
+  SlabId,
+  RoofId,
+  OuterWallId,
+  WallSegmentId,
+  OuterCornerId,
+  OpeningId
+} from '@/types/ids'
 import type { Length, LineSegment2D, Vec2 } from '@/types/geometry'
 
 // Floor level branded type
@@ -66,6 +77,7 @@ export interface Wall {
 
 // Opening in a wall (door, window, etc.)
 export interface Opening {
+  id: OpeningId
   type: OpeningType
   offsetFromStart: Length // Offset in mm from wall start point
   width: Length
@@ -137,6 +149,7 @@ export interface OuterWallPolygon {
 export type OuterWallConstructionType = 'cells-under-tension' | 'infill' | 'strawhenge' | 'non-strawbale'
 
 export interface OuterWallSegment {
+  id: WallSegmentId
   thickness: Length
   constructionType: OuterWallConstructionType
 
@@ -152,6 +165,7 @@ export interface OuterWallSegment {
 }
 
 export interface OuterCorner {
+  id: OuterCornerId
   // This point, the boundary point, and the two adjacent wall edge points define the corner area
   // Together with the wall areas the form the whole area that the outer wall covers
   outsidePoint: Vec2

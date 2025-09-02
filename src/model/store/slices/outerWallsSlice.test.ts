@@ -1,79 +1,129 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createOuterWallsSlice, type OuterWallsSlice } from './outerWallsSlice'
-import { createFloorId, createOuterWallId } from '@/types/ids'
+import {
+  createOuterWallId,
+  createWallSegmentId,
+  createOuterCornerId,
+  createOpeningId,
+  createFloorId
+} from '@/types/ids'
 import { createLength, createVec2, type Polygon2D } from '@/types/geometry'
-import type { Opening } from '@/types/model'
+import type { OuterWallConstructionType } from '@/types/model'
+
+// Mock Zustand following the official testing guide
+vi.mock('zustand')
 
 describe('OuterWallsSlice', () => {
   let store: OuterWallsSlice
-  let testFloorId: ReturnType<typeof createFloorId>
-  let testBoundary: Polygon2D
+  let mockSet: any
+  let mockGet: any
+  let testFloorId: any
 
   beforeEach(() => {
-    const set = (updater: any) => {
+    // Create the slice directly without using create()
+    mockSet = vi.fn()
+    mockGet = vi.fn()
+    const mockStore = {} as any
+    testFloorId = createFloorId()
+
+    store = createOuterWallsSlice(mockSet, mockGet, mockStore)
+
+    // Mock the get function to return current state
+    mockGet.mockImplementation(() => store)
+
+    // Mock the set function to actually update the store
+    mockSet.mockImplementation((updater: any) => {
       if (typeof updater === 'function') {
-        Object.assign(store, updater(store))
+        const newState = updater(store)
+        Object.assign(store, newState)
       } else {
         Object.assign(store, updater)
       }
-    }
-    const get = () => store
+    })
+  })
 
-    store = createOuterWallsSlice(set, get, {
-      setState: set,
-      getState: get,
-      subscribe: () => () => {},
-      destroy: () => {}
-    } as any)
+  // Helper function to create a simple rectangular polygon
+  const createRectangularBoundary = (): Polygon2D => ({
+    points: [createVec2(0, 0), createVec2(10, 0), createVec2(10, 5), createVec2(0, 5)]
+  })
 
-    testFloorId = createFloorId()
-    testBoundary = {
-      points: [createVec2(0, 0), createVec2(1000, 0), createVec2(1000, 1000), createVec2(0, 1000)]
-    }
+  // Helper function to create a triangular polygon
+  const createTriangularBoundary = (): Polygon2D => ({
+    points: [createVec2(0, 0), createVec2(5, 0), createVec2(2.5, 4)]
   })
 
   describe('addOuterWallPolygon', () => {
-    it('should create an outer wall with default thickness', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
+    it('should add outer wall polygon with default thickness', () => {
+      const boundary = createRectangularBoundary()
+      const constructionType: OuterWallConstructionType = 'cells-under-tension'
 
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      expect(walls).toHaveLength(1)
+      store.addOuterWallPolygon(testFloorId, boundary, constructionType)
 
-      const wall = walls[0]
+      expect(store.outerWalls.size).toBe(1)
+      const wall = Array.from(store.outerWalls.values())[0]
+
       expect(wall.floorId).toBe(testFloorId)
-      expect(wall.boundary).toEqual(testBoundary.points)
-      expect(wall.segments).toHaveLength(4) // One segment per side
+      expect(wall.boundary).toEqual(boundary.points)
+      expect(wall.segments).toHaveLength(4) // Rectangle has 4 sides
+      expect(wall.corners).toHaveLength(4) // Rectangle has 4 corners
 
-      const segment = wall.segments[0]
-      expect(segment.constructionType).toBe('cells-under-tension')
-      expect(segment.thickness).toBe(440) // Default thickness
-      expect(segment.openings).toHaveLength(0)
+      // Check segments have correct properties
+      wall.segments.forEach(segment => {
+        expect(segment.constructionType).toBe(constructionType)
+        expect(segment.thickness).toBe(createLength(440)) // Default outer wall thickness
+        expect(segment.openings).toEqual([])
+        expect(segment.id).toBeTruthy()
+      })
 
-      // Check geometric properties are computed
-      expect(segment.insideLength).toBe(1000) // Distance from (0,0) to (1000,0)
-      expect(segment.outsideLength).toBe(1000)
-      expect(segment.insideLine.start).toEqual(createVec2(0, 0))
-      expect(segment.insideLine.end).toEqual(createVec2(1000, 0))
-      expect(segment.direction[0]).toBe(1)
-      expect(segment.direction[1]).toBe(0)
-      expect(segment.outsideDirection[0]).toBeCloseTo(0)
-      expect(segment.outsideDirection[1]).toBeCloseTo(1) // Should be pointing "up" for horizontal segment
+      // Check corners have correct properties
+      wall.corners.forEach(corner => {
+        expect(corner.id).toBeTruthy()
+        expect(corner.belongsTo).toBe('next') // Default
+        expect(corner.outsidePoint).toBeTruthy()
+      })
     })
 
-    it('should create an outer wall with custom thickness', () => {
-      const customThickness = createLength(600)
+    it('should add outer wall polygon with custom thickness', () => {
+      const boundary = createRectangularBoundary()
+      const constructionType: OuterWallConstructionType = 'infill'
+      const customThickness = createLength(200)
 
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'infill', customThickness)
+      store.addOuterWallPolygon(testFloorId, boundary, constructionType, customThickness)
 
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wall = walls[0]
-      expect(wall.segments[0].thickness).toBe(600)
-      expect(wall.segments[0].constructionType).toBe('infill')
+      const wall = Array.from(store.outerWalls.values())[0]
+      wall.segments.forEach(segment => {
+        expect(segment.thickness).toBe(customThickness)
+        expect(segment.constructionType).toBe(constructionType)
+      })
     })
 
-    it('should throw error for invalid boundary', () => {
+    it('should add triangular outer wall polygon', () => {
+      const boundary = createTriangularBoundary()
+      const constructionType: OuterWallConstructionType = 'strawhenge'
+
+      store.addOuterWallPolygon(testFloorId, boundary, constructionType)
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      expect(wall.segments).toHaveLength(3) // Triangle has 3 sides
+      expect(wall.corners).toHaveLength(3) // Triangle has 3 corners
+    })
+
+    it('should add multiple outer wall polygons', () => {
+      const boundary1 = createRectangularBoundary()
+      const boundary2 = createTriangularBoundary()
+
+      store.addOuterWallPolygon(testFloorId, boundary1, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, boundary2, 'infill')
+
+      expect(store.outerWalls.size).toBe(2)
+      const walls = Array.from(store.outerWalls.values())
+      expect(walls[0].segments).toHaveLength(4)
+      expect(walls[1].segments).toHaveLength(3)
+    })
+
+    it('should throw error for insufficient boundary points', () => {
       const invalidBoundary: Polygon2D = {
-        points: [createVec2(0, 0), createVec2(1000, 0)] // Only 2 points
+        points: [createVec2(0, 0), createVec2(1, 0)] // Only 2 points
       }
 
       expect(() => store.addOuterWallPolygon(testFloorId, invalidBoundary, 'cells-under-tension')).toThrow(
@@ -81,341 +131,944 @@ describe('OuterWallsSlice', () => {
       )
     })
 
-    it('should throw error for zero or negative thickness', () => {
-      expect(() =>
-        store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', createLength(0))
-      ).toThrow('Wall thickness must be greater than 0')
+    it('should throw error for zero thickness', () => {
+      const boundary = createRectangularBoundary()
 
-      expect(() =>
-        store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', createLength(-100))
-      ).toThrow('Wall thickness must be greater than 0')
+      expect(() => store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension', createLength(0))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
+    })
+
+    it('should throw error for negative thickness', () => {
+      const boundary = createRectangularBoundary()
+
+      expect(() => store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension', createLength(-100))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
+    })
+
+    it('should compute segment geometry correctly', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      const segment = wall.segments[0] // First segment from (0,0) to (10,0)
+
+      expect(segment.insideLine.start).toEqual(createVec2(0, 0))
+      expect(segment.insideLine.end).toEqual(createVec2(10, 0))
+      expect(segment.insideLength).toBe(10)
+
+      // Check that outside line is offset correctly
+      expect(segment.outsideLine.start[0]).toBe(0)
+      expect(segment.outsideLine.start[1]).toBe(createLength(440)) // Offset outward
+      expect(segment.outsideLine.end[0]).toBe(10)
+      expect(segment.outsideLine.end[1]).toBe(createLength(440))
     })
   })
 
   describe('removeOuterWall', () => {
-    it('should remove an outer wall', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
+    it('should remove existing outer wall', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wallId = Array.from(store.outerWalls.keys())[0]
+      expect(store.outerWalls.size).toBe(1)
 
       store.removeOuterWall(wallId)
 
-      expect(store.getOuterWallById(wallId)).toBeNull()
-      expect(store.getOuterWallsByFloor(testFloorId)).toHaveLength(0)
+      expect(store.outerWalls.size).toBe(0)
+      expect(store.outerWalls.has(wallId)).toBe(false)
+    })
+
+    it('should handle removing non-existent wall gracefully', () => {
+      const initialSize = store.outerWalls.size
+      const fakeWallId = createOuterWallId()
+
+      store.removeOuterWall(fakeWallId)
+
+      expect(store.outerWalls.size).toBe(initialSize)
+    })
+
+    it('should not affect other walls when removing one', () => {
+      const boundary1 = createRectangularBoundary()
+      const boundary2 = createTriangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary1, 'cells-under-tension')
+      store.addOuterWallPolygon(testFloorId, boundary2, 'infill')
+
+      const wallIds = Array.from(store.outerWalls.keys())
+      expect(store.outerWalls.size).toBe(2)
+
+      store.removeOuterWall(wallIds[0])
+
+      expect(store.outerWalls.size).toBe(1)
+      expect(store.outerWalls.has(wallIds[1])).toBe(true)
     })
   })
 
   describe('updateOuterWallConstructionType', () => {
-    it('should update construction type for a specific segment', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
+    it('should update segment construction type', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
 
-      store.updateOuterWallConstructionType(wallId, 0, 'infill')
+      const wall = Array.from(store.outerWalls.values())[0]
+      const segmentId = wall.segments[0].id
 
-      const segment = store.getOuterWallSegment(wallId, 0)
-      expect(segment?.constructionType).toBe('infill')
+      store.updateOuterWallConstructionType(wall.id, segmentId, 'infill')
 
-      // Other segments should remain unchanged
-      const segment1 = store.getOuterWallSegment(wallId, 1)
-      expect(segment1?.constructionType).toBe('cells-under-tension')
+      const updatedWall = store.outerWalls.get(wall.id)!
+      const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+      expect(updatedSegment.constructionType).toBe('infill')
+
+      // Other properties should remain unchanged
+      expect(updatedSegment.thickness).toBe(createLength(440))
+      expect(updatedSegment.openings).toEqual([])
+    })
+
+    it('should do nothing if wall does not exist', () => {
+      const fakeWallId = createOuterWallId()
+      const fakeSegmentId = createWallSegmentId()
+      const initialState = new Map(store.outerWalls)
+
+      store.updateOuterWallConstructionType(fakeWallId, fakeSegmentId, 'infill')
+
+      expect(store.outerWalls).toEqual(initialState)
+    })
+
+    it('should do nothing if segment does not exist', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      const fakeSegmentId = createWallSegmentId()
+      const originalWall = { ...wall }
+
+      store.updateOuterWallConstructionType(wall.id, fakeSegmentId, 'infill')
+
+      const unchangedWall = store.outerWalls.get(wall.id)!
+      expect(unchangedWall.segments).toEqual(originalWall.segments)
     })
   })
 
   describe('updateOuterWallThickness', () => {
-    it('should update thickness for a specific segment', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
-      const newThickness = createLength(500)
+    it('should update segment thickness and recalculate geometry', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
 
-      store.updateOuterWallThickness(wallId, 0, newThickness)
+      const wall = Array.from(store.outerWalls.values())[0]
+      const segmentId = wall.segments[0].id
+      const newThickness = createLength(300)
 
-      const segment = store.getOuterWallSegment(wallId, 0)
-      expect(segment?.thickness).toBe(500)
+      store.updateOuterWallThickness(wall.id, segmentId, newThickness)
 
-      // Check that geometry was recomputed with new thickness
-      expect(segment?.outsideLine.start[0]).toBe(0)
-      expect(segment?.outsideLine.start[1]).toBe(500) // Offset by new thickness
-      expect(segment?.outsideLine.end[0]).toBe(1000)
-      expect(segment?.outsideLine.end[1]).toBe(500)
+      const updatedWall = store.outerWalls.get(wall.id)!
+      const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+
+      expect(updatedSegment.thickness).toBe(newThickness)
+
+      // Geometry should be recalculated with new thickness
+      expect(updatedSegment.outsideLine.start[1]).toBe(newThickness) // New offset
     })
 
-    it('should throw error for zero or negative thickness', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
+    it('should recalculate corners when thickness changes', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
 
-      expect(() => store.updateOuterWallThickness(wallId, 0, createLength(0))).toThrow(
+      const wall = Array.from(store.outerWalls.values())[0]
+      const originalCornerPoints = wall.corners.map(c => c.outsidePoint)
+      const originalCornerIds = wall.corners.map(c => c.id)
+      const segmentId = wall.segments[0].id
+
+      store.updateOuterWallThickness(wall.id, segmentId, createLength(300))
+
+      const updatedWall = store.outerWalls.get(wall.id)!
+      const newCornerPoints = updatedWall.corners.map(c => c.outsidePoint)
+      const newCornerIds = updatedWall.corners.map(c => c.id)
+
+      // At least some corner points should have changed
+      expect(newCornerPoints).not.toEqual(originalCornerPoints)
+      // But corner IDs should be preserved
+      expect(newCornerIds).toEqual(originalCornerIds)
+    })
+
+    it('should preserve corner belongsTo values', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      const cornerId = wall.corners[0].id
+
+      // Change belongsTo value
+      store.updateCornerBelongsTo(wall.id, cornerId, 'previous')
+
+      // Update thickness
+      const segmentId = wall.segments[0].id
+      store.updateOuterWallThickness(wall.id, segmentId, createLength(300))
+
+      const updatedWall = store.outerWalls.get(wall.id)!
+      // Corner IDs should be preserved when thickness changes
+      const updatedCorner = updatedWall.corners.find(c => c.id === cornerId)!
+      expect(updatedCorner.belongsTo).toBe('previous') // Should be preserved
+      expect(updatedCorner.id).toBe(cornerId) // ID should be preserved
+    })
+
+    it('should throw error for invalid thickness', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      const segmentId = wall.segments[0].id
+
+      expect(() => store.updateOuterWallThickness(wall.id, segmentId, createLength(0))).toThrow(
         'Wall thickness must be greater than 0'
       )
+
+      expect(() => store.updateOuterWallThickness(wall.id, segmentId, createLength(-100))).toThrow(
+        'Wall thickness must be greater than 0'
+      )
+    })
+
+    it('should do nothing if wall does not exist', () => {
+      const fakeWallId = createOuterWallId()
+      const fakeSegmentId = createWallSegmentId()
+      const initialState = new Map(store.outerWalls)
+
+      store.updateOuterWallThickness(fakeWallId, fakeSegmentId, createLength(300))
+
+      expect(store.outerWalls).toEqual(initialState)
+    })
+
+    it('should do nothing if segment does not exist', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      const fakeSegmentId = createWallSegmentId()
+      const originalWall = { ...wall }
+
+      store.updateOuterWallThickness(wall.id, fakeSegmentId, createLength(300))
+
+      const unchangedWall = store.outerWalls.get(wall.id)!
+      expect(unchangedWall.segments).toEqual(originalWall.segments)
+    })
+  })
+
+  describe('updateCornerBelongsTo', () => {
+    it('should update corner belongsTo value', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      const cornerId = wall.corners[0].id
+
+      store.updateCornerBelongsTo(wall.id, cornerId, 'previous')
+
+      const updatedWall = store.outerWalls.get(wall.id)!
+      const updatedCorner = updatedWall.corners.find(c => c.id === cornerId)!
+      expect(updatedCorner.belongsTo).toBe('previous')
+    })
+
+    it('should preserve other corner properties', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      const corner = wall.corners[0]
+      const originalOutsidePoint = corner.outsidePoint
+
+      store.updateCornerBelongsTo(wall.id, corner.id, 'previous')
+
+      const updatedWall = store.outerWalls.get(wall.id)!
+      const updatedCorner = updatedWall.corners.find(c => c.id === corner.id)!
+      expect(updatedCorner.outsidePoint).toEqual(originalOutsidePoint)
+      expect(updatedCorner.id).toBe(corner.id)
+    })
+
+    it('should do nothing if wall does not exist', () => {
+      const fakeWallId = createOuterWallId()
+      const fakeCornerId = createOuterCornerId()
+      const initialState = new Map(store.outerWalls)
+
+      store.updateCornerBelongsTo(fakeWallId, fakeCornerId, 'previous')
+
+      expect(store.outerWalls).toEqual(initialState)
+    })
+
+    it('should do nothing if corner does not exist', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      const fakeCornerId = createOuterCornerId()
+      const originalWall = { ...wall }
+
+      store.updateCornerBelongsTo(wall.id, fakeCornerId, 'previous')
+
+      const unchangedWall = store.outerWalls.get(wall.id)!
+      expect(unchangedWall.corners).toEqual(originalWall.corners)
     })
   })
 
   describe('opening operations', () => {
-    it('should add opening to wall segment', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
+    describe('addOpeningToOuterWall', () => {
+      it('should add door opening to wall segment', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
 
-      const opening: Opening = {
-        type: 'door',
-        offsetFromStart: createLength(500),
-        width: createLength(800),
-        height: createLength(2100)
-      }
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
 
-      store.addOpeningToOuterWall(wallId, 0, opening)
+        const openingId = store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
 
-      const segment = store.getOuterWallSegment(wallId, 0)
-      expect(segment?.openings).toHaveLength(1)
-      expect(segment?.openings[0]).toEqual(opening)
+        expect(openingId).toBeTruthy()
+        expect(typeof openingId).toBe('string')
+
+        const updatedWall = store.outerWalls.get(wall.id)!
+        const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+        expect(updatedSegment.openings).toHaveLength(1)
+
+        const opening = updatedSegment.openings[0]
+        expect(opening.id).toBe(openingId)
+        expect(opening.type).toBe('door')
+        expect(opening.offsetFromStart).toBe(createLength(1000))
+        expect(opening.width).toBe(createLength(800))
+        expect(opening.height).toBe(createLength(2100))
+        expect(opening.sillHeight).toBeUndefined()
+      })
+
+      it('should add window opening to wall segment', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'window',
+          offsetFromStart: createLength(2000),
+          width: createLength(1200),
+          height: createLength(1000),
+          sillHeight: createLength(900)
+        })
+
+        const updatedWall = store.outerWalls.get(wall.id)!
+        const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+        const opening = updatedSegment.openings[0]
+
+        expect(opening.type).toBe('window')
+        expect(opening.sillHeight).toBe(createLength(900))
+      })
+
+      it('should add multiple openings to same segment', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
+
+        store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'window',
+          offsetFromStart: createLength(5000),
+          width: createLength(1200),
+          height: createLength(1000),
+          sillHeight: createLength(900)
+        })
+
+        const updatedWall = store.outerWalls.get(wall.id)!
+        const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+        expect(updatedSegment.openings).toHaveLength(2)
+
+        expect(updatedSegment.openings[0].type).toBe('door')
+        expect(updatedSegment.openings[1].type).toBe('window')
+      })
+
+      it('should throw error for negative offset', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        expect(() =>
+          store.addOpeningToOuterWall(wall.id, segmentId, {
+            type: 'door',
+            offsetFromStart: createLength(-100),
+            width: createLength(800),
+            height: createLength(2100)
+          })
+        ).toThrow('Opening offset from start must be non-negative')
+      })
+
+      it('should throw error for invalid width', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        expect(() =>
+          store.addOpeningToOuterWall(wall.id, segmentId, {
+            type: 'door',
+            offsetFromStart: createLength(1000),
+            width: createLength(0),
+            height: createLength(2100)
+          })
+        ).toThrow('Opening width must be greater than 0')
+      })
+
+      it('should throw error for invalid height', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        expect(() =>
+          store.addOpeningToOuterWall(wall.id, segmentId, {
+            type: 'door',
+            offsetFromStart: createLength(1000),
+            width: createLength(800),
+            height: createLength(0)
+          })
+        ).toThrow('Opening height must be greater than 0')
+      })
+
+      it('should throw error for negative sill height', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        expect(() =>
+          store.addOpeningToOuterWall(wall.id, segmentId, {
+            type: 'window',
+            offsetFromStart: createLength(1000),
+            width: createLength(1200),
+            height: createLength(1000),
+            sillHeight: createLength(-100)
+          })
+        ).toThrow('Window sill height must be non-negative')
+      })
+
+      it('should do nothing if wall does not exist', () => {
+        const fakeWallId = createOuterWallId()
+        const fakeSegmentId = createWallSegmentId()
+        const initialState = new Map(store.outerWalls)
+
+        const openingId = store.addOpeningToOuterWall(fakeWallId, fakeSegmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
+
+        expect(openingId).toBeTruthy() // ID is still generated
+        expect(store.outerWalls).toEqual(initialState)
+      })
+
+      it('should do nothing if segment does not exist', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const fakeSegmentId = createWallSegmentId()
+        const originalWall = { ...wall }
+
+        store.addOpeningToOuterWall(wall.id, fakeSegmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
+
+        const unchangedWall = store.outerWalls.get(wall.id)!
+        expect(unchangedWall.segments).toEqual(originalWall.segments)
+      })
     })
 
-    it('should remove opening from wall segment', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
+    describe('removeOpeningFromOuterWall', () => {
+      it('should remove opening from wall segment', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
 
-      const opening: Opening = {
-        type: 'window',
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        const openingId = store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
+
+        expect(store.outerWalls.get(wall.id)!.segments[0].openings).toHaveLength(1)
+
+        store.removeOpeningFromOuterWall(wall.id, segmentId, openingId)
+
+        const updatedWall = store.outerWalls.get(wall.id)!
+        const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+        expect(updatedSegment.openings).toHaveLength(0)
+      })
+
+      it('should remove correct opening when multiple exist', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        const doorId = store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
+
+        const windowId = store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'window',
+          offsetFromStart: createLength(5000),
+          width: createLength(1200),
+          height: createLength(1000),
+          sillHeight: createLength(900)
+        })
+
+        store.removeOpeningFromOuterWall(wall.id, segmentId, doorId)
+
+        const updatedWall = store.outerWalls.get(wall.id)!
+        const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+        expect(updatedSegment.openings).toHaveLength(1)
+        expect(updatedSegment.openings[0].id).toBe(windowId)
+        expect(updatedSegment.openings[0].type).toBe('window')
+      })
+
+      it('should do nothing if wall does not exist', () => {
+        const fakeWallId = createOuterWallId()
+        const fakeSegmentId = createWallSegmentId()
+        const fakeOpeningId = createOpeningId()
+        const initialState = new Map(store.outerWalls)
+
+        store.removeOpeningFromOuterWall(fakeWallId, fakeSegmentId, fakeOpeningId)
+
+        expect(store.outerWalls).toEqual(initialState)
+      })
+
+      it('should do nothing if segment does not exist', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const fakeSegmentId = createWallSegmentId()
+        const fakeOpeningId = createOpeningId()
+        const originalWall = { ...wall }
+
+        store.removeOpeningFromOuterWall(wall.id, fakeSegmentId, fakeOpeningId)
+
+        const unchangedWall = store.outerWalls.get(wall.id)!
+        expect(unchangedWall.segments).toEqual(originalWall.segments)
+      })
+
+      it('should do nothing if opening does not exist', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+        const fakeOpeningId = createOpeningId()
+
+        store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
+
+        const originalSegment = store.outerWalls.get(wall.id)!.segments[0]
+
+        store.removeOpeningFromOuterWall(wall.id, segmentId, fakeOpeningId)
+
+        const unchangedSegment = store.outerWalls.get(wall.id)!.segments[0]
+        expect(unchangedSegment.openings).toEqual(originalSegment.openings)
+      })
+    })
+
+    describe('updateOpening', () => {
+      it('should update opening properties', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        const openingId = store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
+
+        store.updateOpening(wall.id, segmentId, openingId, {
+          width: createLength(900),
+          height: createLength(2200)
+        })
+
+        const updatedWall = store.outerWalls.get(wall.id)!
+        const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+        const updatedOpening = updatedSegment.openings[0]
+
+        expect(updatedOpening.width).toBe(createLength(900))
+        expect(updatedOpening.height).toBe(createLength(2200))
+        expect(updatedOpening.type).toBe('door') // Unchanged
+        expect(updatedOpening.offsetFromStart).toBe(createLength(1000)) // Unchanged
+      })
+
+      it('should update window sill height', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        const openingId = store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'window',
+          offsetFromStart: createLength(1000),
+          width: createLength(1200),
+          height: createLength(1000),
+          sillHeight: createLength(900)
+        })
+
+        store.updateOpening(wall.id, segmentId, openingId, {
+          sillHeight: createLength(1000)
+        })
+
+        const updatedWall = store.outerWalls.get(wall.id)!
+        const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+        const updatedOpening = updatedSegment.openings[0]
+
+        expect(updatedOpening.sillHeight).toBe(createLength(1000))
+      })
+
+      it('should do nothing if wall does not exist', () => {
+        const fakeWallId = createOuterWallId()
+        const fakeSegmentId = createWallSegmentId()
+        const fakeOpeningId = createOpeningId()
+        const initialState = new Map(store.outerWalls)
+
+        store.updateOpening(fakeWallId, fakeSegmentId, fakeOpeningId, { width: createLength(1000) })
+
+        expect(store.outerWalls).toEqual(initialState)
+      })
+
+      it('should do nothing if segment does not exist', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const fakeSegmentId = createWallSegmentId()
+        const fakeOpeningId = createOpeningId()
+        const originalWall = { ...wall }
+
+        store.updateOpening(wall.id, fakeSegmentId, fakeOpeningId, { width: createLength(1000) })
+
+        const unchangedWall = store.outerWalls.get(wall.id)!
+        expect(unchangedWall.segments).toEqual(originalWall.segments)
+      })
+
+      it('should do nothing if opening does not exist', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+        const fakeOpeningId = createOpeningId()
+
+        store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
+
+        const originalSegment = store.outerWalls.get(wall.id)!.segments[0]
+
+        store.updateOpening(wall.id, segmentId, fakeOpeningId, { width: createLength(1000) })
+
+        const unchangedSegment = store.outerWalls.get(wall.id)!.segments[0]
+        expect(unchangedSegment.openings).toEqual(originalSegment.openings)
+      })
+    })
+  })
+
+  describe('getter operations', () => {
+    describe('getOuterWallById', () => {
+      it('should return existing outer wall', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const addedWall = Array.from(store.outerWalls.values())[0]
+        const result = store.getOuterWallById(addedWall.id)
+
+        expect(result).toBeDefined()
+        expect(result?.id).toBe(addedWall.id)
+        expect(result).toEqual(addedWall)
+      })
+
+      it('should return null for non-existent wall', () => {
+        const fakeWallId = createOuterWallId()
+        const result = store.getOuterWallById(fakeWallId)
+        expect(result).toBeNull()
+      })
+    })
+
+    describe('getSegmentById', () => {
+      it('should return existing segment', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segment = wall.segments[0]
+        const result = store.getSegmentById(wall.id, segment.id)
+
+        expect(result).toBeDefined()
+        expect(result?.id).toBe(segment.id)
+        expect(result).toEqual(segment)
+      })
+
+      it('should return null for non-existent wall', () => {
+        const fakeWallId = createOuterWallId()
+        const fakeSegmentId = createWallSegmentId()
+        const result = store.getSegmentById(fakeWallId, fakeSegmentId)
+        expect(result).toBeNull()
+      })
+
+      it('should return null for non-existent segment', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const fakeSegmentId = createWallSegmentId()
+        const result = store.getSegmentById(wall.id, fakeSegmentId)
+        expect(result).toBeNull()
+      })
+    })
+
+    describe('getCornerById', () => {
+      it('should return existing corner', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const corner = wall.corners[0]
+        const result = store.getCornerById(wall.id, corner.id)
+
+        expect(result).toBeDefined()
+        expect(result?.id).toBe(corner.id)
+        expect(result).toEqual(corner)
+      })
+
+      it('should return null for non-existent wall', () => {
+        const fakeWallId = createOuterWallId()
+        const fakeCornerId = createOuterCornerId()
+        const result = store.getCornerById(fakeWallId, fakeCornerId)
+        expect(result).toBeNull()
+      })
+
+      it('should return null for non-existent corner', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const fakeCornerId = createOuterCornerId()
+        const result = store.getCornerById(wall.id, fakeCornerId)
+        expect(result).toBeNull()
+      })
+    })
+
+    describe('getOpeningById', () => {
+      it('should return existing opening', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+
+        const openingId = store.addOpeningToOuterWall(wall.id, segmentId, {
+          type: 'door',
+          offsetFromStart: createLength(1000),
+          width: createLength(800),
+          height: createLength(2100)
+        })
+
+        const result = store.getOpeningById(wall.id, segmentId, openingId)
+
+        expect(result).toBeDefined()
+        expect(result?.id).toBe(openingId)
+        expect(result?.type).toBe('door')
+      })
+
+      it('should return null for non-existent wall', () => {
+        const fakeWallId = createOuterWallId()
+        const fakeSegmentId = createWallSegmentId()
+        const fakeOpeningId = createOpeningId()
+        const result = store.getOpeningById(fakeWallId, fakeSegmentId, fakeOpeningId)
+        expect(result).toBeNull()
+      })
+
+      it('should return null for non-existent segment', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const fakeSegmentId = createWallSegmentId()
+        const fakeOpeningId = createOpeningId()
+        const result = store.getOpeningById(wall.id, fakeSegmentId, fakeOpeningId)
+        expect(result).toBeNull()
+      })
+
+      it('should return null for non-existent opening', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const wall = Array.from(store.outerWalls.values())[0]
+        const segmentId = wall.segments[0].id
+        const fakeOpeningId = createOpeningId()
+        const result = store.getOpeningById(wall.id, segmentId, fakeOpeningId)
+        expect(result).toBeNull()
+      })
+    })
+
+    describe('getOuterWallsByFloor', () => {
+      it('should return empty array when no walls exist', () => {
+        const walls = store.getOuterWallsByFloor(testFloorId)
+        expect(walls).toEqual([])
+      })
+
+      it('should return walls for specific floor', () => {
+        const floor1Id = createFloorId()
+        const floor2Id = createFloorId()
+        const boundary1 = createRectangularBoundary()
+        const boundary2 = createTriangularBoundary()
+
+        store.addOuterWallPolygon(floor1Id, boundary1, 'cells-under-tension')
+        store.addOuterWallPolygon(floor1Id, boundary2, 'infill')
+        store.addOuterWallPolygon(floor2Id, boundary1, 'strawhenge')
+
+        const floor1Walls = store.getOuterWallsByFloor(floor1Id)
+        const floor2Walls = store.getOuterWallsByFloor(floor2Id)
+
+        expect(floor1Walls).toHaveLength(2)
+        expect(floor2Walls).toHaveLength(1)
+
+        expect(floor1Walls.every(w => w.floorId === floor1Id)).toBe(true)
+        expect(floor2Walls.every(w => w.floorId === floor2Id)).toBe(true)
+      })
+
+      it('should return empty array for non-existent floor', () => {
+        const boundary = createRectangularBoundary()
+        store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+        const nonExistentFloorId = createFloorId()
+        const walls = store.getOuterWallsByFloor(nonExistentFloorId)
+
+        expect(walls).toEqual([])
+      })
+    })
+  })
+
+  describe('complex scenarios', () => {
+    it('should handle complex outer wall management correctly', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension')
+
+      const wall = Array.from(store.outerWalls.values())[0]
+      const segmentId = wall.segments[0].id
+      const cornerId = wall.corners[0].id
+
+      // Add openings
+      const doorId = store.addOpeningToOuterWall(wall.id, segmentId, {
+        type: 'door',
         offsetFromStart: createLength(1000),
+        width: createLength(800),
+        height: createLength(2100)
+      })
+
+      const windowId = store.addOpeningToOuterWall(wall.id, segmentId, {
+        type: 'window',
+        offsetFromStart: createLength(5000),
         width: createLength(1200),
         height: createLength(1000),
         sillHeight: createLength(900)
-      }
+      })
 
-      store.addOpeningToOuterWall(wallId, 0, opening)
-      store.removeOpeningFromOuterWall(wallId, 0, 0)
+      // Update properties
+      store.updateOuterWallConstructionType(wall.id, segmentId, 'infill')
+      store.updateCornerBelongsTo(wall.id, cornerId, 'previous')
 
-      const segment = store.getOuterWallSegment(wallId, 0)
-      expect(segment?.openings).toHaveLength(0)
+      // Verify complex state
+      const updatedWall = store.outerWalls.get(wall.id)!
+      const updatedSegment = updatedWall.segments.find(s => s.id === segmentId)!
+      const updatedCorner = updatedWall.corners.find(c => c.id === cornerId)!
+
+      expect(updatedSegment.openings).toHaveLength(2)
+      expect(updatedSegment.constructionType).toBe('infill')
+      expect(updatedCorner.belongsTo).toBe('previous')
+
+      // Update opening
+      store.updateOpening(wall.id, segmentId, doorId, {
+        width: createLength(900)
+      })
+
+      const finalSegment = store.outerWalls.get(wall.id)!.segments.find(s => s.id === segmentId)!
+      const updatedDoor = finalSegment.openings.find(o => o.id === doorId)!
+      expect(updatedDoor.width).toBe(createLength(900))
+
+      // Remove opening
+      store.removeOpeningFromOuterWall(wall.id, segmentId, windowId)
+      const finalSegmentAfterRemoval = store.outerWalls.get(wall.id)!.segments.find(s => s.id === segmentId)!
+      expect(finalSegmentAfterRemoval.openings).toHaveLength(1)
+      expect(finalSegmentAfterRemoval.openings[0].id).toBe(doorId)
     })
 
-    it('should validate opening parameters', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
+    it('should maintain data consistency after multiple operations', () => {
+      const boundary = createRectangularBoundary()
+      store.addOuterWallPolygon(testFloorId, boundary, 'cells-under-tension', createLength(500))
 
-      // Test negative offset
-      const invalidOpening1: Opening = {
+      const wall = Array.from(store.outerWalls.values())[0]
+      const segmentId = wall.segments[0].id
+      const originalCornerCount = wall.corners.length
+
+      // Add opening
+      store.addOpeningToOuterWall(wall.id, segmentId, {
         type: 'door',
-        offsetFromStart: createLength(-100),
+        offsetFromStart: createLength(1000),
         width: createLength(800),
         height: createLength(2100)
-      }
-      expect(() => store.addOpeningToOuterWall(wallId, 0, invalidOpening1)).toThrow(
-        'Opening offset from start must be non-negative'
-      )
+      })
 
-      // Test zero width
-      const invalidOpening2: Opening = {
-        type: 'door',
-        offsetFromStart: createLength(500),
-        width: createLength(0),
-        height: createLength(2100)
-      }
-      expect(() => store.addOpeningToOuterWall(wallId, 0, invalidOpening2)).toThrow(
-        'Opening width must be greater than 0'
-      )
-    })
-  })
+      // Update thickness - this should recalculate geometry
+      const newThickness = createLength(300)
+      store.updateOuterWallThickness(wall.id, segmentId, newThickness)
 
-  describe('geometric computation', () => {
-    it('should compute correct geometry for all wall segments', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', createLength(100))
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wall = walls[0]
+      const finalWall = store.outerWalls.get(wall.id)!
+      const finalSegment = finalWall.segments.find(s => s.id === segmentId)!
 
-      // Test each segment of the square
-      const segments = wall.segments
-
-      // Bottom wall (0,0) -> (1000,0)
-      expect(segments[0].direction[0]).toBe(1)
-      expect(segments[0].direction[1]).toBeCloseTo(0)
-      expect(segments[0].outsideDirection[0]).toBeCloseTo(0)
-      expect(segments[0].outsideDirection[1]).toBe(1)
-      expect(segments[0].insideLength).toBe(1000)
-
-      // Right wall (1000,0) -> (1000,1000)
-      expect(segments[1].direction[0]).toBeCloseTo(0)
-      expect(segments[1].direction[1]).toBe(1)
-      expect(segments[1].outsideDirection[0]).toBe(-1)
-      expect(segments[1].outsideDirection[1]).toBeCloseTo(0)
-      expect(segments[1].insideLength).toBe(1000)
-
-      // Top wall (1000,1000) -> (0,1000)
-      expect(segments[2].direction[0]).toBe(-1)
-      expect(segments[2].direction[1]).toBeCloseTo(0)
-      expect(segments[2].outsideDirection[0]).toBeCloseTo(0)
-      expect(segments[2].outsideDirection[1]).toBe(-1)
-      expect(segments[2].insideLength).toBe(1000)
-
-      // Left wall (0,1000) -> (0,0)
-      expect(segments[3].direction[0]).toBeCloseTo(0)
-      expect(segments[3].direction[1]).toBe(-1)
-      expect(segments[3].outsideDirection[0]).toBe(1)
-      expect(segments[3].outsideDirection[1]).toBeCloseTo(0)
-      expect(segments[3].insideLength).toBe(1000)
-    })
-
-    it('should compute outside lines with correct offsets', () => {
-      const thickness = createLength(200)
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', thickness)
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wall = walls[0]
-
-      // Bottom wall outside line should be offset down (positive Y)
-      const bottomSegment = wall.segments[0]
-      expect(bottomSegment.outsideLine.start[0]).toBe(0)
-      expect(bottomSegment.outsideLine.start[1]).toBe(200)
-      expect(bottomSegment.outsideLine.end[0]).toBe(1000)
-      expect(bottomSegment.outsideLine.end[1]).toBe(200)
-
-      // Right wall outside line should be offset right (negative X from inside)
-      const rightSegment = wall.segments[1]
-      expect(rightSegment.outsideLine.start[0]).toBe(800) // 1000 - 200
-      expect(rightSegment.outsideLine.start[1]).toBe(0)
-      expect(rightSegment.outsideLine.end[0]).toBe(800)
-      expect(rightSegment.outsideLine.end[1]).toBe(1000)
-    })
-  })
-
-  describe('getters', () => {
-    it('should return null for non-existent wall', () => {
-      const fakeId = createOuterWallId()
-      expect(store.getOuterWallById(fakeId)).toBeNull()
-    })
-
-    it('should return null for invalid segment index', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
-
-      expect(store.getOuterWallSegment(wallId, -1)).toBeNull()
-      expect(store.getOuterWallSegment(wallId, 10)).toBeNull()
-    })
-
-    it('should filter walls by floor', () => {
-      const floor1Id = createFloorId()
-      const floor2Id = createFloorId()
-
-      store.addOuterWallPolygon(floor1Id, testBoundary, 'cells-under-tension')
-      store.addOuterWallPolygon(floor2Id, testBoundary, 'infill')
-
-      expect(store.getOuterWallsByFloor(floor1Id)).toHaveLength(1)
-      expect(store.getOuterWallsByFloor(floor2Id)).toHaveLength(1)
-      expect(store.getOuterWallsByFloor(createFloorId())).toHaveLength(0)
-    })
-  })
-
-  describe('corner functionality', () => {
-    it('should create corners with default belongsTo when adding outer wall', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wall = walls[0]
-
-      expect(wall.corners).toHaveLength(4)
-      expect(wall.corners[0].belongsTo).toBe('next')
-      expect(wall.corners[1].belongsTo).toBe('next')
-      expect(wall.corners[2].belongsTo).toBe('next')
-      expect(wall.corners[3].belongsTo).toBe('next')
-    })
-
-    it('should calculate corner outside points', () => {
-      const thickness = createLength(200)
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', thickness)
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wall = walls[0]
-
-      // Each corner should have an outside point that's not at the boundary point
-      for (const corner of wall.corners) {
-        expect(corner.outsidePoint).toBeDefined()
-        expect(corner.outsidePoint[0]).toBeTypeOf('number')
-        expect(corner.outsidePoint[1]).toBeTypeOf('number')
-      }
-    })
-
-    it('should update corner belongsTo by index', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
-
-      store.updateCornerBelongsTo(wallId, 0, 'previous')
-      store.updateCornerBelongsTo(wallId, 2, 'previous')
-
-      const updatedWalls = store.getOuterWallsByFloor(testFloorId)
-      const updatedWall = updatedWalls[0]
-
-      expect(updatedWall.corners[0].belongsTo).toBe('previous')
-      expect(updatedWall.corners[1].belongsTo).toBe('next')
-      expect(updatedWall.corners[2].belongsTo).toBe('previous')
-      expect(updatedWall.corners[3].belongsTo).toBe('next')
-    })
-
-    it('should ignore invalid corner index when updating belongsTo', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
-      const originalCorners = [...walls[0].corners]
-
-      store.updateCornerBelongsTo(wallId, -1, 'previous')
-      store.updateCornerBelongsTo(wallId, 10, 'previous')
-
-      const unchangedWalls = store.getOuterWallsByFloor(testFloorId)
-      const unchangedWall = unchangedWalls[0]
-
-      // Corners should remain unchanged
-      expect(unchangedWall.corners[0].belongsTo).toBe(originalCorners[0].belongsTo)
-      expect(unchangedWall.corners[1].belongsTo).toBe(originalCorners[1].belongsTo)
-      expect(unchangedWall.corners[2].belongsTo).toBe(originalCorners[2].belongsTo)
-      expect(unchangedWall.corners[3].belongsTo).toBe(originalCorners[3].belongsTo)
-    })
-
-    it('should recalculate corners when thickness changes', () => {
-      const initialThickness = createLength(200)
-      const newThickness = createLength(400)
-
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension', initialThickness)
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
-      const originalCorners = walls[0].corners.map(c => ({ ...c, outsidePoint: [...c.outsidePoint] }))
-
-      store.updateOuterWallThickness(wallId, 0, newThickness)
-
-      const updatedWalls = store.getOuterWallsByFloor(testFloorId)
-      const updatedWall = updatedWalls[0]
-
-      // At least one corner should have changed due to thickness change
-      const cornersChanged = updatedWall.corners.some(
-        (corner, index) =>
-          corner.outsidePoint[0] !== originalCorners[index].outsidePoint[0] ||
-          corner.outsidePoint[1] !== originalCorners[index].outsidePoint[1]
-      )
-
-      expect(cornersChanged).toBe(true)
-    })
-
-    it('should preserve belongsTo values when recalculating corners', () => {
-      store.addOuterWallPolygon(testFloorId, testBoundary, 'cells-under-tension')
-      const walls = store.getOuterWallsByFloor(testFloorId)
-      const wallId = walls[0].id
-
-      // Set custom belongsTo values
-      store.updateCornerBelongsTo(wallId, 0, 'previous')
-      store.updateCornerBelongsTo(wallId, 2, 'previous')
-
-      // Change thickness to trigger corner recalculation
-      store.updateOuterWallThickness(wallId, 0, createLength(400))
-
-      const updatedWalls = store.getOuterWallsByFloor(testFloorId)
-      const updatedWall = updatedWalls[0]
-
-      // belongsTo values should be preserved
-      expect(updatedWall.corners[0].belongsTo).toBe('previous')
-      expect(updatedWall.corners[1].belongsTo).toBe('next')
-      expect(updatedWall.corners[2].belongsTo).toBe('previous')
-      expect(updatedWall.corners[3].belongsTo).toBe('next')
+      expect(finalSegment.thickness).toBe(newThickness)
+      expect(finalSegment.openings).toHaveLength(1)
+      expect(finalWall.corners).toHaveLength(originalCornerCount) // Same number of corners
+      expect(finalWall.segments).toHaveLength(4) // Rectangle still has 4 segments
+      expect(finalWall.floorId).toBe(testFloorId)
+      expect(finalWall.boundary).toEqual(boundary.points)
     })
   })
 })

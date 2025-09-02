@@ -1,8 +1,8 @@
 import type { StateCreator } from 'zustand'
 import type { OuterWallPolygon, OuterWallConstructionType, OuterWallSegment, Opening, OuterCorner } from '@/types/model'
-import type { FloorId, OuterWallId } from '@/types/ids'
+import type { FloorId, OuterWallId, WallSegmentId, OuterCornerId, OpeningId } from '@/types/ids'
 import type { Length, Polygon2D, Vec2, LineSegment2D } from '@/types/geometry'
-import { createOuterWallId } from '@/types/ids'
+import { createOuterWallId, createWallSegmentId, createOuterCornerId, createOpeningId } from '@/types/ids'
 import { createLength, createVec2, lineIntersection, lineFromSegment, midpoint } from '@/types/geometry'
 
 export interface OuterWallsState {
@@ -18,15 +18,34 @@ export interface OuterWallsActions {
   ) => void
   removeOuterWall: (wallId: OuterWallId) => void
 
-  updateOuterWallConstructionType: (wallId: OuterWallId, segmentIndex: number, type: OuterWallConstructionType) => void
-  updateOuterWallThickness: (wallId: OuterWallId, segmentIndex: number, thickness: Length) => void
-  updateCornerBelongsTo: (wallId: OuterWallId, cornerIndex: number, belongsTo: 'previous' | 'next') => void
+  // Updated to use IDs instead of indices
+  updateOuterWallConstructionType: (
+    wallId: OuterWallId,
+    segmentId: WallSegmentId,
+    type: OuterWallConstructionType
+  ) => void
+  updateOuterWallThickness: (wallId: OuterWallId, segmentId: WallSegmentId, thickness: Length) => void
+  updateCornerBelongsTo: (wallId: OuterWallId, cornerId: OuterCornerId, belongsTo: 'previous' | 'next') => void
 
-  addOpeningToOuterWall: (wallId: OuterWallId, segmentIndex: number, opening: Opening) => void
-  removeOpeningFromOuterWall: (wallId: OuterWallId, segmentIndex: number, openingIndex: number) => void
+  // Updated opening actions with ID-based approach and auto-ID generation
+  addOpeningToOuterWall: (
+    wallId: OuterWallId,
+    segmentId: WallSegmentId,
+    openingParams: Omit<Opening, 'id'>
+  ) => OpeningId
+  removeOpeningFromOuterWall: (wallId: OuterWallId, segmentId: WallSegmentId, openingId: OpeningId) => void
+  updateOpening: (
+    wallId: OuterWallId,
+    segmentId: WallSegmentId,
+    openingId: OpeningId,
+    updates: Partial<Omit<Opening, 'id'>>
+  ) => void
 
+  // Updated getters
   getOuterWallById: (wallId: OuterWallId) => OuterWallPolygon | null
-  getOuterWallSegment: (wallId: OuterWallId, segmentIndex: number) => OuterWallSegment | null
+  getSegmentById: (wallId: OuterWallId, segmentId: WallSegmentId) => OuterWallSegment | null
+  getCornerById: (wallId: OuterWallId, cornerId: OuterCornerId) => OuterCorner | null
+  getOpeningById: (wallId: OuterWallId, segmentId: WallSegmentId, openingId: OpeningId) => Opening | null
   getOuterWallsByFloor: (floorId: FloorId) => OuterWallPolygon[]
 }
 
@@ -64,7 +83,11 @@ const calculateCornerOutsidePoint = (
 }
 
 // Helper function to create corners from boundary points and segments
-const createCornersFromBoundary = (boundary: Polygon2D, segments: OuterWallSegment[]): OuterCorner[] => {
+const createCornersFromBoundary = (
+  boundary: Polygon2D,
+  segments: OuterWallSegment[],
+  existingCorners?: OuterCorner[]
+): OuterCorner[] => {
   const corners: OuterCorner[] = []
 
   for (let i = 0; i < boundary.points.length; i++) {
@@ -76,9 +99,12 @@ const createCornersFromBoundary = (boundary: Polygon2D, segments: OuterWallSegme
 
     const outsidePoint = calculateCornerOutsidePoint(previousSegment, nextSegment, currentPoint)
 
+    // Preserve existing corner data if available, otherwise create new
+    const existingCorner = existingCorners?.[i]
     corners.push({
+      id: existingCorner?.id ?? createOuterCornerId(),
       outsidePoint,
-      belongsTo: 'next' // Default to next segment
+      belongsTo: existingCorner?.belongsTo ?? 'next' // Use existing or default to next segment
     })
   }
 
@@ -166,6 +192,7 @@ const createSegmentsFromBoundary = (
     const geometry = computeSegmentGeometry(startPoint, endPoint, thickness)
 
     segments.push({
+      id: createWallSegmentId(),
       thickness,
       constructionType,
       openings: [],
@@ -221,13 +248,14 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
   },
 
   // Update operations
-  updateOuterWallConstructionType: (wallId: OuterWallId, segmentIndex: number, type: OuterWallConstructionType) => {
+  updateOuterWallConstructionType: (wallId: OuterWallId, segmentId: WallSegmentId, type: OuterWallConstructionType) => {
     set(state => {
       const outerWall = state.outerWalls.get(wallId)
       if (outerWall == null) return state
 
-      if (segmentIndex < 0 || segmentIndex >= outerWall.segments.length) {
-        return state // Invalid index, do nothing
+      const segmentIndex = outerWall.segments.findIndex(s => s.id === segmentId)
+      if (segmentIndex === -1) {
+        return state // Segment not found
       }
 
       const updatedSegments = [...outerWall.segments]
@@ -247,7 +275,7 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
     })
   },
 
-  updateOuterWallThickness: (wallId: OuterWallId, segmentIndex: number, thickness: Length) => {
+  updateOuterWallThickness: (wallId: OuterWallId, segmentId: WallSegmentId, thickness: Length) => {
     if (thickness <= 0) {
       throw new Error('Wall thickness must be greater than 0')
     }
@@ -256,8 +284,9 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
       const outerWall = state.outerWalls.get(wallId)
       if (outerWall == null) return state
 
-      if (segmentIndex < 0 || segmentIndex >= outerWall.segments.length) {
-        return state // Invalid index, do nothing
+      const segmentIndex = outerWall.segments.findIndex(s => s.id === segmentId)
+      if (segmentIndex === -1) {
+        return state // Segment not found
       }
 
       // Get the boundary points for this segment
@@ -274,14 +303,9 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
         ...geometry
       }
 
-      // Recalculate corners since thickness changed
+      // Recalculate corners since thickness changed, preserving existing corner data
       const boundary = { points: outerWall.boundary }
-      const updatedCorners = createCornersFromBoundary(boundary, updatedSegments)
-
-      // Preserve existing belongsTo values
-      for (let i = 0; i < updatedCorners.length && i < outerWall.corners.length; i++) {
-        updatedCorners[i].belongsTo = outerWall.corners[i].belongsTo
-      }
+      const updatedCorners = createCornersFromBoundary(boundary, updatedSegments, outerWall.corners)
 
       const updatedOuterWall = {
         ...outerWall,
@@ -295,13 +319,14 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
     })
   },
 
-  updateCornerBelongsTo: (wallId: OuterWallId, cornerIndex: number, belongsTo: 'previous' | 'next') => {
+  updateCornerBelongsTo: (wallId: OuterWallId, cornerId: OuterCornerId, belongsTo: 'previous' | 'next') => {
     set(state => {
       const outerWall = state.outerWalls.get(wallId)
       if (outerWall == null) return state
 
-      if (cornerIndex < 0 || cornerIndex >= outerWall.corners.length) {
-        return state // Invalid index, do nothing
+      const cornerIndex = outerWall.corners.findIndex(c => c.id === cornerId)
+      if (cornerIndex === -1) {
+        return state // Corner not found
       }
 
       const updatedCorners = [...outerWall.corners]
@@ -322,26 +347,34 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
   },
 
   // Opening operations
-  addOpeningToOuterWall: (wallId: OuterWallId, segmentIndex: number, opening: Opening) => {
-    if (opening.offsetFromStart < 0) {
+  addOpeningToOuterWall: (wallId: OuterWallId, segmentId: WallSegmentId, openingParams: Omit<Opening, 'id'>) => {
+    if (openingParams.offsetFromStart < 0) {
       throw new Error('Opening offset from start must be non-negative')
     }
-    if (opening.width <= 0) {
+    if (openingParams.width <= 0) {
       throw new Error('Opening width must be greater than 0')
     }
-    if (opening.height <= 0) {
+    if (openingParams.height <= 0) {
       throw new Error('Opening height must be greater than 0')
     }
-    if (opening.sillHeight != null && opening.sillHeight < 0) {
+    if (openingParams.sillHeight != null && openingParams.sillHeight < 0) {
       throw new Error('Window sill height must be non-negative')
+    }
+
+    // Auto-generate ID for the new opening
+    const openingId = createOpeningId()
+    const newOpening: Opening = {
+      id: openingId,
+      ...openingParams
     }
 
     set(state => {
       const outerWall = state.outerWalls.get(wallId)
       if (outerWall == null) return state
 
-      if (segmentIndex < 0 || segmentIndex >= outerWall.segments.length) {
-        return state // Invalid index, do nothing
+      const segmentIndex = outerWall.segments.findIndex(s => s.id === segmentId)
+      if (segmentIndex === -1) {
+        return state // Segment not found
       }
 
       const updatedSegments = [...outerWall.segments]
@@ -349,7 +382,7 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
 
       updatedSegments[segmentIndex] = {
         ...segment,
-        openings: [...segment.openings, { ...opening }]
+        openings: [...segment.openings, newOpening]
       }
 
       const updatedOuterWall = {
@@ -361,20 +394,24 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
       newOuterWalls.set(wallId, updatedOuterWall)
       return { outerWalls: newOuterWalls }
     })
+
+    return openingId
   },
 
-  removeOpeningFromOuterWall: (wallId: OuterWallId, segmentIndex: number, openingIndex: number) => {
+  removeOpeningFromOuterWall: (wallId: OuterWallId, segmentId: WallSegmentId, openingId: OpeningId) => {
     set(state => {
       const outerWall = state.outerWalls.get(wallId)
       if (outerWall == null) return state
 
-      if (segmentIndex < 0 || segmentIndex >= outerWall.segments.length) {
-        return state // Invalid segment index, do nothing
+      const segmentIndex = outerWall.segments.findIndex(s => s.id === segmentId)
+      if (segmentIndex === -1) {
+        return state // Segment not found
       }
 
       const segment = outerWall.segments[segmentIndex]
-      if (openingIndex < 0 || openingIndex >= segment.openings.length) {
-        return state // Invalid opening index, do nothing
+      const openingIndex = segment.openings.findIndex(o => o.id === openingId)
+      if (openingIndex === -1) {
+        return state // Opening not found
       }
 
       const updatedSegments = [...outerWall.segments]
@@ -402,15 +439,70 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
     return get().outerWalls.get(wallId) ?? null
   },
 
-  getOuterWallSegment: (wallId: OuterWallId, segmentIndex: number) => {
+  // Updated and new getter methods
+  getSegmentById: (wallId: OuterWallId, segmentId: WallSegmentId) => {
     const outerWall = get().outerWalls.get(wallId)
     if (outerWall == null) return null
 
-    if (segmentIndex < 0 || segmentIndex >= outerWall.segments.length) {
-      return null // Invalid index
-    }
+    return outerWall.segments.find(s => s.id === segmentId) ?? null
+  },
 
-    return outerWall.segments[segmentIndex]
+  getCornerById: (wallId: OuterWallId, cornerId: OuterCornerId) => {
+    const outerWall = get().outerWalls.get(wallId)
+    if (outerWall == null) return null
+
+    return outerWall.corners.find(c => c.id === cornerId) ?? null
+  },
+
+  getOpeningById: (wallId: OuterWallId, segmentId: WallSegmentId, openingId: OpeningId) => {
+    const outerWall = get().outerWalls.get(wallId)
+    if (outerWall == null) return null
+
+    const segment = outerWall.segments.find(s => s.id === segmentId)
+    if (segment == null) return null
+
+    return segment.openings.find(o => o.id === openingId) ?? null
+  },
+
+  updateOpening: (
+    wallId: OuterWallId,
+    segmentId: WallSegmentId,
+    openingId: OpeningId,
+    updates: Partial<Omit<Opening, 'id'>>
+  ) => {
+    set(state => {
+      const outerWall = state.outerWalls.get(wallId)
+      if (outerWall == null) return state
+
+      const segmentIndex = outerWall.segments.findIndex(s => s.id === segmentId)
+      if (segmentIndex === -1) return state
+
+      const segment = outerWall.segments[segmentIndex]
+      const openingIndex = segment.openings.findIndex(o => o.id === openingId)
+      if (openingIndex === -1) return state
+
+      const updatedSegments = [...outerWall.segments]
+      const updatedOpenings = [...segment.openings]
+
+      updatedOpenings[openingIndex] = {
+        ...updatedOpenings[openingIndex],
+        ...updates
+      }
+
+      updatedSegments[segmentIndex] = {
+        ...segment,
+        openings: updatedOpenings
+      }
+
+      const updatedOuterWall = {
+        ...outerWall,
+        segments: updatedSegments
+      }
+
+      const newOuterWalls = new Map(state.outerWalls)
+      newOuterWalls.set(wallId, updatedOuterWall)
+      return { outerWalls: newOuterWalls }
+    })
   },
 
   getOuterWallsByFloor: (floorId: FloorId) => {
