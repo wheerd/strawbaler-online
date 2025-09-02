@@ -122,18 +122,6 @@ describe('OuterWallShape', () => {
     }).not.toThrow()
   })
 
-  it('should render outer wall shape with selected segment', () => {
-    expect(() => {
-      render(
-        <Stage width={2000} height={2000}>
-          <Layer>
-            <OuterWallShape outerWall={testOuterWall} selectedSegmentIndex={0} />
-          </Layer>
-        </Stage>
-      )
-    }).not.toThrow()
-  })
-
   it('should render outer corner shape without errors', () => {
     expect(() => {
       render(
@@ -141,31 +129,9 @@ describe('OuterWallShape', () => {
           <Layer>
             <OuterCornerShape
               corner={testOuterWall.corners[0]}
-              cornerIndex={0}
               boundaryPoint={testOuterWall.boundary[0]}
               previousSegment={testOuterWall.segments[3]}
               nextSegment={testOuterWall.segments[0]}
-              isSelected={false}
-              outerWallId={testOuterWall.id}
-            />
-          </Layer>
-        </Stage>
-      )
-    }).not.toThrow()
-  })
-
-  it('should render selected outer corner shape without errors', () => {
-    expect(() => {
-      render(
-        <Stage width={2000} height={2000}>
-          <Layer>
-            <OuterCornerShape
-              corner={testOuterWall.corners[0]}
-              cornerIndex={0}
-              boundaryPoint={testOuterWall.boundary[0]}
-              previousSegment={testOuterWall.segments[3]}
-              nextSegment={testOuterWall.segments[0]}
-              isSelected
               outerWallId={testOuterWall.id}
             />
           </Layer>
