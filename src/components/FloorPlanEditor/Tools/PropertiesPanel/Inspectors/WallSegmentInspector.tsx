@@ -9,10 +9,21 @@ interface WallSegmentInspectorProps {
   segmentId: WallSegmentId
 }
 
+// Construction type options - moved outside component to avoid recreation
+const CONSTRUCTION_TYPE_OPTIONS: { value: OuterWallConstructionType; label: string }[] = [
+  { value: 'cells-under-tension', label: 'CUT' },
+  { value: 'infill', label: 'Infill' },
+  { value: 'strawhenge', label: 'Strawhenge' },
+  { value: 'non-strawbale', label: 'Non-Strawbale' }
+]
+
 export function WallSegmentInspector({ outerWallId, segmentId }: WallSegmentInspectorProps): React.JSX.Element {
-  // Get model store functions
-  const modelStore = useModelStore()
+  // Get model store functions - use specific selectors for stable references
+  const updateOuterWallConstructionType = useModelStore(state => state.updateOuterWallConstructionType)
+  const updateOuterWallThickness = useModelStore(state => state.updateOuterWallThickness)
   const getOuterWallById = useGetOuterWallById()
+
+  // Get data
   const outerWall = getOuterWallById(outerWallId)
   const segment = outerWall?.segments.find(s => s.id === segmentId)
 
@@ -26,29 +37,21 @@ export function WallSegmentInspector({ outerWallId, segmentId }: WallSegmentInsp
     )
   }
 
-  // Construction type options
-  const constructionTypeOptions: { value: OuterWallConstructionType; label: string }[] = [
-    { value: 'cells-under-tension', label: 'CUT' },
-    { value: 'infill', label: 'Infill' },
-    { value: 'strawhenge', label: 'Strawhenge' },
-    { value: 'non-strawbale', label: 'Non-Strawbale' }
-  ]
-
-  // Event handlers
+  // Event handlers with stable references
   const handleConstructionTypeChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newType = e.target.value as OuterWallConstructionType
-      modelStore.updateOuterWallConstructionType(outerWallId, segmentId, newType)
+      updateOuterWallConstructionType(outerWallId, segmentId, newType)
     },
-    [modelStore, outerWallId, segmentId]
+    [updateOuterWallConstructionType, outerWallId, segmentId]
   )
 
   const handleThicknessChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = Math.max(50, Math.min(1500, Number(e.target.value))) // Clamp between 50mm and 1500mm
-      modelStore.updateOuterWallThickness(outerWallId, segmentId, createLength(value))
+      updateOuterWallThickness(outerWallId, segmentId, createLength(value))
     },
-    [modelStore, outerWallId, segmentId]
+    [updateOuterWallThickness, outerWallId, segmentId]
   )
 
   return (
@@ -65,7 +68,7 @@ export function WallSegmentInspector({ outerWallId, segmentId }: WallSegmentInsp
           <div className="property-group">
             <label htmlFor="construction-type">Construction Type</label>
             <select id="construction-type" value={segment.constructionType} onChange={handleConstructionTypeChange}>
-              {constructionTypeOptions.map(option => (
+              {CONSTRUCTION_TYPE_OPTIONS.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

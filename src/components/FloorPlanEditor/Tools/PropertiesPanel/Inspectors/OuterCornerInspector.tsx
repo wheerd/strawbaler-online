@@ -8,9 +8,11 @@ interface OuterCornerInspectorProps {
 }
 
 export function OuterCornerInspector({ outerWallId, cornerId }: OuterCornerInspectorProps): React.JSX.Element {
-  // Get model store functions
-  const modelStore = useModelStore()
+  // Get model store functions - use specific selectors for stable references
+  const updateCornerBelongsTo = useModelStore(state => state.updateCornerBelongsTo)
   const getOuterWallById = useGetOuterWallById()
+
+  // Get data
   const outerWall = getOuterWallById(outerWallId)
   const cornerIndex = outerWall?.corners.findIndex(c => c.id === cornerId) ?? -1
   const corner = cornerIndex !== -1 ? outerWall?.corners[cornerIndex] : null
@@ -39,13 +41,13 @@ export function OuterCornerInspector({ outerWallId, cornerId }: OuterCornerInspe
   // Get boundary point
   const boundaryPoint = outerWall.boundary[cornerIndex]
 
-  // Event handlers
+  // Event handlers with stable references
   const handleBelongsToChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newBelongsTo = e.target.value as 'previous' | 'next'
-      modelStore.updateCornerBelongsTo(outerWallId, cornerId, newBelongsTo)
+      updateCornerBelongsTo(outerWallId, cornerId, newBelongsTo)
     },
-    [modelStore, outerWallId, cornerId]
+    [updateCornerBelongsTo, outerWallId, cornerId]
   )
 
   // Calculate angle between segments (simplified)

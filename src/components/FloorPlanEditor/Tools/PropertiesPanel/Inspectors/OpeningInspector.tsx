@@ -10,10 +10,20 @@ interface OpeningInspectorProps {
   openingId: OpeningId
 }
 
+// Opening type options - moved outside component to avoid recreation
+const OPENING_TYPE_OPTIONS: { value: OpeningType; label: string }[] = [
+  { value: 'door', label: 'Door' },
+  { value: 'window', label: 'Window' },
+  { value: 'passage', label: 'Passage' }
+]
+
 export function OpeningInspector({ outerWallId, segmentId, openingId }: OpeningInspectorProps): React.JSX.Element {
-  // Get model store functions
-  const modelStore = useModelStore()
+  // Get model store functions - use specific selectors for stable references
+  const updateOpening = useModelStore(state => state.updateOpening)
+  const removeOpeningFromOuterWall = useModelStore(state => state.removeOpeningFromOuterWall)
   const getOuterWallById = useGetOuterWallById()
+
+  // Get data
   const outerWall = getOuterWallById(outerWallId)
   const segment = outerWall?.segments.find(s => s.id === segmentId)
   const opening = segment?.openings.find(o => o.id === openingId)
@@ -28,61 +38,54 @@ export function OpeningInspector({ outerWallId, segmentId, openingId }: OpeningI
     )
   }
 
-  // Opening type options
-  const openingTypeOptions: { value: OpeningType; label: string }[] = [
-    { value: 'door', label: 'Door' },
-    { value: 'window', label: 'Window' },
-    { value: 'passage', label: 'Passage' }
-  ]
-
-  // Event handlers
+  // Event handlers with stable references
   const handleTypeChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newType = e.target.value as OpeningType
-      modelStore.updateOpening(outerWallId, segmentId, openingId, { type: newType })
+      updateOpening(outerWallId, segmentId, openingId, { type: newType })
     },
-    [modelStore, outerWallId, segmentId, openingId]
+    [updateOpening, outerWallId, segmentId, openingId]
   )
 
   const handleWidthChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = Math.max(100, Math.min(5000, Number(e.target.value))) // Clamp between 100mm and 5000mm
-      modelStore.updateOpening(outerWallId, segmentId, openingId, { width: createLength(value) })
+      updateOpening(outerWallId, segmentId, openingId, { width: createLength(value) })
     },
-    [modelStore, outerWallId, segmentId, openingId]
+    [updateOpening, outerWallId, segmentId, openingId]
   )
 
   const handleHeightChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = Math.max(100, Math.min(4000, Number(e.target.value))) // Clamp between 100mm and 4000mm
-      modelStore.updateOpening(outerWallId, segmentId, openingId, { height: createLength(value) })
+      updateOpening(outerWallId, segmentId, openingId, { height: createLength(value) })
     },
-    [modelStore, outerWallId, segmentId, openingId]
+    [updateOpening, outerWallId, segmentId, openingId]
   )
 
   const handleOffsetChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = Math.max(0, Math.min(segment.insideLength - opening.width, Number(e.target.value)))
-      modelStore.updateOpening(outerWallId, segmentId, openingId, { offsetFromStart: createLength(value) })
+      updateOpening(outerWallId, segmentId, openingId, { offsetFromStart: createLength(value) })
     },
-    [modelStore, outerWallId, segmentId, openingId, segment.insideLength, opening.width]
+    [updateOpening, outerWallId, segmentId, openingId, segment.insideLength, opening.width]
   )
 
   const handleSillHeightChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = Math.max(0, Math.min(2000, Number(e.target.value))) // Clamp between 0mm and 2000mm
-      modelStore.updateOpening(outerWallId, segmentId, openingId, {
+      updateOpening(outerWallId, segmentId, openingId, {
         sillHeight: value === 0 ? undefined : createLength(value)
       })
     },
-    [modelStore, outerWallId, segmentId, openingId]
+    [updateOpening, outerWallId, segmentId, openingId]
   )
 
   const handleRemoveOpening = useCallback(() => {
     if (confirm('Are you sure you want to remove this opening?')) {
-      modelStore.removeOpeningFromOuterWall(outerWallId, segmentId, openingId)
+      removeOpeningFromOuterWall(outerWallId, segmentId, openingId)
     }
-  }, [modelStore, outerWallId, segmentId, openingId])
+  }, [removeOpeningFromOuterWall, outerWallId, segmentId, openingId])
 
   const area = (opening.width * opening.height) / (1000 * 1000)
 
@@ -100,7 +103,7 @@ export function OpeningInspector({ outerWallId, segmentId, openingId }: OpeningI
           <div className="property-group">
             <label htmlFor="opening-type">Type</label>
             <select id="opening-type" value={opening.type} onChange={handleTypeChange}>
-              {openingTypeOptions.map(option => (
+              {OPENING_TYPE_OPTIONS.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

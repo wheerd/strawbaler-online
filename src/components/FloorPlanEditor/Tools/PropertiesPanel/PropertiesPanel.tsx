@@ -28,75 +28,6 @@ export function PropertiesPanel(): React.JSX.Element {
   const selectionPath = useSelectionPath()
   const activeTool = useActiveTool()
 
-  // Render entity inspector based on ID type
-  const renderEntityInspector = () => {
-    if (!selectedId) return null
-
-    // Handle legacy wall entity
-    if (isWallId(selectedId)) {
-      return <WallInspector selectedId={selectedId} />
-    }
-
-    // Handle room entity
-    if (isRoomId(selectedId)) {
-      return <RoomInspector selectedId={selectedId} />
-    }
-
-    // Handle point entity
-    if (isPointId(selectedId)) {
-      // Points can be either standalone points or corner points
-      // For now, treat point selection as corner selection
-      return <CornerInspector selectedId={selectedId} />
-    }
-
-    // Handle outer wall entities (new)
-    if (isOuterWallId(selectedId)) {
-      return <OuterWallInspector selectedId={selectedId} />
-    }
-
-    if (isWallSegmentId(selectedId)) {
-      const [outerWallId] = selectionPath
-      return <WallSegmentInspector outerWallId={outerWallId as OuterWallId} segmentId={selectedId} />
-    }
-
-    if (isOuterCornerId(selectedId)) {
-      const [outerWallId] = selectionPath
-      return <OuterCornerInspector outerWallId={outerWallId as OuterWallId} cornerId={selectedId} />
-    }
-
-    if (isOpeningId(selectedId)) {
-      const [outerWallId, segmentId] = selectionPath
-      return (
-        <OpeningInspector
-          outerWallId={outerWallId as OuterWallId}
-          segmentId={segmentId as WallSegmentId}
-          openingId={selectedId}
-        />
-      )
-    }
-
-    return (
-      <div className="unknown-entity">
-        <h3>Unknown Entity Type</h3>
-        <p>Entity ID not recognized: {selectedId}</p>
-      </div>
-    )
-  }
-
-  // Render tool inspector if tool has one
-  const renderToolInspector = () => {
-    if (!activeTool?.hasInspector) return null
-
-    // For now, only wall tools have inspectors
-    if (activeTool.category === 'walls') {
-      return <WallToolInspector tool={activeTool as any} />
-    }
-
-    // Future tool inspectors would be added here
-
-    return null
-  }
-
   return (
     <div className="properties-panel">
       <div className="panel-header">
@@ -106,18 +37,63 @@ export function PropertiesPanel(): React.JSX.Element {
       <div className="panel-content">
         {/* Entity Inspector */}
         <div className="entity-section">
-          {selectedId ? (
-            renderEntityInspector()
-          ) : (
+          {!selectedId && (
             <div className="no-selection">
               <p>No entity selected</p>
               <p className="help-text">Select a wall, room, or point to view its properties</p>
             </div>
           )}
+
+          {/* Legacy wall entity */}
+          {selectedId && isWallId(selectedId) && <WallInspector selectedId={selectedId} />}
+
+          {/* Room entity */}
+          {selectedId && isRoomId(selectedId) && <RoomInspector selectedId={selectedId} />}
+
+          {/* Point entity (treat as corner) */}
+          {selectedId && isPointId(selectedId) && <CornerInspector selectedId={selectedId} />}
+
+          {/* Outer wall entities */}
+          {selectedId && isOuterWallId(selectedId) && <OuterWallInspector selectedId={selectedId} />}
+
+          {selectedId && isWallSegmentId(selectedId) && (
+            <WallSegmentInspector outerWallId={selectionPath[0] as OuterWallId} segmentId={selectedId} />
+          )}
+
+          {selectedId && isOuterCornerId(selectedId) && (
+            <OuterCornerInspector outerWallId={selectionPath[0] as OuterWallId} cornerId={selectedId} />
+          )}
+
+          {selectedId && isOpeningId(selectedId) && (
+            <OpeningInspector
+              outerWallId={selectionPath[0] as OuterWallId}
+              segmentId={selectionPath[1] as WallSegmentId}
+              openingId={selectedId}
+            />
+          )}
+
+          {/* Unknown entity type */}
+          {selectedId &&
+            !isWallId(selectedId) &&
+            !isRoomId(selectedId) &&
+            !isPointId(selectedId) &&
+            !isOuterWallId(selectedId) &&
+            !isWallSegmentId(selectedId) &&
+            !isOuterCornerId(selectedId) &&
+            !isOpeningId(selectedId) && (
+              <div className="unknown-entity">
+                <h3>Unknown Entity Type</h3>
+                <p>Entity type not recognized: {typeof selectedId}</p>
+              </div>
+            )}
         </div>
 
         {/* Tool Inspector */}
-        <div className="tool-section">{renderToolInspector()}</div>
+        <div className="tool-section">
+          {activeTool?.hasInspector && activeTool.category === 'walls' && (
+            <WallToolInspector tool={activeTool as any} />
+          )}
+        </div>
 
         {/* Action Buttons */}
         <div className="actions-section">
