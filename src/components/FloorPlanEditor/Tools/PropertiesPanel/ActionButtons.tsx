@@ -1,16 +1,15 @@
 import { useMemo } from 'react'
-import type { Entity, Tool, ContextAction } from '../ToolSystem/types'
+import type { Tool, ContextAction } from '../ToolSystem/types'
 import { useToolContext } from '../ToolSystem'
 
 interface ActionButtonsProps {
-  entity?: Entity | null
   tool?: Tool | null
 }
 
-export function ActionButtons({ entity, tool }: ActionButtonsProps): React.JSX.Element {
+export function ActionButtons({ tool }: ActionButtonsProps): React.JSX.Element {
   const context = useToolContext()
 
-  // Get context actions from entity and tool
+  // Get context actions from tool
   const contextActions = useMemo(() => {
     const actions: ContextAction[] = []
 
@@ -21,43 +20,10 @@ export function ActionButtons({ entity, tool }: ActionButtonsProps): React.JSX.E
     }
 
     return actions
-  }, [entity, tool])
+  }, [tool, context])
 
-  // Common actions available for all entities
-  const commonActions = useMemo(() => {
-    const actions: ContextAction[] = []
-
-    if (entity) {
-      // Focus/center on entity
-      actions.push({
-        label: 'Focus',
-        action: () => {
-          // Implementation would center viewport on entity
-        },
-        icon: '🎯'
-      })
-
-      // Copy entity (for future implementation)
-      actions.push({
-        label: 'Copy',
-        action: () => {
-          // Implementation would copy entity to clipboard
-        },
-        hotkey: 'Ctrl+C',
-        icon: '📋'
-      })
-    }
-
-    return actions
-  }, [entity])
-
-  // Combine all actions
-  const allActions = useMemo(() => {
-    return [...contextActions, ...commonActions]
-  }, [contextActions, commonActions])
-
-  if (allActions.length === 0) {
-    return <div className="action-buttons empty">No actions available</div>
+  if (contextActions.length === 0) {
+    return <></>
   }
 
   return (
@@ -65,7 +31,7 @@ export function ActionButtons({ entity, tool }: ActionButtonsProps): React.JSX.E
       <h4>Actions</h4>
 
       <div className="action-grid">
-        {allActions.map((action, index) => {
+        {contextActions.map((action, index) => {
           const isEnabled = action.enabled ? action.enabled() : true
 
           return (
@@ -83,23 +49,6 @@ export function ActionButtons({ entity, tool }: ActionButtonsProps): React.JSX.E
           )
         })}
       </div>
-
-      {/* Tool Status */}
-      {tool && (
-        <div className="tool-status">
-          <div className="status-item">
-            <label>Active Tool:</label>
-            <span className="tool-name">{tool.name}</span>
-          </div>
-
-          {tool.hasInspector && (
-            <div className="status-item">
-              <label>Has Settings:</label>
-              <span className="status-indicator">✓</span>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }

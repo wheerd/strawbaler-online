@@ -78,6 +78,7 @@ export const usePoint = (pointId: PointId): Point | null => useModelStore(state 
 export const useCorners = (): Map<PointId, Corner> => useModelStore(state => state.corners)
 export const useFloorCorners = (floorId: FloorId): Corner[] => useModelStore(state => state.getCornersByFloor)(floorId)
 export const useOuterWalls = (): Map<OuterWallId, OuterWallPolygon> => useModelStore(state => state.outerWalls)
+export const useGetOuterWallById = () => useModelStore(state => state.getOuterWallById)
 export const useFloorOuterWalls = (floorId: FloorId): OuterWallPolygon[] =>
   useModelStore(state => state.getOuterWallsByFloor)(floorId)
 

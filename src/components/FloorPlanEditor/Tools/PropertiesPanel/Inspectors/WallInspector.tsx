@@ -1,11 +1,11 @@
 import { useState, useCallback, useMemo } from 'react'
-import type { Wall, WallType, OutsideDirection } from '@/types/model'
+import type { WallType, OutsideDirection } from '@/types/model'
 import { useModelStore } from '@/model/store'
 import { createLength } from '@/types/geometry'
+import type { WallId } from '@/types/ids'
 
 interface WallInspectorProps {
-  wall: Wall
-  onChange: (property: string, value: any) => void
+  selectedId: WallId
 }
 
 interface CornerAction {
@@ -14,13 +14,26 @@ interface CornerAction {
   canSwitchMainWalls: boolean
 }
 
-export function WallInspector({ wall, onChange }: WallInspectorProps): React.JSX.Element {
+export function WallInspector({ selectedId }: WallInspectorProps): React.JSX.Element {
   const [isExpanded, setIsExpanded] = useState(true)
+
+  // Get wall data from model store
+  const wall = useModelStore(state => state.walls.get(selectedId))
+  const modelStore = useModelStore()
 
   // Get model store data
   const getWallsAtPoint = useModelStore(state => state.getWallsConnectedToPoint)
-  const modelStore = useModelStore()
   const getPoint = useCallback((pointId: string) => modelStore.points.get(pointId as any), [modelStore.points])
+
+  // If wall not found, show error
+  if (!wall) {
+    return (
+      <div className="wall-inspector error">
+        <h3>Wall Not Found</h3>
+        <p>Wall with ID {selectedId} could not be found.</p>
+      </div>
+    )
+  }
 
   // Calculate corner actions
   const cornerActions: CornerAction[] = useMemo(() => {
@@ -57,24 +70,24 @@ export function WallInspector({ wall, onChange }: WallInspectorProps): React.JSX
   const handleThicknessChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = Math.max(50, Math.min(1000, Number(e.target.value))) // Clamp between 50mm and 1000mm
-      onChange('thickness', createLength(value))
+      modelStore.updateWallThickness(selectedId, createLength(value))
     },
-    [onChange]
+    [modelStore, selectedId]
   )
 
   const handleTypeChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange('type', e.target.value as WallType)
+      modelStore.updateWallType(selectedId, e.target.value as WallType)
     },
-    [onChange]
+    [modelStore, selectedId]
   )
 
   const handleOutsideDirectionChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const value = e.target.value === '' ? undefined : (e.target.value as OutsideDirection)
-      onChange('outsideDirection', value)
+      const value = e.target.value === '' ? null : (e.target.value as OutsideDirection)
+      modelStore.updateWallOutsideDirection(selectedId, value)
     },
-    [onChange]
+    [modelStore, selectedId]
   )
 
   const handleCornerAction = useCallback((_pointId: string) => {
@@ -186,7 +199,7 @@ export function WallInspector({ wall, onChange }: WallInspectorProps): React.JSX
               <h4>Openings ({wall.openings.length})</h4>
 
               <div className="openings-list">
-                {wall.openings.map((opening, index) => (
+                {wall.openings.map((opening: any, index: number) => (
                   <div key={index} className="opening-item">
                     <span className="opening-type">{opening.type}</span>
                     <span className="opening-dimensions">
@@ -195,7 +208,8 @@ export function WallInspector({ wall, onChange }: WallInspectorProps): React.JSX
                     <button
                       className="remove-opening"
                       onClick={() => {
-                        // Remove opening implementation
+                        // Remove opening implementation would go here
+                        // For now, this is just a placeholder
                       }}
                       title="Remove opening"
                     >

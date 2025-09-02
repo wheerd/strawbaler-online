@@ -1,17 +1,30 @@
 import { useState, useCallback, useMemo } from 'react'
-import type { Room } from '@/types/model'
 import { useModelStore } from '@/model/store'
+import type { RoomId } from '@/types/ids'
 
 interface RoomInspectorProps {
-  room: Room
-  onChange: (property: string, value: any) => void
+  selectedId: RoomId
 }
 
-export function RoomInspector({ room, onChange }: RoomInspectorProps): React.JSX.Element {
+export function RoomInspector({ selectedId }: RoomInspectorProps): React.JSX.Element {
   const [isExpanded, setIsExpanded] = useState(true)
+
+  // Get room data from model store
+  const room = useModelStore(state => state.rooms.get(selectedId))
+  const modelStore = useModelStore()
 
   // Get model store functions
   const getWalls = useModelStore(state => state.walls)
+
+  // If room not found, show error
+  if (!room) {
+    return (
+      <div className="room-inspector error">
+        <h3>Room Not Found</h3>
+        <p>Room with ID {selectedId} could not be found.</p>
+      </div>
+    )
+  }
 
   // Room type options
   const roomTypeOptions = [
@@ -53,39 +66,41 @@ export function RoomInspector({ room, onChange }: RoomInspectorProps): React.JSX
 
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange('name', e.target.value)
+      modelStore.updateRoomName(selectedId, e.target.value)
     },
-    [onChange]
+    [modelStore, selectedId]
   )
 
   const handleRoomTypeChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange('roomType', e.target.value)
+    (_e: React.ChangeEvent<HTMLSelectElement>) => {
+      // Note: This would need to be implemented in the model store
+      // modelStore.updateRoomType(selectedId, e.target.value)
     },
-    [onChange]
+    [modelStore, selectedId]
   )
 
   const handleColorChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange('fillColor', e.target.value)
+    (_e: React.ChangeEvent<HTMLInputElement>) => {
+      // Note: This would need to be implemented in the model store
+      // modelStore.updateRoomFillColor(selectedId, e.target.value)
     },
-    [onChange]
+    [modelStore, selectedId]
   )
 
   const handleSplitRoom = useCallback(() => {
     // Implementation for room splitting
     // This would open a tool or dialog for splitting the room
-  }, [room.id])
+  }, [selectedId])
 
   const handleMergeRooms = useCallback(() => {
     // Implementation for room merging
     // This would show adjacent rooms and allow selection for merging
-  }, [room.id])
+  }, [selectedId])
 
   const handleFocusRoom = useCallback(() => {
     // Focus/zoom to room
     // This would center the viewport on the room
-  }, [room.id])
+  }, [selectedId])
 
   return (
     <div className="room-inspector">
@@ -134,7 +149,7 @@ export function RoomInspector({ room, onChange }: RoomInspectorProps): React.JSX
                 <input
                   type="text"
                   value={(room as any).fillColor || '#e0e0e0'}
-                  onChange={e => onChange('fillColor', e.target.value)}
+                  onChange={e => handleColorChange(e)}
                   className="color-text-input"
                   placeholder="#e0e0e0"
                 />
@@ -224,7 +239,10 @@ export function RoomInspector({ room, onChange }: RoomInspectorProps): React.JSX
               <textarea
                 id="room-notes"
                 value={(room as any).notes || ''}
-                onChange={e => onChange('notes', e.target.value)}
+                onChange={_e => {
+                  // Note: This would need to be implemented in the model store
+                  // modelStore.updateRoomNotes(selectedId, _e.target.value)
+                }}
                 placeholder="Add notes about this room..."
                 rows={3}
               />

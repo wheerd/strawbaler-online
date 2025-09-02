@@ -1,14 +1,13 @@
 import { useCallback } from 'react'
-import type { ToolInspectorProps } from '../../ToolSystem/types'
 import type { BaseWallTool, WallToolState } from '../../Categories/WallTools/BaseWallTool'
 
 type WallTool = BaseWallTool
 
-interface WallToolInspectorProps extends ToolInspectorProps {
+interface WallToolInspectorProps {
   tool: WallTool
 }
 
-export function WallToolInspector({ tool, onPropertyChange }: WallToolInspectorProps): React.JSX.Element {
+export function WallToolInspector({ tool }: WallToolInspectorProps): React.JSX.Element {
   const state = tool.state as WallToolState
 
   const handleThicknessChange = useCallback(
@@ -17,9 +16,9 @@ export function WallToolInspector({ tool, onPropertyChange }: WallToolInspectorP
       if ('setThickness' in tool) {
         tool.setThickness(value)
       }
-      onPropertyChange('thickness', value)
+      // Tool handles its own state updates
     },
-    [tool, onPropertyChange]
+    [tool]
   )
 
   return (
