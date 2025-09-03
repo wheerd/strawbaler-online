@@ -133,18 +133,18 @@ function OuterWallSegmentShape({
             startPoint={insideStart}
             endPoint={insideEnd}
             label={`${(segment.insideLength / 1000).toFixed(2)}m`}
-            offset={-40}
+            offset={-1.2}
             color="black"
-            fontSize={40}
+            fontSize={30}
             listening={false}
           />
-          <LengthIndicator
+          <LengthIndicator 
             startPoint={outsideStart}
             endPoint={outsideEnd}
             label={`${(segment.outsideLength / 1000).toFixed(2)}m`}
-            offset={40}
+            offset={1.2}
             color="black"
-            fontSize={40}
+            fontSize={30}
             listening={false}
           />
         </>

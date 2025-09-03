@@ -1,7 +1,9 @@
-import { Group, Line, Text } from 'react-konva'
-import { distance, subtract, normalize, perpendicularCCW, add, scale, midpoint, angle } from '@/types/geometry'
+import { Group, Line, Text, type KonvaNodeComponent } from 'react-konva'
+import { distance, subtract, normalize, perpendicularCCW, add, scale, angle, midpoint } from '@/types/geometry'
 import type { Vec2 } from '@/types/geometry'
 import { useViewport } from '../hooks/useEditorStore'
+import { useEffect, useMemo, useRef } from 'react'
+import type Konva from 'konva'
 
 interface LengthIndicatorProps {
   startPoint: Vec2
@@ -19,28 +21,17 @@ export function LengthIndicator({
   startPoint,
   endPoint,
   label,
-  offset = 50,
+  offset = 1,
   color = '#333',
-  fontSize = 40,
-  endMarkerSize = 20,
-  listening = false,
-  zoom
+  fontSize = 40
 }: LengthIndicatorProps): React.JSX.Element {
   const viewport = useViewport()
-  const effectiveZoom = zoom ?? viewport.zoom
+  const textRef = useRef<Konva.Text>(null)
+
   // Calculate the measurement vector and length
   const measurementVector = subtract(endPoint, startPoint)
   const measurementLength = distance(startPoint, endPoint)
-
-  // Get the perpendicular vector for offset
-  const perpendicular = measurementLength > 0 ? perpendicularCCW(normalize(measurementVector)) : [0, 0]
-
-  // Calculate offset positions
-  const offsetStartPoint = add(startPoint, scale(perpendicular, offset))
-  const offsetEndPoint = add(endPoint, scale(perpendicular, offset))
-
-  // Calculate midpoint for label
-  const labelPosition = midpoint(offsetStartPoint, offsetEndPoint)
+  let dir = normalize(measurementVector)
 
   // Calculate text rotation angle
   const measurementAngle = measurementLength > 0 ? angle(startPoint, endPoint) : 0
@@ -48,28 +39,63 @@ export function LengthIndicator({
 
   // Keep text readable (between -90 and +90 degrees)
   if (angleDegrees > 90) {
+    [endPoint, startPoint] = [startPoint, endPoint]
+    dir = scale(dir, -1)
+    offset = -offset
     angleDegrees -= 180
   } else if (angleDegrees < -90) {
+    [endPoint, startPoint] = [startPoint, endPoint]
+    dir = scale(dir, -1)
+    offset = -offset
     angleDegrees += 180
   }
 
   // Auto-generate label if not provided
   const displayLabel = label ?? `${(measurementLength / 1000).toFixed(2)}m`
 
+  const textSize: { width: number; height: number } = useMemo(() => {
+    if (textRef?.current) {
+      return textRef.current.measureSize(displayLabel)
+    }
+    return { width: 0, height: 0 }
+  }, [textRef?.current, viewport.zoom])
+
+  const approximateFontSizeLimit = measurementLength / 2 / displayLabel.length
+
   // Scale line widths and sizes based on zoom for consistent visual appearance
-  const scaledStrokeWidth = Math.max(0.5, 2 / effectiveZoom)
-  const scaledConnectionStrokeWidth = Math.max(0.3, 1 / effectiveZoom)
-  const scaledFontSize = Math.max(20, fontSize / effectiveZoom)
-  const scaledEndMarkerSize = Math.max(10, endMarkerSize / effectiveZoom)
+  const scaledStrokeWidth = Math.max(0.5, 2 / viewport.zoom)
+  const scaledConnectionStrokeWidth = Math.max(0.3, 1 / viewport.zoom)
+  const scaledFontSize = Math.max(20, Math.min(approximateFontSizeLimit, fontSize / viewport.zoom))
+  const scaledEndMarkerSize = textSize.height
+
+  // Get the perpendicular vector for offset
+  const perpendicular = measurementLength > 0 ? perpendicularCCW(dir) : [0, 0]
+
+  // Calculate offset positions
+  let offsetStartPoint = add(startPoint, scale(perpendicular, offset * scaledFontSize))
+  let offsetEndPoint = add(endPoint, scale(perpendicular, offset * scaledFontSize))
+
+  const lineMidpoint = midpoint(offsetStartPoint, offsetEndPoint)
+
 
   // Calculate end marker positions (perpendicular to measurement line)
   const endMarkerDirection = scale(perpendicular, scaledEndMarkerSize / 2)
 
+  const leftEndpoint = add(lineMidpoint, scale(dir, -textSize.width * 0.6))
+  const rightEndpoint = add(lineMidpoint, scale(dir, textSize.width * 0.6))
+
   return (
-    <Group listening={listening}>
+    <Group listening={false}>
       {/* Main dimension line */}
       <Line
-        points={[offsetStartPoint[0], offsetStartPoint[1], offsetEndPoint[0], offsetEndPoint[1]]}
+        points={[offsetStartPoint[0], offsetStartPoint[1], leftEndpoint[0], leftEndpoint[1]]}
+        stroke={color}
+        strokeWidth={scaledStrokeWidth}
+        lineCap="butt"
+        listening={false}
+      />
+      <Line
+        points={[rightEndpoint[0], rightEndpoint[1], offsetEndPoint[0], offsetEndPoint[1]]}
         stroke={color}
         strokeWidth={scaledStrokeWidth}
         lineCap="butt"
@@ -82,6 +108,7 @@ export function LengthIndicator({
         stroke={color}
         strokeWidth={scaledConnectionStrokeWidth}
         lineCap="butt"
+        opacity={0.5}
         listening={false}
       />
       <Line
@@ -89,6 +116,7 @@ export function LengthIndicator({
         stroke={color}
         strokeWidth={scaledConnectionStrokeWidth}
         lineCap="butt"
+        opacity={0.5}
         listening={false}
       />
 
@@ -120,6 +148,7 @@ export function LengthIndicator({
 
       {/* Label text */}
       <Text
+        ref={textRef}
         x={offsetStartPoint[0]}
         y={offsetStartPoint[1]}
         text={displayLabel}
