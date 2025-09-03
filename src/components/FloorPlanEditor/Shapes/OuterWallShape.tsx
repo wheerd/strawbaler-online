@@ -1,8 +1,9 @@
-import { Group, Line, Text } from 'react-konva'
+import { Group, Line } from 'react-konva'
 import type { OuterWallPolygon, OuterWallSegment } from '@/types/model'
 import { WALL_COLORS } from '@/components/FloorPlanEditor/visualization/wallVisualization'
 import { direction, midpoint, add, scale } from '@/types/geometry'
 import { useSelectionStore } from '../hooks/useSelectionStore'
+import { LengthIndicator } from '../components/LengthIndicator'
 
 interface OuterWallShapeProps {
   outerWall: OuterWallPolygon
@@ -25,9 +26,6 @@ function OuterWallSegmentShape({
   const insideEnd = segment.insideLine.end
   const outsideStart = segment.outsideLine.start
   const outsideEnd = segment.outsideLine.end
-
-  const insideLengthPosition = add(midpoint(insideStart, insideEnd), scale(segment.outsideDirection, -40))
-  const outsideLengthPosition = add(midpoint(outsideStart, outsideEnd), scale(segment.outsideDirection, 40))
 
   // Calculate text rotation to align with segment
   const segmentDirection = direction(insideStart, insideEnd)
@@ -128,45 +126,25 @@ function OuterWallSegmentShape({
         )
       })}
 
-      {/* Segment length label when selected */}
+      {/* Segment length indicators when selected */}
       {select.isCurrentSelection(segment.id) && (
         <>
-          <Text
-            x={insideLengthPosition[0]}
-            y={insideLengthPosition[1]}
-            text={`${(segment.insideLength / 1000).toFixed(2)}m`}
+          <LengthIndicator
+            startPoint={insideStart}
+            endPoint={insideEnd}
+            label={`${(segment.insideLength / 1000).toFixed(2)}m`}
+            offset={-40}
+            color="black"
             fontSize={40}
-            fontFamily="Arial"
-            fontStyle="bold"
-            fill="black"
-            align="center"
-            verticalAlign="middle"
-            width={150}
-            offsetX={75}
-            offsetY={20}
-            rotation={angleDegrees}
-            shadowColor="white"
-            shadowBlur={6}
-            shadowOpacity={0.8}
             listening={false}
           />
-          <Text
-            x={outsideLengthPosition[0]}
-            y={outsideLengthPosition[1]}
-            text={`${(segment.outsideLength / 1000).toFixed(2)}m`}
+          <LengthIndicator
+            startPoint={outsideStart}
+            endPoint={outsideEnd}
+            label={`${(segment.outsideLength / 1000).toFixed(2)}m`}
+            offset={40}
+            color="black"
             fontSize={40}
-            fontFamily="Arial"
-            fontStyle="bold"
-            fill="black"
-            align="center"
-            verticalAlign="middle"
-            width={150}
-            offsetX={75}
-            offsetY={20}
-            rotation={angleDegrees}
-            shadowColor="white"
-            shadowBlur={6}
-            shadowOpacity={0.8}
             listening={false}
           />
         </>

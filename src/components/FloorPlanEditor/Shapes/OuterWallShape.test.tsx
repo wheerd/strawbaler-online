@@ -20,6 +20,7 @@ describe('OuterWallShape', () => {
         openings: [],
         insideLength: createLength(1000),
         outsideLength: createLength(1000),
+        segmentLength: createLength(1000),
         insideLine: {
           start: createVec2(0, 0),
           end: createVec2(1000, 0)
@@ -38,6 +39,7 @@ describe('OuterWallShape', () => {
         openings: [],
         insideLength: createLength(1000),
         outsideLength: createLength(1000),
+        segmentLength: createLength(1000),
         insideLine: {
           start: createVec2(1000, 0),
           end: createVec2(1000, 1000)
@@ -56,6 +58,7 @@ describe('OuterWallShape', () => {
         openings: [],
         insideLength: createLength(1000),
         outsideLength: createLength(1000),
+        segmentLength: createLength(1000),
         insideLine: {
           start: createVec2(1000, 1000),
           end: createVec2(0, 1000)
@@ -74,6 +77,7 @@ describe('OuterWallShape', () => {
         openings: [],
         insideLength: createLength(1000),
         outsideLength: createLength(1000),
+        segmentLength: createLength(1000),
         insideLine: {
           start: createVec2(0, 1000),
           end: createVec2(0, 0)
