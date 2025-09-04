@@ -1,16 +1,17 @@
 import { useCallback, useState } from 'react'
-import { useToolManager, useToolManagerState } from '../ToolSystem/ToolContext'
+import { useToolContext, useToolManager, useToolManagerState } from '../ToolSystem/ToolContext'
 
 export function MainToolbar(): React.JSX.Element {
   const toolManager = useToolManager()
   const toolManagerState = useToolManagerState()
+  const context = useToolContext()
 
   // Track active tab (tool group)
   const [activeTab, setActiveTab] = useState<string | null>(null)
 
   const handleToolSelect = useCallback(
     (toolId: string) => {
-      toolManager.activateTool(toolId)
+      toolManager.activateTool(toolId, context)
     },
     [toolManager]
   )
@@ -19,7 +20,7 @@ export function MainToolbar(): React.JSX.Element {
     (groupId: string) => {
       setActiveTab(groupId)
       // Optionally activate the default tool for the group when tab is clicked
-      toolManager.activateDefaultToolForGroup(groupId)
+      toolManager.activateDefaultToolForGroup(groupId, context)
     },
     [toolManager]
   )

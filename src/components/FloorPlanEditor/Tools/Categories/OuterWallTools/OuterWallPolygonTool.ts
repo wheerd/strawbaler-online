@@ -1,4 +1,4 @@
-import type { Tool, ContextAction, CanvasEvent, ToolOverlayContext } from '../../ToolSystem/types'
+import type { Tool, ContextAction, CanvasEvent } from '../../ToolSystem/types'
 import type { Vec2, Polygon2D, LineSegment2D } from '@/types/geometry'
 import {
   createLength,
@@ -21,6 +21,8 @@ interface OuterWallPolygonToolState {
   isCurrentLineValid: boolean
   isClosingLineValid: boolean
 }
+
+const INFINITE_LINE_EXTEND = 1e10
 
 export class OuterWallPolygonTool implements Tool {
   readonly id = 'outer-wall-polygon'
@@ -149,7 +151,7 @@ export class OuterWallPolygonTool implements Tool {
     this.updateSnapContext()
   }
 
-  private renderSnapping(context: ToolOverlayContext): React.ReactNode {
+  private renderSnapping(): React.ReactNode {
     const elements: React.ReactNode[] = []
 
     const lines = this.state.snapResult?.lines ?? []
@@ -159,10 +161,10 @@ export class OuterWallPolygonTool implements Tool {
         React.createElement(Line, {
           key: `snap-line-${i}`,
           points: [
-            line.point[0] - context.getInfiniteLineExtent() * line.direction[0],
-            line.point[1] - context.getInfiniteLineExtent() * line.direction[1],
-            line.point[0] + context.getInfiniteLineExtent() * line.direction[0],
-            line.point[1] + context.getInfiniteLineExtent() * line.direction[1]
+            line.point[0] - INFINITE_LINE_EXTEND * line.direction[0],
+            line.point[1] - INFINITE_LINE_EXTEND * line.direction[1],
+            line.point[0] + INFINITE_LINE_EXTEND * line.direction[0],
+            line.point[1] + INFINITE_LINE_EXTEND * line.direction[1]
           ],
           stroke: '#0066ff',
           strokeWidth: 8,
@@ -191,7 +193,7 @@ export class OuterWallPolygonTool implements Tool {
     return React.createElement(React.Fragment, null, ...elements)
   }
 
-  renderOverlay(context: ToolOverlayContext): React.ReactNode {
+  renderOverlay(): React.ReactNode {
     if (this.state.points.length === 0) return null
 
     const elements: React.ReactNode[] = []
@@ -270,7 +272,7 @@ export class OuterWallPolygonTool implements Tool {
       )
     }
 
-    elements.push(this.renderSnapping(context))
+    elements.push(this.renderSnapping())
 
     return React.createElement(React.Fragment, null, ...elements)
   }

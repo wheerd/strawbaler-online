@@ -1,4 +1,4 @@
-import type { Vec2 } from '@/types/geometry'
+import type { Bounds2D, Vec2 } from '@/types/geometry'
 import type Konva from 'konva'
 import type { EntityId, SelectableId, FloorId, StoreActions } from '@/model'
 import type React from 'react'
@@ -30,8 +30,8 @@ export interface Tool extends BaseTool {
   handleKeyUp?(event: CanvasEvent): boolean
 
   // Lifecycle methods
-  onActivate?(): void
-  onDeactivate?(): void
+  onActivate?(context?: ToolContext): void
+  onDeactivate?(context?: ToolContext): void
 
   // Context actions - tools can get selected entity from context if needed
   getContextActions?(context: ToolContext): ContextAction[]
@@ -50,22 +50,8 @@ export interface ToolOverlayContext {
   // Tool context for accessing model and state
   toolContext: ToolContext
 
-  // Viewport information for coordinate calculations
-  viewport: {
-    zoom: number
-    panX: number
-    panY: number
-    stageWidth: number
-    stageHeight: number
-  }
-
   // Current mouse/snap state
   currentMousePos?: Vec2
-
-  // Utility functions for common overlay calculations
-  worldToStage: (worldPos: Vec2) => Vec2
-  stageToWorld: (stagePos: Vec2) => Vec2
-  getInfiniteLineExtent: () => number // For snap lines that span the canvas
 }
 
 export interface ContextAction {
@@ -119,8 +105,9 @@ export interface ToolContext {
   getCurrentSelection(): SelectableId | null
   getSelectedEntityId(): EntityId | null // Backward compatibility
   getSelectionPath(): SelectableId[] // Full selection hierarchy path
-  getViewport(): { zoom: number; panX: number; panY: number; stageWidth: number; stageHeight: number }
 
   // Tool activation
   activateTool(toolId: string): boolean
+
+  fitToView(bounds: Bounds2D): void
 }

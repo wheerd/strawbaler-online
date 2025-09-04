@@ -2,11 +2,11 @@ import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { toolManager, type ToolManagerState } from './ToolManager'
 import type { Tool, ToolContext as IToolContext } from './types'
 import { useModelStore } from '@/model/store'
-import { useEditorStore, useActiveFloorId } from '@/components/FloorPlanEditor/hooks/useEditorStore'
-import { createVec2, type Vec2 } from '@/types/geometry'
+import { useActiveFloorId } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import type { EntityId, SelectableId } from '@/types/ids'
 import { useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
 import { entityHitTestService } from '@/components/FloorPlanEditor/services/EntityHitTestService'
+import { useViewportActions } from '../../hooks/useViewportStore'
 
 interface ToolContextProviderProps {
   children: React.ReactNode
@@ -22,7 +22,7 @@ export function ToolContextProvider({ children }: ToolContextProviderProps): Rea
   const [toolManagerState, setToolManagerState] = useState<ToolManagerState>(toolManager.getState())
   const modelStore = useModelStore()
   const activeFloorId = useActiveFloorId()
-  const viewport = useEditorStore(state => state.viewport)
+  const { stageToWorld, worldToStage, fitToView } = useViewportActions()
 
   // Selection store actions
   const pushSelection = useSelectionStore(state => state.pushSelection)
@@ -42,18 +42,8 @@ export function ToolContextProvider({ children }: ToolContextProviderProps): Rea
   const toolContext = useMemo<IToolContext>(
     () => ({
       // Coordinate conversion from screen/stage coordinates to world coordinates
-      getStageCoordinates: (event: { x: number; y: number }): Vec2 => {
-        // Convert screen coordinates to world coordinates by accounting for pan and zoom
-        return createVec2((event.x - viewport.panX) / viewport.zoom, (event.y - viewport.panY) / viewport.zoom)
-      },
-
-      getScreenCoordinates: (point: Vec2): { x: number; y: number } => {
-        // Convert world coordinates back to screen coordinates
-        return {
-          x: point[0] * viewport.zoom + viewport.panX,
-          y: point[1] * viewport.zoom + viewport.panY
-        }
-      },
+      getStageCoordinates: stageToWorld,
+      getScreenCoordinates: worldToStage,
 
       // Entity discovery (on-demand) using original pointer coordinates
       findEntityAt: (pointerCoordinates: { x: number; y: number }) => {
@@ -98,15 +88,17 @@ export function ToolContextProvider({ children }: ToolContextProviderProps): Rea
         return toolManager.getActiveTool()
       },
 
-      getViewport: () => viewport,
+      fitToView,
 
       // Tool activation
       activateTool: (toolId: string): boolean => {
-        return toolManager.activateTool(toolId)
+        return toolManager.activateTool(toolId, toolContext)
       }
     }),
     [
-      viewport,
+      fitToView,
+      worldToStage,
+      stageToWorld,
       activeFloorId,
       modelStore,
       pushSelection,

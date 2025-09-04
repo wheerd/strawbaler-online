@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { Layer, Line } from 'react-konva'
-import { useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useShowGrid, useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 
 interface ViewportState {
   zoom: number
@@ -32,7 +32,7 @@ function calculateDynamicGridSize(zoom: number): number {
 }
 
 export function GridLayer({ width = 800, height = 600, viewport }: GridLayerProps): React.JSX.Element {
-  const showGrid = useEditorStore(state => state.showGrid)
+  const showGrid = useShowGrid()
   const setGridSize = useEditorStore(state => state.setGridSize)
 
   // Calculate dynamic grid size based on current zoom

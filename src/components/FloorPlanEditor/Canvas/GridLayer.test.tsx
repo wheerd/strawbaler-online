@@ -13,7 +13,8 @@ vi.mock('@/components/FloorPlanEditor/hooks/useEditorStore', () => ({
       setGridSize: mockSetGridSize
     }
     return selector(mockState)
-  }
+  },
+  useShowGrid: () => true
 }))
 
 // Test the grid size calculation algorithm
@@ -67,15 +68,18 @@ describe('GridLayer', () => {
     })
 
     it('should not render grid lines when showGrid is false', () => {
-      // Mock showGrid to false
-      vi.mocked(vi.fn()).mockImplementation((selector: any) => {
-        const mockState = {
-          showGrid: false,
-          gridSize: 500,
-          setGridSize: mockSetGridSize
-        }
-        return selector(mockState)
-      })
+      // Mock showGrid to false for this test
+      vi.doMock('@/components/FloorPlanEditor/hooks/useEditorStore', () => ({
+        useEditorStore: (selector: any) => {
+          const mockState = {
+            showGrid: false,
+            gridSize: 500,
+            setGridSize: mockSetGridSize
+          }
+          return selector(mockState)
+        },
+        useShowGrid: () => false
+      }))
 
       const viewport = { zoom: 1, panX: 0, panY: 0 }
 

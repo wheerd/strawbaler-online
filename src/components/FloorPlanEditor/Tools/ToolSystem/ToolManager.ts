@@ -1,4 +1,4 @@
-import type { Tool, ToolGroup, CanvasEvent } from './types'
+import type { Tool, ToolGroup, CanvasEvent, ToolContext } from './types'
 import { keyboardShortcutManager } from './KeyboardShortcutManager'
 
 export interface ToolManagerState {
@@ -47,7 +47,7 @@ export class ToolManager {
   }
 
   // Tool activation
-  activateTool(toolId: string): boolean {
+  activateTool(toolId: string, context?: ToolContext): boolean {
     const tool = this.state.tools.get(toolId)
     if (!tool) {
       console.warn(`Tool with id '${toolId}' not found`)
@@ -56,7 +56,7 @@ export class ToolManager {
 
     // Deactivate current tool
     if (this.state.activeTool) {
-      this.state.activeTool.onDeactivate?.()
+      this.state.activeTool.onDeactivate?.(context)
     }
 
     // Activate new tool - create new state object to trigger React updates
@@ -65,23 +65,10 @@ export class ToolManager {
       activeTool: tool,
       activeToolId: toolId
     }
-    tool.onActivate?.()
+    tool.onActivate?.(context)
 
     this.notifySubscribers()
     return true
-  }
-
-  deactivateCurrentTool(): void {
-    if (this.state.activeTool) {
-      this.state.activeTool.onDeactivate?.()
-      // Create new state object to trigger React updates
-      this.state = {
-        ...this.state,
-        activeTool: null,
-        activeToolId: null
-      }
-      this.notifySubscribers()
-    }
   }
 
   // Getters
@@ -168,31 +155,15 @@ export class ToolManager {
     return this.state.tools.get(group.defaultTool) ?? null
   }
 
-  activateDefaultToolForGroup(groupId: string): boolean {
+  activateDefaultToolForGroup(groupId: string, context: ToolContext): boolean {
     const defaultTool = this.getDefaultToolForGroup(groupId)
     if (!defaultTool) return false
-    return this.activateTool(defaultTool.id)
+    return this.activateTool(defaultTool.id, context)
   }
 
   // Debug helpers
   getState(): ToolManagerState {
     return { ...this.state }
-  }
-
-  reset(): void {
-    // Unregister all tool shortcuts first
-    for (const tool of this.state.tools.values()) {
-      keyboardShortcutManager.unregisterToolShortcut(tool)
-    }
-
-    this.deactivateCurrentTool()
-    // Create new state with empty maps
-    this.state = {
-      ...this.state,
-      tools: new Map(),
-      toolGroups: new Map()
-    }
-    this.notifySubscribers()
   }
 }
 

@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { Stage } from 'react-konva'
 import type Konva from 'konva'
-import { useEditorStore, useViewport } from '@/components/FloorPlanEditor/hooks/useEditorStore'
+import { useViewportActions, useZoom, usePanX, usePanY } from '@/components/FloorPlanEditor/hooks/useViewportStore'
 import { useToolContext, useToolManager } from '@/components/FloorPlanEditor/Tools'
 import { useCanvasEventDispatcher } from '@/components/FloorPlanEditor/Tools/EventHandlers/CanvasEventDispatcher'
 import { stageReference } from '@/components/FloorPlanEditor/services/StageReference'
@@ -14,18 +14,19 @@ interface FloorPlanStageProps {
   height: number
 }
 
+const ZOOM_SCALE = 1.1
+
 export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JSX.Element {
   const stageRef = useRef<Konva.Stage>(null)
-  const viewport = useViewport()
+  const zoom = useZoom()
+  const panX = usePanX()
+  const panY = usePanY()
+  const { setViewport, setStageDimensions, zoomBy, panBy, setPan } = useViewportActions()
   const toolManager = useToolManager()
   const toolContext = useToolContext()
 
   // Local state for panning (non-tool related)
-  const [dragStart, setDragStart] = useState<{ pos: { x: number; y: number }; viewport: typeof viewport } | null>(null)
-
-  // Editor store actions for viewport management
-  const setViewport = useEditorStore(state => state.setViewport)
-  const setStageDimensions = useEditorStore(state => state.setStageDimensions)
+  const [dragStart, setDragStart] = useState<{ pos: { x: number; y: number } } | null>(null)
 
   // Update stage dimensions in the store when they change
   useEffect(() => {
@@ -66,21 +67,16 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
       const pointer = stage.getPointerPosition()
       if (pointer == null) return
 
-      const scaleBy = 1.1
-      const zoomFactor = e.evt.deltaY > 0 ? 1 / scaleBy : scaleBy
-      const newZoom = Math.max(0.001, Math.min(2, viewport.zoom * zoomFactor))
+      const newZoom = zoomBy(e.evt.deltaY > 0 ? 1 / ZOOM_SCALE : ZOOM_SCALE)
 
-      const zoomRatio = newZoom / viewport.zoom
-      const newPanX = pointer.x - (pointer.x - viewport.panX) * zoomRatio
-      const newPanY = pointer.y - (pointer.y - viewport.panY) * zoomRatio
+      const zoomRatio = newZoom / zoom
 
-      setViewport({
-        zoom: newZoom,
-        panX: newPanX,
-        panY: newPanY
-      })
+      const newPanX = pointer.x - (pointer.x - panX) * zoomRatio
+      const newPanY = pointer.y - (pointer.y - panY) * zoomRatio
+
+      setPan(newPanX, newPanY)
     },
-    [viewport, setViewport]
+    [zoom, panX, panY, zoomBy, panBy]
   )
 
   // Handle mouse down events
@@ -94,14 +90,14 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
 
       // Handle panning (middle mouse or shift+left click)
       if (e.evt.button === 1 || (e.evt.button === 0 && e.evt.shiftKey)) {
-        setDragStart({ pos: pointer, viewport: { ...viewport } })
+        setDragStart({ pos: pointer })
         return
       }
 
       // Route to tool system
       eventDispatcher.handleMouseDown(e)
     },
-    [viewport, eventDispatcher]
+    [setDragStart, eventDispatcher]
   )
 
   // Handle mouse move events
@@ -118,11 +114,8 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
         const deltaX = pointer.x - dragStart.pos.x
         const deltaY = pointer.y - dragStart.pos.y
 
-        setViewport({
-          zoom: dragStart.viewport.zoom,
-          panX: dragStart.viewport.panX + deltaX,
-          panY: dragStart.viewport.panY + deltaY
-        })
+        panBy(deltaX, deltaY)
+        setDragStart({ pos: pointer })
         return
       }
 
@@ -171,21 +164,17 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
       ref={stageRef}
       width={width}
       height={height}
-      x={viewport.panX}
-      y={viewport.panY}
-      scaleX={viewport.zoom}
-      scaleY={viewport.zoom}
+      x={panX}
+      y={panY}
+      scaleX={zoom}
+      scaleY={zoom}
       onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       draggable={false}
     >
-      <GridLayer
-        width={width}
-        height={height}
-        viewport={{ zoom: viewport.zoom, panX: viewport.panX, panY: viewport.panY }}
-      />
+      <GridLayer width={width} height={height} viewport={{ zoom, panX, panY }} />
       <OuterWallLayer />
       <ToolOverlayLayer />
     </Stage>
