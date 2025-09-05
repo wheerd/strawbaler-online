@@ -135,20 +135,11 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
     <div className="add-opening-tool-inspector">
       <div className="inspector-header">
         <h3>Add Opening Tool</h3>
-        <div className="tool-status">
-          {state.hoveredWallSegment ? (
-            <span className="status-ready">{state.canPlace ? '✓ Ready to place' : '⚠️ Invalid position'}</span>
-          ) : (
-            <span className="status-waiting">Hover over a wall segment</span>
-          )}
-        </div>
       </div>
 
       <div className="inspector-content">
         {/* Opening Type */}
         <div className="property-section">
-          <h4>Opening Type</h4>
-
           <div className="property-group">
             <label htmlFor="opening-type">Type</label>
             <select id="opening-type" value={state.openingType} onChange={handleTypeChange}>

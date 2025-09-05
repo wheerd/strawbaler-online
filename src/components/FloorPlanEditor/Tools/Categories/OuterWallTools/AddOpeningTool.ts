@@ -11,8 +11,9 @@ import {
   isWallSegmentId
 } from '@/types/ids'
 import React from 'react'
-import { Group, Rect, Line, Text } from 'react-konva'
+import { Group, Rect, Text, Circle } from 'react-konva'
 import { AddOpeningToolInspector } from '../../PropertiesPanel/ToolInspectors/AddOpeningToolInspector'
+import { round } from '@turf/helpers'
 
 interface WallSegmentHit {
   wallId: OuterWallId
@@ -32,6 +33,7 @@ interface AddOpeningToolState {
   offset?: Length
   previewPosition?: Vec2
   canPlace: boolean
+  snapDirection?: 'left' | 'right' // Direction the opening was snapped from user's preferred position
 }
 
 // Default opening configurations
@@ -122,9 +124,11 @@ export class AddOpeningTool implements Tool {
     const startPoint = segment.insideLine.start
     const centerOffset = createLength(distance(startPoint, projectedPoint))
 
+    // Rounded offset of opening start from the start of the wall segment
     const actualStartOffset = centerOffset - this.state.width / 2
+    const roundedOffset = round(actualStartOffset / 10) * 10
 
-    return actualStartOffset as Length
+    return roundedOffset as Length
   }
 
   /**
@@ -145,17 +149,24 @@ export class AddOpeningTool implements Tool {
     this.state.previewPosition = undefined
     this.state.offset = undefined
     this.state.canPlace = false
+    this.state.snapDirection = undefined
     this.triggerRender()
   }
 
   /**
    * Update preview state
    */
-  private updatePreview(offset: Length, wallSegment: WallSegmentHit, canPlace: boolean = true): void {
+  private updatePreview(
+    offset: Length,
+    wallSegment: WallSegmentHit,
+    canPlace: boolean = true,
+    snapDirection?: 'left' | 'right'
+  ): void {
     this.state.hoveredWallSegment = wallSegment
     this.state.offset = offset
     this.state.previewPosition = this.offsetToPosition(offset, wallSegment.segment)
     this.state.canPlace = canPlace
+    this.state.snapDirection = snapDirection
     this.triggerRender()
   }
 
@@ -196,7 +207,10 @@ export class AddOpeningTool implements Tool {
 
     const maxSnapDistace = this.state.width * 0.4
     if (snappedOffset !== null && Math.abs(snappedOffset - preferredStartOffset) <= maxSnapDistace) {
-      this.updatePreview(snappedOffset, wallSegment)
+      // Determine snap direction: if snapped offset is greater, opening was shifted right (snapped from left)
+      const snapDirection: 'left' | 'right' | undefined =
+        snappedOffset !== preferredStartOffset ? (snappedOffset > preferredStartOffset ? 'right' : 'left') : undefined
+      this.updatePreview(snappedOffset, wallSegment, true, snapDirection)
     } else {
       if (preferredStartOffset < 0 || preferredStartOffset > wallSegment.segment.segmentLength - this.state.width) {
         this.clearPreview()
@@ -341,30 +355,51 @@ export class AddOpeningTool implements Tool {
     )
   }
 
-  private renderWallHighlight(): React.ReactNode {
-    if (!this.state.hoveredWallSegment) return null
+  private renderSnapIndicator(): React.ReactNode {
+    if (!this.state.snapDirection || !this.state.hoveredWallSegment || !this.state.previewPosition) {
+      return null
+    }
 
     const segment = this.state.hoveredWallSegment.segment
-    const line = segment.insideLine
+    const wallDirection = segment.direction
+    const wallAngle = (Math.atan2(wallDirection[1], wallDirection[0]) * 180) / Math.PI
 
-    return React.createElement(Line, {
-      key: 'wall-highlight',
-      points: [line.start[0], line.start[1], line.end[0], line.end[1]],
-      stroke: '#3b82f6',
-      strokeWidth: 15,
-      opacity: 0.3,
-      listening: false
-    })
+    // Position the indicator on the side opposite to snap direction
+    // If snapped right (opening moved right), show dot on left side
+    // If snapped left (opening moved left), show dot on right side
+    const indicatorX = this.state.snapDirection === 'right' ? 0 : this.state.width
+    const indicatorY = segment.thickness / 2
+
+    return React.createElement(
+      Group,
+      {
+        key: 'snap-indicator',
+        x: this.state.previewPosition[0],
+        y: this.state.previewPosition[1],
+        rotation: wallAngle,
+        listening: false
+      },
+      React.createElement(Circle, {
+        key: 'snap-dot',
+        x: indicatorX,
+        y: indicatorY,
+        radius: segment.thickness * 0.15,
+        fill: '#007acc',
+        stroke: '#ffffff',
+        strokeWidth: 2,
+        opacity: 0.9
+      })
+    )
   }
 
   renderOverlay(): React.ReactNode {
     const elements: React.ReactNode[] = []
 
-    const wallHighlight = this.renderWallHighlight()
-    if (wallHighlight) elements.push(wallHighlight)
-
     const openingPreview = this.renderOpeningPreview()
     if (openingPreview) elements.push(openingPreview)
+
+    const snapIndicator = this.renderSnapIndicator()
+    if (snapIndicator) elements.push(snapIndicator)
 
     return React.createElement(React.Fragment, null, ...elements)
   }
