@@ -57,6 +57,8 @@ export function OpeningShape({
   const previousOpening = currentIndex > 0 ? sortedOpenings[currentIndex - 1] : null
   const nextOpening = currentIndex < sortedOpenings.length - 1 ? sortedOpenings[currentIndex + 1] : null
 
+  const hasNeighbors = segment.openings.length > 1
+
   return (
     <Group
       name={`opening-${opening.id}`}
@@ -91,7 +93,50 @@ export function OpeningShape({
       {/* Length indicators when selected */}
       {isOpeningSelected && (
         <>
-          {/* Opening width indicators */}
+          {/* Opening-to-opening distance indicators (closest to wall) */}
+          {previousOpening && (
+            <>
+              {(() => {
+                const prevEndOffset = previousOpening.offsetFromStart + previousOpening.width
+                const currentStartOffset = opening.offsetFromStart
+                const prevEndPoint = add(outsideStart, scale(segmentVector, prevEndOffset))
+                const currentStartPoint = add(outsideStart, scale(segmentVector, currentStartOffset))
+                return (
+                  <LengthIndicator
+                    startPoint={prevEndPoint}
+                    endPoint={currentStartPoint}
+                    offset={60}
+                    color="#000"
+                    fontSize={50}
+                    strokeWidth={4}
+                  />
+                )
+              })()}
+            </>
+          )}
+
+          {nextOpening && (
+            <>
+              {(() => {
+                const currentEndOffset = opening.offsetFromStart + opening.width
+                const nextStartOffset = nextOpening.offsetFromStart
+                const currentEndPoint = add(outsideStart, scale(segmentVector, currentEndOffset))
+                const nextStartPoint = add(outsideStart, scale(segmentVector, nextStartOffset))
+                return (
+                  <LengthIndicator
+                    startPoint={currentEndPoint}
+                    endPoint={nextStartPoint}
+                    offset={60}
+                    color="#000"
+                    fontSize={50}
+                    strokeWidth={4}
+                  />
+                )
+              })()}
+            </>
+          )}
+
+          {/* Opening width indicators (middle layer) */}
           <LengthIndicator
             startPoint={insideOpeningStart}
             endPoint={insideOpeningEnd}
@@ -105,90 +150,45 @@ export function OpeningShape({
             startPoint={outsideOpeningStart}
             endPoint={outsideOpeningEnd}
             label={`${(opening.width / 1000).toFixed(2)}m`}
-            offset={60}
+            offset={hasNeighbors ? 90 : 60}
             color="#007acc"
             fontSize={50}
             strokeWidth={4}
           />
 
-          {/* Corner distance indicators - inside */}
+          {/* Corner distance indicators (outermost layer) */}
           <LengthIndicator
             startPoint={insideStartCorner}
             endPoint={insideOpeningStart}
             offset={-60}
-            color="#555"
-            fontSize={45}
-            strokeWidth={3}
+            color="#000"
+            fontSize={50}
+            strokeWidth={4}
           />
           <LengthIndicator
             startPoint={insideOpeningEnd}
             endPoint={insideEndCorner}
             offset={-60}
-            color="#555"
-            fontSize={45}
-            strokeWidth={3}
+            color="#000"
+            fontSize={50}
+            strokeWidth={4}
           />
-
-          {/* Corner distance indicators - outside */}
           <LengthIndicator
             startPoint={outsideStartCorner}
             endPoint={outsideOpeningStart}
-            offset={60}
-            color="#555"
-            fontSize={45}
-            strokeWidth={3}
+            offset={hasNeighbors ? 120 : 60}
+            color="#000"
+            fontSize={50}
+            strokeWidth={4}
           />
           <LengthIndicator
             startPoint={outsideOpeningEnd}
             endPoint={outsideEndCorner}
-            offset={60}
-            color="#555"
-            fontSize={45}
-            strokeWidth={3}
+            offset={hasNeighbors ? 120 : 60}
+            color="#000"
+            fontSize={50}
+            strokeWidth={4}
           />
-
-          {/* Opening-to-opening distance indicators */}
-          {previousOpening && (
-            <>
-              {(() => {
-                const prevEndOffset = previousOpening.offsetFromStart + previousOpening.width
-                const currentStartOffset = opening.offsetFromStart
-                const prevEndPoint = add(insideStart, scale(segmentVector, prevEndOffset))
-                const currentStartPoint = add(insideStart, scale(segmentVector, currentStartOffset))
-                return (
-                  <LengthIndicator
-                    startPoint={prevEndPoint}
-                    endPoint={currentStartPoint}
-                    offset={-100}
-                    color="#e67e22"
-                    fontSize={40}
-                    strokeWidth={3}
-                  />
-                )
-              })()}
-            </>
-          )}
-
-          {nextOpening && (
-            <>
-              {(() => {
-                const currentEndOffset = opening.offsetFromStart + opening.width
-                const nextStartOffset = nextOpening.offsetFromStart
-                const currentEndPoint = add(insideStart, scale(segmentVector, currentEndOffset))
-                const nextStartPoint = add(insideStart, scale(segmentVector, nextStartOffset))
-                return (
-                  <LengthIndicator
-                    startPoint={currentEndPoint}
-                    endPoint={nextStartPoint}
-                    offset={100}
-                    color="#e67e22"
-                    fontSize={40}
-                    strokeWidth={3}
-                  />
-                )
-              })()}
-            </>
-          )}
         </>
       )}
     </Group>
