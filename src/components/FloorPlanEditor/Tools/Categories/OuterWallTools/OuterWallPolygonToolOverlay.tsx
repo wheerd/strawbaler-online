@@ -4,6 +4,7 @@ import type { ToolOverlayComponentProps } from '../../ToolSystem/types'
 import type { OuterWallPolygonTool } from './OuterWallPolygonTool'
 import { useStageHeight, useStageWidth, useZoom } from '../../../hooks/useViewportStore'
 import { COLORS } from '@/theme/colors'
+import { useReactiveTool } from '../../hooks/useReactiveTool'
 
 interface OuterWallPolygonToolOverlayProps extends ToolOverlayComponentProps<OuterWallPolygonTool> {}
 
@@ -12,6 +13,7 @@ interface OuterWallPolygonToolOverlayProps extends ToolOverlayComponentProps<Out
  * Uses viewport hooks directly for automatic re-rendering on zoom changes.
  */
 export function OuterWallPolygonToolOverlay({ tool }: OuterWallPolygonToolOverlayProps): React.JSX.Element | null {
+  const { state } = useReactiveTool(tool)
   const zoom = useZoom()
   const stageWidth = useStageWidth()
   const stageHeight = useStageHeight()
@@ -25,11 +27,11 @@ export function OuterWallPolygonToolOverlay({ tool }: OuterWallPolygonToolOverla
   const scaledPointStrokeWidth = 1 / zoom
   const lineExtend = (Math.max(stageWidth, stageHeight) * 2) / zoom
 
-  const currentPos = tool.state.snapResult?.position ?? tool.state.mouse
+  const currentPos = state.snapResult?.position ?? state.mouse
   const isClosingSnap = tool.isSnappingToFirstPoint()
 
   const lines =
-    tool.state.snapResult?.lines?.map(l => [
+    state.snapResult?.lines?.map(l => [
       l.point[0] - lineExtend * l.direction[0],
       l.point[1] - lineExtend * l.direction[1],
       l.point[0] + lineExtend * l.direction[0],
@@ -51,9 +53,9 @@ export function OuterWallPolygonToolOverlay({ tool }: OuterWallPolygonToolOverla
       ))}
 
       {/* Draw lines between points */}
-      {tool.state.points.length > 1 && (
+      {state.points.length > 1 && (
         <Line
-          points={tool.state.points.flatMap(point => [point[0], point[1]])}
+          points={state.points.flatMap(point => [point[0], point[1]])}
           stroke={COLORS.ui.secondary}
           strokeWidth={scaledLineWidth}
           lineCap="round"
@@ -62,15 +64,15 @@ export function OuterWallPolygonToolOverlay({ tool }: OuterWallPolygonToolOverla
         />
       )}
       {/* Draw line to current mouse position */}
-      {tool.state.points.length > 0 && !isClosingSnap && (
+      {state.points.length > 0 && !isClosingSnap && (
         <Line
           points={[
-            tool.state.points[tool.state.points.length - 1][0],
-            tool.state.points[tool.state.points.length - 1][1],
+            state.points[state.points.length - 1][0],
+            state.points[state.points.length - 1][1],
             currentPos[0],
             currentPos[1]
           ]}
-          stroke={tool.state.isCurrentLineValid ? COLORS.ui.gray500 : COLORS.ui.danger}
+          stroke={state.isCurrentLineValid ? COLORS.ui.gray500 : COLORS.ui.danger}
           strokeWidth={scaledLineWidth}
           dash={scaledDashPattern}
           listening={false}
@@ -78,15 +80,15 @@ export function OuterWallPolygonToolOverlay({ tool }: OuterWallPolygonToolOverla
       )}
 
       {/* Draw closing line preview when near first point */}
-      {tool.state.points.length >= 3 && isClosingSnap && (
+      {state.points.length >= 3 && isClosingSnap && (
         <Line
           points={[
-            tool.state.points[tool.state.points.length - 1][0],
-            tool.state.points[tool.state.points.length - 1][1],
-            tool.state.points[0][0],
-            tool.state.points[0][1]
+            state.points[state.points.length - 1][0],
+            state.points[state.points.length - 1][1],
+            state.points[0][0],
+            state.points[0][1]
           ]}
-          stroke={tool.state.isClosingLineValid ? COLORS.ui.success : COLORS.ui.danger}
+          stroke={state.isClosingLineValid ? COLORS.ui.success : COLORS.ui.danger}
           strokeWidth={scaledLineWidth}
           dash={scaledDashPattern}
           listening={false}
@@ -94,7 +96,7 @@ export function OuterWallPolygonToolOverlay({ tool }: OuterWallPolygonToolOverla
       )}
 
       {/* Draw existing points */}
-      {tool.state.points.map((point, index) => (
+      {state.points.map((point, index) => (
         <Circle
           key={`point-${index}`}
           x={point[0]}

@@ -13,6 +13,7 @@ import type { OuterWallConstructionType } from '@/types/model'
 import { OuterWallPolygonToolOverlay } from './OuterWallPolygonToolOverlay'
 import { OuterWallPolygonToolInspector } from '../../PropertiesPanel/ToolInspectors/OuterWallPolygonToolInspector'
 import { SnappingService } from '@/model/store/services/snapping'
+import { BaseTool } from '../../ToolSystem/BaseTool'
 
 interface OuterWallPolygonToolState {
   points: Vec2[]
@@ -25,7 +26,7 @@ interface OuterWallPolygonToolState {
   wallThickness: Length
 }
 
-export class OuterWallPolygonTool implements Tool {
+export class OuterWallPolygonTool extends BaseTool implements Tool {
   readonly id = 'outer-wall-polygon'
   readonly name = 'Outer Wall Polygon'
   readonly icon = '⬜'
@@ -66,12 +67,12 @@ export class OuterWallPolygonTool implements Tool {
 
   public setConstructionType(constructionType: OuterWallConstructionType): void {
     this.state.constructionType = constructionType
-    this.listeners.forEach(l => l())
+    this.triggerRender()
   }
 
   public setWallThickness(thickness: Length): void {
     this.state.wallThickness = thickness
-    this.listeners.forEach(l => l())
+    this.triggerRender()
   }
 
   private updateSnapContext() {
@@ -88,7 +89,7 @@ export class OuterWallPolygonTool implements Tool {
       referencePoint: this.state.points[this.state.points.length - 1],
       referenceLineSegments
     }
-    this.listeners.forEach(l => l())
+    this.triggerRender()
   }
 
   handleMouseDown(event: CanvasEvent): boolean {
@@ -127,7 +128,7 @@ export class OuterWallPolygonTool implements Tool {
     // Update validation based on current mouse position
     this.updateValidation()
 
-    this.listeners.forEach(l => l())
+    this.triggerRender()
     return true
   }
 
@@ -254,15 +255,6 @@ export class OuterWallPolygonTool implements Tool {
       this.state.isClosingLineValid = !wouldClosingPolygonSelfIntersect(this.state.points)
     } else {
       this.state.isClosingLineValid = true
-    }
-  }
-
-  private listeners: (() => void)[] = []
-
-  onRenderNeeded(listener: () => void): () => void {
-    this.listeners.push(listener)
-    return () => {
-      this.listeners = this.listeners.filter(l => l !== listener)
     }
   }
 }

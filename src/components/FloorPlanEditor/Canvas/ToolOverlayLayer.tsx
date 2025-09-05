@@ -1,18 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
 import { Layer } from 'react-konva'
 import { useToolManagerState } from '@/components/FloorPlanEditor/Tools'
 import { SelectionOverlay } from './SelectionOverlay'
 
 export function ToolOverlayLayer(): React.JSX.Element {
-  const toolManagerState = useToolManagerState()
-  const activeTool = toolManagerState.activeTool
-
-  const [, forceUpdate] = useState(0)
-  const rerenderListener = useCallback(() => {
-    forceUpdate(prev => prev + 1)
-  }, [forceUpdate])
-
-  useEffect(() => activeTool?.onRenderNeeded?.(rerenderListener), [activeTool])
+  const { activeTool } = useToolManagerState()
 
   return (
     <Layer name="tool-overlay" listening={false}>

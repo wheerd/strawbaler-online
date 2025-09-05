@@ -4,6 +4,7 @@ import { useDebouncedNumericInput } from '../../../hooks/useDebouncedInput'
 import type { OuterWallConstructionType } from '@/types/model'
 import type { ToolInspectorProps } from '../../ToolSystem/types'
 import type { OuterWallPolygonTool } from '../../Categories/OuterWallTools/OuterWallPolygonTool'
+import { useReactiveTool } from '../../hooks/useReactiveTool'
 
 // Construction type options
 const CONSTRUCTION_TYPE_OPTIONS: { value: OuterWallConstructionType; label: string }[] = [
@@ -26,7 +27,7 @@ const CONSTRUCTION_TYPE_OPTIONS: { value: OuterWallConstructionType; label: stri
 ]
 
 export function OuterWallPolygonToolInspector({ tool }: ToolInspectorProps<OuterWallPolygonTool>): React.JSX.Element {
-  const { state } = tool
+  const { state } = useReactiveTool(tool)
 
   // Force re-renders when tool state changes
   const [, forceUpdate] = useState({})

@@ -1,4 +1,5 @@
 import type { Tool, CanvasEvent, ToolContext } from '../../ToolSystem/types'
+import { BaseTool } from '../../ToolSystem/BaseTool'
 import type { Vec2, Length } from '@/types/geometry'
 import { createLength, createVec2, distance, projectPointOntoLine, lineFromSegment } from '@/types/geometry'
 import type { OpeningType, OuterWallSegment } from '@/types/model'
@@ -47,7 +48,7 @@ const DEFAULT_OPENING_CONFIG = {
   passage: { width: createLength(1000), height: createLength(2200), type: 'passage' as const }
 }
 
-export class AddOpeningTool implements Tool {
+export class AddOpeningTool extends BaseTool implements Tool {
   readonly id = 'add-opening'
   readonly name = 'Add Opening'
   readonly icon = '🚪'
@@ -63,8 +64,6 @@ export class AddOpeningTool implements Tool {
     height: DEFAULT_OPENING_CONFIG.door.height,
     canPlace: false
   }
-
-  private listeners: (() => void)[] = []
 
   /**
    * Extract wall segment information from hit test result
@@ -167,13 +166,6 @@ export class AddOpeningTool implements Tool {
     this.state.canPlace = canPlace
     this.state.snapDirection = snapDirection
     this.triggerRender()
-  }
-
-  /**
-   * Trigger re-render for overlay updates
-   */
-  private triggerRender(): void {
-    this.listeners.forEach(listener => listener())
   }
 
   // Event Handlers
@@ -292,12 +284,5 @@ export class AddOpeningTool implements Tool {
   setSillHeight(sillHeight: Length | undefined): void {
     this.state.sillHeight = sillHeight
     this.triggerRender()
-  }
-
-  onRenderNeeded(listener: () => void): () => void {
-    this.listeners.push(listener)
-    return () => {
-      this.listeners = this.listeners.filter(l => l !== listener)
-    }
   }
 }
