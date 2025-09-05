@@ -1,9 +1,10 @@
 import { Group, Line } from 'react-konva'
 import type { OuterWallPolygon, OuterWallSegment } from '@/types/model'
 import { WALL_COLORS } from '@/components/FloorPlanEditor/visualization/wallVisualization'
-import { direction, midpoint, add, scale, type Vec2 } from '@/types/geometry'
+import { direction, type Vec2 } from '@/types/geometry'
 import { useSelectionStore } from '../hooks/useSelectionStore'
 import { LengthIndicator } from '../components/LengthIndicator'
+import { OpeningShape } from './OpeningShape'
 import type { OuterWallId } from '@/model'
 
 interface OuterWallShapeProps {
@@ -77,62 +78,22 @@ function OuterWallSegmentShape({
       />
 
       {/* Render openings in this segment */}
-      {segment.openings.map((opening, openingIndex) => {
-        // Calculate opening position along the segment
-        const segmentVector = direction(insideStart, insideEnd)
-        const offsetDistance = opening.offsetFromStart
-        const centerStart = midpoint(insideStart, outsideStart)
-        const offsetStart = scale(segmentVector, offsetDistance)
-        const offsetEnd = add(offsetStart, scale(segmentVector, opening.width))
-        const openingStart = add(centerStart, scale(segmentVector, offsetDistance))
-        const openingEnd = add(openingStart, scale(segmentVector, opening.width))
-        const openingPolygon = [
-          add(insideStart, offsetStart),
-          add(insideStart, offsetEnd),
-          add(outsideStart, offsetEnd),
-          add(outsideStart, offsetStart)
-        ]
-        const openingPolygonArray = openingPolygon.flatMap(point => [point[0], point[1]])
-        const isOpeningSelected = select.isCurrentSelection(opening.id)
-
-        return (
-          <Group
-            key={`opening-${openingIndex}`}
-            listening
-            ref={node => {
-              if (node) {
-                // Explicitly set entity attributes on the Konva node
-                node.setAttrs({
-                  entityId: opening.id,
-                  entityType: 'opening',
-                  parentIds: [outerWallId, segment.id]
-                })
-              }
-            }}
-          >
-            {/* Opening cutout - render as a different colored line */}
-            <Line
-              points={openingPolygonArray}
-              fill={isOpeningSelected ? '#F99' : '#999'}
-              stroke={isOpeningSelected ? '#cc0014' : 'black'}
-              strokeWidth={10}
-              lineCap="butt"
-              opacity={0.8}
-              closed
-              listening
-            />
-            {opening.type !== 'passage' && (
-              <Line
-                points={[openingStart[0], openingStart[1], openingEnd[0], openingEnd[1]]}
-                stroke={opening.type === 'door' ? '#8B4513' : '#87CEEB'}
-                strokeWidth={30}
-                lineCap="butt"
-                listening
-              />
-            )}
-          </Group>
-        )
-      })}
+      {segment.openings.map((opening, openingIndex) => (
+        <OpeningShape
+          key={`opening-${openingIndex}`}
+          opening={opening}
+          openingIndex={openingIndex}
+          segment={segment}
+          outerWallId={outerWallId}
+          insideStart={insideStart}
+          insideEnd={insideEnd}
+          outsideStart={outsideStart}
+          insideStartCorner={insideStartCorner}
+          insideEndCorner={insideEndCorner}
+          outsideStartCorner={outsideStartCorner}
+          outsideEndCorner={outsideEndCorner}
+        />
+      ))}
 
       {/* Segment length indicators when selected */}
       {select.isCurrentSelection(segment.id) && (

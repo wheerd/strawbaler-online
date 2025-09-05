@@ -1,0 +1,213 @@
+import { Group, Line } from 'react-konva'
+import type { Opening, OuterWallSegment } from '@/types/model'
+import type { OuterWallId } from '@/model'
+import { direction, midpoint, add, scale, type Vec2 } from '@/types/geometry'
+import { useSelectionStore } from '../hooks/useSelectionStore'
+import { LengthIndicator } from '../components/LengthIndicator'
+
+interface OpeningShapeProps {
+  opening: Opening
+  openingIndex: number
+  segment: OuterWallSegment
+  outerWallId: OuterWallId
+
+  // Segment geometry context
+  insideStart: Vec2
+  insideEnd: Vec2
+  outsideStart: Vec2
+
+  // Corner reference points (same as wall segment)
+  insideStartCorner: Vec2
+  insideEndCorner: Vec2
+  outsideStartCorner: Vec2
+  outsideEndCorner: Vec2
+}
+
+export function OpeningShape({
+  opening,
+  openingIndex,
+  segment,
+  outerWallId,
+  insideStart,
+  insideEnd,
+  outsideStart,
+  insideStartCorner,
+  insideEndCorner,
+  outsideStartCorner,
+  outsideEndCorner
+}: OpeningShapeProps): React.JSX.Element {
+  const select = useSelectionStore()
+
+  // Calculate opening position along the segment (from existing logic)
+  const segmentVector = direction(insideStart, insideEnd)
+  const offsetDistance = opening.offsetFromStart
+  const centerStart = midpoint(insideStart, outsideStart)
+  const offsetStart = scale(segmentVector, offsetDistance)
+  const offsetEnd = add(offsetStart, scale(segmentVector, opening.width))
+  const openingStart = add(centerStart, scale(segmentVector, offsetDistance))
+  const openingEnd = add(openingStart, scale(segmentVector, opening.width))
+
+  // Calculate opening polygon corners
+  const insideOpeningStart = add(insideStart, offsetStart)
+  const insideOpeningEnd = add(insideStart, offsetEnd)
+  const outsideOpeningStart = add(outsideStart, offsetStart)
+  const outsideOpeningEnd = add(outsideStart, offsetEnd)
+
+  const openingPolygon = [insideOpeningStart, insideOpeningEnd, outsideOpeningEnd, outsideOpeningStart]
+  const openingPolygonArray = openingPolygon.flatMap(point => [point[0], point[1]])
+
+  const isOpeningSelected = select.isCurrentSelection(opening.id)
+
+  // Calculate opening-to-opening distances
+  const sortedOpenings = segment.openings
+    .map((o, idx) => ({ opening: o, originalIndex: idx }))
+    .sort((a, b) => a.opening.offsetFromStart - b.opening.offsetFromStart)
+
+  const currentIndex = sortedOpenings.findIndex(item => item.originalIndex === openingIndex)
+  const previousOpening = currentIndex > 0 ? sortedOpenings[currentIndex - 1].opening : null
+  const nextOpening = currentIndex < sortedOpenings.length - 1 ? sortedOpenings[currentIndex + 1].opening : null
+
+  return (
+    <Group
+      name={`opening-${openingIndex}`}
+      listening
+      ref={node => {
+        if (node) {
+          // Explicitly set entity attributes on the Konva node
+          node.setAttrs({
+            entityId: opening.id,
+            entityType: 'opening',
+            parentIds: [outerWallId, segment.id]
+          })
+        }
+      }}
+    >
+      {/* Opening cutout - render as a different colored line */}
+      <Line
+        points={openingPolygonArray}
+        fill={isOpeningSelected ? '#F99' : '#999'}
+        stroke={isOpeningSelected ? '#cc0014' : 'black'}
+        strokeWidth={10}
+        lineCap="butt"
+        opacity={0.8}
+        closed
+        listening
+      />
+
+      {/* Door/Window indicator line */}
+      {opening.type !== 'passage' && (
+        <Line
+          points={[openingStart[0], openingStart[1], openingEnd[0], openingEnd[1]]}
+          stroke={opening.type === 'door' ? '#8B4513' : '#87CEEB'}
+          strokeWidth={30}
+          lineCap="butt"
+          listening
+        />
+      )}
+
+      {/* Length indicators when selected */}
+      {isOpeningSelected && (
+        <>
+          {/* Opening width indicators */}
+          <LengthIndicator
+            startPoint={insideOpeningStart}
+            endPoint={insideOpeningEnd}
+            label={`${(opening.width / 1000).toFixed(2)}m`}
+            offset={-60}
+            color="#007acc"
+            fontSize={50}
+            strokeWidth={4}
+          />
+          <LengthIndicator
+            startPoint={outsideOpeningStart}
+            endPoint={outsideOpeningEnd}
+            label={`${(opening.width / 1000).toFixed(2)}m`}
+            offset={60}
+            color="#007acc"
+            fontSize={50}
+            strokeWidth={4}
+          />
+
+          {/* Corner distance indicators - inside */}
+          <LengthIndicator
+            startPoint={insideStartCorner}
+            endPoint={insideOpeningStart}
+            offset={-60}
+            color="#555"
+            fontSize={45}
+            strokeWidth={3}
+          />
+          <LengthIndicator
+            startPoint={insideOpeningEnd}
+            endPoint={insideEndCorner}
+            offset={-60}
+            color="#555"
+            fontSize={45}
+            strokeWidth={3}
+          />
+
+          {/* Corner distance indicators - outside */}
+          <LengthIndicator
+            startPoint={outsideStartCorner}
+            endPoint={outsideOpeningStart}
+            offset={60}
+            color="#555"
+            fontSize={45}
+            strokeWidth={3}
+          />
+          <LengthIndicator
+            startPoint={outsideOpeningEnd}
+            endPoint={outsideEndCorner}
+            offset={60}
+            color="#555"
+            fontSize={45}
+            strokeWidth={3}
+          />
+
+          {/* Opening-to-opening distance indicators */}
+          {previousOpening && (
+            <>
+              {(() => {
+                const prevEndOffset = previousOpening.offsetFromStart + previousOpening.width
+                const currentStartOffset = opening.offsetFromStart
+                const prevEndPoint = add(insideStart, scale(segmentVector, prevEndOffset))
+                const currentStartPoint = add(insideStart, scale(segmentVector, currentStartOffset))
+                return (
+                  <LengthIndicator
+                    startPoint={prevEndPoint}
+                    endPoint={currentStartPoint}
+                    offset={-100}
+                    color="#e67e22"
+                    fontSize={40}
+                    strokeWidth={3}
+                  />
+                )
+              })()}
+            </>
+          )}
+
+          {nextOpening && (
+            <>
+              {(() => {
+                const currentEndOffset = opening.offsetFromStart + opening.width
+                const nextStartOffset = nextOpening.offsetFromStart
+                const currentEndPoint = add(insideStart, scale(segmentVector, currentEndOffset))
+                const nextStartPoint = add(insideStart, scale(segmentVector, nextStartOffset))
+                return (
+                  <LengthIndicator
+                    startPoint={currentEndPoint}
+                    endPoint={nextStartPoint}
+                    offset={100}
+                    color="#e67e22"
+                    fontSize={40}
+                    strokeWidth={3}
+                  />
+                )
+              })()}
+            </>
+          )}
+        </>
+      )}
+    </Group>
+  )
+}
