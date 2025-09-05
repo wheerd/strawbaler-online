@@ -78,16 +78,12 @@ function OuterWallSegmentShape({
       />
 
       {/* Render openings in this segment */}
-      {segment.openings.map((opening, openingIndex) => (
+      {segment.openings.map(opening => (
         <OpeningShape
-          key={`opening-${openingIndex}`}
+          key={`opening-${opening.id}`}
           opening={opening}
-          openingIndex={openingIndex}
           segment={segment}
           outerWallId={outerWallId}
-          insideStart={insideStart}
-          insideEnd={insideEnd}
-          outsideStart={outsideStart}
           insideStartCorner={insideStartCorner}
           insideEndCorner={insideEndCorner}
           outsideStartCorner={outsideStartCorner}

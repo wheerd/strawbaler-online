@@ -1,20 +1,14 @@
 import { Group, Line } from 'react-konva'
 import type { Opening, OuterWallSegment } from '@/types/model'
 import type { OuterWallId } from '@/model'
-import { direction, midpoint, add, scale, type Vec2 } from '@/types/geometry'
+import { midpoint, add, scale, type Vec2 } from '@/types/geometry'
 import { useSelectionStore } from '../hooks/useSelectionStore'
 import { LengthIndicator } from '../components/LengthIndicator'
 
 interface OpeningShapeProps {
   opening: Opening
-  openingIndex: number
   segment: OuterWallSegment
   outerWallId: OuterWallId
-
-  // Segment geometry context
-  insideStart: Vec2
-  insideEnd: Vec2
-  outsideStart: Vec2
 
   // Corner reference points (same as wall segment)
   insideStartCorner: Vec2
@@ -25,12 +19,8 @@ interface OpeningShapeProps {
 
 export function OpeningShape({
   opening,
-  openingIndex,
   segment,
   outerWallId,
-  insideStart,
-  insideEnd,
-  outsideStart,
   insideStartCorner,
   insideEndCorner,
   outsideStartCorner,
@@ -38,8 +28,10 @@ export function OpeningShape({
 }: OpeningShapeProps): React.JSX.Element {
   const select = useSelectionStore()
 
-  // Calculate opening position along the segment (from existing logic)
-  const segmentVector = direction(insideStart, insideEnd)
+  // Extract segment geometry
+  const insideStart = segment.insideLine.start
+  const outsideStart = segment.outsideLine.start
+  const segmentVector = segment.direction
   const offsetDistance = opening.offsetFromStart
   const centerStart = midpoint(insideStart, outsideStart)
   const offsetStart = scale(segmentVector, offsetDistance)
@@ -59,28 +51,19 @@ export function OpeningShape({
   const isOpeningSelected = select.isCurrentSelection(opening.id)
 
   // Calculate opening-to-opening distances
-  const sortedOpenings = segment.openings
-    .map((o, idx) => ({ opening: o, originalIndex: idx }))
-    .sort((a, b) => a.opening.offsetFromStart - b.opening.offsetFromStart)
+  const sortedOpenings = segment.openings.sort((a, b) => a.offsetFromStart - b.offsetFromStart)
 
-  const currentIndex = sortedOpenings.findIndex(item => item.originalIndex === openingIndex)
-  const previousOpening = currentIndex > 0 ? sortedOpenings[currentIndex - 1].opening : null
-  const nextOpening = currentIndex < sortedOpenings.length - 1 ? sortedOpenings[currentIndex + 1].opening : null
+  const currentIndex = sortedOpenings.findIndex(o => o.id === opening.id)
+  const previousOpening = currentIndex > 0 ? sortedOpenings[currentIndex - 1] : null
+  const nextOpening = currentIndex < sortedOpenings.length - 1 ? sortedOpenings[currentIndex + 1] : null
 
   return (
     <Group
-      name={`opening-${openingIndex}`}
+      name={`opening-${opening.id}`}
+      entityId={opening.id}
+      entityType="opening"
+      parentIds={[outerWallId, segment.id]}
       listening
-      ref={node => {
-        if (node) {
-          // Explicitly set entity attributes on the Konva node
-          node.setAttrs({
-            entityId: opening.id,
-            entityType: 'opening',
-            parentIds: [outerWallId, segment.id]
-          })
-        }
-      }}
     >
       {/* Opening cutout - render as a different colored line */}
       <Line
