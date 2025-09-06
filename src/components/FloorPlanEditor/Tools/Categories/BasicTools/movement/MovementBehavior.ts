@@ -1,50 +1,46 @@
 import type { SnapResult } from '@/model/store/services/snapping/types'
 import type { Vec2 } from '@/types/geometry'
-import type { SelectableId, EntityType } from '@/types/ids'
+import type { SelectableId } from '@/types/ids'
 import type { StoreActions } from '@/model/store/types'
 import type { SnappingService } from '@/model/store/services/snapping/SnappingService'
 import type React from 'react'
 
-export interface MovementContext {
+export interface MovementContext<T> {
   entityId: SelectableId
-  entityType: EntityType
   parentIds: SelectableId[]
+  entity: T
   store: StoreActions
   snappingService: SnappingService
 }
 
-export interface MovementState {
-  // Position data
-  initialEntityPosition: Vec2 // Actual initial position of the entity
-  mouseStartPosition: Vec2 // Initial mouse position
-  mouseCurrentPosition: Vec2 // Current mouse position
-  mouseDelta: Vec2 // mouseCurrentPosition - mouseStartPosition
-  finalEntityPosition: Vec2 // The final position of the entity after constraints/snapping
-
-  // Movement result
-  snapResult: SnapResult | null
-  isValidPosition: boolean
+export interface MouseMovementState {
+  startPosition: Vec2 // Initial mouse position
+  currentPosition: Vec2 // Current mouse position
+  delta: Vec2 // mouseCurrentPosition - mouseStartPosition
 }
 
-export interface MovementState {
-  snapResult: SnapResult | null
-  isValidPosition: boolean
-  finalEntityPosition: Vec2 // The final position of the entity after constraints/snapping
+export interface MovementState<T> {
+  result: T
+  snapResult?: SnapResult
+  isValid: boolean
 }
 
-export interface MovementBehavior {
+export interface MovementBehavior<TEntity, TState> {
   // Get the entity's actual position for initialization
-  getEntityPosition(entityId: SelectableId, parentIds: SelectableId[], store: StoreActions): Vec2
+  getEntity(entityId: SelectableId, parentIds: SelectableId[], store: StoreActions): TEntity
 
-  // Apply constraints and snapping - updates the MovementState with final position
-  constrainAndSnap(movementState: MovementState, context: MovementContext): MovementState
+  // Called when the movement is started to create an initial state
+  initializeState(movementState: MouseMovementState, context: MovementContext<TEntity>): TState
+
+  // Apply constraints and snapping - updates the movement state
+  constrainAndSnap(movementState: MouseMovementState, context: MovementContext<TEntity>): TState
 
   // Validate position using slice logic - behavior constructs geometry, slice validates
-  validatePosition(movementState: MovementState, context: MovementContext): boolean
+  validatePosition(movementState: TState, context: MovementContext<TEntity>): boolean
 
   // Generate preview with full state
-  generatePreview(movementState: MovementState, context: MovementContext): React.ReactNode[]
+  generatePreview(movementState: TState, isValid: boolean, context: MovementContext<TEntity>): React.ReactNode[]
 
   // Commit movement using slice operations
-  commitMovement(movementState: MovementState, context: MovementContext): boolean
+  commitMovement(movementState: TState, context: MovementContext<TEntity>): boolean
 }

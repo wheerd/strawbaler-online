@@ -1,94 +1,99 @@
-import type { MovementBehavior, MovementContext, MovementState } from '../MovementBehavior'
-import type { SelectableId } from '@/types/ids'
+import type { MovementBehavior, MovementContext, MouseMovementState } from '../MovementBehavior'
+import type { SelectableId, OuterWallId, WallSegmentId, OpeningId } from '@/types/ids'
 import type { StoreActions } from '@/model/store/types'
-import type { Opening, OuterWallSegment } from '@/types/model'
-import type { OuterWallId, WallSegmentId, OpeningId } from '@/types/ids'
-import type { Vec2, Length } from '@/types/geometry'
-import { add, dot, scale, distance } from '@/types/geometry'
+import type { Opening, OuterWallSegment, OuterWallPolygon } from '@/types/model'
+import type { Length } from '@/types/geometry'
+import { add, dot, scale, distance, createLength } from '@/types/geometry'
 import { isOuterWallId, isWallSegmentId, isOpeningId } from '@/types/ids'
 import React from 'react'
 import { Group, Line } from 'react-konva'
 import { COLORS } from '@/theme/colors'
 
-export class OpeningMovementBehavior implements MovementBehavior {
-  getEntityPosition(entityId: SelectableId, parentIds: SelectableId[], store: StoreActions): Vec2 {
+// Opening movement needs access to the wall, segment, and opening
+export interface OpeningEntityContext {
+  wall: OuterWallPolygon
+  segment: OuterWallSegment
+  opening: Opening
+}
+
+// Opening movement state tracks offset changes along the segment
+export interface OpeningMovementState {
+  originalOffset: Length
+  newOffset: Length
+}
+
+export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityContext, OpeningMovementState> {
+  getEntity(entityId: SelectableId, parentIds: SelectableId[], store: StoreActions): OpeningEntityContext {
     const parentWallId = parentIds.find(id => isOuterWallId(id as string)) as OuterWallId
     const parentSegmentId = parentIds.find(id => isWallSegmentId(id as string)) as WallSegmentId
 
     if (!parentWallId || !parentSegmentId || !isOpeningId(entityId as string)) {
-      return [0, 0]
+      throw new Error(`Invalid entity context for opening ${entityId}`)
     }
 
-    const opening = store.getOpeningById(parentWallId, parentSegmentId, entityId as OpeningId)
+    const wall = store.getOuterWallById(parentWallId)
     const segment = store.getSegmentById(parentWallId, parentSegmentId)
+    const opening = store.getOpeningById(parentWallId, parentSegmentId, entityId as OpeningId)
 
-    if (!opening || !segment) return [0, 0]
+    if (!wall || !segment || !opening) {
+      throw new Error(`Could not find required entities for opening ${entityId}`)
+    }
 
-    // Calculate opening position based on its offset along the segment
-    const segmentStart = segment.insideLine.start
-    return add(segmentStart, scale(segment.direction, opening.offsetFromStart))
+    return { wall, segment, opening }
   }
 
-  constrainAndSnap(movementState: MovementState, context: MovementContext): MovementState {
-    const segment = this.getParentSegment(context)
-    if (!segment) {
-      return {
-        ...movementState,
-        finalEntityPosition: movementState.initialEntityPosition,
-        snapResult: null,
-        isValidPosition: false
-      }
+  initializeState(
+    _mouseState: MouseMovementState,
+    context: MovementContext<OpeningEntityContext>
+  ): OpeningMovementState {
+    const { opening } = context.entity
+    return {
+      originalOffset: opening.offsetFromStart,
+      newOffset: opening.offsetFromStart
     }
+  }
+
+  constrainAndSnap(
+    mouseState: MouseMovementState,
+    context: MovementContext<OpeningEntityContext>
+  ): OpeningMovementState {
+    const { segment } = context.entity
 
     // Constrain to segment direction only - project the mouse delta onto segment direction
     const segmentDirection = segment.direction
-    const projectedDistance = dot(movementState.mouseDelta, segmentDirection)
-    const constrainedEntityPosition = add(
-      movementState.initialEntityPosition,
-      scale(segmentDirection, projectedDistance)
-    )
-
-    return {
-      ...movementState,
-      finalEntityPosition: constrainedEntityPosition,
-      snapResult: {
-        position: constrainedEntityPosition,
-        lines: [{ point: constrainedEntityPosition, direction: segment.direction }]
-      },
-      isValidPosition: true // Will be set by validatePosition
-    }
-  }
-
-  validatePosition(movementState: MovementState, context: MovementContext): boolean {
-    const opening = this.getEntity(context)
-    const segment = this.getParentSegment(context)
-    if (!opening || !segment) return false
+    const projectedDistance = dot(mouseState.delta, segmentDirection)
 
     // Calculate new offset along segment
     const segmentStart = segment.insideLine.start
-    const newOffset = distance(segmentStart, movementState.finalEntityPosition) as Length
+    const currentPosition = add(segmentStart, scale(segment.direction, context.entity.opening.offsetFromStart))
+    const newPosition = add(currentPosition, scale(segmentDirection, projectedDistance))
+    const newOffset = distance(segmentStart, newPosition)
 
-    // Use existing validation from store
-    const parentWallId = this.getParentWallId(context)
-    const parentSegmentId = this.getParentSegmentId(context)
-
-    if (!parentWallId || !parentSegmentId) return false
-
-    return context.store.isOpeningPlacementValid(parentWallId, parentSegmentId, newOffset, opening.width)
+    return {
+      originalOffset: context.entity.opening.offsetFromStart,
+      newOffset: createLength(Math.max(0, newOffset)) // Ensure non-negative offset
+    }
   }
 
-  generatePreview(movementState: MovementState, context: MovementContext): React.ReactNode[] {
-    const opening = this.getEntity(context)
-    const segment = this.getParentSegment(context)
-    if (!opening || !segment) return []
+  validatePosition(movementState: OpeningMovementState, context: MovementContext<OpeningEntityContext>): boolean {
+    const { wall, segment, opening } = context.entity
+
+    // Use existing validation from store
+    return context.store.isOpeningPlacementValid(wall.id, segment.id, movementState.newOffset, opening.width)
+  }
+
+  generatePreview(
+    movementState: OpeningMovementState,
+    isValid: boolean,
+    context: MovementContext<OpeningEntityContext>
+  ): React.ReactNode[] {
+    const { segment, opening } = context.entity
 
     // Calculate the opening rectangle in new position
     const segmentStart = segment.insideLine.start
     const outsideDirection = segment.outsideDirection
 
-    // Calculate new offset along segment
-    const newOffset = distance(segmentStart, movementState.finalEntityPosition)
-    const openingStart = add(segmentStart, scale(segment.direction, newOffset))
+    const openingStart = add(segmentStart, scale(segment.direction, movementState.newOffset))
     const openingEnd = add(openingStart, scale(segment.direction, opening.width))
 
     // Create opening rectangle
@@ -97,6 +102,9 @@ export class OpeningMovementBehavior implements MovementBehavior {
     const outsideStart = add(openingStart, scale(outsideDirection, segment.thickness))
     const outsideEnd = add(openingEnd, scale(outsideDirection, segment.thickness))
 
+    // Original position for movement indicator
+    const originalStart = add(segmentStart, scale(segment.direction, movementState.originalOffset))
+
     return [
       <Group key="opening-preview">
         {/* Show opening rectangle */}
@@ -104,7 +112,7 @@ export class OpeningMovementBehavior implements MovementBehavior {
           key="opening-rectangle"
           points={[insideStart, insideEnd, outsideEnd, outsideStart].flatMap(p => [p[0], p[1]])}
           closed
-          fill={movementState.isValidPosition ? COLORS.ui.success : COLORS.ui.danger}
+          fill={isValid ? COLORS.ui.success : COLORS.ui.danger}
           stroke={COLORS.ui.white}
           strokeWidth={5}
           opacity={0.6}
@@ -113,12 +121,7 @@ export class OpeningMovementBehavior implements MovementBehavior {
         {/* Show movement indicator */}
         <Line
           key="movement-line"
-          points={[
-            movementState.initialEntityPosition[0],
-            movementState.initialEntityPosition[1],
-            movementState.finalEntityPosition[0],
-            movementState.finalEntityPosition[1]
-          ]}
+          points={[originalStart[0], originalStart[1], openingStart[0], openingStart[1]]}
           stroke={COLORS.ui.gray600}
           strokeWidth={10}
           dash={[20, 20]}
@@ -129,53 +132,14 @@ export class OpeningMovementBehavior implements MovementBehavior {
     ]
   }
 
-  commitMovement(movementState: MovementState, context: MovementContext): boolean {
-    const opening = this.getEntity(context)
-    const segment = this.getParentSegment(context)
-    if (!opening || !segment) return false
-
-    // Calculate new offset
-    const segmentStart = segment.insideLine.start
-    const newOffset = distance(segmentStart, movementState.finalEntityPosition) as Length
+  commitMovement(movementState: OpeningMovementState, context: MovementContext<OpeningEntityContext>): boolean {
+    const { wall, segment, opening } = context.entity
 
     // Update opening position
-    const parentWallId = this.getParentWallId(context)
-    const parentSegmentId = this.getParentSegmentId(context)
-
-    if (!parentWallId || !parentSegmentId) return false
-
-    context.store.updateOpening(parentWallId, parentSegmentId, opening.id, {
-      offsetFromStart: newOffset
+    context.store.updateOpening(wall.id, segment.id, opening.id, {
+      offsetFromStart: movementState.newOffset
     })
 
     return true
-  }
-
-  private getEntity(context: MovementContext): Opening | null {
-    const parentWallId = this.getParentWallId(context)
-    const parentSegmentId = this.getParentSegmentId(context)
-
-    if (!parentWallId || !parentSegmentId || !isOpeningId(context.entityId as string)) return null
-
-    return context.store.getOpeningById(parentWallId, parentSegmentId, context.entityId as OpeningId)
-  }
-
-  private getParentSegment(context: MovementContext): OuterWallSegment | null {
-    const parentWallId = this.getParentWallId(context)
-    const parentSegmentId = this.getParentSegmentId(context)
-
-    if (!parentWallId || !parentSegmentId) return null
-
-    return context.store.getSegmentById(parentWallId, parentSegmentId)
-  }
-
-  private getParentWallId(context: MovementContext): OuterWallId | null {
-    const parentWallId = context.parentIds.find(id => isOuterWallId(id as string))
-    return parentWallId ? (parentWallId as OuterWallId) : null
-  }
-
-  private getParentSegmentId(context: MovementContext): WallSegmentId | null {
-    const parentSegmentId = context.parentIds.find(id => isWallSegmentId(id as string))
-    return parentSegmentId ? (parentSegmentId as WallSegmentId) : null
   }
 }

@@ -5,7 +5,7 @@ import { WallSegmentMovementBehavior } from './behaviors/WallSegmentMovementBeha
 import { OuterCornerMovementBehavior } from './behaviors/OuterCornerMovementBehavior'
 import { OpeningMovementBehavior } from './behaviors/OpeningMovementBehavior'
 
-const MOVEMENT_BEHAVIORS: Record<EntityType, MovementBehavior | null> = {
+const MOVEMENT_BEHAVIORS: Record<EntityType, MovementBehavior<any, any> | null> = {
   'outer-wall': new OuterWallPolygonMovementBehavior(),
   'wall-segment': new WallSegmentMovementBehavior(),
   'outer-corner': new OuterCornerMovementBehavior(),
@@ -13,6 +13,6 @@ const MOVEMENT_BEHAVIORS: Record<EntityType, MovementBehavior | null> = {
   floor: null // Not implemented yet
 }
 
-export function getMovementBehavior(entityType: EntityType): MovementBehavior | null {
+export function getMovementBehavior(entityType: EntityType): MovementBehavior<any, any> | null {
   return MOVEMENT_BEHAVIORS[entityType] || null
 }

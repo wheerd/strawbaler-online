@@ -1,8 +1,7 @@
-import type { MovementBehavior, MovementContext, MovementState } from '../MovementBehavior'
-import type { SelectableId } from '@/types/ids'
+import type { MovementBehavior, MovementContext, MouseMovementState } from '../MovementBehavior'
+import type { SelectableId, OuterWallId } from '@/types/ids'
 import type { StoreActions } from '@/model/store/types'
 import type { OuterWallPolygon } from '@/types/model'
-import type { OuterWallId } from '@/types/ids'
 import type { Vec2, LineSegment2D } from '@/types/geometry'
 import { subtract, add } from '@/types/geometry'
 import { isOuterWallId } from '@/types/ids'
@@ -10,20 +9,40 @@ import React from 'react'
 import { Group, Line } from 'react-konva'
 import { COLORS } from '@/theme/colors'
 
-export class OuterWallPolygonMovementBehavior implements MovementBehavior {
-  getEntityPosition(entityId: SelectableId, _parentIds: SelectableId[], store: StoreActions): Vec2 {
-    if (!isOuterWallId(entityId as string)) return [0, 0]
+interface PolygonMovementState {
+  originalPosition: Vec2 // First boundary point as reference
+  newPosition: Vec2
+  offset: Vec2
+}
+
+export class OuterWallPolygonMovementBehavior implements MovementBehavior<OuterWallPolygon, PolygonMovementState> {
+  getEntity(entityId: SelectableId, _parentIds: SelectableId[], store: StoreActions): OuterWallPolygon {
+    if (!isOuterWallId(entityId as string)) {
+      throw new Error(`Invalid entity context for wall ${entityId}`)
+    }
 
     const wall = store.getOuterWallById(entityId as OuterWallId)
-    if (!wall || wall.boundary.length === 0) return [0, 0]
+    if (!wall) {
+      throw new Error(`Could not find wall ${entityId}`)
+    }
 
-    // Return the first corner as the reference position for the polygon
-    return wall.boundary[0]
+    return wall
   }
 
-  constrainAndSnap(movementState: MovementState, context: MovementContext): MovementState {
-    // Calculate the new entity position based on mouse delta
-    const newEntityPosition = add(movementState.initialEntityPosition, movementState.mouseDelta)
+  initializeState(_mouseState: MouseMovementState, context: MovementContext<OuterWallPolygon>): PolygonMovementState {
+    // Use the first boundary point as reference position for the polygon
+    const referencePoint = context.entity.boundary.length > 0 ? context.entity.boundary[0] : ([0, 0] as Vec2)
+
+    return {
+      originalPosition: referencePoint,
+      newPosition: referencePoint,
+      offset: [0, 0] as Vec2
+    }
+  }
+
+  constrainAndSnap(mouseState: MouseMovementState, context: MovementContext<OuterWallPolygon>): PolygonMovementState {
+    const originalPosition = context.entity.boundary.length > 0 ? context.entity.boundary[0] : ([0, 0] as Vec2)
+    const newPosition = add(originalPosition, mouseState.delta)
 
     // Get snap points and lines from other polygons
     const snapPoints = this.getOtherPolygonCorners(context)
@@ -32,31 +51,31 @@ export class OuterWallPolygonMovementBehavior implements MovementBehavior {
     const snappingContext = {
       snapPoints,
       referenceLineSegments: snapLines,
-      referencePoint: movementState.initialEntityPosition
+      referencePoint: originalPosition
     }
 
-    const snapResult = context.snappingService.findSnapResult(newEntityPosition, snappingContext)
-    const finalEntityPosition = snapResult?.position || newEntityPosition
+    const snapResult = context.snappingService.findSnapResult(newPosition, snappingContext)
+    const finalPosition = snapResult?.position || newPosition
+    const offset = subtract(finalPosition, originalPosition)
 
     return {
-      ...movementState,
-      finalEntityPosition,
-      snapResult,
-      isValidPosition: true // Will be set by validatePosition
+      originalPosition,
+      newPosition: finalPosition,
+      offset
     }
   }
 
-  validatePosition(_movementState: MovementState, _context: MovementContext): boolean {
+  validatePosition(_movementState: PolygonMovementState, _context: MovementContext<OuterWallPolygon>): boolean {
     // Polygon translation is always valid (preserves shape)
     return true
   }
 
-  generatePreview(movementState: MovementState, context: MovementContext): React.ReactNode[] {
-    const entity = this.getEntity(context)
-    if (!entity) return []
-
-    const offset = subtract(movementState.finalEntityPosition, movementState.initialEntityPosition)
-    const previewBoundary = entity.boundary.map(point => add(point, offset))
+  generatePreview(
+    movementState: PolygonMovementState,
+    isValid: boolean,
+    context: MovementContext<OuterWallPolygon>
+  ): React.ReactNode[] {
+    const previewBoundary = context.entity.boundary.map(point => add(point, movementState.offset))
 
     // Create Konva JSX elements for preview
     return [
@@ -65,7 +84,7 @@ export class OuterWallPolygonMovementBehavior implements MovementBehavior {
           key="preview-polygon"
           points={previewBoundary.flatMap(p => [p[0], p[1]])}
           closed
-          stroke={movementState.isValidPosition ? COLORS.ui.primary : COLORS.ui.danger}
+          stroke={isValid ? COLORS.ui.primary : COLORS.ui.danger}
           strokeWidth={3}
           dash={[8, 4]}
           opacity={0.9}
@@ -76,7 +95,7 @@ export class OuterWallPolygonMovementBehavior implements MovementBehavior {
           key="preview-polygon-fill"
           points={previewBoundary.flatMap(p => [p[0], p[1]])}
           closed
-          fill={movementState.isValidPosition ? COLORS.ui.success : COLORS.ui.danger}
+          fill={isValid ? COLORS.ui.success : COLORS.ui.danger}
           opacity={0.1}
           listening={false}
         />
@@ -84,23 +103,15 @@ export class OuterWallPolygonMovementBehavior implements MovementBehavior {
     ]
   }
 
-  commitMovement(movementState: MovementState, context: MovementContext): boolean {
-    const offset = subtract(movementState.finalEntityPosition, movementState.initialEntityPosition)
-    const wallId = context.entityId as OuterWallId
-
-    return context.store.moveOuterWallPolygon(wallId, offset)
+  commitMovement(movementState: PolygonMovementState, context: MovementContext<OuterWallPolygon>): boolean {
+    const wallId = context.entity.id
+    return context.store.moveOuterWallPolygon(wallId, movementState.offset)
   }
 
-  private getEntity(context: MovementContext): OuterWallPolygon | null {
-    if (!isOuterWallId(context.entityId as string)) return null
-    return context.store.getOuterWallById(context.entityId as OuterWallId)
-  }
-
-  private getOtherPolygonCorners(context: MovementContext): Vec2[] {
+  private getOtherPolygonCorners(context: MovementContext<OuterWallPolygon>): Vec2[] {
     // Get corners from other polygons on the same floor for snapping
-    const currentWallId = context.entityId as OuterWallId
-    const currentWall = this.getEntity(context)
-    if (!currentWall) return []
+    const currentWallId = context.entity.id
+    const currentWall = context.entity
 
     const allWalls = context.store.getOuterWallsByFloor(currentWall.floorId)
     const otherWalls = allWalls.filter(wall => wall.id !== currentWallId)
@@ -113,11 +124,10 @@ export class OuterWallPolygonMovementBehavior implements MovementBehavior {
     return corners
   }
 
-  private getOtherPolygonEdges(context: MovementContext): LineSegment2D[] {
+  private getOtherPolygonEdges(context: MovementContext<OuterWallPolygon>): LineSegment2D[] {
     // Get edges from other polygons on the same floor for snapping
-    const currentWallId = context.entityId as OuterWallId
-    const currentWall = this.getEntity(context)
-    if (!currentWall) return []
+    const currentWallId = context.entity.id
+    const currentWall = context.entity
 
     const allWalls = context.store.getOuterWallsByFloor(currentWall.floorId)
     const otherWalls = allWalls.filter(wall => wall.id !== currentWallId)

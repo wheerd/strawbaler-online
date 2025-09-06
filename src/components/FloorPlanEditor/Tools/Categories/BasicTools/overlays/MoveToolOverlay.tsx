@@ -12,19 +12,19 @@ export function MoveToolOverlay({ tool }: ToolOverlayComponentProps<MoveTool>) {
     return null
   }
 
-  const { behavior, context, currentMovementState } = toolState
+  const { behavior, context, currentMovementState, isValid } = toolState
   if (!behavior || !context) return null
 
-  const previewElements = behavior.generatePreview(currentMovementState, context)
+  const previewElements = behavior.generatePreview(currentMovementState, isValid, context)
 
   return (
     <Group>
       {previewElements}
-      {!currentMovementState.isValidPosition && (
+      {!isValid && (
         <Group>
           <Circle
-            x={currentMovementState.finalEntityPosition[0]}
-            y={currentMovementState.finalEntityPosition[1]}
+            x={toolState.mouseState?.currentPosition[0] || 0}
+            y={toolState.mouseState?.currentPosition[1] || 0}
             radius={8}
             fill={COLORS.ui.danger}
             stroke={COLORS.ui.white}
@@ -35,8 +35,8 @@ export function MoveToolOverlay({ tool }: ToolOverlayComponentProps<MoveTool>) {
             text="Invalid position"
             fill={COLORS.ui.danger}
             fontSize={12}
-            x={currentMovementState.finalEntityPosition[0] + 15}
-            y={currentMovementState.finalEntityPosition[1] - 5}
+            x={(toolState.mouseState?.currentPosition[0] || 0) + 15}
+            y={(toolState.mouseState?.currentPosition[1] || 0) - 5}
           />
         </Group>
       )}
