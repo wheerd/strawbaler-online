@@ -79,6 +79,10 @@ export interface OuterWallsActions {
   getCornerById: (wallId: OuterWallId, cornerId: OuterCornerId) => OuterCorner | null
   getOpeningById: (wallId: OuterWallId, segmentId: WallSegmentId, openingId: OpeningId) => Opening | null
   getOuterWallsByFloor: (floorId: FloorId) => OuterWallPolygon[]
+
+  // Movement operations for MoveTool
+  moveOuterWallPolygon: (wallId: OuterWallId, offset: Vec2) => boolean
+  updateOuterWallBoundary: (wallId: OuterWallId, newBoundary: Vec2[]) => boolean
 }
 
 export type OuterWallsSlice = OuterWallsState & OuterWallsActions
@@ -882,5 +886,100 @@ export const createOuterWallsSlice: StateCreator<OuterWallsSlice, [], [], OuterW
     }
 
     return bestOffset
+  },
+
+  // Movement operations for MoveTool
+  moveOuterWallPolygon: (wallId: OuterWallId, offset: Vec2) => {
+    set(state => {
+      const outerWall = state.outerWalls.get(wallId)
+      if (!outerWall) return state
+
+      // Translate all boundary points by the offset
+      const newBoundary = outerWall.boundary.map(point => add(point, offset))
+
+      // Create new boundary polygon and recalculate all geometry
+      const newBoundaryPolygon = { points: newBoundary }
+      const thicknesses = outerWall.segments.map(s => s.thickness)
+      const infiniteLines = createInfiniteLines(newBoundaryPolygon, thicknesses)
+      const updatedCorners = calculateCornerOutsidePoints(
+        newBoundaryPolygon,
+        thicknesses,
+        infiniteLines,
+        outerWall.corners
+      )
+
+      // Create segment inputs preserving existing data
+      const segmentInputs: PartialSegmentInput[] = outerWall.segments.map(segment => ({
+        id: segment.id,
+        thickness: segment.thickness,
+        constructionType: segment.constructionType,
+        openings: segment.openings
+      }))
+
+      const finalSegments = calculateSegmentEndpoints(newBoundaryPolygon, segmentInputs, updatedCorners, infiniteLines)
+
+      const updatedOuterWall: OuterWallPolygon = {
+        ...outerWall,
+        boundary: newBoundary,
+        segments: finalSegments,
+        corners: updatedCorners
+      }
+
+      return {
+        outerWalls: new Map(state.outerWalls).set(wallId, updatedOuterWall)
+      }
+    })
+
+    return true
+  },
+
+  updateOuterWallBoundary: (wallId: OuterWallId, newBoundary: Vec2[]) => {
+    if (newBoundary.length < 3) {
+      return false
+    }
+
+    // Check if the new polygon would self-intersect
+    if (wouldClosingPolygonSelfIntersect(newBoundary)) {
+      return false
+    }
+
+    set(state => {
+      const outerWall = state.outerWalls.get(wallId)
+      if (!outerWall) return state
+
+      // Create new boundary polygon and recalculate all geometry
+      const newBoundaryPolygon = { points: newBoundary }
+      const thicknesses = outerWall.segments.map(s => s.thickness)
+      const infiniteLines = createInfiniteLines(newBoundaryPolygon, thicknesses)
+      const updatedCorners = calculateCornerOutsidePoints(
+        newBoundaryPolygon,
+        thicknesses,
+        infiniteLines,
+        outerWall.corners
+      )
+
+      // Create segment inputs preserving existing data
+      const segmentInputs: PartialSegmentInput[] = outerWall.segments.map(segment => ({
+        id: segment.id,
+        thickness: segment.thickness,
+        constructionType: segment.constructionType,
+        openings: segment.openings
+      }))
+
+      const finalSegments = calculateSegmentEndpoints(newBoundaryPolygon, segmentInputs, updatedCorners, infiniteLines)
+
+      const updatedOuterWall: OuterWallPolygon = {
+        ...outerWall,
+        boundary: newBoundary,
+        segments: finalSegments,
+        corners: updatedCorners
+      }
+
+      return {
+        outerWalls: new Map(state.outerWalls).set(wallId, updatedOuterWall)
+      }
+    })
+
+    return true
   }
 })
