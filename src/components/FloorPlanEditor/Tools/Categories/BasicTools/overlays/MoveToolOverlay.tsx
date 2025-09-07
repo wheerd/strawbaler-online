@@ -2,6 +2,7 @@ import type { ToolOverlayComponentProps } from '@/components/FloorPlanEditor/Too
 import type { MoveTool } from '../MoveTool'
 import { Group } from 'react-konva'
 import { useReactiveTool } from '../../../hooks/useReactiveTool'
+import { SnappingLines } from '@/components/FloorPlanEditor/components/SnappingLines'
 
 export function MoveToolOverlay({ tool }: ToolOverlayComponentProps<MoveTool>) {
   useReactiveTool(tool)
@@ -16,5 +17,10 @@ export function MoveToolOverlay({ tool }: ToolOverlayComponentProps<MoveTool>) {
 
   const previewElements = behavior.generatePreview(currentMovementState, isValid, context)
 
-  return <Group>{previewElements}</Group>
+  return (
+    <Group>
+      <SnappingLines snapResult={currentMovementState?.snapResult} />
+      {previewElements}
+    </Group>
+  )
 }

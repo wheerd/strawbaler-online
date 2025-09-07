@@ -31,14 +31,6 @@ Implementation of a generic, extensible MoveTool that can handle movement of dif
 - **Cleaner separation**: Context is immutable, state contains all positioning data
 - **Consistent UX**: All entity types now have proper offset handling
 
-### Remaining TODOs:
-
-- **Snapping**:
-  - Preview with component
-  - Reuse snapping context
-- **Opening validation**: isOpeningPlacementValid needs to exclude moved opening
-- **Complete other behaviors**: Wall segments and corners need full implementation (currently stubbed)
-
 ## Architecture
 
 ### Core Components
