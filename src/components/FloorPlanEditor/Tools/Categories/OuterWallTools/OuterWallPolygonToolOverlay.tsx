@@ -2,9 +2,10 @@ import React from 'react'
 import { Group, Line, Circle } from 'react-konva'
 import type { ToolOverlayComponentProps } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { OuterWallPolygonTool } from './OuterWallPolygonTool'
-import { useStageHeight, useStageWidth, useZoom } from '@/components/FloorPlanEditor/hooks/useViewportStore'
+import { useZoom } from '@/components/FloorPlanEditor/hooks/useViewportStore'
 import { COLORS } from '@/theme/colors'
 import { useReactiveTool } from '@/components/FloorPlanEditor/Tools/hooks/useReactiveTool'
+import { SnappingLines } from '@/components/FloorPlanEditor/components/SnappingLines'
 
 interface OuterWallPolygonToolOverlayProps extends ToolOverlayComponentProps<OuterWallPolygonTool> {}
 
@@ -15,42 +16,21 @@ interface OuterWallPolygonToolOverlayProps extends ToolOverlayComponentProps<Out
 export function OuterWallPolygonToolOverlay({ tool }: OuterWallPolygonToolOverlayProps): React.JSX.Element | null {
   const { state } = useReactiveTool(tool)
   const zoom = useZoom()
-  const stageWidth = useStageWidth()
-  const stageHeight = useStageHeight()
 
   // Calculate zoom-responsive values
   const scaledLineWidth = Math.max(1, 2 / zoom)
-  const scaledSnapLineWidth = Math.max(1, 2 / zoom)
   const dashSize = 10 / zoom
   const scaledDashPattern = [dashSize, dashSize]
   const scaledPointRadius = 5 / zoom
   const scaledPointStrokeWidth = 1 / zoom
-  const lineExtend = (Math.max(stageWidth, stageHeight) * 2) / zoom
 
   const currentPos = state.snapResult?.position ?? state.mouse
   const isClosingSnap = tool.isSnappingToFirstPoint()
 
-  const lines =
-    state.snapResult?.lines?.map(l => [
-      l.point[0] - lineExtend * l.direction[0],
-      l.point[1] - lineExtend * l.direction[1],
-      l.point[0] + lineExtend * l.direction[0],
-      l.point[1] + lineExtend * l.direction[1]
-    ]) ?? []
-
   return (
     <Group>
-      {/* Draw existing points */}
-      {lines.map((line, index) => (
-        <Line
-          key={`snap-line-${index}`}
-          points={line}
-          stroke={COLORS.snapping.lines}
-          strokeWidth={scaledSnapLineWidth}
-          opacity={0.5}
-          listening={false}
-        />
-      ))}
+      {/* Snapping lines */}
+      <SnappingLines snapResult={state.snapResult} />
 
       {/* Draw lines between points */}
       {state.points.length > 1 && (

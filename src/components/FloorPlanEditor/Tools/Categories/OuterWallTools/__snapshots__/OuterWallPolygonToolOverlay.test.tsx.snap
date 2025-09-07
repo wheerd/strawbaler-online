@@ -536,19 +536,23 @@ exports[`OuterWallPolygonToolOverlay > snapping behavior > renders snap lines wh
     data-testid="konva-group"
   >
     <div
-      data-opacity="0.5"
-      data-stroke="#0066ff"
-      data-stroke-width="2"
-      data-testid="konva-line"
-      listening="false"
-    />
-    <div
-      data-opacity="0.5"
-      data-stroke="#0066ff"
-      data-stroke-width="2"
-      data-testid="konva-line"
-      listening="false"
-    />
+      data-testid="konva-group"
+    >
+      <div
+        data-opacity="0.5"
+        data-stroke="#0066ff"
+        data-stroke-width="2"
+        data-testid="konva-line"
+        listening="false"
+      />
+      <div
+        data-opacity="0.5"
+        data-stroke="#0066ff"
+        data-stroke-width="2"
+        data-testid="konva-line"
+        listening="false"
+      />
+    </div>
     <div
       data-dash="[10,10]"
       data-stroke="#adb5bd"
@@ -586,19 +590,23 @@ exports[`OuterWallPolygonToolOverlay > snapping behavior > renders snap lines wh
     data-testid="konva-group"
   >
     <div
-      data-opacity="0.5"
-      data-stroke="#0066ff"
-      data-stroke-width="2"
-      data-testid="konva-line"
-      listening="false"
-    />
-    <div
-      data-opacity="0.5"
-      data-stroke="#0066ff"
-      data-stroke-width="2"
-      data-testid="konva-line"
-      listening="false"
-    />
+      data-testid="konva-group"
+    >
+      <div
+        data-opacity="0.5"
+        data-stroke="#0066ff"
+        data-stroke-width="2"
+        data-testid="konva-line"
+        listening="false"
+      />
+      <div
+        data-opacity="0.5"
+        data-stroke="#0066ff"
+        data-stroke-width="2"
+        data-testid="konva-line"
+        listening="false"
+      />
+    </div>
     <div
       data-dash="[10,10]"
       data-stroke="#adb5bd"
@@ -672,12 +680,16 @@ exports[`OuterWallPolygonToolOverlay > zoom responsiveness > adjusts line extens
     data-testid="konva-group"
   >
     <div
-      data-opacity="0.5"
-      data-stroke="#0066ff"
-      data-stroke-width="1"
-      data-testid="konva-line"
-      listening="false"
-    />
+      data-testid="konva-group"
+    >
+      <div
+        data-opacity="0.5"
+        data-stroke="#0066ff"
+        data-stroke-width="1"
+        data-testid="konva-line"
+        listening="false"
+      />
+    </div>
     <div
       data-fill="#007bff"
       data-radius="2.5"
