@@ -54,7 +54,13 @@ export function MainToolbar(): React.JSX.Element {
                             `}
                             onClick={() => handleToolSelect(tool.id)}
                           >
-                            <span className="text-base leading-none">{tool.icon}</span>
+                            {tool.iconComponent ? (
+                              <span className="text-base leading-none">
+                                <tool.iconComponent />
+                              </span>
+                            ) : (
+                              <span className="text-base leading-none">{tool.icon}</span>
+                            )}
                           </Toolbar.Button>
                         </Tooltip.Trigger>
                         <Tooltip.Portal>
