@@ -107,9 +107,9 @@ export function OpeningInspector({ outerWallId, segmentId, openingId }: OpeningI
   // If opening not found, show error
   if (!opening || !segment || !outerWall || !outerWallId || !segmentId) {
     return (
-      <div className="opening-inspector error">
-        <h3>Opening Not Found</h3>
-        <p>Opening with ID {openingId} could not be found.</p>
+      <div className="p-2 bg-red-50 border border-red-200 rounded">
+        <h3 className="text-xs font-semibold text-red-800">Opening Not Found</h3>
+        <p className="text-xs text-red-600">Opening with ID {openingId} could not be found.</p>
       </div>
     )
   }
@@ -134,116 +134,132 @@ export function OpeningInspector({ outerWallId, segmentId, openingId }: OpeningI
   const area = (opening.width * opening.height) / (1000 * 1000)
 
   return (
-    <div className="opening-inspector">
-      <div className="inspector-header">
-        <h3>{opening.type.charAt(0).toUpperCase() + opening.type.slice(1)} Properties</h3>
-      </div>
+    <div className="p-2">
+      <div className="space-y-3">
+        {/* Header */}
+        <h4 className="text-xs font-semibold text-gray-700 border-b border-gray-200 pb-1">
+          {opening.type.charAt(0).toUpperCase() + opening.type.slice(1)} Properties
+        </h4>
 
-      <div className="inspector-content">
         {/* Basic Properties */}
-        <div className="property-section">
-          <h4>Opening Properties</h4>
-
-          <div className="property-group">
-            <label htmlFor="opening-type">Type</label>
-            <select id="opening-type" value={opening.type} onChange={handleTypeChange}>
-              {OPENING_TYPE_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="property-group">
-            <label htmlFor="opening-width">Width (mm)</label>
-            <input
-              id="opening-width"
-              type="number"
-              value={widthInput.value}
-              onChange={e => widthInput.handleChange(e.target.value)}
-              onBlur={widthInput.handleBlur}
-              onKeyDown={widthInput.handleKeyDown}
-              min="100"
-              max="5000"
-              step="10"
-            />
-          </div>
-
-          <div className="property-group">
-            <label htmlFor="opening-height">Height (mm)</label>
-            <input
-              id="opening-height"
-              type="number"
-              value={heightInput.value}
-              onChange={e => heightInput.handleChange(e.target.value)}
-              onBlur={heightInput.handleBlur}
-              onKeyDown={heightInput.handleKeyDown}
-              min="100"
-              max="4000"
-              step="10"
-            />
-          </div>
-
-          <div className="property-group">
-            <label htmlFor="opening-offset">Offset from Start (mm)</label>
-            <input
-              id="opening-offset"
-              type="number"
-              value={offsetInput.value}
-              onChange={e => offsetInput.handleChange(e.target.value)}
-              onBlur={offsetInput.handleBlur}
-              onKeyDown={offsetInput.handleKeyDown}
-              min="0"
-              max={segment.insideLength - opening.width}
-              step="10"
-            />
-            <div className="help-text">Distance from the start of the wall segment</div>
-          </div>
-
-          {opening.type === 'window' && (
-            <div className="property-group">
-              <label htmlFor="sill-height">Sill Height (mm)</label>
-              <input
-                id="sill-height"
-                type="number"
-                value={sillHeightInput.value}
-                onChange={e => sillHeightInput.handleChange(e.target.value)}
-                onBlur={sillHeightInput.handleBlur}
-                onKeyDown={sillHeightInput.handleKeyDown}
-                min="0"
-                max="2000"
-                step="10"
-              />
-              <div className="help-text">Height of window sill above floor level</div>
+        <div className="space-y-2">
+          <div className="space-y-1.5">
+            <div className="space-y-1">
+              <label htmlFor="opening-type" className="text-xs font-medium text-gray-600">
+                Type
+              </label>
+              <select
+                id="opening-type"
+                value={opening.type}
+                onChange={handleTypeChange}
+                className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-xs text-gray-800 hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
+              >
+                {OPENING_TYPE_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
+
+            <div className="space-y-1">
+              <label htmlFor="opening-width" className="text-xs font-medium text-gray-600">
+                Width (mm)
+              </label>
+              <input
+                id="opening-width"
+                type="number"
+                value={widthInput.value}
+                onChange={e => widthInput.handleChange(e.target.value)}
+                onBlur={widthInput.handleBlur}
+                onKeyDown={widthInput.handleKeyDown}
+                min="100"
+                max="5000"
+                step="10"
+                className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-xs hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor="opening-height" className="text-xs font-medium text-gray-600">
+                Height (mm)
+              </label>
+              <input
+                id="opening-height"
+                type="number"
+                value={heightInput.value}
+                onChange={e => heightInput.handleChange(e.target.value)}
+                onBlur={heightInput.handleBlur}
+                onKeyDown={heightInput.handleKeyDown}
+                min="100"
+                max="4000"
+                step="10"
+                className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-xs hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor="opening-offset" className="text-xs font-medium text-gray-600">
+                Offset from Start (mm)
+              </label>
+              <input
+                id="opening-offset"
+                type="number"
+                value={offsetInput.value}
+                onChange={e => offsetInput.handleChange(e.target.value)}
+                onBlur={offsetInput.handleBlur}
+                onKeyDown={offsetInput.handleKeyDown}
+                min="0"
+                max={segment.insideLength - opening.width}
+                step="10"
+                className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-xs hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
+              />
+              <div className="text-xs text-gray-500">Distance from the start of the wall segment</div>
+            </div>
+
+            {opening.type === 'window' && (
+              <div className="space-y-1">
+                <label htmlFor="sill-height" className="text-xs font-medium text-gray-600">
+                  Sill Height (mm)
+                </label>
+                <input
+                  id="sill-height"
+                  type="number"
+                  value={sillHeightInput.value}
+                  onChange={e => sillHeightInput.handleChange(e.target.value)}
+                  onBlur={sillHeightInput.handleBlur}
+                  onKeyDown={sillHeightInput.handleKeyDown}
+                  min="0"
+                  max="2000"
+                  step="10"
+                  className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-xs hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
+                />
+                <div className="text-xs text-gray-500">Height of window sill above floor level</div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Measurements */}
-        <div className="property-section">
-          <div className="measurements-grid">
-            <div className="measurement">
-              <label>Area:</label>
-              <span className="measurement-value">{area.toFixed(2)} m²</span>
-            </div>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center py-0.5">
+            <span className="text-xs text-gray-600">Area:</span>
+            <span className="text-xs font-medium text-gray-800">{area.toFixed(2)} m²</span>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="property-section">
-          <h4>Actions</h4>
+        <div className="space-y-2">
+          <h5 className="text-xs font-medium text-gray-600">Actions</h5>
 
-          <div className="opening-actions">
-            <button
-              className="action-button danger"
-              onClick={handleRemoveOpening}
-              title="Remove this opening from the wall segment"
-            >
-              <span className="action-icon">🗑️</span>
-              Remove Opening
-            </button>
-          </div>
+          <button
+            className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500"
+            onClick={handleRemoveOpening}
+            title="Remove this opening from the wall segment"
+          >
+            <span>🗑️</span>
+            Remove Opening
+          </button>
         </div>
       </div>
     </div>

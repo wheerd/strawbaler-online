@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import * as Select from '@radix-ui/react-select'
 import { createLength } from '@/types/geometry'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
 import type { OuterWallConstructionType } from '@/types/model'
@@ -57,60 +58,78 @@ export function OuterWallPolygonToolInspector({ tool }: ToolInspectorProps<Outer
     }
   )
 
-  // Event handlers with stable references
-  const handleConstructionTypeChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const newType = e.target.value as OuterWallConstructionType
-      tool.setConstructionType(newType)
-    },
-    [tool]
-  )
-
   return (
-    <div className="outer-wall-polygon-tool-inspector">
-      <div className="inspector-header">
-        <h3>Outer Wall Polygon Tool</h3>
-      </div>
+    <div className="p-2">
+      <div className="space-y-3">
+        {/* Header */}
+        <h4 className="text-xs font-semibold text-gray-700 border-b border-gray-200 pb-1">Outer Wall Polygon Tool</h4>
 
-      <div className="inspector-content">
-        <div className="property-section">
-          {/* Construction Type */}
-          <div className="property-group">
-            <label htmlFor="construction-type">Construction Type</label>
-            <select id="construction-type" value={state.constructionType} onChange={handleConstructionTypeChange}>
-              {CONSTRUCTION_TYPE_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Tool Properties */}
+        <div className="space-y-2">
+          <div className="space-y-1.5">
+            {/* Construction Type */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600">Construction Type</label>
+              <Select.Root
+                value={state.constructionType}
+                onValueChange={(value: OuterWallConstructionType) => {
+                  tool.setConstructionType(value)
+                }}
+              >
+                <Select.Trigger className="w-full flex items-center justify-between px-2 py-1.5 bg-white border border-gray-300 rounded text-xs text-gray-800 hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200">
+                  <Select.Value />
+                  <Select.Icon className="text-gray-400">⌄</Select.Icon>
+                </Select.Trigger>
+                <Select.Portal>
+                  <Select.Content className="bg-white border border-gray-300 rounded-md shadow-lg z-50 overflow-hidden">
+                    <Select.Viewport className="p-1">
+                      {CONSTRUCTION_TYPE_OPTIONS.map(option => (
+                        <Select.Item
+                          key={option.value}
+                          value={option.value}
+                          className="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:outline-none cursor-pointer rounded"
+                        >
+                          <Select.ItemText>{option.label}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select.Portal>
+              </Select.Root>
+            </div>
 
-          {/* Wall Thickness */}
-          <div className="property-group">
-            <label htmlFor="wall-thickness">Wall Thickness (mm)</label>
-            <input
-              id="wall-thickness"
-              type="number"
-              value={thicknessInput.value}
-              onChange={e => thicknessInput.handleChange(e.target.value)}
-              onBlur={thicknessInput.handleBlur}
-              onKeyDown={thicknessInput.handleKeyDown}
-              min="50"
-              max="1000"
-              step="10"
-            />
+            {/* Wall Thickness */}
+            <div className="space-y-1">
+              <label htmlFor="wall-thickness" className="text-xs font-medium text-gray-600">
+                Wall Thickness (mm)
+              </label>
+              <input
+                id="wall-thickness"
+                type="number"
+                value={thicknessInput.value}
+                onChange={e => thicknessInput.handleChange(e.target.value)}
+                onBlur={thicknessInput.handleBlur}
+                onKeyDown={thicknessInput.handleKeyDown}
+                min="50"
+                max="1000"
+                step="10"
+                className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-xs hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
+              />
+            </div>
           </div>
         </div>
 
         {/* Instructions */}
-        <div className="property-section">
-          <div className="keyboard-shortcuts">
-            <div>
-              <kbd>Enter</kbd> Complete polygon
+        <div className="space-y-2">
+          <h5 className="text-xs font-medium text-gray-600">Keyboard Shortcuts</h5>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs">
+              <kbd className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-xs font-mono">Enter</kbd>
+              <span className="text-gray-600">Complete polygon</span>
             </div>
-            <div>
-              <kbd>Escape</kbd> Cancel polygon
+            <div className="flex items-center gap-2 text-xs">
+              <kbd className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-xs font-mono">Escape</kbd>
+              <span className="text-gray-600">Cancel polygon</span>
             </div>
           </div>
         </div>

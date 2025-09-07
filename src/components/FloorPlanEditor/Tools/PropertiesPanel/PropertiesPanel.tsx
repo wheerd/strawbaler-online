@@ -17,18 +17,20 @@ export function PropertiesPanel(): React.JSX.Element {
   const activeTool = useActiveTool()
 
   return (
-    <div className="properties-panel">
-      <div className="panel-header">
-        <h2>Properties</h2>
+    <div className="bg-gray-50 h-full flex flex-col border-l border-gray-200">
+      {/* Panel Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
+        <h2 className="text-lg font-semibold text-gray-800">Properties</h2>
       </div>
 
-      <div className="panel-content">
+      {/* Panel Content */}
+      <div className="flex-1 overflow-y-auto">
         {/* Entity Inspector */}
-        <div className="entity-section">
+        <div className="border-b border-gray-200">
           {!selectedId && (
-            <div className="no-selection">
-              <p>No entity selected</p>
-              <p className="help-text">Select a wall, room, or point to view its properties</p>
+            <div className="p-6 text-center">
+              <div className="text-gray-500 mb-2">No entity selected</div>
+              <div className="text-sm text-gray-400">Select a wall, room, or point to view its properties</div>
             </div>
           )}
 
@@ -66,20 +68,22 @@ export function PropertiesPanel(): React.JSX.Element {
             !isWallSegmentId(selectedId) &&
             !isOuterCornerId(selectedId) &&
             !isOpeningId(selectedId) && (
-              <div className="unknown-entity">
-                <h3>Unknown Entity Type</h3>
-                <p>Entity type not recognized: {typeof selectedId}</p>
+              <div className="bg-amber-50 border border-amber-200 p-4 m-4 rounded-lg">
+                <h3 className="text-amber-800 font-semibold mb-2">Unknown Entity Type</h3>
+                <p className="text-amber-700 text-sm">Entity type not recognized: {typeof selectedId}</p>
               </div>
             )}
         </div>
 
         {/* Tool Inspector */}
-        <div className="tool-section">
-          {activeTool?.inspectorComponent && <activeTool.inspectorComponent tool={activeTool} />}
-        </div>
+        {activeTool?.inspectorComponent && (
+          <div className="border-b border-gray-200">
+            <activeTool.inspectorComponent tool={activeTool} />
+          </div>
+        )}
 
         {/* Action Buttons */}
-        <div className="actions-section">
+        <div>
           <ActionButtons tool={activeTool} />
         </div>
       </div>

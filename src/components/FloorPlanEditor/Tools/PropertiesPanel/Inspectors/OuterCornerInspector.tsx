@@ -26,9 +26,9 @@ export function OuterCornerInspector({ outerWallId, cornerId }: OuterCornerInspe
   // If corner not found, show error
   if (!corner || !outerWall || cornerIndex === -1) {
     return (
-      <div className="outer-corner-inspector error">
-        <h3>Outer Corner Not Found</h3>
-        <p>Outer corner with ID {cornerId} could not be found.</p>
+      <div className="p-2 bg-red-50 border border-red-200 rounded">
+        <h3 className="text-xs font-semibold text-red-800">Outer Corner Not Found</h3>
+        <p className="text-xs text-red-600">Outer corner with ID {cornerId} could not be found.</p>
       </div>
     )
   }
@@ -43,9 +43,6 @@ export function OuterCornerInspector({ outerWallId, cornerId }: OuterCornerInspe
       nextSegment: outerWall.segments[nextIndex]
     }
   }, [outerWall.segments, cornerIndex])
-
-  // Get boundary point
-  const boundaryPoint = outerWall.boundary[cornerIndex]
 
   // Event handlers with stable references
   const handleBelongsToChange = useCallback(
@@ -72,161 +69,71 @@ export function OuterCornerInspector({ outerWallId, cornerId }: OuterCornerInspe
   }, [previousSegment, nextSegment])
 
   return (
-    <div className="outer-corner-inspector">
-      <div className="inspector-header">
-        <h3>Outer Corner Properties</h3>
-      </div>
+    <div className="p-2">
+      <div className="space-y-3">
+        {/* Header */}
+        <h4 className="text-xs font-semibold text-gray-700 border-b border-gray-200 pb-1">Outer Corner Properties</h4>
 
-      <div className="inspector-content">
         {/* Basic Properties */}
-        <div className="property-section">
-          <h4>Corner Configuration</h4>
+        <div className="space-y-2">
+          <h5 className="text-xs font-medium text-gray-600">Corner Configuration</h5>
 
-          <div className="property-group">
-            <label htmlFor="belongs-to">Belongs To</label>
-            <select id="belongs-to" value={corner.belongsTo} onChange={handleBelongsToChange}>
+          <div className="space-y-1">
+            <label htmlFor="belongs-to" className="text-xs font-medium text-gray-600">
+              Belongs To
+            </label>
+            <select
+              id="belongs-to"
+              value={corner.belongsTo}
+              onChange={handleBelongsToChange}
+              className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded text-xs text-gray-800 hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
+            >
               <option value="previous">Previous Segment</option>
               <option value="next">Next Segment</option>
             </select>
-            <div className="help-text">Determines which wall segment owns this corner for construction purposes.</div>
-          </div>
-        </div>
-
-        {/* Position Information */}
-        <div className="property-section">
-          <h4>Position</h4>
-
-          <div className="position-info">
-            <div className="position-detail">
-              <label>Boundary Point:</label>
-              <span>
-                ({boundaryPoint[0].toFixed(0)}, {boundaryPoint[1].toFixed(0)}) mm
-              </span>
-            </div>
-            <div className="position-detail">
-              <label>Outside Point:</label>
-              <span>
-                ({corner.outsidePoint[0].toFixed(0)}, {corner.outsidePoint[1].toFixed(0)}) mm
-              </span>
-            </div>
-            <div className="position-detail">
-              <label>Corner Index:</label>
-              <span>
-                {cornerIndex + 1} of {outerWall.corners.length}
-              </span>
+            <div className="text-xs text-gray-500">
+              Determines which wall segment owns this corner for construction purposes.
             </div>
           </div>
         </div>
 
         {/* Geometry Information */}
-        <div className="property-section">
-          <h4>Geometry</h4>
+        <div className="space-y-2">
+          <h5 className="text-xs font-medium text-gray-600">Geometry</h5>
 
-          <div className="geometry-info">
+          <div className="space-y-1">
             {cornerAngle && (
-              <div className="geometry-detail">
-                <label>Interior Angle:</label>
-                <span>{cornerAngle.toFixed(1)}°</span>
+              <div className="flex justify-between items-center py-0.5">
+                <span className="text-xs text-gray-600">Interior Angle:</span>
+                <span className="text-xs font-medium text-gray-800">{cornerAngle.toFixed(1)}°</span>
               </div>
             )}
-
-            <div className="geometry-detail">
-              <label>Corner Type:</label>
-              <span>
-                {cornerAngle && cornerAngle > 170
-                  ? 'Nearly Straight'
-                  : cornerAngle && cornerAngle > 120
-                    ? 'Obtuse'
-                    : cornerAngle && cornerAngle > 60
-                      ? 'Right/Acute'
-                      : 'Sharp'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Adjacent Segments */}
-        <div className="property-section">
-          <h4>Adjacent Segments</h4>
-
-          <div className="adjacent-segments">
-            <div className={`segment-info ${corner.belongsTo === 'previous' ? 'owner' : ''}`}>
-              <div className="segment-header">
-                <span className="segment-label">Previous Segment</span>
-                {corner.belongsTo === 'previous' && <span className="owner-badge">Owner</span>}
-              </div>
-              <div className="segment-details">
-                <span className="segment-type">{previousSegment.constructionType}</span>
-                <span className="segment-thickness">{previousSegment.thickness}mm</span>
-                <span className="segment-length">{(previousSegment.insideLength / 1000).toFixed(2)}m</span>
-              </div>
-            </div>
-
-            <div className={`segment-info ${corner.belongsTo === 'next' ? 'owner' : ''}`}>
-              <div className="segment-header">
-                <span className="segment-label">Next Segment</span>
-                {corner.belongsTo === 'next' && <span className="owner-badge">Owner</span>}
-              </div>
-              <div className="segment-details">
-                <span className="segment-type">{nextSegment.constructionType}</span>
-                <span className="segment-thickness">{nextSegment.thickness}mm</span>
-                <span className="segment-length">{(nextSegment.insideLength / 1000).toFixed(2)}m</span>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* Construction Notes */}
-        <div className="property-section">
-          <h4>Construction Notes</h4>
+        <div className="space-y-2">
+          <h5 className="text-xs font-medium text-gray-600">Construction Notes</h5>
 
-          <div className="construction-notes">
-            <div className="note-item">
-              <span className="note-label">Owner Segment:</span>
-              <span className="note-text">
-                The {corner.belongsTo} segment will determine how this corner is constructed.
-              </span>
-            </div>
-
+          <div className="space-y-1.5">
             {previousSegment.constructionType !== nextSegment.constructionType && (
-              <div className="note-item warning">
-                <span className="note-label">Mixed Construction:</span>
-                <span className="note-text">
+              <div className="p-2 bg-amber-50 border border-amber-200 rounded">
+                <div className="text-xs font-medium text-amber-800">Mixed Construction:</div>
+                <div className="text-xs text-amber-700">
                   Adjacent segments use different construction types. Special attention may be needed at this corner.
-                </span>
+                </div>
               </div>
             )}
 
             {Math.abs(previousSegment.thickness - nextSegment.thickness) > 50 && (
-              <div className="note-item warning">
-                <span className="note-label">Thickness Difference:</span>
-                <span className="note-text">
+              <div className="p-2 bg-amber-50 border border-amber-200 rounded">
+                <div className="text-xs font-medium text-amber-800">Thickness Difference:</div>
+                <div className="text-xs text-amber-700">
                   Adjacent segments have different thicknesses (
                   {Math.abs(previousSegment.thickness - nextSegment.thickness)}mm difference).
-                </span>
+                </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Parent Wall Information */}
-        <div className="property-section">
-          <h4>Parent Wall</h4>
-          <div className="parent-wall-info">
-            <div className="parent-detail">
-              <label>Outer Wall ID:</label>
-              <span>{outerWallId}</span>
-            </div>
-            <div className="parent-detail">
-              <label>Floor ID:</label>
-              <span>{outerWall.floorId}</span>
-            </div>
-            <div className="parent-detail">
-              <label>Position in Wall:</label>
-              <span>
-                Corner {cornerIndex + 1} of {outerWall.corners.length}
-              </span>
-            </div>
           </div>
         </div>
       </div>

@@ -1,5 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { vi } from 'vitest'
+
+// Mock scrollIntoView for Radix UI components
+Object.defineProperty(Element.prototype, 'scrollIntoView', {
+  value: vi.fn(),
+  writable: true
+})
 import { OuterWallPolygonToolInspector } from './OuterWallPolygonToolInspector'
 import { OuterWallPolygonTool } from '@/components/FloorPlanEditor/Tools/Categories/OuterWallTools/OuterWallPolygonTool'
 import { createVec2, createLength } from '@/types/geometry'
@@ -43,9 +49,9 @@ describe('OuterWallPolygonToolInspector', () => {
       render(<OuterWallPolygonToolInspector tool={mockTool} />)
 
       expect(screen.getByText('Outer Wall Polygon Tool')).toBeInTheDocument()
-      expect(screen.getByLabelText('Construction Type')).toBeInTheDocument()
+      expect(screen.getByText('Construction Type')).toBeInTheDocument()
       expect(screen.getByLabelText('Wall Thickness (mm)')).toBeInTheDocument()
-      expect(screen.getByDisplayValue('CUT')).toBeInTheDocument()
+      expect(screen.getByText('CUT')).toBeInTheDocument()
       expect(screen.getByDisplayValue('440')).toBeInTheDocument()
     })
 
@@ -60,11 +66,16 @@ describe('OuterWallPolygonToolInspector', () => {
   })
 
   describe('construction type changes', () => {
-    it('calls setConstructionType when selection changes', () => {
+    it('calls setConstructionType when selection changes', async () => {
       render(<OuterWallPolygonToolInspector tool={mockTool} />)
 
-      const select = screen.getByLabelText('Construction Type')
-      fireEvent.change(select, { target: { value: 'infill' } })
+      // Find the select trigger button (Radix Select uses a button as trigger)
+      const selectTrigger = screen.getByRole('combobox')
+      fireEvent.click(selectTrigger)
+
+      // Wait for the dropdown to appear and find the option
+      const infillOption = await screen.findByText('Infill')
+      fireEvent.click(infillOption)
 
       expect(mockSetConstructionType).toHaveBeenCalledWith('infill')
     })
@@ -103,8 +114,9 @@ describe('OuterWallPolygonToolInspector', () => {
     it('has proper form labels', () => {
       render(<OuterWallPolygonToolInspector tool={mockTool} />)
 
-      expect(screen.getByLabelText('Construction Type')).toBeInTheDocument()
+      expect(screen.getByText('Construction Type')).toBeInTheDocument()
       expect(screen.getByLabelText('Wall Thickness (mm)')).toBeInTheDocument()
+      expect(screen.getByRole('combobox')).toBeInTheDocument()
     })
 
     it('has proper input attributes', () => {
