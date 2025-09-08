@@ -53,15 +53,6 @@ describe('OuterWallPolygonToolInspector', () => {
       expect(screen.getByText('CUT')).toBeInTheDocument()
       expect(screen.getByDisplayValue('440')).toBeInTheDocument()
     })
-
-    it('renders keyboard shortcuts', () => {
-      render(<OuterWallPolygonToolInspector tool={mockTool} />)
-
-      expect(screen.getByText('Enter')).toBeInTheDocument()
-      expect(screen.getByText('Complete polygon')).toBeInTheDocument()
-      expect(screen.getByText('Escape')).toBeInTheDocument()
-      expect(screen.getByText('Cancel polygon')).toBeInTheDocument()
-    })
   })
 
   describe('construction type changes', () => {

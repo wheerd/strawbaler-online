@@ -124,33 +124,32 @@ export function OuterWallPolygonToolInspector({ tool }: ToolInspectorProps<Outer
 
         {/* Actions */}
         {state.points.length > 0 && (
-          <div className="space-y-2 pt-1 border-t border-gray-200">
-            <h5 className="text-sm font-semibold text-gray-800 pb-1">Actions</h5>
-            <button
-              className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500"
-              onClick={() => tool.cancel()}
-              title="Cancel polygon creation (Escape)"
-            >
-              <span>✕</span>
-              Cancel Polygon
-            </button>
+          <div className="space-y-2 pt-1">
+            <div className="space-y-1.5">
+              {state.points.length >= 3 && (
+                <button
+                  className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => tool.complete()}
+                  disabled={!state.isClosingLineValid}
+                  title="Complete polygon (Enter)"
+                >
+                  <span>✓</span>
+                  Complete Polygon
+                  <kbd className="ml-auto px-1 py-0.5 bg-green-600 rounded text-xs font-mono opacity-75">Enter</kbd>
+                </button>
+              )}
+              <button
+                className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500"
+                onClick={() => tool.cancel()}
+                title="Cancel polygon creation (Escape)"
+              >
+                <span>✕</span>
+                Cancel Polygon
+                <kbd className="ml-auto px-1 py-0.5 bg-red-600 rounded text-xs font-mono opacity-75">Esc</kbd>
+              </button>
+            </div>
           </div>
         )}
-
-        {/* Instructions */}
-        <div className="space-y-2">
-          <h5 className="text-xs font-medium text-gray-600">Keyboard Shortcuts</h5>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-xs font-mono">Enter</kbd>
-              <span className="text-gray-600">Complete polygon</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-xs font-mono">Escape</kbd>
-              <span className="text-gray-600">Cancel polygon</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

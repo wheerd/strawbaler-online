@@ -81,6 +81,12 @@ export class OuterWallPolygonTool extends BaseTool implements Tool {
     this.cancelPolygon()
   }
 
+  public complete(): void {
+    if (this.state.points.length >= 3 && this.state.isClosingLineValid) {
+      this.completePolygon(null)
+    }
+  }
+
   private updateSnapContext() {
     const referenceLineSegments: LineSegment2D[] = []
     for (let i = 1; i < this.state.points.length; i++) {
