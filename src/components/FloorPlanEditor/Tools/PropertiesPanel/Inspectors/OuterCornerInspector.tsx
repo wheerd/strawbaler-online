@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from 'react'
-import * as Select from '@radix-ui/react-select'
 import { useModelStore } from '@/model/store'
 import type { OuterCornerId, OuterWallId } from '@/types/ids'
 
@@ -46,13 +45,10 @@ export function OuterCornerInspector({ outerWallId, cornerId }: OuterCornerInspe
   }, [outerWall.segments, cornerIndex])
 
   // Event handlers with stable references
-  const handleBelongsToChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const newBelongsTo = e.target.value as 'previous' | 'next'
-      updateCornerBelongsTo(outerWallId, cornerId, newBelongsTo)
-    },
-    [updateCornerBelongsTo, outerWallId, cornerId]
-  )
+  const handleToggleBelongsTo = useCallback(() => {
+    const newBelongsTo = corner.belongsTo === 'previous' ? 'next' : 'previous'
+    updateCornerBelongsTo(outerWallId, cornerId, newBelongsTo)
+  }, [updateCornerBelongsTo, outerWallId, cornerId, corner.belongsTo])
 
   // Calculate angle between segments (simplified)
   const cornerAngle = useMemo(() => {
@@ -69,6 +65,16 @@ export function OuterCornerInspector({ outerWallId, cornerId }: OuterCornerInspe
     return angle
   }, [previousSegment, nextSegment])
 
+  // Check if there are construction notes to display
+  const hasConstructionNotes = useMemo(() => {
+    if (!previousSegment || !nextSegment) return false
+
+    const hasMixedConstruction = previousSegment.constructionType !== nextSegment.constructionType
+    const hasThicknessDifference = Math.abs(previousSegment.thickness - nextSegment.thickness) > 5
+
+    return hasMixedConstruction || hasThicknessDifference
+  }, [previousSegment, nextSegment])
+
   return (
     <div className="p-2">
       <div className="space-y-4">
@@ -77,34 +83,14 @@ export function OuterCornerInspector({ outerWallId, cornerId }: OuterCornerInspe
           <h5 className="text-sm font-semibold text-gray-800 pb-1">Corner Configuration</h5>
 
           <div className="flex items-center justify-between gap-3">
-            <label className="text-xs font-medium text-gray-600 flex-shrink-0">Belongs To</label>
-            <Select.Root
-              value={corner.belongsTo}
-              onValueChange={(value: 'previous' | 'next') => handleBelongsToChange({ target: { value } } as any)}
+            <label className="text-xs font-medium text-gray-600 flex-shrink-0">Main Segment</label>
+            <button
+              onClick={handleToggleBelongsTo}
+              className="flex-1 min-w-0 flex items-center justify-center px-3 py-1.5 bg-white border border-gray-300 rounded text-xs text-gray-800 hover:border-gray-400 hover:bg-gray-50 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200 transition-colors"
+              title="Switch which wall segment owns this corner"
             >
-              <Select.Trigger className="flex-1 min-w-0 flex items-center justify-between px-2 py-1.5 bg-white border border-gray-300 rounded text-xs text-gray-800 hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200">
-                <Select.Value />
-                <Select.Icon className="text-gray-600">⌄</Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Content className="bg-white border border-gray-300 rounded-md shadow-lg z-50 overflow-hidden">
-                  <Select.Viewport className="p-1">
-                    <Select.Item
-                      value="previous"
-                      className="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:outline-none cursor-pointer rounded"
-                    >
-                      <Select.ItemText>Previous Segment</Select.ItemText>
-                    </Select.Item>
-                    <Select.Item
-                      value="next"
-                      className="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:outline-none cursor-pointer rounded"
-                    >
-                      <Select.ItemText>Next Segment</Select.ItemText>
-                    </Select.Item>
-                  </Select.Viewport>
-                </Select.Content>
-              </Select.Portal>
-            </Select.Root>
+              Switch main wall
+            </button>
           </div>
           <div className="text-xs text-gray-500">
             Determines which wall segment owns this corner for construction purposes.
@@ -126,30 +112,32 @@ export function OuterCornerInspector({ outerWallId, cornerId }: OuterCornerInspe
         </div>
 
         {/* Construction Notes */}
-        <div className="space-y-2 pt-1 border-t border-gray-200">
-          <h5 className="text-sm font-semibold text-gray-800 pb-1">Construction Notes</h5>
+        {hasConstructionNotes && (
+          <div className="space-y-2 pt-1 border-t border-gray-200">
+            <h5 className="text-sm font-semibold text-gray-800 pb-1">Construction Notes</h5>
 
-          <div className="space-y-1.5">
-            {previousSegment.constructionType !== nextSegment.constructionType && (
-              <div className="p-2 bg-amber-50 border border-amber-200 rounded">
-                <div className="text-xs font-medium text-amber-800">Mixed Construction:</div>
-                <div className="text-xs text-amber-700">
-                  Adjacent segments use different construction types. Special attention may be needed at this corner.
+            <div className="space-y-1.5">
+              {previousSegment.constructionType !== nextSegment.constructionType && (
+                <div className="p-2 bg-amber-50 border border-amber-200 rounded">
+                  <div className="text-xs font-medium text-amber-800">Mixed Construction:</div>
+                  <div className="text-xs text-amber-700">
+                    Adjacent segments use different construction types. Special attention may be needed at this corner.
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {Math.abs(previousSegment.thickness - nextSegment.thickness) > 5 && (
-              <div className="p-2 bg-amber-50 border border-amber-200 rounded">
-                <div className="text-xs font-medium text-amber-800">Thickness Difference:</div>
-                <div className="text-xs text-amber-700">
-                  Adjacent segments have different thicknesses (
-                  {Math.abs(previousSegment.thickness - nextSegment.thickness)}mm difference).
+              {Math.abs(previousSegment.thickness - nextSegment.thickness) > 5 && (
+                <div className="p-2 bg-amber-50 border border-amber-200 rounded">
+                  <div className="text-xs font-medium text-amber-800">Thickness Difference:</div>
+                  <div className="text-xs text-amber-700">
+                    Adjacent segments have different thicknesses (
+                    {Math.abs(previousSegment.thickness - nextSegment.thickness)}mm difference).
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
