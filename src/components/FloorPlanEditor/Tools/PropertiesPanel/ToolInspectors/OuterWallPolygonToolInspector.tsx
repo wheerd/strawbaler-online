@@ -122,6 +122,21 @@ export function OuterWallPolygonToolInspector({ tool }: ToolInspectorProps<Outer
           </div>
         </div>
 
+        {/* Actions */}
+        {state.points.length > 0 && (
+          <div className="space-y-2 pt-1 border-t border-gray-200">
+            <h5 className="text-sm font-semibold text-gray-800 pb-1">Actions</h5>
+            <button
+              className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500"
+              onClick={() => tool.cancel()}
+              title="Cancel polygon creation (Escape)"
+            >
+              <span>✕</span>
+              Cancel Polygon
+            </button>
+          </div>
+        )}
+
         {/* Instructions */}
         <div className="space-y-2">
           <h5 className="text-xs font-medium text-gray-600">Keyboard Shortcuts</h5>

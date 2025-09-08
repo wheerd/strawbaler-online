@@ -1,7 +1,7 @@
 import { useCurrentSelection, useSelectionPath } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
 import { useActiveTool } from '@/components/FloorPlanEditor/Tools/ToolSystem/ToolContext'
 import { OuterWallInspector, WallSegmentInspector, OuterCornerInspector, OpeningInspector } from './Inspectors'
-import { ActionButtons } from './ActionButtons'
+
 import {
   isOuterWallId,
   isWallSegmentId,
@@ -116,11 +116,6 @@ export function PropertiesPanel(): React.JSX.Element {
               </div>
             )}
           </Tabs.Content>
-
-          {/* Action Buttons - Always visible at bottom */}
-          <div className="border-t border-gray-200 bg-gray-50">
-            <ActionButtons tool={activeTool} />
-          </div>
         </div>
       </Tabs.Root>
     </div>

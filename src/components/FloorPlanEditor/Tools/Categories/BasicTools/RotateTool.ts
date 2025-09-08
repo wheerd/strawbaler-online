@@ -1,4 +1,4 @@
-import type { Tool, ToolContext, ContextAction, CanvasEvent } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
+import type { Tool, CanvasEvent } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { Vec2 } from '@/types/geometry'
 import { UpdateIcon } from '@radix-ui/react-icons'
 
@@ -48,9 +48,5 @@ export class RotateTool implements Tool {
 
   onDeactivate(): void {
     // Disabled
-  }
-
-  getContextActions(_context: ToolContext): ContextAction[] {
-    return []
   }
 }

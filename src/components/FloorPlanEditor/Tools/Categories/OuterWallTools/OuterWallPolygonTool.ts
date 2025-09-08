@@ -1,4 +1,4 @@
-import type { Tool, ContextAction, CanvasEvent } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
+import type { Tool, CanvasEvent } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { Vec2, Polygon2D, LineSegment2D, Length } from '@/types/geometry'
 import {
   createLength,
@@ -75,6 +75,10 @@ export class OuterWallPolygonTool extends BaseTool implements Tool {
   public setWallThickness(thickness: Length): void {
     this.state.wallThickness = thickness
     this.triggerRender()
+  }
+
+  public cancel(): void {
+    this.cancelPolygon()
   }
 
   private updateSnapContext() {
@@ -166,30 +170,6 @@ export class OuterWallPolygonTool extends BaseTool implements Tool {
     this.state.isCurrentLineValid = true
     this.state.isClosingLineValid = true
     this.updateSnapContext()
-  }
-
-  getContextActions(): ContextAction[] {
-    const actions: ContextAction[] = []
-
-    if (this.state.points.length > 0) {
-      actions.push({
-        label: 'Cancel Polygon',
-        action: () => this.cancelPolygon(),
-        hotkey: 'Escape',
-        icon: '✕'
-      })
-    }
-
-    if (this.state.points.length >= 3) {
-      actions.push({
-        label: this.state.isClosingLineValid ? 'Complete Polygon' : 'Complete Polygon (Invalid)',
-        action: () => this.completePolygon(null),
-        hotkey: 'Enter',
-        icon: this.state.isClosingLineValid ? '✓' : '⚠️'
-      })
-    }
-
-    return actions
   }
 
   private completePolygon(event: CanvasEvent | null): void {

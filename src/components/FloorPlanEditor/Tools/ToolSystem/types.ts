@@ -36,9 +36,6 @@ export interface Tool extends BaseTool {
   // Lifecycle methods
   onActivate?(context?: ToolContext): void
   onDeactivate?(context?: ToolContext): void
-
-  // Context actions - tools can get selected entity from context if needed
-  getContextActions?(context: ToolContext): ContextAction[]
 }
 
 export interface ToolInspectorProps<T extends Tool = Tool> {
@@ -52,14 +49,6 @@ export interface ToolOverlayComponentProps<T extends Tool = Tool> {
 export interface ToolOverlayContext {
   toolContext: ToolContext
   currentMousePos?: Vec2
-}
-
-export interface ContextAction {
-  label: string
-  action: () => void
-  enabled?: () => boolean
-  hotkey?: string
-  icon?: string
 }
 
 // Keyboard shortcut system

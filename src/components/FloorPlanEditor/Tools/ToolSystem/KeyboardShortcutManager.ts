@@ -47,16 +47,6 @@ export class KeyboardShortcutManager {
       return true
     }
 
-    // Priority 3: Tool context actions
-    if (activeTool?.getContextActions) {
-      const contextActions = activeTool.getContextActions(context)
-      const matchingAction = contextActions.find(a => a.hotkey === key)
-      if (matchingAction && (!matchingAction.enabled || matchingAction.enabled())) {
-        matchingAction.action()
-        return true
-      }
-    }
-
     // Priority 4: Tool activation shortcuts
     const toolId = this.toolActivationShortcuts.get(key)
     if (toolId) {
@@ -83,25 +73,6 @@ export class KeyboardShortcutManager {
         source: `tool-activation:${toolId}`,
         label: `Activate ${toolId}`
       })
-    }
-
-    // Active tool context actions
-    const activeTool = context.getActiveTool()
-    if (activeTool?.getContextActions) {
-      const contextActions = activeTool.getContextActions(context)
-      contextActions
-        .filter(action => action.hotkey)
-        .forEach(action => {
-          shortcuts.push({
-            key: action.hotkey!,
-            action: () => action.action(),
-            condition: action.enabled,
-            priority: 70,
-            scope: 'tool',
-            source: `context:${activeTool.id}`,
-            label: action.label
-          })
-        })
     }
 
     return shortcuts.sort((a, b) => b.priority - a.priority)

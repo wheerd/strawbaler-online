@@ -1,4 +1,4 @@
-import type { Tool, ToolContext, ContextAction, CanvasEvent } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
+import type { Tool, CanvasEvent } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { Vec2 } from '@/types/geometry'
 import type { MovementBehavior, MovementContext, MouseMovementState } from './MovementBehavior'
 import { BaseTool } from '@/components/FloorPlanEditor/Tools/ToolSystem/BaseTool'
@@ -163,10 +163,6 @@ export class MoveTool extends BaseTool implements Tool {
 
   onDeactivate(): void {
     this.resetState()
-  }
-
-  getContextActions(_context: ToolContext): ContextAction[] {
-    return []
   }
 
   private resetState(): void {
