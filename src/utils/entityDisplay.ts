@@ -27,7 +27,7 @@ export function getEntityDisplayName(
   }
 
   // Future: Add support for other root entity types
-  // if (isFloorId(rootEntityId)) { ... }
+  // if (isStoreyId(rootEntityId)) { ... }
 
   return 'Selection'
 }

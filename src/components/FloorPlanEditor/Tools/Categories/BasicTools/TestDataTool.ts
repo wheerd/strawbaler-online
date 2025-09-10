@@ -25,7 +25,7 @@ export class TestDataTool implements Tool {
 
     // Perform the test data creation operation
     const modelStore = context.getModelStore()
-    const activeFloorId = context.getActiveFloorId()
+    const activeStoreyId = context.getActiveStoreyId()
 
     // Create a simple rectangular outer wall
     const boundary = {
@@ -39,10 +39,10 @@ export class TestDataTool implements Tool {
 
     try {
       // Add the outer wall to the store
-      modelStore.addPerimeter(activeFloorId, boundary, 'infill', createLength(440))
+      modelStore.addPerimeter(activeStoreyId, boundary, 'infill', createLength(440))
 
       // Get the newly created wall
-      const outerWalls = modelStore.getPerimetersByFloor(activeFloorId)
+      const outerWalls = modelStore.getPerimetersByStorey(activeStoreyId)
       const newWall = outerWalls[outerWalls.length - 1]
 
       if (newWall && newWall.segments.length > 0) {
@@ -76,21 +76,6 @@ export class TestDataTool implements Tool {
           context.fitToView(bounds)
         }
       }
-
-      console.log('🏗️ Test outer wall created! Details:')
-      console.log('  Wall ID:', newWall.id)
-      console.log('  Segments count:', newWall.segments.length)
-      console.log('  Corners count:', newWall.corners.length)
-      console.log(
-        '  Wall segments:',
-        newWall.segments.map(s => s.id)
-      )
-      console.log(
-        '  Wall corners:',
-        newWall.corners.map(c => c.id)
-      )
-      console.log('  All outer walls on floor:', outerWalls.length)
-      console.log('Switch to Entity Inspector tool and click on different parts!')
     } catch (error) {
       console.error('❌ Failed to create test data:', error)
     }

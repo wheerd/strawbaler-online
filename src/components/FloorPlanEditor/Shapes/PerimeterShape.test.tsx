@@ -4,13 +4,13 @@ import { Stage, Layer } from 'react-konva'
 import { PerimeterShape } from './PerimeterShape'
 import { OuterCornerShape } from './OuterCornerShape'
 import { createLength, createVec2 } from '@/types/geometry'
-import { createPerimeterId, createFloorId, createWallSegmentId, createOuterCornerId } from '@/types/ids'
+import { createPerimeterId, createStoreyId, createWallSegmentId, createOuterCornerId } from '@/types/ids'
 import type { Perimeter } from '@/types/model'
 
 describe('PerimeterShape', () => {
   const testPerimeter: Perimeter = {
     id: createPerimeterId(),
-    floorId: createFloorId(),
+    storeyId: createStoreyId(),
     boundary: [createVec2(0, 0), createVec2(1000, 0), createVec2(1000, 1000), createVec2(0, 1000)],
     segments: [
       {

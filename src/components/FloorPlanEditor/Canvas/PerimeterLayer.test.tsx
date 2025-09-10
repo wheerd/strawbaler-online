@@ -3,12 +3,12 @@ import { render } from '@testing-library/react'
 import { Stage } from 'react-konva'
 import { PerimeterLayer } from './PerimeterLayer'
 import { useModelStore } from '@/model/store'
-import { createFloorId } from '@/types/ids'
+import { createStoreyId } from '@/types/ids'
 import { createVec2, createLength } from '@/types/geometry'
 
 // Mock the editor store hook
 vi.mock('@/components/FloorPlanEditor/hooks/useEditorStore', () => ({
-  useActiveFloorId: () => createFloorId()
+  useActiveStoreyId: () => createStoreyId()
 }))
 
 describe('PerimeterLayer', () => {
@@ -25,17 +25,17 @@ describe('PerimeterLayer', () => {
   it('should render outer walls when they exist', () => {
     // Add an outer wall to the store
     const store = useModelStore.getState()
-    const floorId = createFloorId()
+    const storeyId = createStoreyId()
 
     // Add the floor first
-    store.addFloor('Test Floor', 0 as any)
+    store.addStorey('Test Floor', 0 as any)
 
     // Create a simple square boundary
     const boundary = {
       points: [createVec2(0, 0), createVec2(1000, 0), createVec2(1000, 1000), createVec2(0, 1000)]
     }
 
-    store.addPerimeter(floorId, boundary, 'cells-under-tension', createLength(440))
+    store.addPerimeter(storeyId, boundary, 'cells-under-tension', createLength(440))
 
     render(
       <Stage width={800} height={600}>

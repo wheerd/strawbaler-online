@@ -13,18 +13,13 @@ import { SelectionOutline } from '@/components/FloorPlanEditor/components/Select
  * Selection Path Structure Documentation:
  *
  * The selection system uses a predictable hierarchical path structure:
- * - OuterWall:     [wallId]                           → ["perimeter_123"]
- * - WallSegment:   [wallId, segmentId]               → ["perimeter_123", "segment_456"]
- * - OuterCorner:   [wallId, cornerId]                → ["perimeter_123", "outcorner_789"]
- * - Opening:       [wallId, segmentId, openingId]    → ["perimeter_123", "segment_456", "opening_012"]
- *
- * Future entities will follow similar patterns:
- * - Floor:         [floorId]                          → ["floor_123"]
- * - Room:          [floorId, roomId]                  → ["floor_123", "room_456"]
- * - InnerWall:     [floorId, innerWallId]            → ["floor_123", "inner_789"]
+ * - Perimeter:     [perimeterId]                          → ["perimeter_123"]
+ * - WallSegment:   [perimeterId, segmentId]               → ["perimeter_123", "segment_456"]
+ * - OuterCorner:   [perimeterId, cornerId]                → ["perimeter_123", "outcorner_789"]
+ * - Opening:       [perimeterId, segmentId, openingId]    → ["perimeter_123", "segment_456", "opening_012"]
  *
  * Key Points:
- * - Path always starts with the root entity (currently OuterWall, future: Floor, Building, etc.)
+ * - Path always starts with the root entity (currently Perimeter, future: Floor, Building, etc.)
  * - Sub-entities include their parent IDs in hierarchical order
  * - Entity type guards determine which geometry calculation to use
  */
@@ -75,7 +70,6 @@ function getSelectionOutlinePoints(
   }
 
   // Future entity types will be added here:
-  // if (isFloorId(rootEntityId)) { ... }
   // if (isBuildingId(rootEntityId)) { ... }
 
   console.warn('SelectionOverlay: Unsupported root entity type:', rootEntityId)

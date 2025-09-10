@@ -194,10 +194,10 @@ export class PerimeterTool extends BaseTool implements Tool {
 
     if (event) {
       const modelStore = event.context.getModelStore()
-      const activeFloorId = event.context.getActiveFloorId()
+      const activeStoreyId = event.context.getActiveStoreyId()
 
       try {
-        modelStore.addPerimeter(activeFloorId, polygon, this.state.constructionType, this.state.wallThickness)
+        modelStore.addPerimeter(activeStoreyId, polygon, this.state.constructionType, this.state.wallThickness)
       } catch (error) {
         console.error('Failed to create outer wall polygon:', error)
       }

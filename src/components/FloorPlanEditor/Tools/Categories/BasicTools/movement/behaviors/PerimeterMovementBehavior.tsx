@@ -47,7 +47,7 @@ export class PerimeterMovementBehavior implements MovementBehavior<Perimeter, Pe
 
     // Get other walls on the same floor
     const currentWall = context.entity
-    const allWalls = context.store.getPerimetersByFloor(currentWall.floorId)
+    const allWalls = context.store.getPerimetersByStorey(currentWall.storeyId)
     const otherWalls = allWalls.filter(wall => wall.id !== currentWall.id)
 
     // Check for intersections with other wall polygons

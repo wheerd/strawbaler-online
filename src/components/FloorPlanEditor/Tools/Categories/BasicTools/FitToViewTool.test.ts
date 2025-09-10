@@ -5,7 +5,7 @@ import { useModelStore } from '@/model/store'
 import { createVec2 } from '@/types/geometry/basic'
 import type { Perimeter } from '@/types/model'
 import type { ToolContext } from '../../ToolSystem/types'
-import type { FloorId } from '@/types/ids'
+import type { StoreyId } from '@/types/ids'
 
 // Mock the store hooks
 vi.mock('@/components/FloorPlanEditor/hooks/useEditorStore')
@@ -15,7 +15,7 @@ vi.mock('../../ToolSystem/ToolManager')
 
 describe('FitToViewTool', () => {
   let fitToViewTool: FitToViewTool
-  let mockGetPerimetersByFloor: ReturnType<typeof vi.fn>
+  let mockGetPerimetersByStorey: ReturnType<typeof vi.fn>
   let mockFitToView: ReturnType<typeof vi.fn>
   let mockContext: Pick<ToolContext, 'fitToView'>
 
@@ -23,20 +23,20 @@ describe('FitToViewTool', () => {
     fitToViewTool = new FitToViewTool()
 
     // Create only the specific mocks we need for these tests
-    mockGetPerimetersByFloor = vi.fn()
+    mockGetPerimetersByStorey = vi.fn()
     mockFitToView = vi.fn()
     mockContext = { fitToView: mockFitToView }
 
     // Mock editor store to return the active floor ID
     const mockedUseEditorStore = vi.mocked(useEditorStore)
     mockedUseEditorStore.getState = vi.fn(() => ({
-      activeFloorId: 'floor1' as FloorId
+      activeStoreyId: 'floor1' as StoreyId
     })) as any
 
     // Mock model store to return our mock function
     const mockedUseModelStore = vi.mocked(useModelStore)
     mockedUseModelStore.getState = vi.fn(() => ({
-      getPerimetersByFloor: mockGetPerimetersByFloor
+      getPerimetersByStorey: mockGetPerimetersByStorey
     })) as any
   })
 
@@ -59,19 +59,19 @@ describe('FitToViewTool', () => {
       } as Perimeter
     ]
 
-    mockGetPerimetersByFloor.mockReturnValue(mockOuterWalls)
+    mockGetPerimetersByStorey.mockReturnValue(mockOuterWalls)
 
     fitToViewTool.onActivate(mockContext as ToolContext)
 
-    // Should have called getPerimetersByFloor
-    expect(mockGetPerimetersByFloor).toHaveBeenCalledWith('floor1')
+    // Should have called getPerimetersByStorey
+    expect(mockGetPerimetersByStorey).toHaveBeenCalledWith('floor1')
 
     // Should have called fitToView on context
     expect(mockFitToView).toHaveBeenCalled()
   })
 
   it('should handle empty bounds gracefully', () => {
-    mockGetPerimetersByFloor.mockReturnValue([])
+    mockGetPerimetersByStorey.mockReturnValue([])
 
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
@@ -96,7 +96,7 @@ describe('FitToViewTool', () => {
       } as Perimeter
     ]
 
-    mockGetPerimetersByFloor.mockReturnValue(mockOuterWalls)
+    mockGetPerimetersByStorey.mockReturnValue(mockOuterWalls)
 
     fitToViewTool.onActivate(mockContext as ToolContext)
 
@@ -123,7 +123,7 @@ describe('FitToViewTool', () => {
       } as Perimeter
     ]
 
-    mockGetPerimetersByFloor.mockReturnValue(mockOuterWalls)
+    mockGetPerimetersByStorey.mockReturnValue(mockOuterWalls)
 
     fitToViewTool.onActivate(mockContext as ToolContext)
 

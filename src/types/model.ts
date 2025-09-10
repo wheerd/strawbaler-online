@@ -1,21 +1,18 @@
-import type { FloorId, PerimeterId, WallSegmentId, OuterWallCornerId, OpeningId } from '@/types/ids'
+import type { StoreyId, PerimeterId, WallSegmentId, OuterWallCornerId, OpeningId } from '@/types/ids'
 import type { Length, LineSegment2D, Vec2 } from '@/types/geometry'
 
-// Floor level branded type
-export type FloorLevel = number & { __brand: 'FloorLevel' }
+// Storey level branded type
+export type StoreyLevel = number & { __brand: 'StoreyLevel' }
 
 // Opening types
 export type OpeningType = 'door' | 'window' | 'passage'
 
-// Roof types
-export type RoofOrientation = 'flat' | 'pitched' | 'gable'
-
-// Floor level validation and creation
-export const createFloorLevel = (value: number): FloorLevel => {
+// Storey level validation and creation
+export const createStoreyLevel = (value: number): StoreyLevel => {
   if (!Number.isInteger(value)) {
-    throw new Error(`Floor level must be an integer, got ${value}`)
+    throw new Error(`Storey level must be an integer, got ${value}`)
   }
-  return value as FloorLevel
+  return value as StoreyLevel
 }
 
 // Opening in a wall (door, window, etc.)
@@ -29,16 +26,16 @@ export interface Opening {
 }
 
 // Floor/level
-export interface Floor {
-  id: FloorId
+export interface Storey {
+  id: StoreyId
   name: string
-  level: FloorLevel // Floor level (0 = ground floor, 1 = first floor, etc.)
+  level: StoreyLevel // Floor level (0 = ground floor, 1 = first floor, etc.)
   height: Length
 }
 
 export interface Perimeter {
   id: PerimeterId
-  floorId: FloorId
+  storeyId: StoreyId
 
   // Polygon defining the inside area of the building
   boundary: Vec2[] // Ordered clockwise, defines inner face of walls
