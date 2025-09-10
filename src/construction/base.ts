@@ -52,7 +52,16 @@ export interface WallConstructionSegment extends BaseConstructionSegment {
   constructionType: ConstructionType
 }
 
-export type ConstructionElementType = 'post' | 'plate' | 'strawbale' | 'straw' | 'frame' | 'header' | 'sill' | 'opening'
+export type ConstructionElementType =
+  | 'post'
+  | 'plate'
+  | 'full-strawbale'
+  | 'partial-strawbale'
+  | 'straw'
+  | 'frame'
+  | 'header'
+  | 'sill'
+  | 'opening'
 
 export type ConstructionElementId = string & { readonly brand: unique symbol }
 export const createConstructionElementId = (): ConstructionElementId =>
