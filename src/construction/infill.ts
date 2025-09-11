@@ -169,16 +169,31 @@ function constructInfillRecursive(
 }
 
 function getBaleWidth(availableWidth: Length, config: InfillConstructionConfig): Length {
-  const segmentSize = config.maxPostSpacing + config.posts.width
-  if (availableWidth < config.maxPostSpacing) {
+  const {
+    maxPostSpacing,
+    minStrawSpace,
+    posts: { width: postWidth }
+  } = config
+  const fullBaleAndPost = maxPostSpacing + postWidth
+
+  // Less space than full bale
+  if (availableWidth < maxPostSpacing) {
     return availableWidth
-  } else if (availableWidth < segmentSize + config.minStrawSpace && availableWidth > segmentSize) {
-    return (availableWidth - config.minStrawSpace - config.posts.width) as Length
-  } else if (availableWidth < segmentSize) {
-    return (availableWidth - config.posts.width) as Length
-  } else {
-    return config.maxPostSpacing
   }
+
+  // Not enough space for full bale and a minimal spacer, but more than a single full bale + post
+  // -> Shorten the bale so that a post and a minimal spacer fit
+  if (availableWidth < fullBaleAndPost + minStrawSpace && availableWidth > fullBaleAndPost) {
+    return (availableWidth - minStrawSpace - postWidth) as Length
+  }
+
+  // More space than a full bale, but not enough for full bale and post
+  // -> Shorten bale to fit a post
+  if (availableWidth < fullBaleAndPost) {
+    return (availableWidth - postWidth) as Length
+  }
+
+  return maxPostSpacing
 }
 
 export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstructionConfig> = (
