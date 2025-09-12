@@ -75,14 +75,14 @@ export const constructOpeningFrame = (
   const sillRequired = opening.sillHeight !== undefined && opening.sillHeight > 0
 
   let sillElement: ConstructionElement | null = null
-  if (sillRequired && config.sillThickness) {
+  if (sillRequired && config.sillThickness && config.sillMaterial) {
     const sillTop = openingBottom
     const sillBottom = (sillTop - config.sillThickness) as Length
 
     sillElement = {
       id: createConstructionElementId(),
       type: 'sill',
-      material: config.sillMaterial ?? config.headerMaterial,
+      material: config.sillMaterial,
       position: [opening.offsetFromStart, 0, sillBottom] as Vec3,
       size: [opening.width, wallThickness, config.sillThickness] as Vec3
     }

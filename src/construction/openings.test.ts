@@ -1,0 +1,766 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { Opening } from '@/model'
+import type { Length, Vec3 } from '@/types/geometry'
+import { createOpeningId } from '@/types/ids'
+import { constructOpeningFrame, constructOpening, type OpeningConstructionConfig } from './openings'
+import type { InfillConstructionConfig } from './infill'
+import { infillWallArea } from './infill'
+import { createMaterialId, resolveDefaultMaterial } from './material'
+import { createConstructionElementId, type ConstructionElement, type WithIssues } from './base'
+
+// Mock the infill module
+vi.mock('./infill', () => ({
+  infillWallArea: vi.fn()
+}))
+
+const mockInfillWallArea = vi.mocked(infillWallArea)
+
+const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
+  id: createOpeningId(),
+  type: 'window',
+  offsetFromStart: 1000 as Length,
+  width: 800 as Length,
+  height: 1200 as Length,
+  sillHeight: 900 as Length,
+  ...overrides
+})
+
+const createTestConfig = (overrides: Partial<OpeningConstructionConfig> = {}): OpeningConstructionConfig => ({
+  padding: 15 as Length,
+  headerThickness: 60 as Length,
+  headerMaterial: createMaterialId(),
+  sillThickness: 60 as Length,
+  sillMaterial: createMaterialId(),
+  fillingThickness: 30 as Length,
+  fillingMaterial: createMaterialId(),
+  ...overrides
+})
+
+const createTestInfillConfig = (): InfillConstructionConfig => ({
+  maxPostSpacing: 800 as Length,
+  minStrawSpace: 70 as Length,
+  posts: {
+    type: 'full',
+    width: 60 as Length,
+    material: createMaterialId()
+  },
+  openings: {
+    door: createTestConfig(),
+    window: createTestConfig(),
+    passage: createTestConfig()
+  },
+  straw: {
+    baleLength: 800 as Length,
+    baleHeight: 500 as Length,
+    baleWidth: 360 as Length,
+    material: createMaterialId()
+  }
+})
+
+const createMockInfillResult = (numElements: number = 2): WithIssues<ConstructionElement[]> => ({
+  it: Array.from({ length: numElements }, (_, i) => ({
+    id: createConstructionElementId(),
+    type: 'straw' as const,
+    material: createMaterialId(),
+    position: [100 * i, 0, 0] as Vec3,
+    size: [100, 360, 500] as Vec3
+  })),
+  errors: [],
+  warnings: []
+})
+
+describe('constructOpeningFrame', () => {
+  beforeEach(() => {
+    mockInfillWallArea.mockReset()
+    mockInfillWallArea.mockReturnValue(createMockInfillResult())
+  })
+
+  describe('basic opening construction', () => {
+    it('creates header and sill for window with sill height', () => {
+      const opening = createTestOpening({
+        sillHeight: 900 as Length,
+        height: 1200 as Length
+      })
+      const config = createTestConfig()
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(0)
+      expect(result.it.length).toBeGreaterThan(3)
+
+      const header = result.it.find(el => el.type === 'header')
+      const sill = result.it.find(el => el.type === 'sill')
+      const filling = result.it.find(el => el.type === 'opening')
+
+      expect(header).toBeDefined()
+      expect(sill).toBeDefined()
+      expect(filling).toBeDefined()
+
+      // Check header positioning
+      expect(header!.position[0]).toBe(1000)
+      expect(header!.position[2]).toBe(2100) // 900 + 1200
+      expect(header!.size).toEqual([800, 360, 60])
+
+      // Check sill positioning
+      expect(sill!.position[0]).toBe(1000)
+      expect(sill!.position[2]).toBe(840) // 900 - 60
+      expect(sill!.size).toEqual([800, 360, 60])
+
+      // Check filling positioning (centered with padding)
+      expect(filling!.position[0]).toBe(1015) // 1000 + 15 padding
+      expect(filling!.position[2]).toBe(915) // 900 + 15 padding
+      expect(filling!.size).toEqual([770, 30, 1170]) // width/height reduced by 2*padding
+    })
+
+    it('creates only header for door without sill height', () => {
+      const opening = createTestOpening({
+        type: 'door',
+        sillHeight: undefined,
+        height: 2000 as Length
+      })
+      const config = createTestConfig()
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(0)
+
+      const header = result.it.find(el => el.type === 'header')
+      const sill = result.it.find(el => el.type === 'sill')
+      const filling = result.it.find(el => el.type === 'opening')
+
+      expect(header).toBeDefined()
+      expect(sill).toBeUndefined()
+      expect(filling).toBeDefined()
+
+      // Check header is at correct position (sillHeight defaults to 0)
+      expect(header!.position[2]).toBe(2000) // 0 + 2000
+    })
+
+    it('does not create sill when sill height is 0', () => {
+      const opening = createTestOpening({
+        sillHeight: 0 as Length,
+        height: 2000 as Length
+      })
+      const config = createTestConfig()
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(0)
+
+      const sill = result.it.find(el => el.type === 'sill')
+      expect(sill).toBeUndefined()
+    })
+
+    it('does not create header when opening reaches wall top', () => {
+      const opening = createTestOpening({
+        sillHeight: 500 as Length,
+        height: 2000 as Length // opening top = 2500, same as wall height
+      })
+      const config = createTestConfig()
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(0)
+
+      const header = result.it.find(el => el.type === 'header')
+      expect(header).toBeUndefined()
+    })
+  })
+
+  describe('error handling', () => {
+    it('returns error when header does not fit', () => {
+      const opening = createTestOpening({
+        sillHeight: 2400 as Length,
+        height: 60 as Length
+      })
+      const config = createTestConfig({
+        headerThickness: 100 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(1)
+      expect(result.errors[0].description).toContain('Header does not fit')
+      expect(result.errors[0].description).toContain('needs 100mm but only 40mm available')
+      expect(result.errors[0].elements).toHaveLength(1)
+
+      const header = result.it.find(el => el.type === 'header')
+      expect(header).toBeDefined()
+    })
+
+    it('returns error when sill does not fit', () => {
+      const opening = createTestOpening({
+        sillHeight: 50 as Length,
+        height: 1200 as Length
+      })
+      const config = createTestConfig({
+        sillThickness: 100 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(1)
+      expect(result.errors[0].description).toContain('Sill does not fit')
+      expect(result.errors[0].description).toContain('needs 100mm but only 50mm available')
+      expect(result.errors[0].elements).toHaveLength(1)
+
+      const sill = result.it.find(el => el.type === 'sill')
+      expect(sill).toBeDefined()
+    })
+  })
+
+  describe('filling construction', () => {
+    it('does not create filling when no filling material is specified', () => {
+      const opening = createTestOpening()
+      const config = createTestConfig({
+        fillingMaterial: undefined
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(0)
+
+      const filling = result.it.find(el => el.type === 'opening')
+      expect(filling).toBeUndefined()
+    })
+
+    it('does not create filling when no filling thickness is specified', () => {
+      const opening = createTestOpening()
+      const config = createTestConfig({
+        fillingThickness: undefined
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(0)
+
+      const filling = result.it.find(el => el.type === 'opening')
+      expect(filling).toBeUndefined()
+    })
+
+    it('centers filling with padding in wall thickness direction', () => {
+      const opening = createTestOpening()
+      const config = createTestConfig({
+        padding: 20 as Length,
+        fillingThickness: 50 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 400 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      const filling = result.it.find(el => el.type === 'opening')
+      expect(filling).toBeDefined()
+
+      // Y position should center the filling in wall thickness
+      const expectedYPosition = (400 - 50) / 2 // (wallThickness - fillingThickness) / 2
+      expect(filling!.position[1]).toBe(expectedYPosition)
+    })
+  })
+
+  describe('infill wall construction', () => {
+    it('calls infillWallArea for wall above header when header is required', () => {
+      const opening = createTestOpening({
+        sillHeight: 900 as Length,
+        height: 1200 as Length
+      })
+      const config = createTestConfig({
+        headerThickness: 60 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      constructOpeningFrame(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+      expect(mockInfillWallArea).toHaveBeenCalledWith(
+        [1000, 0, 2160], // [offsetFromStart, 0, sillHeight + height + headerThickness]
+        [800, 360, 340], // [width, wallThickness, remaining height]
+        infillConfig,
+        resolveDefaultMaterial
+      )
+    })
+
+    it('calls infillWallArea for wall below sill when sill is required', () => {
+      const opening = createTestOpening({
+        sillHeight: 900 as Length,
+        height: 1200 as Length
+      })
+      const config = createTestConfig({
+        sillThickness: 80 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      constructOpeningFrame(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+      expect(mockInfillWallArea).toHaveBeenCalledWith(
+        [1000, 0, 0], // [offsetFromStart, 0, 0]
+        [800, 360, 820], // [width, wallThickness, sillHeight - sillThickness]
+        infillConfig,
+        resolveDefaultMaterial
+      )
+    })
+
+    it('does not call infillWallArea for wall above header when no space remains', () => {
+      const opening = createTestOpening({
+        sillHeight: undefined, // No sill
+        height: 2440 as Length, // Opening reaches exactly to where header starts
+        type: 'door'
+      })
+      const config = createTestConfig({
+        headerThickness: 60 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      constructOpeningFrame(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+      // Wall above header height would be: wallHeight - (openingTop + headerThickness) = 2500 - (2440 + 60) = 0
+      // Should not call infillWallArea since there's no space above header and no sill required
+      expect(mockInfillWallArea).not.toHaveBeenCalled()
+    })
+
+    it('does not call infillWallArea for wall below sill when no space remains', () => {
+      const opening = createTestOpening({
+        sillHeight: 60 as Length,
+        height: 2380 as Length // Opening reaches almost to wall top
+      })
+      const config = createTestConfig({
+        sillThickness: 60 as Length,
+        headerThickness: 60 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      constructOpeningFrame(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+      // Wall below sill height would be: sillHeight - sillThickness = 60 - 60 = 0
+      // Should not call infillWallArea since there's no space below sill
+      expect(mockInfillWallArea).not.toHaveBeenCalled()
+    })
+
+    it('propagates infill errors and warnings', () => {
+      const opening = createTestOpening()
+      const config = createTestConfig()
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const mockInfillError = { description: 'Infill error', elements: [createConstructionElementId()] }
+      const mockInfillWarning = { description: 'Infill warning', elements: [createConstructionElementId()] }
+
+      mockInfillWallArea.mockReturnValue({
+        it: [],
+        errors: [mockInfillError],
+        warnings: [mockInfillWarning]
+      })
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toContain(mockInfillError)
+      expect(result.warnings).toContain(mockInfillWarning)
+    })
+  })
+
+  describe('material and thickness requirements', () => {
+    it('uses sillMaterial for sill when specified', () => {
+      const opening = createTestOpening({
+        sillHeight: 900 as Length,
+        height: 1200 as Length
+      })
+      const sillMaterial = createMaterialId()
+      const config = createTestConfig({
+        sillMaterial,
+        headerMaterial: createMaterialId()
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      const sill = result.it.find(el => el.type === 'sill')
+      expect(sill?.material).toBe(sillMaterial)
+    })
+
+    it('does not create sill when sillMaterial is not specified', () => {
+      const opening = createTestOpening({
+        sillHeight: 900 as Length,
+        height: 1200 as Length
+      })
+      const config = createTestConfig({
+        sillMaterial: undefined,
+        sillThickness: 60 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      const sill = result.it.find(el => el.type === 'sill')
+      expect(sill).toBeUndefined()
+    })
+
+    it('does not create sill when sillThickness is not defined even with material', () => {
+      const opening = createTestOpening({
+        sillHeight: 900 as Length,
+        height: 1200 as Length
+      })
+      const config = createTestConfig({
+        sillMaterial: createMaterialId(),
+        sillThickness: undefined
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      const sill = result.it.find(el => el.type === 'sill')
+      expect(sill).toBeUndefined()
+    })
+
+    it('uses correct materials for all elements', () => {
+      const opening = createTestOpening()
+      const headerMaterial = createMaterialId()
+      const sillMaterial = createMaterialId()
+      const fillingMaterial = createMaterialId()
+      const config = createTestConfig({
+        headerMaterial,
+        sillMaterial,
+        fillingMaterial
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      const header = result.it.find(el => el.type === 'header')
+      const sill = result.it.find(el => el.type === 'sill')
+      const filling = result.it.find(el => el.type === 'opening')
+
+      expect(header?.material).toBe(headerMaterial)
+      expect(sill?.material).toBe(sillMaterial)
+      expect(filling?.material).toBe(fillingMaterial)
+    })
+  })
+
+  describe('edge cases', () => {
+    it('handles very small openings', () => {
+      const opening = createTestOpening({
+        width: 10 as Length,
+        height: 10 as Length,
+        sillHeight: 1000 as Length
+      })
+      const config = createTestConfig({
+        padding: 5 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(0)
+
+      const filling = result.it.find(el => el.type === 'opening')
+      expect(filling).toBeDefined()
+      expect(filling!.size[0]).toBe(0) // 10 - 2*5 = 0
+      expect(filling!.size[2]).toBe(0) // 10 - 2*5 = 0
+    })
+
+    it('handles zero padding', () => {
+      const opening = createTestOpening()
+      const config = createTestConfig({
+        padding: 0 as Length
+      })
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpeningFrame(
+        opening,
+        config,
+        infillConfig,
+        wallHeight,
+        wallThickness,
+        resolveDefaultMaterial
+      )
+
+      expect(result.errors).toHaveLength(0)
+
+      const filling = result.it.find(el => el.type === 'opening')
+      expect(filling).toBeDefined()
+      expect(filling!.position[0]).toBe(1000) // no padding offset
+      expect(filling!.size[0]).toBe(800) // full width
+      expect(filling!.size[2]).toBe(1200) // full height
+    })
+  })
+})
+
+describe('constructOpening', () => {
+  beforeEach(() => {
+    mockInfillWallArea.mockReset()
+    mockInfillWallArea.mockReturnValue(createMockInfillResult())
+  })
+
+  it('creates an opening construction with correct structure', () => {
+    const opening = createTestOpening()
+    const config = createTestConfig()
+    const infillConfig = createTestInfillConfig()
+    const wallHeight = 2500 as Length
+    const wallThickness = 360 as Length
+
+    const result = constructOpening(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+    expect(result.errors).toHaveLength(0)
+    expect(result.it.type).toBe('opening')
+    expect(result.it.openingId).toBe(opening.id)
+    expect(result.it.position).toBe(opening.offsetFromStart)
+    expect(result.it.width).toBe(opening.width)
+    expect(result.it.elements).toBeDefined()
+    expect(result.it.elements.length).toBeGreaterThan(0)
+  })
+
+  it('propagates errors and warnings from constructOpeningFrame', () => {
+    const opening = createTestOpening({
+      sillHeight: 50 as Length,
+      height: 1200 as Length
+    })
+    const config = createTestConfig({
+      sillThickness: 100 as Length
+    })
+    const infillConfig = createTestInfillConfig()
+    const wallHeight = 2500 as Length
+    const wallThickness = 360 as Length
+
+    const result = constructOpening(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+    expect(result.errors).toHaveLength(1)
+    expect(result.errors[0].description).toContain('Sill does not fit')
+  })
+
+  it('includes all elements from constructOpeningFrame', () => {
+    const opening = createTestOpening()
+    const config = createTestConfig()
+    const infillConfig = createTestInfillConfig()
+    const wallHeight = 2500 as Length
+    const wallThickness = 360 as Length
+
+    const frameResult = constructOpeningFrame(
+      opening,
+      config,
+      infillConfig,
+      wallHeight,
+      wallThickness,
+      resolveDefaultMaterial
+    )
+
+    const openingResult = constructOpening(
+      opening,
+      config,
+      infillConfig,
+      wallHeight,
+      wallThickness,
+      resolveDefaultMaterial
+    )
+
+    // Compare elements by structure, not IDs (since IDs are generated fresh each call)
+    expect(openingResult.it.elements).toHaveLength(frameResult.it.length)
+
+    // Check that all element types, positions, sizes, and materials match
+    frameResult.it.forEach((frameElement, index) => {
+      const openingElement = openingResult.it.elements[index]
+      expect(openingElement.type).toBe(frameElement.type)
+      expect(openingElement.position).toEqual(frameElement.position)
+      expect(openingElement.size).toEqual(frameElement.size)
+      expect(openingElement.material).toBe(frameElement.material)
+    })
+  })
+
+  it('generates unique construction element ID', () => {
+    const opening = createTestOpening()
+    const config = createTestConfig()
+    const infillConfig = createTestInfillConfig()
+    const wallHeight = 2500 as Length
+    const wallThickness = 360 as Length
+
+    const result1 = constructOpening(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+    const result2 = constructOpening(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+    expect(result1.it.id).not.toBe(result2.it.id)
+  })
+
+  describe('with different opening types', () => {
+    it('handles door openings', () => {
+      const opening = createTestOpening({
+        type: 'door',
+        sillHeight: undefined
+      })
+      const config = createTestConfig()
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpening(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+      expect(result.errors).toHaveLength(0)
+      expect(result.it.type).toBe('opening')
+      expect(result.it.openingId).toBe(opening.id)
+    })
+
+    it('handles passage openings', () => {
+      const opening = createTestOpening({
+        type: 'passage',
+        sillHeight: undefined
+      })
+      const config = createTestConfig()
+      const infillConfig = createTestInfillConfig()
+      const wallHeight = 2500 as Length
+      const wallThickness = 360 as Length
+
+      const result = constructOpening(opening, config, infillConfig, wallHeight, wallThickness, resolveDefaultMaterial)
+
+      expect(result.errors).toHaveLength(0)
+      expect(result.it.type).toBe('opening')
+      expect(result.it.openingId).toBe(opening.id)
+    })
+  })
+})
