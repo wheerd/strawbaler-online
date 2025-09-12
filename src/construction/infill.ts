@@ -5,10 +5,15 @@ import type {
   BaseConstructionConfig,
   ConstructionElement,
   ConstructionIssue,
+  ConstructionSegment,
   PerimeterWallConstructionMethod,
   WallConstructionPlan,
+  WallConstructionSegment,
   WithIssues
 } from './base'
+import { segmentWall, createConstructionElementId } from './base'
+import { constructOpening } from './openings'
+import { resolveDefaultMaterial } from './material'
 import type { ResolveMaterialFunction } from './material'
 import { constructStraw } from './straw'
 
@@ -197,9 +202,77 @@ function getBaleWidth(availableWidth: Length, config: InfillConstructionConfig):
 }
 
 export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstructionConfig> = (
-  _wall: PerimeterWall,
-  _floorHeight: Length,
-  _config: InfillConstructionConfig
+  wall: PerimeterWall,
+  floorHeight: Length,
+  config: InfillConstructionConfig
 ): WallConstructionPlan => {
-  throw new Error('TODO: Implementation')
+  // Using imported functions
+
+  const errors: ConstructionIssue[] = []
+  const warnings: ConstructionIssue[] = []
+  const segments: ConstructionSegment[] = []
+
+  // Segment the wall based on openings
+  const wallSegments = segmentWall(wall.insideLength, wall.openings, 'infill')
+
+  for (const segment of wallSegments) {
+    if (segment.type === 'wall') {
+      // Construct infill wall segment
+      const wallSegmentPosition: Vec3 = [segment.position, 0, 0]
+      const wallSegmentSize: Vec3 = [segment.width, wall.thickness, floorHeight]
+
+      const {
+        it: wallElements,
+        errors: wallErrors,
+        warnings: wallWarnings
+      } = infillWallArea(
+        wallSegmentPosition,
+        wallSegmentSize,
+        config,
+        resolveDefaultMaterial,
+        true, // startsWithStand
+        true, // endsWithStand
+        false // startAtEnd
+      )
+
+      const wallConstruction: WallConstructionSegment = {
+        id: createConstructionElementId(),
+        type: 'wall',
+        position: segment.position,
+        width: segment.width,
+        constructionType: 'infill',
+        elements: wallElements
+      }
+
+      segments.push(wallConstruction)
+      errors.push(...wallErrors)
+      warnings.push(...wallWarnings)
+    } else if (segment.type === 'opening' && segment.opening) {
+      // Construct opening segment
+      const openingConfig = config.openings[segment.opening.type]
+
+      const {
+        it: openingConstruction,
+        errors: openingErrors,
+        warnings: openingWarnings
+      } = constructOpening(segment.opening, openingConfig, config, floorHeight, wall.thickness, resolveDefaultMaterial)
+
+      segments.push(openingConstruction)
+      errors.push(...openingErrors)
+      warnings.push(...openingWarnings)
+    }
+  }
+
+  return {
+    wallId: wall.id,
+    constructionType: 'infill',
+    wallDimensions: {
+      length: wall.insideLength,
+      thickness: wall.thickness,
+      height: floorHeight
+    },
+    segments,
+    errors,
+    warnings
+  }
 }
