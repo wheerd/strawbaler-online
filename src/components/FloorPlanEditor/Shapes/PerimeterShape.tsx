@@ -1,4 +1,4 @@
-import { Group, Line } from 'react-konva'
+import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 import type { Perimeter } from '@/types/model'
 import { PerimeterWallShape } from './PerimeterWallShape'
 import { PerimeterCornerShape } from './PerimeterCornerShape'

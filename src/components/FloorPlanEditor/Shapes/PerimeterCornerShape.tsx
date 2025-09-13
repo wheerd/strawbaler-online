@@ -1,4 +1,4 @@
-import { Group, Line, Arrow, Circle } from 'react-konva'
+import { Group, Line, Arrow, Circle } from 'react-konva/lib/ReactKonvaCore'
 import type { PerimeterCorner, PerimeterWall } from '@/types/model'
 import { add, midpoint, scale, type Vec2 } from '@/types/geometry'
 import { COLORS } from '@/theme/colors'

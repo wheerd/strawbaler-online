@@ -52,12 +52,6 @@ export default defineConfig({
           // Model chunk
           model: ['./src/model/store', './src/types/model', './src/types/geometry', './src/types/ids']
         }
-      },
-
-      // Tree shaking optimizations
-      treeshake: {
-        moduleSideEffects: false,
-        unknownGlobalSideEffects: false
       }
     },
 

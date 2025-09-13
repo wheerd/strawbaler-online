@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { Stage } from 'react-konva'
+import { Stage } from 'react-konva/lib/ReactKonvaCore'
 import type Konva from 'konva'
 import { useViewportActions, useZoom, usePanX, usePanY } from '@/components/FloorPlanEditor/hooks/useViewportStore'
 import { useToolContext, useToolManager } from '@/components/FloorPlanEditor/Tools'

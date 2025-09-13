@@ -1,5 +1,5 @@
 import React from 'react'
-import { Group, Circle, Line } from 'react-konva'
+import { Group, Circle, Line } from 'react-konva/lib/ReactKonvaCore'
 import { COLORS } from '@/theme/colors'
 import type { MovementPreviewComponentProps } from '../MovementBehavior'
 import type { CornerEntityContext, CornerMovementState } from '../behaviors/PerimeterCornerMovementBehavior'

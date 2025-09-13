@@ -1,5 +1,5 @@
 import React from 'react'
-import { Group, Line } from 'react-konva'
+import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 import type { SnapResult } from '@/model/store/services/snapping/types'
 import { useStageHeight, useStageWidth, useZoom } from '@/components/FloorPlanEditor/hooks/useViewportStore'
 import { COLORS } from '@/theme/colors'

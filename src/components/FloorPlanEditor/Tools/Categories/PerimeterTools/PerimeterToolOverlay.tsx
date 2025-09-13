@@ -1,5 +1,5 @@
 import React from 'react'
-import { Group, Line, Circle } from 'react-konva'
+import { Group, Line, Circle } from 'react-konva/lib/ReactKonvaCore'
 import type { ToolOverlayComponentProps } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { PerimeterTool } from './PerimeterTool'
 import { useZoom } from '@/components/FloorPlanEditor/hooks/useViewportStore'

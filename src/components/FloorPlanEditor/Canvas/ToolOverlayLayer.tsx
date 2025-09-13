@@ -1,4 +1,4 @@
-import { Layer } from 'react-konva'
+import { Layer } from 'react-konva/lib/ReactKonvaCore'
 import { useToolManagerState } from '@/components/FloorPlanEditor/Tools'
 import { SelectionOverlay } from './SelectionOverlay'
 

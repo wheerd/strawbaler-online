@@ -1,5 +1,5 @@
 import React from 'react'
-import { Group, Line } from 'react-konva'
+import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 import { COLORS } from '@/theme/colors'
 import { add, scale } from '@/types/geometry'
 import type { MovementPreviewComponentProps } from '../MovementBehavior'

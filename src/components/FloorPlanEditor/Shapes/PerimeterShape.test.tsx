@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
-import { Stage, Layer } from 'react-konva'
+import { Stage, Layer } from 'react-konva/lib/ReactKonvaCore'
 import { PerimeterShape } from './PerimeterShape'
 import { PerimeterCornerShape } from './PerimeterCornerShape'
 import { createLength, createVec2 } from '@/types/geometry'

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Layer, Line } from 'react-konva'
+import { Layer, Line } from 'react-konva/lib/ReactKonvaCore'
 import { useShowGrid, useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { COLORS } from '@/theme/colors'
 

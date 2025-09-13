@@ -1,4 +1,4 @@
-import { Layer } from 'react-konva'
+import { Layer } from 'react-konva/lib/ReactKonvaCore'
 import { useStoreyPerimeters } from '@/model/store'
 import { useActiveStoreyId } from '@/components/FloorPlanEditor/hooks/useEditorStore'
 import { PerimeterShape } from '@/components/FloorPlanEditor/Shapes/PerimeterShape'

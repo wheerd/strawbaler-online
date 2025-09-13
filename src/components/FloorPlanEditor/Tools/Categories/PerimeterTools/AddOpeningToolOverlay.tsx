@@ -1,5 +1,5 @@
 import React from 'react'
-import { Group, Rect, Text, Circle } from 'react-konva'
+import { Group, Rect, Text, Circle } from 'react-konva/lib/ReactKonvaCore'
 import type { ToolOverlayComponentProps } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { AddOpeningTool } from './AddOpeningTool'
 import { useReactiveTool } from '@/components/FloorPlanEditor/Tools/hooks/useReactiveTool'

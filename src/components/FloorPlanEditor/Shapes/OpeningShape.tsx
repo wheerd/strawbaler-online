@@ -1,4 +1,4 @@
-import { Group, Line } from 'react-konva'
+import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 import type { Opening, PerimeterWall } from '@/types/model'
 import type { PerimeterId } from '@/model'
 import { midpoint, add, scale, type Vec2 } from '@/types/geometry'

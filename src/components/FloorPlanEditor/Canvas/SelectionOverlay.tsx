@@ -1,4 +1,4 @@
-import { Group } from 'react-konva'
+import { Group } from 'react-konva/lib/ReactKonvaCore'
 import type { Vec2 } from '@/types/geometry'
 import { add, scale } from '@/types/geometry'
 import type { PerimeterWallId, PerimeterCornerId, OpeningId, SelectableId } from '@/types/ids'

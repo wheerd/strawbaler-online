@@ -1,4 +1,4 @@
-import { Line } from 'react-konva'
+import { Line } from 'react-konva/lib/ReactKonvaCore'
 import type { Vec2 } from '@/types/geometry'
 import { offsetPolygon } from '@/types/geometry'
 import { useZoom } from '@/components/FloorPlanEditor/hooks/useViewportStore'

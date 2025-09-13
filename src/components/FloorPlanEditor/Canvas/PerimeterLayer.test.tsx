@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
-import { Stage } from 'react-konva'
+import { Stage } from 'react-konva/lib/ReactKonvaCore'
 import { PerimeterLayer } from './PerimeterLayer'
 import { useModelStore } from '@/model/store'
 import { createStoreyId } from '@/types/ids'
