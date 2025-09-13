@@ -1,0 +1,172 @@
+import React from 'react'
+import type { Vec2 } from '@/types/geometry'
+import { COLORS } from '@/theme/colors'
+import { convertPointToSvg, type ViewType } from '@/utils/constructionCoordinates'
+
+interface SvgMeasurementIndicatorProps {
+  startPoint: Vec2 // Construction coordinates [x, z]
+  endPoint: Vec2 // Construction coordinates [x, z]
+  label: string
+  offset?: number
+  wallHeight: number
+  wallLength: number
+  view?: ViewType
+  color?: string
+  fontSize?: number
+  strokeWidth?: number
+}
+
+export function SvgMeasurementIndicator({
+  startPoint,
+  endPoint,
+  label,
+  offset = 50,
+  wallHeight,
+  wallLength,
+  view = 'outside',
+  color = COLORS.ui.primary,
+  fontSize = 40,
+  strokeWidth = 10
+}: SvgMeasurementIndicatorProps): React.JSX.Element {
+  // Convert construction coordinates to SVG coordinates
+  const svgStartPoint = convertPointToSvg(startPoint[0], startPoint[1], wallHeight, wallLength, view)
+  const svgEndPoint = convertPointToSvg(endPoint[0], endPoint[1], wallHeight, wallLength, view)
+
+  const svgStartX = svgStartPoint[0]
+  const svgStartY = svgStartPoint[1]
+  const svgEndX = svgEndPoint[0]
+  const svgEndY = svgEndPoint[1]
+
+  // Calculate measurement vector and length
+  const dx = svgEndX - svgStartX
+  const dy = svgEndY - svgStartY
+  const length = Math.sqrt(dx * dx + dy * dy)
+
+  if (length === 0) {
+    return <g />
+  }
+
+  // Normalize direction vector
+  const dirX = dx / length
+  const dirY = dy / length
+
+  // Calculate perpendicular vector for offset
+  const perpX = -dirY
+  const perpY = dirX
+
+  // Calculate offset positions using offset parameter
+  const offsetStartX = svgStartX + perpX * offset
+  const offsetStartY = svgStartY + perpY * offset
+  const offsetEndX = svgEndX + perpX * offset
+  const offsetEndY = svgEndY + perpY * offset
+
+  // Calculate text angle for rotation
+  let textAngle = (Math.atan2(dy, dx) * 180) / Math.PI
+
+  // Keep text readable
+  if (textAngle > 90) {
+    textAngle -= 180
+  } else if (textAngle < -90) {
+    textAngle += 180
+  }
+
+  // Calculate text position (middle of offset line)
+  const textX = (offsetStartX + offsetEndX) / 2
+  const textY = (offsetStartY + offsetEndY) / 2
+
+  // Calculate end marker size and positions
+  const endMarkerSize = fontSize / 2
+  const endMarkerDirection = [perpX, perpY]
+
+  // Calculate connection line stroke width
+  const connectionStrokeWidth = strokeWidth / 2
+
+  // Calculate line gap for text similar to canvas version
+  const estimatedTextWidth = label.length * fontSize * 0.6
+  const gapHalfWidth = estimatedTextWidth * 0.6
+
+  // Calculate left and right endpoints for line gap
+  const leftEndpointX = textX - gapHalfWidth * dirX
+  const leftEndpointY = textY - gapHalfWidth * dirY
+  const rightEndpointX = textX + gapHalfWidth * dirX
+  const rightEndpointY = textY + gapHalfWidth * dirY
+
+  return (
+    <g>
+      {/* Connection lines from measurement points to dimension line */}
+
+      <line
+        x1={svgStartPoint[0]}
+        y1={svgStartPoint[1]}
+        x2={offsetStartX}
+        y2={offsetStartY}
+        stroke={color}
+        strokeWidth={connectionStrokeWidth}
+        opacity={0.5}
+      />
+      <line
+        x1={svgEndPoint[0]}
+        y1={svgEndPoint[1]}
+        x2={offsetEndX}
+        y2={offsetEndY}
+        stroke={color}
+        strokeWidth={connectionStrokeWidth}
+        opacity={0.5}
+      />
+
+      {/* Main dimension line with gap for text */}
+      <line
+        x1={offsetStartX}
+        y1={offsetStartY}
+        x2={leftEndpointX}
+        y2={leftEndpointY}
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
+      <line
+        x1={rightEndpointX}
+        y1={rightEndpointY}
+        x2={offsetEndX}
+        y2={offsetEndY}
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
+
+      {/* End markers */}
+      <line
+        x1={offsetStartX - endMarkerDirection[0] * endMarkerSize}
+        y1={offsetStartY - endMarkerDirection[1] * endMarkerSize}
+        x2={offsetStartX + endMarkerDirection[0] * endMarkerSize}
+        y2={offsetStartY + endMarkerDirection[1] * endMarkerSize}
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
+      <line
+        x1={offsetEndX - endMarkerDirection[0] * endMarkerSize}
+        y1={offsetEndY - endMarkerDirection[1] * endMarkerSize}
+        x2={offsetEndX + endMarkerDirection[0] * endMarkerSize}
+        y2={offsetEndY + endMarkerDirection[1] * endMarkerSize}
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
+
+      {/* Label text */}
+      <text
+        x={textX}
+        y={textY}
+        fontSize={fontSize}
+        fontFamily="Arial"
+        fontWeight="bold"
+        fill={color}
+        textAnchor="middle"
+        dominantBaseline="central"
+        transform={textAngle !== 0 ? `rotate(${textAngle} ${textX} ${textY})` : undefined}
+        style={{
+          filter: 'drop-shadow(2px 2px 4px rgba(255, 255, 255, 0.8))'
+        }}
+      >
+        {label}
+      </text>
+    </g>
+  )
+}

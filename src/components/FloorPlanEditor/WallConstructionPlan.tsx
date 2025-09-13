@@ -7,46 +7,15 @@ import {
   type ConstructionIssue,
   type ConstructionElementId
 } from '@/construction'
-import { boundsFromPoints, createVec2, type Bounds2D, type Vec2, type Vec3 } from '@/types/geometry'
+import { boundsFromPoints, createVec2, type Bounds2D, type Vec2 } from '@/types/geometry'
 import { COLORS } from '@/theme/colors'
+import { SvgMeasurementIndicator } from './components/SvgMeasurementIndicator'
+import { convertConstructionToSvg, convertPointToSvg, type ViewType } from '@/utils/constructionCoordinates'
 
 interface WallConstructionPlanDisplayProps {
   plan: WallConstructionPlan
   view?: ViewType
   showIssues?: boolean
-}
-
-type ViewType = 'outside' | 'inside'
-
-interface SvgCoordinates {
-  x: number
-  y: number
-}
-
-const convertConstructionToSvg = (
-  position: Vec3,
-  size: Vec3,
-  wallHeight: number,
-  wallLength: number,
-  view: ViewType
-): { position: SvgCoordinates; size: SvgCoordinates } => {
-  const basePosition = {
-    x: position[0],
-    y: wallHeight - position[2] - size[2]
-  }
-
-  // For inside view, mirror the x-axis
-  if (view === 'inside') {
-    basePosition.x = wallLength - position[0] - size[0]
-  }
-
-  return {
-    position: basePosition,
-    size: {
-      x: size[0],
-      y: size[2]
-    }
-  }
 }
 
 interface IssueHighlight {
@@ -186,30 +155,61 @@ export function WallConstructionPlanDisplay({
     return highlights
   }, [plan.errors, plan.warnings, elements, wallHeight, wallLength, view, showIssues])
 
-  // Calculate expanded viewBox to include issue highlights with padding
+  // Calculate expanded viewBox to include issue highlights and measurements with padding
   const expandedViewBox = useMemo(() => {
-    if (!showIssues || issueHighlights.length === 0) {
-      return `0 0 ${wallLength} ${wallHeight}`
-    }
-
-    // Find the bounds of all issue highlights
     let minX = 0
     let minY = 0
     let maxX = wallLength as number
     let maxY = wallHeight as number
 
-    issueHighlights.forEach(highlight => {
-      minX = Math.min(minX, highlight.bounds.min[0])
-      minY = Math.min(minY, highlight.bounds.min[1])
-      maxX = Math.max(maxX, highlight.bounds.max[0])
-      maxY = Math.max(maxY, highlight.bounds.max[1])
-    })
+    // Include issue highlights if enabled
+    if (showIssues && issueHighlights.length > 0) {
+      issueHighlights.forEach(highlight => {
+        minX = Math.min(minX, highlight.bounds.min[0])
+        minY = Math.min(minY, highlight.bounds.min[1])
+        maxX = Math.max(maxX, highlight.bounds.max[0])
+        maxY = Math.max(maxY, highlight.bounds.max[1])
+      })
+    }
+
+    // Include measurements bounds
+    if (plan.measurements && plan.measurements.length > 0) {
+      plan.measurements.forEach(measurement => {
+        const svgStart = convertPointToSvg(
+          measurement.startPoint[0],
+          measurement.startPoint[1],
+          wallHeight,
+          wallLength,
+          view
+        )
+        const svgEnd = convertPointToSvg(measurement.endPoint[0], measurement.endPoint[1], wallHeight, wallLength, view)
+
+        // Account for offset and text/marker space
+        const offset = measurement.offset || 0
+        const extraSpace = 60 // Space for text and markers
+
+        const startWithOffset = [svgStart[0], svgStart[1] + offset]
+        const endWithOffset = [svgEnd[0], svgEnd[1] + offset]
+
+        minX = Math.min(minX, startWithOffset[0] - extraSpace, endWithOffset[0] - extraSpace)
+        minY = Math.min(minY, startWithOffset[1] - extraSpace, endWithOffset[1] - extraSpace)
+        maxX = Math.max(maxX, startWithOffset[0] + extraSpace, endWithOffset[0] + extraSpace)
+        maxY = Math.max(maxY, startWithOffset[1] + extraSpace, endWithOffset[1] + extraSpace)
+      })
+    }
+
+    // Add padding
+    const padding = 20
+    minX -= padding
+    minY -= padding
+    maxX += padding
+    maxY += padding
 
     const width = maxX - minX
     const height = maxY - minY
 
     return `${minX} ${minY} ${width} ${height}`
-  }, [wallLength, wallHeight, showIssues, issueHighlights])
+  }, [wallLength, wallHeight, showIssues, issueHighlights, plan.measurements, view])
 
   return (
     <svg
@@ -245,6 +245,23 @@ export function WallConstructionPlanDisplay({
       {/* Issue highlights using Bounds2D */}
       {showIssues &&
         issueHighlights.map((highlight, index) => renderIssueBounds(highlight.bounds, highlight.type, index))}
+
+      {/* Measurements */}
+      {plan.measurements?.map((measurement, index) => (
+        <SvgMeasurementIndicator
+          key={`${measurement.type}-${index}`}
+          startPoint={measurement.startPoint}
+          endPoint={measurement.endPoint}
+          label={measurement.label}
+          offset={measurement.offset}
+          wallHeight={wallHeight}
+          wallLength={wallLength}
+          view={view}
+          color={COLORS.indicators.main}
+          fontSize={60}
+          strokeWidth={10}
+        />
+      ))}
     </svg>
   )
 }

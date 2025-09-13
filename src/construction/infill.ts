@@ -16,6 +16,11 @@ import { constructOpening } from './openings'
 import { resolveDefaultMaterial } from './material'
 import type { ResolveMaterialFunction } from './material'
 import { constructStraw } from './straw'
+import {
+  calculatePostSpacingMeasurements,
+  calculateOpeningMeasurements,
+  calculateOpeningSpacingMeasurements
+} from './measurements'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {
   maxPostSpacing: Length // Default: 800mm
@@ -263,6 +268,18 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
     }
   }
 
+  // Calculate measurements
+  const allElements = segments.flatMap(s => s.elements)
+  const postSpacingMeasurements = calculatePostSpacingMeasurements(allElements)
+
+  const openingMeasurements = segments
+    .filter(s => s.type === 'opening')
+    .flatMap(s => calculateOpeningMeasurements(s, floorHeight))
+
+  const openingSpacingMeasurements = calculateOpeningSpacingMeasurements(segments, wall.insideLength, floorHeight)
+
+  const measurements = [...postSpacingMeasurements, ...openingMeasurements, ...openingSpacingMeasurements]
+
   return {
     wallId: wall.id,
     constructionType: 'infill',
@@ -272,6 +289,7 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
       height: floorHeight
     },
     segments,
+    measurements,
     errors,
     warnings
   }

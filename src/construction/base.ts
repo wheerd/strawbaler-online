@@ -1,5 +1,5 @@
 import type { Opening, OpeningType, PerimeterWall, PerimeterWallId } from '@/model'
-import type { Length, Vec3 } from '@/types/geometry'
+import type { Length, Vec3, Vec2 } from '@/types/geometry'
 import type { MaterialId } from './material'
 import type { StrawConfig } from './straw'
 import type { OpeningConstruction, OpeningConstructionConfig } from './openings'
@@ -22,6 +22,14 @@ export interface ConstructionIssue {
   elements: ConstructionElementId[]
 }
 
+export interface Measurement {
+  type: 'post-spacing' | 'opening-spacing' | 'opening-width' | 'sill-height' | 'header-height' | 'opening-height'
+  startPoint: Vec2 // Construction coordinates [x, z]
+  endPoint: Vec2 // Construction coordinates [x, z]
+  label: string // e.g., "800mm", "1200mm"
+  offset?: number // Distance from wall (negative for below, positive for above)
+}
+
 export interface WallConstructionPlan {
   wallId: PerimeterWallId
   constructionType: ConstructionType
@@ -32,6 +40,7 @@ export interface WallConstructionPlan {
   }
 
   segments: ConstructionSegment[]
+  measurements: Measurement[]
 
   errors: ConstructionIssue[]
   warnings: ConstructionIssue[]
