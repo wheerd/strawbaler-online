@@ -1,11 +1,19 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { resolveDefaultMaterial, type WallConstructionPlan } from '@/construction'
-import type { Vec3 } from '@/types/geometry'
+import { ExclamationTriangleIcon, CrossCircledIcon, CheckCircledIcon } from '@radix-ui/react-icons'
+import {
+  resolveDefaultMaterial,
+  type WallConstructionPlan,
+  type ConstructionIssue,
+  type ConstructionElementId
+} from '@/construction'
+import { boundsFromPoints, createVec2, type Bounds2D, type Vec2, type Vec3 } from '@/types/geometry'
+import { COLORS } from '@/theme/colors'
 
 interface WallConstructionPlanDisplayProps {
   plan: WallConstructionPlan
   view?: ViewType
+  showIssues?: boolean
 }
 
 type ViewType = 'outside' | 'inside'
@@ -41,9 +49,97 @@ const convertConstructionToSvg = (
   }
 }
 
+interface IssueHighlight {
+  bounds: Bounds2D
+  type: 'error' | 'warning'
+  description: string
+  elementIds: ConstructionElementId[]
+}
+
+const calculateIssueBounds = (
+  issueElementIds: ConstructionElementId[],
+  elements: any[],
+  wallHeight: number,
+  wallLength: number,
+  view: ViewType
+): Bounds2D | null => {
+  // Find affected elements
+  const affectedElements = elements.filter(el => issueElementIds.includes(el.id))
+
+  if (affectedElements.length === 0) return null
+
+  // Convert all element corners to SVG coordinate Vec2 points
+  const allPoints: Vec2[] = []
+
+  for (const element of affectedElements) {
+    const { position, size } = convertConstructionToSvg(element.position, element.size, wallHeight, wallLength, view)
+
+    // Add all 4 corners of the rectangle
+    allPoints.push(
+      createVec2(position.x, position.y), // top-left
+      createVec2(position.x + size.x, position.y), // top-right
+      createVec2(position.x, position.y + size.y), // bottom-left
+      createVec2(position.x + size.x, position.y + size.y) // bottom-right
+    )
+  }
+
+  // Use existing utility to create bounding box
+  const bounds = boundsFromPoints(allPoints)
+
+  // Add padding around the bounding box for visual clarity
+  if (bounds) {
+    const padding = 10 // pixels
+    return {
+      min: createVec2(bounds.min[0] - padding, bounds.min[1] - padding),
+      max: createVec2(bounds.max[0] + padding, bounds.max[1] + padding)
+    }
+  }
+
+  return null
+}
+
+const getIssueColors = (type: 'error' | 'warning') => {
+  if (type === 'error') {
+    return {
+      stroke: COLORS.ui.danger,
+      fill: `${COLORS.ui.danger}AA`,
+      strokeWidth: 50,
+      dashArray: '100,100'
+    }
+  } else {
+    return {
+      stroke: COLORS.ui.warning,
+      fill: `${COLORS.ui.warning}88`,
+      strokeWidth: 30,
+      dashArray: '100,100'
+    }
+  }
+}
+
+const renderIssueBounds = (bounds: Bounds2D, issueType: 'error' | 'warning', index: number) => {
+  const width = bounds.max[0] - bounds.min[0]
+  const height = bounds.max[1] - bounds.min[1]
+  const colors = getIssueColors(issueType)
+
+  return (
+    <rect
+      key={`${issueType}-${index}`}
+      x={bounds.min[0]}
+      y={bounds.min[1]}
+      width={width}
+      height={height}
+      stroke={colors.stroke}
+      strokeWidth={colors.strokeWidth}
+      fill={colors.fill}
+      strokeDasharray={colors.dashArray}
+    />
+  )
+}
+
 export function WallConstructionPlanDisplay({
   plan,
-  view = 'outside'
+  view = 'outside',
+  showIssues = true
 }: WallConstructionPlanDisplayProps): React.JSX.Element {
   const { length: wallLength, height: wallHeight } = plan.wallDimensions
   const elements = plan.segments.flatMap(s => s.elements)
@@ -55,13 +151,74 @@ export function WallConstructionPlanDisplay({
     return view === 'outside' ? a.position[1] - b.position[1] : b.position[1] - a.position[1]
   })
 
+  // Calculate issue highlights using Bounds2D
+  const issueHighlights: IssueHighlight[] = useMemo(() => {
+    if (!showIssues) return []
+
+    const highlights: IssueHighlight[] = []
+
+    // Process warnings
+    plan.warnings.forEach(warning => {
+      const bounds = calculateIssueBounds(warning.elements, elements, wallHeight, wallLength, view)
+      if (bounds) {
+        highlights.push({
+          bounds,
+          type: 'warning',
+          description: warning.description,
+          elementIds: warning.elements
+        })
+      }
+    })
+
+    // Process errors
+    plan.errors.forEach(error => {
+      const bounds = calculateIssueBounds(error.elements, elements, wallHeight, wallLength, view)
+      if (bounds) {
+        highlights.push({
+          bounds,
+          type: 'error',
+          description: error.description,
+          elementIds: error.elements
+        })
+      }
+    })
+
+    return highlights
+  }, [plan.errors, plan.warnings, elements, wallHeight, wallLength, view, showIssues])
+
+  // Calculate expanded viewBox to include issue highlights with padding
+  const expandedViewBox = useMemo(() => {
+    if (!showIssues || issueHighlights.length === 0) {
+      return `0 0 ${wallLength} ${wallHeight}`
+    }
+
+    // Find the bounds of all issue highlights
+    let minX = 0
+    let minY = 0
+    let maxX = wallLength as number
+    let maxY = wallHeight as number
+
+    issueHighlights.forEach(highlight => {
+      minX = Math.min(minX, highlight.bounds.min[0])
+      minY = Math.min(minY, highlight.bounds.min[1])
+      maxX = Math.max(maxX, highlight.bounds.max[0])
+      maxY = Math.max(maxY, highlight.bounds.max[1])
+    })
+
+    const width = maxX - minX
+    const height = maxY - minY
+
+    return `${minX} ${minY} ${width} ${height}`
+  }, [wallLength, wallHeight, showIssues, issueHighlights])
+
   return (
     <svg
-      viewBox={`0 0 ${wallLength} ${wallHeight}`}
+      viewBox={expandedViewBox}
       className="w-full h-full"
       style={{ minHeight: '200px' }}
       preserveAspectRatio="xMidYMid meet"
     >
+      {/* Construction elements */}
       {sortedElements.map(element => {
         const { position, size } = convertConstructionToSvg(
           element.position,
@@ -84,9 +241,62 @@ export function WallConstructionPlanDisplay({
           />
         )
       })}
+
+      {/* Issue highlights using Bounds2D */}
+      {showIssues &&
+        issueHighlights.map((highlight, index) => renderIssueBounds(highlight.bounds, highlight.type, index))}
     </svg>
   )
 }
+
+interface IssueDescriptionPanelProps {
+  errors: ConstructionIssue[]
+  warnings: ConstructionIssue[]
+}
+
+const IssueDescriptionPanel = ({ errors, warnings }: IssueDescriptionPanelProps) => (
+  <div className="bg-white border-t border-gray-200 max-h-40 overflow-y-auto">
+    {errors.length > 0 && (
+      <div className="p-3 border-b border-red-100 bg-red-50">
+        <h4 className="text-red-800 font-medium flex items-center gap-2">
+          <CrossCircledIcon className="w-4 h-4" />
+          Errors ({errors.length})
+        </h4>
+        {errors.map((error, index) => (
+          <div key={index} className="text-sm text-red-700 mt-1 flex items-start gap-2">
+            <span className="text-red-400 mt-0.5">•</span>
+            <span>{error.description}</span>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {warnings.length > 0 && (
+      <div className="p-3 bg-yellow-50">
+        <h4 className="text-yellow-800 font-medium flex items-center gap-2">
+          <ExclamationTriangleIcon className="w-4 h-4" />
+          Warnings ({warnings.length})
+        </h4>
+        {warnings.map((warning, index) => (
+          <div key={index} className="text-sm text-yellow-700 mt-1 flex items-start gap-2">
+            <span className="text-yellow-400 mt-0.5">•</span>
+            <span>{warning.description}</span>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {errors.length === 0 && warnings.length === 0 && (
+      <div className="p-3 bg-green-50">
+        <h4 className="text-green-800 font-medium flex items-center gap-2">
+          <CheckCircledIcon className="w-4 h-4" />
+          No Issues Found
+        </h4>
+        <div className="text-sm text-green-700 mt-1">Construction plan is valid with no errors or warnings.</div>
+      </div>
+    )}
+  </div>
+)
 
 interface WallConstructionPlanModalProps {
   plan: WallConstructionPlan
@@ -138,9 +348,14 @@ export function WallConstructionPlanModal({ plan, children }: WallConstructionPl
             </div>
           </div>
 
-          <div className="flex-1 p-4 overflow-hidden">
-            <div className="w-full h-full bg-gray-50 rounded-lg border border-gray-200 p-2">
-              <WallConstructionPlanDisplay plan={plan} view={view} />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 p-4 overflow-hidden">
+              <div className="w-full h-full bg-gray-50 rounded-lg border border-gray-200 p-2 overflow-hidden">
+                <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />
             </div>
           </div>
         </Dialog.Content>
