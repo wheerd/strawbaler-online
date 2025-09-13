@@ -1,10 +1,19 @@
 import { useCallback, useMemo } from 'react'
 import * as Select from '@radix-ui/react-select'
 import { useModelStore } from '@/model/store'
-import { createLength } from '@/types/geometry'
+import { createLength, type Length } from '@/types/geometry'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
 import type { PerimeterWallId, PerimeterId } from '@/types/ids'
 import type { PerimeterConstructionType } from '@/types/model'
+import { WallConstructionPlanModal } from '@/components/FloorPlanEditor/WallConstructionPlan'
+import {
+  constructInfillWall,
+  door,
+  strawbale,
+  window as windowOpening,
+  wood360x60,
+  type InfillConstructionConfig
+} from '@/construction'
 
 interface PerimeterWallInspectorProps {
   perimeterId: PerimeterId
@@ -26,6 +35,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
 
   // Get perimeter from store
   const outerWall = useModelStore(state => state.perimeters.get(perimeterId))
+  const getStoreyById = useModelStore(state => state.getStoreyById)
 
   // Use useMemo to find wall within the wall object
   const wall = useMemo(() => {
@@ -58,6 +68,52 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
       </div>
     )
   }
+
+  const storey = getStoreyById(outerWall.storeyId)
+
+  const infillConfig: InfillConstructionConfig = {
+    maxPostSpacing: 800 as Length,
+    minStrawSpace: 70 as Length,
+    posts: {
+      type: 'full',
+      width: 60 as Length,
+      material: wood360x60.id
+    },
+    openings: {
+      door: {
+        padding: 15 as Length,
+        headerThickness: 60 as Length,
+        headerMaterial: wood360x60.id,
+        fillingMaterial: door.id,
+        fillingThickness: 50 as Length
+      },
+      window: {
+        padding: 15 as Length,
+        headerThickness: 60 as Length,
+        headerMaterial: wood360x60.id,
+        sillThickness: 60 as Length,
+        sillMaterial: wood360x60.id,
+        fillingMaterial: windowOpening.id,
+        fillingThickness: 30 as Length
+      },
+      passage: {
+        padding: 15 as Length,
+        headerThickness: 60 as Length,
+        headerMaterial: wood360x60.id
+      }
+    },
+    straw: {
+      baleLength: 800 as Length,
+      baleHeight: 500 as Length,
+      baleWidth: 360 as Length,
+      material: strawbale.id
+    }
+  }
+
+  const constructionPlan = useMemo(
+    () => constructInfillWall(wall, storey!.height, infillConfig),
+    [wall, storey, infillConfig]
+  )
 
   return (
     <div className="p-2">
@@ -162,6 +218,15 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               <div className="text-xs text-gray-600">Passages</div>
             </div>
           </div>
+        </div>
+
+        {/* Construction Plan */}
+        <div className="pt-2 border-t border-gray-200">
+          <WallConstructionPlanModal plan={constructionPlan}>
+            <button className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded transition-colors">
+              View Construction Plan
+            </button>
+          </WallConstructionPlanModal>
         </div>
       </div>
     </div>
