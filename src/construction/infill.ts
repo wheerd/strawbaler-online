@@ -213,21 +213,18 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
   const segments: ConstructionSegment[] = []
 
   // Segment the wall based on openings
-  const wallSegments = segmentWall(wall.insideLength, wall.openings, 'infill')
+  const wallSegments = segmentWall(wall, floorHeight)
 
   for (const segment of wallSegments) {
     if (segment.type === 'wall') {
-      // Construct infill wall segment
-      const wallSegmentPosition: Vec3 = [segment.position, 0, 0]
-      const wallSegmentSize: Vec3 = [segment.width, wall.thickness, floorHeight]
-
+      // Construct infill wall segment - segment already has Vec3 position and size
       const {
         it: wallElements,
         errors: wallErrors,
         warnings: wallWarnings
       } = infillWallArea(
-        wallSegmentPosition,
-        wallSegmentSize,
+        segment.position,
+        segment.size,
         config,
         resolveDefaultMaterial,
         true, // startsWithStand
@@ -238,8 +235,8 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
       const wallConstruction: WallConstructionSegment = {
         id: createConstructionElementId(),
         type: 'wall',
-        position: segment.position,
-        width: segment.width,
+        position: segment.position[0] as Length,
+        width: segment.size[0] as Length,
         constructionType: 'infill',
         elements: wallElements
       }
@@ -247,15 +244,17 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
       segments.push(wallConstruction)
       errors.push(...wallErrors)
       warnings.push(...wallWarnings)
-    } else if (segment.type === 'opening' && segment.opening) {
-      // Construct opening segment
-      const openingConfig = config.openings[segment.opening.type]
+    } else if (segment.type === 'opening' && segment.openings) {
+      // Construct opening segment - use first opening's type for configuration
+      // (all openings in a merged segment must be same type for now)
+      const openingType = segment.openings[0].type
+      const openingConfig = config.openings[openingType]
 
       const {
         it: openingConstruction,
         errors: openingErrors,
         warnings: openingWarnings
-      } = constructOpening(segment.opening, openingConfig, config, floorHeight, wall.thickness, resolveDefaultMaterial)
+      } = constructOpening(segment, openingConfig, config, resolveDefaultMaterial)
 
       segments.push(openingConstruction)
       errors.push(...openingErrors)

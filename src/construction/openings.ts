@@ -6,7 +6,8 @@ import {
   type BaseConstructionSegment,
   type ConstructionElement,
   type ConstructionIssue,
-  type WithIssues
+  type WithIssues,
+  type WallSegment3D
 } from './base'
 import type { InfillConstructionConfig } from './infill'
 import { infillWallArea } from './infill'
@@ -25,40 +26,58 @@ export interface OpeningConstructionConfig {
 }
 
 export interface OpeningConstruction extends BaseConstructionSegment {
-  openingId: OpeningId
   type: 'opening'
+  openingIds: OpeningId[] // Array to support merged adjacent openings
+}
+
+function extractUnifiedDimensions(openings: Opening[]): {
+  sillHeight: Length
+  headerHeight: Length
+} {
+  // All openings in a segment have same sill/header heights (guaranteed by segmentWall)
+  const firstOpening = openings[0]
+  const sillHeight = (firstOpening.sillHeight ?? 0) as Length
+  const headerHeight = (sillHeight + firstOpening.height) as Length
+
+  return { sillHeight, headerHeight }
 }
 
 export const constructOpeningFrame = (
-  opening: Opening,
+  openingSegment: WallSegment3D,
   config: OpeningConstructionConfig,
   infill: InfillConstructionConfig,
-  wallHeight: Length,
-  wallThickness: Length,
   resolveMaterial: ResolveMaterialFunction
 ): WithIssues<ConstructionElement[]> => {
+  if (openingSegment.type !== 'opening' || !openingSegment.openings) {
+    throw new Error('constructOpeningFrame requires an opening segment with openings array')
+  }
+
+  const openings = openingSegment.openings
+  const segmentPosition = openingSegment.position
+  const segmentSize = openingSegment.size
+  const wallHeight = segmentSize[2]
+  const wallThickness = segmentSize[1]
+
+  const { sillHeight, headerHeight } = extractUnifiedDimensions(openings)
   const errors: ConstructionIssue[] = []
   const warnings: ConstructionIssue[] = []
   const elements: ConstructionElement[] = []
 
-  // Calculate opening bounds - opening height includes padding
-  const openingBottom = (opening.sillHeight ?? 0) as Length
-  const openingTop = (openingBottom + opening.height) as Length
-
   // Check if header is required and fits
-  const isOpeningAtWallTop = openingTop >= wallHeight
+  const isOpeningAtWallTop = headerHeight >= wallHeight
   const headerRequired = !isOpeningAtWallTop
 
   if (headerRequired) {
-    const headerBottom = openingTop
+    const headerBottom = headerHeight
     const headerTop = (headerBottom + config.headerThickness) as Length
 
+    // Create single header spanning entire segment width
     const headerElement: ConstructionElement = {
       id: createConstructionElementId(),
       type: 'header',
       material: config.headerMaterial,
-      position: [opening.offsetFromStart, 0, headerBottom],
-      size: [opening.width, wallThickness, config.headerThickness]
+      position: [segmentPosition[0], segmentPosition[1], headerBottom],
+      size: [segmentSize[0], segmentSize[1], config.headerThickness]
     }
 
     if (headerTop > wallHeight) {
@@ -72,19 +91,20 @@ export const constructOpeningFrame = (
   }
 
   // Check if sill is required and fits
-  const sillRequired = opening.sillHeight !== undefined && opening.sillHeight > 0
+  const sillRequired = sillHeight > 0
 
   let sillElement: ConstructionElement | null = null
   if (sillRequired && config.sillThickness && config.sillMaterial) {
-    const sillTop = openingBottom
+    const sillTop = sillHeight
     const sillBottom = (sillTop - config.sillThickness) as Length
 
+    // Create single sill spanning entire segment width
     sillElement = {
       id: createConstructionElementId(),
       type: 'sill',
       material: config.sillMaterial,
-      position: [opening.offsetFromStart, 0, sillBottom] as Vec3,
-      size: [opening.width, wallThickness, config.sillThickness] as Vec3
+      position: [segmentPosition[0], segmentPosition[1], sillBottom] as Vec3,
+      size: [segmentSize[0], segmentSize[1], config.sillThickness] as Vec3
     }
 
     if (sillBottom < 0) {
@@ -97,32 +117,34 @@ export const constructOpeningFrame = (
     elements.push(sillElement)
   }
 
-  // Create optional filling (door/window placeholder) - centered with padding
+  // Create individual filling elements for each opening if configured
   if (config.fillingMaterial && config.fillingThickness) {
-    const fillingWidth = (opening.width - 2 * config.padding) as Length
-    const fillingHeight = (opening.height - 2 * config.padding) as Length
-    const fillingElement: ConstructionElement = {
-      id: createConstructionElementId(),
-      type: 'opening',
-      material: config.fillingMaterial,
-      position: [
-        (opening.offsetFromStart + config.padding) as Length,
-        (wallThickness - config.fillingThickness) / 2,
-        (openingBottom + config.padding) as Length
-      ] as Vec3,
-      size: [fillingWidth, config.fillingThickness, fillingHeight] as Vec3
-    }
-    elements.push(fillingElement)
+    openings.forEach(opening => {
+      const fillingWidth = (opening.width - 2 * config.padding) as Length
+      const fillingHeight = (opening.height - 2 * config.padding) as Length
+      const fillingElement: ConstructionElement = {
+        id: createConstructionElementId(),
+        type: 'opening',
+        material: config.fillingMaterial!,
+        position: [
+          (opening.offsetFromStart + config.padding) as Length,
+          (wallThickness - config.fillingThickness!) / 2,
+          (sillHeight + config.padding) as Length
+        ] as Vec3,
+        size: [fillingWidth, config.fillingThickness!, fillingHeight] as Vec3
+      }
+      elements.push(fillingElement)
+    })
   }
 
   // Create wall above header (if space remains)
   if (headerRequired) {
-    const wallAboveBottom = (openingTop + config.headerThickness) as Length
+    const wallAboveBottom = (headerHeight + config.headerThickness) as Length
     const wallAboveHeight = (wallHeight - wallAboveBottom) as Length
 
     if (wallAboveHeight > 0) {
-      const wallAbovePosition: Vec3 = [opening.offsetFromStart, 0, wallAboveBottom]
-      const wallAboveSize: Vec3 = [opening.width, wallThickness, wallAboveHeight]
+      const wallAbovePosition: Vec3 = [segmentPosition[0], segmentPosition[1], wallAboveBottom]
+      const wallAboveSize: Vec3 = [segmentSize[0], segmentSize[1], wallAboveHeight]
 
       const {
         it: wallElements,
@@ -139,11 +161,11 @@ export const constructOpeningFrame = (
   // Create wall below sill (if space remains)
   if (sillRequired) {
     const sillThickness = config.sillThickness ?? (60 as Length)
-    const wallBelowHeight = (openingBottom - sillThickness) as Length
+    const wallBelowHeight = (sillHeight - sillThickness) as Length
 
     if (wallBelowHeight > 0) {
-      const wallBelowPosition: Vec3 = [opening.offsetFromStart, 0, 0]
-      const wallBelowSize: Vec3 = [opening.width, wallThickness, wallBelowHeight]
+      const wallBelowPosition: Vec3 = [segmentPosition[0], segmentPosition[1], 0]
+      const wallBelowSize: Vec3 = [segmentSize[0], segmentSize[1], wallBelowHeight]
 
       const {
         it: wallElements,
@@ -161,25 +183,24 @@ export const constructOpeningFrame = (
 }
 
 export const constructOpening = (
-  opening: Opening,
+  openingSegment: WallSegment3D,
   config: OpeningConstructionConfig,
   infill: InfillConstructionConfig,
-  wallHeight: Length,
-  wallThickness: Length,
   resolveMaterial: ResolveMaterialFunction
 ): WithIssues<OpeningConstruction> => {
-  const {
-    it: elements,
-    errors,
-    warnings
-  } = constructOpeningFrame(opening, config, infill, wallHeight, wallThickness, resolveMaterial)
+  if (openingSegment.type !== 'opening' || !openingSegment.openings) {
+    throw new Error('constructOpening requires an opening segment with openings array')
+  }
+
+  const { it: elements, errors, warnings } = constructOpeningFrame(openingSegment, config, infill, resolveMaterial)
+
   return {
     it: {
       id: createConstructionElementId(),
       type: 'opening',
-      openingId: opening.id,
-      position: opening.offsetFromStart,
-      width: opening.width,
+      openingIds: openingSegment.openings.map(o => o.id),
+      position: openingSegment.position[0] as Length,
+      width: openingSegment.size[0] as Length,
       elements
     },
     warnings,

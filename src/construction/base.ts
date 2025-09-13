@@ -88,38 +88,73 @@ export interface WithIssues<T> {
   warnings: ConstructionIssue[]
 }
 
-export interface WallSegment {
+export interface WallSegment3D {
   type: 'wall' | 'opening'
-  position: Length
-  width: Length
+  position: Vec3 // [offsetFromStart, 0, 0]
+  size: Vec3 // [width, wallThickness, wallHeight]
 
-  // For wall segments
-  constructionType?: ConstructionType
-
-  // For opening segments
-  opening?: Opening
+  // For opening segments - array supports merged adjacent openings
+  openings?: Opening[]
 }
 
-export function segmentWall(
-  wallLength: Length,
-  openings: Opening[],
-  constructionType: ConstructionType = 'infill'
-): WallSegment[] {
-  if (openings.length === 0) {
+function canMergeOpenings(opening1: Opening, opening2: Opening): boolean {
+  // Check if openings are adjacent
+  const opening1End = opening1.offsetFromStart + opening1.width
+  const opening2Start = opening2.offsetFromStart
+
+  if (opening1End !== opening2Start) return false
+
+  // Check if sill heights match
+  const sill1 = opening1.sillHeight ?? 0
+  const sill2 = opening2.sillHeight ?? 0
+  if (sill1 !== sill2) return false
+
+  // Check if header positions match (sill + height)
+  const header1 = sill1 + opening1.height
+  const header2 = sill2 + opening2.height
+  if (header1 !== header2) return false
+
+  return true
+}
+
+function mergeAdjacentOpenings(sortedOpenings: Opening[]): Opening[][] {
+  if (sortedOpenings.length === 0) return []
+
+  const groups: Opening[][] = []
+  let currentGroup = [sortedOpenings[0]]
+
+  for (let i = 1; i < sortedOpenings.length; i++) {
+    const prevOpening = currentGroup[currentGroup.length - 1]
+    const currentOpening = sortedOpenings[i]
+
+    if (canMergeOpenings(prevOpening, currentOpening)) {
+      currentGroup.push(currentOpening)
+    } else {
+      groups.push(currentGroup)
+      currentGroup = [currentOpening]
+    }
+  }
+
+  groups.push(currentGroup)
+  return groups
+}
+
+export function segmentWall(wall: PerimeterWall, wallHeight: Length): WallSegment3D[] {
+  if (wall.openings.length === 0) {
     // No openings - just one wall segment for the entire length
     return [
       {
         type: 'wall',
-        position: 0 as Length,
-        width: wallLength,
-        constructionType
+        position: [0, 0, 0],
+        size: [wall.insideLength, wall.thickness, wallHeight]
       }
     ]
   }
 
   // Sort openings by position along the wall
-  const sortedOpenings = [...openings].sort((a, b) => a.offsetFromStart - b.offsetFromStart)
-  const segments: WallSegment[] = []
+  const sortedOpenings = [...wall.openings].sort((a, b) => a.offsetFromStart - b.offsetFromStart)
+
+  // Validate openings don't overlap and fit within wall
   let currentPosition = 0 as Length
 
   for (const opening of sortedOpenings) {
@@ -127,9 +162,9 @@ export function segmentWall(
     const openingEnd = (openingStart + opening.width) as Length
 
     // Validate opening fits within wall
-    if (openingEnd > wallLength) {
+    if (openingEnd > wall.insideLength) {
       throw new Error(
-        `Opening extends beyond wall length: opening ends at ${openingEnd}mm but wall is only ${wallLength}mm long`
+        `Opening extends beyond wall length: opening ends at ${openingEnd}mm but wall ${wall.id} is only ${wall.insideLength}mm long`
       )
     }
 
@@ -140,36 +175,50 @@ export function segmentWall(
       )
     }
 
-    // Create wall segment before opening if there's space
-    if (openingStart > currentPosition) {
-      const wallSegmentWidth = (openingStart - currentPosition) as Length
-      segments.push({
-        type: 'wall',
-        position: currentPosition,
-        width: wallSegmentWidth,
-        constructionType
-      })
-    }
-
-    // Create opening segment
-    segments.push({
-      type: 'opening',
-      position: openingStart,
-      width: opening.width,
-      opening
-    })
-
     currentPosition = openingEnd
   }
 
+  // Group adjacent compatible openings
+  const openingGroups = mergeAdjacentOpenings(sortedOpenings)
+
+  // Create segments with Vec3 positioning
+  const segments: WallSegment3D[] = []
+  currentPosition = 0 as Length
+
+  for (const openingGroup of openingGroups) {
+    const groupStart = openingGroup[0].offsetFromStart
+    const groupEnd = (openingGroup[openingGroup.length - 1].offsetFromStart +
+      openingGroup[openingGroup.length - 1].width) as Length
+
+    // Create wall segment before opening group if there's space
+    if (groupStart > currentPosition) {
+      const wallSegmentWidth = (groupStart - currentPosition) as Length
+      segments.push({
+        type: 'wall',
+        position: [currentPosition, 0, 0],
+        size: [wallSegmentWidth, wall.thickness, wallHeight]
+      })
+    }
+
+    // Create opening segment for the group
+    const groupWidth = (groupEnd - groupStart) as Length
+    segments.push({
+      type: 'opening',
+      position: [groupStart, 0, 0],
+      size: [groupWidth, wall.thickness, wallHeight],
+      openings: openingGroup
+    })
+
+    currentPosition = groupEnd
+  }
+
   // Create final wall segment if there's remaining space
-  if (currentPosition < wallLength) {
-    const remainingWidth = (wallLength - currentPosition) as Length
+  if (currentPosition < wall.insideLength) {
+    const remainingWidth = (wall.insideLength - currentPosition) as Length
     segments.push({
       type: 'wall',
-      position: currentPosition,
-      width: remainingWidth,
-      constructionType
+      position: [currentPosition, 0, 0],
+      size: [remainingWidth, wall.thickness, wallHeight]
     })
   }
 

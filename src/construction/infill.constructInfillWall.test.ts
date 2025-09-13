@@ -127,7 +127,7 @@ describe('constructInfillWall - Integration Tests', () => {
       expect(result.segments[1].position).toBe(2000)
       expect(result.segments[1].width).toBe(800)
       if (result.segments[1].type === 'opening') {
-        expect(result.segments[1].openingId).toBe(opening.id)
+        expect(result.segments[1].openingIds).toEqual([opening.id])
       }
 
       // Second wall segment
@@ -376,13 +376,13 @@ describe('constructInfillWall - Integration Tests', () => {
       expect(openingSegments).toHaveLength(3)
 
       if (openingSegments[0].type === 'opening') {
-        expect(openingSegments[0].openingId).toBe(door.id)
+        expect(openingSegments[0].openingIds).toEqual([door.id])
       }
       if (openingSegments[1].type === 'opening') {
-        expect(openingSegments[1].openingId).toBe(window.id)
+        expect(openingSegments[1].openingIds).toEqual([window.id])
       }
       if (openingSegments[2].type === 'opening') {
-        expect(openingSegments[2].openingId).toBe(passage.id)
+        expect(openingSegments[2].openingIds).toEqual([passage.id])
       }
     })
   })
