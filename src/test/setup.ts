@@ -54,7 +54,7 @@ const propsAttrs = (props: any): Record<string, any> => {
 }
 
 // Mock React-Konva components with test-friendly implementations
-vi.mock('react-konva', async () => {
+vi.mock('react-konva/lib/ReactKonvaCore', async () => {
   const React = await import('react')
   return {
     Stage: ({ children, ...props }: any) =>
