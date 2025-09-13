@@ -7,37 +7,37 @@ export const isMaterialId = (id: string): id is MaterialId => id.startsWith('mat
 
 export type Material = DimensionalMaterial | SheetMaterial | VolumeMaterial | GenericMaterial
 
-interface BaseMaterial {
+export interface BaseMaterial {
   type: 'dimensional' | 'sheet' | 'volume' | 'generic'
   id: MaterialId
   name: string
   color: string
 }
 
-interface DimensionalMaterial extends BaseMaterial {
+export interface DimensionalMaterial extends BaseMaterial {
   type: 'dimensional'
   width: Length
   thickness: Length
   availableLengths: Length[]
 }
 
-interface SheetMaterial extends BaseMaterial {
+export interface SheetMaterial extends BaseMaterial {
   type: 'sheet'
   width: Length
   length: Length
   thickness: Length
 }
 
-interface VolumeMaterial extends BaseMaterial {
+export interface VolumeMaterial extends BaseMaterial {
   type: 'volume'
   availableVolumes: number[]
 }
 
-interface GenericMaterial extends BaseMaterial {
+export interface GenericMaterial extends BaseMaterial {
   type: 'generic'
 }
 
-const wood360x60: DimensionalMaterial = {
+export const wood360x60: DimensionalMaterial = {
   id: createMaterialId(),
   name: 'Wood 36cm x 6cm',
   width: 360 as Length,
@@ -47,7 +47,7 @@ const wood360x60: DimensionalMaterial = {
   availableLengths: [5000 as Length]
 }
 
-const wood240x60: DimensionalMaterial = {
+export const wood240x60: DimensionalMaterial = {
   id: createMaterialId(),
   name: 'Wood 24cm x 6cm',
   width: 240 as Length,
@@ -57,7 +57,7 @@ const wood240x60: DimensionalMaterial = {
   availableLengths: [5000 as Length]
 }
 
-const wood120x60: DimensionalMaterial = {
+export const wood120x60: DimensionalMaterial = {
   id: createMaterialId(),
   name: 'Wood 12cm x 6cm',
   width: 120 as Length,
@@ -67,7 +67,7 @@ const wood120x60: DimensionalMaterial = {
   availableLengths: [5000 as Length]
 }
 
-const wood140x140: DimensionalMaterial = {
+export const wood140x140: DimensionalMaterial = {
   id: createMaterialId(),
   name: 'Wood 14cm x 14cm',
   width: 140 as Length,
@@ -77,7 +77,7 @@ const wood140x140: DimensionalMaterial = {
   availableLengths: [5000 as Length]
 }
 
-const strawbale: DimensionalMaterial = {
+export const strawbale: DimensionalMaterial = {
   id: createMaterialId(),
   name: 'Strawbale',
   width: 500 as Length,

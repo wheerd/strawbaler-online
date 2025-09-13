@@ -1,10 +1,18 @@
 import { useCallback, useMemo } from 'react'
 import * as Select from '@radix-ui/react-select'
 import { useModelStore } from '@/model/store'
-import { createLength } from '@/types/geometry'
+import { createLength, type Length } from '@/types/geometry'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
 import type { PerimeterWallId, PerimeterId } from '@/types/ids'
 import type { PerimeterConstructionType } from '@/types/model'
+import { WallConstructionPlanDisplay } from '@/components/FloorPlanEditor/WallConstructionPlan'
+import {
+  constructInfillWall,
+  DEFAULT_MATERIALS,
+  strawbale,
+  wood360x60,
+  type InfillConstructionConfig
+} from '@/construction'
 
 interface PerimeterWallInspectorProps {
   perimeterId: PerimeterId
@@ -26,6 +34,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
 
   // Get perimeter from store
   const outerWall = useModelStore(state => state.perimeters.get(perimeterId))
+  const getStoreyById = useModelStore(state => state.getStoreyById)
 
   // Use useMemo to find wall within the wall object
   const wall = useMemo(() => {
@@ -59,12 +68,58 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
     )
   }
 
+  const storey = getStoreyById(outerWall.storeyId)
+
+  const infillConfig: InfillConstructionConfig = {
+    maxPostSpacing: 800 as Length,
+    minStrawSpace: 70 as Length,
+    posts: {
+      type: 'full',
+      width: 60 as Length,
+      material: wood360x60.id
+    },
+    openings: {
+      door: {
+        padding: 15 as Length,
+        headerThickness: 60 as Length,
+        headerMaterial: wood360x60.id
+      },
+      window: {
+        padding: 15 as Length,
+        headerThickness: 60 as Length,
+        headerMaterial: wood360x60.id,
+        sillThickness: 60 as Length,
+        sillMaterial: wood360x60.id
+      },
+      passage: {
+        padding: 15 as Length,
+        headerThickness: 60 as Length,
+        headerMaterial: wood360x60.id
+      }
+    },
+    straw: {
+      baleLength: 800 as Length,
+      baleHeight: 500 as Length,
+      baleWidth: 360 as Length,
+      material: strawbale.id
+    }
+  }
+
+  const constructionPlan = useMemo(
+    () => constructInfillWall(wall, storey!.height, infillConfig),
+    [wall, storey, infillConfig]
+  )
+
   return (
     <div className="p-2">
       <div className="space-y-4">
         {/* Basic Properties */}
         <div className="space-y-2">
           <div className="space-y-1.5">
+            <div>
+              <WallConstructionPlanDisplay plan={constructionPlan} />
+            </div>
+
             {/* Construction Type */}
             <div className="flex items-center justify-between gap-3">
               <label className="text-xs font-medium text-gray-600 flex-shrink-0">Construction Type</label>
