@@ -144,6 +144,42 @@ describe('constructPost', () => {
 
       expect(result.warnings).toHaveLength(0)
     })
+
+    it('should not generate warning for swapped material dimensions (60x120 post with 120x60 material)', () => {
+      const swappedConfig: FullPostConfig = {
+        type: 'full',
+        width: 60 as Length, // Swapped: material.thickness (60)
+        material: dimensionalMaterialId
+      }
+
+      const position: Vec3 = [100 as Length, 0 as Length, 0 as Length]
+      const size: Vec3 = [60 as Length, 120 as Length, 2500 as Length] // Swapped: material.width (120)
+
+      const result = constructPost(position, size, swappedConfig, mockResolveMaterial)
+
+      expect(result.warnings).toHaveLength(0)
+      expect(result.it).toHaveLength(1)
+      const post = result.it[0]
+      expect(post.size).toEqual([60, 120, 2500])
+    })
+
+    it('should not generate warning for original dimensions (120x60 post with 120x60 material)', () => {
+      const originalConfig: FullPostConfig = {
+        type: 'full',
+        width: 120 as Length, // Original: material.width (120)
+        material: dimensionalMaterialId
+      }
+
+      const position: Vec3 = [100 as Length, 0 as Length, 0 as Length]
+      const size: Vec3 = [120 as Length, 60 as Length, 2500 as Length] // Original: material.thickness (60)
+
+      const result = constructPost(position, size, originalConfig, mockResolveMaterial)
+
+      expect(result.warnings).toHaveLength(0)
+      expect(result.it).toHaveLength(1)
+      const post = result.it[0]
+      expect(post.size).toEqual([120, 60, 2500])
+    })
   })
 
   describe('double post construction', () => {
@@ -305,6 +341,42 @@ describe('constructPost', () => {
 
       expect(result.warnings).toHaveLength(1)
       expect(result.warnings[0].description).toContain("don't match material dimensions")
+    })
+
+    it('should not generate warning for swapped material dimensions (60x120 posts with 120x60 material)', () => {
+      const swappedConfig: DoublePostConfig = {
+        type: 'double',
+        width: 60 as Length, // Swapped: material.thickness (60)
+        thickness: 120 as Length, // Swapped: material.width (120)
+        material: dimensionalMaterialId,
+        infillMaterial: mockStrawMaterial
+      }
+
+      const position: Vec3 = [100 as Length, 0 as Length, 0 as Length]
+      const size: Vec3 = [60 as Length, 300 as Length, 2500 as Length]
+
+      const result = constructPost(position, size, swappedConfig, mockResolveMaterial)
+
+      expect(result.warnings).toHaveLength(0)
+      expect(result.it).toHaveLength(3) // 2 posts + 1 infill
+    })
+
+    it('should not generate warning for original dimensions (120x60 posts with 120x60 material)', () => {
+      const originalConfig: DoublePostConfig = {
+        type: 'double',
+        width: 120 as Length, // Original: material.width (120)
+        thickness: 60 as Length, // Original: material.thickness (60)
+        material: dimensionalMaterialId,
+        infillMaterial: mockStrawMaterial
+      }
+
+      const position: Vec3 = [100 as Length, 0 as Length, 0 as Length]
+      const size: Vec3 = [120 as Length, 200 as Length, 2500 as Length]
+
+      const result = constructPost(position, size, originalConfig, mockResolveMaterial)
+
+      expect(result.warnings).toHaveLength(0)
+      expect(result.it).toHaveLength(3) // 2 posts + 1 infill
     })
   })
 

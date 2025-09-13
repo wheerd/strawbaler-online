@@ -22,6 +22,27 @@ export interface DoublePostConfig extends BasePostConfig {
 
 export type PostConfig = FullPostConfig | DoublePostConfig
 
+/**
+ * Checks if two dimensional materials have matching dimensions.
+ * Allows for swapped dimensions (e.g., 360x60 matches 60x360).
+ */
+const dimensionsMatch = (
+  dim1: { width: Length; thickness: Length },
+  dim2: { width: Length; thickness: Length }
+): boolean => {
+  // Direct match
+  if (dim1.width === dim2.width && dim1.thickness === dim2.thickness) {
+    return true
+  }
+
+  // Swapped dimensions match (360x60 === 60x360)
+  if (dim1.width === dim2.thickness && dim1.thickness === dim2.width) {
+    return true
+  }
+
+  return false
+}
+
 const constructFullPost = (
   position: Vec3,
   size: Vec3,
@@ -42,7 +63,10 @@ const constructFullPost = (
   const material = resolveMaterial(config.material)
   if (material && material.type === 'dimensional') {
     const dimensionalMaterial = material as Material & { type: 'dimensional' }
-    if (dimensionalMaterial.width !== config.width || dimensionalMaterial.thickness !== size[1]) {
+    const postDimensions = { width: config.width, thickness: size[1] as Length }
+    const materialDimensions = { width: dimensionalMaterial.width, thickness: dimensionalMaterial.thickness }
+
+    if (!dimensionsMatch(postDimensions, materialDimensions)) {
       warnings.push({
         description: `Post dimensions (${config.width}x${size[1]}mm) don't match material dimensions (${dimensionalMaterial.width}x${dimensionalMaterial.thickness}mm)`,
         elements: [postElement.id]
@@ -124,7 +148,10 @@ const constructDoublePost = (
   const postMaterial = resolveMaterial(config.material)
   if (postMaterial && postMaterial.type === 'dimensional') {
     const dimensionalMaterial = postMaterial as Material & { type: 'dimensional' }
-    if (dimensionalMaterial.width !== config.width || dimensionalMaterial.thickness !== config.thickness) {
+    const postDimensions = { width: config.width, thickness: config.thickness }
+    const materialDimensions = { width: dimensionalMaterial.width, thickness: dimensionalMaterial.thickness }
+
+    if (!dimensionsMatch(postDimensions, materialDimensions)) {
       warnings.push({
         description: `Post dimensions (${config.width}x${config.thickness}mm) don't match material dimensions (${dimensionalMaterial.width}x${dimensionalMaterial.thickness}mm)`,
         elements: [post1.id, post2.id]
