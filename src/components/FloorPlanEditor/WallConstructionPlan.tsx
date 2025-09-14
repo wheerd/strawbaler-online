@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { ExclamationTriangleIcon, CrossCircledIcon, CheckCircledIcon } from '@radix-ui/react-icons'
+import { ExclamationTriangleIcon, CrossCircledIcon, CheckCircledIcon, Cross2Icon } from '@radix-ui/react-icons'
 import {
   resolveDefaultMaterial,
   type WallConstructionPlan,
@@ -327,19 +327,36 @@ export function WallConstructionPlanModal({ plan, children }: WallConstructionPl
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl z-50 w-[90vw] h-[80vh] max-w-6xl flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <Dialog.Title className="text-lg font-semibold text-gray-900">Wall Construction Plan</Dialog.Title>
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[100]" />
+        <Dialog.Content className="fixed inset-4 bg-white rounded-lg shadow-xl z-[100] flex flex-col">
+          <div className="flex items-center justify-between p-3 border-b border-gray-200">
+            <Dialog.Title className="text-base font-medium text-gray-900">Wall Construction Plan</Dialog.Title>
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">View:</label>
+            <Dialog.Close asChild>
+              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                <Cross2Icon className="w-5 h-5" />
+              </button>
+            </Dialog.Close>
+          </div>
+
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 p-2 overflow-hidden">
+              <div className="w-full h-full bg-gray-50 rounded-lg border border-gray-200 p-1 overflow-hidden">
+                <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
+              </div>
+            </div>
+            <div className="flex-shrink-0 flex">
+              <div className="flex-1">
+                <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />
+              </div>
+              <div className="flex items-center px-4 py-3 border-t border-gray-200">
                 <div className="flex bg-gray-100 rounded-md p-1">
                   <button
                     onClick={() => setView('outside')}
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      view === 'outside' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                      view === 'outside'
+                        ? 'bg-primary-500 text-white shadow-sm'
+                        : 'bg-white text-black hover:text-gray-700'
                     }`}
                   >
                     Outside
@@ -347,32 +364,15 @@ export function WallConstructionPlanModal({ plan, children }: WallConstructionPl
                   <button
                     onClick={() => setView('inside')}
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      view === 'inside' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                      view === 'inside'
+                        ? 'bg-primary-500 text-white shadow-sm'
+                        : 'bg-white text-black hover:text-gray-700'
                     }`}
                   >
                     Inside
                   </button>
                 </div>
               </div>
-
-              <Dialog.Close asChild>
-                <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              </Dialog.Close>
-            </div>
-          </div>
-
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 p-4 overflow-hidden">
-              <div className="w-full h-full bg-gray-50 rounded-lg border border-gray-200 p-2 overflow-hidden">
-                <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
-              </div>
-            </div>
-            <div className="flex-shrink-0">
-              <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />
             </div>
           </div>
         </Dialog.Content>
