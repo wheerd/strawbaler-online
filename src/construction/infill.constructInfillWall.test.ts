@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import type { PerimeterWall, Opening } from '@/model'
+import type { PerimeterWall, Opening, Perimeter } from '@/model'
 import type { Length } from '@/types/geometry'
-import { createOpeningId, createPerimeterWallId } from '@/types/ids'
+import { createOpeningId, createPerimeterWallId, createPerimeterId, createPerimeterCornerId } from '@/types/ids'
 import { constructInfillWall, type InfillConstructionConfig } from './infill'
 import { createMaterialId } from './material'
+import { createVec2 } from '@/types/geometry'
 
 const createTestWall = (overrides: Partial<PerimeterWall> = {}): PerimeterWall => ({
   id: createPerimeterWallId(),
@@ -18,6 +19,25 @@ const createTestWall = (overrides: Partial<PerimeterWall> = {}): PerimeterWall =
   direction: [1, 0],
   outsideDirection: [0, 1],
   ...overrides
+})
+
+const createTestPerimeter = (wall: PerimeterWall): Perimeter => ({
+  id: createPerimeterId(),
+  storeyId: 'test-storey' as any,
+  boundary: [],
+  walls: [wall],
+  corners: [
+    {
+      id: createPerimeterCornerId(),
+      outsidePoint: createVec2(-100, 400),
+      belongsTo: 'previous' // doesn't belong to wall[0]
+    },
+    {
+      id: createPerimeterCornerId(),
+      outsidePoint: createVec2(5100, 400),
+      belongsTo: 'next' // doesn't belong to wall[0]
+    }
+  ]
 })
 
 const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
@@ -82,12 +102,13 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       expect(result.wallId).toBe(wall.id)
       expect(result.constructionType).toBe('infill')
       expect(result.wallDimensions).toEqual({
         length: 5000,
+        boundaryLength: 5000,
         thickness: 360,
         height: 2500
       })
@@ -113,7 +134,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       expect(result.segments).toHaveLength(3) // wall + opening + wall
 
@@ -151,7 +172,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       expect(result.segments).toHaveLength(5) // wall + opening + wall + opening + wall
 
@@ -192,7 +213,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       expect(result.segments).toHaveLength(2) // opening + wall
 
@@ -220,7 +241,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       expect(result.segments).toHaveLength(2) // wall + opening
 
@@ -238,15 +259,17 @@ describe('constructInfillWall - Integration Tests', () => {
     it('preserves wall dimensions correctly', () => {
       const wall = createTestWall({
         insideLength: 4000 as Length,
+        wallLength: 4000 as Length,
         thickness: 300 as Length
       })
       const config = createTestConfig()
       const floorHeight = 2700 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       expect(result.wallDimensions).toEqual({
-        length: 4000,
+        length: 4000, // This is now the construction length including corners
+        boundaryLength: 4000, // This is the original wall length
         thickness: 300,
         height: 2700
       })
@@ -257,7 +280,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       expect(result.constructionType).toBe('infill')
 
@@ -275,7 +298,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       const wallSegment = result.segments[0]
       if (wallSegment.type === 'wall') {
@@ -301,7 +324,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       const openingSegment = result.segments[1]
       if (openingSegment.type === 'opening') {
@@ -329,7 +352,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       // Should still create a result, even if it has no meaningful segments
       expect(result).toBeDefined()
@@ -345,7 +368,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       expect(result).toBeDefined()
       expect(result.segments).toHaveLength(1)
@@ -366,7 +389,7 @@ describe('constructInfillWall - Integration Tests', () => {
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
-      const result = constructInfillWall(wall, floorHeight, config)
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config)
 
       // Should have wall + door + wall + window + wall + passage + wall = 7 segments
       expect(result.segments).toHaveLength(7)

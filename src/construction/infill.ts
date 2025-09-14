@@ -1,4 +1,4 @@
-import type { PerimeterWall } from '@/model'
+import type { PerimeterWall, Perimeter } from '@/model'
 import type { Length, Vec3 } from '@/types/geometry'
 import { constructPost, type PostConfig } from './posts'
 import type {
@@ -21,6 +21,7 @@ import {
   calculateOpeningMeasurements,
   calculateOpeningSpacingMeasurements
 } from './measurements'
+import { calculateWallCornerInfo, calculateWallConstructionLength } from './corners'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {
   maxPostSpacing: Length // Default: 800mm
@@ -209,6 +210,7 @@ function getBaleWidth(availableWidth: Length, config: InfillConstructionConfig):
 
 export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstructionConfig> = (
   wall: PerimeterWall,
+  perimeter: Perimeter,
   floorHeight: Length,
   config: InfillConstructionConfig
 ): WallConstructionPlan => {
@@ -280,16 +282,28 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
 
   const measurements = [...postSpacingMeasurements, ...openingMeasurements, ...openingSpacingMeasurements]
 
+  // Calculate corner information
+  const cornerInfo = calculateWallCornerInfo(wall, perimeter, floorHeight)
+
+  // Calculate construction length including assigned corners
+  const { startCorner, endCorner } = cornerInfo
+  const startCornerData = startCorner ? (perimeter.corners.find(c => c.id === startCorner.id) ?? null) : null
+  const endCornerData = endCorner ? (perimeter.corners.find(c => c.id === endCorner.id) ?? null) : null
+
+  const { constructionLength } = calculateWallConstructionLength(wall, startCornerData, endCornerData)
+
   return {
     wallId: wall.id,
     constructionType: 'infill',
     wallDimensions: {
-      length: wall.insideLength,
+      length: constructionLength,
+      boundaryLength: wall.wallLength,
       thickness: wall.thickness,
       height: floorHeight
     },
     segments,
     measurements,
+    cornerInfo,
     errors,
     warnings
   }

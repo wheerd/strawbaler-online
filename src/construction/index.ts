@@ -3,6 +3,7 @@ import { constructInfillWall } from './infill'
 import { constructStrawhengeWall } from './strawhenge'
 
 export * from './base'
+export * from './corners'
 export * from './infill'
 export * from './material'
 export * from './openings'

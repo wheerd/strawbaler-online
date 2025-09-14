@@ -111,8 +111,8 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
   }
 
   const constructionPlan = useMemo(
-    () => constructInfillWall(wall, storey!.height, infillConfig),
-    [wall, storey, infillConfig]
+    () => (outerWall && wall ? constructInfillWall(wall, outerWall, storey!.height, infillConfig) : null),
+    [wall, outerWall, storey, infillConfig]
   )
 
   return (
@@ -222,11 +222,13 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
 
         {/* Construction Plan */}
         <div className="pt-2 border-t border-gray-200">
-          <WallConstructionPlanModal plan={constructionPlan}>
-            <button className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded transition-colors">
-              View Construction Plan
-            </button>
-          </WallConstructionPlanModal>
+          {constructionPlan && (
+            <WallConstructionPlanModal plan={constructionPlan}>
+              <button className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded transition-colors">
+                View Construction Plan
+              </button>
+            </WallConstructionPlanModal>
+          )}
         </div>
       </div>
     </div>

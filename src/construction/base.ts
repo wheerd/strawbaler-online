@@ -1,4 +1,4 @@
-import type { Opening, OpeningType, PerimeterWall, PerimeterWallId } from '@/model'
+import type { Opening, OpeningType, PerimeterWall, PerimeterWallId, PerimeterCornerId, Perimeter } from '@/model'
 import type { Length, Vec3, Vec2 } from '@/types/geometry'
 import type { MaterialId } from './material'
 import type { StrawConfig } from './straw'
@@ -11,6 +11,7 @@ export interface BaseConstructionConfig {
 
 export type PerimeterWallConstructionMethod<TConfig> = (
   wall: PerimeterWall,
+  perimeter: Perimeter,
   floorHeight: Length,
   config: TConfig
 ) => WallConstructionPlan
@@ -30,17 +31,37 @@ export interface Measurement {
   offset?: number // Distance from wall (negative for below, positive for above)
 }
 
+export interface WallCornerInfo {
+  startCorner: {
+    id: PerimeterCornerId
+    belongsToThisWall: boolean
+    extensionDistance: Length
+    position: Vec2 // [x, z] in construction coordinates
+    size: Vec2 // [width, height]
+  } | null
+
+  endCorner: {
+    id: PerimeterCornerId
+    belongsToThisWall: boolean
+    extensionDistance: Length
+    position: Vec2
+    size: Vec2 // [width, height]
+  } | null
+}
+
 export interface WallConstructionPlan {
   wallId: PerimeterWallId
   constructionType: ConstructionType
   wallDimensions: {
-    length: Length
+    length: Length // The ACTUAL construction length (includes assigned corners)
+    boundaryLength: Length // The original wall boundary length
     thickness: Length
     height: Length
   }
 
   segments: ConstructionSegment[]
   measurements: Measurement[]
+  cornerInfo: WallCornerInfo
 
   errors: ConstructionIssue[]
   warnings: ConstructionIssue[]

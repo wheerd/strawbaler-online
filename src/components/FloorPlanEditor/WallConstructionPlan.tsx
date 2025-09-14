@@ -246,6 +246,59 @@ export function WallConstructionPlanDisplay({
       {showIssues &&
         issueHighlights.map((highlight, index) => renderIssueBounds(highlight.bounds, highlight.type, index))}
 
+      {/* Corner areas */}
+      {plan.cornerInfo.startCorner &&
+        (() => {
+          const { position, size } = convertConstructionToSvg(
+            [plan.cornerInfo.startCorner.position[0], 0, plan.cornerInfo.startCorner.position[1]], // Convert Vec2 to Vec3
+            [plan.cornerInfo.startCorner.size[0], 0, plan.cornerInfo.startCorner.size[1]], // Convert Vec2 to Vec3
+            wallHeight,
+            wallLength,
+            view
+          )
+
+          return (
+            <rect
+              key="start-corner"
+              x={position.x}
+              y={position.y}
+              width={size.x}
+              height={size.y}
+              fill="none"
+              stroke={plan.cornerInfo.startCorner.belongsToThisWall ? '#666666' : '#cccccc'}
+              strokeWidth={plan.cornerInfo.startCorner.belongsToThisWall ? '20' : '10'}
+              strokeDasharray={plan.cornerInfo.startCorner.belongsToThisWall ? '200,100' : '100,50'}
+              opacity={plan.cornerInfo.startCorner.belongsToThisWall ? 0.7 : 0.4}
+            />
+          )
+        })()}
+
+      {plan.cornerInfo.endCorner &&
+        (() => {
+          const { position, size } = convertConstructionToSvg(
+            [plan.cornerInfo.endCorner.position[0], 0, plan.cornerInfo.endCorner.position[1]], // Convert Vec2 to Vec3
+            [plan.cornerInfo.endCorner.size[0], 0, plan.cornerInfo.endCorner.size[1]], // Convert Vec2 to Vec3
+            wallHeight,
+            wallLength,
+            view
+          )
+
+          return (
+            <rect
+              key="end-corner"
+              x={position.x}
+              y={position.y}
+              width={size.x}
+              height={size.y}
+              fill="none"
+              stroke={plan.cornerInfo.endCorner.belongsToThisWall ? '#666666' : '#cccccc'}
+              strokeWidth={plan.cornerInfo.endCorner.belongsToThisWall ? '30' : '20'}
+              strokeDasharray={plan.cornerInfo.endCorner.belongsToThisWall ? '200,100' : '100,50'}
+              opacity={plan.cornerInfo.endCorner.belongsToThisWall ? 0.7 : 0.4}
+            />
+          )
+        })()}
+
       {/* Measurements */}
       {plan.measurements?.map((measurement, index) => (
         <SvgMeasurementIndicator

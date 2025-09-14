@@ -1,4 +1,4 @@
-import type { PerimeterWall } from '@/model'
+import type { PerimeterWall, Perimeter } from '@/model'
 import type { Length } from '@/types/geometry'
 import type { MaterialId } from './material'
 import type { PostConfig } from './posts'
@@ -18,6 +18,7 @@ export interface StrawhengeConstructionConfig {
 
 export const constructStrawhengeWall: PerimeterWallConstructionMethod<StrawhengeConstructionConfig> = (
   _wall: PerimeterWall,
+  _perimeter: Perimeter,
   _floorHeight: Length,
   _config: StrawhengeConstructionConfig
 ): WallConstructionPlan => {
