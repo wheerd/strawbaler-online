@@ -130,8 +130,8 @@ const createInfiniteLines = (
   return infiniteLines
 }
 
-// Step 2: Calculate corner outside points as intersections of adjacent outside lines
-const calculateCornerOutsidePoints = (
+// Step 2: Calculate corner points (both inside and outside) as intersections of adjacent lines
+const calculateCornerPoints = (
   boundary: Polygon2D,
   thicknesses: Length[],
   infiniteLines: Array<{ inside: Line2D; outside: Line2D }>,
@@ -144,6 +144,9 @@ const calculateCornerOutsidePoints = (
     const prevIndex = (i - 1 + numSides) % numSides
     const prevOutsideLine = infiniteLines[prevIndex].outside
     const currentOutsideLine = infiniteLines[i].outside
+
+    // Inside point is the boundary point
+    const insidePoint = boundary.points[i]
 
     // Find intersection of adjacent outside lines
     const intersection = lineIntersection(prevOutsideLine, currentOutsideLine)
@@ -167,6 +170,7 @@ const calculateCornerOutsidePoints = (
     const existingCorner = existingCorners?.[i]
     corners.push({
       id: existingCorner?.id ?? createPerimeterCornerId(),
+      insidePoint,
       outsidePoint,
       belongsTo: existingCorner?.belongsTo ?? 'next'
     })
@@ -186,8 +190,8 @@ const calculateWallEndpoints = (
   const finalWalls: PerimeterWall[] = []
 
   for (let i = 0; i < numSides; i++) {
-    const boundaryStart = boundary.points[i]
-    const boundaryEnd = boundary.points[(i + 1) % numSides]
+    const boundaryStart = corners[i].insidePoint
+    const boundaryEnd = corners[(i + 1) % numSides].insidePoint
     const wallMidpoint = midpoint(boundaryStart, boundaryEnd)
 
     const startCornerOutside = corners[i].outsidePoint
@@ -251,7 +255,7 @@ const createWallsAndCorners = (
   // Use shared functions for the three-step process
   const thicknesses = Array(boundary.points.length).fill(thickness)
   const infiniteLines = createInfiniteLines(boundary, thicknesses)
-  const corners = calculateCornerOutsidePoints(boundary, thicknesses, infiniteLines, existingCorners)
+  const corners = calculateCornerPoints(boundary, thicknesses, infiniteLines, existingCorners)
 
   // Create initial walls with uniform thickness and construction type
   const initialWalls: PartialWallInput[] = []
@@ -328,7 +332,6 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     const perimeter: Perimeter = {
       id: createPerimeterId(),
       storeyId,
-      boundary: boundary.points,
       walls,
       corners
     }
@@ -362,7 +365,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     if (perimeter.corners.length < 4) return false
 
     // Create new boundary by removing the point at cornerIndex
-    const newBoundaryPoints = [...perimeter.boundary]
+    const newBoundaryPoints = perimeter.corners.map(c => c.insidePoint)
     newBoundaryPoints.splice(cornerIndex, 1)
 
     // Validate the new polygon wouldn't self-intersect
@@ -412,7 +415,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     const newBoundary = { points: newBoundaryPoints }
     const thicknesses = newWalls.map(s => (s as PartialWallInput).thickness)
     const infiniteLines = createInfiniteLines(newBoundary, thicknesses)
-    const updatedCorners = calculateCornerOutsidePoints(newBoundary, thicknesses, infiniteLines, newCorners)
+    const updatedCorners = calculateCornerPoints(newBoundary, thicknesses, infiniteLines, newCorners)
     const finalWalls = calculateWallEndpoints(
       newBoundary,
       newWalls as PartialWallInput[],
@@ -422,7 +425,6 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
     const updatedPerimeter: Perimeter = {
       ...perimeter,
-      boundary: newBoundaryPoints,
       walls: finalWalls,
       corners: updatedCorners
     }
@@ -456,9 +458,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     // Create new boundary by removing the two corner points that connected these walls
     // Remove the corner at wallIndex (between prev and target walls)
     // Remove the corner at (wallIndex + 1) % length (between target and next walls)
-    const newBoundaryPoints = [...perimeter.boundary]
+    const newBoundaryPoints = perimeter.corners.map(c => c.insidePoint)
     const cornerIndex1 = wallIndex
-    const cornerIndex2 = (wallIndex + 1) % perimeter.boundary.length
+    const cornerIndex2 = (wallIndex + 1) % perimeter.corners.length
 
     // Remove higher index first to avoid shifting
     if (cornerIndex2 > cornerIndex1) {
@@ -516,7 +518,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     const newBoundary = { points: newBoundaryPoints }
     const thicknesses = newWalls.map(s => (s as PartialWallInput).thickness)
     const infiniteLines = createInfiniteLines(newBoundary, thicknesses)
-    const updatedCorners = calculateCornerOutsidePoints(newBoundary, thicknesses, infiniteLines, newCorners)
+    const updatedCorners = calculateCornerPoints(newBoundary, thicknesses, infiniteLines, newCorners)
     const finalWalls = calculateWallEndpoints(
       newBoundary,
       newWalls as PartialWallInput[],
@@ -526,7 +528,6 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
     const updatedPerimeter: Perimeter = {
       ...perimeter,
-      boundary: newBoundaryPoints,
       walls: finalWalls,
       corners: updatedCorners
     }
@@ -592,10 +593,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       }
 
       // Use shared functions for the three-step process with mixed thickness
-      const boundary = { points: perimeter.boundary }
+      const boundary = { points: perimeter.corners.map(c => c.insidePoint) }
       const thicknesses = updatedWalls.map(s => s.thickness)
       const infiniteLines = createInfiniteLines(boundary, thicknesses)
-      const updatedCorners = calculateCornerOutsidePoints(boundary, thicknesses, infiniteLines, perimeter.corners)
+      const updatedCorners = calculateCornerPoints(boundary, thicknesses, infiniteLines, perimeter.corners)
       const finalWalls = calculateWallEndpoints(boundary, updatedWalls, updatedCorners, infiniteLines)
 
       const updatedPerimeter = {
@@ -938,18 +939,13 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       if (!perimeter) return state
 
       // Translate all boundary points by the offset
-      const newBoundary = perimeter.boundary.map(point => add(point, offset))
+      const newBoundary = perimeter.corners.map(corner => add(corner.insidePoint, offset))
 
       // Create new boundary polygon and recalculate all geometry
       const newBoundaryPolygon = { points: newBoundary }
       const thicknesses = perimeter.walls.map(s => s.thickness)
       const infiniteLines = createInfiniteLines(newBoundaryPolygon, thicknesses)
-      const updatedCorners = calculateCornerOutsidePoints(
-        newBoundaryPolygon,
-        thicknesses,
-        infiniteLines,
-        perimeter.corners
-      )
+      const updatedCorners = calculateCornerPoints(newBoundaryPolygon, thicknesses, infiniteLines, perimeter.corners)
 
       // Create wall inputs preserving existing data
       const wallInputs: PartialWallInput[] = perimeter.walls.map(wall => ({
@@ -963,7 +959,6 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
       const updatedPerimeter: Perimeter = {
         ...perimeter,
-        boundary: newBoundary,
         walls: finalWalls,
         corners: updatedCorners
       }
@@ -994,12 +989,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       const newBoundaryPolygon = { points: newBoundary }
       const thicknesses = perimeter.walls.map(s => s.thickness)
       const infiniteLines = createInfiniteLines(newBoundaryPolygon, thicknesses)
-      const updatedCorners = calculateCornerOutsidePoints(
-        newBoundaryPolygon,
-        thicknesses,
-        infiniteLines,
-        perimeter.corners
-      )
+      const updatedCorners = calculateCornerPoints(newBoundaryPolygon, thicknesses, infiniteLines, perimeter.corners)
 
       // Create wall inputs preserving existing data
       const wallInputs: PartialWallInput[] = perimeter.walls.map(wall => ({
@@ -1013,7 +1003,6 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
       const updatedPerimeter: Perimeter = {
         ...perimeter,
-        boundary: newBoundary,
         walls: finalWalls,
         corners: updatedCorners
       }

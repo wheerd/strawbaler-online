@@ -11,7 +11,6 @@ describe('PerimeterShape', () => {
   const testPerimeter: Perimeter = {
     id: createPerimeterId(),
     storeyId: createStoreyId(),
-    boundary: [createVec2(0, 0), createVec2(1000, 0), createVec2(1000, 1000), createVec2(0, 1000)],
     walls: [
       {
         id: createPerimeterWallId(),
@@ -93,21 +92,25 @@ describe('PerimeterShape', () => {
     corners: [
       {
         id: createPerimeterCornerId(),
+        insidePoint: createVec2(0, 0),
         outsidePoint: createVec2(1400, -400),
         belongsTo: 'next'
       },
       {
         id: createPerimeterCornerId(),
+        insidePoint: createVec2(1000, 0),
         outsidePoint: createVec2(1400, 1400),
         belongsTo: 'previous'
       },
       {
         id: createPerimeterCornerId(),
+        insidePoint: createVec2(1000, 1000),
         outsidePoint: createVec2(-400, 1400),
         belongsTo: 'next'
       },
       {
         id: createPerimeterCornerId(),
+        insidePoint: createVec2(0, 1000),
         outsidePoint: createVec2(-400, -400),
         belongsTo: 'previous'
       }
@@ -133,7 +136,7 @@ describe('PerimeterShape', () => {
           <Layer>
             <PerimeterCornerShape
               corner={testPerimeter.corners[0]}
-              boundaryPoint={testPerimeter.boundary[0]}
+              boundaryPoint={testPerimeter.corners[0].insidePoint}
               previousWall={testPerimeter.walls[3]}
               nextWall={testPerimeter.walls[0]}
               perimeterId={testPerimeter.id}

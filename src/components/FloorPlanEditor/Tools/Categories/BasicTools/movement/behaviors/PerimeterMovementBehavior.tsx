@@ -43,7 +43,7 @@ export class PerimeterMovementBehavior implements MovementBehavior<Perimeter, Pe
 
   validatePosition(movementState: PerimeterMovementState, context: MovementContext<Perimeter>): boolean {
     // Check if the moved polygon would intersect with other wall polygons
-    const previewBoundary = context.entity.boundary.map(point => add(point, movementState.offset))
+    const previewBoundary = context.entity.corners.map(corner => add(corner.insidePoint, movementState.offset))
 
     // Get other walls on the same floor
     const currentWall = context.entity
@@ -52,7 +52,7 @@ export class PerimeterMovementBehavior implements MovementBehavior<Perimeter, Pe
 
     // Check for intersections with other wall polygons
     for (const otherWall of otherWalls) {
-      if (arePolygonsIntersecting({ points: previewBoundary }, { points: otherWall.boundary })) {
+      if (arePolygonsIntersecting({ points: previewBoundary }, { points: otherWall.corners.map(c => c.insidePoint) })) {
         return false
       }
     }

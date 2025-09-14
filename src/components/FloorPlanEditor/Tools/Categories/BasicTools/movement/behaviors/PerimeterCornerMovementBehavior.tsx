@@ -47,8 +47,8 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
 
     const snapLines = this.getSnapLines(wall, cornerIndex)
     const snapContext: SnappingContext = {
-      snapPoints: [wall.boundary[cornerIndex]],
-      alignPoints: wall.boundary,
+      snapPoints: [wall.corners[cornerIndex].insidePoint],
+      alignPoints: wall.corners.map(c => c.insidePoint),
       referenceLineWalls: snapLines
     }
 
@@ -60,8 +60,8 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
     context: MovementContext<CornerEntityContext>
   ): CornerMovementState {
     const { wall, cornerIndex } = context.entity
-    const boundaryPoint = wall.boundary[cornerIndex]
-    const newBoundary = [...wall.boundary]
+    const boundaryPoint = wall.corners[cornerIndex].insidePoint
+    const newBoundary = wall.corners.map(c => c.insidePoint)
 
     return {
       position: boundaryPoint,
@@ -75,13 +75,13 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
   ): CornerMovementState {
     const { wall, cornerIndex, snapContext } = context.entity
 
-    const originalPosition = wall.boundary[cornerIndex]
+    const originalPosition = wall.corners[cornerIndex].insidePoint
     const newPosition = add(originalPosition, pointerState.delta)
 
     const snapResult = context.snappingService.findSnapResult(newPosition, snapContext)
     const finalPosition = snapResult?.position || newPosition
 
-    const newBoundary = [...wall.boundary]
+    const newBoundary = wall.corners.map(c => c.insidePoint)
     newBoundary[cornerIndex] = finalPosition
 
     return {
@@ -106,11 +106,11 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
   private getSnapLines(wall: Perimeter, cornerIndex: number): Array<LineWall2D> {
     const snapLines: Array<LineWall2D> = []
 
-    for (let i = 0; i < wall.boundary.length; i++) {
-      const nextIndex = (i + 1) % wall.boundary.length
+    for (let i = 0; i < wall.corners.length; i++) {
+      const nextIndex = (i + 1) % wall.corners.length
       if (i === cornerIndex || nextIndex === cornerIndex) continue
-      const start = wall.boundary[i]
-      const end = wall.boundary[nextIndex]
+      const start = wall.corners[i].insidePoint
+      const end = wall.corners[nextIndex].insidePoint
       snapLines.push({ start, end })
     }
 

@@ -22,7 +22,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
   }
 
   const totalPerimeter = outerWall.walls.reduce((l, s) => l + s.insideLength, 0)
-  const totalArea = calculatePolygonArea({ points: outerWall.boundary })
+  const totalArea = calculatePolygonArea({ points: outerWall.corners.map(c => c.insidePoint) })
 
   return (
     <div className="p-2">

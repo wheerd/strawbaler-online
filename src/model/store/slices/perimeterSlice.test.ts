@@ -79,7 +79,7 @@ describe('OuterWallsSlice', () => {
       const perimeter = Array.from(store.perimeters.values())[0]
 
       expect(perimeter.storeyId).toBe(testStoreyId)
-      expect(perimeter.boundary).toEqual(boundary.points)
+      expect(perimeter.corners.map(c => c.insidePoint)).toEqual(boundary.points)
       expect(perimeter.walls).toHaveLength(4) // Rectangle has 4 sides
       expect(perimeter.corners).toHaveLength(4) // Rectangle has 4 corners
 
@@ -1184,7 +1184,7 @@ describe('OuterWallsSlice', () => {
       expect(finalPerimeter.corners).toHaveLength(originalCornerCount) // Same number of corners
       expect(finalPerimeter.walls).toHaveLength(4) // Rectangle still has 4 walls
       expect(finalPerimeter.storeyId).toBe(testStoreyId)
-      expect(finalPerimeter.boundary).toEqual(boundary.points)
+      expect(finalPerimeter.corners.map(c => c.insidePoint)).toEqual(boundary.points)
     })
   })
 
@@ -1335,7 +1335,7 @@ describe('OuterWallsSlice', () => {
         // Should have one less corner and one less wall
         expect(updatedPerimeter.corners).toHaveLength(originalCornerCount - 1)
         expect(updatedPerimeter.walls).toHaveLength(originalWallCount - 1)
-        expect(updatedPerimeter.boundary).toHaveLength(originalWallCount - 1)
+        expect(updatedPerimeter.corners.map(c => c.insidePoint)).toHaveLength(originalWallCount - 1)
 
         // The removed corner should not exist
         expect(updatedPerimeter.corners.find(c => c.id === cornerToRemove.id)).toBeUndefined()
@@ -1486,7 +1486,7 @@ describe('OuterWallsSlice', () => {
         // Should have two less corners and two less walls (removes 3, adds 1, net -2)
         expect(updatedPerimeter.corners).toHaveLength(originalCornerCount - 2)
         expect(updatedPerimeter.walls).toHaveLength(originalWallCount - 2)
-        expect(updatedPerimeter.boundary).toHaveLength(originalWallCount - 2)
+        expect(updatedPerimeter.corners.map(c => c.insidePoint)).toHaveLength(originalWallCount - 2)
 
         // The removed wall should not exist
         expect(updatedPerimeter.walls.find(s => s.id === wallToRemove.id)).toBeUndefined()

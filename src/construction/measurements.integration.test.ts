@@ -23,16 +23,17 @@ const mockWall = (length: Length, openings: any[] = []): PerimeterWall => ({
 const mockPerimeter = (wall: PerimeterWall): Perimeter => ({
   id: createPerimeterId(),
   storeyId: 'test-storey' as any,
-  boundary: [],
   walls: [wall],
   corners: [
     {
       id: createPerimeterCornerId(),
+      insidePoint: createVec2(0, 0),
       outsidePoint: createVec2(-50, 150),
       belongsTo: 'next'
     },
     {
       id: createPerimeterCornerId(),
+      insidePoint: createVec2(wall.wallLength, 0),
       outsidePoint: createVec2(wall.wallLength + 50, 150),
       belongsTo: 'previous'
     }

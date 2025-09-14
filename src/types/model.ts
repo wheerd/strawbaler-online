@@ -37,11 +37,8 @@ export interface Perimeter {
   id: PerimeterId
   storeyId: StoreyId
 
-  // Polygon defining the inside area of the building
-  boundary: Vec2[] // Ordered clockwise, defines inner face of walls
-
   // Per-side wall data
-  walls: PerimeterWall[] // walls[i] goes from boundary[i] -> boundary[(i + 1) % boundary.length]
+  walls: PerimeterWall[] // walls[i] goes from corners[i].insidePoint -> corners[(i + 1) % corners.length].insidePoint
   corners: PerimeterCorner[]
 }
 
@@ -67,8 +64,11 @@ export interface PerimeterWall {
 export interface PerimeterCorner {
   id: PerimeterCornerId
 
-  // This point, the boundary point, and the two adjacent wall edge points define the corner area
-  // Together with the wall areas the form the whole area that the perimeter covers
+  // The inside point defines the inner boundary of the building
+  insidePoint: Vec2
+
+  // The outside point defines the outer edge after applying wall thickness
+  // Together with the inside points and adjacent wall edge points, these define the corner area
   outsidePoint: Vec2
 
   // Which wall "owns" this corner - this is relevant for construction

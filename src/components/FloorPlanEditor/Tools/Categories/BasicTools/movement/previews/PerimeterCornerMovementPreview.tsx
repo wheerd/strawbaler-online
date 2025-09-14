@@ -13,7 +13,7 @@ export function PerimeterCornerMovementPreview({
   context
 }: PerimeterCornerMovementPreviewProps): React.JSX.Element {
   const { wall, cornerIndex } = context.entity
-  const originalPosition = wall.boundary[cornerIndex]
+  const originalPosition = wall.corners[cornerIndex].insidePoint
 
   return (
     <Group>

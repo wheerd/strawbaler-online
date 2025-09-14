@@ -55,10 +55,10 @@ export class PerimeterWallMovementBehavior
     const projectedDistance = dot(pointerState.delta, wall.outsideDirection)
     const projectedDelta = scale(wall.outsideDirection, projectedDistance)
 
-    const newBoundary = [...perimeter.boundary]
-    newBoundary[wallIndex] = add(perimeter.boundary[wallIndex], projectedDelta)
-    newBoundary[(wallIndex + 1) % perimeter.boundary.length] = add(
-      perimeter.boundary[(wallIndex + 1) % perimeter.boundary.length],
+    const newBoundary = perimeter.corners.map(c => c.insidePoint)
+    newBoundary[wallIndex] = add(perimeter.corners[wallIndex].insidePoint, projectedDelta)
+    newBoundary[(wallIndex + 1) % perimeter.corners.length] = add(
+      perimeter.corners[(wallIndex + 1) % perimeter.corners.length].insidePoint,
       projectedDelta
     )
     return { projectedDelta, newBoundary }
@@ -72,10 +72,10 @@ export class PerimeterWallMovementBehavior
     const projectedDistance = dot(pointerState.delta, wall.outsideDirection)
     const projectedDelta = scale(wall.outsideDirection, projectedDistance)
 
-    const newBoundary = [...perimeter.boundary]
-    newBoundary[wallIndex] = add(perimeter.boundary[wallIndex], projectedDelta)
-    newBoundary[(wallIndex + 1) % perimeter.boundary.length] = add(
-      perimeter.boundary[(wallIndex + 1) % perimeter.boundary.length],
+    const newBoundary = perimeter.corners.map(c => c.insidePoint)
+    newBoundary[wallIndex] = add(perimeter.corners[wallIndex].insidePoint, projectedDelta)
+    newBoundary[(wallIndex + 1) % perimeter.corners.length] = add(
+      perimeter.corners[(wallIndex + 1) % perimeter.corners.length].insidePoint,
       projectedDelta
     )
     return { projectedDelta, newBoundary }

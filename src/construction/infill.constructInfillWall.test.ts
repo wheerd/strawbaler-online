@@ -24,16 +24,17 @@ const createTestWall = (overrides: Partial<PerimeterWall> = {}): PerimeterWall =
 const createTestPerimeter = (wall: PerimeterWall): Perimeter => ({
   id: createPerimeterId(),
   storeyId: 'test-storey' as any,
-  boundary: [],
   walls: [wall],
   corners: [
     {
       id: createPerimeterCornerId(),
+      insidePoint: createVec2(0, 0),
       outsidePoint: createVec2(-100, 400),
       belongsTo: 'previous' // doesn't belong to wall[0]
     },
     {
       id: createPerimeterCornerId(),
+      insidePoint: createVec2(5000, 0),
       outsidePoint: createVec2(5100, 400),
       belongsTo: 'next' // doesn't belong to wall[0]
     }

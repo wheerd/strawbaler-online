@@ -30,9 +30,15 @@ function createMockWall(wallLength: Length, thickness: Length): PerimeterWall {
   }
 }
 
-function createMockCorner(id: string, outsidePoint: [number, number], belongsTo: 'previous' | 'next'): PerimeterCorner {
+function createMockCorner(
+  id: string,
+  insidePoint: [number, number],
+  outsidePoint: [number, number],
+  belongsTo: 'previous' | 'next'
+): PerimeterCorner {
   return {
     id: id as any,
+    insidePoint: createVec2(insidePoint[0], insidePoint[1]),
     outsidePoint: createVec2(outsidePoint[0], outsidePoint[1]),
     belongsTo
   }
@@ -42,7 +48,6 @@ function createMockPerimeter(walls: PerimeterWall[], corners: PerimeterCorner[])
   return {
     id: createPerimeterId(),
     storeyId: 'test-storey' as any,
-    boundary: [],
     walls,
     corners
   }
@@ -62,10 +67,10 @@ describe('Corner Calculations', () => {
       const wall3 = createMockWall(wallLength, thickness) // left wall
 
       // Create corners - for wall[i], corner[i] is start and corner[i+1] is end
-      const corner0 = createMockCorner('corner-0', [-150, 450], 'next') // start of wall0, belongs to wall0
-      const corner1 = createMockCorner('corner-1', [3150, 450], 'previous') // end of wall0, belongs to wall0
-      const corner2 = createMockCorner('corner-2', [3150, 3450], 'next') // start of wall2, belongs to wall2
-      const corner3 = createMockCorner('corner-3', [-150, 3450], 'previous') // end of wall3, belongs to wall3
+      const corner0 = createMockCorner('corner-0', [0, 0], [-150, 450], 'next') // start of wall0, belongs to wall0
+      const corner1 = createMockCorner('corner-1', [3000, 0], [3150, 450], 'previous') // end of wall0, belongs to wall0
+      const corner2 = createMockCorner('corner-2', [3000, 3000], [3150, 3450], 'next') // start of wall2, belongs to wall2
+      const corner3 = createMockCorner('corner-3', [0, 3000], [-150, 3450], 'previous') // end of wall3, belongs to wall3
 
       const walls = [wall0, wall1, wall2, wall3]
       const corners = [corner0, corner1, corner2, corner3]
@@ -86,8 +91,8 @@ describe('Corner Calculations', () => {
     it('should calculate construction length including assigned corners', () => {
       const wall = createMockWall(wallLength, thickness)
 
-      const startCorner = createMockCorner('start-corner', [-150, 450], 'next')
-      const endCorner = createMockCorner('end-corner', [3150, 450], 'previous')
+      const startCorner = createMockCorner('start-corner', [0, 0], [-150, 450], 'next')
+      const endCorner = createMockCorner('end-corner', [3000, 0], [3150, 450], 'previous')
 
       const result = calculateWallConstructionLength(wall, startCorner, endCorner)
 
@@ -100,8 +105,8 @@ describe('Corner Calculations', () => {
     it('should not include extensions for corners that do not belong to this wall', () => {
       const wall = createMockWall(wallLength, thickness)
 
-      const startCorner = createMockCorner('start-corner', [-150, 450], 'previous') // not this wall's
-      const endCorner = createMockCorner('end-corner', [3150, 450], 'next') // not this wall's
+      const startCorner = createMockCorner('start-corner', [0, 0], [-150, 450], 'previous') // not this wall's
+      const endCorner = createMockCorner('end-corner', [3000, 0], [3150, 450], 'next') // not this wall's
 
       const result = calculateWallConstructionLength(wall, startCorner, endCorner)
 
@@ -114,8 +119,8 @@ describe('Corner Calculations', () => {
     it('should handle mixed corner ownership', () => {
       const wall = createMockWall(wallLength, thickness)
 
-      const startCorner = createMockCorner('start-corner', [-150, 450], 'next') // this wall's
-      const endCorner = createMockCorner('end-corner', [3150, 450], 'next') // not this wall's
+      const startCorner = createMockCorner('start-corner', [0, 0], [-150, 450], 'next') // this wall's
+      const endCorner = createMockCorner('end-corner', [3000, 0], [3150, 450], 'next') // not this wall's
 
       const result = calculateWallConstructionLength(wall, startCorner, endCorner)
 

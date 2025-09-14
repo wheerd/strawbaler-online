@@ -9,7 +9,7 @@ interface PerimeterShapeProps {
 }
 
 export function PerimeterShape({ perimeter }: PerimeterShapeProps): React.JSX.Element {
-  const innerPoints = perimeter.boundary.flatMap(point => [point[0], point[1]])
+  const innerPoints = perimeter.corners.flatMap(corner => [corner.insidePoint[0], corner.insidePoint[1]])
 
   return (
     <Group name={`perimeter-${perimeter.id}`} entityId={perimeter.id} entityType="perimeter" parentIds={[]} listening>
@@ -17,9 +17,9 @@ export function PerimeterShape({ perimeter }: PerimeterShapeProps): React.JSX.El
 
       {/* Render each wall */}
       {perimeter.walls.map((wall, index) => {
-        const nextIndex = (index + 1) % perimeter.boundary.length
-        const insideStartCorner = perimeter.boundary[index]
-        const insideEndCorner = perimeter.boundary[nextIndex]
+        const nextIndex = (index + 1) % perimeter.corners.length
+        const insideStartCorner = perimeter.corners[index].insidePoint
+        const insideEndCorner = perimeter.corners[nextIndex].insidePoint
         const outsideStartCorner = perimeter.corners[index].outsidePoint
         const outsideEndCorner = perimeter.corners[nextIndex].outsidePoint
         return (
@@ -42,7 +42,7 @@ export function PerimeterShape({ perimeter }: PerimeterShapeProps): React.JSX.El
 
         const previousWall = perimeter.walls[prevWallIndex]
         const nextWall = perimeter.walls[nextWallIndex]
-        const boundaryPoint = perimeter.boundary[cornerIndex]
+        const boundaryPoint = perimeter.corners[cornerIndex].insidePoint
 
         return (
           <PerimeterCornerShape

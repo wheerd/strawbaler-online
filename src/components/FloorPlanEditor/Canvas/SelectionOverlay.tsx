@@ -147,7 +147,6 @@ function getPerimeterCornerPoints(wall: Perimeter, cornerId: PerimeterCornerId):
   }
 
   const corner = wall.corners[cornerIndex]
-  const boundaryPoint = wall.boundary[cornerIndex]
 
   // Get adjacent walls
   const prevWallIndex = (cornerIndex - 1 + wall.walls.length) % wall.walls.length
@@ -157,7 +156,7 @@ function getPerimeterCornerPoints(wall: Perimeter, cornerId: PerimeterCornerId):
 
   // Create corner polygon (same logic as PerimeterCornerShape)
   return [
-    boundaryPoint,
+    corner.insidePoint,
     previousWall.insideLine.end,
     previousWall.outsideLine.end,
     corner.outsidePoint,
