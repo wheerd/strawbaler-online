@@ -52,7 +52,7 @@ export function SvgMeasurementIndicator({
 
   // Calculate perpendicular vector for offset
   const perpX = -dirY
-  const perpY = dirX
+  const perpY = view === 'inside' ? -dirX : dirX
 
   // Calculate offset positions using offset parameter
   const offsetStartX = svgStartX + perpX * offset
