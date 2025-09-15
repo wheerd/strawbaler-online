@@ -36,16 +36,12 @@ export interface WallCornerInfo {
     id: PerimeterCornerId
     belongsToThisWall: boolean
     extensionDistance: Length
-    position: Vec2 // [x, z] in construction coordinates
-    size: Vec2 // [width, height]
   } | null
 
   endCorner: {
     id: PerimeterCornerId
     belongsToThisWall: boolean
     extensionDistance: Length
-    position: Vec2
-    size: Vec2 // [width, height]
   } | null
 }
 
@@ -169,14 +165,19 @@ function mergeAdjacentOpenings(sortedOpenings: Opening[]): Opening[][] {
   return groups
 }
 
-export function segmentWall(wall: PerimeterWall, wallHeight: Length): WallSegment3D[] {
+export function segmentWall(
+  wall: PerimeterWall,
+  wallHeight: Length,
+  constructionLength: Length,
+  startExtension: Length = 0 as Length
+): WallSegment3D[] {
   if (wall.openings.length === 0) {
     // No openings - just one wall segment for the entire length
     return [
       {
         type: 'wall',
         position: [0, 0, 0],
-        size: [wall.insideLength, wall.thickness, wallHeight]
+        size: [constructionLength, wall.thickness, wallHeight]
       }
     ]
   }
@@ -191,10 +192,10 @@ export function segmentWall(wall: PerimeterWall, wallHeight: Length): WallSegmen
     const openingStart = opening.offsetFromStart
     const openingEnd = (openingStart + opening.width) as Length
 
-    // Validate opening fits within wall
-    if (openingEnd > wall.insideLength) {
+    // Validate opening fits within the original wall boundary (before extensions)
+    if (openingEnd > wall.wallLength) {
       throw new Error(
-        `Opening extends beyond wall length: opening ends at ${openingEnd}mm but wall ${wall.id} is only ${wall.insideLength}mm long`
+        `Opening extends beyond wall length: opening ends at ${openingEnd}mm but wall ${wall.id} is only ${wall.wallLength}mm long`
       )
     }
 
@@ -216,9 +217,11 @@ export function segmentWall(wall: PerimeterWall, wallHeight: Length): WallSegmen
   currentPosition = 0 as Length
 
   for (const openingGroup of openingGroups) {
-    const groupStart = openingGroup[0].offsetFromStart
+    // Adjust opening positions by start extension to account for corner extension
+    const groupStart = (openingGroup[0].offsetFromStart + startExtension) as Length
     const groupEnd = (openingGroup[openingGroup.length - 1].offsetFromStart +
-      openingGroup[openingGroup.length - 1].width) as Length
+      openingGroup[openingGroup.length - 1].width +
+      startExtension) as Length
 
     // Create wall segment before opening group if there's space
     if (groupStart > currentPosition) {
@@ -243,8 +246,8 @@ export function segmentWall(wall: PerimeterWall, wallHeight: Length): WallSegmen
   }
 
   // Create final wall segment if there's remaining space
-  if (currentPosition < wall.insideLength) {
-    const remainingWidth = (wall.insideLength - currentPosition) as Length
+  if (currentPosition < constructionLength) {
+    const remainingWidth = (constructionLength - currentPosition) as Length
     segments.push({
       type: 'wall',
       position: [currentPosition, 0, 0],

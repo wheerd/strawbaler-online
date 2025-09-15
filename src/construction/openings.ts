@@ -122,12 +122,18 @@ export const constructOpeningFrame = (
     openings.forEach(opening => {
       const fillingWidth = (opening.width - 2 * config.padding) as Length
       const fillingHeight = (opening.height - 2 * config.padding) as Length
+
+      // Calculate position relative to segment start
+      // opening.offsetFromStart is relative to wall start, but segment is already positioned correctly
+      // So we need the offset within this segment
+      const openingOffsetInSegment = (opening.offsetFromStart - openings[0].offsetFromStart) as Length
+
       const fillingElement: ConstructionElement = {
         id: createConstructionElementId(),
         type: 'opening',
         material: config.fillingMaterial!,
         position: [
-          (opening.offsetFromStart + config.padding) as Length,
+          (segmentPosition[0] + openingOffsetInSegment + config.padding) as Length,
           (wallThickness - config.fillingThickness!) / 2,
           (sillHeight + config.padding) as Length
         ] as Vec3,

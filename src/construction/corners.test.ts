@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculateWallCornerInfo, calculateWallConstructionLength } from './corners'
-import { createVec2, type Length } from '@/types/geometry'
+import { createVec2, createLength, type Length } from '@/types/geometry'
 import type { PerimeterWall, PerimeterCorner, Perimeter } from '@/model'
 import { createPerimeterWallId, createPerimeterId } from '@/types/ids'
 
@@ -56,7 +56,6 @@ function createMockPerimeter(walls: PerimeterWall[], corners: PerimeterCorner[])
 describe('Corner Calculations', () => {
   const wallLength = 3000 as Length
   const thickness = 300 as Length
-  const wallHeight = 2400 as Length
 
   describe('calculateWallCornerInfo', () => {
     it('should calculate corner info with proper corner assignment', () => {
@@ -77,13 +76,65 @@ describe('Corner Calculations', () => {
       const perimeter = createMockPerimeter(walls, corners)
 
       // Test wall0 - should have corner0 as start (belongs to wall0 = 'next') and corner1 as end (belongs to wall0 = 'previous')
-      const result = calculateWallCornerInfo(wall0, perimeter, wallHeight)
+      const result = calculateWallCornerInfo(wall0, perimeter)
 
       expect(result.startCorner).toBeDefined()
       expect(result.endCorner).toBeDefined()
 
       expect(result.startCorner?.belongsToThisWall).toBe(true) // corner0 belongs to wall0
       expect(result.endCorner?.belongsToThisWall).toBe(true) // corner1 belongs to wall0
+    })
+
+    it('should calculate correct extension distances and belongsTo flags', () => {
+      const wallLength = createLength(3000) // 3m wall
+      const thickness = createLength(440) // 44cm thickness
+
+      const wall = createMockWall(wallLength, thickness)
+
+      // Create corners with significant extensions
+      const startCorner = createMockCorner('start-corner', [0, 0], [-200, 500], 'next') // belongs to this wall
+      const endCorner = createMockCorner('end-corner', [3000, 0], [3300, 500], 'previous') // belongs to this wall
+
+      const corners = [startCorner, endCorner]
+      const perimeter = createMockPerimeter([wall], corners)
+
+      const result = calculateWallCornerInfo(wall, perimeter)
+
+      // Start corner should belong to this wall and have extension distance
+      expect(result.startCorner).toBeDefined()
+      expect(result.startCorner!.belongsToThisWall).toBe(true)
+      expect(result.startCorner!.extensionDistance).toBeGreaterThan(0)
+
+      // End corner should belong to this wall and have extension distance
+      expect(result.endCorner).toBeDefined()
+      expect(result.endCorner!.belongsToThisWall).toBe(true)
+      expect(result.endCorner!.extensionDistance).toBeGreaterThan(0)
+    })
+
+    it('should correctly identify corners that do not belong to the wall', () => {
+      const wallLength = createLength(3000) // 3m wall
+      const thickness = createLength(440) // 44cm thickness
+
+      const wall = createMockWall(wallLength, thickness)
+
+      // Create corners that don't belong to this wall
+      const startCorner = createMockCorner('start-corner', [0, 0], [-200, 500], 'previous') // doesn't belong to this wall
+      const endCorner = createMockCorner('end-corner', [3000, 0], [3300, 500], 'next') // doesn't belong to this wall
+
+      const corners = [startCorner, endCorner]
+      const perimeter = createMockPerimeter([wall], corners)
+
+      const result = calculateWallCornerInfo(wall, perimeter)
+
+      // Start corner should not belong to this wall but still have extension distance
+      expect(result.startCorner).toBeDefined()
+      expect(result.startCorner!.belongsToThisWall).toBe(false)
+      expect(result.startCorner!.extensionDistance).toBeGreaterThan(0)
+
+      // End corner should not belong to this wall but still have extension distance
+      expect(result.endCorner).toBeDefined()
+      expect(result.endCorner!.belongsToThisWall).toBe(false)
+      expect(result.endCorner!.extensionDistance).toBeGreaterThan(0)
     })
   })
 

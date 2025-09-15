@@ -1,6 +1,6 @@
 import type { PerimeterWall, PerimeterCorner, Perimeter } from '@/model'
-import type { Length, Vec2 } from '@/types/geometry'
-import { distance, createVec2 } from '@/types/geometry'
+import type { Length } from '@/types/geometry'
+import { distance } from '@/types/geometry'
 import type { WallCornerInfo } from './base'
 
 /**
@@ -31,28 +31,6 @@ function calculateCornerExtension(corner: PerimeterCorner, wall: PerimeterWall, 
 
     // Take the maximum to handle both outer and inner corners correctly
     return Math.max(outerExtension, innerExtension) as Length
-  }
-}
-
-/**
- * Calculate corner area bounds in construction coordinates
- */
-function calculateCornerAreaBounds(
-  wall: PerimeterWall,
-  wallHeight: Length,
-  isStartCorner: boolean,
-  extensionDistance: Length
-): { position: Vec2; size: Vec2 } {
-  if (isStartCorner) {
-    return {
-      position: createVec2(-extensionDistance, 0), // Before wall start
-      size: createVec2(extensionDistance, wallHeight) // width × height
-    }
-  } else {
-    return {
-      position: createVec2(wall.wallLength, 0), // After wall end
-      size: createVec2(extensionDistance, wallHeight) // width × height
-    }
   }
 }
 
@@ -110,7 +88,7 @@ export function calculateWallConstructionLength(
 /**
  * Calculate complete corner information for a wall's construction plan
  */
-export function calculateWallCornerInfo(wall: PerimeterWall, perimeter: Perimeter, wallHeight: Length): WallCornerInfo {
+export function calculateWallCornerInfo(wall: PerimeterWall, perimeter: Perimeter): WallCornerInfo {
   const { startCorner, endCorner } = getWallCorners(wall, perimeter)
 
   const result: WallCornerInfo = {
@@ -120,27 +98,23 @@ export function calculateWallCornerInfo(wall: PerimeterWall, perimeter: Perimete
 
   if (startCorner) {
     const extensionDistance = calculateCornerExtension(startCorner, wall, true)
-    const { position, size } = calculateCornerAreaBounds(wall, wallHeight, true, extensionDistance)
+    const belongsToThisWall = startCorner.belongsTo === 'next'
 
     result.startCorner = {
       id: startCorner.id,
-      belongsToThisWall: startCorner.belongsTo === 'next',
-      extensionDistance,
-      position,
-      size
+      belongsToThisWall,
+      extensionDistance
     }
   }
 
   if (endCorner) {
     const extensionDistance = calculateCornerExtension(endCorner, wall, false)
-    const { position, size } = calculateCornerAreaBounds(wall, wallHeight, false, extensionDistance)
+    const belongsToThisWall = endCorner.belongsTo === 'previous'
 
     result.endCorner = {
       id: endCorner.id,
-      belongsToThisWall: endCorner.belongsTo === 'previous',
-      extensionDistance,
-      position,
-      size
+      belongsToThisWall,
+      extensionDistance
     }
   }
 

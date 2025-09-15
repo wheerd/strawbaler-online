@@ -249,9 +249,14 @@ export function WallConstructionPlanDisplay({
       {/* Corner areas */}
       {plan.cornerInfo.startCorner &&
         (() => {
+          // Calculate display position for start corner based on belongsToThisWall
+          const xOffset = plan.cornerInfo.startCorner.belongsToThisWall
+            ? 0 // Overlap: starts at wall beginning
+            : -plan.cornerInfo.startCorner.extensionDistance // Adjacent: before wall
+
           const { position, size } = convertConstructionToSvg(
-            [plan.cornerInfo.startCorner.position[0], 0, plan.cornerInfo.startCorner.position[1]], // Convert Vec2 to Vec3
-            [plan.cornerInfo.startCorner.size[0], 0, plan.cornerInfo.startCorner.size[1]], // Convert Vec2 to Vec3
+            [xOffset, 0, 0], // Start corner is at z=0
+            [plan.cornerInfo.startCorner.extensionDistance, 0, wallHeight],
             wallHeight,
             wallLength,
             view
@@ -275,9 +280,14 @@ export function WallConstructionPlanDisplay({
 
       {plan.cornerInfo.endCorner &&
         (() => {
+          // Calculate display position for end corner based on belongsToThisWall
+          const xOffset = plan.cornerInfo.endCorner.belongsToThisWall
+            ? wallLength - plan.cornerInfo.endCorner.extensionDistance // Overlap: extends backward from wall end
+            : wallLength // Adjacent: after wall end
+
           const { position, size } = convertConstructionToSvg(
-            [plan.cornerInfo.endCorner.position[0], 0, plan.cornerInfo.endCorner.position[1]], // Convert Vec2 to Vec3
-            [plan.cornerInfo.endCorner.size[0], 0, plan.cornerInfo.endCorner.size[1]], // Convert Vec2 to Vec3
+            [xOffset, 0, 0], // End corner is at z=0
+            [plan.cornerInfo.endCorner.extensionDistance, 0, wallHeight],
             wallHeight,
             wallLength,
             view

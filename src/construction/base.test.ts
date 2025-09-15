@@ -39,7 +39,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(1)
       expect(result[0]).toEqual({
@@ -63,7 +63,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(3)
 
@@ -104,7 +104,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(2)
 
@@ -138,7 +138,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(2)
 
@@ -182,7 +182,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(5)
 
@@ -244,7 +244,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(5)
 
@@ -292,7 +292,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(3)
 
@@ -341,7 +341,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(4)
 
@@ -377,7 +377,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(1)
       expect(result[0]).toEqual({
@@ -402,7 +402,7 @@ describe('segmentWall', () => {
       })
       const wallHeight = 2500 as Length
 
-      const result = segmentWall(wall, wallHeight)
+      const result = segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
 
       expect(result).toHaveLength(3)
 
@@ -433,7 +433,7 @@ describe('segmentWall', () => {
       const wallHeight = 2500 as Length
 
       expect(() => {
-        segmentWall(wall, wallHeight)
+        segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
       }).toThrow('Opening extends beyond wall length')
     })
 
@@ -456,7 +456,7 @@ describe('segmentWall', () => {
       const wallHeight = 2500 as Length
 
       expect(() => {
-        segmentWall(wall, wallHeight)
+        segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
       }).toThrow('Opening overlaps with previous segment')
     })
 
@@ -479,7 +479,7 @@ describe('segmentWall', () => {
       const wallHeight = 2500 as Length
 
       expect(() => {
-        segmentWall(wall, wallHeight)
+        segmentWall(wall, wallHeight, wall.insideLength, 0 as Length)
       }).toThrow('Opening overlaps with previous segment')
     })
   })

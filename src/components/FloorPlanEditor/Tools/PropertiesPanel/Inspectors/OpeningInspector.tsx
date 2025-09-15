@@ -82,7 +82,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
     {
       debounceMs: 300,
       min: 0,
-      max: (wall?.insideLength || 0) - (opening?.width || 0),
+      max: (wall?.wallLength || 0) - (opening?.width || 0),
       step: 10
     }
   )
@@ -228,7 +228,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
                     onBlur={offsetInput.handleBlur}
                     onKeyDown={offsetInput.handleKeyDown}
                     min="0"
-                    max={wall.insideLength - opening.width}
+                    max={wall.wallLength - opening.width}
                     step="10"
                     className="unit-input w-full pl-2 py-1.5 pr-8 bg-white border border-gray-300 rounded text-xs text-right hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
                   />

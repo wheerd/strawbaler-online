@@ -220,8 +220,15 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
   const warnings: ConstructionIssue[] = []
   const segments: ConstructionSegment[] = []
 
-  // Segment the wall based on openings
-  const wallSegments = segmentWall(wall, floorHeight)
+  // Calculate corner information and construction length including assigned corners
+  const cornerInfo = calculateWallCornerInfo(wall, perimeter)
+  const { startCorner, endCorner } = cornerInfo
+  const startCornerData = startCorner ? (perimeter.corners.find(c => c.id === startCorner.id) ?? null) : null
+  const endCornerData = endCorner ? (perimeter.corners.find(c => c.id === endCorner.id) ?? null) : null
+  const { constructionLength, startExtension } = calculateWallConstructionLength(wall, startCornerData, endCornerData)
+
+  // Segment the wall based on openings, using the actual construction length
+  const wallSegments = segmentWall(wall, floorHeight, constructionLength, startExtension)
 
   for (const segment of wallSegments) {
     if (segment.type === 'wall') {
@@ -278,19 +285,9 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
     .filter(s => s.type === 'opening')
     .flatMap(s => calculateOpeningMeasurements(s, floorHeight))
 
-  const openingSpacingMeasurements = calculateOpeningSpacingMeasurements(segments, wall.insideLength, floorHeight)
+  const openingSpacingMeasurements = calculateOpeningSpacingMeasurements(segments, constructionLength, floorHeight)
 
   const measurements = [...postSpacingMeasurements, ...openingMeasurements, ...openingSpacingMeasurements]
-
-  // Calculate corner information
-  const cornerInfo = calculateWallCornerInfo(wall, perimeter, floorHeight)
-
-  // Calculate construction length including assigned corners
-  const { startCorner, endCorner } = cornerInfo
-  const startCornerData = startCorner ? (perimeter.corners.find(c => c.id === startCorner.id) ?? null) : null
-  const endCornerData = endCorner ? (perimeter.corners.find(c => c.id === endCorner.id) ?? null) : null
-
-  const { constructionLength } = calculateWallConstructionLength(wall, startCornerData, endCornerData)
 
   return {
     wallId: wall.id,

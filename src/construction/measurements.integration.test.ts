@@ -197,11 +197,17 @@ describe('measurements integration', () => {
       expect(m.type).toBe('opening-spacing')
     })
 
-    // Start to first: 0 to 400 = 400mm
-    // Between: (400 + 800) to 1600 = 400mm
-    // Last to end: (1600 + 800) to 3000 = 600mm
+    // With corner extensions, the construction length increases
+    // Based on the mock perimeter corner setup, extensions add ~71mm per side
+    // Construction length ≈ 3000 + 71 + 71 = 3142mm
+    // The middle spacing stays the same (400mm) as it's between openings
+    // Start and end spacings increase by the respective corner extensions
     const labels = spacingMeasurements.map(m => m.label).sort()
-    expect(labels).toEqual(['400mm', '400mm', '600mm'])
+
+    // Start: 0 to first opening = 400mm + start extension ≈ 471mm
+    // Between: unchanged = 400mm
+    // End: last opening to end = 600mm + end extension ≈ 671mm
+    expect(labels).toEqual(['400mm', '471mm', '671mm'])
   })
 
   it('handles wall with both posts and openings correctly', () => {

@@ -364,6 +364,8 @@ describe('constructInfillWall - Integration Tests', () => {
     it('handles very small walls', () => {
       const wall = createTestWall({
         insideLength: 50 as Length,
+        wallLength: 50 as Length,
+        outsideLength: 50 as Length,
         openings: []
       })
       const config = createTestConfig()
