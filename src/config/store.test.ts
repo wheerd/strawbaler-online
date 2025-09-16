@@ -2,75 +2,119 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useConfigStore } from './store'
 import { createMaterialId } from '@/construction'
 import { createLength } from '@/types/geometry'
+import type { RingBeamConfig } from '@/construction'
 
 describe('ConfigStore', () => {
-  beforeEach(() => {
-    // Clear the store manually since reset function is removed
-    useConfigStore.setState({ ringBeamConstructionMethods: new Map() })
+  describe('Default Ring Beam Method', () => {
+    it('should initialize with a default ring beam construction method', () => {
+      // Check the initial state (don't clear first)
+      const methods = useConfigStore.getState().getAllRingBeamConstructionMethods()
+
+      expect(methods.length).toBeGreaterThanOrEqual(1)
+
+      const defaultMethod = methods.find(m => m.name === 'Standard Ring Beam 36cm')
+      expect(defaultMethod).toBeDefined()
+      expect(defaultMethod!.config.type).toBe('full')
+      expect(defaultMethod!.config.height).toBe(60)
+      if (defaultMethod!.config.type === 'full') {
+        expect(defaultMethod!.config.width).toBe(360)
+        expect(defaultMethod!.config.offsetFromEdge).toBe(0)
+      }
+      expect(defaultMethod!.config.material).toBeDefined()
+    })
   })
 
   describe('Ring Beam Construction Methods', () => {
-    it('should add a ring beam construction method', () => {
+    beforeEach(() => {
+      // Clear the store manually for CRUD tests
+      useConfigStore.setState({ ringBeamConstructionMethods: new Map() })
+    })
+    it('should add a full ring beam construction method', () => {
       const store = useConfigStore.getState()
       const material = createMaterialId()
-      const height = createLength(200)
+      const config: RingBeamConfig = {
+        type: 'full',
+        height: createLength(60),
+        width: createLength(360),
+        material,
+        offsetFromEdge: createLength(0)
+      }
 
-      const method = store.addRingBeamConstructionMethod('Standard Ring Beam', material, height)
+      const method = store.addRingBeamConstructionMethod('Standard Ring Beam', config)
 
       expect(method.name).toBe('Standard Ring Beam')
-      expect(method.material).toBe(material)
-      expect(method.height).toBe(height)
-      expect(method.width).toBeUndefined()
-      expect(method.offsetFromEdge).toBeUndefined()
+      expect(method.config).toEqual(config)
 
       const allMethods = store.getAllRingBeamConstructionMethods()
       expect(allMethods).toHaveLength(1)
       expect(allMethods[0]).toEqual(method)
     })
 
-    it('should add a ring beam construction method with optional parameters', () => {
+    it('should add a double ring beam construction method', () => {
       const store = useConfigStore.getState()
       const material = createMaterialId()
-      const height = createLength(200)
-      const width = createLength(300)
-      const offsetFromEdge = createLength(50)
+      const infillMaterial = createMaterialId()
+      const config: RingBeamConfig = {
+        type: 'double',
+        height: createLength(60),
+        thickness: createLength(120),
+        material,
+        infillMaterial,
+        offsetFromEdge: createLength(50),
+        spacing: createLength(100)
+      }
 
-      const method = store.addRingBeamConstructionMethod('Custom Ring Beam', material, height, width, offsetFromEdge)
+      const method = store.addRingBeamConstructionMethod('Double Ring Beam', config)
 
-      expect(method.name).toBe('Custom Ring Beam')
-      expect(method.material).toBe(material)
-      expect(method.height).toBe(height)
-      expect(method.width).toBe(width)
-      expect(method.offsetFromEdge).toBe(offsetFromEdge)
+      expect(method.name).toBe('Double Ring Beam')
+      expect(method.config).toEqual(config)
     })
 
     it('should throw error for empty name', () => {
       const store = useConfigStore.getState()
       const material = createMaterialId()
-      const height = createLength(200)
+      const config: RingBeamConfig = {
+        type: 'full',
+        height: createLength(60),
+        width: createLength(360),
+        material,
+        offsetFromEdge: createLength(0)
+      }
 
       expect(() => {
-        store.addRingBeamConstructionMethod('', material, height)
+        store.addRingBeamConstructionMethod('', config)
       }).toThrow('Ring beam construction method name cannot be empty')
     })
 
     it('should throw error for invalid height', () => {
       const store = useConfigStore.getState()
       const material = createMaterialId()
-      const height = createLength(0)
+      const config: RingBeamConfig = {
+        type: 'full',
+        height: createLength(0),
+        width: createLength(360),
+        material,
+        offsetFromEdge: createLength(0)
+      }
 
       expect(() => {
-        store.addRingBeamConstructionMethod('Test', material, height)
-      }).toThrow('Height must be greater than 0')
+        store.addRingBeamConstructionMethod('Test', config)
+      }).toThrow('Ring beam height must be greater than 0')
     })
 
     it('should allow duplicate names', () => {
       const store = useConfigStore.getState()
       const material = createMaterialId()
-      const height = createLength(200)
+      const config: RingBeamConfig = {
+        type: 'full',
+        height: createLength(60),
+        width: createLength(360),
+        material,
+        offsetFromEdge: createLength(0)
+      }
 
-      const method1 = store.addRingBeamConstructionMethod('Same Name', material, height)
-      const method2 = store.addRingBeamConstructionMethod('Same Name', material, height)
+      const method1 = store.addRingBeamConstructionMethod('Same Name', config)
+      const method2 = store.addRingBeamConstructionMethod('Same Name', config)
 
       expect(method1.name).toBe('Same Name')
       expect(method2.name).toBe('Same Name')
@@ -81,71 +125,104 @@ describe('ConfigStore', () => {
     it('should remove a ring beam construction method', () => {
       const store = useConfigStore.getState()
       const material = createMaterialId()
-      const height = createLength(200)
+      const config: RingBeamConfig = {
+        type: 'full',
+        height: createLength(60),
+        width: createLength(360),
+        material,
+        offsetFromEdge: createLength(0)
+      }
 
-      const method = store.addRingBeamConstructionMethod('To Remove', material, height)
+      const method = store.addRingBeamConstructionMethod('To Remove', config)
       expect(store.getAllRingBeamConstructionMethods()).toHaveLength(1)
 
       store.removeRingBeamConstructionMethod(method.id)
       expect(store.getAllRingBeamConstructionMethods()).toHaveLength(0)
     })
 
-    it('should update a ring beam construction method', () => {
+    it('should update ring beam construction method name', () => {
       const store = useConfigStore.getState()
       const material = createMaterialId()
-      const height = createLength(200)
+      const config: RingBeamConfig = {
+        type: 'full',
+        height: createLength(60),
+        width: createLength(360),
+        material,
+        offsetFromEdge: createLength(0)
+      }
 
-      const method = store.addRingBeamConstructionMethod('Original', material, height)
+      const method = store.addRingBeamConstructionMethod('Original', config)
 
-      const newHeight = createLength(300)
-      const newWidth = createLength(400)
-
-      store.updateRingBeamConstructionMethod(method.id, {
-        name: 'Updated',
-        height: newHeight,
-        width: newWidth
-      })
+      store.updateRingBeamConstructionMethodName(method.id, 'Updated')
 
       const updated = store.getRingBeamConstructionMethodById(method.id)
       expect(updated?.name).toBe('Updated')
-      expect(updated?.height).toBe(newHeight)
-      expect(updated?.width).toBe(newWidth)
-      expect(updated?.material).toBe(material) // Should remain unchanged
+      expect(updated?.config).toEqual(config) // Config should remain unchanged
     })
 
-    it('should get methods by material', () => {
+    it('should update ring beam construction method config', () => {
       const store = useConfigStore.getState()
-      const material1 = createMaterialId()
-      const material2 = createMaterialId()
-      const height = createLength(200)
+      const material = createMaterialId()
+      const originalConfig: RingBeamConfig = {
+        type: 'full',
+        height: createLength(60),
+        width: createLength(360),
+        material,
+        offsetFromEdge: createLength(0)
+      }
 
-      store.addRingBeamConstructionMethod('Method 1', material1, height)
-      store.addRingBeamConstructionMethod('Method 2', material1, height)
-      store.addRingBeamConstructionMethod('Method 3', material2, height)
+      const method = store.addRingBeamConstructionMethod('Test Method', originalConfig)
 
-      const material1Methods = store.getRingBeamConstructionMethodsByMaterial(material1)
-      expect(material1Methods).toHaveLength(2)
+      const newMaterial = createMaterialId()
+      const newConfig: RingBeamConfig = {
+        type: 'full',
+        height: createLength(80),
+        width: createLength(400),
+        material: newMaterial,
+        offsetFromEdge: createLength(10)
+      }
 
-      const material2Methods = store.getRingBeamConstructionMethodsByMaterial(material2)
-      expect(material2Methods).toHaveLength(1)
+      store.updateRingBeamConstructionMethodConfig(method.id, newConfig)
+
+      const updated = store.getRingBeamConstructionMethodById(method.id)
+      expect(updated?.name).toBe('Test Method') // Name should remain unchanged
+      expect(updated?.config).toEqual(newConfig)
+    })
+
+    it('should handle validation errors for invalid config', () => {
+      const store = useConfigStore.getState()
+      const material = createMaterialId()
+      const invalidConfig: RingBeamConfig = {
+        type: 'full',
+        height: createLength(0), // Invalid height
+        width: createLength(360),
+        material,
+        offsetFromEdge: createLength(0)
+      }
+
+      expect(() => {
+        store.addRingBeamConstructionMethod('Invalid Config', invalidConfig)
+      }).toThrow('Ring beam height must be greater than 0')
     })
 
     it('should allow negative offset from edge', () => {
       const store = useConfigStore.getState()
       const material = createMaterialId()
-      const height = createLength(200)
-      const negativeOffset = createLength(-50)
-
-      const method = store.addRingBeamConstructionMethod(
-        'Negative Offset Method',
+      const config: RingBeamConfig = {
+        type: 'full',
+        height: createLength(60),
+        width: createLength(360),
         material,
-        height,
-        undefined,
-        negativeOffset
-      )
+        offsetFromEdge: createLength(-50)
+      }
 
-      expect(method.offsetFromEdge).toBe(negativeOffset)
-      expect(Number(method.offsetFromEdge)).toBe(-50)
+      const method = store.addRingBeamConstructionMethod('Negative Offset Method', config)
+
+      expect(method.config.type).toBe('full')
+      if (method.config.type === 'full') {
+        expect(method.config.offsetFromEdge).toBe(createLength(-50))
+        expect(Number(method.config.offsetFromEdge)).toBe(-50)
+      }
     })
   })
 })

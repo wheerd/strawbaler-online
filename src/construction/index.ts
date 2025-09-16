@@ -8,6 +8,7 @@ export * from './infill'
 export * from './material'
 export * from './openings'
 export * from './posts'
+export * from './ringBeams'
 export * from './straw'
 export * from './strawhenge'
 
