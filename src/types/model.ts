@@ -72,5 +72,5 @@ export interface PerimeterCorner {
   outsidePoint: Vec2
 
   // Which wall "owns" this corner - this is relevant for construction
-  belongsTo: 'previous' | 'next'
+  constuctedByWall: 'previous' | 'next'
 }

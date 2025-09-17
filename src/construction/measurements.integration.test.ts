@@ -29,13 +29,13 @@ const mockPerimeter = (wall: PerimeterWall): Perimeter => ({
       id: createPerimeterCornerId(),
       insidePoint: createVec2(0, 0),
       outsidePoint: createVec2(-50, 150),
-      belongsTo: 'next'
+      constuctedByWall: 'next'
     },
     {
       id: createPerimeterCornerId(),
       insidePoint: createVec2(wall.wallLength, 0),
       outsidePoint: createVec2(wall.wallLength + 50, 150),
-      belongsTo: 'previous'
+      constuctedByWall: 'previous'
     }
   ]
 })

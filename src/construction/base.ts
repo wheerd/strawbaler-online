@@ -34,13 +34,13 @@ export interface Measurement {
 export interface WallCornerInfo {
   startCorner: {
     id: PerimeterCornerId
-    belongsToThisWall: boolean
+    constructedByThisWall: boolean
     extensionDistance: Length
   } | null
 
   endCorner: {
     id: PerimeterCornerId
-    belongsToThisWall: boolean
+    constructedByThisWall: boolean
     extensionDistance: Length
   } | null
 }

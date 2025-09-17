@@ -30,13 +30,13 @@ const createTestPerimeter = (wall: PerimeterWall): Perimeter => ({
       id: createPerimeterCornerId(),
       insidePoint: createVec2(0, 0),
       outsidePoint: createVec2(-100, 400),
-      belongsTo: 'previous' // doesn't belong to wall[0]
+      constuctedByWall: 'previous' // doesn't belong to wall[0]
     },
     {
       id: createPerimeterCornerId(),
       insidePoint: createVec2(5000, 0),
       outsidePoint: createVec2(5100, 400),
-      belongsTo: 'next' // doesn't belong to wall[0]
+      constuctedByWall: 'next' // doesn't belong to wall[0]
     }
   ]
 })

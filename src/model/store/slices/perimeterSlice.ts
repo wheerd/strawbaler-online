@@ -43,10 +43,10 @@ export interface PerimetersActions {
     type: PerimeterConstructionType
   ) => void
   updatePerimeterWallThickness: (perimeterId: PerimeterId, wallId: PerimeterWallId, thickness: Length) => void
-  updatePerimeterCornerBelongsTo: (
+  updatePerimeterCornerConstructedByWall: (
     perimeterId: PerimeterId,
     cornerId: PerimeterCornerId,
-    belongsTo: 'previous' | 'next'
+    constructedByWall: 'previous' | 'next'
   ) => void
 
   // Updated opening actions with ID-based approach and auto-ID generation
@@ -172,7 +172,7 @@ const calculateCornerPoints = (
       id: existingCorner?.id ?? createPerimeterCornerId(),
       insidePoint,
       outsidePoint,
-      belongsTo: existingCorner?.belongsTo ?? 'next'
+      constuctedByWall: existingCorner?.constuctedByWall ?? 'next'
     })
   }
 
@@ -611,10 +611,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     })
   },
 
-  updatePerimeterCornerBelongsTo: (
+  updatePerimeterCornerConstructedByWall: (
     perimeterId: PerimeterId,
     cornerId: PerimeterCornerId,
-    belongsTo: 'previous' | 'next'
+    constructedByWall: 'previous' | 'next'
   ) => {
     set(state => {
       const perimeter = state.perimeters.get(perimeterId)
@@ -628,7 +628,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       const updatedCorners = [...perimeter.corners]
       updatedCorners[cornerIndex] = {
         ...updatedCorners[cornerIndex],
-        belongsTo
+        constuctedByWall: constructedByWall
       }
 
       const updatedPerimeter = {

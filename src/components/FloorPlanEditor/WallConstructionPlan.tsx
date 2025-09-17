@@ -249,8 +249,8 @@ export function WallConstructionPlanDisplay({
       {/* Corner areas */}
       {plan.cornerInfo.startCorner &&
         (() => {
-          // Calculate display position for start corner based on belongsToThisWall
-          const xOffset = plan.cornerInfo.startCorner.belongsToThisWall
+          // Calculate display position for start corner based on constructedByWallThisWall
+          const xOffset = plan.cornerInfo.startCorner.constructedByThisWall
             ? 0 // Overlap: starts at wall beginning
             : -plan.cornerInfo.startCorner.extensionDistance // Adjacent: before wall
 
@@ -270,18 +270,18 @@ export function WallConstructionPlanDisplay({
               width={size.x}
               height={size.y}
               fill="none"
-              stroke={plan.cornerInfo.startCorner.belongsToThisWall ? '#666666' : '#cccccc'}
-              strokeWidth={plan.cornerInfo.startCorner.belongsToThisWall ? '20' : '10'}
-              strokeDasharray={plan.cornerInfo.startCorner.belongsToThisWall ? '200,100' : '100,50'}
-              opacity={plan.cornerInfo.startCorner.belongsToThisWall ? 0.7 : 0.4}
+              stroke={plan.cornerInfo.startCorner.constructedByThisWall ? '#666666' : '#cccccc'}
+              strokeWidth={plan.cornerInfo.startCorner.constructedByThisWall ? '20' : '10'}
+              strokeDasharray={plan.cornerInfo.startCorner.constructedByThisWall ? '200,100' : '100,50'}
+              opacity={plan.cornerInfo.startCorner.constructedByThisWall ? 0.7 : 0.4}
             />
           )
         })()}
 
       {plan.cornerInfo.endCorner &&
         (() => {
-          // Calculate display position for end corner based on belongsToThisWall
-          const xOffset = plan.cornerInfo.endCorner.belongsToThisWall
+          // Calculate display position for end corner based on constructedByWallThisWall
+          const xOffset = plan.cornerInfo.endCorner.constructedByThisWall
             ? wallLength - plan.cornerInfo.endCorner.extensionDistance // Overlap: extends backward from wall end
             : wallLength // Adjacent: after wall end
 
@@ -301,10 +301,10 @@ export function WallConstructionPlanDisplay({
               width={size.x}
               height={size.y}
               fill="none"
-              stroke={plan.cornerInfo.endCorner.belongsToThisWall ? '#666666' : '#cccccc'}
-              strokeWidth={plan.cornerInfo.endCorner.belongsToThisWall ? '30' : '20'}
-              strokeDasharray={plan.cornerInfo.endCorner.belongsToThisWall ? '200,100' : '100,50'}
-              opacity={plan.cornerInfo.endCorner.belongsToThisWall ? 0.7 : 0.4}
+              stroke={plan.cornerInfo.endCorner.constructedByThisWall ? '#666666' : '#cccccc'}
+              strokeWidth={plan.cornerInfo.endCorner.constructedByThisWall ? '30' : '20'}
+              strokeDasharray={plan.cornerInfo.endCorner.constructedByThisWall ? '200,100' : '100,50'}
+              opacity={plan.cornerInfo.endCorner.constructedByThisWall ? 0.7 : 0.4}
             />
           )
         })()}
