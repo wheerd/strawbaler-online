@@ -52,7 +52,7 @@ const createDefaultRingBeamMethod = (): RingBeamConstructionMethod => ({
     material: wood360x60.id,
     height: createLength(60),
     width: createLength(360),
-    offsetFromEdge: createLength(0)
+    offsetFromEdge: createLength(30)
   }
 })
 

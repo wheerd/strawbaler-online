@@ -63,18 +63,20 @@ function RingBeamConstructionPlanDisplay({
         {/* Render perimeter outline for reference */}
         {perimeter && (
           <g stroke="#ccc" strokeWidth="1" fill="none">
-            {/* Inside perimeter */}
-            <polygon
-              points={perimeter.corners.map(c => `${c.insidePoint[0]},${-c.insidePoint[1]}`).join(' ')}
-              stroke="#999"
-              strokeDasharray="5,5"
-              fill="rgba(0,0,255,0.1)"
-            />
             {/* Outside perimeter */}
             <polygon
               points={perimeter.corners.map(c => `${c.outsidePoint[0]},${-c.outsidePoint[1]}`).join(' ')}
               stroke="#666"
+              strokeWidth={5}
               fill="rgba(0,255,0,0.1)"
+            />
+            {/* Inside perimeter */}
+            <polygon
+              points={perimeter.corners.map(c => `${c.insidePoint[0]},${-c.insidePoint[1]}`).join(' ')}
+              stroke="#999"
+              strokeWidth={5}
+              strokeDasharray="5,5"
+              fill="rgba(0,0,255,0.1)"
             />
           </g>
         )}
@@ -119,9 +121,8 @@ function RingBeamConstructionPlanDisplay({
                       width={shape.size[0]}
                       height={shape.size[1]}
                       fill="#8B4513"
-                      stroke="#654321"
-                      strokeWidth="2"
-                      rx="2"
+                      stroke="#000"
+                      strokeWidth="5"
                     />
                     {/* Element origin marker */}
                     {showDebugMarkers && <circle cx={shape.position[0]} cy={-shape.position[1]} r="2" fill="blue" />}
