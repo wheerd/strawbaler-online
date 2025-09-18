@@ -107,31 +107,69 @@ export interface Cuboid {
 }
 
 /**
+ * The cut is made by tilting a cutting plane within the specified plane
+ * around the specified axis by the given angle.
+ */
+export interface Cut {
+  /** The plane in which the cut is made ('xy', 'xz', or 'yz') */
+  plane: 'xy' | 'xz' | 'yz'
+
+  /** The axis within the plane around which the cut is tilted */
+  axis: 'x' | 'y' | 'z'
+
+  /**
+   * The tilt angle of the cut in degrees
+   * - Range: -90° < angle < 90°
+   * - 0° = no cut (rectangular end)
+   * - Positive = cut slopes towards the end
+   * - Negative = cut slopes towards the middle
+   */
+  angle: number
+}
+
+/**
  * CutCuboid Geometric Properties:
  *
- * The CutCuboid represents a 4-gonal irregular right prism (hexahedron) with 6 faces:
+ * This is the result by making an angled cut at one or both ends of the cuboid.
+ * The result is a quadrilateral irregular right prism (hexahedron) with 6 faces:
  *
- * 1. Front & Back faces: Rectangular, parallel, same width
+ * 1. Two faces parallel to the cut: Rectangular, parallel, same width
  *    - May have different lengths if startCut ≠ endCut
  *
- * 2. Top & Bottom faces: Trapezoidal, parallel (base faces of the prism)
+ * 2. Two faces perpendicular to the cut: Trapezoidal, parallel (base faces of the prism)
  *    - Shape determined by the cut angles
  *    - Always have the same width as the original cuboid
  *
- * 3. Left & Right faces: Rectangular cut faces, same width
+ * 3. Start & end faces: Rectangular cut faces, same width
  *    - Non-parallel if startCut ≠ endCut
  *    - Different lengths if cut angles differ
  *
- * Transformation order:
- * 1. Start with base cuboid at origin
- * 2. Apply cuts at both ends (perpendicular to length axis)
- * 3. Rotate around origin using Euler angles (x, y, z)
- * 4. Translate so origin corner is at position
- *
  * Cut angles range from -90° to 90°:
  * - 0° = no cut (rectangular end)
- * - Positive angles = cut slopes one direction
- * - Negative angles = cut slopes opposite direction
+ * - Positive angles = cut slopes towards the ends
+ * - Negative angles = cut slopes towards the middle
+ *
+ * Example:
+ * {
+ *   type: 'cut-cuboid',
+ *   position: [0, 0, 0],
+ *   size: [5000, 360, 60],
+ *   startCut: {
+ *     plane: 'xy',
+ *     axis: 'y',
+ *     angle: 45
+ *   },
+ *   endCut: {
+ *     plane: 'xy',
+ *     axis: 'y',
+ *     angle: 45
+ *   }
+ * }
+ *
+ * This creates a 5m long plate with two 45° cuts:
+ *    /‾‾‾‾‾‾‾‾‾‾4.64m‾‾‾‾‾‾‾‾‾\  「 36cm
+ *   /________5m________________\  L
+ * This is the view from the XY plane
  */
 export interface CutCuboid {
   type: 'cut-cuboid'
@@ -139,17 +177,9 @@ export interface CutCuboid {
   position: Vec3
   // Size of base cuboid [length, width, height]
   size: Vec3
-  // Euler angles for 3D rotation around origin (position corner)
-  rotation: {
-    x: number // Roll (degrees)
-    y: number // Pitch (degrees)
-    z: number // Yaw (degrees)
-  }
-  // Cut angles at both ends (perpendicular to length axis)
-  cuts: {
-    startCut: number // Cut angle at start (-90° to 90°)
-    endCut: number // Cut angle at end (-90° to 90°)
-  }
+
+  startCut?: Cut //  At a face at position
+  endCut?: Cut //  At a face at position + size
 }
 
 // Helper functions for creating shapes
@@ -159,17 +189,12 @@ export const createCuboidShape = (position: Vec3, size: Vec3): Cuboid => ({
   size
 })
 
-export const createCutCuboidShape = (
-  position: Vec3,
-  size: Vec3,
-  rotation: { x: number; y: number; z: number },
-  cuts: { startCut: number; endCut: number }
-): CutCuboid => ({
+export const createCutCuboidShape = (position: Vec3, size: Vec3, startCut?: Cut, endCut?: Cut): CutCuboid => ({
   type: 'cut-cuboid',
   position,
   size,
-  rotation,
-  cuts
+  startCut,
+  endCut
 })
 
 // Helper functions for accessing position and size from shapes
