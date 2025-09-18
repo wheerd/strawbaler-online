@@ -3,6 +3,7 @@ import type { Length, Vec3 } from '@/types/geometry'
 import type { MaterialId, Material } from './material'
 import { DEFAULT_MATERIALS } from './material'
 import { constructPost, type FullPostConfig, type DoublePostConfig } from './posts'
+import { getElementPosition, getElementSize } from './base'
 
 const mockWoodMaterial = 'wood-material' as MaterialId
 const mockStrawMaterial = 'straw-material' as MaterialId
@@ -43,8 +44,8 @@ describe('constructPost', () => {
       const post = result.it[0]
       expect(post.type).toBe('post')
       expect(post.material).toBe(mockWoodMaterial)
-      expect(post.position).toEqual([100, 0, 0])
-      expect(post.size).toEqual([60, 360, 2500])
+      expect(getElementPosition(post)).toEqual([100, 0, 0])
+      expect(getElementSize(post)).toEqual([60, 360, 2500])
       expect(post.id).toBeTruthy()
     })
 

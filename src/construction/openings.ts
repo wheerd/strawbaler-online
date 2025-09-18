@@ -3,6 +3,8 @@ import type { Length, Vec3 } from '@/types/geometry'
 import type { MaterialId, ResolveMaterialFunction } from './material'
 import {
   createConstructionElementId,
+  createCuboidShape,
+  createConstructionElement,
   type BaseConstructionSegment,
   type ConstructionElement,
   type ConstructionIssue,
@@ -72,13 +74,14 @@ export const constructOpeningFrame = (
     const headerTop = (headerBottom + config.headerThickness) as Length
 
     // Create single header spanning entire segment width
-    const headerElement: ConstructionElement = {
-      id: createConstructionElementId(),
-      type: 'header',
-      material: config.headerMaterial,
-      position: [segmentPosition[0], segmentPosition[1], headerBottom],
-      size: [segmentSize[0], segmentSize[1], config.headerThickness]
-    }
+    const headerElement: ConstructionElement = createConstructionElement(
+      'header',
+      config.headerMaterial,
+      createCuboidShape(
+        [segmentPosition[0], segmentPosition[1], headerBottom],
+        [segmentSize[0], segmentSize[1], config.headerThickness]
+      )
+    )
 
     if (headerTop > wallHeight) {
       errors.push({
@@ -99,13 +102,14 @@ export const constructOpeningFrame = (
     const sillBottom = (sillTop - config.sillThickness) as Length
 
     // Create single sill spanning entire segment width
-    sillElement = {
-      id: createConstructionElementId(),
-      type: 'sill',
-      material: config.sillMaterial,
-      position: [segmentPosition[0], segmentPosition[1], sillBottom] as Vec3,
-      size: [segmentSize[0], segmentSize[1], config.sillThickness] as Vec3
-    }
+    sillElement = createConstructionElement(
+      'sill',
+      config.sillMaterial,
+      createCuboidShape(
+        [segmentPosition[0], segmentPosition[1], sillBottom] as Vec3,
+        [segmentSize[0], segmentSize[1], config.sillThickness] as Vec3
+      )
+    )
 
     if (sillBottom < 0) {
       errors.push({
@@ -128,17 +132,18 @@ export const constructOpeningFrame = (
       // So we need the offset within this segment
       const openingOffsetInSegment = (opening.offsetFromStart - openings[0].offsetFromStart) as Length
 
-      const fillingElement: ConstructionElement = {
-        id: createConstructionElementId(),
-        type: 'opening',
-        material: config.fillingMaterial!,
-        position: [
-          (segmentPosition[0] + openingOffsetInSegment + config.padding) as Length,
-          (wallThickness - config.fillingThickness!) / 2,
-          (sillHeight + config.padding) as Length
-        ] as Vec3,
-        size: [fillingWidth, config.fillingThickness!, fillingHeight] as Vec3
-      }
+      const fillingElement: ConstructionElement = createConstructionElement(
+        'opening',
+        config.fillingMaterial!,
+        createCuboidShape(
+          [
+            (segmentPosition[0] + openingOffsetInSegment + config.padding) as Length,
+            (wallThickness - config.fillingThickness!) / 2,
+            (sillHeight + config.padding) as Length
+          ] as Vec3,
+          [fillingWidth, config.fillingThickness!, fillingHeight] as Vec3
+        )
+      )
       elements.push(fillingElement)
     })
   }

@@ -94,18 +94,98 @@ export type ConstructionElementId = string & { readonly brand: unique symbol }
 export const createConstructionElementId = (): ConstructionElementId =>
   (Date.now().toString(36) + Math.random().toString(36).slice(2)) as ConstructionElementId
 
+export type Shape = Cuboid | CutCuboid
+
+export interface Cuboid {
+  type: 'cuboid'
+  // [0] along wall wall direction (insideLine) (0 = start of the insideLine, > 0 towards the end of insideLine)
+  // [1] along wall outside direction (0 = inside edge of wall, > 0 towards outside edge)
+  // [2] elevation in the wall (0 = bottom, > 0 towards the top of the wall)
+  position: Vec3
+  // Non-negative size vector forming a cuboid geometry with axis same as position
+  size: Vec3
+}
+
+export interface CutCuboid {
+  type: 'cut-cuboid'
+  // Same position and size as Cuboid
+  position: Vec3
+  size: Vec3
+  cutAxis: 0 | 1 | 2 // Which axis the cut is perpendicular to
+  cutDirection: 0 | 1 // Which of the remaining two axes defines the cut direction
+  cutAngle: number // Angle in degrees (positive = clockwise)
+  // Note: Always full cuts for now
+}
+
+// Helper functions for creating shapes
+export const createCuboidShape = (position: Vec3, size: Vec3): Cuboid => ({
+  type: 'cuboid',
+  position,
+  size
+})
+
+export const createCutCuboidShape = (
+  position: Vec3,
+  size: Vec3,
+  cutAxis: 0 | 1 | 2,
+  cutDirection: 0 | 1,
+  cutAngle: number
+): CutCuboid => ({
+  type: 'cut-cuboid',
+  position,
+  size,
+  cutAxis,
+  cutDirection,
+  cutAngle
+})
+
+// Helper functions for accessing position and size from shapes
+export const getElementPosition = (element: ConstructionElement): Vec3 => {
+  if (element.shape.type === 'cuboid' || element.shape.type === 'cut-cuboid') {
+    return element.shape.position
+  }
+  throw new Error(`Shape type ${(element.shape as any).type} does not have a position property`)
+}
+
+export const getElementSize = (element: ConstructionElement): Vec3 => {
+  if (element.shape.type === 'cuboid' || element.shape.type === 'cut-cuboid') {
+    return element.shape.size
+  }
+  throw new Error(`Shape type ${(element.shape as any).type} does not have a size property`)
+}
+
+// Helper function to create ConstructionElement with computed position/size properties
+export const createConstructionElement = (
+  type: ConstructionElementType,
+  material: MaterialId,
+  shape: Shape
+): ConstructionElement => {
+  const element = {
+    id: createConstructionElementId(),
+    type,
+    material,
+    shape,
+    get position(): Vec3 {
+      return getElementPosition(this)
+    },
+    get size(): Vec3 {
+      return getElementSize(this)
+    }
+  }
+  return element
+}
+
 export interface ConstructionElement {
   id: ConstructionElementId
   type: ConstructionElementType
   material: MaterialId
 
-  // [0] along wall wall direction (insideLine) (0 = start of the insideLine, > 0 towards the end of insideLine)
-  // [1] along wall outside direction (0 = inside edge of wall, > 0 towards outside edge)
-  // [2] elevation in the wall (0 = bottom, > 0 towards the top of the wall)
-  position: Vec3
+  // Shape defining the geometry and position of the element
+  shape: Shape
 
-  // Non-negative size vector forming a cuboid geometry with axis same as position
-  size: Vec3
+  // Convenience getters for position and size (derived from shape)
+  readonly position: Vec3
+  readonly size: Vec3
 }
 
 export interface WithIssues<T> {

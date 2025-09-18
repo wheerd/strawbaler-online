@@ -1,6 +1,12 @@
 import { type Length, type Vec3 } from '@/types/geometry'
 import type { MaterialId, Material, ResolveMaterialFunction } from './material'
-import { createConstructionElementId, type ConstructionElement, type WithIssues, type ConstructionIssue } from './base'
+import {
+  createCuboidShape,
+  createConstructionElement,
+  type ConstructionElement,
+  type WithIssues,
+  type ConstructionIssue
+} from './base'
 
 export interface BasePostConfig {
   type: 'full' | 'double'
@@ -51,13 +57,11 @@ const constructFullPost = (
 ): WithIssues<ConstructionElement[]> => {
   const warnings: ConstructionIssue[] = []
 
-  const postElement: ConstructionElement = {
-    id: createConstructionElementId(),
-    material: config.material,
-    position,
-    size: [config.width, size[1], size[2]],
-    type: 'post'
-  }
+  const postElement: ConstructionElement = createConstructionElement(
+    'post',
+    config.material,
+    createCuboidShape(position, [config.width, size[1], size[2]])
+  )
 
   // Check if material is dimensional and dimensions match
   const material = resolveMaterial(config.material)
@@ -93,13 +97,11 @@ const constructDoublePost = (
   // Check if wall is wide enough for two posts
   const minimumWallThickness = 2 * config.thickness
   if (size[1] < minimumWallThickness) {
-    const errorElement: ConstructionElement = {
-      id: createConstructionElementId(),
-      material: config.material,
-      position,
-      size: [config.width, size[1], size[2]],
-      type: 'post'
-    }
+    const errorElement: ConstructionElement = createConstructionElement(
+      'post',
+      config.material,
+      createCuboidShape(position, [config.width, size[1], size[2]])
+    )
 
     errors.push({
       description: `Wall thickness (${size[1]}mm) is not wide enough for double posts requiring ${minimumWallThickness}mm minimum`,
@@ -113,34 +115,34 @@ const constructDoublePost = (
     }
   }
 
-  const post1: ConstructionElement = {
-    id: createConstructionElementId(),
-    material: config.material,
-    position,
-    size: [config.width, config.thickness, size[2]],
-    type: 'post'
-  }
+  const post1: ConstructionElement = createConstructionElement(
+    'post',
+    config.material,
+    createCuboidShape(position, [config.width, config.thickness, size[2]])
+  )
 
-  const post2: ConstructionElement = {
-    id: createConstructionElementId(),
-    material: config.material,
-    position: [position[0], position[1] + size[1] - config.thickness, position[2]],
-    size: [config.width, config.thickness, size[2]],
-    type: 'post'
-  }
+  const post2: ConstructionElement = createConstructionElement(
+    'post',
+    config.material,
+    createCuboidShape(
+      [position[0], position[1] + size[1] - config.thickness, position[2]],
+      [config.width, config.thickness, size[2]]
+    )
+  )
 
   const elements = [post1, post2]
 
   // Only add infill if there's space for it
   const infillThickness = size[1] - 2 * config.thickness
   if (infillThickness > 0) {
-    const infill: ConstructionElement = {
-      id: createConstructionElementId(),
-      material: config.infillMaterial,
-      position: [position[0], position[1] + config.thickness, position[2]],
-      size: [config.width, infillThickness, size[2]],
-      type: 'infill'
-    }
+    const infill: ConstructionElement = createConstructionElement(
+      'infill',
+      config.infillMaterial,
+      createCuboidShape(
+        [position[0], position[1] + config.thickness, position[2]],
+        [config.width, infillThickness, size[2]]
+      )
+    )
     elements.push(infill)
   }
 

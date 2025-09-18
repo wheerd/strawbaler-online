@@ -1,6 +1,7 @@
 import type { Length } from '@/types/geometry'
 import { createVec2 } from '@/types/geometry'
 import type { Measurement, ConstructionElement, ConstructionSegment } from './base'
+import { getElementPosition, getElementSize } from './base'
 
 export type MeasurementType =
   | 'post-spacing'
@@ -15,7 +16,9 @@ export type MeasurementType =
  */
 export function calculatePostSpacingMeasurements(elements: ConstructionElement[]): Measurement[] {
   // Find all posts and sort by x position
-  const posts = elements.filter(el => el.type === 'post').sort((a, b) => a.position[0] - b.position[0])
+  const posts = elements
+    .filter(el => el.type === 'post')
+    .sort((a, b) => getElementPosition(a)[0] - getElementPosition(b)[0])
 
   if (posts.length < 2) return []
 
@@ -27,9 +30,9 @@ export function calculatePostSpacingMeasurements(elements: ConstructionElement[]
     const nextPost = posts[i + 1]
 
     // Start of spacing is end of current post
-    const spacingStart = (currentPost.position[0] + currentPost.size[0]) as Length
+    const spacingStart = (getElementPosition(currentPost)[0] + getElementSize(currentPost)[0]) as Length
     // End of spacing is start of next post
-    const spacingEnd = nextPost.position[0] as Length
+    const spacingEnd = getElementPosition(nextPost)[0] as Length
     const spacing = (spacingEnd - spacingStart) as Length
 
     if (spacing > 0) {
@@ -61,15 +64,15 @@ export function calculateOpeningMeasurements(openingSegment: ConstructionSegment
 
   if (!header) return measurements
 
-  const headerCenterX = (header.position[0] + header.size[0] / 2) as Length
-  const headerWidth = header.size[0]
-  const headerBottom = header.position[2] as Length
+  const headerCenterX = (getElementPosition(header)[0] + getElementSize(header)[0] / 2) as Length
+  const headerWidth = getElementSize(header)[0]
+  const headerBottom = getElementPosition(header)[2] as Length
 
   // Opening width (horizontal, above wall)
   measurements.push({
     type: 'opening-width',
-    startPoint: createVec2(header.position[0], floorHeight),
-    endPoint: createVec2(header.position[0] + headerWidth, floorHeight),
+    startPoint: createVec2(getElementPosition(header)[0], floorHeight),
+    endPoint: createVec2(getElementPosition(header)[0] + headerWidth, floorHeight),
     label: `${Math.round(headerWidth)}mm`,
     offset: -60
   })
@@ -85,7 +88,7 @@ export function calculateOpeningMeasurements(openingSegment: ConstructionSegment
 
   // Sill height and opening height (if sill exists)
   if (sill) {
-    const sillTop = (sill.position[2] + sill.size[2]) as Length
+    const sillTop = (getElementPosition(sill)[2] + getElementSize(sill)[2]) as Length
 
     if (sillTop > 0) {
       // Sill height (vertical, in opening center)

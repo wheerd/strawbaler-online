@@ -1,6 +1,6 @@
 import type { Length, Vec3 } from '@/types/geometry'
 import type { MaterialId } from './material'
-import { createConstructionElementId, type ConstructionElement, type WithIssues } from './base'
+import { createCuboidShape, createConstructionElement, type ConstructionElement, type WithIssues } from './base'
 import { vec3 } from 'gl-matrix'
 
 export interface StrawConfig {
@@ -26,13 +26,13 @@ export const constructStraw = (position: Vec3, size: Vec3, config: StrawConfig):
         ]
 
         const isFullBale = baleSize[0] === config.baleLength && baleSize[2] === config.baleHeight
-        bales.push({
-          id: createConstructionElementId(),
-          material: config.material,
-          position: balePosition,
-          size: baleSize,
-          type: isFullBale ? 'full-strawbale' : 'partial-strawbale'
-        })
+        bales.push(
+          createConstructionElement(
+            isFullBale ? 'full-strawbale' : 'partial-strawbale',
+            config.material,
+            createCuboidShape(balePosition, baleSize)
+          )
+        )
       }
     }
     return {
@@ -41,26 +41,22 @@ export const constructStraw = (position: Vec3, size: Vec3, config: StrawConfig):
       warnings: []
     }
   } else if (size[1] > config.baleWidth) {
-    const element: ConstructionElement = {
-      id: createConstructionElementId(),
-      material: config.material,
-      position,
-      size,
-      type: 'straw'
-    }
+    const element: ConstructionElement = createConstructionElement(
+      'straw',
+      config.material,
+      createCuboidShape(position, size)
+    )
     return {
       it: [element],
       errors: [{ description: 'Wall is too thick for a single strawbale', elements: [element.id] }],
       warnings: []
     }
   } else {
-    const element: ConstructionElement = {
-      id: createConstructionElementId(),
-      material: config.material,
-      position,
-      size,
-      type: 'straw'
-    }
+    const element: ConstructionElement = createConstructionElement(
+      'straw',
+      config.material,
+      createCuboidShape(position, size)
+    )
     return {
       it: [element],
       errors: [],

@@ -6,7 +6,15 @@ import { constructOpeningFrame, constructOpening, type OpeningConstructionConfig
 import type { InfillConstructionConfig } from './infill'
 import { infillWallArea } from './infill'
 import { createMaterialId, resolveDefaultMaterial } from './material'
-import { createConstructionElementId, type ConstructionElement, type WithIssues, type WallSegment3D } from './base'
+import {
+  createConstructionElementId,
+  createConstructionElement,
+  getElementPosition,
+  getElementSize,
+  type ConstructionElement,
+  type WithIssues,
+  type WallSegment3D
+} from './base'
 
 // Mock the infill module
 vi.mock('./infill', () => ({
@@ -69,13 +77,11 @@ const createTestOpeningSegment = (
 })
 
 const createMockInfillResult = (numElements: number = 2): WithIssues<ConstructionElement[]> => ({
-  it: Array.from({ length: numElements }, (_, i) => ({
-    id: createConstructionElementId(),
-    type: 'straw' as const,
-    material: createMaterialId(),
-    position: [100 * i, 0, 0] as Vec3,
-    size: [100, 360, 500] as Vec3
-  })),
+  it: Array.from({ length: numElements }, (_, i) => {
+    const position = [100 * i, 0, 0] as Vec3
+    const size = [100, 360, 500] as Vec3
+    return createConstructionElement('straw' as const, createMaterialId(), { type: 'cuboid' as const, position, size })
+  }),
   errors: [],
   warnings: []
 })
@@ -110,19 +116,19 @@ describe('constructOpeningFrame', () => {
       expect(filling).toBeDefined()
 
       // Check header positioning
-      expect(header!.position[0]).toBe(1000)
-      expect(header!.position[2]).toBe(2100) // 900 + 1200
-      expect(header!.size).toEqual([800, 360, 60])
+      expect(getElementPosition(header!)[0]).toBe(1000)
+      expect(getElementPosition(header!)[2]).toBe(2100) // 900 + 1200
+      expect(getElementSize(header!)).toEqual([800, 360, 60])
 
       // Check sill positioning
-      expect(sill!.position[0]).toBe(1000)
-      expect(sill!.position[2]).toBe(840) // 900 - 60
-      expect(sill!.size).toEqual([800, 360, 60])
+      expect(getElementPosition(sill!)[0]).toBe(1000)
+      expect(getElementPosition(sill!)[2]).toBe(840) // 900 - 60
+      expect(getElementSize(sill!)).toEqual([800, 360, 60])
 
       // Check filling positioning (centered with padding)
-      expect(filling!.position[0]).toBe(1015) // 1000 + 15 padding
-      expect(filling!.position[2]).toBe(915) // 900 + 15 padding
-      expect(filling!.size).toEqual([770, 30, 1170]) // width/height reduced by 2*padding
+      expect(getElementPosition(filling!)[0]).toBe(1015) // 1000 + 15 padding
+      expect(getElementPosition(filling!)[2]).toBe(915) // 900 + 15 padding
+      expect(getElementSize(filling!)).toEqual([770, 30, 1170]) // width/height reduced by 2*padding
     })
 
     it('creates only header for door without sill height', () => {
@@ -148,7 +154,7 @@ describe('constructOpeningFrame', () => {
       expect(filling).toBeDefined()
 
       // Check header is at correct position (sillHeight defaults to 0)
-      expect(header!.position[2]).toBe(2000) // 0 + 2000
+      expect(getElementPosition(header!)[2]).toBe(2000) // 0 + 2000
     })
 
     it('does not create sill when sill height is 0', () => {
@@ -281,7 +287,7 @@ describe('constructOpeningFrame', () => {
 
       // Y position should center the filling in wall thickness
       const expectedYPosition = (400 - 50) / 2 // (wallThickness - fillingThickness) / 2
-      expect(filling!.position[1]).toBe(expectedYPosition)
+      expect(getElementPosition(filling!)[1]).toBe(expectedYPosition)
     })
   })
 
@@ -488,8 +494,8 @@ describe('constructOpeningFrame', () => {
 
       const filling = result.it.find(el => el.type === 'opening')
       expect(filling).toBeDefined()
-      expect(filling!.size[0]).toBe(0) // 10 - 2*5 = 0
-      expect(filling!.size[2]).toBe(0) // 10 - 2*5 = 0
+      expect(getElementSize(filling!)[0]).toBe(0) // 10 - 2*5 = 0
+      expect(getElementSize(filling!)[2]).toBe(0) // 10 - 2*5 = 0
     })
 
     it('handles zero padding', () => {
@@ -506,9 +512,9 @@ describe('constructOpeningFrame', () => {
 
       const filling = result.it.find(el => el.type === 'opening')
       expect(filling).toBeDefined()
-      expect(filling!.position[0]).toBe(1000) // no padding offset
-      expect(filling!.size[0]).toBe(800) // full width
-      expect(filling!.size[2]).toBe(1200) // full height
+      expect(getElementPosition(filling!)[0]).toBe(1000) // no padding offset
+      expect(getElementSize(filling!)[0]).toBe(800) // full width
+      expect(getElementSize(filling!)[2]).toBe(1200) // full height
     })
   })
 })
@@ -570,8 +576,8 @@ describe('constructOpening', () => {
     frameResult.it.forEach((frameElement, index) => {
       const openingElement = openingResult.it.elements[index]
       expect(openingElement.type).toBe(frameElement.type)
-      expect(openingElement.position).toEqual(frameElement.position)
-      expect(openingElement.size).toEqual(frameElement.size)
+      expect(getElementPosition(openingElement)).toEqual(getElementPosition(frameElement))
+      expect(getElementSize(openingElement)).toEqual(getElementSize(frameElement))
       expect(openingElement.material).toBe(frameElement.material)
     })
   })
