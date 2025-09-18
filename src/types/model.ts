@@ -1,4 +1,11 @@
-import type { StoreyId, PerimeterId, PerimeterWallId, PerimeterCornerId, OpeningId } from '@/types/ids'
+import type {
+  StoreyId,
+  PerimeterId,
+  PerimeterWallId,
+  PerimeterCornerId,
+  OpeningId,
+  RingBeamConstructionMethodId
+} from '@/types/ids'
 import type { Length, LineWall2D, Vec2 } from '@/types/geometry'
 
 // Storey level branded type
@@ -40,6 +47,10 @@ export interface Perimeter {
   // Per-side wall data
   walls: PerimeterWall[] // walls[i] goes from corners[i].insidePoint -> corners[(i + 1) % corners.length].insidePoint
   corners: PerimeterCorner[]
+
+  // Ring beam configuration
+  baseRingBeamMethodId?: RingBeamConstructionMethodId
+  topRingBeamMethodId?: RingBeamConstructionMethodId
 }
 
 export type PerimeterConstructionType = 'cells-under-tension' | 'infill' | 'strawhenge' | 'non-strawbale'
