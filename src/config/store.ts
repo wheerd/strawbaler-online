@@ -10,6 +10,8 @@ import { createLength } from '@/types/geometry'
 
 export interface ConfigState {
   ringBeamConstructionMethods: Map<RingBeamConstructionMethodId, RingBeamConstructionMethod>
+  defaultBaseRingBeamMethodId?: RingBeamConstructionMethodId
+  defaultTopRingBeamMethodId?: RingBeamConstructionMethodId
 }
 
 export interface ConfigActions {
@@ -22,6 +24,12 @@ export interface ConfigActions {
   // Queries
   getRingBeamConstructionMethodById: (id: RingBeamConstructionMethodId) => RingBeamConstructionMethod | null
   getAllRingBeamConstructionMethods: () => RingBeamConstructionMethod[]
+
+  // Default ring beam management
+  setDefaultBaseRingBeamMethod: (methodId: RingBeamConstructionMethodId | undefined) => void
+  setDefaultTopRingBeamMethod: (methodId: RingBeamConstructionMethodId | undefined) => void
+  getDefaultBaseRingBeamMethodId: () => RingBeamConstructionMethodId | undefined
+  getDefaultTopRingBeamMethodId: () => RingBeamConstructionMethodId | undefined
 }
 
 export type ConfigStore = ConfigState & ConfigActions
@@ -58,6 +66,8 @@ export const useConfigStore = create<ConfigStore>()(
         ringBeamConstructionMethods: new Map<RingBeamConstructionMethodId, RingBeamConstructionMethod>([
           [defaultMethod.id, defaultMethod]
         ]),
+        defaultBaseRingBeamMethodId: defaultMethod.id,
+        defaultTopRingBeamMethodId: defaultMethod.id,
 
         // CRUD operations
         addRingBeamConstructionMethod: (name: string, config: RingBeamConfig) => {
@@ -86,7 +96,12 @@ export const useConfigStore = create<ConfigStore>()(
             newMethods.delete(id)
             return {
               ...state,
-              ringBeamConstructionMethods: newMethods
+              ringBeamConstructionMethods: newMethods,
+              // Clear defaults if removing the default method
+              defaultBaseRingBeamMethodId:
+                state.defaultBaseRingBeamMethodId === id ? undefined : state.defaultBaseRingBeamMethodId,
+              defaultTopRingBeamMethodId:
+                state.defaultTopRingBeamMethodId === id ? undefined : state.defaultTopRingBeamMethodId
             }
           })
         },
@@ -138,6 +153,31 @@ export const useConfigStore = create<ConfigStore>()(
         getAllRingBeamConstructionMethods: () => {
           const state = get()
           return Array.from(state.ringBeamConstructionMethods.values())
+        },
+
+        // Default ring beam management
+        setDefaultBaseRingBeamMethod: (methodId: RingBeamConstructionMethodId | undefined) => {
+          set(state => ({
+            ...state,
+            defaultBaseRingBeamMethodId: methodId
+          }))
+        },
+
+        setDefaultTopRingBeamMethod: (methodId: RingBeamConstructionMethodId | undefined) => {
+          set(state => ({
+            ...state,
+            defaultTopRingBeamMethodId: methodId
+          }))
+        },
+
+        getDefaultBaseRingBeamMethodId: () => {
+          const state = get()
+          return state.defaultBaseRingBeamMethodId
+        },
+
+        getDefaultTopRingBeamMethodId: () => {
+          const state = get()
+          return state.defaultTopRingBeamMethodId
         }
       }
     },
@@ -154,3 +194,9 @@ export const useRingBeamConstructionMethods = (): RingBeamConstructionMethod[] =
 export const useRingBeamConstructionMethodById = (
   id: RingBeamConstructionMethodId
 ): RingBeamConstructionMethod | null => useConfigStore(state => state.getRingBeamConstructionMethodById(id))
+
+export const useDefaultBaseRingBeamMethodId = (): RingBeamConstructionMethodId | undefined =>
+  useConfigStore(state => state.getDefaultBaseRingBeamMethodId())
+
+export const useDefaultTopRingBeamMethodId = (): RingBeamConstructionMethodId | undefined =>
+  useConfigStore(state => state.getDefaultTopRingBeamMethodId())

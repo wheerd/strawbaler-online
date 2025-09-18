@@ -1,6 +1,7 @@
 import type { Tool, CanvasEvent } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { Vec2, Polygon2D, LineWall2D, Length } from '@/types/geometry'
 import type { RingBeamConstructionMethodId } from '@/types/ids'
+import { useConfigStore } from '@/config/store'
 import {
   createLength,
   createVec2,
@@ -181,6 +182,12 @@ export class PerimeterTool extends BaseTool implements Tool {
     this.state.points = []
     this.state.isCurrentLineValid = true
     this.state.isClosingLineValid = true
+
+    // Set default ring beam methods from config store
+    const configStore = useConfigStore.getState()
+    this.state.baseRingBeamMethodId = configStore.getDefaultBaseRingBeamMethodId()
+    this.state.topRingBeamMethodId = configStore.getDefaultTopRingBeamMethodId()
+
     this.updateSnapContext()
   }
 
