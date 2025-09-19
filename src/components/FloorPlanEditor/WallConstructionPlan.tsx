@@ -6,7 +6,9 @@ import {
   type WallConstructionPlan,
   type ConstructionIssue,
   type ConstructionElementId,
-  getElementPosition
+  type ConstructionElement,
+  getElementPosition,
+  getElementSize
 } from '@/construction'
 import { boundsFromPoints, createVec2, type Bounds2D, type Vec2 } from '@/types/geometry'
 import { COLORS } from '@/theme/colors'
@@ -28,7 +30,7 @@ interface IssueHighlight {
 
 const calculateIssueBounds = (
   issueElementIds: ConstructionElementId[],
-  elements: any[],
+  elements: ConstructionElement[],
   wallHeight: number,
   wallLength: number,
   view: ViewType
@@ -42,7 +44,9 @@ const calculateIssueBounds = (
   const allPoints: Vec2[] = []
 
   for (const element of affectedElements) {
-    const { position, size } = convertConstructionToSvg(element.position, element.size, wallHeight, wallLength, view)
+    const elementPosition = getElementPosition(element)
+    const elementSize = getElementSize(element)
+    const { position, size } = convertConstructionToSvg(elementPosition, elementSize, wallHeight, wallLength, view)
 
     // Add all 4 corners of the rectangle
     allPoints.push(
@@ -225,9 +229,11 @@ export function WallConstructionPlanDisplay({
       {sortedElements
         .filter(e => e.shape.type === 'cuboid')
         .map(element => {
+          const elementPosition = getElementPosition(element)
+          const elementSize = getElementSize(element)
           const { position, size } = convertConstructionToSvg(
-            element.shape.position,
-            element.shape.size,
+            elementPosition,
+            elementSize,
             wallHeight,
             wallLength,
             view
