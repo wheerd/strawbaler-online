@@ -187,78 +187,83 @@ export function RingBeamConstructionModal({
     <Dialog.Root>
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl z-50 w-[90vw] max-w-4xl max-h-[90vh] overflow-auto">
-          <div className="p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <Dialog.Title className="text-xl font-semibold text-gray-900">Ring Beam Construction</Dialog.Title>
-              <Dialog.Close asChild>
-                <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                  <Cross2Icon className="w-5 h-5" />
-                </button>
-              </Dialog.Close>
-            </div>
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[100]" />
+        <Dialog.Content className="fixed inset-4 bg-white rounded-lg shadow-xl z-[100] flex flex-col">
+          <div className="flex items-center justify-between p-3 border-b border-gray-200">
+            <Dialog.Title className="text-base font-medium text-gray-900">Ring Beam Construction</Dialog.Title>
+            <Dialog.Close asChild>
+              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                <Cross2Icon className="w-5 h-5" />
+              </button>
+            </Dialog.Close>
+          </div>
 
-            {/* Position Toggle */}
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-sm font-medium text-gray-700">Position:</span>
-              <div className="flex bg-gray-100 rounded-md p-1">
-                <button
-                  onClick={() => setCurrentPosition('base')}
-                  className={`px-3 py-1 text-sm rounded ${
-                    currentPosition === 'base'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Base Plate
-                </button>
-                <button
-                  onClick={() => setCurrentPosition('top')}
-                  className={`px-3 py-1 text-sm rounded ${
-                    currentPosition === 'top' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Top Plate
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            {currentMethod ? (
-              <div className="space-y-4">
-                {/* Method Info */}
-                <div className="bg-gray-50 rounded-md p-3">
-                  <h3 className="text-sm font-medium text-gray-900 mb-1">{currentMethod.name}</h3>
-                  <div className="text-xs text-gray-600 space-y-1">
-                    <div>Type: {currentMethod.config.type}</div>
-                    <div>Height: {currentMethod.config.height}mm</div>
-                    {currentMethod.config.type === 'full' && <div>Width: {currentMethod.config.width}mm</div>}
-                    {currentMethod.config.type === 'double' && <div>Thickness: {currentMethod.config.thickness}mm</div>}
-                  </div>
-                </div>
-
-                {/* Construction Plan */}
-                {constructionPlan ? (
-                  <RingBeamConstructionPlanDisplay plan={constructionPlan} showIssues />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 p-2 overflow-hidden">
+              <div className="w-full h-full bg-gray-50 rounded-lg border border-gray-200 p-1 overflow-hidden">
+                {currentMethod ? (
+                  constructionPlan ? (
+                    <RingBeamConstructionPlanDisplay plan={constructionPlan} showIssues />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-center text-gray-500">
+                        <div className="text-lg mb-2">⚠</div>
+                        <div className="text-sm">Failed to generate construction plan</div>
+                      </div>
+                    </div>
+                  )
                 ) : (
-                  <div className="w-full h-96 border border-gray-300 rounded bg-gray-50 flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center">
                     <div className="text-center text-gray-500">
-                      <div className="text-lg mb-2">⚠</div>
-                      <div className="text-sm">Failed to generate construction plan</div>
+                      <div className="text-lg mb-2">📋</div>
+                      <div className="text-sm">No {currentPosition} ring beam method selected</div>
                     </div>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="w-full h-96 border border-gray-300 rounded bg-gray-50 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <div className="text-lg mb-2">📋</div>
-                  <div className="text-sm">No {currentPosition} ring beam method selected</div>
+            </div>
+            <div className="flex-shrink-0 flex">
+              <div className="flex-1">
+                {/* Method Info Panel */}
+                {currentMethod && (
+                  <div className="p-3 border-t border-gray-200 bg-gray-50">
+                    <h3 className="text-sm font-medium text-gray-900 mb-1">{currentMethod.name}</h3>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <div>Type: {currentMethod.config.type}</div>
+                      <div>Height: {currentMethod.config.height}mm</div>
+                      {currentMethod.config.type === 'full' && <div>Width: {currentMethod.config.width}mm</div>}
+                      {currentMethod.config.type === 'double' && (
+                        <div>Thickness: {currentMethod.config.thickness}mm</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center px-4 py-3 border-t border-gray-200">
+                <div className="flex bg-gray-100 rounded-md p-1">
+                  <button
+                    onClick={() => setCurrentPosition('base')}
+                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                      currentPosition === 'base'
+                        ? 'bg-primary-500 text-white shadow-sm'
+                        : 'bg-white text-black hover:text-gray-700'
+                    }`}
+                  >
+                    Base Plate
+                  </button>
+                  <button
+                    onClick={() => setCurrentPosition('top')}
+                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                      currentPosition === 'top'
+                        ? 'bg-primary-500 text-white shadow-sm'
+                        : 'bg-white text-black hover:text-gray-700'
+                    }`}
+                  >
+                    Top Plate
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

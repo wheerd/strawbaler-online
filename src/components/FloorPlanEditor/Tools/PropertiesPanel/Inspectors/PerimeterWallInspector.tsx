@@ -224,7 +224,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
         <div className="pt-2 border-t border-gray-200">
           {constructionPlan && (
             <WallConstructionPlanModal plan={constructionPlan}>
-              <button className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded transition-colors">
+              <button className="w-full px-3 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded transition-colors">
                 View Construction Plan
               </button>
             </WallConstructionPlanModal>

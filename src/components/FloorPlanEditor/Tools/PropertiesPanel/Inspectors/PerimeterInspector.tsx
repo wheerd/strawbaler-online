@@ -106,7 +106,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                   perimeterId={selectedId}
                   position="base"
                   trigger={
-                    <button className="text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                    <button className="w-full px-3 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded transition-colors">
                       View Construction
                     </button>
                   }
@@ -162,7 +162,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                   perimeterId={selectedId}
                   position="top"
                   trigger={
-                    <button className="text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                    <button className="w-full px-3 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded transition-colors">
                       View Construction
                     </button>
                   }
