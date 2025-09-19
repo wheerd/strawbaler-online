@@ -50,6 +50,6 @@ export function ConstructionElementShape({
         </g>
       )
     default:
-      throw new Error(`Unsupported shape type: ${(element.shape as any).type}`)
+      throw new Error(`Unsupported shape type: ${(element.shape as { type: string }).type}`)
   }
 }

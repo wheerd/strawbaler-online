@@ -202,14 +202,14 @@ export const getElementPosition = (element: ConstructionElement): Vec3 => {
   if (element.shape.type === 'cuboid' || element.shape.type === 'cut-cuboid') {
     return element.shape.position
   }
-  throw new Error(`Shape type ${(element.shape as any).type} does not have a position property`)
+  throw new Error(`Shape type ${(element.shape as { type: string }).type} does not have a position property`)
 }
 
 export const getElementSize = (element: ConstructionElement): Vec3 => {
   if (element.shape.type === 'cuboid' || element.shape.type === 'cut-cuboid') {
     return element.shape.size
   }
-  throw new Error(`Shape type ${(element.shape as any).type} does not have a size property`)
+  throw new Error(`Shape type ${(element.shape as { type: string }).type} does not have a size property`)
 }
 
 // Helper function to create ConstructionElement with computed position/size properties
