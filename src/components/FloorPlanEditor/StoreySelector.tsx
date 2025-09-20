@@ -42,7 +42,7 @@ export function StoreySelector(): React.JSX.Element {
       <StoreyManagementModal
         trigger={
           <button
-            className="p-1 text-gray-600 hover:text-gray-800 transition-colors rounded hover:bg-gray-100"
+            className="p-1 text-gray-900 bg-gray-300 hover:bg-gray-400 transition-colors rounded"
             title="Manage floors"
             type="button"
           >

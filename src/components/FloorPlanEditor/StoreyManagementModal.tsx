@@ -68,7 +68,7 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
             {/* Add new floor button */}
             <button
               onClick={handleAddEmptyFloor}
-              className="w-full p-3 border-2 border-dashed border-gray-300 rounded text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full p-3 text-white bg-primary-600 hover:bg-primary-700 rounded transition-colors flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               type="button"
             >
               <span className="text-lg">+</span>
@@ -93,18 +93,6 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
                 <div className="text-sm">No floors yet. Add your first floor above.</div>
               </div>
             )}
-          </div>
-
-          {/* Footer */}
-          <div className="flex justify-end p-4 border-t border-gray-200">
-            <Dialog.Close asChild>
-              <button
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                type="button"
-              >
-                Done
-              </button>
-            </Dialog.Close>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

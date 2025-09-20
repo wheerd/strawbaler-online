@@ -132,7 +132,7 @@ export function StoreyListItem({
         <button
           onClick={handleMoveUp}
           disabled={!canMoveUp}
-          className="p-2 text-gray-600 hover:text-gray-800 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors rounded hover:bg-gray-100 disabled:hover:bg-transparent"
+          className="p-2 text-white bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
           title="Move up"
           type="button"
         >
@@ -142,7 +142,7 @@ export function StoreyListItem({
         <button
           onClick={handleMoveDown}
           disabled={!canMoveDown}
-          className="p-2 text-gray-600 hover:text-gray-800 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors rounded hover:bg-gray-100 disabled:hover:bg-transparent"
+          className="p-2 text-white bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
           title="Move down"
           type="button"
         >
@@ -151,7 +151,7 @@ export function StoreyListItem({
 
         <button
           onClick={handleDuplicate}
-          className="p-2 text-gray-600 hover:text-gray-800 transition-colors rounded hover:bg-gray-100"
+          className="p-2 text-gray-900 bg-gray-100 hover:bg-gray-200 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
           title="Duplicate floor"
           type="button"
         >
@@ -161,7 +161,7 @@ export function StoreyListItem({
         <button
           onClick={handleDelete}
           disabled={isOnlyStorey}
-          className="p-2 text-red-600 hover:text-red-800 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors rounded hover:bg-red-50 disabled:hover:bg-transparent"
+          className="p-2 text-white bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1"
           title="Delete floor"
           type="button"
         >
