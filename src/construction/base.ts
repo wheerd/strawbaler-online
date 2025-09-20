@@ -1,6 +1,7 @@
 import type { Opening, OpeningType, PerimeterWall, PerimeterWallId, PerimeterCornerId, Perimeter } from '@/model'
 import type { Length, Vec3, Vec2 } from '@/types/geometry'
 import type { MaterialId } from './material'
+import { formatLength } from '@/utils/formatLength'
 import type { StrawConfig } from './straw'
 import type { OpeningConstruction, OpeningConstructionConfig } from './openings'
 
@@ -358,14 +359,14 @@ export function segmentWall(
     // Validate opening fits within the original wall boundary (before extensions)
     if (openingEnd > wall.wallLength) {
       throw new Error(
-        `Opening extends beyond wall length: opening ends at ${openingEnd}mm but wall ${wall.id} is only ${wall.wallLength}mm long`
+        `Opening extends beyond wall length: opening ends at ${formatLength(openingEnd)} but wall ${wall.id} is only ${formatLength(wall.wallLength)} long`
       )
     }
 
     // Validate opening doesn't overlap with previous position
     if (openingStart < currentPosition) {
       throw new Error(
-        `Opening overlaps with previous segment: opening starts at ${openingStart}mm but previous segment ends at ${currentPosition}mm`
+        `Opening overlaps with previous segment: opening starts at ${formatLength(openingStart)} but previous segment ends at ${formatLength(currentPosition)}`
       )
     }
 

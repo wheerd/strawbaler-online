@@ -19,6 +19,11 @@ vi.mock('./infill', () => ({
   infillWallArea: vi.fn()
 }))
 
+// Mock the formatLength utility
+vi.mock('@/utils/formatLength', () => ({
+  formatLength: vi.fn((length: number) => `${length}mm`) // Mock to return simple format for tests
+}))
+
 const mockInfillWallArea = vi.mocked(infillWallArea)
 
 const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
@@ -153,7 +158,7 @@ describe('constructOpeningFrame', () => {
       expect(sillHeightMeasurements).toHaveLength(1)
       expect(openingHeightMeasurements).toHaveLength(1)
 
-      // Verify measurement values
+      // Verify measurement values (using mocked formatLength)
       expect(openingWidthMeasurements[0].label).toBe('1000mm')
       expect(sillHeightMeasurements[0].label).toBe('800mm')
       expect(headerHeightMeasurements[0].label).toBe('2000mm') // sillHeight + height

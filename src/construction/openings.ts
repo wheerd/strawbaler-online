@@ -1,6 +1,7 @@
 import type { Opening, OpeningId } from '@/model'
 import type { Length, Vec3 } from '@/types/geometry'
 import { createVec2 } from '@/types/geometry'
+import { formatLength } from '@/utils/formatLength'
 import type { MaterialId, ResolveMaterialFunction } from './material'
 import {
   createCuboidShape,
@@ -89,7 +90,7 @@ export function* constructOpeningFrame(
       type: 'opening-width',
       startPoint: createVec2(segmentPosition[0], wallHeight),
       endPoint: createVec2(segmentPosition[0] + segmentSize[0], wallHeight),
-      label: `${Math.round(segmentSize[0])}mm`,
+      label: formatLength(segmentSize[0] as Length),
       offset: -60
     })
 
@@ -99,13 +100,13 @@ export function* constructOpeningFrame(
       type: 'header-height',
       startPoint: createVec2(headerCenterX, 0),
       endPoint: createVec2(headerCenterX, headerBottom),
-      label: `${Math.round(headerBottom)}mm`,
+      label: formatLength(headerBottom),
       offset: 40
     })
 
     if (headerTop > wallHeight) {
       yield yieldError({
-        description: `Header does not fit: needs ${config.headerThickness}mm but only ${wallHeight - headerBottom}mm available`,
+        description: `Header does not fit: needs ${formatLength(config.headerThickness)} but only ${formatLength((wallHeight - headerBottom) as Length)} available`,
         elements: [headerElement.id]
       })
     }
@@ -136,7 +137,7 @@ export function* constructOpeningFrame(
       type: 'sill-height',
       startPoint: createVec2(sillCenterX, 0),
       endPoint: createVec2(sillCenterX, sillTop),
-      label: `${Math.round(sillTop)}mm`,
+      label: formatLength(sillTop),
       offset: -40
     })
 
@@ -148,7 +149,7 @@ export function* constructOpeningFrame(
           type: 'opening-height',
           startPoint: createVec2(sillCenterX, sillTop),
           endPoint: createVec2(sillCenterX, headerHeight),
-          label: `${Math.round(openingHeight)}mm`,
+          label: formatLength(openingHeight),
           offset: -40
         })
       }
@@ -156,7 +157,7 @@ export function* constructOpeningFrame(
 
     if (sillBottom < 0) {
       yield yieldError({
-        description: `Sill does not fit: needs ${config.sillThickness}mm but only ${sillTop}mm available`,
+        description: `Sill does not fit: needs ${formatLength(config.sillThickness)} but only ${formatLength(sillTop)} available`,
         elements: [sillElement.id]
       })
     }

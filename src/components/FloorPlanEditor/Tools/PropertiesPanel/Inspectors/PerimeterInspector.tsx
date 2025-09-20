@@ -2,9 +2,10 @@ import React from 'react'
 import * as Select from '@radix-ui/react-select'
 import { useModelStore } from '@/model/store'
 import type { PerimeterId, RingBeamConstructionMethodId } from '@/types/ids'
-import { calculatePolygonArea } from '@/types/geometry'
+import { calculatePolygonArea, type Length } from '@/types/geometry'
 import { useRingBeamConstructionMethods } from '@/config/store'
 import { RingBeamConstructionModal } from '@/components/FloorPlanEditor/RingBeamConstructionModal'
+import { formatLength } from '@/utils/formatLength'
 
 interface PerimeterInspectorProps {
   selectedId: PerimeterId
@@ -44,7 +45,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
           <div className="space-y-1">
             <div className="flex justify-between items-center py-0.5">
               <span className="text-xs text-gray-600">Total Perimeter:</span>
-              <span className="text-xs font-medium text-gray-800">{(totalPerimeter / 1000).toFixed(2)} m</span>
+              <span className="text-xs font-medium text-gray-800">{formatLength(totalPerimeter as Length)}</span>
             </div>
             <div className="flex justify-between items-center py-0.5">
               <span className="text-xs text-gray-600">Total Area:</span>

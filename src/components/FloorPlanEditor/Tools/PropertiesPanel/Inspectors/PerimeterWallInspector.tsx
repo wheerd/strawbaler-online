@@ -3,6 +3,7 @@ import * as Select from '@radix-ui/react-select'
 import { useModelStore } from '@/model/store'
 import { createLength, type Length } from '@/types/geometry'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
+import { formatLength } from '@/utils/formatLength'
 import type { PerimeterWallId, PerimeterId } from '@/types/ids'
 import type { PerimeterConstructionType } from '@/types/model'
 import { WallConstructionPlanModal } from '@/components/FloorPlanEditor/WallConstructionPlan'
@@ -185,11 +186,11 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
           <div className="space-y-1">
             <div className="flex justify-between items-center py-0.5">
               <span className="text-xs text-gray-600">Inside Length:</span>
-              <span className="text-xs font-medium text-gray-800">{(wall.insideLength / 1000).toFixed(3)} m</span>
+              <span className="text-xs font-medium text-gray-800">{formatLength(wall.insideLength)}</span>
             </div>
             <div className="flex justify-between items-center py-0.5">
               <span className="text-xs text-gray-600">Outside Length:</span>
-              <span className="text-xs font-medium text-gray-800">{(wall.outsideLength / 1000).toFixed(3)} m</span>
+              <span className="text-xs font-medium text-gray-800">{formatLength(wall.outsideLength)}</span>
             </div>
           </div>
         </div>

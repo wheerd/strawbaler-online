@@ -1,6 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import type { ConstructionElement, ConstructionSegment } from './base'
-
 import { createCuboidShape, createConstructionElement } from './base'
 import {
   calculatePostSpacingMeasurements,
@@ -8,6 +7,11 @@ import {
   calculateOpeningSpacingMeasurements
 } from './measurements'
 import type { Length } from '@/types/geometry'
+
+// Mock the formatLength utility
+vi.mock('@/utils/formatLength', () => ({
+  formatLength: vi.fn((length: number) => `${length}mm`) // Mock to return simple format for tests
+}))
 
 const mockPost = (x: Length, width: Length = 40 as Length): ConstructionElement =>
   createConstructionElement(

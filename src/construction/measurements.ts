@@ -1,5 +1,6 @@
 import type { Length } from '@/types/geometry'
 import { createVec2 } from '@/types/geometry'
+import { formatLength } from '@/utils/formatLength'
 import type { Measurement, ConstructionElement, ConstructionSegment } from './base'
 import { getElementPosition, getElementSize } from './base'
 
@@ -40,7 +41,7 @@ export function calculatePostSpacingMeasurements(elements: ConstructionElement[]
         type: 'post-spacing',
         startPoint: createVec2(spacingStart, 0),
         endPoint: createVec2(spacingEnd, 0),
-        label: `${Math.round(spacing)}mm`,
+        label: formatLength(spacing),
         offset: 60
       })
     }
@@ -73,7 +74,7 @@ export function calculateOpeningMeasurements(openingSegment: ConstructionSegment
     type: 'opening-width',
     startPoint: createVec2(getElementPosition(header)[0], floorHeight),
     endPoint: createVec2(getElementPosition(header)[0] + headerWidth, floorHeight),
-    label: `${Math.round(headerWidth)}mm`,
+    label: formatLength(headerWidth as Length),
     offset: -60
   })
 
@@ -82,7 +83,7 @@ export function calculateOpeningMeasurements(openingSegment: ConstructionSegment
     type: 'header-height',
     startPoint: createVec2(headerCenterX, 0),
     endPoint: createVec2(headerCenterX, headerBottom),
-    label: `${Math.round(headerBottom)}mm`,
+    label: formatLength(headerBottom),
     offset: 40
   })
 
@@ -96,7 +97,7 @@ export function calculateOpeningMeasurements(openingSegment: ConstructionSegment
         type: 'sill-height',
         startPoint: createVec2(headerCenterX, 0),
         endPoint: createVec2(headerCenterX, sillTop),
-        label: `${Math.round(sillTop)}mm`,
+        label: formatLength(sillTop),
         offset: -40
       })
 
@@ -107,7 +108,7 @@ export function calculateOpeningMeasurements(openingSegment: ConstructionSegment
           type: 'opening-height',
           startPoint: createVec2(headerCenterX, sillTop),
           endPoint: createVec2(headerCenterX, headerBottom),
-          label: `${Math.round(openingHeight)}mm`,
+          label: formatLength(openingHeight),
           offset: -40
         })
       }
@@ -138,7 +139,7 @@ export function calculateOpeningSpacingMeasurements(
       type: 'opening-spacing',
       startPoint: createVec2(0, floorHeight),
       endPoint: createVec2(firstOpening.position, floorHeight),
-      label: `${Math.round(firstOpening.position)}mm`,
+      label: formatLength(firstOpening.position),
       offset: -60
     })
   }
@@ -157,7 +158,7 @@ export function calculateOpeningSpacingMeasurements(
         type: 'opening-spacing',
         startPoint: createVec2(currentEnd, floorHeight),
         endPoint: createVec2(nextStart, floorHeight),
-        label: `${Math.round(spacing)}mm`,
+        label: formatLength(spacing),
         offset: -60
       })
     }
@@ -172,7 +173,7 @@ export function calculateOpeningSpacingMeasurements(
       type: 'opening-spacing',
       startPoint: createVec2(lastOpeningEnd, floorHeight),
       endPoint: createVec2(wallLength, floorHeight),
-      label: `${Math.round(remainingDistance)}mm`,
+      label: formatLength(remainingDistance),
       offset: -60
     })
   }
