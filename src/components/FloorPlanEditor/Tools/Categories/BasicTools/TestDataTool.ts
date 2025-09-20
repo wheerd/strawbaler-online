@@ -47,16 +47,21 @@ export class TestDataTool implements Tool {
     }
 
     try {
-      // Get default ring beam methods from config store
+      // Get default construction methods from config store
       const configStore = useConfigStore.getState()
       const defaultBaseId = configStore.getDefaultBaseRingBeamMethodId()
       const defaultTopId = configStore.getDefaultTopRingBeamMethodId()
+      const defaultMethodId = configStore.getDefaultPerimeterMethodId()
+      if (!defaultMethodId) {
+        console.error('No default perimeter construction method available')
+        return
+      }
 
-      // Add the perimeter to the store with default ring beams
+      // Add the perimeter to the store with default methods
       const newPerimeter = modelStore.addPerimeter(
         activeStoreyId,
         boundary,
-        'infill',
+        defaultMethodId,
         createLength(440),
         defaultBaseId,
         defaultTopId

@@ -7,6 +7,7 @@ import { LengthIndicator } from '@/components/FloorPlanEditor/components/LengthI
 import { formatLength } from '@/utils/formatLength'
 import { OpeningShape } from './OpeningShape'
 import type { PerimeterId } from '@/model'
+import { useConfigStore } from '@/config/store'
 
 interface PerimeterWallShapeProps {
   wall: PerimeterWall
@@ -26,6 +27,7 @@ export function PerimeterWallShape({
   outsideEndCorner
 }: PerimeterWallShapeProps): React.JSX.Element {
   const select = useSelectionStore()
+  const configStore = useConfigStore()
 
   // Calculate wall properties
   const insideStart = wall.insideLine.start
@@ -44,7 +46,9 @@ export function PerimeterWallShape({
     angleDegrees += 180
   }
 
-  const baseColor = wall.constructionType === 'non-strawbale' ? COLORS.materials.other : COLORS.materials.strawbale
+  const constructionMethod = configStore.perimeterConstructionMethods.get(wall.constructionMethodId)
+  const baseColor =
+    constructionMethod?.config.type === 'non-strawbale' ? COLORS.materials.other : COLORS.materials.strawbale
   const finalMainColor = select.isSelected(wall.id) ? COLORS.selection.primary : baseColor
 
   return (

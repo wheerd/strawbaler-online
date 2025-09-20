@@ -3,6 +3,7 @@ import type { PerimeterCorner, PerimeterWall } from '@/types/model'
 import { add, midpoint, scale } from '@/types/geometry'
 import { COLORS } from '@/theme/colors'
 import { useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
+import { useConfigStore } from '@/config/store'
 
 interface PerimeterCornerShapeProps {
   corner: PerimeterCorner
@@ -18,6 +19,7 @@ export function PerimeterCornerShape({
   perimeterId
 }: PerimeterCornerShapeProps): React.JSX.Element {
   const select = useSelectionStore()
+  const configStore = useConfigStore()
   const isSelected = select.isCurrentSelection(corner.id)
 
   const cornerPolygon = [
@@ -39,8 +41,9 @@ export function PerimeterCornerShape({
   const arrowEnd = add(arrowCenter, scale(arrowDir, 90))
 
   const constructingWall = corner.constuctedByWall === 'previous' ? previousWall : nextWall
+  const constructionMethod = configStore.perimeterConstructionMethods.get(constructingWall.constructionMethodId)
   const cornerColor =
-    constructingWall.constructionType === 'non-strawbale' ? COLORS.materials.other : COLORS.materials.strawbale
+    constructionMethod?.config.type === 'non-strawbale' ? COLORS.materials.other : COLORS.materials.strawbale
   const finalColor = isSelected ? COLORS.selection.primary : cornerColor
 
   return (

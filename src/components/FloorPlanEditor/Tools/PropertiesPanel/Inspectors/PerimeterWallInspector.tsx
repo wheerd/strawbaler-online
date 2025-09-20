@@ -1,38 +1,26 @@
 import { useCallback, useMemo } from 'react'
 import * as Select from '@radix-ui/react-select'
 import { useModelStore } from '@/model/store'
-import { createLength, type Length } from '@/types/geometry'
+import { createLength } from '@/types/geometry'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
 import { formatLength } from '@/utils/formatLength'
-import type { PerimeterWallId, PerimeterId } from '@/types/ids'
-import type { PerimeterConstructionType } from '@/types/model'
+import type { PerimeterWallId, PerimeterId, PerimeterConstructionMethodId } from '@/types/ids'
+import { usePerimeterConstructionMethods, usePerimeterConstructionMethodById } from '@/config/store'
 import { WallConstructionPlanModal } from '@/components/FloorPlanEditor/WallConstructionPlan'
-import {
-  constructInfillWall,
-  door,
-  strawbale,
-  window as windowOpening,
-  wood360x60,
-  type InfillConstructionConfig
-} from '@/construction'
+import { constructInfillWall, type InfillConstructionConfig } from '@/construction'
 
 interface PerimeterWallInspectorProps {
   perimeterId: PerimeterId
   wallId: PerimeterWallId
 }
 
-// Construction type options - moved outside component to avoid recreation
-const CONSTRUCTION_TYPE_OPTIONS: { value: PerimeterConstructionType; label: string }[] = [
-  { value: 'cells-under-tension', label: 'CUT' },
-  { value: 'infill', label: 'Infill' },
-  { value: 'strawhenge', label: 'Strawhenge' },
-  { value: 'non-strawbale', label: 'Non-Strawbale' }
-]
-
 export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallInspectorProps): React.JSX.Element {
   // Get model store functions - use specific selectors for stable references
-  const updateOuterWallConstructionType = useModelStore(state => state.updatePerimeterWallConstructionType)
+  const updateOuterWallConstructionMethod = useModelStore(state => state.updatePerimeterWallConstructionMethod)
   const updateOuterWallThickness = useModelStore(state => state.updatePerimeterWallThickness)
+
+  // Get available construction methods
+  const allPerimeterMethods = usePerimeterConstructionMethods()
 
   // Get perimeter from store
   const outerWall = useModelStore(state => state.perimeters.get(perimeterId))
@@ -72,49 +60,22 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
 
   const storey = getStoreyById(outerWall.storeyId)
 
-  const infillConfig: InfillConstructionConfig = {
-    maxPostSpacing: 800 as Length,
-    minStrawSpace: 70 as Length,
-    posts: {
-      type: 'full',
-      width: 60 as Length,
-      material: wood360x60.id
-    },
-    openings: {
-      door: {
-        padding: 15 as Length,
-        headerThickness: 60 as Length,
-        headerMaterial: wood360x60.id,
-        fillingMaterial: door.id,
-        fillingThickness: 50 as Length
-      },
-      window: {
-        padding: 15 as Length,
-        headerThickness: 60 as Length,
-        headerMaterial: wood360x60.id,
-        sillThickness: 60 as Length,
-        sillMaterial: wood360x60.id,
-        fillingMaterial: windowOpening.id,
-        fillingThickness: 30 as Length
-      },
-      passage: {
-        padding: 15 as Length,
-        headerThickness: 60 as Length,
-        headerMaterial: wood360x60.id
-      }
-    },
-    straw: {
-      baleLength: 800 as Length,
-      baleHeight: 500 as Length,
-      baleWidth: 360 as Length,
-      material: strawbale.id
-    }
-  }
+  // Get construction method for this wall
+  const constructionMethod = wall?.constructionMethodId
+    ? usePerimeterConstructionMethodById(wall.constructionMethodId)
+    : null
 
-  const constructionPlan = useMemo(
-    () => (outerWall && wall ? constructInfillWall(wall, outerWall, storey!.height, infillConfig) : null),
-    [wall, outerWall, storey, infillConfig]
-  )
+  const constructionPlan = useMemo(() => {
+    if (!outerWall || !wall || !storey || !constructionMethod) return null
+
+    // For now, only support infill construction until other types are implemented
+    if (constructionMethod.config.type === 'infill') {
+      return constructInfillWall(wall, outerWall, storey.height, constructionMethod.config as InfillConstructionConfig)
+    }
+
+    // TODO: Add support for other construction types
+    return null
+  }, [wall, outerWall, storey, constructionMethod])
 
   return (
     <div className="p-2">
@@ -122,29 +83,29 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
         {/* Basic Properties */}
         <div className="space-y-2">
           <div className="space-y-1.5">
-            {/* Construction Type */}
+            {/* Construction Method */}
             <div className="flex items-center justify-between gap-3">
-              <label className="text-xs font-medium text-gray-600 flex-shrink-0">Construction Type</label>
+              <label className="text-xs font-medium text-gray-600 flex-shrink-0">Construction Method</label>
               <Select.Root
-                value={wall.constructionType}
-                onValueChange={(value: PerimeterConstructionType) => {
-                  updateOuterWallConstructionType(perimeterId, wallId, value)
+                value={wall.constructionMethodId || ''}
+                onValueChange={(value: PerimeterConstructionMethodId) => {
+                  updateOuterWallConstructionMethod(perimeterId, wallId, value)
                 }}
               >
                 <Select.Trigger className="flex-1 min-w-0 flex items-center justify-between px-2 py-1.5 bg-white border border-gray-300 rounded text-xs text-gray-800 hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200">
-                  <Select.Value placeholder="Select type" />
+                  <Select.Value placeholder="Select method" />
                   <Select.Icon className="text-gray-600">⌄</Select.Icon>
                 </Select.Trigger>
                 <Select.Portal>
                   <Select.Content className="bg-white border border-gray-300 rounded-md shadow-lg z-50 overflow-hidden">
                     <Select.Viewport className="p-1">
-                      {CONSTRUCTION_TYPE_OPTIONS.map(option => (
+                      {allPerimeterMethods.map(method => (
                         <Select.Item
-                          key={option.value}
-                          value={option.value}
+                          key={method.id}
+                          value={method.id}
                           className="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:outline-none cursor-pointer rounded"
                         >
-                          <Select.ItemText>{option.label}</Select.ItemText>
+                          <Select.ItemText>{method.name}</Select.ItemText>
                         </Select.Item>
                       ))}
                     </Select.Viewport>

@@ -1,17 +1,23 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { useMemo } from 'react'
-import type { RingBeamConstructionMethod } from '@/types/config'
-import type { RingBeamConstructionMethodId } from '@/types/ids'
-import { createRingBeamConstructionMethodId } from '@/types/ids'
+import type {
+  RingBeamConstructionMethod,
+  PerimeterConstructionMethod,
+  PerimeterConstructionConfig
+} from '@/types/config'
+import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/types/ids'
+import { createRingBeamConstructionMethodId, createPerimeterConstructionMethodId } from '@/types/ids'
 import type { RingBeamConfig } from '@/construction'
-import { wood360x60, validateRingBeamConfig } from '@/construction'
+import { wood360x60, validateRingBeamConfig, strawbale, door, window as windowOpening } from '@/construction'
 import { createLength } from '@/types/geometry'
 
 export interface ConfigState {
   ringBeamConstructionMethods: Map<RingBeamConstructionMethodId, RingBeamConstructionMethod>
+  perimeterConstructionMethods: Map<PerimeterConstructionMethodId, PerimeterConstructionMethod>
   defaultBaseRingBeamMethodId?: RingBeamConstructionMethodId
   defaultTopRingBeamMethodId?: RingBeamConstructionMethodId
+  defaultPerimeterMethodId: PerimeterConstructionMethodId
 }
 
 export interface ConfigActions {
@@ -30,6 +36,23 @@ export interface ConfigActions {
   setDefaultTopRingBeamMethod: (methodId: RingBeamConstructionMethodId | undefined) => void
   getDefaultBaseRingBeamMethodId: () => RingBeamConstructionMethodId | undefined
   getDefaultTopRingBeamMethodId: () => RingBeamConstructionMethodId | undefined
+
+  // CRUD operations for perimeter construction methods
+  addPerimeterConstructionMethod: (name: string, config: PerimeterConstructionConfig) => PerimeterConstructionMethod
+  removePerimeterConstructionMethod: (id: PerimeterConstructionMethodId) => void
+  updatePerimeterConstructionMethodName: (id: PerimeterConstructionMethodId, name: string) => void
+  updatePerimeterConstructionMethodConfig: (
+    id: PerimeterConstructionMethodId,
+    config: PerimeterConstructionConfig
+  ) => void
+
+  // Perimeter queries
+  getPerimeterConstructionMethodById: (id: PerimeterConstructionMethodId) => PerimeterConstructionMethod | null
+  getAllPerimeterConstructionMethods: () => PerimeterConstructionMethod[]
+
+  // Default perimeter method management
+  setDefaultPerimeterMethod: (methodId: PerimeterConstructionMethodId | undefined) => void
+  getDefaultPerimeterMethodId: () => PerimeterConstructionMethodId
 }
 
 export type ConfigStore = ConfigState & ConfigActions
@@ -38,6 +61,12 @@ export type ConfigStore = ConfigState & ConfigActions
 const validateRingBeamName = (name: string): void => {
   if (name.trim().length === 0) {
     throw new Error('Ring beam construction method name cannot be empty')
+  }
+}
+
+const validatePerimeterMethodName = (name: string): void => {
+  if (name.trim().length === 0) {
+    throw new Error('Perimeter construction method name cannot be empty')
   }
 }
 
@@ -56,18 +85,192 @@ const createDefaultRingBeamMethod = (): RingBeamConstructionMethod => ({
   }
 })
 
+// Default perimeter construction methods
+const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
+  {
+    id: createPerimeterConstructionMethodId(),
+    name: 'Standard Infill',
+    config: {
+      type: 'infill',
+      maxPostSpacing: createLength(800),
+      minStrawSpace: createLength(70),
+      posts: {
+        type: 'full',
+        width: createLength(60),
+        material: wood360x60.id
+      },
+      openings: {
+        door: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id,
+          fillingMaterial: door.id,
+          fillingThickness: createLength(50)
+        },
+        window: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id,
+          sillThickness: createLength(60),
+          sillMaterial: wood360x60.id,
+          fillingMaterial: windowOpening.id,
+          fillingThickness: createLength(30)
+        },
+        passage: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id
+        }
+      },
+      straw: {
+        baleLength: createLength(800),
+        baleHeight: createLength(500),
+        baleWidth: createLength(360),
+        material: strawbale.id
+      }
+    }
+  },
+  {
+    id: createPerimeterConstructionMethodId(),
+    name: 'Strawhenge Module',
+    config: {
+      type: 'strawhenge',
+      module: {
+        width: createLength(920),
+        frame: {
+          type: 'full',
+          width: createLength(60),
+          material: wood360x60.id
+        },
+        strawMaterial: strawbale.id
+      },
+      infill: {
+        type: 'infill',
+        maxPostSpacing: createLength(800),
+        minStrawSpace: createLength(70),
+        posts: {
+          type: 'full',
+          width: createLength(60),
+          material: wood360x60.id
+        },
+        openings: {
+          door: {
+            padding: createLength(15),
+            headerThickness: createLength(60),
+            headerMaterial: wood360x60.id,
+            fillingMaterial: door.id,
+            fillingThickness: createLength(50)
+          },
+          window: {
+            padding: createLength(15),
+            headerThickness: createLength(60),
+            headerMaterial: wood360x60.id,
+            sillThickness: createLength(60),
+            sillMaterial: wood360x60.id,
+            fillingMaterial: windowOpening.id,
+            fillingThickness: createLength(30)
+          },
+          passage: {
+            padding: createLength(15),
+            headerThickness: createLength(60),
+            headerMaterial: wood360x60.id
+          }
+        },
+        straw: {
+          baleLength: createLength(800),
+          baleHeight: createLength(500),
+          baleWidth: createLength(360),
+          material: strawbale.id
+        }
+      },
+      openings: {
+        door: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id,
+          fillingMaterial: door.id,
+          fillingThickness: createLength(50)
+        },
+        window: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id,
+          sillThickness: createLength(60),
+          sillMaterial: wood360x60.id,
+          fillingMaterial: windowOpening.id,
+          fillingThickness: createLength(30)
+        },
+        passage: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id
+        }
+      },
+      straw: {
+        baleLength: createLength(800),
+        baleHeight: createLength(500),
+        baleWidth: createLength(360),
+        material: strawbale.id
+      }
+    }
+  },
+  {
+    id: createPerimeterConstructionMethodId(),
+    name: 'Non-Strawbale Wall',
+    config: {
+      type: 'non-strawbale',
+      material: wood360x60.id,
+      thickness: 200,
+      openings: {
+        door: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id,
+          fillingMaterial: door.id,
+          fillingThickness: createLength(50)
+        },
+        window: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id,
+          sillThickness: createLength(60),
+          sillMaterial: wood360x60.id,
+          fillingMaterial: windowOpening.id,
+          fillingThickness: createLength(30)
+        },
+        passage: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id
+        }
+      },
+      straw: {
+        baleLength: createLength(800),
+        baleHeight: createLength(500),
+        baleWidth: createLength(360),
+        material: strawbale.id
+      }
+    }
+  }
+]
+
 export const useConfigStore = create<ConfigStore>()(
   devtools(
     (set, get) => {
-      // Initialize with default method
-      const defaultMethod = createDefaultRingBeamMethod()
+      // Initialize with default methods
+      const defaultRingBeamMethod = createDefaultRingBeamMethod()
+      const defaultPerimeterMethods = createDefaultPerimeterMethods()
 
       return {
         ringBeamConstructionMethods: new Map<RingBeamConstructionMethodId, RingBeamConstructionMethod>([
-          [defaultMethod.id, defaultMethod]
+          [defaultRingBeamMethod.id, defaultRingBeamMethod]
         ]),
-        defaultBaseRingBeamMethodId: defaultMethod.id,
-        defaultTopRingBeamMethodId: defaultMethod.id,
+        perimeterConstructionMethods: new Map<PerimeterConstructionMethodId, PerimeterConstructionMethod>(
+          defaultPerimeterMethods.map(method => [method.id, method])
+        ),
+        defaultBaseRingBeamMethodId: defaultRingBeamMethod.id,
+        defaultTopRingBeamMethodId: defaultRingBeamMethod.id,
+        defaultPerimeterMethodId: defaultPerimeterMethods[0].id,
 
         // CRUD operations
         addRingBeamConstructionMethod: (name: string, config: RingBeamConfig) => {
@@ -178,6 +381,101 @@ export const useConfigStore = create<ConfigStore>()(
         getDefaultTopRingBeamMethodId: () => {
           const state = get()
           return state.defaultTopRingBeamMethodId
+        },
+
+        // Perimeter construction method CRUD operations
+        addPerimeterConstructionMethod: (name: string, config: PerimeterConstructionConfig) => {
+          validatePerimeterMethodName(name)
+
+          const id = createPerimeterConstructionMethodId()
+          const method: PerimeterConstructionMethod = {
+            id,
+            name: name.trim(),
+            config
+          }
+
+          set(state => ({
+            ...state,
+            perimeterConstructionMethods: new Map(state.perimeterConstructionMethods).set(id, method)
+          }))
+
+          return method
+        },
+
+        removePerimeterConstructionMethod: (id: PerimeterConstructionMethodId) => {
+          set(state => {
+            const newMethods = new Map(state.perimeterConstructionMethods)
+            newMethods.delete(id)
+            return {
+              ...state,
+              perimeterConstructionMethods: newMethods,
+              defaultPerimeterMethodId:
+                state.defaultPerimeterMethodId === id ? undefined : state.defaultPerimeterMethodId
+            }
+          })
+        },
+
+        updatePerimeterConstructionMethodName: (id: PerimeterConstructionMethodId, name: string) => {
+          set(state => {
+            const method = state.perimeterConstructionMethods.get(id)
+            if (method == null) return state
+
+            validatePerimeterMethodName(name)
+
+            const updatedMethod: PerimeterConstructionMethod = {
+              ...method,
+              name: name.trim()
+            }
+
+            return {
+              ...state,
+              perimeterConstructionMethods: new Map(state.perimeterConstructionMethods).set(id, updatedMethod)
+            }
+          })
+        },
+
+        updatePerimeterConstructionMethodConfig: (
+          id: PerimeterConstructionMethodId,
+          config: PerimeterConstructionConfig
+        ) => {
+          set(state => {
+            const method = state.perimeterConstructionMethods.get(id)
+            if (method == null) return state
+
+            const updatedMethod: PerimeterConstructionMethod = {
+              ...method,
+              config
+            }
+
+            return {
+              ...state,
+              perimeterConstructionMethods: new Map(state.perimeterConstructionMethods).set(id, updatedMethod)
+            }
+          })
+        },
+
+        // Perimeter queries
+        getPerimeterConstructionMethodById: (id: PerimeterConstructionMethodId) => {
+          const state = get()
+          return state.perimeterConstructionMethods.get(id) ?? null
+        },
+
+        getAllPerimeterConstructionMethods: () => {
+          const state = get()
+          return Array.from(state.perimeterConstructionMethods.values())
+        },
+
+        // Default perimeter method management
+        setDefaultPerimeterMethod: (methodId: PerimeterConstructionMethodId | undefined) => {
+          set(state => ({
+            ...state,
+            defaultPerimeterMethodId: methodId
+          }))
+        },
+
+        getDefaultPerimeterMethodId: () => {
+          const state = get()
+          return state.defaultPerimeterMethodId
         }
       }
     },
@@ -200,3 +498,16 @@ export const useDefaultBaseRingBeamMethodId = (): RingBeamConstructionMethodId |
 
 export const useDefaultTopRingBeamMethodId = (): RingBeamConstructionMethodId | undefined =>
   useConfigStore(state => state.getDefaultTopRingBeamMethodId())
+
+// Perimeter construction method selector hooks
+export const usePerimeterConstructionMethods = (): PerimeterConstructionMethod[] => {
+  const perimeterMethodsMap = useConfigStore(state => state.perimeterConstructionMethods)
+  return useMemo(() => Array.from(perimeterMethodsMap.values()), [perimeterMethodsMap])
+}
+
+export const usePerimeterConstructionMethodById = (
+  id: PerimeterConstructionMethodId
+): PerimeterConstructionMethod | null => useConfigStore(state => state.getPerimeterConstructionMethodById(id))
+
+export const useDefaultPerimeterMethodId = (): PerimeterConstructionMethodId | undefined =>
+  useConfigStore(state => state.getDefaultPerimeterMethodId())

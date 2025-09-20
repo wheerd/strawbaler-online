@@ -48,6 +48,7 @@ const createTestConfig = (overrides: Partial<OpeningConstructionConfig> = {}): O
 })
 
 const createTestInfillConfig = (): InfillConstructionConfig => ({
+  type: 'infill',
   maxPostSpacing: 800 as Length,
   minStrawSpace: 70 as Length,
   posts: {

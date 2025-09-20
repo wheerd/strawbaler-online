@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { calculateWallCornerInfo, calculateWallConstructionLength } from './corners'
 import { createVec2, createLength, type Length } from '@/types/geometry'
 import type { PerimeterWall, PerimeterCorner, Perimeter } from '@/model'
-import { createPerimeterWallId, createPerimeterId } from '@/types/ids'
+import { createPerimeterWallId, createPerimeterId, createPerimeterConstructionMethodId } from '@/types/ids'
 
 // Mock data helpers
 function createMockWall(wallLength: Length, thickness: Length): PerimeterWall {
@@ -11,7 +11,7 @@ function createMockWall(wallLength: Length, thickness: Length): PerimeterWall {
 
   return {
     id: createPerimeterWallId(),
-    constructionType: 'infill',
+    constructionMethodId: createPerimeterConstructionMethodId(),
     thickness,
     wallLength,
     insideLength: wallLength,

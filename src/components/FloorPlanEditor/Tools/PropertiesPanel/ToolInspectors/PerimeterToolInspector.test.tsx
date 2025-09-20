@@ -3,6 +3,30 @@ import { vi } from 'vitest'
 import { PerimeterToolInspector } from './PerimeterToolInspector'
 import { PerimeterTool } from '@/components/FloorPlanEditor/Tools/Categories/PerimeterTools/PerimeterTool'
 import { createVec2, createLength } from '@/types/geometry'
+import { createPerimeterConstructionMethodId } from '@/model'
+
+// Mock the config store
+vi.mock('@/config/store', () => ({
+  useRingBeamConstructionMethods: () => [
+    {
+      id: 'test-ring-beam-method',
+      name: 'Test Ring Beam',
+      config: {}
+    }
+  ],
+  usePerimeterConstructionMethods: () => [
+    {
+      id: 'test-method-1',
+      name: 'Standard Infill',
+      config: { type: 'infill' }
+    },
+    {
+      id: 'test-method-2',
+      name: 'Strawhenge Module',
+      config: { type: 'strawhenge' }
+    }
+  ]
+}))
 
 // Mock scrollIntoView for Radix UI components
 Object.defineProperty(Element.prototype, 'scrollIntoView', {
@@ -13,14 +37,14 @@ Object.defineProperty(Element.prototype, 'scrollIntoView', {
 describe('PerimeterToolInspector', () => {
   let mockTool: PerimeterTool
   let mockOnRenderNeeded: ReturnType<typeof vi.fn>
-  let mockSetConstructionType: ReturnType<typeof vi.fn>
+  let mockSetConstructionMethod: ReturnType<typeof vi.fn>
   let mockSetWallThickness: ReturnType<typeof vi.fn>
   let mockSetBaseRingBeam: ReturnType<typeof vi.fn>
   let mockSetTopRingBeam: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     mockOnRenderNeeded = vi.fn()
-    mockSetConstructionType = vi.fn()
+    mockSetConstructionMethod = vi.fn()
     mockSetWallThickness = vi.fn()
     mockSetBaseRingBeam = vi.fn()
     mockSetTopRingBeam = vi.fn()
@@ -38,7 +62,7 @@ describe('PerimeterToolInspector', () => {
       },
       isCurrentLineValid: true,
       isClosingLineValid: true,
-      constructionType: 'cells-under-tension',
+      constructionMethodId: createPerimeterConstructionMethodId(),
       wallThickness: createLength(440),
       baseRingBeamMethodId: undefined,
       topRingBeamMethodId: undefined
@@ -46,7 +70,7 @@ describe('PerimeterToolInspector', () => {
 
     // Mock methods
     mockTool.onRenderNeeded = mockOnRenderNeeded.mockReturnValue(vi.fn())
-    mockTool.setConstructionType = mockSetConstructionType
+    mockTool.setConstructionMethod = mockSetConstructionMethod
     mockTool.setWallThickness = mockSetWallThickness
     mockTool.setBaseRingBeam = mockSetBaseRingBeam
     mockTool.setTopRingBeam = mockSetTopRingBeam
@@ -56,31 +80,30 @@ describe('PerimeterToolInspector', () => {
     it('renders basic inspector with default values', () => {
       render(<PerimeterToolInspector tool={mockTool} />)
 
-      expect(screen.getByText('Construction Type')).toBeInTheDocument()
+      expect(screen.getByText('Construction Method')).toBeInTheDocument()
       expect(screen.getByLabelText('Wall Thickness')).toBeInTheDocument()
       expect(screen.getByText('Base Plate')).toBeInTheDocument()
       expect(screen.getByText('Top Plate')).toBeInTheDocument()
-      expect(screen.getByText('CUT')).toBeInTheDocument()
       expect(screen.getByDisplayValue('440')).toBeInTheDocument()
       // Ring beam selects should show "None" by default
       expect(screen.getAllByText('None')).toHaveLength(2)
     })
   })
 
-  describe('construction type changes', () => {
-    it('calls setConstructionType when selection changes', async () => {
+  describe('construction method changes', () => {
+    it('calls setConstructionMethod when selection changes', async () => {
       render(<PerimeterToolInspector tool={mockTool} />)
 
-      // Find the construction type select trigger button by getting all comboboxes and selecting the first one
+      // Find the construction method select trigger button by getting all comboboxes and selecting the first one
       const comboboxes = screen.getAllByRole('combobox')
-      const constructionTypeSelect = comboboxes[0] // First combobox is construction type
-      fireEvent.click(constructionTypeSelect)
+      const constructionMethodSelect = comboboxes[0] // First combobox is construction method
+      fireEvent.click(constructionMethodSelect)
 
       // Wait for the dropdown to appear and find the option
-      const infillOption = await screen.findByText('Infill')
-      fireEvent.click(infillOption)
+      const strawhengeOption = await screen.findByText('Strawhenge Module')
+      fireEvent.click(strawhengeOption)
 
-      expect(mockSetConstructionType).toHaveBeenCalledWith('infill')
+      expect(mockSetConstructionMethod).toHaveBeenCalledWith('test-method-2')
     })
   })
 
@@ -117,12 +140,12 @@ describe('PerimeterToolInspector', () => {
     it('has proper form labels', () => {
       render(<PerimeterToolInspector tool={mockTool} />)
 
-      expect(screen.getByText('Construction Type')).toBeInTheDocument()
+      expect(screen.getByText('Construction Method')).toBeInTheDocument()
       expect(screen.getByLabelText('Wall Thickness')).toBeInTheDocument()
       expect(screen.getByText('Base Plate')).toBeInTheDocument()
       expect(screen.getByText('Top Plate')).toBeInTheDocument()
 
-      // Should have exactly 3 comboboxes: construction type, base ring beam, top ring beam
+      // Should have exactly 3 comboboxes: construction method, base ring beam, top ring beam
       const comboboxes = screen.getAllByRole('combobox')
       expect(comboboxes).toHaveLength(3)
     })

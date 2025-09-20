@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import type { PerimeterWall, Opening, Perimeter } from '@/model'
 import type { Length } from '@/types/geometry'
-import { createOpeningId, createPerimeterWallId, createPerimeterId, createPerimeterCornerId } from '@/types/ids'
+import {
+  createOpeningId,
+  createPerimeterWallId,
+  createPerimeterId,
+  createPerimeterCornerId,
+  createPerimeterConstructionMethodId
+} from '@/types/ids'
 import { constructInfillWall, type InfillConstructionConfig } from './infill'
 import { createMaterialId } from './material'
 import { createVec2 } from '@/types/geometry'
@@ -9,7 +15,7 @@ import { createVec2 } from '@/types/geometry'
 const createTestWall = (overrides: Partial<PerimeterWall> = {}): PerimeterWall => ({
   id: createPerimeterWallId(),
   thickness: 360 as Length,
-  constructionType: 'infill',
+  constructionMethodId: createPerimeterConstructionMethodId(),
   openings: [],
   insideLength: 5000 as Length,
   outsideLength: 5000 as Length,
@@ -52,6 +58,7 @@ const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
 })
 
 const createTestConfig = (): InfillConstructionConfig => ({
+  type: 'infill',
   maxPostSpacing: 800 as Length,
   minStrawSpace: 70 as Length,
   posts: {

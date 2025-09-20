@@ -47,6 +47,7 @@ const defaultStrawConfig: StrawConfig = {
 }
 
 const defaultInfillConfig: InfillConstructionConfig = {
+  type: 'infill',
   maxPostSpacing: 800 as Length,
   minStrawSpace: 70 as Length,
   posts: defaultPostConfig,

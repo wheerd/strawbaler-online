@@ -28,6 +28,7 @@ import { calculatePostSpacingMeasurements, calculateOpeningSpacingMeasurements }
 import { calculateWallCornerInfo, calculateWallConstructionLength } from './corners'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {
+  type: 'infill'
   maxPostSpacing: Length // Default: 800mm
   minStrawSpace: Length // Default: 70mm
   posts: PostConfig // Default: full

@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { Stage } from 'react-konva/lib/ReactKonvaCore'
 import { PerimeterLayer } from './PerimeterLayer'
 import { useModelStore } from '@/model/store'
-import { createStoreyId } from '@/types/ids'
+import { createStoreyId, createPerimeterConstructionMethodId } from '@/types/ids'
 import { createVec2, createLength } from '@/types/geometry'
 
 // Mock the editor store hook
@@ -35,7 +35,7 @@ describe('PerimeterLayer', () => {
       points: [createVec2(0, 0), createVec2(1000, 0), createVec2(1000, 1000), createVec2(0, 1000)]
     }
 
-    store.addPerimeter(storeyId, boundary, 'cells-under-tension', createLength(440))
+    store.addPerimeter(storeyId, boundary, createPerimeterConstructionMethodId(), createLength(440))
 
     render(
       <Stage width={800} height={600}>

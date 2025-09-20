@@ -5,7 +5,10 @@ import { formatLength } from '@/utils/formatLength'
 import type { StrawConfig } from './straw'
 import type { OpeningConstruction, OpeningConstructionConfig } from './openings'
 
+export type ConstructionType = 'infill' | 'strawhenge' | 'non-strawbale'
+
 export interface BaseConstructionConfig {
+  type: ConstructionType
   openings: Record<OpeningType, OpeningConstructionConfig>
   straw: StrawConfig
 }
@@ -16,8 +19,6 @@ export type PerimeterWallConstructionMethod<TConfig> = (
   floorHeight: Length,
   config: TConfig
 ) => WallConstructionPlan
-
-export type ConstructionType = 'infill' | 'strawhenge'
 
 export interface ConstructionIssue {
   description: string

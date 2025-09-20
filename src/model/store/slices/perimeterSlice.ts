@@ -1,15 +1,17 @@
 import type { StateCreator } from 'zustand'
-import type { Perimeter, PerimeterConstructionType, PerimeterWall, Opening, PerimeterCorner } from '@/types/model'
+import type { Perimeter, PerimeterWall, Opening, PerimeterCorner } from '@/types/model'
 import type {
   StoreyId,
   PerimeterId,
   PerimeterWallId,
   PerimeterCornerId,
   OpeningId,
-  RingBeamConstructionMethodId
+  RingBeamConstructionMethodId,
+  PerimeterConstructionMethodId
 } from '@/types/ids'
 import type { Length, Polygon2D, Line2D, Vec2 } from '@/types/geometry'
 import { createPerimeterId, createPerimeterWallId, createPerimeterCornerId, createOpeningId } from '@/types/ids'
+
 import {
   createLength,
   lineIntersection,
@@ -24,7 +26,7 @@ import {
 } from '@/types/geometry'
 import { wouldClosingPolygonSelfIntersect } from '@/types/geometry/polygon'
 
-type PartialWallInput = Pick<PerimeterWall, 'id' | 'thickness' | 'constructionType' | 'openings'>
+type PartialWallInput = Pick<PerimeterWall, 'id' | 'thickness' | 'constructionMethodId' | 'openings'>
 
 export interface PerimetersState {
   perimeters: Map<PerimeterId, Perimeter>
@@ -34,7 +36,7 @@ export interface PerimetersActions {
   addPerimeter: (
     storeyId: StoreyId,
     boundary: Polygon2D,
-    constructionType: PerimeterConstructionType,
+    constructionMethodId: PerimeterConstructionMethodId,
     thickness?: Length,
     baseRingBeamMethodId?: RingBeamConstructionMethodId,
     topRingBeamMethodId?: RingBeamConstructionMethodId
@@ -46,10 +48,10 @@ export interface PerimetersActions {
   removePerimeterWall: (perimeterId: PerimeterId, wallId: PerimeterWallId) => boolean
 
   // Updated to use IDs instead of indices
-  updatePerimeterWallConstructionType: (
+  updatePerimeterWallConstructionMethod: (
     perimeterId: PerimeterId,
     wallId: PerimeterWallId,
-    type: PerimeterConstructionType
+    methodId: PerimeterConstructionMethodId
   ) => void
   updatePerimeterWallThickness: (perimeterId: PerimeterId, wallId: PerimeterWallId, thickness: Length) => void
   updatePerimeterCornerConstructedByWall: (
@@ -246,7 +248,7 @@ const calculateWallEndpoints = (
     const wallLength = distance(finalInsideStart, finalInsideEnd)
 
     finalWalls.push({
-      ...wallInputs[i], // Preserve existing wall data like openings and construction type
+      ...wallInputs[i], // Preserve existing wall data like openings and construction method
       insideLength,
       outsideLength,
       wallLength,
@@ -263,7 +265,7 @@ const calculateWallEndpoints = (
 // Helper function to create wall walls and corners simultaneously using the simplified approach
 const createWallsAndCorners = (
   boundary: Polygon2D,
-  constructionType: PerimeterConstructionType,
+  constructionMethodId: PerimeterConstructionMethodId,
   thickness: Length,
   existingCorners?: PerimeterCorner[]
 ): { walls: PerimeterWall[]; corners: PerimeterCorner[] } => {
@@ -278,7 +280,7 @@ const createWallsAndCorners = (
     initialWalls.push({
       id: createPerimeterWallId(),
       thickness,
-      constructionType,
+      constructionMethodId,
       openings: []
     })
   }
@@ -329,7 +331,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
   addPerimeter: (
     storeyId: StoreyId,
     boundary: Polygon2D,
-    constructionType: PerimeterConstructionType,
+    constructionMethodId: PerimeterConstructionMethodId,
     thickness?: Length,
     baseRingBeamMethodId?: RingBeamConstructionMethodId,
     topRingBeamMethodId?: RingBeamConstructionMethodId
@@ -344,7 +346,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       throw new Error('Wall thickness must be greater than 0')
     }
 
-    const { walls, corners } = createWallsAndCorners(boundary, constructionType, wallThickness)
+    const { walls, corners } = createWallsAndCorners(boundary, constructionMethodId, wallThickness)
 
     const perimeter: Perimeter = {
       id: createPerimeterId(),
@@ -412,13 +414,13 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
     // Use the thicker of the two walls for the new merged wall
     const newThickness = createLength(Math.max(removedWall1.thickness, removedWall2.thickness))
-    const newConstructionType = removedWall1.constructionType // Use the first wall's construction type
+    const newConstructionMethodId = removedWall1.constructionMethodId // Use the first wall's construction method
 
     // Create new wall with merged properties (openings are deleted as they don't make sense on new geometry)
     const mergedWallInput: PartialWallInput = {
       id: createPerimeterWallId(),
       thickness: newThickness,
-      constructionType: newConstructionType,
+      constructionMethodId: newConstructionMethodId,
       openings: [] // Openings are deleted as they don't make sense on the new merged wall
     }
 
@@ -500,12 +502,12 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
     // Create merged wall with combined properties
     const newThickness = createLength(Math.max(prevWall.thickness, targetWall.thickness, nextWall.thickness))
-    const newConstructionType = prevWall.constructionType // Use the previous wall's construction type
+    const newConstructionMethodId = prevWall.constructionMethodId // Use the previous wall's construction method
 
     const mergedWallInput: PartialWallInput = {
       id: createPerimeterWallId(),
       thickness: newThickness,
-      constructionType: newConstructionType,
+      constructionMethodId: newConstructionMethodId,
       openings: [] // Openings are deleted as they don't make sense on the new merged wall
     }
 
@@ -559,10 +561,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
   },
 
   // Update operations
-  updatePerimeterWallConstructionType: (
+  updatePerimeterWallConstructionMethod: (
     perimeterId: PerimeterId,
     wallId: PerimeterWallId,
-    type: PerimeterConstructionType
+    methodId: PerimeterConstructionMethodId
   ) => {
     set(state => {
       const perimeter = state.perimeters.get(perimeterId)
@@ -576,7 +578,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       const updatedWalls = [...perimeter.walls]
       updatedWalls[wallIndex] = {
         ...updatedWalls[wallIndex],
-        constructionType: type
+        constructionMethodId: methodId
       }
 
       const updatedPerimeter = {
@@ -970,7 +972,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       const wallInputs: PartialWallInput[] = perimeter.walls.map(wall => ({
         id: wall.id,
         thickness: wall.thickness,
-        constructionType: wall.constructionType,
+        constructionMethodId: wall.constructionMethodId,
         openings: wall.openings
       }))
 
@@ -1014,7 +1016,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       const wallInputs: PartialWallInput[] = perimeter.walls.map(wall => ({
         id: wall.id,
         thickness: wall.thickness,
-        constructionType: wall.constructionType,
+        constructionMethodId: wall.constructionMethodId,
         openings: wall.openings
       }))
 

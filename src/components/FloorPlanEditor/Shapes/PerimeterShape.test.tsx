@@ -4,7 +4,13 @@ import { Stage, Layer } from 'react-konva/lib/ReactKonvaCore'
 import { PerimeterShape } from './PerimeterShape'
 import { PerimeterCornerShape } from './PerimeterCornerShape'
 import { createLength, createVec2 } from '@/types/geometry'
-import { createPerimeterId, createStoreyId, createPerimeterWallId, createPerimeterCornerId } from '@/types/ids'
+import {
+  createPerimeterId,
+  createStoreyId,
+  createPerimeterWallId,
+  createPerimeterCornerId,
+  createPerimeterConstructionMethodId
+} from '@/types/ids'
 import type { Perimeter } from '@/types/model'
 
 describe('PerimeterShape', () => {
@@ -15,7 +21,7 @@ describe('PerimeterShape', () => {
       {
         id: createPerimeterWallId(),
         thickness: createLength(400),
-        constructionType: 'cells-under-tension',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [],
         insideLength: createLength(1000),
         outsideLength: createLength(1000),
@@ -34,7 +40,7 @@ describe('PerimeterShape', () => {
       {
         id: createPerimeterWallId(),
         thickness: createLength(400),
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [],
         insideLength: createLength(1000),
         outsideLength: createLength(1000),
@@ -53,7 +59,7 @@ describe('PerimeterShape', () => {
       {
         id: createPerimeterWallId(),
         thickness: createLength(400),
-        constructionType: 'strawhenge',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [],
         insideLength: createLength(1000),
         outsideLength: createLength(1000),
@@ -72,7 +78,7 @@ describe('PerimeterShape', () => {
       {
         id: createPerimeterWallId(),
         thickness: createLength(400),
-        constructionType: 'non-strawbale',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [],
         insideLength: createLength(1000),
         outsideLength: createLength(1000),

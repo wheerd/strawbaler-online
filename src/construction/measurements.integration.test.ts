@@ -4,7 +4,7 @@ import type { InfillConstructionConfig } from './infill'
 import type { PerimeterWall, Perimeter } from '@/model'
 import type { Length } from '@/types/geometry'
 import { createVec2 } from '@/types/geometry'
-import { createPerimeterId, createPerimeterCornerId } from '@/types/ids'
+import { createPerimeterId, createPerimeterCornerId, createPerimeterConstructionMethodId } from '@/types/ids'
 
 // Mock the formatLength utility
 vi.mock('@/utils/formatLength', () => ({
@@ -13,7 +13,7 @@ vi.mock('@/utils/formatLength', () => ({
 
 const mockWall = (length: Length, openings: any[] = []): PerimeterWall => ({
   id: 'wall-1' as any,
-  constructionType: 'infill',
+  constructionMethodId: createPerimeterConstructionMethodId(),
   insideLength: length,
   outsideLength: length,
   wallLength: length,
@@ -46,6 +46,7 @@ const mockPerimeter = (wall: PerimeterWall): Perimeter => ({
 })
 
 const defaultConfig: InfillConstructionConfig = {
+  type: 'infill',
   maxPostSpacing: 800 as Length,
   minStrawSpace: 70 as Length,
   posts: {

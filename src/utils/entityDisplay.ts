@@ -43,27 +43,12 @@ function getOuterWallEntityName(
 ): string {
   if (isPerimeterId(currentSelection)) {
     // Path: [wallId]
-    return 'Perimeter Wall'
+    return 'Perimeter'
   }
 
   if (isPerimeterWallId(currentSelection)) {
     // Path: [wallId, wallId]
-    const wall = perimeter.walls.find(s => s.id === currentSelection)
-    if (!wall) return 'Wall Wall'
-
-    // Return specific construction type name
-    switch (wall.constructionType) {
-      case 'cells-under-tension':
-        return 'CUT Wall'
-      case 'infill':
-        return 'Infill Wall'
-      case 'strawhenge':
-        return 'Strawhenge Wall'
-      case 'non-strawbale':
-        return 'Non-Strawbale Wall'
-      default:
-        return 'Wall Wall'
-    }
+    return 'Perimeter Wall'
   }
 
   if (isPerimeterCornerId(currentSelection)) {

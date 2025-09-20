@@ -2,38 +2,18 @@ import { useCallback, useEffect, useState } from 'react'
 import * as Select from '@radix-ui/react-select'
 import { createLength } from '@/types/geometry'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
-import type { PerimeterConstructionType } from '@/types/model'
 import type { ToolInspectorProps } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { PerimeterTool } from '@/components/FloorPlanEditor/Tools/Categories/PerimeterTools/PerimeterTool'
 import { useReactiveTool } from '@/components/FloorPlanEditor/Tools/hooks/useReactiveTool'
-import type { RingBeamConstructionMethodId } from '@/types/ids'
-import { useRingBeamConstructionMethods } from '@/config/store'
-
-// Construction type options
-const CONSTRUCTION_TYPE_OPTIONS: { value: PerimeterConstructionType; label: string }[] = [
-  {
-    value: 'cells-under-tension',
-    label: 'CUT'
-  },
-  {
-    value: 'infill',
-    label: 'Infill'
-  },
-  {
-    value: 'strawhenge',
-    label: 'Strawhenge'
-  },
-  {
-    value: 'non-strawbale',
-    label: 'Non-Strawbale'
-  }
-]
+import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/types/ids'
+import { useRingBeamConstructionMethods, usePerimeterConstructionMethods } from '@/config/store'
 
 export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterTool>): React.JSX.Element {
   const { state } = useReactiveTool(tool)
 
-  // Get all ring beam methods from config store
+  // Get all construction methods from config store
   const allRingBeamMethods = useRingBeamConstructionMethods()
+  const allPerimeterMethods = usePerimeterConstructionMethods()
 
   // Force re-renders when tool state changes
   const [, forceUpdate] = useState({})
@@ -69,13 +49,13 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
         {/* Tool Properties */}
         <div className="space-y-2">
           <div className="space-y-1.5">
-            {/* Construction Type */}
+            {/* Construction Method */}
             <div className="flex items-center justify-between gap-3">
-              <label className="text-xs font-medium text-gray-600 flex-shrink-0">Construction Type</label>
+              <label className="text-xs font-medium text-gray-600 flex-shrink-0">Construction Method</label>
               <Select.Root
-                value={state.constructionType}
-                onValueChange={(value: PerimeterConstructionType) => {
-                  tool.setConstructionType(value)
+                value={state.constructionMethodId || ''}
+                onValueChange={(value: PerimeterConstructionMethodId) => {
+                  tool.setConstructionMethod(value)
                 }}
               >
                 <Select.Trigger className="flex-1 max-w-24 flex items-center justify-between px-2 py-1.5 bg-white border border-gray-300 rounded text-xs text-gray-800 hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200">
@@ -85,13 +65,13 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
                 <Select.Portal>
                   <Select.Content className="bg-white border border-gray-300 rounded-md shadow-lg z-50 overflow-hidden">
                     <Select.Viewport className="p-1">
-                      {CONSTRUCTION_TYPE_OPTIONS.map(option => (
+                      {allPerimeterMethods.map(method => (
                         <Select.Item
-                          key={option.value}
-                          value={option.value}
+                          key={method.id}
+                          value={method.id}
                           className="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:outline-none cursor-pointer rounded"
                         >
-                          <Select.ItemText>{option.label}</Select.ItemText>
+                          <Select.ItemText>{method.name}</Select.ItemText>
                         </Select.Item>
                       ))}
                     </Select.Viewport>

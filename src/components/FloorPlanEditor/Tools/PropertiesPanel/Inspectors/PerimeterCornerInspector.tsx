@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useModelStore } from '@/model/store'
 import type { PerimeterCornerId, PerimeterId } from '@/types/ids'
+import { useConfigStore } from '@/config/store'
 
 interface PerimeterCornerInspectorProps {
   perimeterId: PerimeterId
@@ -10,6 +11,7 @@ interface PerimeterCornerInspectorProps {
 export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCornerInspectorProps): React.JSX.Element {
   // Get model store functions - use specific selectors for stable references
   const updateCornerConstructedByWall = useModelStore(state => state.updatePerimeterCornerConstructedByWall)
+  const configStore = useConfigStore()
 
   // Get perimeter from store
   const outerWall = useModelStore(state => state.perimeters.get(perimeterId))
@@ -69,11 +71,13 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
   const hasConstructionNotes = useMemo(() => {
     if (!previousWall || !nextWall) return false
 
-    const hasMixedConstruction = previousWall.constructionType !== nextWall.constructionType
+    const prevMethod = configStore.perimeterConstructionMethods.get(previousWall.constructionMethodId)
+    const nextMethod = configStore.perimeterConstructionMethods.get(nextWall.constructionMethodId)
+    const hasMixedConstruction = prevMethod?.config.type !== nextMethod?.config.type
     const hasThicknessDifference = Math.abs(previousWall.thickness - nextWall.thickness) > 5
 
     return hasMixedConstruction || hasThicknessDifference
-  }, [previousWall, nextWall])
+  }, [previousWall, nextWall, configStore])
 
   return (
     <div className="p-2">
@@ -117,7 +121,11 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
             <h5 className="text-sm font-semibold text-gray-800 pb-1">Construction Notes</h5>
 
             <div className="space-y-1.5">
-              {previousWall.constructionType !== nextWall.constructionType && (
+              {(() => {
+                const prevMethod = configStore.perimeterConstructionMethods.get(previousWall.constructionMethodId)
+                const nextMethod = configStore.perimeterConstructionMethods.get(nextWall.constructionMethodId)
+                return prevMethod?.config.type !== nextMethod?.config.type
+              })() && (
                 <div className="p-2 bg-amber-50 border border-amber-200 rounded">
                   <div className="text-xs font-medium text-amber-800">Mixed Construction:</div>
                   <div className="text-xs text-amber-700">

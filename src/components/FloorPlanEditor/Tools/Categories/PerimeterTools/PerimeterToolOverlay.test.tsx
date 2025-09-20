@@ -4,6 +4,7 @@ import { PerimeterToolOverlay } from './PerimeterToolOverlay'
 import { PerimeterTool } from './PerimeterTool'
 import { createVec2, createLength } from '@/types/geometry'
 import type { SnapResult } from '@/model/store/services/snapping/types'
+import { createPerimeterConstructionMethodId } from '@/model'
 
 // Mock the viewport store
 const mockUseZoom = vi.fn()
@@ -37,7 +38,7 @@ describe('PerimeterToolOverlay', () => {
       },
       isCurrentLineValid: true,
       isClosingLineValid: true,
-      constructionType: 'cells-under-tension',
+      constructionMethodId: createPerimeterConstructionMethodId(),
       wallThickness: createLength(440)
     }
   })

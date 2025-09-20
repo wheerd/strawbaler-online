@@ -4,7 +4,8 @@ import type {
   PerimeterWallId,
   PerimeterCornerId,
   OpeningId,
-  RingBeamConstructionMethodId
+  RingBeamConstructionMethodId,
+  PerimeterConstructionMethodId
 } from '@/types/ids'
 import type { Length, LineSegment2D, Vec2 } from '@/types/geometry'
 
@@ -53,12 +54,10 @@ export interface Perimeter {
   topRingBeamMethodId?: RingBeamConstructionMethodId
 }
 
-export type PerimeterConstructionType = 'cells-under-tension' | 'infill' | 'strawhenge' | 'non-strawbale'
-
 export interface PerimeterWall {
   id: PerimeterWallId
   thickness: Length
-  constructionType: PerimeterConstructionType
+  constructionMethodId: PerimeterConstructionMethodId
 
   openings: Opening[]
 

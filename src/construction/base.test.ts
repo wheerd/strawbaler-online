@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import type { Opening, PerimeterWall } from '@/model'
 import type { Length } from '@/types/geometry'
-import { createOpeningId, createPerimeterWallId } from '@/types/ids'
+import { createOpeningId, createPerimeterWallId, createPerimeterConstructionMethodId } from '@/types/ids'
 import { segmentWall, createConstructionElementId } from './base'
 
 const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
@@ -17,7 +17,7 @@ const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
 const createTestWall = (overrides: Partial<PerimeterWall> = {}): PerimeterWall => ({
   id: createPerimeterWallId(),
   thickness: 360 as Length,
-  constructionType: 'infill',
+  constructionMethodId: createPerimeterConstructionMethodId(),
   openings: [],
   insideLength: 5000 as Length,
   outsideLength: 5000 as Length,
@@ -58,7 +58,7 @@ describe('segmentWall', () => {
         wallLength: 5000 as Length,
         insideLength: 5000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening]
       })
       const wallHeight = 2500 as Length
@@ -99,7 +99,7 @@ describe('segmentWall', () => {
         wallLength: 3000 as Length,
         insideLength: 3000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening]
       })
       const wallHeight = 2500 as Length
@@ -133,7 +133,7 @@ describe('segmentWall', () => {
         wallLength: 3000 as Length,
         insideLength: 3000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening]
       })
       const wallHeight = 2500 as Length
@@ -177,7 +177,7 @@ describe('segmentWall', () => {
         wallLength: 6000 as Length,
         insideLength: 6000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'strawhenge',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening1, opening2]
       })
       const wallHeight = 2500 as Length
@@ -239,7 +239,7 @@ describe('segmentWall', () => {
         wallLength: 5000 as Length,
         insideLength: 5000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening1, opening2] // Provide openings in reverse order
       })
       const wallHeight = 2500 as Length
@@ -287,7 +287,7 @@ describe('segmentWall', () => {
         wallLength: 4000 as Length,
         insideLength: 4000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening1, opening2]
       })
       const wallHeight = 2500 as Length
@@ -336,7 +336,7 @@ describe('segmentWall', () => {
         wallLength: 4000 as Length,
         insideLength: 4000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening1, opening2]
       })
       const wallHeight = 2500 as Length
@@ -372,7 +372,7 @@ describe('segmentWall', () => {
         wallLength: 2000 as Length,
         insideLength: 2000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening]
       })
       const wallHeight = 2500 as Length
@@ -397,7 +397,7 @@ describe('segmentWall', () => {
         wallLength: 1000 as Length,
         insideLength: 1000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening]
       })
       const wallHeight = 2500 as Length
@@ -427,7 +427,7 @@ describe('segmentWall', () => {
         wallLength: 3000 as Length,
         insideLength: 3000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening]
       })
       const wallHeight = 2500 as Length
@@ -450,7 +450,7 @@ describe('segmentWall', () => {
         wallLength: 5000 as Length,
         insideLength: 5000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening1, opening2]
       })
       const wallHeight = 2500 as Length
@@ -473,7 +473,7 @@ describe('segmentWall', () => {
         wallLength: 5000 as Length,
         insideLength: 5000 as Length, // Match wallLength
         thickness: 360 as Length,
-        constructionType: 'infill',
+        constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [opening1, opening2]
       })
       const wallHeight = 2500 as Length

@@ -3,7 +3,7 @@ import type { Length } from '@/types/geometry'
 import type { MaterialId } from './material'
 import type { PostConfig } from './posts'
 import type { InfillConstructionConfig } from './infill'
-import type { PerimeterWallConstructionMethod, WallConstructionPlan } from './base'
+import type { BaseConstructionConfig, PerimeterWallConstructionMethod, WallConstructionPlan } from './base'
 
 export interface ModuleConfig {
   width: Length // Default: 920mm
@@ -11,7 +11,8 @@ export interface ModuleConfig {
   strawMaterial: MaterialId
 }
 
-export interface StrawhengeConstructionConfig {
+export interface StrawhengeConstructionConfig extends BaseConstructionConfig {
+  type: 'strawhenge'
   module: ModuleConfig
   infill: InfillConstructionConfig
 }

@@ -1,6 +1,6 @@
 import type { Tool, CanvasEvent } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { Vec2, Polygon2D, LineSegment2D, Length } from '@/types/geometry'
-import type { RingBeamConstructionMethodId } from '@/types/ids'
+import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/types/ids'
 import { useConfigStore } from '@/config/store'
 import {
   createLength,
@@ -11,7 +11,7 @@ import {
   distanceSquared
 } from '@/types/geometry'
 import type { SnappingContext, SnapResult } from '@/model/store/services/snapping/types'
-import type { PerimeterConstructionType } from '@/types/model'
+
 import { PerimeterToolOverlay } from './PerimeterToolOverlay'
 import { PerimeterToolInspector } from '@/components/FloorPlanEditor/Tools/PropertiesPanel/ToolInspectors/PerimeterToolInspector'
 import { SnappingService } from '@/model/store/services/snapping'
@@ -25,7 +25,7 @@ interface PerimeterToolState {
   snapContext: SnappingContext
   isCurrentLineValid: boolean
   isClosingLineValid: boolean
-  constructionType: PerimeterConstructionType
+  constructionMethodId: PerimeterConstructionMethodId
   wallThickness: Length
   baseRingBeamMethodId?: RingBeamConstructionMethodId
   topRingBeamMethodId?: RingBeamConstructionMethodId
@@ -52,8 +52,8 @@ export class PerimeterTool extends BaseTool implements Tool {
     },
     isCurrentLineValid: true,
     isClosingLineValid: true,
-    constructionType: 'infill',
-    wallThickness: createLength(440) // Default 44cm thickness
+    wallThickness: createLength(440), // Default 44cm thickness,
+    constructionMethodId: '' as PerimeterConstructionMethodId // Set on activation
   }
 
   private snapService = new SnappingService()
@@ -71,8 +71,8 @@ export class PerimeterTool extends BaseTool implements Tool {
     return distanceSquared(firstPoint, snapPos) < 25 // 5mm squared
   }
 
-  public setConstructionType(constructionType: PerimeterConstructionType): void {
-    this.state.constructionType = constructionType
+  public setConstructionMethod(methodId: PerimeterConstructionMethodId): void {
+    this.state.constructionMethodId = methodId
     this.triggerRender()
   }
 
@@ -183,10 +183,11 @@ export class PerimeterTool extends BaseTool implements Tool {
     this.state.isCurrentLineValid = true
     this.state.isClosingLineValid = true
 
-    // Set default ring beam methods from config store
+    // Set default methods from config store
     const configStore = useConfigStore.getState()
     this.state.baseRingBeamMethodId = configStore.getDefaultBaseRingBeamMethodId()
     this.state.topRingBeamMethodId = configStore.getDefaultTopRingBeamMethodId()
+    this.state.constructionMethodId = configStore.getDefaultPerimeterMethodId()
 
     this.updateSnapContext()
   }
@@ -217,10 +218,15 @@ export class PerimeterTool extends BaseTool implements Tool {
       const activeStoreyId = event.context.getActiveStoreyId()
 
       try {
+        if (!this.state.constructionMethodId) {
+          console.error('No construction method selected')
+          return
+        }
+
         modelStore.addPerimeter(
           activeStoreyId,
           polygon,
-          this.state.constructionType,
+          this.state.constructionMethodId,
           this.state.wallThickness,
           this.state.baseRingBeamMethodId,
           this.state.topRingBeamMethodId
