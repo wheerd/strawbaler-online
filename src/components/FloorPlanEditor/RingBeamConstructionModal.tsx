@@ -8,6 +8,8 @@ import { ConstructionElementShape } from './Shapes/ConstructionElementShape'
 import type { PerimeterId } from '@/types/ids'
 import { boundsFromPoints } from '@/types/geometry'
 import { SVGViewport } from './components/SVGViewport'
+import { SvgMeasurementIndicator } from './components/SvgMeasurementIndicator'
+import { COLORS } from '@/theme/colors'
 
 export interface RingBeamConstructionModalProps {
   perimeterId: PerimeterId
@@ -80,37 +82,63 @@ function RingBeamConstructionPlanDisplay({
           const rotationDeg = baseRotationDeg - 90
 
           return (
-            <g
-              key={`segment-${segmentIndex}`}
-              transform={`translate(${segment.position[0]} ${-segment.position[1]}) rotate(${rotationDeg})`}
-            >
-              {/* Y-axis is flipped: ring beam coordinates (Y+ up) → SVG coordinates (Y+ down) */}
-              {/* Visual debug: Show segment origin and direction */}
-              {showDebugMarkers && (
-                <g>
-                  <circle cx="0" cy="0" r="50" fill="red" fillOpacity="0.7" />
-                  {/* Direction arrow showing the local X-axis */}
-                  <line x1="0" y1="0" x2="500" y2="0" stroke="red" strokeWidth="20" markerEnd="url(#arrow)" />
-                </g>
-              )}
+            <g key={`segment-${segmentIndex}`}>
+              {/* Segment elements in transformed group */}
+              <g transform={`translate(${segment.position[0]} ${-segment.position[1]}) rotate(${rotationDeg})`}>
+                {/* Y-axis is flipped: ring beam coordinates (Y+ up) → SVG coordinates (Y+ down) */}
+                {/* Visual debug: Show segment origin and direction */}
+                {showDebugMarkers && (
+                  <g>
+                    <circle cx="0" cy="0" r="50" fill="red" fillOpacity="0.7" />
+                    {/* Direction arrow showing the local X-axis */}
+                    <line x1="0" y1="0" x2="500" y2="0" stroke="red" strokeWidth="20" markerEnd="url(#arrow)" />
+                  </g>
+                )}
 
-              {segment.elements.map((element, elementIndex) => {
-                // Debug logging for development
-                if (import.meta.env.DEV) {
-                  console.log(`  Element ${elementIndex}:`, {
-                    position: element.shape.position,
-                    size: element.shape.size,
-                    type: element.shape.type
-                  })
-                }
+                {segment.elements.map((element, elementIndex) => {
+                  // Debug logging for development
+                  if (import.meta.env.DEV) {
+                    console.log(`  Element ${elementIndex}:`, {
+                      position: element.shape.position,
+                      size: element.shape.size,
+                      type: element.shape.type
+                    })
+                  }
+
+                  return (
+                    <ConstructionElementShape
+                      key={`element-${elementIndex}`}
+                      element={element}
+                      resolveMaterial={resolveDefaultMaterial}
+                      showDebugMarkers={showDebugMarkers}
+                      strokeWidth={5}
+                    />
+                  )
+                })}
+              </g>
+
+              {/* Render measurements for this segment in global coordinate space */}
+              {segment.measurements.map((measurement, measurementIndex) => {
+                // Transform ring beam coordinates to SVG coordinates
+                const svgStartPoint: [number, number] = [
+                  measurement.startPoint[0],
+                  -measurement.startPoint[1] // Y-flip for ring beam
+                ]
+                const svgEndPoint: [number, number] = [
+                  measurement.endPoint[0],
+                  -measurement.endPoint[1] // Y-flip for ring beam
+                ]
 
                 return (
-                  <ConstructionElementShape
-                    key={`element-${elementIndex}`}
-                    element={element}
-                    resolveMaterial={resolveDefaultMaterial}
-                    showDebugMarkers={showDebugMarkers}
-                    strokeWidth={5}
+                  <SvgMeasurementIndicator
+                    key={`measurement-${segmentIndex}-${measurementIndex}`}
+                    startPoint={svgStartPoint}
+                    endPoint={svgEndPoint}
+                    label={measurement.label}
+                    offset={measurement.offset}
+                    color={COLORS.indicators.main}
+                    fontSize={60}
+                    strokeWidth={12}
                   />
                 )
               })}

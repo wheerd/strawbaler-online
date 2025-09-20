@@ -317,21 +317,40 @@ export function WallConstructionPlanDisplay({
         })()}
 
       {/* Measurements */}
-      {plan.measurements?.map((measurement, index) => (
-        <SvgMeasurementIndicator
-          key={`${measurement.type}-${index}`}
-          startPoint={measurement.startPoint}
-          endPoint={measurement.endPoint}
-          label={measurement.label}
-          offset={measurement.offset}
-          wallHeight={wallHeight}
-          wallLength={wallLength}
-          view={view}
-          color={COLORS.indicators.main}
-          fontSize={60}
-          strokeWidth={10}
-        />
-      ))}
+      {plan.measurements?.map((measurement, index) => {
+        // Transform construction coordinates to SVG coordinates
+        const svgStartPoint = convertPointToSvg(
+          measurement.startPoint[0],
+          measurement.startPoint[1],
+          wallHeight,
+          wallLength,
+          view
+        )
+        const svgEndPoint = convertPointToSvg(
+          measurement.endPoint[0],
+          measurement.endPoint[1],
+          wallHeight,
+          wallLength,
+          view
+        )
+
+        // Calculate offset direction based on view
+        const offsetDirection = view === 'inside' ? -1 : 1
+        const adjustedOffset = (measurement.offset || 0) * offsetDirection
+
+        return (
+          <SvgMeasurementIndicator
+            key={`${measurement.type}-${index}`}
+            startPoint={svgStartPoint}
+            endPoint={svgEndPoint}
+            label={measurement.label}
+            offset={adjustedOffset}
+            color={COLORS.indicators.main}
+            fontSize={60}
+            strokeWidth={10}
+          />
+        )
+      })}
     </SVGViewport>
   )
 }

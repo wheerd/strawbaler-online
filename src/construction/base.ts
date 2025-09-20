@@ -25,7 +25,15 @@ export interface ConstructionIssue {
 }
 
 export interface Measurement {
-  type: 'post-spacing' | 'opening-spacing' | 'opening-width' | 'sill-height' | 'header-height' | 'opening-height'
+  type:
+    | 'post-spacing'
+    | 'opening-spacing'
+    | 'opening-width'
+    | 'sill-height'
+    | 'header-height'
+    | 'opening-height'
+    | 'ring-beam-outer'
+    | 'ring-beam-inner'
   startPoint: Vec2 // Construction coordinates [x, z]
   endPoint: Vec2 // Construction coordinates [x, z]
   label: string // e.g., "800mm", "1200mm"

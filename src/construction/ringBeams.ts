@@ -21,6 +21,7 @@ import {
 } from './base'
 import type { Perimeter, PerimeterId } from '@/model'
 import { vec2 } from 'gl-matrix'
+import { formatLength } from '@/utils/formatLength'
 
 export interface BaseRingBeamConfig {
   type: 'full' | 'double'
@@ -134,7 +135,22 @@ export const constructFullRingBeam = (
           )
         )
       ],
-      measurements: [],
+      measurements: [
+        {
+          type: 'ring-beam-inner',
+          startPoint: startInside,
+          endPoint: endInside,
+          label: formatLength(distance(startInside, endInside)),
+          offset: 60
+        },
+        {
+          type: 'ring-beam-outer',
+          startPoint: startOutside,
+          endPoint: endOutside,
+          label: formatLength(distance(startOutside, endOutside)),
+          offset: -60
+        }
+      ],
       position: [finalPosition[0], finalPosition[1], 0],
       rotation: [0, 0, segmentAngle]
     })
