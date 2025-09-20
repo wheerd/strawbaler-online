@@ -16,7 +16,7 @@ interface ViewportState {
 
 const ZOOM_SCALE = 1.1
 const MIN_ZOOM = 0.1
-const MAX_ZOOM = 10
+const MAX_ZOOM = 100
 
 const getResetButtonPosition = (position: SVGViewportProps['resetButtonPosition']) => {
   switch (position) {
