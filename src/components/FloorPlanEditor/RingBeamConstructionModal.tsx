@@ -7,6 +7,7 @@ import { constructRingBeam, resolveDefaultMaterial, type RingBeamConstructionPla
 import { ConstructionElementShape } from './Shapes/ConstructionElementShape'
 import type { PerimeterId } from '@/types/ids'
 import { boundsFromPoints } from '@/types/geometry'
+import { SVGViewport } from './components/SVGViewport'
 
 export interface RingBeamConstructionModalProps {
   perimeterId: PerimeterId
@@ -38,12 +39,7 @@ function RingBeamConstructionPlanDisplay({
 
   return (
     <div className="w-full h-96 border border-gray-300 rounded bg-gray-50 flex items-center justify-center relative">
-      <svg
-        width="100%"
-        height="100%"
-        viewBox={`${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`}
-        className="overflow-visible"
-      >
+      <SVGViewport baseViewBox={`${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`} className="w-full h-full">
         {/* Grid background */}
         <defs>
           <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
@@ -121,7 +117,7 @@ function RingBeamConstructionPlanDisplay({
             </g>
           )
         })}
-      </svg>
+      </SVGViewport>
 
       {/* Issues display */}
       {showIssues && (plan.errors.length > 0 || plan.warnings.length > 0) && (
