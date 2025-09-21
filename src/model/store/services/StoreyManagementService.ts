@@ -1,5 +1,4 @@
 import type { Storey } from '@/types/model'
-import { createStoreyLevel } from '@/types/model'
 import type { StoreyId } from '@/types/ids'
 import { useModelStore } from '@/model/store'
 import type { Store } from '@/model/store/types'
@@ -84,15 +83,10 @@ export class StoreyManagementService {
       throw new Error('Source storey not found')
     }
 
-    // Find the next available level (max + 1)
-    const storeys = this.store.getStoreysOrderedByLevel()
-    const maxLevel = storeys[storeys.length - 1].level
-    const newLevel = createStoreyLevel(maxLevel + 1)
-
     const duplicateName = newName ?? `${sourceStorey.name} Copy`
 
     // Create the new storey
-    const newStorey = this.store.addStorey(duplicateName, newLevel, sourceStorey.height)
+    const newStorey = this.store.addStorey(duplicateName, sourceStorey.height)
 
     // Duplicate all perimeters from the source storey
     const sourcePerimeters = this.store.getPerimetersByStorey(sourceStoreyId)
@@ -124,7 +118,7 @@ export class StoreyManagementService {
 
   /**
    * Delete a storey and all its associated perimeters
-   * Also compacts the remaining storey levels to eliminate gaps
+   * Level consistency is maintained automatically by the storey slice
    */
   deleteStorey(storeyId: StoreyId): void {
     // 1. Delete associated perimeters first
@@ -133,9 +127,6 @@ export class StoreyManagementService {
 
     // 2. Delete the storey
     this.store.removeStorey(storeyId)
-
-    // 3. Compact levels to eliminate gaps
-    this.store.compactStoreyLevels()
   }
 }
 

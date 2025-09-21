@@ -21,7 +21,7 @@ export const useModelStore = create<Store>()(
         // Initialize with a default ground floor
         setTimeout(() => {
           if (store.storeys.size === 0) {
-            store.addStorey('Ground Floor', createStoreyLevel(0))
+            store.addStorey('Ground Floor')
           }
         }, 0)
 

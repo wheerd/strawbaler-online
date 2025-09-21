@@ -1,10 +1,13 @@
 import React, { useState, useCallback } from 'react'
-import { ChevronUpIcon, ChevronDownIcon, CopyIcon, TrashIcon } from '@radix-ui/react-icons'
+import { ChevronUpIcon, ChevronDownIcon, CopyIcon, TrashIcon, HeightIcon } from '@radix-ui/react-icons'
 import type { Storey } from '@/types/model'
 import type { StoreyId } from '@/types/ids'
 import { useModelStore } from '@/model/store'
 import { defaultStoreyManagementService } from '@/model/store/services/StoreyManagementService'
 import { getLevelColor } from '@/theme/colors'
+import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
+import { createLength } from '@/types/geometry'
+import { formatLength } from '@/utils/formatLength'
 
 export interface StoreyListItemProps {
   storey: Storey
@@ -25,6 +28,24 @@ export function StoreyListItem({
   const [isEditing, setIsEditing] = useState(false)
 
   const updateStoreyName = useModelStore(state => state.updateStoreyName)
+  const updateStoreyHeight = useModelStore(state => state.updateStoreyHeight)
+
+  // Debounced height input handler (UI in meters, store in millimeters)
+  const heightInput = useDebouncedNumericInput(
+    storey.height / 1000, // Convert mm to meters for UI
+    useCallback(
+      (value: number) => {
+        updateStoreyHeight(storey.id, createLength(value * 1000)) // Convert meters to mm for store
+      },
+      [updateStoreyHeight, storey.id]
+    ),
+    {
+      debounceMs: 300,
+      min: 1, // Minimum 1m height
+      max: 10, // Maximum 10m height
+      step: 0.1 // 0.1m (10cm) increments
+    }
+  )
 
   // Calculate button states
   const isLowest = storey.id === lowestStorey.id
@@ -121,6 +142,26 @@ export function StoreyListItem({
         }`}
         placeholder="Floor name"
       />
+
+      {/* Height input */}
+      <div className="flex items-center gap-1">
+        <HeightIcon className="w-4 h-4 text-gray-800" />
+        <div className="relative">
+          <input
+            type="number"
+            value={heightInput.value}
+            onChange={e => heightInput.handleChange(e.target.value)}
+            onBlur={heightInput.handleBlur}
+            onKeyDown={heightInput.handleKeyDown}
+            min="1"
+            max="10"
+            step="0.1"
+            className="w-20 pl-2 py-1.5 pr-6 bg-white border border-gray-300 rounded text-xs text-right hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
+            title={`Floor height: ${formatLength(storey.height)}`}
+          />
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">m</span>
+        </div>
+      </div>
 
       {/* Action buttons */}
       <div className="flex gap-1">

@@ -35,10 +35,10 @@ export interface Opening {
 
 // Floor/level
 export interface Storey {
-  id: StoreyId
-  name: string
-  level: StoreyLevel // Floor level (0 = ground floor, 1 = first floor, etc.)
-  height: Length
+  readonly id: StoreyId
+  readonly name: string
+  readonly level: StoreyLevel // Floor level (0 = ground floor, 1 = first floor, etc.)
+  readonly height: Length
 }
 
 export interface Perimeter {

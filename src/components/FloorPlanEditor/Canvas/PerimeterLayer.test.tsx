@@ -25,17 +25,16 @@ describe('PerimeterLayer', () => {
   it('should render perimeters when they exist', () => {
     // Add an perimeter to the store
     const store = useModelStore.getState()
-    const storeyId = createStoreyId()
 
     // Add the floor first
-    store.addStorey('Test Floor', 0 as any)
+    const storey = store.addStorey('Test Floor')
 
     // Create a simple square boundary
     const boundary = {
       points: [createVec2(0, 0), createVec2(1000, 0), createVec2(1000, 1000), createVec2(0, 1000)]
     }
 
-    store.addPerimeter(storeyId, boundary, createPerimeterConstructionMethodId(), createLength(440))
+    store.addPerimeter(storey.id, boundary, createPerimeterConstructionMethodId(), createLength(440))
 
     render(
       <Stage width={800} height={600}>

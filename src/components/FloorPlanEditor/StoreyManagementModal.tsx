@@ -2,7 +2,6 @@ import React, { useCallback } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { useModelStore } from '@/model/store'
-import { createStoreyLevel } from '@/types/model'
 import type { StoreyId } from '@/types/ids'
 import { StoreyListItem } from './StoreyListItem'
 import { defaultStoreyManagementService } from '@/model/store/services/StoreyManagementService'
@@ -20,11 +19,7 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
 
   const handleAddEmptyFloor = useCallback(() => {
     try {
-      // Find the next available level (max + 1)
-      const maxLevel = storeysOrdered.length > 0 ? Math.max(...storeysOrdered.map(s => s.level)) : -1
-      const newLevel = createStoreyLevel(maxLevel + 1)
-
-      addStorey(`Floor ${newLevel}`, newLevel)
+      addStorey('New Floor')
     } catch (error) {
       console.error('Failed to add new floor:', error)
     }
@@ -46,7 +41,7 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[100]" />
-        <Dialog.Content className="fixed inset-4 bg-white rounded-lg shadow-xl z-[100] flex flex-col max-w-lg mx-auto">
+        <Dialog.Content className="fixed inset-4 bg-white rounded-lg shadow-xl z-[100] flex flex-col max-w-2xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <Dialog.Title className="text-base font-medium text-gray-900">Manage Floors</Dialog.Title>

@@ -7,18 +7,17 @@ import type { Length } from '@/types/geometry'
 import { createLength } from '@/types/geometry'
 
 export interface StoreysState {
+  defaultHeight: Length
   storeys: Map<StoreyId, Storey>
 }
 
 export interface StoreysActions {
   // CRUD operations
-  addStorey: (name: string, level: StoreyLevel, height?: Length) => Storey
+  addStorey: (name: string, height?: Length) => Storey
   removeStorey: (storeyId: StoreyId) => void
-  compactStoreyLevels: () => void
 
   // Storey modifications
   updateStoreyName: (storeyId: StoreyId, name: string) => void
-  updateStoreyLevel: (storeyId: StoreyId, level: StoreyLevel) => void
   updateStoreyHeight: (storeyId: StoreyId, height: Length) => void
 
   // Level management operations
@@ -45,33 +44,24 @@ const validateStoreyHeight = (height: Length): void => {
   }
 }
 
-const validateUniqueStoreyLevel = (
-  storeys: Map<StoreyId, Storey>,
-  level: StoreyLevel,
-  excludeStoreyId?: StoreyId
-): void => {
-  for (const [storeyId, storey] of storeys) {
-    if (storeyId !== excludeStoreyId && storey.level === level) {
-      throw new Error(`Storey level ${level} already exists`)
-    }
-  }
-}
-
 export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice> = (set, get) => ({
+  defaultHeight: createLength(2400),
   storeys: new Map<StoreyId, Storey>(),
 
   // CRUD operations
-  addStorey: (name: string, level: StoreyLevel, height?: Length) => {
+  addStorey: (name: string, height?: Length) => {
     const state = get()
 
-    // Validate inputs
     validateStoreyName(name)
-    validateUniqueStoreyLevel(state.storeys, level)
+
+    const level =
+      state.storeys.size === 0
+        ? createStoreyLevel(0)
+        : createStoreyLevel(Math.max(...Array.from(state.storeys.values()).map(s => s.level)) + 1)
 
     const storeyId = createStoreyId()
-    const defaultHeight = height !== undefined ? height : createLength(3000) // Default 3m height
+    const defaultHeight = height !== undefined ? height : state.defaultHeight
 
-    // Validate height
     validateStoreyHeight(defaultHeight)
 
     const storey: Storey = {
@@ -91,58 +81,26 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
 
   removeStorey: (storeyId: StoreyId) => {
     set(state => {
+      const storey = state.storeys.get(storeyId)
+      if (storey == null) return state
+
+      // Prevent removing the last storey
+      if (state.storeys.size === 1) {
+        throw new Error('Cannot remove the last remaining storey')
+      }
+
       const newStoreys = new Map(state.storeys)
       newStoreys.delete(storeyId)
-      return {
-        ...state,
-        storeys: newStoreys
-      }
-    })
-  },
 
-  compactStoreyLevels: () => {
-    set(state => {
-      const storeys = Array.from(state.storeys.values())
-      if (storeys.length === 0) return state
-
-      // Separate storeys by their relation to ground level (0)
-      let belowGround = storeys.filter(s => s.level < 0).sort((a, b) => b.level - a.level) // Sort descending: -1, -2, -3...
-      let groundLevel = storeys.filter(s => s.level === 0)
-      let aboveGround = storeys.filter(s => s.level > 0).sort((a, b) => a.level - b.level) // Sort ascending: 1, 2, 3...
-
-      // If no ground level exists, create one by promoting the closest level
-      if (groundLevel.length === 0) {
-        if (aboveGround.length > 0) {
-          // Prefer above-ground: move lowest positive level to ground (0)
-          const newGroundStorey = aboveGround[0]
-          groundLevel = [newGroundStorey]
-          aboveGround = aboveGround.slice(1) // Remove the promoted storey from above-ground
-        } else if (belowGround.length > 0) {
-          // Use below-ground: move highest negative level to ground (0)
-          const newGroundStorey = belowGround[0] // First item is highest due to descending sort
-          groundLevel = [newGroundStorey]
-          belowGround = belowGround.slice(1) // Remove the promoted storey from below-ground
+      for (const [_, otherStorey] of newStoreys) {
+        if (storey.level >= 0 && otherStorey.level > storey.level) {
+          const newLevel = createStoreyLevel(otherStorey.level - 1)
+          newStoreys.set(otherStorey.id, { ...otherStorey, level: newLevel })
+        } else if (storey.level < 0 && otherStorey.level < storey.level) {
+          const newLevel = createStoreyLevel(otherStorey.level + 1)
+          newStoreys.set(otherStorey.id, { ...otherStorey, level: newLevel })
         }
       }
-
-      const newStoreys = new Map()
-
-      // Compact below-ground levels towards 0: -1, -2, -3, etc.
-      belowGround.forEach((storey, index) => {
-        const newLevel = createStoreyLevel(-(index + 1))
-        newStoreys.set(storey.id, { ...storey, level: newLevel })
-      })
-
-      // Set ground level (0) - either existing or newly promoted
-      groundLevel.forEach(storey => {
-        newStoreys.set(storey.id, { ...storey, level: createStoreyLevel(0) })
-      })
-
-      // Compact above-ground levels towards 0: 1, 2, 3, etc.
-      aboveGround.forEach((storey, index) => {
-        const newLevel = createStoreyLevel(index + 1)
-        newStoreys.set(storey.id, { ...storey, level: newLevel })
-      })
 
       return {
         ...state,
@@ -163,26 +121,6 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
       const updatedStorey: Storey = {
         ...storey,
         name: name.trim()
-      }
-
-      return {
-        ...state,
-        storeys: new Map(state.storeys).set(storeyId, updatedStorey)
-      }
-    })
-  },
-
-  updateStoreyLevel: (storeyId: StoreyId, level: StoreyLevel) => {
-    set(state => {
-      const storey = state.storeys.get(storeyId)
-      if (storey == null) return state
-
-      // Validate unique level (excluding current storey)
-      validateUniqueStoreyLevel(state.storeys, level, storeyId)
-
-      const updatedStorey: Storey = {
-        ...storey,
-        level
       }
 
       return {
@@ -235,9 +173,17 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
     set(state => {
       const newStoreys = new Map()
 
+      let minLevel = Infinity
+      let maxLevel = -Infinity
       for (const [storeyId, storey] of state.storeys) {
         const newLevel = createStoreyLevel(storey.level + adjustment)
         newStoreys.set(storeyId, { ...storey, level: newLevel })
+        if (newLevel < minLevel) minLevel = newLevel
+        if (newLevel > maxLevel) maxLevel = newLevel
+      }
+
+      if (minLevel > 0) {
+        throw new Error('Adjustment would remove floor 0, which is not allowed')
       }
 
       return {

@@ -145,7 +145,7 @@ describe('StoreyManagementService', () => {
 
       const result = service.duplicateStorey('storey-1' as StoreyId)
 
-      expect(mockStore.addStorey).toHaveBeenCalledWith('Ground Floor Copy', createStoreyLevel(43), createLength(3000))
+      expect(mockStore.addStorey).toHaveBeenCalledWith('Ground Floor Copy', createLength(3000))
       expect(result).toEqual(newStorey)
     })
 
@@ -171,7 +171,7 @@ describe('StoreyManagementService', () => {
 
       service.duplicateStorey('storey-1' as StoreyId, 'Custom Name')
 
-      expect(mockStore.addStorey).toHaveBeenCalledWith('Custom Name', createStoreyLevel(1), createLength(3000))
+      expect(mockStore.addStorey).toHaveBeenCalledWith('Custom Name', createLength(3000))
     })
 
     it('should throw error for non-existent storey', () => {
@@ -202,7 +202,7 @@ describe('StoreyManagementService', () => {
 
       const result = service.duplicateStorey('storey-1' as StoreyId)
 
-      expect(mockStore.addStorey).toHaveBeenCalledWith('Only Floor Copy', createStoreyLevel(1), createLength(3000))
+      expect(mockStore.addStorey).toHaveBeenCalledWith('Only Floor Copy', createLength(3000))
       expect(result).toEqual(newStorey)
     })
 
@@ -271,7 +271,7 @@ describe('StoreyManagementService', () => {
       expect(mockStore.removePerimeter).toHaveBeenCalledWith('perimeter-1')
       expect(mockStore.removePerimeter).toHaveBeenCalledWith('perimeter-2')
       expect(mockStore.removeStorey).toHaveBeenCalledWith('storey-1')
-      expect(mockStore.compactStoreyLevels).toHaveBeenCalled()
+      // Note: compactStoreyLevels no longer exists - level consistency is handled automatically
     })
   })
 })
