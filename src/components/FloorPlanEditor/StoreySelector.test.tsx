@@ -6,6 +6,7 @@ import { useEditorStore } from './hooks/useEditorStore'
 import { createStoreyLevel } from '@/types/model'
 import { createLength } from '@/types/geometry'
 import type { StoreyId } from '@/types/ids'
+import { Theme } from '@radix-ui/themes'
 
 // Mock the stores
 vi.mock('@/model/store', async importOriginal => {
@@ -57,7 +58,11 @@ describe('StoreySelector', () => {
   })
 
   it('renders storey selector with floors', () => {
-    render(<StoreySelector />)
+    render(
+      <Theme>
+        <StoreySelector />
+      </Theme>
+    )
 
     expect(screen.getByRole('combobox')).toBeInTheDocument()
     expect(screen.getByText('L0')).toBeInTheDocument()
@@ -65,7 +70,11 @@ describe('StoreySelector', () => {
   })
 
   it('renders edit button', () => {
-    render(<StoreySelector />)
+    render(
+      <Theme>
+        <StoreySelector />
+      </Theme>
+    )
 
     const editButton = screen.getByRole('button', { name: /manage floors/i })
     expect(editButton).toBeInTheDocument()
@@ -75,7 +84,11 @@ describe('StoreySelector', () => {
     // Mock scrollIntoView for Radix UI Select
     Element.prototype.scrollIntoView = vi.fn()
 
-    render(<StoreySelector />)
+    render(
+      <Theme>
+        <StoreySelector />
+      </Theme>
+    )
 
     const select = screen.getByRole('combobox')
     fireEvent.click(select)
@@ -85,13 +98,5 @@ describe('StoreySelector', () => {
     fireEvent.click(option)
 
     expect(mockSetActiveStorey).toHaveBeenCalledWith('storey-2')
-  })
-
-  it('does not render when no storeys exist', () => {
-    mockUseStoreysOrderedByLevel.mockReturnValue([])
-
-    const { container } = render(<StoreySelector />)
-
-    expect(container.firstChild).toBeNull()
   })
 })

@@ -30,12 +30,14 @@ export default defineConfig({
 
           // Radix UI chunk
           radix: [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-icons',
             '@radix-ui/react-select',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-toolbar',
             '@radix-ui/react-separator',
             '@radix-ui/react-tabs',
-            '@radix-ui/react-icons'
+            '@radix-ui/react-toolbar',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/themes'
           ],
 
           // Geometry utilities chunk (Turf.js and gl-matrix)
