@@ -1,17 +1,17 @@
 import type { Storey } from '@/types/model'
 import type { StoreyId } from '@/types/ids'
-import { useModelStore } from '@/model/store'
-import type { Store } from '@/model/store/types'
+import { getModelActions } from '@/model/store'
+import type { StoreActions } from '@/model/store/types'
 
 /**
  * Service for managing storeys with cross-slice orchestration
  * Handles complex operations that involve both storeys and perimeters
  */
 export class StoreyManagementService {
-  private store: Store
+  private actions: StoreActions
 
-  constructor(store: Store) {
-    this.store = store
+  constructor(actions: StoreActions) {
+    this.actions = actions
   }
 
   /**
@@ -20,7 +20,7 @@ export class StoreyManagementService {
    * - If storey is highest: increase all levels by +1 (with constraint validation)
    */
   moveStoreyUp(storeyId: StoreyId): void {
-    const storeys = this.store.actions.getStoreysOrderedByLevel()
+    const storeys = this.actions.getStoreysOrderedByLevel()
     const targetStorey = storeys.find(s => s.id === storeyId)
     const lowestStorey = storeys[0]
     const highestStorey = storeys[storeys.length - 1]
@@ -34,12 +34,12 @@ export class StoreyManagementService {
       if (lowestStorey.level === 0) {
         throw new Error('Cannot move floor up: lowest floor would exceed ground level')
       }
-      this.store.actions.adjustAllLevels(1)
+      this.actions.adjustAllLevels(1)
     } else {
       // Find floor above and swap
       const currentIndex = storeys.findIndex(s => s.id === storeyId)
       const floorAbove = storeys[currentIndex + 1]
-      this.store.actions.swapStoreyLevels(storeyId, floorAbove.id)
+      this.actions.swapStoreyLevels(storeyId, floorAbove.id)
     }
   }
 
@@ -49,7 +49,7 @@ export class StoreyManagementService {
    * - If storey is lowest: decrease all levels by -1 (with constraint validation)
    */
   moveStoreyDown(storeyId: StoreyId): void {
-    const storeys = this.store.actions.getStoreysOrderedByLevel()
+    const storeys = this.actions.getStoreysOrderedByLevel()
     const targetStorey = storeys.find(s => s.id === storeyId)
     const lowestStorey = storeys[0]
     const highestStorey = storeys[storeys.length - 1]
@@ -63,12 +63,12 @@ export class StoreyManagementService {
       if (highestStorey.level === 0) {
         throw new Error('Cannot move floor down: highest floor would go below ground level')
       }
-      this.store.actions.adjustAllLevels(-1)
+      this.actions.adjustAllLevels(-1)
     } else {
       // Find floor below and swap
       const currentIndex = storeys.findIndex(s => s.id === storeyId)
       const floorBelow = storeys[currentIndex - 1]
-      this.store.actions.swapStoreyLevels(storeyId, floorBelow.id)
+      this.actions.swapStoreyLevels(storeyId, floorBelow.id)
     }
   }
 
@@ -77,7 +77,7 @@ export class StoreyManagementService {
    * Creates a new storey at the next available level and copies all associated perimeters
    */
   duplicateStorey(sourceStoreyId: StoreyId, newName?: string): Storey {
-    const sourceStorey = this.store.actions.getStoreyById(sourceStoreyId)
+    const sourceStorey = this.actions.getStoreyById(sourceStoreyId)
 
     if (!sourceStorey) {
       throw new Error('Source storey not found')
@@ -86,10 +86,10 @@ export class StoreyManagementService {
     const duplicateName = newName ?? `${sourceStorey.name} Copy`
 
     // Create the new storey
-    const newStorey = this.store.actions.addStorey(duplicateName, sourceStorey.height)
+    const newStorey = this.actions.addStorey(duplicateName, sourceStorey.height)
 
     // Duplicate all perimeters from the source storey
-    const sourcePerimeters = this.store.actions.getPerimetersByStorey(sourceStoreyId)
+    const sourcePerimeters = this.actions.getPerimetersByStorey(sourceStoreyId)
     for (const sourcePerimeter of sourcePerimeters) {
       // Create boundary from the source perimeter corners
       const boundary = { points: sourcePerimeter.corners.map(c => c.insidePoint) }
@@ -102,7 +102,7 @@ export class StoreyManagementService {
 
       if (constructionMethodId && thickness) {
         // Add the duplicated perimeter to the new storey
-        this.store.actions.addPerimeter(
+        this.actions.addPerimeter(
           newStorey.id,
           boundary,
           constructionMethodId,
@@ -122,13 +122,13 @@ export class StoreyManagementService {
    */
   deleteStorey(storeyId: StoreyId): void {
     // 1. Delete associated perimeters first
-    const perimeters = this.store.actions.getPerimetersByStorey(storeyId)
-    perimeters.forEach(p => this.store.actions.removePerimeter(p.id))
+    const perimeters = this.actions.getPerimetersByStorey(storeyId)
+    perimeters.forEach(p => this.actions.removePerimeter(p.id))
 
     // 2. Delete the storey
-    this.store.actions.removeStorey(storeyId)
+    this.actions.removeStorey(storeyId)
   }
 }
 
-// Create a default singleton instance with the store
-export const defaultStoreyManagementService = new StoreyManagementService(useModelStore.getState())
+// Create a default singleton instance with actions
+export const defaultStoreyManagementService = new StoreyManagementService(getModelActions())

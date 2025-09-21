@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FitToViewTool } from './FitToViewTool'
 import { useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
-import { useModelStore } from '@/model/store'
+import { getModelActions } from '@/model/store'
 import { createVec2 } from '@/types/geometry/basic'
 import type { Perimeter } from '@/types/model'
 import type { ToolContext } from '../../ToolSystem/types'
@@ -33,13 +33,11 @@ describe('FitToViewTool', () => {
       activeStoreyId: 'floor1' as StoreyId
     })) as any
 
-    // Mock model store to return our mock function
-    const mockedUseModelStore = vi.mocked(useModelStore)
-    mockedUseModelStore.getState = vi.fn(() => ({
-      actions: {
-        getPerimetersByStorey: mockGetPerimetersByStorey
-      }
-    })) as any
+    // Mock model actions accessor
+    const mockedGetModelActions = vi.mocked(getModelActions)
+    mockedGetModelActions.mockReturnValue({
+      getPerimetersByStorey: mockGetPerimetersByStorey
+    } as any)
   })
 
   it('should have correct properties', () => {

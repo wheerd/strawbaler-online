@@ -1,16 +1,26 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { StoreySelector } from './StoreySelector'
-import { useModelActions } from '@/model/store'
+import { useStoreysOrderedByLevel } from '@/model/store'
 import { useEditorStore } from './hooks/useEditorStore'
 import { createStoreyLevel } from '@/types/model'
+import { createLength } from '@/types/geometry'
 import type { StoreyId } from '@/types/ids'
 
 // Mock the stores
-vi.mock('@/model/store')
+vi.mock('@/model/store', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/model/store')>()
+  return {
+    ...actual,
+    useStoreysOrderedByLevel: vi.fn(),
+    useModelActions: vi.fn(() => ({
+      addStorey: vi.fn()
+    }))
+  }
+})
 vi.mock('./hooks/useEditorStore')
 
-const mockUseModelActions = vi.mocked(useModelActions)
+const mockUseStoreysOrderedByLevel = vi.mocked(useStoreysOrderedByLevel)
 const mockUseEditorStore = vi.mocked(useEditorStore)
 
 describe('StoreySelector', () => {
@@ -19,13 +29,13 @@ describe('StoreySelector', () => {
       id: 'storey-1' as StoreyId,
       name: 'Ground Floor',
       level: createStoreyLevel(0),
-      height: 3000
+      height: createLength(3000)
     },
     {
       id: 'storey-2' as StoreyId,
       name: 'First Floor',
       level: createStoreyLevel(1),
-      height: 3000
+      height: createLength(3000)
     }
   ]
 
@@ -34,10 +44,8 @@ describe('StoreySelector', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // Mock the actions hook
-    mockUseModelActions.mockReturnValue({
-      getStoreysOrderedByLevel: () => mockStoreys
-    } as any)
+    // Mock the storeys hook
+    mockUseStoreysOrderedByLevel.mockReturnValue(mockStoreys)
 
     mockUseEditorStore.mockImplementation((selector: any) => {
       const mockState = {
@@ -80,9 +88,7 @@ describe('StoreySelector', () => {
   })
 
   it('does not render when no storeys exist', () => {
-    mockUseModelActions.mockReturnValue({
-      getStoreysOrderedByLevel: () => []
-    } as any)
+    mockUseStoreysOrderedByLevel.mockReturnValue([])
 
     const { container } = render(<StoreySelector />)
 

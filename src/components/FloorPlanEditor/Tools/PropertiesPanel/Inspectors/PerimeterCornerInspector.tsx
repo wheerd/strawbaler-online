@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { useModelStore, useModelActions } from '@/model/store'
+import { useModelActions, usePerimeterById } from '@/model/store'
 import type { PerimeterCornerId, PerimeterId } from '@/types/ids'
 import { useConfigStore } from '@/config/store'
 
@@ -14,7 +14,7 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
   const configStore = useConfigStore()
 
   // Get perimeter from store
-  const outerWall = useModelStore(state => state.perimeters.get(perimeterId))
+  const outerWall = usePerimeterById(perimeterId)
 
   // Use useMemo to find corner and its index within the wall object
   const cornerIndex = useMemo(() => {

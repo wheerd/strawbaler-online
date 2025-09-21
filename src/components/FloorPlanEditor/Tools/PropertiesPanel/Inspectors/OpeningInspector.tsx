@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import * as Select from '@radix-ui/react-select'
-import { useModelStore, useModelActions } from '@/model/store'
+import { useModelActions, usePerimeterById } from '@/model/store'
 import { createLength } from '@/types/geometry'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
 import { useSelectionStore } from '@/components/FloorPlanEditor/hooks/useSelectionStore'
@@ -27,7 +27,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
     useModelActions()
 
   // Get perimeter from store
-  const perimeter = useModelStore(state => state.perimeters.get(perimeterId))
+  const perimeter = usePerimeterById(perimeterId)
 
   // Use useMemo to find wall and opening within the wall object
   const wall = useMemo(() => {

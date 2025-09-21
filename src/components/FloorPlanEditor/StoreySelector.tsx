@@ -1,18 +1,16 @@
 import React, { useCallback } from 'react'
 import { Pencil1Icon, ChevronDownIcon } from '@radix-ui/react-icons'
 import * as Select from '@radix-ui/react-select'
-import { useModelActions } from '@/model/store'
+import { useStoreysOrderedByLevel } from '@/model/store'
 import { useEditorStore } from './hooks/useEditorStore'
 import { StoreyManagementModal } from './StoreyManagementModal'
 import type { StoreyId } from '@/types/ids'
 import { getLevelColor } from '@/theme/colors'
 
 export function StoreySelector(): React.JSX.Element {
-  const { getStoreysOrderedByLevel } = useModelActions()
+  const storeysOrdered = useStoreysOrderedByLevel()
   const activeStoreyId = useEditorStore(state => state.activeStoreyId)
   const setActiveStorey = useEditorStore(state => state.setActiveStorey)
-
-  const storeysOrdered = getStoreysOrderedByLevel()
   const activeStorey = storeysOrdered.find(s => s.id === activeStoreyId)
   // Display storeys in intuitive order (highest to lowest, like elevator buttons)
   const storeysDisplayOrder = [...storeysOrdered].reverse()

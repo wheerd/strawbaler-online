@@ -1,7 +1,7 @@
 import type { Tool, CanvasEvent, ToolContext } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import { useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
-import { useModelStore } from '@/model/store'
-import type { Store } from '@/model/store/types'
+import { getModelActions } from '@/model/store'
+import type { StoreActions } from '@/model/store/types'
 import type { StoreyId } from '@/types/ids'
 import { toolManager } from '@/components/FloorPlanEditor/Tools/ToolSystem/ToolManager'
 import { boundsFromPoints, type Bounds2D } from '@/types/geometry'
@@ -30,13 +30,13 @@ export class FitToViewTool implements Tool {
 
     // Perform the fit to view operation
     const editorStore = useEditorStore.getState()
-    const modelStore = useModelStore.getState()
+    const modelActions = getModelActions()
 
     // Get current active storey
     const activeStoreyId = editorStore.activeStoreyId
 
     // Get bounds from perimeters (the main building structure) instead of all points
-    const bounds = this.calculateOuterWallsBounds(modelStore, activeStoreyId)
+    const bounds = this.calculateOuterWallsBounds(modelActions, activeStoreyId)
 
     if (!bounds) {
       console.log('No entities to fit - no bounds available')
@@ -50,8 +50,8 @@ export class FitToViewTool implements Tool {
     // Nothing to do on deactivate
   }
 
-  private calculateOuterWallsBounds(modelStore: Store, storeyId: StoreyId): Bounds2D | null {
-    const perimeters = modelStore.actions.getPerimetersByStorey(storeyId)
+  private calculateOuterWallsBounds(modelActions: StoreActions, storeyId: StoreyId): Bounds2D | null {
+    const perimeters = modelActions.getPerimetersByStorey(storeyId)
     const outerPoints = perimeters.flatMap(p => p.corners.map(c => c.outsidePoint))
     return boundsFromPoints(outerPoints)
   }
