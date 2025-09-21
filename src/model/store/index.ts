@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { devtools } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
 import { temporal } from 'zundo'
 import type { Perimeter, Storey } from '@/types/model'
 import type { PerimeterId, StoreyId } from '@/types/ids'
@@ -11,46 +11,34 @@ import { useMemo } from 'react'
 // Create the main store with slices and undo/redo
 const useModelStore = create<Store>()(
   temporal(
-    devtools(
-      (...a) => {
-        const storeysSlice = createStoreysSlice(...a)
-        const perimetersSlice = createPerimetersSlice(...a)
+    (set, get, store) => {
+      const storeysSlice = immer(createStoreysSlice)(set, get, store)
+      const perimetersSlice = createPerimetersSlice(set, get, store)
 
-        return {
-          // Combine state properties
-          ...storeysSlice,
-          ...perimetersSlice,
-          // Merge actions properly
-          actions: {
-            ...storeysSlice.actions,
-            ...perimetersSlice.actions,
-            reset: () => {
-              // Reset both slices to their initial state
-              const initialStoreys = {}
-              const initialPerimeters = {}
-              a[0]({
-                storeys: initialStoreys,
-                perimeters: initialPerimeters
-              })
-            }
+      const initialStoreys = storeysSlice.storeys
+      const initialPerimeters = perimetersSlice.perimeters
+
+      return {
+        // Combine state properties
+        ...storeysSlice,
+        ...perimetersSlice,
+        // Merge actions properly
+        actions: {
+          ...storeysSlice.actions,
+          ...perimetersSlice.actions,
+          reset: () => {
+            // Reset both slices to their initial state
+            set({
+              storeys: initialStoreys,
+              perimeters: initialPerimeters
+            })
           }
         }
-      },
-      { name: 'model-store' }
-    ),
+      }
+    },
     {
       // Undo/redo configuration
-      limit: 50,
-      equality: (past, current) => past === current,
-      onSave: (pastState: Store, currentState: Store) => {
-        // Only save significant changes to history
-        // Don't save if only timestamps changed
-        const significantChange =
-          Object.keys(pastState.storeys).length !== Object.keys(currentState.storeys).length ||
-          Object.keys(pastState.perimeters).length !== Object.keys(currentState.perimeters).length
-
-        return significantChange
-      }
+      limit: 50
     }
   )
 )

@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { FloorPlanStage } from './Canvas/FloorPlanStage'
 import { GridSizeDisplay } from './GridSizeDisplay'
 import { StoreySelector } from './StoreySelector'
-import { useStoreysOrderedByLevel, useActiveStoreyId, useModelActions } from '@/model/store'
 import { ToolContextProvider, MainToolbar, PropertiesPanel, initializeToolSystem } from './Tools'
 import { toolManager } from './Tools/ToolSystem/ToolManager'
 import { keyboardShortcutManager } from './Tools/ToolSystem/KeyboardShortcutManager'
@@ -131,10 +130,6 @@ function FloorPlanEditorContent(): React.JSX.Element {
 export function FloorPlanEditor(): React.JSX.Element {
   const [isToolSystemReady, setIsToolSystemReady] = useState(false)
 
-  const storeys = useStoreysOrderedByLevel()
-  const activeStoreyId = useActiveStoreyId()
-  const { setActiveStorey } = useModelActions()
-
   // Initialize tool system once
   useEffect(() => {
     if (!isToolSystemReady) {
@@ -146,19 +141,6 @@ export function FloorPlanEditor(): React.JSX.Element {
       }
     }
   }, [isToolSystemReady])
-
-  // Sync editor store with model store's default floor
-  useEffect(() => {
-    if (storeys.length > 0) {
-      if (!storeys.some(storey => storey.id === activeStoreyId)) {
-        // Check if current activeStoreyId is valid
-        const firstStorey = storeys[0]
-        if (firstStorey != null) {
-          setActiveStorey(firstStorey.id)
-        }
-      }
-    }
-  }, [storeys, setActiveStorey, activeStoreyId])
 
   if (!isToolSystemReady) {
     return (

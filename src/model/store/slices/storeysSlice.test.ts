@@ -24,14 +24,14 @@ describe('StoreysSlice', () => {
     mockSet.mockImplementation(updater => {
       if (typeof updater === 'function') {
         const newState = updater(store)
-        Object.assign(store, newState)
+        store = { ...store, ...newState }
       } else {
-        Object.assign(store, updater)
+        store = { ...store, ...updater }
       }
     })
 
     // Clear the default ground floor for clean tests
-    store.storeys = {}
+    store = { ...store, storeys: {} }
   })
 
   describe('addStorey', () => {
@@ -157,6 +157,16 @@ describe('StoreysSlice', () => {
       expect(remainingStoreys).toHaveLength(2)
       expect(remainingStoreys[0].level).toBe(-1) // was -2, adjusted up
       expect(remainingStoreys[1].level).toBe(0) // stays at 0
+    })
+
+    it('should update active storey id when removing active storey', () => {
+      const floor1 = store.actions.addStorey('Floor 1')
+      const floor2 = store.actions.addStorey('Floor 2')
+
+      store.actions.setActiveStorey(floor1.id)
+      store.actions.removeStorey(floor1.id)
+
+      expect(store.actions.getActiveStorey()).toBe(floor2.id)
     })
   })
 
