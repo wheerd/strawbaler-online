@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
+import { Dialog, IconButton, Flex, Box, Card } from '@radix-ui/themes'
 import { ExclamationTriangleIcon, CrossCircledIcon, CheckCircledIcon, Cross2Icon } from '@radix-ui/react-icons'
 import {
   resolveDefaultMaterial,
@@ -414,58 +414,70 @@ export function WallConstructionPlanModal({ plan, children }: WallConstructionPl
 
   return (
     <Dialog.Root>
-      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[100]" />
-        <Dialog.Content className="fixed inset-4 bg-white rounded-lg shadow-xl z-[100] flex flex-col">
-          <div className="flex items-center justify-between p-3 border-b border-gray-200">
-            <Dialog.Title className="text-base font-medium text-gray-900">Wall Construction Plan</Dialog.Title>
+      <Dialog.Trigger>{children}</Dialog.Trigger>
+      <Dialog.Content>
+        <Flex justify="between" align="center" mb="3">
+          <Dialog.Title>Wall Construction Plan</Dialog.Title>
+          <Dialog.Close>
+            <IconButton variant="ghost">
+              <Cross2Icon />
+            </IconButton>
+          </Dialog.Close>
+        </Flex>
 
-            <Dialog.Close asChild>
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                <Cross2Icon className="w-5 h-5" />
-              </button>
-            </Dialog.Close>
-          </div>
+        <Box style={{ height: '500px', overflow: 'hidden' }}>
+          <Card variant="surface" style={{ height: '100%', padding: '8px' }}>
+            <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
+          </Card>
+        </Box>
 
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 p-2 overflow-hidden">
-              <div className="w-full h-full bg-gray-50 rounded-lg border border-gray-200 p-1 overflow-hidden">
-                <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
-              </div>
-            </div>
-            <div className="flex-shrink-0 flex">
-              <div className="flex-1">
-                <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />
-              </div>
-              <div className="flex items-center px-4 py-3 border-t border-gray-200">
-                <div className="flex bg-gray-100 rounded-md p-1">
-                  <button
-                    onClick={() => setView('outside')}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      view === 'outside'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-white text-black hover:text-gray-700'
-                    }`}
-                  >
-                    Outside
-                  </button>
-                  <button
-                    onClick={() => setView('inside')}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      view === 'inside'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-white text-black hover:text-gray-700'
-                    }`}
-                  >
-                    Inside
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
+        <Box pt="3" style={{ borderTop: '1px solid var(--gray-6)' }}>
+          <Flex justify="between">
+            <Box>
+              <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />
+            </Box>
+            <Flex gap="1">
+              <Box
+                style={{
+                  display: 'flex',
+                  backgroundColor: 'var(--gray-3)',
+                  borderRadius: '6px',
+                  padding: '4px'
+                }}
+              >
+                <Box
+                  onClick={() => setView('outside')}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 'medium',
+                    backgroundColor: view === 'outside' ? 'var(--accent-9)' : 'white',
+                    color: view === 'outside' ? 'white' : 'var(--gray-12)'
+                  }}
+                >
+                  Outside
+                </Box>
+                <Box
+                  onClick={() => setView('inside')}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 'medium',
+                    backgroundColor: view === 'inside' ? 'var(--accent-9)' : 'white',
+                    color: view === 'inside' ? 'white' : 'var(--gray-12)'
+                  }}
+                >
+                  Inside
+                </Box>
+              </Box>
+            </Flex>
+          </Flex>
+        </Box>
+      </Dialog.Content>
     </Dialog.Root>
   )
 }

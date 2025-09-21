@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { Box, Flex } from '@radix-ui/themes'
 import { FloorPlanStage } from './Canvas/FloorPlanStage'
 import { GridSizeDisplay } from './GridSizeDisplay'
 import { StoreySelector } from './StoreySelector'
@@ -97,33 +98,55 @@ function FloorPlanEditorContent(): React.JSX.Element {
   }, [])
 
   return (
-    <div
+    <Box
       ref={containerRef}
-      className="w-screen h-screen flex flex-col bg-gray-50 m-0 p-0 overflow-hidden"
+      style={{
+        width: '100vw',
+        height: '100vh',
+        margin: 0,
+        padding: 0,
+        overflow: 'hidden',
+        backgroundColor: 'var(--gray-2)'
+      }}
       tabIndex={0}
       onClick={handleClick}
       data-testid="floor-plan-editor"
     >
       {/* Top Toolbar - Tabs for tool groups + tools */}
-      <div className="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm z-[100]">
+      <Box style={{ flexShrink: 0, zIndex: 100, borderBottom: '1px solid var(--gray-6)' }}>
         <MainToolbar />
-      </div>
+      </Box>
 
       {/* Main Content Area - Canvas + Properties Panel */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      <Flex style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
         {/* Canvas Area */}
-        <div className="flex-1 relative overflow-hidden bg-white border-r border-gray-200">
+        <Box
+          style={{
+            flex: 1,
+            position: 'relative',
+            overflow: 'hidden',
+            backgroundColor: 'white',
+            borderRight: '1px solid var(--gray-6)'
+          }}
+        >
           <FloorPlanStage width={dimensions.width} height={dimensions.height} />
           <GridSizeDisplay />
           <StoreySelector />
-        </div>
+        </Box>
 
         {/* Right Properties Panel */}
-        <div className="w-80 flex-shrink-0 bg-gray-50 border-l border-gray-200 overflow-y-auto flex flex-col">
+        <Box
+          style={{
+            width: '320px',
+            flexShrink: 0,
+            backgroundColor: 'var(--gray-2)',
+            overflowY: 'auto'
+          }}
+        >
           <PropertiesPanel />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Flex>
+    </Box>
   )
 }
 

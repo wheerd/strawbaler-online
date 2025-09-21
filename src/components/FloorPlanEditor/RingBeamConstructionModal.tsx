@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
+import { Dialog, IconButton, Flex, Box, Text, Heading, Card } from '@radix-ui/themes'
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { usePerimeterById } from '@/model/store'
 import { useConfigStore } from '@/config/store'
@@ -166,88 +166,109 @@ export function RingBeamConstructionModal({
 
   return (
     <Dialog.Root>
-      <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[100]" />
-        <Dialog.Content className="fixed inset-4 bg-white rounded-lg shadow-xl z-[100] flex flex-col">
-          <div className="flex items-center justify-between p-3 border-b border-gray-200">
-            <Dialog.Title className="text-base font-medium text-gray-900">Ring Beam Construction</Dialog.Title>
-            <Dialog.Close asChild>
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                <Cross2Icon className="w-5 h-5" />
-              </button>
-            </Dialog.Close>
-          </div>
+      <Dialog.Trigger>{trigger}</Dialog.Trigger>
+      <Dialog.Content>
+        <Flex justify="between" align="center" mb="3">
+          <Dialog.Title>Ring Beam Construction</Dialog.Title>
+          <Dialog.Close>
+            <IconButton variant="ghost">
+              <Cross2Icon />
+            </IconButton>
+          </Dialog.Close>
+        </Flex>
 
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 p-2 overflow-hidden">
-              <div className="w-full h-full bg-gray-50 rounded-lg border border-gray-200 p-1 overflow-hidden">
-                {currentMethod ? (
-                  constructionPlan ? (
-                    <RingBeamConstructionPlanDisplay plan={constructionPlan} showIssues />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="text-center text-gray-500">
-                        <div className="text-lg mb-2">⚠</div>
-                        <div className="text-sm">Failed to generate construction plan</div>
-                      </div>
-                    </div>
-                  )
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <div className="text-lg mb-2">📋</div>
-                      <div className="text-sm">No {currentPosition} ring beam method selected</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex-shrink-0 flex">
-              <div className="flex-1">
-                {/* Method Info Panel */}
-                {currentMethod && (
-                  <div className="p-3 border-t border-gray-200 bg-gray-50">
-                    <h3 className="text-sm font-medium text-gray-900 mb-1">{currentMethod.name}</h3>
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <div>Type: {currentMethod.config.type}</div>
-                      <div>Height: {currentMethod.config.height}mm</div>
-                      {currentMethod.config.type === 'full' && <div>Width: {currentMethod.config.width}mm</div>}
-                      {currentMethod.config.type === 'double' && (
-                        <div>Thickness: {currentMethod.config.thickness}mm</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center px-4 py-3 border-t border-gray-200">
-                <div className="flex bg-gray-100 rounded-md p-1">
-                  <button
-                    onClick={() => setCurrentPosition('base')}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      currentPosition === 'base'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-white text-black hover:text-gray-700'
-                    }`}
-                  >
-                    Base Plate
-                  </button>
-                  <button
-                    onClick={() => setCurrentPosition('top')}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      currentPosition === 'top'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-white text-black hover:text-gray-700'
-                    }`}
-                  >
-                    Top Plate
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
+        <Box style={{ height: '500px', overflow: 'hidden' }}>
+          <Card variant="surface" style={{ height: '100%', padding: '8px' }}>
+            {currentMethod ? (
+              constructionPlan ? (
+                <RingBeamConstructionPlanDisplay plan={constructionPlan} showIssues />
+              ) : (
+                <Flex align="center" justify="center" style={{ height: '100%' }}>
+                  <Text align="center" color="gray">
+                    <Text size="6">⚠</Text>
+                    <br />
+                    <Text size="2">Failed to generate construction plan</Text>
+                  </Text>
+                </Flex>
+              )
+            ) : (
+              <Flex align="center" justify="center" style={{ height: '100%' }}>
+                <Text align="center" color="gray">
+                  <Text size="6">📋</Text>
+                  <br />
+                  <Text size="2">No {currentPosition} ring beam method selected</Text>
+                </Text>
+              </Flex>
+            )}
+          </Card>
+        </Box>
+
+        <Box pt="3" style={{ borderTop: '1px solid var(--gray-6)' }}>
+          <Flex justify="between">
+            {/* Method Info Panel */}
+            <Box>
+              {currentMethod && (
+                <Card variant="surface" size="1">
+                  <Heading size="2" mb="1">
+                    {currentMethod.name}
+                  </Heading>
+                  <Flex direction="column" gap="1">
+                    <Text size="1">Type: {currentMethod.config.type}</Text>
+                    <Text size="1">Height: {currentMethod.config.height}mm</Text>
+                    {currentMethod.config.type === 'full' && (
+                      <Text size="1">Width: {currentMethod.config.width}mm</Text>
+                    )}
+                    {currentMethod.config.type === 'double' && (
+                      <Text size="1">Thickness: {currentMethod.config.thickness}mm</Text>
+                    )}
+                  </Flex>
+                </Card>
+              )}
+            </Box>
+
+            {/* Position Toggle */}
+            <Flex gap="1">
+              <Box
+                style={{
+                  display: 'flex',
+                  backgroundColor: 'var(--gray-3)',
+                  borderRadius: '6px',
+                  padding: '4px'
+                }}
+              >
+                <Box
+                  onClick={() => setCurrentPosition('base')}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 'medium',
+                    backgroundColor: currentPosition === 'base' ? 'var(--accent-9)' : 'white',
+                    color: currentPosition === 'base' ? 'white' : 'var(--gray-12)'
+                  }}
+                >
+                  Base Plate
+                </Box>
+                <Box
+                  onClick={() => setCurrentPosition('top')}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 'medium',
+                    backgroundColor: currentPosition === 'top' ? 'var(--accent-9)' : 'white',
+                    color: currentPosition === 'top' ? 'white' : 'var(--gray-12)'
+                  }}
+                >
+                  Top Plate
+                </Box>
+              </Box>
+            </Flex>
+          </Flex>
+        </Box>
+      </Dialog.Content>
     </Dialog.Root>
   )
 }
