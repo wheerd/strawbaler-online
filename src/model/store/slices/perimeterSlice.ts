@@ -29,7 +29,7 @@ import { wouldClosingPolygonSelfIntersect } from '@/types/geometry/polygon'
 type PartialWallInput = Pick<PerimeterWall, 'id' | 'thickness' | 'constructionMethodId' | 'openings'>
 
 export interface PerimetersState {
-  perimeters: Map<PerimeterId, Perimeter>
+  perimeters: Record<PerimeterId, Perimeter>
 }
 
 export interface PerimetersActions {
@@ -325,7 +325,7 @@ const validateOpeningOnWall = (
 }
 
 export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], PerimetersSlice> = (set, get) => ({
-  perimeters: new Map(),
+  perimeters: {},
 
   actions: {
     // CRUD operations
@@ -359,7 +359,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       }
 
       set(state => ({
-        perimeters: new Map(state.perimeters).set(perimeter.id, perimeter)
+        perimeters: { ...state.perimeters, [perimeter.id]: perimeter }
       }))
 
       return perimeter
@@ -367,8 +367,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
     removePerimeter: (perimeterId: PerimeterId) => {
       set(state => {
-        const newPerimeters = new Map(state.perimeters)
-        newPerimeters.delete(perimeterId)
+        const { [perimeterId]: _, ...newPerimeters } = state.perimeters
         return { perimeters: newPerimeters }
       })
     },
@@ -377,7 +376,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     // merging the two adjacent walls into one
     removePerimeterCorner: (perimeterId: PerimeterId, cornerId: PerimeterCornerId): boolean => {
       const state = get()
-      const perimeter = state.perimeters.get(perimeterId)
+      const perimeter = state.perimeters[perimeterId]
       if (!perimeter) return false
 
       const cornerIndex = perimeter.corners.findIndex(c => c.id === cornerId)
@@ -435,7 +434,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
       // Recalculate geometry for the modified polygon
       const newBoundary = { points: newBoundaryPoints }
-      const thicknesses = newWalls.map(s => (s as PartialWallInput).thickness)
+      const thicknesses = newWalls.map((s: PartialWallInput) => s.thickness)
       const infiniteLines = createInfiniteLines(newBoundary, thicknesses)
       const updatedCorners = calculateCornerPoints(newBoundary, thicknesses, infiniteLines, newCorners)
       const finalWalls = calculateWallEndpoints(
@@ -452,7 +451,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       }
 
       set(state => ({
-        perimeters: new Map(state.perimeters).set(perimeterId, updatedPerimeter)
+        perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
       }))
 
       return true
@@ -462,7 +461,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     // also removing the two corner points that connected these three walls
     removePerimeterWall: (perimeterId: PerimeterId, wallId: PerimeterWallId): boolean => {
       const state = get()
-      const perimeter = state.perimeters.get(perimeterId)
+      const perimeter = state.perimeters[perimeterId]
       if (!perimeter) return false
 
       const wallIndex = perimeter.walls.findIndex(s => s.id === wallId)
@@ -538,7 +537,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
       // Recalculate geometry for the modified polygon
       const newBoundary = { points: newBoundaryPoints }
-      const thicknesses = newWalls.map(s => (s as PartialWallInput).thickness)
+      const thicknesses = newWalls.map((s: PartialWallInput) => s.thickness)
       const infiniteLines = createInfiniteLines(newBoundary, thicknesses)
       const updatedCorners = calculateCornerPoints(newBoundary, thicknesses, infiniteLines, newCorners)
       const finalWalls = calculateWallEndpoints(
@@ -555,7 +554,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       }
 
       set(state => ({
-        perimeters: new Map(state.perimeters).set(perimeterId, updatedPerimeter)
+        perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
       }))
 
       return true
@@ -568,7 +567,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       methodId: PerimeterConstructionMethodId
     ) => {
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (perimeter == null) return state
 
         const wallIndex = perimeter.walls.findIndex(s => s.id === wallId)
@@ -587,9 +586,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
           walls: updatedWalls
         }
 
-        const newPerimeters = new Map(state.perimeters)
-        newPerimeters.set(perimeterId, updatedPerimeter)
-        return { perimeters: newPerimeters }
+        return {
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
+        }
       })
     },
 
@@ -599,7 +598,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       }
 
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (perimeter == null) return state
 
         const wallIndex = perimeter.walls.findIndex(s => s.id === wallId)
@@ -627,9 +626,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
           corners: updatedCorners
         }
 
-        const newPerimeters = new Map(state.perimeters)
-        newPerimeters.set(perimeterId, updatedPerimeter)
-        return { perimeters: newPerimeters }
+        return {
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
+        }
       })
     },
 
@@ -639,7 +638,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       constructedByWall: 'previous' | 'next'
     ) => {
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (perimeter == null) return state
 
         const cornerIndex = perimeter.corners.findIndex(c => c.id === cornerId)
@@ -658,9 +657,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
           corners: updatedCorners
         }
 
-        const newPerimeters = new Map(state.perimeters)
-        newPerimeters.set(perimeterId, updatedPerimeter)
-        return { perimeters: newPerimeters }
+        return {
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
+        }
       })
     },
 
@@ -685,10 +684,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
         throw new Error('Opening offset from start must be non-negative')
       }
 
-      const wall =
-        get()
-          .perimeters.get(perimeterId)
-          ?.walls.find(s => s.id === wallId) ?? null
+      const wall = get().perimeters[perimeterId]?.walls.find(s => s.id === wallId) ?? null
       if (!wall) {
         throw new Error('Wall does not exist')
       }
@@ -705,7 +701,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       }
 
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (perimeter == null) return state
 
         const wallIndex = perimeter.walls.findIndex(s => s.id === wallId)
@@ -726,9 +722,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
           walls: updatedWalls
         }
 
-        const newPerimeters = new Map(state.perimeters)
-        newPerimeters.set(perimeterId, updatedPerimeter)
-        return { perimeters: newPerimeters }
+        return {
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
+        }
       })
 
       return openingId
@@ -736,7 +732,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
 
     removePerimeterWallOpening: (perimeterId: PerimeterId, wallId: PerimeterWallId, openingId: OpeningId) => {
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (perimeter == null) return state
 
         const wallIndex = perimeter.walls.findIndex(s => s.id === wallId)
@@ -764,34 +760,34 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
           walls: updatedWalls
         }
 
-        const newPerimeters = new Map(state.perimeters)
-        newPerimeters.set(perimeterId, updatedPerimeter)
-        return { perimeters: newPerimeters }
+        return {
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
+        }
       })
     },
 
     // Getters
     getPerimeterById: (perimeterId: PerimeterId) => {
-      return get().perimeters.get(perimeterId) ?? null
+      return get().perimeters[perimeterId] ?? null
     },
 
     // Updated and new getter methods
     getPerimeterWallById: (perimeterId: PerimeterId, wallId: PerimeterWallId) => {
-      const perimeter = get().perimeters.get(perimeterId)
+      const perimeter = get().perimeters[perimeterId]
       if (perimeter == null) return null
 
       return perimeter.walls.find(s => s.id === wallId) ?? null
     },
 
     getPerimeterCornerById: (perimeterId: PerimeterId, cornerId: PerimeterCornerId) => {
-      const perimeter = get().perimeters.get(perimeterId)
+      const perimeter = get().perimeters[perimeterId]
       if (perimeter == null) return null
 
       return perimeter.corners.find(c => c.id === cornerId) ?? null
     },
 
     getPerimeterWallOpeningById: (perimeterId: PerimeterId, wallId: PerimeterWallId, openingId: OpeningId) => {
-      const perimeter = get().perimeters.get(perimeterId)
+      const perimeter = get().perimeters[perimeterId]
       if (perimeter == null) return null
 
       const wall = perimeter.walls.find(s => s.id === wallId)
@@ -807,7 +803,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       updates: Partial<Omit<Opening, 'id'>>
     ) => {
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (perimeter == null) return state
 
         const wallIndex = perimeter.walls.findIndex(s => s.id === wallId)
@@ -844,14 +840,14 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
           walls: updatedWalls
         }
 
-        const newPerimeters = new Map(state.perimeters)
-        newPerimeters.set(perimeterId, updatedPerimeter)
-        return { perimeters: newPerimeters }
+        return {
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
+        }
       })
     },
 
     getPerimetersByStorey: (storeyId: StoreyId) => {
-      return Array.from(get().perimeters.values()).filter(p => p.storeyId === storeyId)
+      return Object.values(get().perimeters).filter((p: Perimeter) => p.storeyId === storeyId)
     },
 
     // Opening validation methods implementation
@@ -862,10 +858,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       width: Length,
       excludedOpening?: OpeningId
     ) => {
-      const wall =
-        get()
-          .perimeters.get(perimeterId)
-          ?.walls.find(s => s.id === wallId) ?? null
+      const wall = get().perimeters[perimeterId]?.walls.find(s => s.id === wallId) ?? null
       if (!wall) {
         throw new Error(`Wall wall not found: perimeter ${perimeterId}, wall ${wallId}`)
       }
@@ -885,10 +878,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       width: Length,
       excludedOpening?: OpeningId
     ): Length | null => {
-      const wall =
-        get()
-          .perimeters.get(perimeterId)
-          ?.walls.find(s => s.id === wallId) ?? null
+      const wall = get().perimeters[perimeterId]?.walls.find(s => s.id === wallId) ?? null
       if (!wall) return null
       // wallLength and opening dimensions should be in same units
       if (width > wall.wallLength) return null
@@ -970,20 +960,20 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     // Movement operations for MoveTool
     movePerimeter: (perimeterId: PerimeterId, offset: Vec2) => {
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (!perimeter) return state
 
         // Translate all boundary points by the offset
-        const newBoundary = perimeter.corners.map(corner => add(corner.insidePoint, offset))
+        const newBoundary = perimeter.corners.map((corner: PerimeterCorner) => add(corner.insidePoint, offset))
 
         // Create new boundary polygon and recalculate all geometry
         const newBoundaryPolygon = { points: newBoundary }
-        const thicknesses = perimeter.walls.map(s => s.thickness)
+        const thicknesses = perimeter.walls.map((s: PerimeterWall) => s.thickness)
         const infiniteLines = createInfiniteLines(newBoundaryPolygon, thicknesses)
         const updatedCorners = calculateCornerPoints(newBoundaryPolygon, thicknesses, infiniteLines, perimeter.corners)
 
         // Create wall inputs preserving existing data
-        const wallInputs: PartialWallInput[] = perimeter.walls.map(wall => ({
+        const wallInputs: PartialWallInput[] = perimeter.walls.map((wall: PerimeterWall) => ({
           id: wall.id,
           thickness: wall.thickness,
           constructionMethodId: wall.constructionMethodId,
@@ -999,7 +989,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
         }
 
         return {
-          perimeters: new Map(state.perimeters).set(perimeterId, updatedPerimeter)
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
         }
       })
 
@@ -1017,17 +1007,17 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
       }
 
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (!perimeter) return state
 
         // Create new boundary polygon and recalculate all geometry
         const newBoundaryPolygon = { points: newBoundary }
-        const thicknesses = perimeter.walls.map(s => s.thickness)
+        const thicknesses = perimeter.walls.map((s: PerimeterWall) => s.thickness)
         const infiniteLines = createInfiniteLines(newBoundaryPolygon, thicknesses)
         const updatedCorners = calculateCornerPoints(newBoundaryPolygon, thicknesses, infiniteLines, perimeter.corners)
 
         // Create wall inputs preserving existing data
-        const wallInputs: PartialWallInput[] = perimeter.walls.map(wall => ({
+        const wallInputs: PartialWallInput[] = perimeter.walls.map((wall: PerimeterWall) => ({
           id: wall.id,
           thickness: wall.thickness,
           constructionMethodId: wall.constructionMethodId,
@@ -1043,7 +1033,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
         }
 
         return {
-          perimeters: new Map(state.perimeters).set(perimeterId, updatedPerimeter)
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
         }
       })
 
@@ -1053,7 +1043,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
     // Ring beam configuration
     setPerimeterBaseRingBeam: (perimeterId: PerimeterId, methodId: RingBeamConstructionMethodId) => {
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (!perimeter) return state
 
         const updatedPerimeter: Perimeter = {
@@ -1062,14 +1052,14 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
         }
 
         return {
-          perimeters: new Map(state.perimeters).set(perimeterId, updatedPerimeter)
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
         }
       })
     },
 
     setPerimeterTopRingBeam: (perimeterId: PerimeterId, methodId: RingBeamConstructionMethodId) => {
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (!perimeter) return state
 
         const updatedPerimeter: Perimeter = {
@@ -1078,14 +1068,14 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
         }
 
         return {
-          perimeters: new Map(state.perimeters).set(perimeterId, updatedPerimeter)
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
         }
       })
     },
 
     removePerimeterBaseRingBeam: (perimeterId: PerimeterId) => {
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (!perimeter) return state
 
         const updatedPerimeter: Perimeter = {
@@ -1094,14 +1084,14 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
         }
 
         return {
-          perimeters: new Map(state.perimeters).set(perimeterId, updatedPerimeter)
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
         }
       })
     },
 
     removePerimeterTopRingBeam: (perimeterId: PerimeterId) => {
       set(state => {
-        const perimeter = state.perimeters.get(perimeterId)
+        const perimeter = state.perimeters[perimeterId]
         if (!perimeter) return state
 
         const updatedPerimeter: Perimeter = {
@@ -1110,7 +1100,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [], [], Perime
         }
 
         return {
-          perimeters: new Map(state.perimeters).set(perimeterId, updatedPerimeter)
+          perimeters: { ...state.perimeters, [perimeterId]: updatedPerimeter }
         }
       })
     }

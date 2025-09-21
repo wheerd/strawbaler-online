@@ -9,7 +9,7 @@ import { createLength } from '@/types/geometry'
 export interface StoreysState {
   activeStoreyId: StoreyId
   defaultHeight: Length
-  storeys: Map<StoreyId, Storey>
+  storeys: Record<StoreyId, Storey>
 }
 
 export interface StoreysActions {
@@ -59,7 +59,7 @@ const groundFloor: Storey = {
 export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice> = (set, get) => ({
   activeStoreyId: groundFloor.id,
   defaultHeight: createLength(2400),
-  storeys: new Map<StoreyId, Storey>([[groundFloor.id, groundFloor]]),
+  storeys: { [groundFloor.id]: groundFloor } as Record<StoreyId, Storey>,
 
   actions: {
     // Active storey management
@@ -71,16 +71,18 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
         activeStoreyId
       }))
     },
+
     // CRUD operations
     addStorey: (name: string, height?: Length) => {
       const state = get()
 
       validateStoreyName(name)
 
+      const storeysArray = Object.values(state.storeys)
       const level =
-        state.storeys.size === 0
+        storeysArray.length === 0
           ? createStoreyLevel(0)
-          : createStoreyLevel(Math.max(...Array.from(state.storeys.values()).map(s => s.level)) + 1)
+          : createStoreyLevel(Math.max(...storeysArray.map(s => s.level)) + 1)
 
       const storeyId = createStoreyId()
       const defaultHeight = height !== undefined ? height : state.defaultHeight
@@ -96,7 +98,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
 
       set(state => ({
         ...state,
-        storeys: new Map(state.storeys).set(storeyId, storey)
+        storeys: { ...state.storeys, [storeyId]: storey }
       }))
 
       return storey
@@ -104,24 +106,25 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
 
     removeStorey: (storeyId: StoreyId) => {
       set(state => {
-        const storey = state.storeys.get(storeyId)
+        const storey = state.storeys[storeyId]
         if (storey == null) return state
 
         // Prevent removing the last storey
-        if (state.storeys.size === 1) {
+        if (Object.keys(state.storeys).length === 1) {
           throw new Error('Cannot remove the last remaining storey')
         }
 
-        const newStoreys = new Map(state.storeys)
-        newStoreys.delete(storeyId)
+        const newStoreys = { ...state.storeys }
+        delete newStoreys[storeyId]
 
-        for (const [, otherStorey] of newStoreys) {
+        // Adjust levels of other storeys
+        for (const otherStorey of Object.values(newStoreys)) {
           if (storey.level >= 0 && otherStorey.level > storey.level) {
             const newLevel = createStoreyLevel(otherStorey.level - 1)
-            newStoreys.set(otherStorey.id, { ...otherStorey, level: newLevel })
+            newStoreys[otherStorey.id] = { ...otherStorey, level: newLevel }
           } else if (storey.level < 0 && otherStorey.level < storey.level) {
             const newLevel = createStoreyLevel(otherStorey.level + 1)
-            newStoreys.set(otherStorey.id, { ...otherStorey, level: newLevel })
+            newStoreys[otherStorey.id] = { ...otherStorey, level: newLevel }
           }
         }
 
@@ -138,7 +141,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
       validateStoreyName(name)
 
       set(state => {
-        const storey = state.storeys.get(storeyId)
+        const storey = state.storeys[storeyId]
         if (storey == null) return state
 
         const updatedStorey: Storey = {
@@ -148,7 +151,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
 
         return {
           ...state,
-          storeys: new Map(state.storeys).set(storeyId, updatedStorey)
+          storeys: { ...state.storeys, [storeyId]: updatedStorey }
         }
       })
     },
@@ -158,7 +161,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
       validateStoreyHeight(height)
 
       set(state => {
-        const storey = state.storeys.get(storeyId)
+        const storey = state.storeys[storeyId]
         if (storey == null) return state
 
         const updatedStorey: Storey = {
@@ -168,7 +171,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
 
         return {
           ...state,
-          storeys: new Map(state.storeys).set(storeyId, updatedStorey)
+          storeys: { ...state.storeys, [storeyId]: updatedStorey }
         }
       })
     },
@@ -176,31 +179,31 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
     // Level management operations
     swapStoreyLevels: (storeyId1: StoreyId, storeyId2: StoreyId) => {
       set(state => {
-        const storey1 = state.storeys.get(storeyId1)
-        const storey2 = state.storeys.get(storeyId2)
+        const storey1 = state.storeys[storeyId1]
+        const storey2 = state.storeys[storeyId2]
 
         if (!storey1 || !storey2) return state
 
-        const newStoreys = new Map(state.storeys)
-        newStoreys.set(storeyId1, { ...storey1, level: storey2.level })
-        newStoreys.set(storeyId2, { ...storey2, level: storey1.level })
-
         return {
           ...state,
-          storeys: newStoreys
+          storeys: {
+            ...state.storeys,
+            [storeyId1]: { ...storey1, level: storey2.level },
+            [storeyId2]: { ...storey2, level: storey1.level }
+          }
         }
       })
     },
 
     adjustAllLevels: (adjustment: number) => {
       set(state => {
-        const newStoreys = new Map()
+        const newStoreys: Record<StoreyId, Storey> = {}
 
         let minLevel = Infinity
         let maxLevel = -Infinity
-        for (const [storeyId, storey] of state.storeys) {
+        for (const [storeyId, storey] of Object.entries(state.storeys)) {
           const newLevel = createStoreyLevel(storey.level + adjustment)
-          newStoreys.set(storeyId, { ...storey, level: newLevel })
+          newStoreys[storeyId as StoreyId] = { ...storey, level: newLevel }
           if (newLevel < minLevel) minLevel = newLevel
           if (newLevel > maxLevel) maxLevel = newLevel
         }
@@ -219,12 +222,12 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [], [], StoreysSlice
     // Storey queries
     getStoreyById: (storeyId: StoreyId) => {
       const state = get()
-      return state.storeys.get(storeyId) ?? null
+      return state.storeys[storeyId] ?? null
     },
 
     getStoreysOrderedByLevel: () => {
       const state = get()
-      const storeys = Array.from(state.storeys.values())
+      const storeys = Object.values(state.storeys)
       return storeys.sort((a, b) => a.level - b.level)
     }
   }

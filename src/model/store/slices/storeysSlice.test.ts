@@ -31,21 +31,21 @@ describe('StoreysSlice', () => {
     })
 
     // Clear the default ground floor for clean tests
-    store.storeys.clear()
+    store.storeys = {}
   })
 
   describe('addStorey', () => {
     it('should add the first storey with level 0', () => {
       const storey = store.actions.addStorey('Ground Floor')
 
-      expect(store.storeys.size).toBe(1)
-      expect(store.storeys.has(storey.id)).toBe(true)
+      expect(Object.keys(store.storeys).length).toBe(1)
+      expect(storey.id in store.storeys).toBe(true)
 
-      const addedStorey = store.storeys.get(storey.id)
+      const addedStorey = store.storeys[storey.id]
       expect(addedStorey).toBeDefined()
-      expect(addedStorey?.name).toBe('Ground Floor')
-      expect(addedStorey?.level).toBe(0)
-      expect(addedStorey?.height).toBe(store.defaultHeight)
+      expect(addedStorey.name).toBe('Ground Floor')
+      expect(addedStorey.level).toBe(0)
+      expect(addedStorey.height).toBe(store.defaultHeight)
     })
 
     it('should add subsequent storeys with incrementing levels', () => {
@@ -53,7 +53,7 @@ describe('StoreysSlice', () => {
       const firstFloor = store.actions.addStorey('First Floor')
       const secondFloor = store.actions.addStorey('Second Floor')
 
-      expect(store.storeys.size).toBe(3)
+      expect(Object.keys(store.storeys).length).toBe(3)
       expect(groundFloor.level).toBe(0)
       expect(firstFloor.level).toBe(1)
       expect(secondFloor.level).toBe(2)
@@ -63,16 +63,16 @@ describe('StoreysSlice', () => {
       const height = createLength(4000)
       const storey = store.actions.addStorey('First Floor', height)
 
-      expect(store.storeys.size).toBe(1)
+      expect(Object.keys(store.storeys).length).toBe(1)
 
-      const addedStorey = store.storeys.get(storey.id)
+      const addedStorey = store.storeys[storey.id]
       expect(addedStorey?.height).toBe(height)
     })
 
     it('should trim storey name whitespace', () => {
       const storey = store.actions.addStorey('  Ground Floor  ')
 
-      const addedStorey = store.storeys.get(storey.id)
+      const addedStorey = store.storeys[storey.id]
       expect(addedStorey?.name).toBe('Ground Floor')
     })
 
@@ -101,36 +101,36 @@ describe('StoreysSlice', () => {
       // Remove the first floor (level 1)
       store.actions.removeStorey(firstFloor.id)
 
-      expect(store.storeys.size).toBe(2)
-      expect(store.storeys.has(firstFloor.id)).toBe(false)
-      expect(store.storeys.has(groundFloor.id)).toBe(true)
-      expect(store.storeys.has(secondFloor.id)).toBe(true)
+      expect(Object.keys(store.storeys).length).toBe(2)
+      expect(firstFloor.id in store.storeys).toBe(false)
+      expect(groundFloor.id in store.storeys).toBe(true)
+      expect(secondFloor.id in store.storeys).toBe(true)
 
       // Second floor should be adjusted from level 2 to level 1
-      const adjustedSecondFloor = store.storeys.get(secondFloor.id)
+      const adjustedSecondFloor = store.storeys[secondFloor.id]
       expect(adjustedSecondFloor?.level).toBe(1)
 
       // Ground floor should remain at level 0
-      const groundFloorAfter = store.storeys.get(groundFloor.id)
+      const groundFloorAfter = store.storeys[groundFloor.id]
       expect(groundFloorAfter?.level).toBe(0)
     })
 
     it('should handle removing non-existent storey gracefully', () => {
       const groundFloor = store.actions.addStorey('Ground Floor')
-      const initialSize = store.storeys.size
+      const initialSize = Object.keys(store.storeys).length
 
       store.actions.removeStorey('non-existent' as StoreyId)
 
-      expect(store.storeys.size).toBe(initialSize)
-      expect(store.storeys.has(groundFloor.id)).toBe(true)
+      expect(Object.keys(store.storeys).length).toBe(initialSize)
+      expect(groundFloor.id in store.storeys).toBe(true)
     })
 
     it('should prevent removing the last remaining storey', () => {
       const groundFloor = store.actions.addStorey('Ground Floor')
 
       expect(() => store.actions.removeStorey(groundFloor.id)).toThrow('Cannot remove the last remaining storey')
-      expect(store.storeys.size).toBe(1)
-      expect(store.storeys.has(groundFloor.id)).toBe(true)
+      expect(Object.keys(store.storeys).length).toBe(1)
+      expect(groundFloor.id in store.storeys).toBe(true)
     })
 
     it('should adjust basement levels correctly when removing', () => {
@@ -166,7 +166,7 @@ describe('StoreysSlice', () => {
 
       store.actions.updateStoreyName(storey.id, 'Updated Name')
 
-      const updatedStorey = store.storeys.get(storey.id)
+      const updatedStorey = store.storeys[storey.id]
       expect(updatedStorey?.name).toBe('Updated Name')
     })
 
@@ -175,7 +175,7 @@ describe('StoreysSlice', () => {
 
       store.actions.updateStoreyName(storey.id, '  Updated Name  ')
 
-      const updatedStorey = store.storeys.get(storey.id)
+      const updatedStorey = store.storeys[storey.id]
       expect(updatedStorey?.name).toBe('Updated Name')
     })
 
@@ -187,7 +187,7 @@ describe('StoreysSlice', () => {
     })
 
     it('should do nothing if storey does not exist', () => {
-      const initialStoreys = new Map(store.storeys)
+      const initialStoreys = { ...store.storeys }
 
       store.actions.updateStoreyName('non-existent' as StoreyId, 'New Name')
 
@@ -202,7 +202,7 @@ describe('StoreysSlice', () => {
 
       store.actions.updateStoreyHeight(storey.id, newHeight)
 
-      const updatedStorey = store.storeys.get(storey.id)
+      const updatedStorey = store.storeys[storey.id]
       expect(updatedStorey?.height).toBe(newHeight)
     })
 
@@ -223,7 +223,7 @@ describe('StoreysSlice', () => {
     })
 
     it('should do nothing if storey does not exist', () => {
-      const initialStoreys = new Map(store.storeys)
+      const initialStoreys = { ...store.storeys }
 
       store.actions.updateStoreyHeight('non-existent' as StoreyId, createLength(3000))
 
@@ -234,24 +234,21 @@ describe('StoreysSlice', () => {
   describe('getStoreyById', () => {
     it('should return existing storey', () => {
       const storey = store.actions.addStorey('Test Floor')
+      const result = store.actions.getStoreyById(storey.id)
 
-      const retrieved = store.actions.getStoreyById(storey.id)
-
-      expect(retrieved).toEqual(storey)
+      expect(result).toEqual(storey)
     })
 
     it('should return null for non-existent storey', () => {
-      const retrieved = store.actions.getStoreyById('non-existent' as StoreyId)
-
-      expect(retrieved).toBeNull()
+      const result = store.actions.getStoreyById('non-existent' as StoreyId)
+      expect(result).toBeNull()
     })
   })
 
   describe('getStoreysOrderedByLevel', () => {
     it('should return empty array when no storeys', () => {
-      const ordered = store.actions.getStoreysOrderedByLevel()
-
-      expect(ordered).toEqual([])
+      const result = store.actions.getStoreysOrderedByLevel()
+      expect(result).toEqual([])
     })
 
     it('should return single storey', () => {
@@ -301,8 +298,8 @@ describe('StoreysSlice', () => {
 
         store.actions.swapStoreyLevels(groundFloor.id, firstFloor.id)
 
-        const swappedGround = store.storeys.get(groundFloor.id)
-        const swappedFirst = store.storeys.get(firstFloor.id)
+        const swappedGround = store.storeys[groundFloor.id]
+        const swappedFirst = store.storeys[firstFloor.id]
 
         expect(swappedGround?.level).toBe(1)
         expect(swappedFirst?.level).toBe(0)
@@ -314,7 +311,7 @@ describe('StoreysSlice', () => {
 
         store.actions.swapStoreyLevels(groundFloor.id, 'non-existent' as StoreyId)
 
-        const unchangedGround = store.storeys.get(groundFloor.id)
+        const unchangedGround = store.storeys[groundFloor.id]
         expect(unchangedGround?.level).toBe(originalLevel)
       })
     })
@@ -330,8 +327,8 @@ describe('StoreysSlice', () => {
         // Now we can safely adjust up by 1
         store.actions.adjustAllLevels(1) // Should give us levels 0, 1
 
-        const adjustedBasement = store.storeys.get(basementFloor.id)
-        const adjustedGround = store.storeys.get(groundFloor.id)
+        const adjustedBasement = store.storeys[basementFloor.id]
+        const adjustedGround = store.storeys[groundFloor.id]
 
         expect(adjustedBasement?.level).toBe(0)
         expect(adjustedGround?.level).toBe(1)
@@ -343,8 +340,8 @@ describe('StoreysSlice', () => {
 
         store.actions.adjustAllLevels(-1)
 
-        const adjustedGround = store.storeys.get(groundFloor.id)
-        const adjustedFirst = store.storeys.get(firstFloor.id)
+        const adjustedGround = store.storeys[groundFloor.id]
+        const adjustedFirst = store.storeys[firstFloor.id]
 
         expect(adjustedGround?.level).toBe(-1)
         expect(adjustedFirst?.level).toBe(0)

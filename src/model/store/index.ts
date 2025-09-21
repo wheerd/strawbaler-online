@@ -26,8 +26,8 @@ const useModelStore = create<Store>()(
             ...perimetersSlice.actions,
             reset: () => {
               // Reset both slices to their initial state
-              const initialStoreys = new Map()
-              const initialPerimeters = new Map()
+              const initialStoreys = {}
+              const initialPerimeters = {}
               a[0]({
                 storeys: initialStoreys,
                 perimeters: initialPerimeters
@@ -46,8 +46,8 @@ const useModelStore = create<Store>()(
         // Only save significant changes to history
         // Don't save if only timestamps changed
         const significantChange =
-          pastState.storeys.size !== currentState.storeys.size ||
-          pastState.perimeters.size !== currentState.perimeters.size
+          Object.keys(pastState.storeys).length !== Object.keys(currentState.storeys).length ||
+          Object.keys(pastState.perimeters).length !== Object.keys(currentState.perimeters).length
 
         return significantChange
       }
@@ -63,7 +63,7 @@ export const useCanRedo = (): boolean => useModelStore.temporal.getState().futur
 
 // Entity selector hooks
 export const useActiveStoreyId = (): StoreyId => useModelStore(state => state.activeStoreyId)
-export const usePerimeters = (): Map<PerimeterId, Perimeter> => useModelStore(state => state.perimeters)
+export const usePerimeters = (): Record<PerimeterId, Perimeter> => useModelStore(state => state.perimeters)
 export const useStoreysOrderedByLevel = (): Storey[] => {
   const storeys = useModelStore(state => state.storeys)
   const getStoreysOrderedByLevel = useModelStore(state => state.actions.getStoreysOrderedByLevel)
@@ -75,7 +75,6 @@ export const usePerimeterById = (id: PerimeterId): Perimeter | null => {
   const getPerimeterById = useModelStore(state => state.actions.getPerimeterById)
   return useMemo(() => getPerimeterById(id), [perimeters, id])
 }
-
 export const usePerimetersOfActiveStorey = (): Perimeter[] => {
   const activeStoreyId = useActiveStoreyId()
   const perimeters = useModelStore(state => state.perimeters)
