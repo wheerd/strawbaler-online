@@ -1,10 +1,10 @@
 import React, { useCallback } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
-import { Cross2Icon } from '@radix-ui/react-icons'
+import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons'
 import { useModelActions, useStoreysOrderedByLevel } from '@/model/store'
 import type { StoreyId } from '@/types/ids'
 import { StoreyListItem } from './StoreyListItem'
 import { defaultStoreyManagementService } from '@/model/store/services/StoreyManagementService'
+import { Button, Dialog, Flex, IconButton, Text } from '@radix-ui/themes'
 
 export interface StoreyManagementModalProps {
   trigger: React.ReactNode
@@ -37,56 +37,41 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
 
   return (
     <Dialog.Root>
-      <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[100]" />
-        <Dialog.Content className="fixed inset-4 bg-white rounded-lg shadow-xl z-[100] flex flex-col max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <Dialog.Title className="text-base font-medium text-gray-900">Manage Floors</Dialog.Title>
-            <Dialog.Close asChild>
-              <button
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded hover:bg-gray-100"
-                type="button"
-              >
+      <Dialog.Trigger>{trigger}</Dialog.Trigger>
+      <Dialog.Content>
+        <Dialog.Title>
+          <Flex justify="between" align="center">
+            Manage Floors
+            <Dialog.Close>
+              <IconButton variant="ghost" highContrast>
                 <Cross2Icon className="w-5 h-5" />
-              </button>
+              </IconButton>
             </Dialog.Close>
-          </div>
+          </Flex>
+        </Dialog.Title>
 
-          {/* Main Content */}
-          <div className="flex-1 p-4 space-y-3 max-h-96 overflow-y-auto">
-            {/* Add new floor button */}
-            <button
-              onClick={handleAddEmptyFloor}
-              className="w-full p-3 text-white bg-primary-600 hover:bg-primary-700 rounded transition-colors flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              type="button"
-            >
-              <span className="text-lg">+</span>
-              Add New Floor
-            </button>
+        <Flex direction="column" gap="2" align="end">
+          {storeysDisplayOrder.length > 0 ? (
+            storeysDisplayOrder.map(storey => (
+              <StoreyListItem
+                key={storey.id}
+                storey={storey}
+                isOnlyStorey={isOnlyStorey}
+                lowestStorey={lowestStorey}
+                highestStorey={highestStorey}
+                onDelete={handleDeleteStorey}
+              />
+            ))
+          ) : (
+            <Text>No floors yet.</Text>
+          )}
 
-            {/* Storey list (ordered by level, highest first for intuitive display) */}
-            {storeysDisplayOrder.length > 0 ? (
-              storeysDisplayOrder.map(storey => (
-                <StoreyListItem
-                  key={storey.id}
-                  storey={storey}
-                  isOnlyStorey={isOnlyStorey}
-                  lowestStorey={lowestStorey}
-                  highestStorey={highestStorey}
-                  onDelete={handleDeleteStorey}
-                />
-              ))
-            ) : (
-              <div className="text-center text-gray-500 py-8">
-                <div className="text-lg mb-2">🏢</div>
-                <div className="text-sm">No floors yet. Add your first floor above.</div>
-              </div>
-            )}
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
+          <Button onClick={handleAddEmptyFloor}>
+            <PlusIcon />
+            Add New Floor
+          </Button>
+        </Flex>
+      </Dialog.Content>
     </Dialog.Root>
   )
 }

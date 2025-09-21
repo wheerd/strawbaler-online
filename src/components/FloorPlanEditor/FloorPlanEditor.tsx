@@ -133,6 +133,7 @@ export function FloorPlanEditor(): React.JSX.Element {
   const [isToolSystemReady, setIsToolSystemReady] = useState(false)
 
   const storeys = useStoreysOrderedByLevel()
+  const activeStoreyId = useEditorStore(state => state.activeStoreyId)
   const setActiveStorey = useEditorStore(state => state.setActiveStorey)
 
   // Initialize tool system once
@@ -150,12 +151,15 @@ export function FloorPlanEditor(): React.JSX.Element {
   // Sync editor store with model store's default floor
   useEffect(() => {
     if (storeys.length > 0) {
-      const firstStorey = storeys[0]
-      if (firstStorey != null) {
-        setActiveStorey(firstStorey.id)
+      if (!storeys.some(storey => storey.id === activeStoreyId)) {
+        // Check if current activeStoreyId is valid
+        const firstStorey = storeys[0]
+        if (firstStorey != null) {
+          setActiveStorey(firstStorey.id)
+        }
       }
     }
-  }, [storeys, setActiveStorey])
+  }, [storeys, setActiveStorey, activeStoreyId])
 
   if (!isToolSystemReady) {
     return (

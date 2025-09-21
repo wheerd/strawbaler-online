@@ -1,13 +1,24 @@
 import React, { useState, useCallback } from 'react'
-import { ChevronUpIcon, ChevronDownIcon, CopyIcon, TrashIcon, HeightIcon } from '@radix-ui/react-icons'
+import { ChevronUpIcon, ChevronDownIcon, CopyIcon, TrashIcon, HeightIcon, EnterIcon } from '@radix-ui/react-icons'
 import type { Storey } from '@/types/model'
 import type { StoreyId } from '@/types/ids'
 import { useModelActions } from '@/model/store'
 import { defaultStoreyManagementService } from '@/model/store/services/StoreyManagementService'
-import { getLevelColor } from '@/theme/colors'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
 import { createLength } from '@/types/geometry'
 import { formatLength } from '@/utils/formatLength'
+import { Card, Flex, IconButton, TextField, Code } from '@radix-ui/themes'
+import { useActiveStoreyId, useEditorStore } from './hooks/useEditorStore'
+
+export function getLevelColor(level: number): 'grass' | 'indigo' | 'brown' {
+  if (level === 0) {
+    return 'grass'
+  } else if (level > 0) {
+    return 'indigo'
+  } else {
+    return 'brown'
+  }
+}
 
 export interface StoreyListItemProps {
   storey: Storey
@@ -24,8 +35,9 @@ export function StoreyListItem({
   highestStorey,
   onDelete
 }: StoreyListItemProps): React.JSX.Element {
+  const activeStoreyId = useActiveStoreyId()
+  const setActiveStorey = useEditorStore(state => state.setActiveStorey)
   const [editName, setEditName] = useState(storey.name)
-  const [isEditing, setIsEditing] = useState(false)
 
   const { updateStoreyName, updateStoreyHeight } = useModelActions()
 
@@ -68,7 +80,6 @@ export function StoreyListItem({
     } else {
       setEditName(storey.name) // Revert if empty or unchanged
     }
-    setIsEditing(false)
   }, [editName, storey.name, storey.id, updateStoreyName])
 
   const handleKeyDown = useCallback(
@@ -79,7 +90,6 @@ export function StoreyListItem({
       } else if (event.key === 'Escape') {
         event.preventDefault()
         setEditName(storey.name)
-        setIsEditing(false)
       }
     },
     [storey.name, handleNameSave]
@@ -115,94 +125,81 @@ export function StoreyListItem({
     }
   }, [storey.name, storey.id, onDelete])
 
+  const isActive = storey.id === activeStoreyId
+
   return (
-    <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-white shadow-sm">
-      {/* Level indicator */}
-      <div className="w-16 text-center text-sm font-mono">
-        <div className="font-semibold" style={{ color: getLevelColor(storey.level) }}>
-          L{storey.level}
-        </div>
-        <div className="text-xs text-gray-500">
-          {storey.level === 0 ? 'Ground' : storey.level > 0 ? `Floor ${storey.level}` : `B${Math.abs(storey.level)}`}
-        </div>
-      </div>
+    <Card style={isActive ? { background: 'var(--accent-5)' } : {}}>
+      <Flex align="center" gap="2">
+        {/* Level indicator */}
+        <Flex direction="column" align="center" gap="0" width="4rem">
+          <Code variant="ghost" size="2" color={getLevelColor(storey.level)} weight="bold">
+            L{storey.level}
+          </Code>
+          <Code variant="ghost" size="1" color="gray">
+            {storey.level === 0 ? 'Ground' : storey.level > 0 ? `Floor ${storey.level}` : `B${Math.abs(storey.level)}`}
+          </Code>
+        </Flex>
 
-      {/* Editable name */}
-      <input
-        value={editName}
-        onChange={handleNameChange}
-        onBlur={handleNameSave}
-        onFocus={() => setIsEditing(true)}
-        onKeyDown={handleKeyDown}
-        className={`flex-1 px-3 py-2 border rounded transition-colors ${
-          isEditing
-            ? 'border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-            : 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-        }`}
-        placeholder="Floor name"
-      />
+        {/* Editable name */}
+        <TextField.Root
+          size="3"
+          value={editName}
+          onChange={handleNameChange}
+          onBlur={handleNameSave}
+          onKeyDown={handleKeyDown}
+          placeholder="Floor name"
+          required
+        />
 
-      {/* Height input */}
-      <div className="flex items-center gap-1">
-        <HeightIcon className="w-4 h-4 text-gray-800" />
-        <div className="relative">
-          <input
-            type="number"
-            value={heightInput.value}
-            onChange={e => heightInput.handleChange(e.target.value)}
-            onBlur={heightInput.handleBlur}
-            onKeyDown={heightInput.handleKeyDown}
-            min="1"
-            max="10"
-            step="0.1"
-            className="w-20 pl-2 py-1.5 pr-6 bg-white border border-gray-300 rounded text-xs text-right hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
-            title={`Floor height: ${formatLength(storey.height)}`}
-          />
-          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">m</span>
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-1">
-        <button
-          onClick={handleMoveUp}
-          disabled={!canMoveUp}
-          className="p-2 text-white bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
-          title="Move up"
-          type="button"
+        {/* Height input */}
+        <TextField.Root
+          type="number"
+          min="1"
+          max="10"
+          step="0.1"
+          style={{ width: '5rem', textAlign: 'right' }}
+          value={heightInput.value}
+          onChange={e => heightInput.handleChange(e.target.value)}
+          onBlur={heightInput.handleBlur}
+          onKeyDown={heightInput.handleKeyDown}
+          title={`Floor height: ${formatLength(storey.height)}`}
         >
-          <ChevronUpIcon className="w-4 h-4" />
-        </button>
+          <TextField.Slot side="left">
+            <HeightIcon />
+          </TextField.Slot>
+          <TextField.Slot side="right" pl="1">
+            m
+          </TextField.Slot>
+        </TextField.Root>
 
-        <button
-          onClick={handleMoveDown}
-          disabled={!canMoveDown}
-          className="p-2 text-white bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
-          title="Move down"
-          type="button"
-        >
-          <ChevronDownIcon className="w-4 h-4" />
-        </button>
+        {/* Action buttons */}
+        <Flex gap="1">
+          <IconButton onClick={handleMoveUp} disabled={!canMoveUp} title="Move up">
+            <ChevronUpIcon />
+          </IconButton>
 
-        <button
-          onClick={handleDuplicate}
-          className="p-2 text-gray-900 bg-gray-100 hover:bg-gray-200 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
-          title="Duplicate floor"
-          type="button"
-        >
-          <CopyIcon className="w-4 h-4" />
-        </button>
+          <IconButton onClick={handleMoveDown} disabled={!canMoveDown} title="Move down">
+            <ChevronDownIcon />
+          </IconButton>
 
-        <button
-          onClick={handleDelete}
-          disabled={isOnlyStorey}
-          className="p-2 text-white bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1"
-          title="Delete floor"
-          type="button"
-        >
-          <TrashIcon className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
+          <IconButton onClick={handleDuplicate} title="Duplicate floor" variant="soft">
+            <CopyIcon />
+          </IconButton>
+
+          <IconButton onClick={handleDelete} disabled={isOnlyStorey} title="Delete floor" color="red">
+            <TrashIcon />
+          </IconButton>
+
+          <IconButton
+            onClick={() => setActiveStorey(storey.id)}
+            disabled={isActive}
+            title="Switch to floor"
+            color="green"
+          >
+            <EnterIcon />
+          </IconButton>
+        </Flex>
+      </Flex>
+    </Card>
   )
 }

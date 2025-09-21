@@ -26,6 +26,7 @@ export function StoreySelector(): React.JSX.Element {
 
   const handleStoreyChange = useCallback(
     (newStoreyId: string) => {
+      console.log('Changing active storey to', newStoreyId)
       setActiveStorey(newStoreyId as StoreyId)
     },
     [setActiveStorey]
