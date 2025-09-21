@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Cross2Icon } from '@radix-ui/react-icons'
-import { useGetPerimeterById, useModelStore } from '@/model/store'
+import { usePerimeterById } from '@/model/store'
 import { useConfigStore } from '@/config/store'
 import { constructRingBeam, resolveDefaultMaterial, type RingBeamConstructionPlan } from '@/construction'
 import { ConstructionElementShape } from './Shapes/ConstructionElementShape'
@@ -26,8 +26,7 @@ function RingBeamConstructionPlanDisplay({
   plan,
   showIssues = true
 }: RingBeamConstructionPlanDisplayProps): React.JSX.Element {
-  const getPerimeterById = useGetPerimeterById()
-  const perimeter = getPerimeterById(plan.perimeterId)
+  const perimeter = usePerimeterById(plan.perimeterId)
 
   const perimeterBounds = boundsFromPoints(perimeter?.corners.map(c => [c.outsidePoint[0], -c.outsidePoint[1]]) ?? [])!
 
@@ -132,7 +131,7 @@ export function RingBeamConstructionModal({
 }: RingBeamConstructionModalProps): React.JSX.Element {
   const [currentPosition, setCurrentPosition] = useState<'base' | 'top'>(position)
 
-  const perimeter = useModelStore(state => state.perimeters.get(perimeterId))
+  const perimeter = usePerimeterById(perimeterId)
   const getRingBeamMethodById = useConfigStore(state => state.getRingBeamConstructionMethodById)
 
   const constructionPlan = useMemo(() => {

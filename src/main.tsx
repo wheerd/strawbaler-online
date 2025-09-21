@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Theme } from '@radix-ui/themes'
 import './index.css'
+import '@radix-ui/themes/styles.css'
 import App from './App.tsx'
 
 import 'konva/lib/shapes/Rect'
@@ -16,6 +18,8 @@ if (rootElement === null) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <Theme>
+      <App />
+    </Theme>
   </StrictMode>
 )

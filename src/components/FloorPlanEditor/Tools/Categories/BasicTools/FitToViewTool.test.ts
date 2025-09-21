@@ -1,14 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FitToViewTool } from './FitToViewTool'
-import { useEditorStore } from '@/components/FloorPlanEditor/hooks/useEditorStore'
-import { useModelStore } from '@/model/store'
+import { getModelActions } from '@/model/store'
 import { createVec2 } from '@/types/geometry/basic'
 import type { Perimeter } from '@/types/model'
 import type { ToolContext } from '../../ToolSystem/types'
 import type { StoreyId } from '@/types/ids'
 
 // Mock the store hooks
-vi.mock('@/components/FloorPlanEditor/hooks/useEditorStore')
 vi.mock('@/components/FloorPlanEditor/hooks/useViewportStore')
 vi.mock('@/model/store')
 vi.mock('../../ToolSystem/ToolManager')
@@ -27,17 +25,12 @@ describe('FitToViewTool', () => {
     mockFitToView = vi.fn()
     mockContext = { fitToView: mockFitToView }
 
-    // Mock editor store to return the active floor ID
-    const mockedUseEditorStore = vi.mocked(useEditorStore)
-    mockedUseEditorStore.getState = vi.fn(() => ({
-      activeStoreyId: 'floor1' as StoreyId
-    })) as any
-
-    // Mock model store to return our mock function
-    const mockedUseModelStore = vi.mocked(useModelStore)
-    mockedUseModelStore.getState = vi.fn(() => ({
+    // Mock model actions accessor
+    const mockedGetModelActions = vi.mocked(getModelActions)
+    mockedGetModelActions.mockReturnValue({
+      getActiveStorey: () => 'floor1' as StoreyId,
       getPerimetersByStorey: mockGetPerimetersByStorey
-    })) as any
+    } as any)
   })
 
   it('should have correct properties', () => {

@@ -5,9 +5,7 @@ import { createPerimeterId } from '@/types/ids'
 
 // Mock the zustand stores
 vi.mock('@/model/store', () => ({
-  useModelStore: vi.fn(() => ({
-    perimeters: new Map()
-  }))
+  usePerimeterById: vi.fn(() => null)
 }))
 
 vi.mock('@/config/store', () => ({

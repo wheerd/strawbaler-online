@@ -1,31 +1,40 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { temporal } from 'zundo'
-import type { Storey, Perimeter } from '@/types/model'
-import { createStoreyLevel } from '@/types/model'
-import type { StoreyId, PerimeterId } from '@/types/ids'
+import type { Perimeter, Storey } from '@/types/model'
+import type { PerimeterId, StoreyId } from '@/types/ids'
 import { createStoreysSlice } from './slices/storeysSlice'
 import { createPerimetersSlice } from './slices/perimeterSlice'
-import type { Store } from './types'
+import type { Store, StoreActions } from './types'
+import { useMemo } from 'react'
 
 // Create the main store with slices and undo/redo
-export const useModelStore = create<Store>()(
+const useModelStore = create<Store>()(
   temporal(
     devtools(
       (...a) => {
-        const store = {
-          ...createStoreysSlice(...a),
-          ...createPerimetersSlice(...a)
-        }
+        const storeysSlice = createStoreysSlice(...a)
+        const perimetersSlice = createPerimetersSlice(...a)
 
-        // Initialize with a default ground floor
-        setTimeout(() => {
-          if (store.storeys.size === 0) {
-            store.addStorey('Ground Floor', createStoreyLevel(0))
+        return {
+          // Combine state properties
+          ...storeysSlice,
+          ...perimetersSlice,
+          // Merge actions properly
+          actions: {
+            ...storeysSlice.actions,
+            ...perimetersSlice.actions,
+            reset: () => {
+              // Reset both slices to their initial state
+              const initialStoreys = new Map()
+              const initialPerimeters = new Map()
+              a[0]({
+                storeys: initialStoreys,
+                perimeters: initialPerimeters
+              })
+            }
           }
-        }, 0)
-
-        return store
+        }
       },
       { name: 'model-store' }
     ),
@@ -53,11 +62,31 @@ export const useCanUndo = (): boolean => useModelStore.temporal.getState().pastS
 export const useCanRedo = (): boolean => useModelStore.temporal.getState().futureStates.length > 0
 
 // Entity selector hooks
-export const useStoreys = (): Map<StoreyId, Storey> => useModelStore(state => state.storeys)
+export const useActiveStoreyId = (): StoreyId => useModelStore(state => state.activeStoreyId)
 export const usePerimeters = (): Map<PerimeterId, Perimeter> => useModelStore(state => state.perimeters)
-export const useGetPerimeterById = () => useModelStore(state => state.getPerimeterById)
-export const useStoreyPerimeters = (storeyId: StoreyId): Perimeter[] =>
-  useModelStore(state => state.getPerimetersByStorey)(storeyId)
+export const useStoreysOrderedByLevel = (): Storey[] => {
+  const storeys = useModelStore(state => state.storeys)
+  const getStoreysOrderedByLevel = useModelStore(state => state.actions.getStoreysOrderedByLevel)
+  return useMemo(() => getStoreysOrderedByLevel(), [storeys])
+}
+
+export const usePerimeterById = (id: PerimeterId): Perimeter | null => {
+  const perimeters = useModelStore(state => state.perimeters)
+  const getPerimeterById = useModelStore(state => state.actions.getPerimeterById)
+  return useMemo(() => getPerimeterById(id), [perimeters, id])
+}
+
+export const usePerimetersOfActiveStorey = (): Perimeter[] => {
+  const activeStoreyId = useActiveStoreyId()
+  const perimeters = useModelStore(state => state.perimeters)
+  const getPerimetersByStorey = useModelStore(state => state.actions.getPerimetersByStorey)
+  return useMemo(() => getPerimetersByStorey(activeStoreyId), [perimeters, activeStoreyId])
+}
+
+export const useModelActions = (): StoreActions => useModelStore(state => state.actions)
+
+// Non-reactive actions-only accessor for tools and services
+export const getModelActions = (): StoreActions => useModelStore.getState().actions
 
 // Export types
-export type { Store, StoreActions, StoreState } from './types'
+export type { StoreActions } from './types'
