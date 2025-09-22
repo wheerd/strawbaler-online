@@ -29,6 +29,9 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
   // Local state for panning (non-tool related)
   const [dragStart, setDragStart] = useState<{ pos: { x: number; y: number } } | null>(null)
 
+  // Touch state for mobile gestures
+  const [touches, setTouches] = useState<Touch[]>([])
+
   // Update stage dimensions in the store when they change
   useEffect(() => {
     setStageDimensions(width, height)
@@ -141,6 +144,72 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
     [dragStart, eventDispatcher]
   )
 
+  // Handle touch start events
+  const handleTouchStart = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
+    e.evt.preventDefault()
+    setTouches(Array.from(e.evt.touches))
+  }, [])
+
+  // Handle touch move events
+  const handleTouchMove = useCallback(
+    (e: Konva.KonvaEventObject<TouchEvent>) => {
+      e.evt.preventDefault()
+      const currentTouches = Array.from(e.evt.touches)
+      const stage = e.target.getStage()
+      if (!stage) return
+
+      if (touches.length === 1 && currentTouches.length === 1) {
+        // Single finger pan
+        const prevTouch = touches[0]
+        const currentTouch = currentTouches[0]
+
+        const deltaX = currentTouch.clientX - prevTouch.clientX
+        const deltaY = currentTouch.clientY - prevTouch.clientY
+
+        panBy(deltaX, deltaY)
+      } else if (touches.length === 2 && currentTouches.length === 2) {
+        // Two finger pinch zoom
+        const prevDistance = Math.hypot(
+          touches[0].clientX - touches[1].clientX,
+          touches[0].clientY - touches[1].clientY
+        )
+        const currentDistance = Math.hypot(
+          currentTouches[0].clientX - currentTouches[1].clientX,
+          currentTouches[0].clientY - currentTouches[1].clientY
+        )
+
+        if (prevDistance > 0) {
+          const zoomFactor = currentDistance / prevDistance
+          const centerX = (currentTouches[0].clientX + currentTouches[1].clientX) / 2
+          const centerY = (currentTouches[0].clientY + currentTouches[1].clientY) / 2
+
+          // Convert screen coordinates to stage coordinates
+          const stageRect = stage.container().getBoundingClientRect()
+          const stageX = centerX - stageRect.left
+          const stageY = centerY - stageRect.top
+
+          const newZoom = zoomBy(zoomFactor)
+          const zoomRatio = newZoom / zoom
+
+          // Zoom toward touch center
+          const newPanX = stageX - (stageX - panX) * zoomRatio
+          const newPanY = stageY - (stageY - panY) * zoomRatio
+
+          setPan(newPanX, newPanY)
+        }
+      }
+
+      setTouches(currentTouches)
+    },
+    [touches, zoom, panX, panY, zoomBy, panBy, setPan]
+  )
+
+  // Handle touch end events
+  const handleTouchEnd = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
+    e.evt.preventDefault()
+    setTouches([])
+  }, [])
+
   // Handle keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
@@ -173,6 +242,9 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       draggable={false}
     >
       <GridLayer width={width} height={height} viewport={{ zoom, panX, panY }} />
