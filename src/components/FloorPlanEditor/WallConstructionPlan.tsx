@@ -15,11 +15,13 @@ import { COLORS } from '@/theme/colors'
 import { SvgMeasurementIndicator } from './components/SvgMeasurementIndicator'
 import { SVGViewport } from './components/SVGViewport'
 import { convertConstructionToSvg, convertPointToSvg, type ViewType } from '@/utils/constructionCoordinates'
+import { elementSizeRef } from '@/hooks/useElementSize'
 
 interface WallConstructionPlanDisplayProps {
   plan: WallConstructionPlan
   view?: ViewType
   showIssues?: boolean
+  containerSize: { width: number; height: number }
 }
 
 interface IssueHighlight {
@@ -114,7 +116,8 @@ const renderIssueBounds = (bounds: Bounds2D, issueType: 'error' | 'warning', ind
 export function WallConstructionPlanDisplay({
   plan,
   view = 'outside',
-  showIssues = true
+  showIssues = true,
+  containerSize
 }: WallConstructionPlanDisplayProps): React.JSX.Element {
   const { length: wallLength, height: wallHeight } = plan.wallDimensions
   const elements = plan.segments.flatMap(s => s.elements)
@@ -163,8 +166,8 @@ export function WallConstructionPlanDisplay({
     return highlights
   }, [plan.errors, plan.warnings, elements, wallHeight, wallLength, view, showIssues])
 
-  // Calculate expanded viewBox to include issue highlights and measurements with padding
-  const expandedViewBox = useMemo(() => {
+  // Calculate content bounds to include issue highlights and measurements
+  const contentBounds = useMemo(() => {
     let minX = 0
     let minY = 0
     let maxX = wallLength as number
@@ -206,21 +209,20 @@ export function WallConstructionPlanDisplay({
       })
     }
 
-    // Add padding
-    const padding = 20
-    minX -= padding
-    minY -= padding
-    maxX += padding
-    maxY += padding
-
-    const width = maxX - minX
-    const height = maxY - minY
-
-    return `${minX} ${minY} ${width} ${height}`
+    return {
+      min: createVec2(minX, minY),
+      max: createVec2(maxX, maxY)
+    }
   }, [wallLength, wallHeight, showIssues, issueHighlights, plan.measurements, view])
 
   return (
-    <SVGViewport baseViewBox={expandedViewBox} className="w-full h-full" resetButtonPosition="top-right">
+    <SVGViewport
+      contentBounds={contentBounds}
+      padding={0.05} // 5% padding for wall construction
+      className="w-full h-full"
+      resetButtonPosition="top-right"
+      svgSize={containerSize}
+    >
       {/* Construction elements */}
       {sortedElements
         .filter(e => e.shape.type === 'cuboid')
@@ -427,6 +429,7 @@ interface WallConstructionPlanModalProps {
 
 export function WallConstructionPlanModal({ plan, children }: WallConstructionPlanModalProps): React.JSX.Element {
   const [view, setView] = useState<ViewType>('outside')
+  const [containerSize, containerRef] = elementSizeRef()
 
   return (
     <Dialog.Root>
@@ -444,13 +447,11 @@ export function WallConstructionPlanModal({ plan, children }: WallConstructionPl
             </Flex>
           </Dialog.Title>
 
-          <Box
-            position="relative"
-            flexGrow="1"
-            minHeight="300px"
-            className="overflow-hidden border border-gray-6 rounded-2"
+          <div
+            ref={containerRef}
+            className="relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2"
           >
-            <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
+            <WallConstructionPlanDisplay plan={plan} view={view} containerSize={containerSize} showIssues />
 
             {/* Overlay SegmentedControl in top-left corner */}
             <Box position="absolute" top="3" left="3" p="1" className="z-10 shadow-md bg-panel rounded-2">
@@ -459,7 +460,7 @@ export function WallConstructionPlanModal({ plan, children }: WallConstructionPl
                 <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
               </SegmentedControl.Root>
             </Box>
-          </Box>
+          </div>
 
           <Box flexShrink="0">
             <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />

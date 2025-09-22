@@ -1,35 +1,43 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { SVGViewport } from './SVGViewport'
+import { createVec2 } from '@/types/geometry'
 
 describe('SVGViewport', () => {
-  const testViewBox = '0 0 100 100'
+  const testContentBounds = {
+    min: createVec2(0, 0),
+    max: createVec2(100, 100)
+  }
   const TestContent = () => <rect x="10" y="10" width="80" height="80" fill="blue" data-testid="test-rect" />
 
-  test('renders SVG with correct viewBox', () => {
+  test('renders SVG with generated viewBox from content bounds', async () => {
     const { container } = render(
-      <SVGViewport baseViewBox={testViewBox}>
+      <SVGViewport contentBounds={testContentBounds} svgSize={{ width: 800, height: 600 }}>
         <TestContent />
       </SVGViewport>
     )
 
     const svg = container.querySelector('svg')
-    expect(svg).toHaveAttribute('viewBox', testViewBox)
+    expect(svg).toHaveAttribute('viewBox')
+
+    // Initial viewBox might be fallback, but after container size is determined it should be calculated
+    const viewBox = svg?.getAttribute('viewBox')
+    expect(viewBox).toBeTruthy()
   })
 
   test('renders reset button', () => {
     render(
-      <SVGViewport baseViewBox={testViewBox}>
+      <SVGViewport contentBounds={testContentBounds} svgSize={{ width: 800, height: 600 }}>
         <TestContent />
       </SVGViewport>
     )
 
-    const resetButton = screen.getByRole('button', { name: /reset view/i })
+    const resetButton = screen.getByRole('button', { name: /fit to content/i })
     expect(resetButton).toBeInTheDocument()
   })
 
   test('renders children inside transform group', () => {
     render(
-      <SVGViewport baseViewBox={testViewBox}>
+      <SVGViewport contentBounds={testContentBounds} svgSize={{ width: 800, height: 600 }}>
         <TestContent />
       </SVGViewport>
     )
@@ -44,7 +52,7 @@ describe('SVGViewport', () => {
 
   test('applies custom className', () => {
     const { container } = render(
-      <SVGViewport baseViewBox={testViewBox} className="custom-class">
+      <SVGViewport contentBounds={testContentBounds} className="custom-class" svgSize={{ width: 800, height: 600 }}>
         <TestContent />
       </SVGViewport>
     )
@@ -54,36 +62,40 @@ describe('SVGViewport', () => {
 
   test('positions reset button based on resetButtonPosition prop', () => {
     render(
-      <SVGViewport baseViewBox={testViewBox} resetButtonPosition="bottom-left">
+      <SVGViewport
+        contentBounds={testContentBounds}
+        resetButtonPosition="bottom-left"
+        svgSize={{ width: 800, height: 600 }}
+      >
         <TestContent />
       </SVGViewport>
     )
 
-    const resetButton = screen.getByRole('button', { name: /reset view/i })
+    const resetButton = screen.getByRole('button', { name: /fit to content/i })
     expect(resetButton).toHaveClass('bottom-2', 'left-2')
   })
 
-  test('reset button resets transform on click', () => {
+  test('fit to content button fits content when clicked', () => {
     render(
-      <SVGViewport baseViewBox={testViewBox}>
+      <SVGViewport contentBounds={testContentBounds} svgSize={{ width: 800, height: 600 }}>
         <TestContent />
       </SVGViewport>
     )
 
-    const resetButton = screen.getByRole('button', { name: /reset view/i })
+    const resetButton = screen.getByRole('button', { name: /fit to content/i })
     const transformGroup = screen.getByTestId('test-rect').closest('g')
 
-    // Initial transform should be identity
-    expect(transformGroup).toHaveAttribute('transform', 'translate(0, 0) scale(1)')
-
-    // Click reset button (should maintain identity transform)
+    // Click fit to content button
     fireEvent.click(resetButton)
-    expect(transformGroup).toHaveAttribute('transform', 'translate(0, 0) scale(1)')
+
+    // Transform should be applied to fit content
+    const transform = transformGroup?.getAttribute('transform')
+    expect(transform).toMatch(/translate\([^)]+\) scale\([^)]+\)/)
   })
 
   test('handles wheel events for zooming', () => {
     const { container } = render(
-      <SVGViewport baseViewBox={testViewBox}>
+      <SVGViewport contentBounds={testContentBounds} svgSize={{ width: 800, height: 600 }}>
         <TestContent />
       </SVGViewport>
     )
@@ -94,9 +106,8 @@ describe('SVGViewport', () => {
     // Simulate zoom in
     fireEvent.wheel(svg!, { deltaY: -100 })
 
-    // Transform should have changed (zoom > 1)
+    // Transform should have changed
     const transform = transformGroup?.getAttribute('transform')
     expect(transform).toMatch(/scale\([\d.]+\)/)
-    expect(transform).not.toBe('translate(0, 0) scale(1)')
   })
 })

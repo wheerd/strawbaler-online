@@ -1,11 +1,16 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { AllSidesIcon } from '@radix-ui/react-icons'
+import type { Bounds2D } from '@/types/geometry'
 
 interface SVGViewportProps {
   children: React.ReactNode
-  baseViewBox: string
+  contentBounds: Bounds2D // Required - defines the content area
+  svgSize: { width: number; height: number } // Fixed SVG size
   className?: string
   resetButtonPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  padding?: number // Padding around content (default: 0.1 = 10%)
+  minZoom?: number // Minimum zoom level (default: 0.01)
+  maxZoom?: number // Maximum zoom level (default: 50)
 }
 
 interface ViewportState {
@@ -15,8 +20,57 @@ interface ViewportState {
 }
 
 const ZOOM_SCALE = 1.1
-const MIN_ZOOM = 0.1
-const MAX_ZOOM = 100
+const DEFAULT_PADDING = 0.1
+const DEFAULT_MIN_ZOOM = 0.01
+const DEFAULT_MAX_ZOOM = 50
+
+// Utility functions
+function calculateInitialViewport(): ViewportState {
+  // Start with identity transform - viewBox handles the initial fitting
+  return { zoom: 1, panX: 0, panY: 0 }
+}
+
+function generateViewBoxFromBounds(
+  bounds: Bounds2D,
+  padding: number,
+  containerWidth: number,
+  containerHeight: number
+): string {
+  const contentWidth = bounds.max[0] - bounds.min[0]
+  const contentHeight = bounds.max[1] - bounds.min[1]
+
+  // Calculate content center
+  const contentCenterX = (bounds.min[0] + bounds.max[0]) / 2
+  const contentCenterY = (bounds.min[1] + bounds.max[1]) / 2
+
+  // Add padding to content dimensions
+  const paddedContentWidth = contentWidth * (1 + padding * 2)
+  const paddedContentHeight = contentHeight * (1 + padding * 2)
+
+  // Calculate container aspect ratio
+  const containerAspectRatio = containerWidth / containerHeight
+
+  // Create viewBox that matches container aspect ratio exactly
+  // Determine which dimension constrains us more
+  let viewBoxWidth: number
+  let viewBoxHeight: number
+
+  if (paddedContentWidth / paddedContentHeight > containerAspectRatio) {
+    // Content is wider relative to container - fit width, expand height
+    viewBoxWidth = paddedContentWidth
+    viewBoxHeight = paddedContentWidth / containerAspectRatio
+  } else {
+    // Content is taller relative to container - fit height, expand width
+    viewBoxHeight = paddedContentHeight
+    viewBoxWidth = paddedContentHeight * containerAspectRatio
+  }
+
+  // Center the viewBox on the content
+  const viewBoxX = contentCenterX - viewBoxWidth / 2
+  const viewBoxY = contentCenterY - viewBoxHeight / 2
+
+  return `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`
+}
 
 const getResetButtonPosition = (position: SVGViewportProps['resetButtonPosition']) => {
   switch (position) {
@@ -34,11 +88,16 @@ const getResetButtonPosition = (position: SVGViewportProps['resetButtonPosition'
 
 export function SVGViewport({
   children,
-  baseViewBox,
+  contentBounds,
+  svgSize,
   className = 'w-full h-full',
-  resetButtonPosition = 'top-right'
+  resetButtonPosition = 'top-right',
+  padding = DEFAULT_PADDING,
+  minZoom = DEFAULT_MIN_ZOOM,
+  maxZoom = DEFAULT_MAX_ZOOM
 }: SVGViewportProps): React.JSX.Element {
   const svgRef = useRef<SVGSVGElement>(null)
+
   const [viewport, setViewport] = useState<ViewportState>({
     zoom: 1,
     panX: 0,
@@ -46,14 +105,33 @@ export function SVGViewport({
   })
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null)
 
-  // Reset viewport to initial state
-  const resetView = useCallback(() => {
-    setViewport({
-      zoom: 1,
-      panX: 0,
-      panY: 0
-    })
+  // Reset to initial viewport and recalculate viewBox
+  const fitToContent = useCallback(() => {
+    const initialViewport = calculateInitialViewport()
+    setViewport(initialViewport)
   }, [])
+
+  // Reset viewport when container size changes significantly
+  useEffect(() => {
+    if (svgSize.width <= 0 || svgSize.height <= 0) return
+    // Reset to initial viewport when container changes to ensure proper fit
+    const initialViewport = calculateInitialViewport()
+    setViewport(initialViewport)
+  }, [svgSize])
+
+  // Initialize with default viewport
+  useEffect(() => {
+    fitToContent()
+  }, [fitToContent])
+
+  // Generate dynamic viewBox from content bounds
+  const viewBox = useMemo(
+    () =>
+      svgSize.width > 0 && svgSize.height > 0
+        ? generateViewBoxFromBounds(contentBounds, padding, svgSize.width, svgSize.height)
+        : '0 0 100 100', // Fallback viewBox
+    [contentBounds, padding, svgSize]
+  )
 
   // Convert screen coordinates to SVG coordinates using CTM
   const screenToSVGClient = useCallback((screenX: number, screenY: number) => {
@@ -72,7 +150,7 @@ export function SVGViewport({
     return { x: result.x, y: result.y }
   }, [])
 
-  // Handle wheel zoom
+  // Handle wheel zoom with constraints
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
       e.preventDefault()
@@ -81,10 +159,10 @@ export function SVGViewport({
       const mousePos = screenToSVGClient(e.clientX, e.clientY)
 
       setViewport(prev => {
-        const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev.zoom * zoomFactor))
+        const newZoom = Math.max(minZoom, Math.min(maxZoom, prev.zoom * zoomFactor))
         const zoomRatio = newZoom / prev.zoom
 
-        // Zoom toward mouse position (same logic as main editor)
+        // Zoom toward mouse position
         const newPanX = mousePos.x - (mousePos.x - prev.panX) * zoomRatio
         const newPanY = mousePos.y - (mousePos.y - prev.panY) * zoomRatio
 
@@ -95,7 +173,7 @@ export function SVGViewport({
         }
       })
     },
-    [screenToSVGClient]
+    [screenToSVGClient, minZoom, maxZoom]
   )
 
   // Handle pointer down (start pan)
@@ -193,7 +271,7 @@ export function SVGViewport({
           const centerPos = screenToSVGClient(centerX, centerY)
 
           setViewport(prev => {
-            const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev.zoom * zoomFactor))
+            const newZoom = Math.max(minZoom, Math.min(maxZoom, prev.zoom * zoomFactor))
             const zoomRatio = newZoom / prev.zoom
 
             return {
@@ -221,9 +299,11 @@ export function SVGViewport({
     <div className={`relative ${className}`}>
       <svg
         ref={svgRef}
-        viewBox={baseViewBox}
-        className="w-full h-full touch-none"
-        preserveAspectRatio="xMidYMid meet"
+        viewBox={viewBox}
+        width={svgSize.width || 100}
+        height={svgSize.height || 100}
+        className="w-full h-full touch-none block"
+        preserveAspectRatio="none"
         onWheel={handleWheel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -236,9 +316,9 @@ export function SVGViewport({
       </svg>
 
       <button
-        onClick={resetView}
+        onClick={fitToContent}
         className={`absolute ${getResetButtonPosition(resetButtonPosition)} bg-white hover:bg-gray-50 border border-gray-300 rounded-md p-2 shadow-sm transition-colors`}
-        title="Reset view"
+        title="Fit to content"
         type="button"
       >
         <AllSidesIcon className="w-4 h-4 text-gray-600" />

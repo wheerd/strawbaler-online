@@ -10,6 +10,7 @@ import { boundsFromPoints } from '@/types/geometry'
 import { SVGViewport } from './components/SVGViewport'
 import { SvgMeasurementIndicator } from './components/SvgMeasurementIndicator'
 import { COLORS } from '@/theme/colors'
+import { elementSizeRef } from '@/hooks/useElementSize'
 
 export interface RingBeamConstructionModalProps {
   perimeterId: PerimeterId
@@ -19,23 +20,21 @@ export interface RingBeamConstructionModalProps {
 
 interface RingBeamConstructionPlanDisplayProps {
   plan: RingBeamConstructionPlan
+  containerSize: { width: number; height: number }
 }
 
-function RingBeamConstructionPlanDisplay({ plan }: RingBeamConstructionPlanDisplayProps): React.JSX.Element {
+function RingBeamConstructionPlanDisplay({
+  plan,
+  containerSize
+}: RingBeamConstructionPlanDisplayProps): React.JSX.Element {
   const perimeter = usePerimeterById(plan.perimeterId)
 
   const perimeterBounds = boundsFromPoints(perimeter?.corners.map(c => [c.outsidePoint[0], -c.outsidePoint[1]]) ?? [])
   if (!perimeterBounds) return <div>Error: Could not calculate perimeter bounds</div>
 
-  const padding = 100 // padding in SVG units
-  const viewBoxWidth = perimeterBounds.max[0] - perimeterBounds.min[0] + padding * 2
-  const viewBoxHeight = perimeterBounds.max[1] - perimeterBounds.min[1] + padding * 2
-  const viewBoxX = perimeterBounds.min[0] - padding
-  const viewBoxY = perimeterBounds.min[1] - padding
-
   return (
-    <div className="w-full h-full bg-gray-50 flex items-center justify-center relative">
-      <SVGViewport baseViewBox={`${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`} className="w-full h-full">
+    <div className="w-full h-full bg-gray-50 relative">
+      <SVGViewport contentBounds={perimeterBounds} padding={0.05} className="w-full h-full" svgSize={containerSize}>
         {/* Render perimeter outline for reference */}
         {perimeter && (
           <g stroke="#ccc" strokeWidth="1" fill="none">
@@ -175,6 +174,7 @@ export function RingBeamConstructionModal({
   trigger
 }: RingBeamConstructionModalProps): React.JSX.Element {
   const [currentPosition, setCurrentPosition] = useState<'base' | 'top'>(position)
+  const [containerSize, containerRef] = elementSizeRef()
 
   const perimeter = usePerimeterById(perimeterId)
   const getRingBeamMethodById = useConfigStore(state => state.getRingBeamConstructionMethodById)
@@ -225,15 +225,13 @@ export function RingBeamConstructionModal({
             </Flex>
           </Dialog.Title>
 
-          <Box
-            position="relative"
-            flexGrow="1"
-            minHeight="300px"
-            className="overflow-hidden border border-gray-6 rounded-2"
+          <div
+            ref={containerRef}
+            className="relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2"
           >
             {currentMethod ? (
               constructionPlan ? (
-                <RingBeamConstructionPlanDisplay plan={constructionPlan} />
+                <RingBeamConstructionPlanDisplay plan={constructionPlan} containerSize={containerSize} />
               ) : (
                 <Flex align="center" justify="center" style={{ height: '100%' }}>
                   <Text align="center" color="gray">
@@ -264,7 +262,7 @@ export function RingBeamConstructionModal({
                 <SegmentedControl.Item value="top">Top Plate</SegmentedControl.Item>
               </SegmentedControl.Root>
             </Box>
-          </Box>
+          </div>
 
           <Flex direction="row" gap="3" flexShrink="0">
             {/* Method Info Panel */}
