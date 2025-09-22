@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Dialog, IconButton, Flex, Box, Card } from '@radix-ui/themes'
+import { Dialog, IconButton, Flex, Box, Text, Callout, SegmentedControl } from '@radix-ui/themes'
 import { ExclamationTriangleIcon, CrossCircledIcon, CheckCircledIcon, Cross2Icon } from '@radix-ui/react-icons'
 import {
   resolveDefaultMaterial,
@@ -361,47 +361,63 @@ interface IssueDescriptionPanelProps {
 }
 
 const IssueDescriptionPanel = ({ errors, warnings }: IssueDescriptionPanelProps) => (
-  <div className="bg-white border-t border-gray-200 max-h-40 overflow-y-auto">
-    {errors.length > 0 && (
-      <div className="p-3 border-b border-red-100 bg-red-50">
-        <h4 className="text-red-800 font-medium flex items-center gap-2">
-          <CrossCircledIcon className="w-4 h-4" />
-          Errors ({errors.length})
-        </h4>
-        {errors.map((error, index) => (
-          <div key={index} className="text-sm text-red-700 mt-1 flex items-start gap-2">
-            <span className="text-red-400 mt-0.5">•</span>
-            <span>{error.description}</span>
-          </div>
-        ))}
-      </div>
-    )}
+  <Box maxHeight="200px" className="overflow-y-auto border-t border-gray-6">
+    <Flex direction="column" gap="2" p="3">
+      {errors.length > 0 && (
+        <Callout.Root color="red" size="1">
+          <Callout.Icon>
+            <CrossCircledIcon />
+          </Callout.Icon>
+          <Flex direction="column" gap="2">
+            <Text weight="medium" size="2">
+              Errors ({errors.length})
+            </Text>
+            <Flex direction="column" gap="1">
+              {errors.map((error, index) => (
+                <Text key={index} size="1">
+                  • {error.description}
+                </Text>
+              ))}
+            </Flex>
+          </Flex>
+        </Callout.Root>
+      )}
 
-    {warnings.length > 0 && (
-      <div className="p-3 bg-yellow-50">
-        <h4 className="text-yellow-800 font-medium flex items-center gap-2">
-          <ExclamationTriangleIcon className="w-4 h-4" />
-          Warnings ({warnings.length})
-        </h4>
-        {warnings.map((warning, index) => (
-          <div key={index} className="text-sm text-yellow-700 mt-1 flex items-start gap-2">
-            <span className="text-yellow-400 mt-0.5">•</span>
-            <span>{warning.description}</span>
-          </div>
-        ))}
-      </div>
-    )}
+      {warnings.length > 0 && (
+        <Callout.Root color="amber" size="1">
+          <Callout.Icon>
+            <ExclamationTriangleIcon />
+          </Callout.Icon>
+          <Flex direction="column" gap="2">
+            <Text weight="medium" size="2">
+              Warnings ({warnings.length})
+            </Text>
+            <Flex direction="column" gap="1">
+              {warnings.map((warning, index) => (
+                <Text key={index} size="1">
+                  • {warning.description}
+                </Text>
+              ))}
+            </Flex>
+          </Flex>
+        </Callout.Root>
+      )}
 
-    {errors.length === 0 && warnings.length === 0 && (
-      <div className="p-3 bg-green-50">
-        <h4 className="text-green-800 font-medium flex items-center gap-2">
-          <CheckCircledIcon className="w-4 h-4" />
-          No Issues Found
-        </h4>
-        <div className="text-sm text-green-700 mt-1">Construction plan is valid with no errors or warnings.</div>
-      </div>
-    )}
-  </div>
+      {errors.length === 0 && warnings.length === 0 && (
+        <Callout.Root color="green" size="1">
+          <Callout.Icon>
+            <CheckCircledIcon />
+          </Callout.Icon>
+          <Flex direction="column" gap="1">
+            <Text weight="medium" size="2">
+              No Issues Found
+            </Text>
+            <Text size="1">Construction plan is valid with no errors or warnings.</Text>
+          </Flex>
+        </Callout.Root>
+      )}
+    </Flex>
+  </Box>
 )
 
 interface WallConstructionPlanModalProps {
@@ -415,68 +431,40 @@ export function WallConstructionPlanModal({ plan, children }: WallConstructionPl
   return (
     <Dialog.Root>
       <Dialog.Trigger>{children}</Dialog.Trigger>
-      <Dialog.Content>
-        <Flex justify="between" align="center" mb="3">
-          <Dialog.Title>Wall Construction Plan</Dialog.Title>
-          <Dialog.Close>
-            <IconButton variant="ghost">
-              <Cross2Icon />
-            </IconButton>
-          </Dialog.Close>
-        </Flex>
-
-        <Box style={{ height: '500px', overflow: 'hidden' }}>
-          <Card variant="surface" style={{ height: '100%', padding: '8px' }}>
-            <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
-          </Card>
-        </Box>
-
-        <Box pt="3" style={{ borderTop: '1px solid var(--gray-6)' }}>
-          <Flex justify="between">
-            <Box>
-              <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />
-            </Box>
-            <Flex gap="1">
-              <Box
-                style={{
-                  display: 'flex',
-                  backgroundColor: 'var(--gray-3)',
-                  borderRadius: '6px',
-                  padding: '4px'
-                }}
-              >
-                <Box
-                  onClick={() => setView('outside')}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 'medium',
-                    backgroundColor: view === 'outside' ? 'var(--accent-9)' : 'white',
-                    color: view === 'outside' ? 'white' : 'var(--gray-12)'
-                  }}
-                >
-                  Outside
-                </Box>
-                <Box
-                  onClick={() => setView('inside')}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 'medium',
-                    backgroundColor: view === 'inside' ? 'var(--accent-9)' : 'white',
-                    color: view === 'inside' ? 'white' : 'var(--gray-12)'
-                  }}
-                >
-                  Inside
-                </Box>
-              </Box>
+      <Dialog.Content size="2" width="95%" maxWidth="95%" maxHeight="90vh" className="flex flex-col overflow-hidden">
+        <Flex direction="column" gap="3" height="100%" className="overflow-hidden">
+          <Dialog.Title>
+            <Flex justify="between" align="center">
+              Wall Construction Plan
+              <Dialog.Close>
+                <IconButton variant="ghost" size="1">
+                  <Cross2Icon />
+                </IconButton>
+              </Dialog.Close>
             </Flex>
-          </Flex>
-        </Box>
+          </Dialog.Title>
+
+          <Box
+            position="relative"
+            flexGrow="1"
+            minHeight="300px"
+            className="overflow-hidden border border-gray-6 rounded-2"
+          >
+            <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
+
+            {/* Overlay SegmentedControl in top-left corner */}
+            <Box position="absolute" top="3" left="3" p="1" className="z-10 shadow-md bg-panel rounded-2">
+              <SegmentedControl.Root value={view} onValueChange={value => setView(value as ViewType)} size="1">
+                <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
+                <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
+              </SegmentedControl.Root>
+            </Box>
+          </Box>
+
+          <Box flexShrink="0">
+            <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />
+          </Box>
+        </Flex>
       </Dialog.Content>
     </Dialog.Root>
   )
