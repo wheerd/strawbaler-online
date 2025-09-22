@@ -39,9 +39,9 @@ export function* infillWallArea(
   size: Vec3,
   config: InfillConstructionConfig,
   resolveMaterial: ResolveMaterialFunction,
-  startsWithStand: boolean = false,
-  endsWithStand: boolean = false,
-  startAtEnd: boolean = false
+  startsWithStand = false,
+  endsWithStand = false,
+  startAtEnd = false
 ): Generator<ConstructionResult> {
   const { minStrawSpace } = config
   const { width: postWidth } = config.posts
@@ -247,7 +247,7 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
         type: 'opening' as const,
         position: segment.position[0] as Length,
         width: segment.size[0] as Length,
-        openingIds: segment.openings!.map(o => o.id),
+        openingIds: segment.openings?.map(o => o.id) ?? [],
         elements: openingElements
       }
 

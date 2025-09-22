@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
+import { Dialog, IconButton, Flex, Box, Text, Callout, SegmentedControl } from '@radix-ui/themes'
 import { ExclamationTriangleIcon, CrossCircledIcon, CheckCircledIcon, Cross2Icon } from '@radix-ui/react-icons'
 import {
   resolveDefaultMaterial,
@@ -361,47 +361,63 @@ interface IssueDescriptionPanelProps {
 }
 
 const IssueDescriptionPanel = ({ errors, warnings }: IssueDescriptionPanelProps) => (
-  <div className="bg-white border-t border-gray-200 max-h-40 overflow-y-auto">
-    {errors.length > 0 && (
-      <div className="p-3 border-b border-red-100 bg-red-50">
-        <h4 className="text-red-800 font-medium flex items-center gap-2">
-          <CrossCircledIcon className="w-4 h-4" />
-          Errors ({errors.length})
-        </h4>
-        {errors.map((error, index) => (
-          <div key={index} className="text-sm text-red-700 mt-1 flex items-start gap-2">
-            <span className="text-red-400 mt-0.5">•</span>
-            <span>{error.description}</span>
-          </div>
-        ))}
-      </div>
-    )}
+  <Box maxHeight="200px" className="overflow-y-auto border-t border-gray-6">
+    <Flex direction="column" gap="2" p="3">
+      {errors.length > 0 && (
+        <Callout.Root color="red" size="1">
+          <Callout.Icon>
+            <CrossCircledIcon />
+          </Callout.Icon>
+          <Flex direction="column" gap="2">
+            <Text weight="medium" size="2">
+              Errors ({errors.length})
+            </Text>
+            <Flex direction="column" gap="1">
+              {errors.map((error, index) => (
+                <Text key={index} size="1">
+                  • {error.description}
+                </Text>
+              ))}
+            </Flex>
+          </Flex>
+        </Callout.Root>
+      )}
 
-    {warnings.length > 0 && (
-      <div className="p-3 bg-yellow-50">
-        <h4 className="text-yellow-800 font-medium flex items-center gap-2">
-          <ExclamationTriangleIcon className="w-4 h-4" />
-          Warnings ({warnings.length})
-        </h4>
-        {warnings.map((warning, index) => (
-          <div key={index} className="text-sm text-yellow-700 mt-1 flex items-start gap-2">
-            <span className="text-yellow-400 mt-0.5">•</span>
-            <span>{warning.description}</span>
-          </div>
-        ))}
-      </div>
-    )}
+      {warnings.length > 0 && (
+        <Callout.Root color="amber" size="1">
+          <Callout.Icon>
+            <ExclamationTriangleIcon />
+          </Callout.Icon>
+          <Flex direction="column" gap="2">
+            <Text weight="medium" size="2">
+              Warnings ({warnings.length})
+            </Text>
+            <Flex direction="column" gap="1">
+              {warnings.map((warning, index) => (
+                <Text key={index} size="1">
+                  • {warning.description}
+                </Text>
+              ))}
+            </Flex>
+          </Flex>
+        </Callout.Root>
+      )}
 
-    {errors.length === 0 && warnings.length === 0 && (
-      <div className="p-3 bg-green-50">
-        <h4 className="text-green-800 font-medium flex items-center gap-2">
-          <CheckCircledIcon className="w-4 h-4" />
-          No Issues Found
-        </h4>
-        <div className="text-sm text-green-700 mt-1">Construction plan is valid with no errors or warnings.</div>
-      </div>
-    )}
-  </div>
+      {errors.length === 0 && warnings.length === 0 && (
+        <Callout.Root color="green" size="1">
+          <Callout.Icon>
+            <CheckCircledIcon />
+          </Callout.Icon>
+          <Flex direction="column" gap="1">
+            <Text weight="medium" size="2">
+              No Issues Found
+            </Text>
+            <Text size="1">Construction plan is valid with no errors or warnings.</Text>
+          </Flex>
+        </Callout.Root>
+      )}
+    </Flex>
+  </Box>
 )
 
 interface WallConstructionPlanModalProps {
@@ -414,58 +430,42 @@ export function WallConstructionPlanModal({ plan, children }: WallConstructionPl
 
   return (
     <Dialog.Root>
-      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[100]" />
-        <Dialog.Content className="fixed inset-4 bg-white rounded-lg shadow-xl z-[100] flex flex-col">
-          <div className="flex items-center justify-between p-3 border-b border-gray-200">
-            <Dialog.Title className="text-base font-medium text-gray-900">Wall Construction Plan</Dialog.Title>
+      <Dialog.Trigger>{children}</Dialog.Trigger>
+      <Dialog.Content size="2" width="95%" maxWidth="95%" maxHeight="90vh" className="flex flex-col overflow-hidden">
+        <Flex direction="column" gap="3" height="100%" className="overflow-hidden">
+          <Dialog.Title>
+            <Flex justify="between" align="center">
+              Wall Construction Plan
+              <Dialog.Close>
+                <IconButton variant="ghost" size="1">
+                  <Cross2Icon />
+                </IconButton>
+              </Dialog.Close>
+            </Flex>
+          </Dialog.Title>
 
-            <Dialog.Close asChild>
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                <Cross2Icon className="w-5 h-5" />
-              </button>
-            </Dialog.Close>
-          </div>
+          <Box
+            position="relative"
+            flexGrow="1"
+            minHeight="300px"
+            className="overflow-hidden border border-gray-6 rounded-2"
+          >
+            <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
 
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 p-2 overflow-hidden">
-              <div className="w-full h-full bg-gray-50 rounded-lg border border-gray-200 p-1 overflow-hidden">
-                <WallConstructionPlanDisplay plan={plan} view={view} showIssues />
-              </div>
-            </div>
-            <div className="flex-shrink-0 flex">
-              <div className="flex-1">
-                <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />
-              </div>
-              <div className="flex items-center px-4 py-3 border-t border-gray-200">
-                <div className="flex bg-gray-100 rounded-md p-1">
-                  <button
-                    onClick={() => setView('outside')}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      view === 'outside'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-white text-black hover:text-gray-700'
-                    }`}
-                  >
-                    Outside
-                  </button>
-                  <button
-                    onClick={() => setView('inside')}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      view === 'inside'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-white text-black hover:text-gray-700'
-                    }`}
-                  >
-                    Inside
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
+            {/* Overlay SegmentedControl in top-left corner */}
+            <Box position="absolute" top="3" left="3" p="1" className="z-10 shadow-md bg-panel rounded-2">
+              <SegmentedControl.Root value={view} onValueChange={value => setView(value as ViewType)} size="1">
+                <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
+                <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
+              </SegmentedControl.Root>
+            </Box>
+          </Box>
+
+          <Box flexShrink="0">
+            <IssueDescriptionPanel errors={plan.errors} warnings={plan.warnings} />
+          </Box>
+        </Flex>
+      </Dialog.Content>
     </Dialog.Root>
   )
 }

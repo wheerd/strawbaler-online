@@ -1,5 +1,7 @@
 import { useCallback, useMemo } from 'react'
-import * as Select from '@radix-ui/react-select'
+import { Box, Flex, Text, Select, TextField, Button, Callout, Heading, DataList, Separator } from '@radix-ui/themes'
+import * as Label from '@radix-ui/react-label'
+import { TrashIcon } from '@radix-ui/react-icons'
 import { useModelActions, usePerimeterById } from '@/model/store'
 import { createLength } from '@/types/geometry'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
@@ -108,10 +110,15 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   // If opening not found, show error
   if (!opening || !wall || !perimeter || !perimeterId || !wallId) {
     return (
-      <div className="p-2 bg-red-50 border border-red-200 rounded">
-        <h3 className="text-xs font-semibold text-red-800">Opening Not Found</h3>
-        <p className="text-xs text-red-600">Opening with ID {openingId} could not be found.</p>
-      </div>
+      <Box p="2">
+        <Callout.Root color="red">
+          <Callout.Text>
+            <Text weight="bold">Opening Not Found</Text>
+            <br />
+            Opening with ID {openingId} could not be found.
+          </Callout.Text>
+        </Callout.Root>
+      </Box>
     )
   }
 
@@ -135,165 +142,166 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   const area = (opening.width * opening.height) / (1000 * 1000)
 
   return (
-    <div className="p-2">
-      <div className="space-y-4">
-        {/* Basic Properties */}
-        <div className="space-y-2">
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between gap-3">
-              <label className="text-xs font-medium text-gray-600 flex-shrink-0">Type</label>
-              <Select.Root
-                value={opening.type}
-                onValueChange={(value: OpeningType) =>
-                  handleTypeChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)
-                }
-              >
-                <Select.Trigger className="flex-1 min-w-0 flex items-center justify-between px-2 py-1.5 bg-white border border-gray-300 rounded text-xs text-gray-800 hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200">
-                  <Select.Value />
-                  <Select.Icon className="text-gray-600">⌄</Select.Icon>
-                </Select.Trigger>
-                <Select.Portal>
-                  <Select.Content className="bg-white border border-gray-300 rounded-md shadow-lg z-50 overflow-hidden">
-                    <Select.Viewport className="p-1">
-                      {OPENING_TYPE_OPTIONS.map(option => (
-                        <Select.Item
-                          key={option.value}
-                          value={option.value}
-                          className="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:outline-none cursor-pointer rounded"
-                        >
-                          <Select.ItemText>{option.label}</Select.ItemText>
-                        </Select.Item>
-                      ))}
-                    </Select.Viewport>
-                  </Select.Content>
-                </Select.Portal>
-              </Select.Root>
-            </div>
-
-            <div className="flex items-center justify-between gap-3">
-              <label htmlFor="opening-width" className="text-xs font-medium text-gray-600 flex-shrink-0">
-                Width
-              </label>
-              <div className="relative flex-1 max-w-24">
-                <input
-                  id="opening-width"
-                  type="number"
-                  value={widthInput.value}
-                  onChange={e => widthInput.handleChange(e.target.value)}
-                  onBlur={widthInput.handleBlur}
-                  onKeyDown={widthInput.handleKeyDown}
-                  min="100"
-                  max="5000"
-                  step="10"
-                  className="unit-input w-full pl-2 py-1.5 pr-8 bg-white border border-gray-300 rounded text-xs text-right hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
-                />
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
-                  mm
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-3">
-              <label htmlFor="opening-height" className="text-xs font-medium text-gray-600 flex-shrink-0">
-                Height
-              </label>
-              <div className="relative flex-1 max-w-24">
-                <input
-                  id="opening-height"
-                  type="number"
-                  value={heightInput.value}
-                  onChange={e => heightInput.handleChange(e.target.value)}
-                  onBlur={heightInput.handleBlur}
-                  onKeyDown={heightInput.handleKeyDown}
-                  min="100"
-                  max="4000"
-                  step="10"
-                  className="unit-input w-full pl-2 py-1.5 pr-8 bg-white border border-gray-300 rounded text-xs text-right hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
-                />
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
-                  mm
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center justify-between gap-3">
-                <label htmlFor="opening-offset" className="text-xs font-medium text-gray-600 flex-shrink-0">
-                  Offset from Start
-                </label>
-                <div className="relative flex-1 max-w-24">
-                  <input
-                    id="opening-offset"
-                    type="number"
-                    value={offsetInput.value}
-                    onChange={e => offsetInput.handleChange(e.target.value)}
-                    onBlur={offsetInput.handleBlur}
-                    onKeyDown={offsetInput.handleKeyDown}
-                    min="0"
-                    max={wall.wallLength - opening.width}
-                    step="10"
-                    className="unit-input w-full pl-2 py-1.5 pr-8 bg-white border border-gray-300 rounded text-xs text-right hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
-                  />
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
-                    mm
-                  </span>
-                </div>
-              </div>
-              <div className="text-xs text-gray-500">Distance from the start of the wall wall</div>
-            </div>
-
-            {opening.type === 'window' && (
-              <div className="space-y-1">
-                <div className="flex items-center justify-between gap-3">
-                  <label htmlFor="sill-height" className="text-xs font-medium text-gray-600 flex-shrink-0">
-                    Sill Height
-                  </label>
-                  <div className="relative flex-1 max-w-24">
-                    <input
-                      id="sill-height"
-                      type="number"
-                      value={sillHeightInput.value}
-                      onChange={e => sillHeightInput.handleChange(e.target.value)}
-                      onBlur={sillHeightInput.handleBlur}
-                      onKeyDown={sillHeightInput.handleKeyDown}
-                      min="0"
-                      max="2000"
-                      step="10"
-                      className="unit-input w-full pl-2 py-1.5 pr-8 bg-white border border-gray-300 rounded text-xs text-right hover:border-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200"
-                    />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
-                      mm
-                    </span>
-                  </div>
-                </div>
-                <div className="text-xs text-gray-500">Height of window sill above floor level</div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Measurements */}
-        <div className="space-y-2 pt-1 border-t border-gray-200">
-          <h5 className="text-sm font-semibold text-gray-800 pb-1">Measurements</h5>
-          <div className="flex justify-between items-center py-0.5">
-            <span className="text-xs text-gray-600">Area:</span>
-            <span className="text-xs font-medium text-gray-800">{area.toFixed(2)} m²</span>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="space-y-2 pt-1 border-t border-gray-200">
-          <h5 className="text-sm font-semibold text-gray-800 pb-1">Actions</h5>
-          <button
-            className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500"
-            onClick={handleRemoveOpening}
-            title="Remove this opening from the wall wall"
+    <Flex direction="column" gap="4">
+      {/* Basic Properties */}
+      <Flex direction="column" gap="3">
+        <Flex align="center" justify="between" gap="3">
+          <Text size="1" weight="medium" color="gray">
+            Type
+          </Text>
+          <Select.Root
+            value={opening.type}
+            onValueChange={(value: OpeningType) =>
+              handleTypeChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)
+            }
+            size="1"
           >
-            <span>🗑️</span>
-            Remove Opening
-          </button>
-        </div>
-      </div>
-    </div>
+            <Select.Trigger style={{ flex: 1, minWidth: 0 }} />
+            <Select.Content>
+              {OPENING_TYPE_OPTIONS.map(option => (
+                <Select.Item key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </Flex>
+
+        <Flex align="center" justify="between" gap="3">
+          <Label.Root htmlFor="opening-width">
+            <Text size="1" weight="medium" color="gray">
+              Width
+            </Text>
+          </Label.Root>
+          <TextField.Root
+            id="opening-width"
+            type="number"
+            value={widthInput.value.toString()}
+            onChange={e => widthInput.handleChange(e.target.value)}
+            onBlur={widthInput.handleBlur}
+            onKeyDown={widthInput.handleKeyDown}
+            min="100"
+            max="5000"
+            step="10"
+            size="1"
+            style={{ width: '5rem', textAlign: 'right' }}
+          >
+            <TextField.Slot side="right" pl="1">
+              mm
+            </TextField.Slot>
+          </TextField.Root>
+        </Flex>
+
+        <Flex align="center" justify="between" gap="3">
+          <Label.Root htmlFor="opening-height">
+            <Text size="1" weight="medium" color="gray">
+              Height
+            </Text>
+          </Label.Root>
+          <TextField.Root
+            id="opening-height"
+            type="number"
+            value={heightInput.value.toString()}
+            onChange={e => heightInput.handleChange(e.target.value)}
+            onBlur={heightInput.handleBlur}
+            onKeyDown={heightInput.handleKeyDown}
+            min="100"
+            max="4000"
+            step="10"
+            size="1"
+            style={{ width: '5rem', textAlign: 'right' }}
+          >
+            <TextField.Slot side="right" pl="1">
+              mm
+            </TextField.Slot>
+          </TextField.Root>
+        </Flex>
+
+        <Flex direction="column" gap="1">
+          <Flex align="center" justify="between" gap="3">
+            <Label.Root htmlFor="opening-offset">
+              <Text size="1" weight="medium" color="gray">
+                Offset from Start
+              </Text>
+            </Label.Root>
+            <TextField.Root
+              id="opening-offset"
+              type="number"
+              value={offsetInput.value.toString()}
+              onChange={e => offsetInput.handleChange(e.target.value)}
+              onBlur={offsetInput.handleBlur}
+              onKeyDown={offsetInput.handleKeyDown}
+              min="0"
+              max={wall.wallLength - opening.width}
+              step="10"
+              size="1"
+              style={{ width: '5rem', textAlign: 'right' }}
+            >
+              <TextField.Slot side="right" pl="1">
+                mm
+              </TextField.Slot>
+            </TextField.Root>
+          </Flex>
+          <Text size="1" color="gray">
+            Distance from the start of the wall wall
+          </Text>
+        </Flex>
+
+        {opening.type === 'window' && (
+          <Flex direction="column" gap="1">
+            <Flex align="center" justify="between" gap="3">
+              <Label.Root htmlFor="opening-sill-height">
+                <Text size="1" weight="medium" color="gray">
+                  Sill Height
+                </Text>
+              </Label.Root>
+              <TextField.Root
+                id="opening-sill-height"
+                type="number"
+                value={sillHeightInput.value.toString()}
+                onChange={e => sillHeightInput.handleChange(e.target.value)}
+                onBlur={sillHeightInput.handleBlur}
+                onKeyDown={sillHeightInput.handleKeyDown}
+                min="0"
+                max="2000"
+                step="10"
+                size="1"
+                style={{ width: '5rem', textAlign: 'right' }}
+              >
+                <TextField.Slot side="right" pl="1">
+                  mm
+                </TextField.Slot>
+              </TextField.Root>
+            </Flex>
+            <Text size="1" color="gray">
+              Height of window sill above floor level
+            </Text>
+          </Flex>
+        )}
+      </Flex>
+
+      <Separator size="4" />
+
+      {/* Measurements */}
+      <Flex direction="column" gap="2">
+        <Heading size="2">Measurements</Heading>
+        <DataList.Root size="1">
+          <DataList.Item>
+            <DataList.Label>Area</DataList.Label>
+            <DataList.Value>{area.toFixed(2)} m²</DataList.Value>
+          </DataList.Item>
+        </DataList.Root>
+      </Flex>
+
+      <Separator size="4" />
+
+      {/* Actions */}
+      <Flex direction="column" gap="2">
+        <Button color="red" size="1" onClick={handleRemoveOpening}>
+          <TrashIcon />
+          Remove Opening
+        </Button>
+      </Flex>
+    </Flex>
   )
 }

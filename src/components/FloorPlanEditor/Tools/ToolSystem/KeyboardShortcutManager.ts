@@ -5,7 +5,7 @@ import { isPerimeterId, isPerimeterWallId, isPerimeterCornerId, isOpeningId } fr
 
 export class KeyboardShortcutManager {
   private builtInShortcuts: ShortcutDefinition[] = []
-  private toolActivationShortcuts: Map<string, string> = new Map() // key -> toolId
+  private toolActivationShortcuts = new Map<string, string>() // key -> toolId
 
   constructor() {
     this.initializeBuiltInShortcuts()
@@ -206,7 +206,6 @@ export class KeyboardShortcutManager {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       konvaEvent: null as unknown as Konva.KonvaEventObject<any>, // Not needed for keyboard events
       stageCoordinates: [0, 0], // Not relevant for keyboard
-      target: null,
       context
     }
   }

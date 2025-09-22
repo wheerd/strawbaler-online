@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react'
+import { Box, Flex, Text, Button, Heading, Callout, DataList, Separator } from '@radix-ui/themes'
 import { useModelActions, usePerimeterById } from '@/model/store'
 import type { PerimeterCornerId, PerimeterId } from '@/types/ids'
 import { useConfigStore } from '@/config/store'
@@ -28,10 +29,15 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
   // If corner not found, show error
   if (!corner || !outerWall || cornerIndex === -1) {
     return (
-      <div className="p-2 bg-red-50 border border-red-200 rounded">
-        <h3 className="text-xs font-semibold text-red-800">Outer Corner Not Found</h3>
-        <p className="text-xs text-red-600">Outer corner with ID {cornerId} could not be found.</p>
-      </div>
+      <Box p="2">
+        <Callout.Root color="red">
+          <Callout.Text>
+            <Text weight="bold">Corner Not Found</Text>
+            <br />
+            Corner with ID {cornerId} could not be found.
+          </Callout.Text>
+        </Callout.Root>
+      </Box>
     )
   }
 
@@ -80,73 +86,62 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
   }, [previousWall, nextWall, configStore])
 
   return (
-    <div className="p-2">
-      <div className="space-y-4">
-        {/* Basic Properties */}
-        <div className="space-y-2">
-          <h5 className="text-sm font-semibold text-gray-800 pb-1">Corner Configuration</h5>
-
-          <div className="flex items-center justify-between gap-3">
-            <label className="text-xs font-medium text-gray-600 flex-shrink-0">Main Wall</label>
-            <button
-              onClick={handleToggleConstructedByWall}
-              className="flex-1 min-w-0 flex items-center justify-center px-3 py-1.5 bg-white border border-gray-300 rounded text-xs text-gray-800 hover:border-gray-400 hover:bg-gray-50 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-200 transition-colors"
-              title="Switch which wall wall owns this corner"
-            >
-              Switch main wall
-            </button>
-          </div>
-          <div className="text-xs text-gray-500">
-            Determines which wall wall owns this corner for construction purposes.
-          </div>
-        </div>
-
-        {/* Geometry Information */}
-        <div className="space-y-2 pt-1 border-t border-gray-200">
-          <h5 className="text-sm font-semibold text-gray-800 pb-1">Geometry</h5>
-
-          <div className="space-y-1">
-            {cornerAngle && (
-              <div className="flex justify-between items-center py-0.5">
-                <span className="text-xs text-gray-600">Interior Angle:</span>
-                <span className="text-xs font-medium text-gray-800">{cornerAngle.toFixed(1)}°</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Construction Notes */}
-        {hasConstructionNotes && (
-          <div className="space-y-2 pt-1 border-t border-gray-200">
-            <h5 className="text-sm font-semibold text-gray-800 pb-1">Construction Notes</h5>
-
-            <div className="space-y-1.5">
-              {(() => {
-                const prevMethod = configStore.perimeterConstructionMethods.get(previousWall.constructionMethodId)
-                const nextMethod = configStore.perimeterConstructionMethods.get(nextWall.constructionMethodId)
-                return prevMethod?.config.type !== nextMethod?.config.type
-              })() && (
-                <div className="p-2 bg-amber-50 border border-amber-200 rounded">
-                  <div className="text-xs font-medium text-amber-800">Mixed Construction:</div>
-                  <div className="text-xs text-amber-700">
-                    Adjacent walls use different construction types. Special attention may be needed at this corner.
-                  </div>
-                </div>
-              )}
-
-              {Math.abs(previousWall.thickness - nextWall.thickness) > 5 && (
-                <div className="p-2 bg-amber-50 border border-amber-200 rounded">
-                  <div className="text-xs font-medium text-amber-800">Thickness Difference:</div>
-                  <div className="text-xs text-amber-700">
-                    Adjacent walls have different thicknesses ({Math.abs(previousWall.thickness - nextWall.thickness)}mm
-                    difference).
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+    <Flex direction="column" gap="4">
+      {/* Geometry Information */}
+      <Flex direction="column" gap="2">
+        <Heading size="2">Geometry</Heading>
+        {cornerAngle && (
+          <DataList.Root>
+            <DataList.Item>
+              <DataList.Label minWidth="88px">Interior Angle</DataList.Label>
+              <DataList.Value>{cornerAngle.toFixed(1)}°</DataList.Value>
+            </DataList.Item>
+          </DataList.Root>
         )}
-      </div>
-    </div>
+      </Flex>
+
+      <Separator size="4" />
+
+      {/* Actions */}
+      <Flex direction="column" gap="2">
+        <Button size="1" onClick={handleToggleConstructedByWall}>
+          Switch main wall
+        </Button>
+      </Flex>
+
+      <Separator size="4" />
+
+      {/* Construction Notes */}
+      {hasConstructionNotes && (
+        <Flex direction="column" gap="2">
+          <Heading size="2">Construction Notes</Heading>
+
+          {(() => {
+            const prevMethod = configStore.perimeterConstructionMethods.get(previousWall.constructionMethodId)
+            const nextMethod = configStore.perimeterConstructionMethods.get(nextWall.constructionMethodId)
+            return prevMethod?.config.type !== nextMethod?.config.type
+          })() && (
+            <Callout.Root color="amber">
+              <Callout.Text>
+                <Text weight="bold">Mixed Construction:</Text>
+                <br />
+                Adjacent walls use different construction types. Special attention may be needed at this corner.
+              </Callout.Text>
+            </Callout.Root>
+          )}
+
+          {Math.abs(previousWall.thickness - nextWall.thickness) > 5 && (
+            <Callout.Root color="amber">
+              <Callout.Text>
+                <Text weight="bold">Thickness Difference:</Text>
+                <br />
+                Adjacent walls have different thicknesses ({Math.abs(previousWall.thickness - nextWall.thickness)}mm
+                difference).
+              </Callout.Text>
+            </Callout.Root>
+          )}
+        </Flex>
+      )}
+    </Flex>
   )
 }

@@ -184,12 +184,16 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         state.perimeters[perimeter.id] = perimeter
       })
 
-      return perimeter!
+      if (!perimeter) {
+        throw new Error('Failed to create perimeter')
+      }
+      return perimeter
     },
 
     removePerimeter: (perimeterId: PerimeterId) => {
       set(state => {
-        delete state.perimeters[perimeterId]
+        const { [perimeterId]: removed, ...remainingPerimeters } = state.perimeters
+        state.perimeters = remainingPerimeters
       })
     },
 
@@ -625,12 +629,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
 })
 
 // Step 1: Create infinite inside and outside lines for each wall wall
-const createInfiniteLines = (
-  boundary: Polygon2D,
-  thicknesses: Length[]
-): Array<{ inside: Line2D; outside: Line2D }> => {
+const createInfiniteLines = (boundary: Polygon2D, thicknesses: Length[]): { inside: Line2D; outside: Line2D }[] => {
   const numSides = boundary.points.length
-  const infiniteLines: Array<{ inside: Line2D; outside: Line2D }> = []
+  const infiniteLines: { inside: Line2D; outside: Line2D }[] = []
 
   for (let i = 0; i < numSides; i++) {
     const startPoint = boundary.points[i]
@@ -680,7 +681,7 @@ const updateCornerOutsidePoint = (
 const updateAllCornerOutsidePoints = (
   corners: PerimeterCorner[],
   thicknesses: Length[],
-  infiniteLines: Array<{ inside: Line2D; outside: Line2D }>
+  infiniteLines: { inside: Line2D; outside: Line2D }[]
 ): void => {
   const numSides = corners.length
 

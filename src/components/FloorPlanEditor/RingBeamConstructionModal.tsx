@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
-import { Cross2Icon } from '@radix-ui/react-icons'
+import { Dialog, IconButton, Flex, Box, Text, Heading, Card, Callout, SegmentedControl } from '@radix-ui/themes'
+import { Cross2Icon, ExclamationTriangleIcon, CrossCircledIcon, CheckCircledIcon } from '@radix-ui/react-icons'
 import { usePerimeterById } from '@/model/store'
 import { useConfigStore } from '@/config/store'
 import { constructRingBeam, resolveDefaultMaterial, type RingBeamConstructionPlan } from '@/construction'
@@ -19,16 +19,13 @@ export interface RingBeamConstructionModalProps {
 
 interface RingBeamConstructionPlanDisplayProps {
   plan: RingBeamConstructionPlan
-  showIssues?: boolean
 }
 
-function RingBeamConstructionPlanDisplay({
-  plan,
-  showIssues = true
-}: RingBeamConstructionPlanDisplayProps): React.JSX.Element {
+function RingBeamConstructionPlanDisplay({ plan }: RingBeamConstructionPlanDisplayProps): React.JSX.Element {
   const perimeter = usePerimeterById(plan.perimeterId)
 
-  const perimeterBounds = boundsFromPoints(perimeter?.corners.map(c => [c.outsidePoint[0], -c.outsidePoint[1]]) ?? [])!
+  const perimeterBounds = boundsFromPoints(perimeter?.corners.map(c => [c.outsidePoint[0], -c.outsidePoint[1]]) ?? [])
+  if (!perimeterBounds) return <div>Error: Could not calculate perimeter bounds</div>
 
   const padding = 100 // padding in SVG units
   const viewBoxWidth = perimeterBounds.max[0] - perimeterBounds.min[0] + padding * 2
@@ -37,7 +34,7 @@ function RingBeamConstructionPlanDisplay({
   const viewBoxY = perimeterBounds.min[1] - padding
 
   return (
-    <div className="w-full h-96 border border-gray-300 rounded bg-gray-50 flex items-center justify-center relative">
+    <div className="w-full h-full bg-gray-50 flex items-center justify-center relative">
       <SVGViewport baseViewBox={`${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`} className="w-full h-full">
         {/* Render perimeter outline for reference */}
         {perimeter && (
@@ -103,26 +100,74 @@ function RingBeamConstructionPlanDisplay({
           )
         })}
       </SVGViewport>
-
-      {/* Issues display */}
-      {showIssues && (plan.errors.length > 0 || plan.warnings.length > 0) && (
-        <div className="absolute top-4 right-4 bg-white border border-gray-300 rounded-md p-3 shadow-lg max-w-xs">
-          <h4 className="text-sm font-semibold mb-2">Issues</h4>
-          {plan.errors.map((error, index) => (
-            <div key={`error-${index}`} className="text-xs text-red-600 mb-1">
-              ⚠ {error.description}
-            </div>
-          ))}
-          {plan.warnings.map((warning, index) => (
-            <div key={`warning-${index}`} className="text-xs text-orange-600 mb-1">
-              ⚠ {warning.description}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
+
+interface IssueDescriptionPanelProps {
+  errors: { description: string }[]
+  warnings: { description: string }[]
+}
+
+const IssueDescriptionPanel = ({ errors, warnings }: IssueDescriptionPanelProps) => (
+  <Box maxHeight="200px" className="overflow-y-auto border-t border-gray-6">
+    <Flex direction="column" gap="2" p="3">
+      {errors.length > 0 && (
+        <Callout.Root color="red" size="1">
+          <Callout.Icon>
+            <CrossCircledIcon />
+          </Callout.Icon>
+          <Flex direction="column" gap="2">
+            <Text weight="medium" size="2">
+              Errors ({errors.length})
+            </Text>
+            <Flex direction="column" gap="1">
+              {errors.map((error, index) => (
+                <Text key={index} size="1">
+                  • {error.description}
+                </Text>
+              ))}
+            </Flex>
+          </Flex>
+        </Callout.Root>
+      )}
+
+      {warnings.length > 0 && (
+        <Callout.Root color="amber" size="1">
+          <Callout.Icon>
+            <ExclamationTriangleIcon />
+          </Callout.Icon>
+          <Flex direction="column" gap="2">
+            <Text weight="medium" size="2">
+              Warnings ({warnings.length})
+            </Text>
+            <Flex direction="column" gap="1">
+              {warnings.map((warning, index) => (
+                <Text key={index} size="1">
+                  • {warning.description}
+                </Text>
+              ))}
+            </Flex>
+          </Flex>
+        </Callout.Root>
+      )}
+
+      {errors.length === 0 && warnings.length === 0 && (
+        <Callout.Root color="green" size="1">
+          <Callout.Icon>
+            <CheckCircledIcon />
+          </Callout.Icon>
+          <Flex direction="column" gap="1">
+            <Text weight="medium" size="2">
+              No Issues Found
+            </Text>
+            <Text size="1">Construction plan is valid with no errors or warnings.</Text>
+          </Flex>
+        </Callout.Root>
+      )}
+    </Flex>
+  </Box>
+)
 
 export function RingBeamConstructionModal({
   perimeterId,
@@ -166,88 +211,92 @@ export function RingBeamConstructionModal({
 
   return (
     <Dialog.Root>
-      <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[100]" />
-        <Dialog.Content className="fixed inset-4 bg-white rounded-lg shadow-xl z-[100] flex flex-col">
-          <div className="flex items-center justify-between p-3 border-b border-gray-200">
-            <Dialog.Title className="text-base font-medium text-gray-900">Ring Beam Construction</Dialog.Title>
-            <Dialog.Close asChild>
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                <Cross2Icon className="w-5 h-5" />
-              </button>
-            </Dialog.Close>
-          </div>
+      <Dialog.Trigger>{trigger}</Dialog.Trigger>
+      <Dialog.Content size="2" width="95%" maxWidth="95%" maxHeight="90vh" className="flex flex-col overflow-hidden">
+        <Flex direction="column" gap="3" height="100%" className="overflow-hidden">
+          <Dialog.Title>
+            <Flex justify="between" align="center">
+              Ring Beam Construction
+              <Dialog.Close>
+                <IconButton variant="ghost" size="1">
+                  <Cross2Icon />
+                </IconButton>
+              </Dialog.Close>
+            </Flex>
+          </Dialog.Title>
 
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 p-2 overflow-hidden">
-              <div className="w-full h-full bg-gray-50 rounded-lg border border-gray-200 p-1 overflow-hidden">
-                {currentMethod ? (
-                  constructionPlan ? (
-                    <RingBeamConstructionPlanDisplay plan={constructionPlan} showIssues />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="text-center text-gray-500">
-                        <div className="text-lg mb-2">⚠</div>
-                        <div className="text-sm">Failed to generate construction plan</div>
-                      </div>
-                    </div>
-                  )
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <div className="text-lg mb-2">📋</div>
-                      <div className="text-sm">No {currentPosition} ring beam method selected</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex-shrink-0 flex">
-              <div className="flex-1">
-                {/* Method Info Panel */}
-                {currentMethod && (
-                  <div className="p-3 border-t border-gray-200 bg-gray-50">
-                    <h3 className="text-sm font-medium text-gray-900 mb-1">{currentMethod.name}</h3>
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <div>Type: {currentMethod.config.type}</div>
-                      <div>Height: {currentMethod.config.height}mm</div>
-                      {currentMethod.config.type === 'full' && <div>Width: {currentMethod.config.width}mm</div>}
-                      {currentMethod.config.type === 'double' && (
-                        <div>Thickness: {currentMethod.config.thickness}mm</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center px-4 py-3 border-t border-gray-200">
-                <div className="flex bg-gray-100 rounded-md p-1">
-                  <button
-                    onClick={() => setCurrentPosition('base')}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      currentPosition === 'base'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-white text-black hover:text-gray-700'
-                    }`}
-                  >
-                    Base Plate
-                  </button>
-                  <button
-                    onClick={() => setCurrentPosition('top')}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      currentPosition === 'top'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-white text-black hover:text-gray-700'
-                    }`}
-                  >
-                    Top Plate
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
+          <Box
+            position="relative"
+            flexGrow="1"
+            minHeight="300px"
+            className="overflow-hidden border border-gray-6 rounded-2"
+          >
+            {currentMethod ? (
+              constructionPlan ? (
+                <RingBeamConstructionPlanDisplay plan={constructionPlan} />
+              ) : (
+                <Flex align="center" justify="center" style={{ height: '100%' }}>
+                  <Text align="center" color="gray">
+                    <Text size="6">⚠</Text>
+                    <br />
+                    <Text size="2">Failed to generate construction plan</Text>
+                  </Text>
+                </Flex>
+              )
+            ) : (
+              <Flex align="center" justify="center" style={{ height: '100%' }}>
+                <Text align="center" color="gray">
+                  <Text size="6">📋</Text>
+                  <br />
+                  <Text size="2">No {currentPosition} ring beam method selected</Text>
+                </Text>
+              </Flex>
+            )}
+
+            {/* Overlay SegmentedControl in top-left corner */}
+            <Box position="absolute" top="3" left="3" p="0S" className="z-10 shadow-md bg-panel rounded-2">
+              <SegmentedControl.Root
+                value={currentPosition}
+                onValueChange={value => setCurrentPosition(value as 'base' | 'top')}
+                size="1"
+              >
+                <SegmentedControl.Item value="base">Base Plate</SegmentedControl.Item>
+                <SegmentedControl.Item value="top">Top Plate</SegmentedControl.Item>
+              </SegmentedControl.Root>
+            </Box>
+          </Box>
+
+          <Flex direction="row" gap="3" flexShrink="0">
+            {/* Method Info Panel */}
+            <Box flexGrow="1">
+              {currentMethod && (
+                <Card variant="surface" size="1">
+                  <Heading size="2" mb="1">
+                    {currentMethod.name}
+                  </Heading>
+                  <Flex direction="column" gap="1">
+                    <Text size="1">Type: {currentMethod.config.type}</Text>
+                    <Text size="1">Height: {currentMethod.config.height}mm</Text>
+                    {currentMethod.config.type === 'full' && (
+                      <Text size="1">Width: {currentMethod.config.width}mm</Text>
+                    )}
+                    {currentMethod.config.type === 'double' && (
+                      <Text size="1">Thickness: {currentMethod.config.thickness}mm</Text>
+                    )}
+                  </Flex>
+                </Card>
+              )}
+            </Box>
+
+            {/* Issues Panel */}
+            {constructionPlan && (
+              <Box flexGrow="1">
+                <IssueDescriptionPanel errors={constructionPlan.errors} warnings={constructionPlan.warnings} />
+              </Box>
+            )}
+          </Flex>
+        </Flex>
+      </Dialog.Content>
     </Dialog.Root>
   )
 }

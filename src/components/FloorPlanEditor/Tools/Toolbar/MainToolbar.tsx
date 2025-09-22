@@ -1,7 +1,6 @@
-import { useCallback } from 'react'
+import React, { useCallback } from 'react'
 import * as Toolbar from '@radix-ui/react-toolbar'
-import * as Tooltip from '@radix-ui/react-tooltip'
-import * as Separator from '@radix-ui/react-separator'
+import { Flex, Tooltip, Kbd, IconButton, Text, Separator } from '@radix-ui/themes'
 import {
   useToolContext,
   useToolManager,
@@ -25,69 +24,45 @@ export function MainToolbar(): React.JSX.Element {
   const toolGroups = Array.from(toolManagerState.toolGroups.values())
 
   return (
-    <div className="bg-white border-b border-gray-200 shadow-sm" data-testid="main-toolbar">
-      <div className="px-4 py-3">
-        <div className="flex items-center gap-4">
-          {/* Logo - Compact version */}
-          <Logo className="flex-shrink-0" />
+    <Flex align="center" gap="4" style={{ borderBottom: '1px solid var(--gray-6)' }} data-testid="main-toolbar" p="3">
+      {/* Logo - Compact version */}
+      <Logo />
 
-          {/* Tools positioned next to logo on the left */}
-          <Tooltip.Provider>
-            <Toolbar.Root className="flex items-center gap-1">
-              {toolGroups.map((group, groupIndex) => (
-                <div key={group.id} className="flex items-center">
-                  {groupIndex > 0 && <Separator.Root className="mx-2 h-6 w-px bg-gray-300" orientation="vertical" />}
+      {/* Tools positioned next to logo on the left */}
+      <Toolbar.Root>
+        <Flex align="center" gap="2">
+          {toolGroups.map((group, groupIndex) => (
+            <React.Fragment key={group.id}>
+              {groupIndex > 0 && <Separator orientation="vertical" size="2" />}
 
-                  {/* Group of tools */}
-                  <div className="flex items-center gap-1">
-                    {group.tools.map(tool => (
-                      <Tooltip.Root key={tool.id}>
-                        <Tooltip.Trigger asChild>
-                          <Toolbar.Button
-                            className={`
-                              flex items-center justify-center w-10 h-10 rounded-md border transition-all duration-200
-                              ${
-                                toolManagerState.activeTool?.id === tool.id
-                                  ? 'bg-primary-500 text-white border-primary-500 shadow-md'
-                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
-                              }
-                            `}
-                            onClick={() => handleToolSelect(tool.id)}
-                          >
-                            {tool.iconComponent ? (
-                              <span className="text-base leading-none">
-                                <tool.iconComponent />
-                              </span>
-                            ) : (
-                              <span className="text-base leading-none">{tool.icon}</span>
-                            )}
-                          </Toolbar.Button>
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content
-                            className="bg-gray-900 text-white text-sm px-3 py-2 rounded shadow-lg z-50 max-w-xs"
-                            sideOffset={8}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span>{tool.name}</span>
-                              {tool.hotkey && (
-                                <kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-xs font-mono">
-                                  {tool.hotkey.toUpperCase()}
-                                </kbd>
-                              )}
-                            </div>
-                            <Tooltip.Arrow className="fill-gray-900" />
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip.Root>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </Toolbar.Root>
-          </Tooltip.Provider>
-        </div>
-      </div>
-    </div>
+              <Flex align="center" gap="1">
+                {/* Group of tools */}
+                {group.tools.map(tool => (
+                  <Tooltip
+                    key={tool.id}
+                    content={
+                      <Flex align="center" justify="between" gap="2">
+                        <Text>{tool.name}</Text>
+                        {tool.hotkey && <Kbd>{tool.hotkey.toUpperCase()}</Kbd>}
+                      </Flex>
+                    }
+                  >
+                    <Toolbar.Button asChild>
+                      <IconButton
+                        size="2"
+                        variant={toolManagerState.activeTool?.id === tool.id ? 'solid' : 'surface'}
+                        onClick={() => handleToolSelect(tool.id)}
+                      >
+                        {tool.iconComponent ? <tool.iconComponent /> : <Text>{tool.icon}</Text>}
+                      </IconButton>
+                    </Toolbar.Button>
+                  </Tooltip>
+                ))}
+              </Flex>
+            </React.Fragment>
+          ))}
+        </Flex>
+      </Toolbar.Root>
+    </Flex>
   )
 }
