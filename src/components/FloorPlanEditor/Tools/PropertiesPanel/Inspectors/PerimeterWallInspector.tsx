@@ -14,7 +14,7 @@ import {
 } from '@radix-ui/themes'
 import * as Label from '@radix-ui/react-label'
 import { useModelActions, usePerimeterById } from '@/model/store'
-import { createLength } from '@/types/geometry'
+import { createLength, type Length } from '@/types/geometry'
 import { useDebouncedNumericInput } from '@/components/FloorPlanEditor/hooks/useDebouncedInput'
 import { formatLength } from '@/utils/formatLength'
 import type { PerimeterWallId, PerimeterId, PerimeterConstructionMethodId } from '@/types/ids'
@@ -158,7 +158,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
       {/* Measurements */}
       <Flex direction="column" gap="2">
         <Heading size="2">Measurements</Heading>
-        <DataList.Root>
+        <DataList.Root size="1">
           <DataList.Item>
             <DataList.Label minWidth="88px">Inside Length</DataList.Label>
             <DataList.Value>{formatLength(wall.insideLength)}</DataList.Value>
@@ -167,6 +167,30 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
             <DataList.Label minWidth="88px">Outside Length</DataList.Label>
             <DataList.Value>{formatLength(wall.outsideLength)}</DataList.Value>
           </DataList.Item>
+          {constructionMethod ? (
+            <>
+              <DataList.Item>
+                <DataList.Label minWidth="88px">Inside Layers Thickness</DataList.Label>
+                <DataList.Value>{formatLength(constructionMethod.layers.insideThickness)}</DataList.Value>
+              </DataList.Item>
+              <DataList.Item>
+                <DataList.Label minWidth="88px">Outside Layers Thickness</DataList.Label>
+                <DataList.Value>{formatLength(constructionMethod.layers.outsideThickness)}</DataList.Value>
+              </DataList.Item>
+              <DataList.Item>
+                <DataList.Label minWidth="88px">Construction Thickness</DataList.Label>
+                <DataList.Value>
+                  {formatLength(
+                    (wall.thickness -
+                      constructionMethod.layers.outsideThickness -
+                      constructionMethod.layers.insideThickness) as Length
+                  )}
+                </DataList.Value>
+              </DataList.Item>
+            </>
+          ) : (
+            <></>
+          )}
         </DataList.Root>
       </Flex>
 
