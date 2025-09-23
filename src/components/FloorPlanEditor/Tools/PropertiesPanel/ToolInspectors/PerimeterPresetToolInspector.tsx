@@ -3,12 +3,16 @@ import { Button, Flex, Text, Box, Separator, DataList, Heading } from '@radix-ui
 import { createLength } from '@/types/geometry'
 import type { ToolInspectorProps } from '@/components/FloorPlanEditor/Tools/ToolSystem/types'
 import type { PerimeterPresetTool } from '@/components/FloorPlanEditor/Tools/Categories/PerimeterTools/PerimeterPresetTool'
-import type { RectangularPresetConfig } from '@/components/FloorPlanEditor/Tools/Categories/PerimeterTools/presets'
+import type {
+  RectangularPresetConfig,
+  LShapedPresetConfig
+} from '@/components/FloorPlanEditor/Tools/Categories/PerimeterTools/presets'
 import { RectangularPresetDialog } from '@/components/FloorPlanEditor/Tools/Categories/PerimeterTools/presets/RectangularPresetDialog'
+import { LShapedPresetDialog } from '@/components/FloorPlanEditor/Tools/Categories/PerimeterTools/presets/LShapedPresetDialog'
 import { useReactiveTool } from '@/components/FloorPlanEditor/Tools/hooks/useReactiveTool'
 import { usePerimeterConstructionMethods, useConfigStore } from '@/config/store'
 import { formatLength } from '@/utils/formatLength'
-import { BoxIcon } from '@radix-ui/react-icons'
+import { LShape0Icon, RectIcon } from '@/components/FloorPlanEditor/Tools/Categories/PerimeterTools/presets/Icons'
 
 export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<PerimeterPresetTool>): React.JSX.Element {
   const { state } = useReactiveTool(tool)
@@ -18,6 +22,7 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
   // Get available presets
   const availablePresets = tool.getAvailablePresets()
   const rectangularPreset = availablePresets.find(p => p.type === 'rectangular')
+  const lShapedPreset = availablePresets.find(p => p.type === 'l-shaped')
 
   // Handle rectangular preset configuration
   const handleRectangularPresetConfirm = useCallback(
@@ -27,6 +32,16 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
       }
     },
     [tool, rectangularPreset]
+  )
+
+  // Handle L-shaped preset configuration
+  const handleLShapedPresetConfirm = useCallback(
+    (config: LShapedPresetConfig) => {
+      if (lShapedPreset) {
+        tool.setActivePreset(lShapedPreset, config)
+      }
+    },
+    [tool, lShapedPreset]
   )
 
   // Get current config for display
@@ -47,8 +62,28 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
           }}
           trigger={
             <Button className="w-full" size="2">
-              <BoxIcon />
+              <RectIcon />
               Rectangular Perimeter
+            </Button>
+          }
+        />
+
+        {/* L-Shaped Preset Dialog */}
+        <LShapedPresetDialog
+          onConfirm={handleLShapedPresetConfirm}
+          initialConfig={{
+            width1: createLength(8000),
+            length1: createLength(6000),
+            width2: createLength(4000),
+            length2: createLength(3000),
+            rotation: 0,
+            thickness: createLength(440),
+            constructionMethodId: configStore.getDefaultPerimeterMethodId()
+          }}
+          trigger={
+            <Button className="w-full" size="2">
+              <LShape0Icon />
+              L-Shaped Perimeter
             </Button>
           }
         />
@@ -72,6 +107,29 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
                       {formatLength((currentConfig as RectangularPresetConfig).length)}
                     </DataList.Value>
                   </DataList.Item>
+                )}
+
+                {state.activePreset?.type === 'l-shaped' && (
+                  <>
+                    <DataList.Item>
+                      <DataList.Label minWidth="80px">Main</DataList.Label>
+                      <DataList.Value>
+                        {formatLength((currentConfig as LShapedPresetConfig).width1)} ×{' '}
+                        {formatLength((currentConfig as LShapedPresetConfig).length1)}
+                      </DataList.Value>
+                    </DataList.Item>
+                    <DataList.Item>
+                      <DataList.Label minWidth="80px">Extension</DataList.Label>
+                      <DataList.Value>
+                        {formatLength((currentConfig as LShapedPresetConfig).width2)} ×{' '}
+                        {formatLength((currentConfig as LShapedPresetConfig).length2)}
+                      </DataList.Value>
+                    </DataList.Item>
+                    <DataList.Item>
+                      <DataList.Label minWidth="80px">Rotation</DataList.Label>
+                      <DataList.Value>{(currentConfig as LShapedPresetConfig).rotation}°</DataList.Value>
+                    </DataList.Item>
+                  </>
                 )}
 
                 <DataList.Item>

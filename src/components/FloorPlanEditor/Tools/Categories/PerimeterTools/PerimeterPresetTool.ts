@@ -4,7 +4,7 @@ import { add, polygonIsClockwise } from '@/types/geometry'
 import { BaseTool } from '@/components/FloorPlanEditor/Tools/ToolSystem/BaseTool'
 import { BoxModelIcon } from '@radix-ui/react-icons'
 import type { PerimeterPreset, BasePresetConfig } from './presets'
-import { RectangularPreset } from './presets'
+import { RectangularPreset, LShapedPreset } from './presets'
 import { PerimeterPresetToolOverlay } from './PerimeterPresetToolOverlay'
 import { PerimeterPresetToolInspector } from '@/components/FloorPlanEditor/Tools/PropertiesPanel/ToolInspectors/PerimeterPresetToolInspector'
 
@@ -34,7 +34,7 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
   }
 
   // Available presets
-  private availablePresets: PerimeterPreset[] = [new RectangularPreset()]
+  private availablePresets: PerimeterPreset[] = [new RectangularPreset(), new LShapedPreset()]
 
   /**
    * Get all available preset types

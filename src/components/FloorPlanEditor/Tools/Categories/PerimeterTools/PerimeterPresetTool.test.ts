@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createLength, createVec2 } from '@/types/geometry'
 import { PerimeterPresetTool } from './PerimeterPresetTool'
-import { RectangularPreset } from './presets'
+import { RectangularPreset, LShapedPreset } from './presets'
 import type { RectangularPresetConfig } from './presets'
 
 describe('PerimeterPresetTool', () => {
@@ -26,8 +26,9 @@ describe('PerimeterPresetTool', () => {
 
     it('should have available presets', () => {
       const presets = tool.getAvailablePresets()
-      expect(presets).toHaveLength(1)
+      expect(presets).toHaveLength(2)
       expect(presets[0]).toBeInstanceOf(RectangularPreset)
+      expect(presets[1]).toBeInstanceOf(LShapedPreset)
     })
   })
 
