@@ -99,8 +99,8 @@ function RectangularPresetDialogContent({
 
   // Form state with defaults from config store
   const [config, setConfig] = useState<RectangularPresetConfig>(() => ({
-    width: createLength(4000), // 4m default inside width
-    length: createLength(6000), // 6m default inside length
+    width: createLength(10000), // 10m default inside width
+    length: createLength(7000), // 7m default inside length
     thickness: createLength(440), // 44cm default
     constructionMethodId: configStore.getDefaultPerimeterMethodId(),
     baseRingBeamMethodId: configStore.getDefaultBaseRingBeamMethodId(),

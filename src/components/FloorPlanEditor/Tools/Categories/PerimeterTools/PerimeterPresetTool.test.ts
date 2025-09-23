@@ -22,7 +22,6 @@ describe('PerimeterPresetTool', () => {
     it('should start with no active preset', () => {
       expect(tool.state.activePreset).toBeNull()
       expect(tool.state.presetConfig).toBeNull()
-      expect(tool.state.isPlacing).toBe(false)
     })
 
     it('should have available presets', () => {
@@ -46,7 +45,6 @@ describe('PerimeterPresetTool', () => {
 
       expect(tool.state.activePreset).toBe(rectangularPreset)
       expect(tool.state.presetConfig).toBe(config)
-      expect(tool.state.isPlacing).toBe(true)
     })
 
     it('should clear active preset', () => {
@@ -55,7 +53,6 @@ describe('PerimeterPresetTool', () => {
 
       expect(tool.state.activePreset).toBeNull()
       expect(tool.state.presetConfig).toBeNull()
-      expect(tool.state.isPlacing).toBe(false)
       expect(tool.state.previewPosition).toBeNull()
       expect(tool.state.previewPolygon).toBeNull()
     })
@@ -144,7 +141,6 @@ describe('PerimeterPresetTool', () => {
       tool.setActivePreset(rectangularPreset, config)
       tool.onActivate()
 
-      expect(tool.state.isPlacing).toBe(false)
       expect(tool.state.previewPosition).toBeNull()
       expect(tool.state.previewPolygon).toBeNull()
       // Note: activePreset and presetConfig should remain for reuse
@@ -164,7 +160,6 @@ describe('PerimeterPresetTool', () => {
 
       expect(tool.state.activePreset).toBeNull()
       expect(tool.state.presetConfig).toBeNull()
-      expect(tool.state.isPlacing).toBe(false)
       expect(tool.state.previewPosition).toBeNull()
       expect(tool.state.previewPolygon).toBeNull()
     })

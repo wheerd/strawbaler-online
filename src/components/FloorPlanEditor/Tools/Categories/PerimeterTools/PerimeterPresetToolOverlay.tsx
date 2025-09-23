@@ -18,7 +18,7 @@ export function PerimeterPresetToolOverlay({
   const zoom = useZoom()
 
   // Only render preview when placing and we have a preview polygon
-  if (!state.isPlacing || !state.previewPolygon || !state.presetConfig) {
+  if (!state.previewPolygon || !state.presetConfig) {
     return null
   }
 
@@ -37,17 +37,15 @@ export function PerimeterPresetToolOverlay({
 
   // Calculate outer wall polygon using offsetPolygon helper
   let outerPolygonPoints: number[] | null = null
-  if (state.presetConfig) {
-    try {
-      // Use offsetPolygon to expand the inner polygon by wall thickness
-      const outerPoints = offsetPolygon(polygon.points, config.thickness)
-      if (outerPoints.length > 0) {
-        // Convert to flat array format for Konva Line component and close the polygon
-        outerPolygonPoints = [...outerPoints.flatMap(p => [p[0], p[1]]), outerPoints[0][0], outerPoints[0][1]]
-      }
-    } catch (error) {
-      console.warn('Failed to calculate outer polygon:', error)
+  try {
+    // Use offsetPolygon to expand the inner polygon by wall thickness
+    const outerPoints = offsetPolygon(polygon.points, config.thickness)
+    if (outerPoints.length > 0) {
+      // Convert to flat array format for Konva Line component and close the polygon
+      outerPolygonPoints = [...outerPoints.flatMap(p => [p[0], p[1]]), outerPoints[0][0], outerPoints[0][1]]
     }
+  } catch (error) {
+    console.warn('Failed to calculate outer polygon:', error)
   }
 
   return (
@@ -60,7 +58,7 @@ export function PerimeterPresetToolOverlay({
           strokeWidth={scaledLineWidth}
           dash={scaledDashPattern}
           opacity={0.6}
-          closed={true}
+          closed
           listening={false}
         />
       )}
@@ -74,7 +72,7 @@ export function PerimeterPresetToolOverlay({
         opacity={0.8}
         fill={COLORS.ui.primary}
         fillOpacity={0.1}
-        closed={true}
+        closed
         listening={false}
       />
 

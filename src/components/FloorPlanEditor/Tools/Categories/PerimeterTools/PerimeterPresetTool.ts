@@ -11,7 +11,6 @@ import { PerimeterPresetToolInspector } from '@/components/FloorPlanEditor/Tools
 interface PerimeterPresetToolState {
   activePreset: PerimeterPreset | null
   presetConfig: BasePresetConfig | null
-  isPlacing: boolean
   previewPosition: Vec2 | null
   previewPolygon: Polygon2D | null
 }
@@ -30,7 +29,6 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
   public state: PerimeterPresetToolState = {
     activePreset: null,
     presetConfig: null,
-    isPlacing: false,
     previewPosition: null,
     previewPolygon: null
   }
@@ -51,7 +49,6 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
   public setActivePreset(preset: PerimeterPreset, config: BasePresetConfig): void {
     this.state.activePreset = preset
     this.state.presetConfig = config
-    this.state.isPlacing = true
     this.updatePreview()
     this.triggerRender()
   }
@@ -62,7 +59,6 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
   public clearActivePreset(): void {
     this.state.activePreset = null
     this.state.presetConfig = null
-    this.state.isPlacing = false
     this.state.previewPosition = null
     this.state.previewPolygon = null
     this.triggerRender()
@@ -72,7 +68,8 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
    * Update the preview polygon based on current position and preset
    */
   private updatePreview(): void {
-    if (!this.state.activePreset || !this.state.presetConfig || !this.state.previewPosition) {
+    const previewPos = this.state.previewPosition
+    if (!this.state.activePreset || !this.state.presetConfig || !previewPos) {
       this.state.previewPolygon = null
       return
     }
@@ -82,7 +79,7 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
       const points = this.state.activePreset.getPolygonPoints(this.state.presetConfig)
 
       // Translate points to preview position
-      const translatedPoints = points.map(point => add(point, this.state.previewPosition!))
+      const translatedPoints = points.map(point => add(point, previewPos))
 
       this.state.previewPolygon = { points: translatedPoints }
     } catch (error) {
@@ -92,7 +89,7 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
   }
 
   handlePointerMove(event: CanvasEvent): boolean {
-    if (!this.state.isPlacing) {
+    if (!this.state.presetConfig) {
       return false
     }
 
@@ -103,7 +100,7 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
   }
 
   handlePointerDown(event: CanvasEvent): boolean {
-    if (!this.state.isPlacing || !this.state.activePreset || !this.state.presetConfig) {
+    if (!this.state.activePreset || !this.state.presetConfig) {
       return false
     }
 
@@ -135,10 +132,8 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
         this.state.presetConfig.topRingBeamMethodId
       )
 
-      // Clear the placement state but keep the preset active for multiple placements
-      this.state.previewPosition = null
-      this.state.previewPolygon = null
-      this.triggerRender()
+      // Reset the active preset after successful placement
+      this.clearActivePreset()
     } catch (error) {
       console.error('Failed to create perimeter from preset:', error)
     }
@@ -150,7 +145,7 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
     const keyEvent = event.originalEvent as KeyboardEvent
 
     if (keyEvent.key === 'Escape') {
-      if (this.state.isPlacing) {
+      if (this.state.presetConfig) {
         this.clearActivePreset()
         return true
       }
@@ -162,7 +157,6 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
 
   onActivate(): void {
     // Reset state when tool is activated
-    this.state.isPlacing = false
     this.state.previewPosition = null
     this.state.previewPolygon = null
     this.triggerRender()
@@ -184,7 +178,7 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
    * Check if a preset is currently being placed
    */
   public isPlacing(): boolean {
-    return this.state.isPlacing
+    return this.state.presetConfig !== null
   }
 
   /**
