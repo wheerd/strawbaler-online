@@ -15,6 +15,7 @@ import {
 import { AddOpeningToolOverlay } from './AddOpeningToolOverlay'
 import { round } from '@turf/helpers'
 import { BoxIcon } from '@radix-ui/react-icons'
+import { AddOpeningToolInspector } from './AddOpeningToolInspector'
 
 interface PerimeterWallHit {
   perimeterId: PerimeterId
@@ -58,7 +59,7 @@ export class AddOpeningTool extends BaseTool implements Tool {
   readonly cursor = 'crosshair'
   readonly category = 'walls'
   readonly overlayComponent = AddOpeningToolOverlay
-  readonly inspectorComponent = undefined // OpeningInspector // TODO: Fix interface compatibility
+  readonly inspectorComponent = AddOpeningToolInspector
 
   public state: AddOpeningToolState = {
     openingType: 'door',

@@ -1,5 +1,4 @@
-import type { PerimeterWall } from '@/shared/types/model'
-import type { Perimeter } from '@/shared/types/model'
+import type { PerimeterWall, Perimeter  } from '@/shared/types/model'
 import type { Length } from '@/shared/geometry'
 import type { MaterialId } from '../../materials/material'
 import type { PostConfig } from '../../materials/posts'

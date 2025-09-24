@@ -19,8 +19,7 @@ import {
   type ConstructionIssue,
   type Measurement
 } from '../walls/base'
-import type { Perimeter } from '@/shared/types/model'
-import type { PerimeterCorner } from '@/shared/types/model'
+import type { Perimeter, PerimeterCorner  } from '@/shared/types/model'
 import type { PerimeterId } from '@/shared/types/ids'
 import { vec2 } from 'gl-matrix'
 import { formatLength } from '@/shared/utils/formatLength'

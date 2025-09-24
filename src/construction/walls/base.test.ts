@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { Opening } from '@/shared/types/model'
-import type { PerimeterWall } from '@/shared/types/model'
+import type { Opening, PerimeterWall  } from '@/shared/types/model'
 import type { Length } from '@/shared/geometry'
 import type { LayersConfig } from '@/shared/types/config'
 import { createLength } from '@/shared/geometry'

@@ -171,7 +171,9 @@ export function FloorPlanEditor(): React.JSX.Element {
   if (!isToolSystemReady) {
     return (
       <div className="floor-plan-editor loading">
-        <div>Loading tools...</div>
+        <div className="loading-message">
+          <p>Initializing tool system...</p>
+        </div>
       </div>
     )
   }

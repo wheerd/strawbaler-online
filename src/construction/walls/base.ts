@@ -1,5 +1,4 @@
-import type { PerimeterWall, Perimeter } from '@/shared/types/model'
-import type { Opening, OpeningType } from '@/shared/types/model'
+import type { PerimeterWall, Perimeter, Opening, OpeningType  } from '@/shared/types/model'
 import type { PerimeterWallId, PerimeterCornerId } from '@/shared/types/ids'
 import type { Length, Vec3, Vec2 } from '@/shared/geometry'
 import type { MaterialId } from '../materials/material'
