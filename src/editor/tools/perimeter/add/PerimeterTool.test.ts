@@ -48,11 +48,11 @@ describe('PerimeterTool', () => {
     let updateLengthInputPositionSpy: any
     beforeEach(() => {
       tool = new PerimeterTool()
-      activateLengthInputSpy = vi.spyOn(lengthInputService, 'activateLengthInput').mockImplementation(() => {})
-      deactivateLengthInputSpy = vi.spyOn(lengthInputService, 'deactivateLengthInput').mockImplementation(() => {})
+      activateLengthInputSpy = vi.spyOn(lengthInputService, 'activateLengthInput').mockImplementation(vi.fn())
+      deactivateLengthInputSpy = vi.spyOn(lengthInputService, 'deactivateLengthInput').mockImplementation(vi.fn())
       updateLengthInputPositionSpy = vi
         .spyOn(lengthInputService, 'updateLengthInputPosition')
-        .mockImplementation(() => {})
+        .mockImplementation(vi.fn())
 
       // Mock viewport transformations
       vi.spyOn(useViewportStore, 'useViewportActions').mockReturnValue({

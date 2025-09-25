@@ -16,7 +16,7 @@ export class LengthInputService {
     isValid: true
   }
 
-  private listeners: Set<() => void> = new Set()
+  private listeners = new Set<() => void>()
 
   /**
    * Get the current state of the length input system
