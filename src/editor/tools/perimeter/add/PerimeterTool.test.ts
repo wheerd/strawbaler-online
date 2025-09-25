@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { PerimeterTool } from './PerimeterTool'
-import { perimeterToolGroup } from './index'
+import { perimeterToolGroup } from '@/editor/tools/perimeter'
 
 describe('PerimeterTool', () => {
   it('should have correct tool properties', () => {

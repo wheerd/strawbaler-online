@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AddOpeningTool } from './AddOpeningTool'
-import { createPerimeterToolGroup } from './index'
+import { createPerimeterToolGroup } from '../index'
 import { createLength } from '@/shared/geometry'
 
 describe('AddOpeningTool', () => {

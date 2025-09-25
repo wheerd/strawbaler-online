@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { ToolManager } from './system/ToolManager'
 import { registerAllTools } from './index'
-import { PerimeterTool } from './perimeter/PerimeterTool'
+import { PerimeterTool } from './perimeter/add/PerimeterTool'
 
 describe('Tool Integration', () => {
   let toolManager: ToolManager

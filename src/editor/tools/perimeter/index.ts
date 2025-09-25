@@ -1,12 +1,12 @@
 import type { ToolGroup } from '@/editor/tools/system/types'
-import { PerimeterTool } from './PerimeterTool'
-import { AddOpeningTool } from './AddOpeningTool'
-import { PerimeterPresetTool } from './PerimeterPresetTool'
+import { PerimeterTool } from './add/PerimeterTool'
+import { AddOpeningTool } from './add-opening/AddOpeningTool'
+import { PerimeterPresetTool } from './preset/PerimeterPresetTool'
 
 // Export individual tools
-export { PerimeterTool } from './PerimeterTool'
-export { AddOpeningTool } from './AddOpeningTool'
-export { PerimeterPresetTool } from './PerimeterPresetTool'
+export { PerimeterTool } from './add/PerimeterTool'
+export { AddOpeningTool } from './add-opening/AddOpeningTool'
+export { PerimeterPresetTool } from './preset/PerimeterPresetTool'
 
 // Create and export tool group
 export const createPerimeterToolGroup = (): ToolGroup => ({
