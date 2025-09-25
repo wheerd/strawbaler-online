@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { constructInfillWall } from '../walls/infill/infill'
-import type { InfillConstructionConfig } from '../walls/infill/infill'
+import { constructInfillWall } from '@/construction/walls/infill/infill'
+import type { InfillConstructionConfig } from '@/construction/walls/infill/infill'
 import type { PerimeterWall, Perimeter } from '@/shared/types/model'
 import type { Length } from '@/shared/geometry'
 import type { LayersConfig } from '@/shared/types/config'

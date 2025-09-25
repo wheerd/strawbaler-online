@@ -1,11 +1,11 @@
 import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from './ids'
-import type { RingBeamConfig } from '../../construction/ringBeams/ringBeams'
+import type { RingBeamConfig } from '@/construction/ringBeams/ringBeams'
 import type {
   BaseConstructionConfig,
   InfillConstructionConfig,
   StrawhengeConstructionConfig
-} from '../../construction/walls'
-import type { Length } from '../geometry'
+} from '@/construction/walls'
+import type { Length } from '@/shared/geometry'
 
 export interface RingBeamConstructionMethod {
   id: RingBeamConstructionMethodId

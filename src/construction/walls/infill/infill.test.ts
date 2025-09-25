@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Length, Vec3 } from '@/shared/geometry'
-import type { MaterialId } from '../../materials/material'
-import type { PostConfig } from '../../materials/posts'
-import type { StrawConfig } from '../../materials/straw'
+import type { MaterialId } from '@/construction/materials/material'
+import type { PostConfig } from '@/construction/materials/posts'
+import type { StrawConfig } from '@/construction/materials/straw'
 import {
   createCuboidShape,
   aggregateResults,
@@ -11,10 +11,10 @@ import {
   yieldElement,
   yieldError,
   yieldWarning
-} from '../base'
+} from '@/construction/walls/base'
 import { infillWallArea, type InfillConstructionConfig } from './infill'
-import { constructPost } from '../../materials/posts'
-import { constructStraw } from '../../materials/straw'
+import { constructPost } from '@/construction/materials/posts'
+import { constructStraw } from '@/construction/materials/straw'
 
 // Mock the dependencies
 vi.mock('../../materials/posts', () => ({

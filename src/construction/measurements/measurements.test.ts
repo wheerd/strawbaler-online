@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import type { ConstructionElement, ConstructionSegment } from '../walls/base'
-import { createCuboidShape, createConstructionElement } from '../walls/base'
+import type { ConstructionElement, ConstructionSegment } from '@/construction/walls/base'
+import { createCuboidShape, createConstructionElement } from '@/construction/walls/base'
 import {
   calculatePostSpacingMeasurements,
   calculateOpeningMeasurements,

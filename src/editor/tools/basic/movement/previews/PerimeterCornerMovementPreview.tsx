@@ -1,8 +1,11 @@
 import React from 'react'
 import { Group, Circle, Line } from 'react-konva/lib/ReactKonvaCore'
 import { COLORS } from '@/shared/theme/colors'
-import type { MovementPreviewComponentProps } from '../MovementBehavior'
-import type { CornerEntityContext, CornerMovementState } from '../behaviors/PerimeterCornerMovementBehavior'
+import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/MovementBehavior'
+import type {
+  CornerEntityContext,
+  CornerMovementState
+} from '@/editor/tools/basic/movement/behaviors/PerimeterCornerMovementBehavior'
 
 export function PerimeterCornerMovementPreview({
   movementState,

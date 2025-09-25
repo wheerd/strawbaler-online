@@ -9,7 +9,7 @@ import {
   yieldElement,
   yieldWarning,
   yieldError
-} from '../walls/base'
+} from '@/construction/walls/base'
 
 export interface BasePostConfig {
   type: 'full' | 'double'

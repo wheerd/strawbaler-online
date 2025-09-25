@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { constructFullRingBeam, type FullRingBeamConfig } from './ringBeams'
 import { createVec2, createLength, polygonIsClockwise } from '@/shared/geometry'
-import type { PerimeterCorner, Perimeter  } from '@/shared/types/model'
+import type { PerimeterCorner, Perimeter } from '@/shared/types/model'
 import type { PerimeterId } from '@/shared/types/ids'
-import type { MaterialId, ResolveMaterialFunction } from '../materials/material'
-import { type ConstructionElementId } from '../walls/base'
-import * as base from '../walls/base'
+import type { MaterialId, ResolveMaterialFunction } from '@/construction/materials/material'
+import { type ConstructionElementId } from '@/construction/walls/base'
+import * as base from '@/construction/walls/base'
 
 vi.mock('../walls/base', async () => {
   const original = await vi.importActual('../walls/base')

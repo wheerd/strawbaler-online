@@ -3,7 +3,7 @@ import type Konva from 'konva'
 import type { StoreActions } from '@/building/store'
 import type { StoreyId, EntityId, SelectableId } from '@/shared/types/ids'
 import type React from 'react'
-import type { EntityHitResult } from '../../canvas/services/EntityHitTestService'
+import type { EntityHitResult } from '@/editor/canvas/services/EntityHitTestService'
 import type { IconProps } from '@radix-ui/react-icons/dist/types'
 
 export interface BaseTool {

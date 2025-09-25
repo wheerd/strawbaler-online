@@ -1,9 +1,13 @@
-import type { PerimeterWall, Perimeter  } from '@/shared/types/model'
+import type { PerimeterWall, Perimeter } from '@/shared/types/model'
 import type { Length } from '@/shared/geometry'
-import type { MaterialId } from '../../materials/material'
-import type { PostConfig } from '../../materials/posts'
-import type { InfillConstructionConfig } from '../infill/infill'
-import type { BaseConstructionConfig, PerimeterWallConstructionMethod, WallConstructionPlan } from '../base'
+import type { MaterialId } from '@/construction/materials/material'
+import type { PostConfig } from '@/construction/materials/posts'
+import type { InfillConstructionConfig } from '@/construction/walls/infill/infill'
+import type {
+  BaseConstructionConfig,
+  PerimeterWallConstructionMethod,
+  WallConstructionPlan
+} from '@/construction/walls/base'
 
 export interface ModuleConfig {
   width: Length // Default: 920mm

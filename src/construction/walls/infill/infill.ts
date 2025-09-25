@@ -1,6 +1,6 @@
 import type { PerimeterWall, Perimeter } from '@/shared/types/model'
 import type { Length, Vec3 } from '@/shared/geometry'
-import { constructPost, type PostConfig } from '../../materials/posts'
+import { constructPost, type PostConfig } from '@/construction/materials/posts'
 import type {
   BaseConstructionConfig,
   ConstructionElementId,
@@ -11,7 +11,7 @@ import type {
   PerimeterWallConstructionMethod,
   WallConstructionPlan,
   WallConstructionSegment
-} from '../base'
+} from '@/construction/walls/base'
 import {
   segmentWall,
   createConstructionElementId,
@@ -19,13 +19,16 @@ import {
   yieldError,
   yieldWarning,
   yieldAndCollectElementIds
-} from '../base'
-import { constructOpening } from '../../openings/openings'
-import { resolveDefaultMaterial } from '../../materials/material'
-import type { ResolveMaterialFunction } from '../../materials/material'
-import { constructStraw } from '../../materials/straw'
-import { calculatePostSpacingMeasurements, calculateOpeningSpacingMeasurements } from '../../measurements/measurements'
-import { calculateWallCornerInfo, calculateWallConstructionLength } from '../corners/corners'
+} from '@/construction/walls/base'
+import { constructOpening } from '@/construction/openings/openings'
+import { resolveDefaultMaterial } from '@/construction/materials/material'
+import type { ResolveMaterialFunction } from '@/construction/materials/material'
+import { constructStraw } from '@/construction/materials/straw'
+import {
+  calculatePostSpacingMeasurements,
+  calculateOpeningSpacingMeasurements
+} from '@/construction/measurements/measurements'
+import { calculateWallCornerInfo, calculateWallConstructionLength } from '@/construction/walls/corners/corners'
 import type { LayersConfig } from '@/shared/types/config'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {

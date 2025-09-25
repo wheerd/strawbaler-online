@@ -3,7 +3,7 @@ import type { OpeningId } from '@/shared/types/ids'
 import type { Length, Vec3 } from '@/shared/geometry'
 import { createVec2 } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
-import type { MaterialId, ResolveMaterialFunction } from '../materials/material'
+import type { MaterialId, ResolveMaterialFunction } from '@/construction/materials/material'
 import {
   createCuboidShape,
   createConstructionElement,
@@ -14,9 +14,9 @@ import {
   type ConstructionElement,
   type ConstructionResult,
   type WallSegment3D
-} from '../walls/base'
-import type { InfillConstructionConfig } from '../walls/infill/infill'
-import { infillWallArea } from '../walls/infill/infill'
+} from '@/construction/walls/base'
+import type { InfillConstructionConfig } from '@/construction/walls/infill/infill'
+import { infillWallArea } from '@/construction/walls/infill/infill'
 
 export interface OpeningConstructionConfig {
   padding: Length // Default: 15mm

@@ -1,4 +1,8 @@
-import type { MovementBehavior, MovementContext, PointerMovementState } from '../MovementBehavior'
+import type {
+  MovementBehavior,
+  MovementContext,
+  PointerMovementState
+} from '@/editor/tools/basic/movement/MovementBehavior'
 import type { SelectableId } from '@/shared/types/ids'
 import type { StoreActions } from '@/building/store/types'
 import type { Perimeter } from '@/shared/types/model'
@@ -6,7 +10,7 @@ import type { Vec2 } from '@/shared/geometry'
 import { add } from '@/shared/geometry'
 import { arePolygonsIntersecting } from '@/shared/geometry/polygon'
 import { isPerimeterId } from '@/shared/types/ids'
-import { PerimeterMovementPreview } from '../previews/PerimeterMovementPreview'
+import { PerimeterMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterMovementPreview'
 
 export interface PerimeterMovementState {
   offset: Vec2 // Just the movement delta

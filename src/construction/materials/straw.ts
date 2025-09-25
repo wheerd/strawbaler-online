@@ -7,7 +7,7 @@ import {
   yieldError,
   yieldWarning,
   type ConstructionResult
-} from '../walls/base'
+} from '@/construction/walls/base'
 import { vec3 } from 'gl-matrix'
 
 export interface StrawConfig {

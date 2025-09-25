@@ -3,7 +3,7 @@ import { FitToViewTool } from './FitToViewTool'
 import { getModelActions } from '@/building/store'
 import { createVec2 } from '@/shared/geometry/basic'
 import type { Perimeter } from '@/shared/types/model'
-import type { ToolContext } from '../../system/types'
+import type { ToolContext } from '@/editor/tools/system/types'
 import type { StoreyId } from '@/shared/types/ids'
 
 // Mock the store hooks

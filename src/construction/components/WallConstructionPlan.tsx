@@ -12,8 +12,8 @@ import {
 } from '@/construction/walls'
 import { boundsFromPoints, createVec2, type Bounds2D, type Vec2 } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
-import { SvgMeasurementIndicator } from './SvgMeasurementIndicator'
-import { SVGViewport } from '../../shared/components/SVGViewport'
+import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
+import { SVGViewport } from '@/shared/components/SVGViewport'
 import { convertConstructionToSvg, convertPointToSvg, type ViewType } from '@/shared/utils/constructionCoordinates'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 

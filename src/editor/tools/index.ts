@@ -4,8 +4,8 @@ import { perimeterToolGroup } from './perimeter'
 
 // Export tool system components
 export { ToolContextProvider } from './system/ToolContext'
-export { MainToolbar } from '../toolbar/MainToolbar'
-export { PropertiesPanel } from '../properties/PropertiesPanel'
+export { MainToolbar } from '@/editor/toolbar/MainToolbar'
+export { PropertiesPanel } from '@/editor/properties/PropertiesPanel'
 
 // Export tool system types and hooks
 export type { Tool, ToolGroup } from './system/types'

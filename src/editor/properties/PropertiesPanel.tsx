@@ -1,11 +1,11 @@
 import { useCurrentSelection, useSelectionPath } from '@/editor/hooks/useSelectionStore'
 import { useActiveTool } from '@/editor/tools/system/ToolContext'
 import {
-  OuterWallInspector,
+  PerimeterInspector,
   PerimeterWallInspector,
   PerimeterCornerInspector,
   OpeningInspector
-} from '../../building/components/inspectors'
+} from '@/building/components/inspectors'
 
 import {
   isPerimeterId,
@@ -17,7 +17,9 @@ import {
 } from '@/shared/types/ids'
 import { Box, Flex, Text, Tabs, Callout } from '@radix-ui/themes'
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import { usePropertiesPanel } from '@/building/hooks/usePropertiesPanel'
+import { useModelActions } from '@/building/store'
+import { useEffect, useState } from 'react'
+import { getEntityDisplayName } from '@/shared/utils/entityDisplay'
 
 export function PropertiesPanel(): React.JSX.Element {
   const selectedId = useCurrentSelection()
@@ -66,7 +68,7 @@ export function PropertiesPanel(): React.JSX.Element {
             )}
 
             {/* Perimeter entities */}
-            {selectedId && isPerimeterId(selectedId) && <OuterWallInspector key={selectedId} selectedId={selectedId} />}
+            {selectedId && isPerimeterId(selectedId) && <PerimeterInspector key={selectedId} selectedId={selectedId} />}
 
             {selectedId && isPerimeterWallId(selectedId) && (
               <PerimeterWallInspector
@@ -129,4 +131,59 @@ export function PropertiesPanel(): React.JSX.Element {
       </Tabs.Root>
     </Box>
   )
+}
+
+export type PropertiesPanelTab = 'selection' | 'tool'
+
+interface UsePropertiesPanelReturn {
+  activeTab: PropertiesPanelTab
+  setActiveTab: (tab: PropertiesPanelTab) => void
+  selectionTabEnabled: boolean
+  toolTabEnabled: boolean
+  selectionTabLabel: string
+  toolTabLabel: string
+  selectionTabIcon: string
+  toolTabIcon: string
+}
+
+export function usePropertiesPanel(): UsePropertiesPanelReturn {
+  const selectedId = useCurrentSelection()
+  const selectionPath = useSelectionPath()
+  const activeTool = useActiveTool()
+  const modelActions = useModelActions()
+
+  const [activeTab, setActiveTab] = useState<PropertiesPanelTab>('selection')
+
+  // Determine tab states
+  const selectionTabEnabled = selectedId !== null
+  const toolTabEnabled = activeTool?.inspectorComponent !== undefined
+
+  // Auto-switch to tool tab when a tool with inspector is activated
+  useEffect(() => {
+    if (toolTabEnabled && activeTool) {
+      setActiveTab('tool')
+    } else if (selectionTabEnabled) {
+      setActiveTab('selection')
+    }
+  }, [toolTabEnabled, selectionTabEnabled, activeTool])
+
+  // Generate tab labels
+  const entityDisplayName = getEntityDisplayName(selectionPath, selectedId, modelActions)
+  const selectionTabLabel = entityDisplayName
+  const toolTabLabel = activeTool?.name || 'Tool'
+
+  // Tab icons
+  const selectionTabIcon = '↖' // Select tool icon
+  const toolTabIcon = activeTool?.icon || '🔧'
+
+  return {
+    activeTab,
+    setActiveTab,
+    selectionTabEnabled,
+    toolTabEnabled,
+    selectionTabLabel,
+    toolTabLabel,
+    selectionTabIcon,
+    toolTabIcon
+  }
 }

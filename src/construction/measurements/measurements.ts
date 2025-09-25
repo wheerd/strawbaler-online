@@ -1,8 +1,8 @@
 import type { Length } from '@/shared/geometry'
 import { createVec2 } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
-import type { Measurement, ConstructionElement, ConstructionSegment } from '../walls/base'
-import { getElementPosition, getElementSize } from '../walls/base'
+import type { Measurement, ConstructionElement, ConstructionSegment } from '@/construction/walls/base'
+import { getElementPosition, getElementSize } from '@/construction/walls/base'
 
 export type MeasurementType =
   | 'post-spacing'

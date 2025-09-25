@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { PerimeterWall, Opening , Perimeter  } from '@/shared/types/model'
+import type { PerimeterWall, Opening, Perimeter } from '@/shared/types/model'
 import type { Length } from '@/shared/geometry'
 import type { LayersConfig } from '@/shared/types/config'
 import {
@@ -10,7 +10,7 @@ import {
   createPerimeterConstructionMethodId
 } from '@/shared/types/ids'
 import { constructInfillWall, type InfillConstructionConfig } from './infill'
-import { createMaterialId } from '../../materials/material'
+import { createMaterialId } from '@/construction/materials/material'
 import { createVec2, createLength } from '@/shared/geometry'
 
 const createTestWall = (overrides: Partial<PerimeterWall> = {}): PerimeterWall => ({

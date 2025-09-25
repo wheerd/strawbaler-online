@@ -1,7 +1,7 @@
 import type { ToolOverlayComponentProps } from '@/editor/tools/system/types'
 import type { MoveTool } from './MoveTool'
 import { Group } from 'react-konva/lib/ReactKonvaCore'
-import { useReactiveTool } from '../../system/hooks/useReactiveTool'
+import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import { SnappingLines } from '@/editor/overlays/SnappingLines'
 
 export function MoveToolOverlay({ tool }: ToolOverlayComponentProps<MoveTool>) {

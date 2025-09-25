@@ -3,16 +3,16 @@ import type { Opening } from '@/shared/types/model'
 import type { Length, Vec3 } from '@/shared/geometry'
 import { createOpeningId } from '@/shared/types/ids'
 import { constructOpeningFrame, constructOpening, type OpeningConstructionConfig } from './openings'
-import type { InfillConstructionConfig } from '../walls/infill/infill'
-import { infillWallArea } from '../walls/infill/infill'
-import { createMaterialId, resolveDefaultMaterial } from '../materials/material'
+import type { InfillConstructionConfig } from '@/construction/walls/infill/infill'
+import { infillWallArea } from '@/construction/walls/infill/infill'
+import { createMaterialId, resolveDefaultMaterial } from '@/construction/materials/material'
 import {
   createConstructionElement,
   aggregateResults,
   yieldElement,
   type ConstructionResult,
   type WallSegment3D
-} from '../walls/base'
+} from '@/construction/walls/base'
 
 // Mock the infill module
 vi.mock('../walls/infill/infill', () => ({

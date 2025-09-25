@@ -11,15 +11,15 @@ import {
   type Polygon2D,
   type Vec3
 } from '@/shared/geometry'
-import type { MaterialId, ResolveMaterialFunction } from '../materials/material'
+import type { MaterialId, ResolveMaterialFunction } from '@/construction/materials/material'
 import {
   createConstructionElement,
   createCutCuboidShape,
   type ConstructionElement,
   type ConstructionIssue,
   type Measurement
-} from '../walls/base'
-import type { Perimeter, PerimeterCorner  } from '@/shared/types/model'
+} from '@/construction/walls/base'
+import type { Perimeter, PerimeterCorner } from '@/shared/types/model'
 import type { PerimeterId } from '@/shared/types/ids'
 import { vec2 } from 'gl-matrix'
 import { formatLength } from '@/shared/utils/formatLength'

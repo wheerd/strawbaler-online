@@ -2,8 +2,11 @@ import React from 'react'
 import { Group, Line, Circle } from 'react-konva/lib/ReactKonvaCore'
 import { COLORS } from '@/shared/theme/colors'
 import { midpoint, add } from '@/shared/geometry'
-import type { MovementPreviewComponentProps } from '../MovementBehavior'
-import type { PerimeterWallEntityContext, PerimeterWallMovementState } from '../behaviors/PerimeterWallMovementBehavior'
+import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/MovementBehavior'
+import type {
+  PerimeterWallEntityContext,
+  PerimeterWallMovementState
+} from '@/editor/tools/basic/movement/behaviors/PerimeterWallMovementBehavior'
 
 export function PerimeterWallMovementPreview({
   movementState,

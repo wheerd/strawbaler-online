@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import { Loading } from '../shared/components/Loading'
+import { Loading } from '@/shared/components/Loading'
 
 const FloorPlanEditor = React.lazy(
   async () =>

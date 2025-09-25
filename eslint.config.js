@@ -15,10 +15,12 @@ export default defineConfig(
   eslintConfigPrettier, // This disables all formatting-related ESLint rules
   {
     rules: {
-      // Keep non-formatting rules that don't conflict with Prettier
-      // Remove stylistic rules that Prettier handles
-
-      // TypeScript-specific rules for better type safety
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: ['^(?!\\.\\/)((?!.)[sS])*) ?$', '../.*']
+        }
+      ],
       '@typescript-eslint/no-explicit-any': 'error'
     }
   },

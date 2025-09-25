@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { MoveTool } from './MoveTool'
-import type { CanvasEvent } from '../../system/types'
+import type { CanvasEvent } from '@/editor/tools/system/types'
 
 describe('MoveTool', () => {
   const createMockKeydownEvent = (key: string): CanvasEvent => ({

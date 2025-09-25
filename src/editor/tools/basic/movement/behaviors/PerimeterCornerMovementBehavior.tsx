@@ -1,4 +1,8 @@
-import type { MovementBehavior, MovementContext, PointerMovementState } from '../MovementBehavior'
+import type {
+  MovementBehavior,
+  MovementContext,
+  PointerMovementState
+} from '@/editor/tools/basic/movement/MovementBehavior'
 import type { SelectableId } from '@/shared/types/ids'
 import type { StoreActions } from '@/building/store/types'
 import type { PerimeterCorner, Perimeter } from '@/shared/types/model'
@@ -6,7 +10,7 @@ import type { LineSegment2D, Vec2 } from '@/shared/geometry'
 import type { SnappingContext, SnapResult } from '@/editor/services/snapping/types'
 import { add, wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
 import { isPerimeterId, isPerimeterCornerId } from '@/shared/types/ids'
-import { PerimeterCornerMovementPreview } from '../previews/PerimeterCornerMovementPreview'
+import { PerimeterCornerMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterCornerMovementPreview'
 
 // Corner movement needs access to the wall to update the boundary
 export interface CornerEntityContext {
