@@ -10,7 +10,7 @@ import {
   type PerimeterId,
   type StoreyId,
   createPerimeterConstructionMethodId
-} from '@/shared/types/ids'
+} from '@/building/model/ids'
 import { createLength, createVec2, type Length, type Polygon2D } from '@/shared/geometry'
 
 // Mock Zustand following the official testing guide

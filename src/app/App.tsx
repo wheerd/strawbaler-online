@@ -3,7 +3,7 @@ import { Loading } from '@/shared/components/Loading'
 
 const FloorPlanEditor = React.lazy(
   async () =>
-    await import('../editor/FloorPlanEditor').then(module => ({
+    await import('@/editor/FloorPlanEditor').then(module => ({
       default: module.FloorPlanEditor
     }))
 )

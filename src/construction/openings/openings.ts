@@ -1,5 +1,5 @@
-import type { Opening } from '@/shared/types/model'
-import type { OpeningId } from '@/shared/types/ids'
+import type { Opening } from '@/building/model/model'
+import type { OpeningId } from '@/building/model/ids'
 import type { Length, Vec3 } from '@/shared/geometry'
 import { createVec2 } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'

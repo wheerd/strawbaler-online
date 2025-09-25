@@ -2,7 +2,7 @@ import type { Tool, CanvasEvent, ToolContext } from '@/editor/tools/system/types
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { Vec2, Length } from '@/shared/geometry'
 import { createLength, createVec2, distance, projectPointOntoLine, lineFromSegment } from '@/shared/geometry'
-import type { OpeningType, PerimeterWall } from '@/shared/types/model'
+import type { OpeningType, PerimeterWall } from '@/building/model/model'
 import {
   type PerimeterId,
   type PerimeterWallId,
@@ -10,7 +10,7 @@ import {
   type EntityType,
   isPerimeterId,
   isPerimeterWallId
-} from '@/shared/types/ids'
+} from '@/building/model/ids'
 // import { OpeningInspector } from '@/building/components/inspectors/OpeningInspector' // TODO: Fix interface compatibility
 import { AddOpeningToolOverlay } from './AddOpeningToolOverlay'
 import { round } from '@turf/helpers'

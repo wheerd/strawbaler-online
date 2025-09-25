@@ -6,8 +6,8 @@ import { useModelActions, usePerimeterById } from '@/building/store'
 import { createLength } from '@/shared/geometry'
 import { useDebouncedNumericInput } from '@/shared/hooks/useDebouncedInput'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
-import type { PerimeterWallId, PerimeterId, OpeningId } from '@/shared/types/ids'
-import type { OpeningType } from '@/shared/types/model'
+import type { PerimeterWallId, PerimeterId, OpeningId } from '@/building/model/ids'
+import type { OpeningType } from '@/building/model/model'
 
 interface OpeningInspectorProps {
   perimeterId: PerimeterId

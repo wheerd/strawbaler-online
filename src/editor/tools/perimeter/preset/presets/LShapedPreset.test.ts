@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { LShapedPreset } from './LShapedPreset'
 import { createLength } from '@/shared/geometry'
-import { createPerimeterConstructionMethodId } from '@/shared/types/ids'
+import { createPerimeterConstructionMethodId } from '@/building/model/ids'
 import type { LShapedPresetConfig } from './types'
 
 describe('LShapedPreset', () => {

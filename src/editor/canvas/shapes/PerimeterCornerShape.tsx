@@ -1,5 +1,5 @@
 import { Group, Line, Arrow, Circle } from 'react-konva/lib/ReactKonvaCore'
-import type { PerimeterCorner, PerimeterWall } from '@/shared/types/model'
+import type { PerimeterCorner, PerimeterWall } from '@/building/model/model'
 import { add, midpoint, scale } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'

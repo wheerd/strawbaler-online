@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { Stage } from 'react-konva/lib/ReactKonvaCore'
 import { PerimeterLayer } from './PerimeterLayer'
 import { usePerimetersOfActiveStorey } from '@/building/store'
-import type { PerimeterId, StoreyId } from '@/shared/types/ids'
+import type { PerimeterId, StoreyId } from '@/building/model/ids'
 
 // Mock the model store hook
 vi.mock('@/building/store', () => ({

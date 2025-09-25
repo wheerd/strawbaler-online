@@ -5,7 +5,7 @@ import { useDebouncedNumericInput } from '@/shared/hooks/useDebouncedInput'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import type { PerimeterTool } from './PerimeterTool'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
-import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/shared/types/ids'
+import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/building/model/ids'
 import { useRingBeamConstructionMethods, usePerimeterConstructionMethods } from '@/construction/config/store'
 
 export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterTool>): React.JSX.Element {

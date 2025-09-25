@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand'
-import type { Perimeter, PerimeterWall, Opening, PerimeterCorner } from '@/shared/types/model'
+import type { Perimeter, PerimeterWall, Opening, PerimeterCorner } from '@/building/model/model'
 import type {
   StoreyId,
   PerimeterId,
@@ -8,9 +8,14 @@ import type {
   OpeningId,
   RingBeamConstructionMethodId,
   PerimeterConstructionMethodId
-} from '@/shared/types/ids'
+} from '@/building/model/ids'
 import type { Length, Polygon2D, Line2D, Vec2 } from '@/shared/geometry'
-import { createPerimeterId, createPerimeterWallId, createPerimeterCornerId, createOpeningId } from '@/shared/types/ids'
+import {
+  createPerimeterId,
+  createPerimeterWallId,
+  createPerimeterCornerId,
+  createOpeningId
+} from '@/building/model/ids'
 
 import {
   createLength,

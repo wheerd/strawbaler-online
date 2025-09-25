@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import type { PerimeterWall, Opening, Perimeter } from '@/shared/types/model'
+import type { PerimeterWall, Opening, Perimeter } from '@/building/model/model'
 import type { Length } from '@/shared/geometry'
-import type { LayersConfig } from '@/shared/types/config'
+import type { LayersConfig } from '@/construction/config/types'
 import {
   createOpeningId,
   createPerimeterWallId,
   createPerimeterId,
   createPerimeterCornerId,
   createPerimeterConstructionMethodId
-} from '@/shared/types/ids'
+} from '@/building/model/ids'
 import { constructInfillWall, type InfillConstructionConfig } from './infill'
 import { createMaterialId } from '@/construction/materials/material'
 import { createVec2, createLength } from '@/shared/geometry'

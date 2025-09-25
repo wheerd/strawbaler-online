@@ -54,7 +54,7 @@ export default defineConfig({
           ],
 
           // Model chunk
-          model: ['./src/building/store', './src/shared/types', './src/shared/geometry']
+          model: ['./src/building/store', './src/building/model', './src/shared/geometry']
         }
       }
     },

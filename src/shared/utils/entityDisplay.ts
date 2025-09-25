@@ -1,6 +1,6 @@
-import type { SelectableId } from '@/shared/types/ids'
-import { isPerimeterId, isPerimeterWallId, isPerimeterCornerId, isOpeningId } from '@/shared/types/ids'
-import type { Perimeter } from '@/shared/types/model'
+import type { SelectableId } from '@/building/model/ids'
+import { isPerimeterId, isPerimeterWallId, isPerimeterCornerId, isOpeningId } from '@/building/model/ids'
+import type { Perimeter } from '@/building/model/model'
 import type { StoreActions } from '@/building/store/types'
 
 /**

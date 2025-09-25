@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import { RingBeamConstructionModal } from './RingBeamConstructionModal'
-import { createPerimeterId } from '@/shared/types/ids'
+import { createPerimeterId } from '@/building/model/ids'
 
 // Mock the zustand stores
 vi.mock('@/building/store', () => ({

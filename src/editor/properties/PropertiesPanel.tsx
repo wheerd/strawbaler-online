@@ -14,7 +14,7 @@ import {
   isOpeningId,
   type PerimeterWallId,
   type PerimeterId
-} from '@/shared/types/ids'
+} from '@/building/model/ids'
 import { Box, Flex, Text, Tabs, Callout } from '@radix-ui/themes'
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { useModelActions } from '@/building/store'

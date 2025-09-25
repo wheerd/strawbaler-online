@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { Box, Flex, Text, Button, Heading, Callout, DataList, Separator } from '@radix-ui/themes'
 import { useModelActions, usePerimeterById } from '@/building/store'
-import type { PerimeterCornerId, PerimeterId } from '@/shared/types/ids'
+import type { PerimeterCornerId, PerimeterId } from '@/building/model/ids'
 import { useConfigStore } from '@/construction/config/store'
 
 interface PerimeterCornerInspectorProps {

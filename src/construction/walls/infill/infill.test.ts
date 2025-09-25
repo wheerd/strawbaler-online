@@ -16,11 +16,11 @@ import { constructPost } from '@/construction/materials/posts'
 import { constructStraw } from '@/construction/materials/straw'
 
 // Mock the dependencies
-vi.mock('../../materials/posts', () => ({
+vi.mock('@/construction/materials/posts', () => ({
   constructPost: vi.fn()
 }))
 
-vi.mock('../../materials/straw', () => ({
+vi.mock('@/construction/materials/straw', () => ({
   constructStraw: vi.fn()
 }))
 

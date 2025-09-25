@@ -15,8 +15,8 @@ import type { MaterialId, ResolveMaterialFunction } from '@/construction/materia
 import { createConstructionElement, createCutCuboidShape, type ConstructionElement } from '@/construction/elements'
 import type { ConstructionIssue } from '@/construction/results'
 import type { Measurement } from '@/construction/measurements'
-import type { Perimeter, PerimeterCorner } from '@/shared/types/model'
-import type { PerimeterId } from '@/shared/types/ids'
+import type { Perimeter, PerimeterCorner } from '@/building/model/model'
+import type { PerimeterId } from '@/building/model/ids'
 import { vec2 } from 'gl-matrix'
 import { formatLength } from '@/shared/utils/formatLength'
 

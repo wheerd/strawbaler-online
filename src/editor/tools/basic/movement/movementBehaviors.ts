@@ -1,4 +1,4 @@
-import type { EntityType } from '@/shared/types/ids'
+import type { EntityType } from '@/building/model/ids'
 import type { MovementBehavior } from './MovementBehavior'
 import { PerimeterMovementBehavior } from './behaviors/PerimeterMovementBehavior'
 import { PerimeterWallMovementBehavior } from './behaviors/PerimeterWallMovementBehavior'

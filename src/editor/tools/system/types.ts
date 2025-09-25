@@ -1,7 +1,7 @@
 import type { Bounds2D, Vec2 } from '@/shared/geometry'
 import type Konva from 'konva'
 import type { StoreActions } from '@/building/store'
-import type { StoreyId, EntityId, SelectableId } from '@/shared/types/ids'
+import type { StoreyId, EntityId, SelectableId } from '@/building/model/ids'
 import type React from 'react'
 import type { EntityHitResult } from '@/editor/canvas/services/EntityHitTestService'
 import type { IconProps } from '@radix-ui/react-icons/dist/types'

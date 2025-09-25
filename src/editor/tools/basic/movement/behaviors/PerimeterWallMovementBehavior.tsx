@@ -3,12 +3,12 @@ import type {
   MovementContext,
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
-import type { SelectableId } from '@/shared/types/ids'
+import type { SelectableId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import type { PerimeterWall, Perimeter } from '@/shared/types/model'
+import type { PerimeterWall, Perimeter } from '@/building/model/model'
 import { add, dot, scale, type Vec2 } from '@/shared/geometry'
 import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
-import { isPerimeterId, isPerimeterWallId } from '@/shared/types/ids'
+import { isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
 import { PerimeterWallMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterWallMovementPreview'
 
 // Wall wall movement needs access to the wall to update the boundary

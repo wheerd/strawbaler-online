@@ -1,6 +1,6 @@
 import type Konva from 'konva'
 import type { Vec2 } from '@/shared/geometry'
-import type { SelectableId, EntityType } from '@/shared/types/ids'
+import type { SelectableId, EntityType } from '@/building/model/ids'
 import { stageReference } from './StageReference'
 
 export interface EntityHitResult {

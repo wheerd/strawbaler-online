@@ -6,9 +6,9 @@ import type {
   PerimeterConstructionMethod,
   PerimeterConstructionConfig,
   LayersConfig
-} from '@/shared/types/config'
-import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/shared/types/ids'
-import { createRingBeamConstructionMethodId, createPerimeterConstructionMethodId } from '@/shared/types/ids'
+} from '@/construction/config/types'
+import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/building/model/ids'
+import { createRingBeamConstructionMethodId, createPerimeterConstructionMethodId } from '@/building/model/ids'
 import type { RingBeamConfig } from '@/construction/walls'
 import { wood360x60, validateRingBeamConfig, strawbale, door, window as windowOpening } from '@/construction/walls'
 import { createLength } from '@/shared/geometry'

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { Opening } from '@/shared/types/model'
+import type { Opening } from '@/building/model/model'
 import type { Length, Vec3 } from '@/shared/geometry'
-import { createOpeningId } from '@/shared/types/ids'
+import { createOpeningId } from '@/building/model/ids'
 import { constructOpeningFrame, constructOpening, type OpeningConstructionConfig } from './openings'
 import type { InfillConstructionConfig } from '@/construction/walls/infill/infill'
 import { infillWallArea } from '@/construction/walls/infill/infill'
@@ -11,7 +11,7 @@ import { aggregateResults, yieldElement, type ConstructionResult } from '@/const
 import type { WallSegment3D } from '@/construction/walls/segmentation'
 
 // Mock the infill module
-vi.mock('../walls/infill/infill', () => ({
+vi.mock('@/construction/walls/infill/infill', () => ({
   infillWallArea: vi.fn()
 }))
 

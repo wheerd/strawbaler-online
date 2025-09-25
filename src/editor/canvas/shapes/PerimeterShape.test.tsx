@@ -10,8 +10,8 @@ import {
   createPerimeterWallId,
   createPerimeterCornerId,
   createPerimeterConstructionMethodId
-} from '@/shared/types/ids'
-import type { Perimeter } from '@/shared/types/model'
+} from '@/building/model/ids'
+import type { Perimeter } from '@/building/model/model'
 
 describe('PerimeterShape', () => {
   const testPerimeter: Perimeter = {

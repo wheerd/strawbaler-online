@@ -1,6 +1,6 @@
-import type { PerimeterWall, Opening } from '@/shared/types/model'
+import type { PerimeterWall, Opening } from '@/building/model/model'
 import type { Length, Vec3 } from '@/shared/geometry'
-import type { LayersConfig } from '@/shared/types/config'
+import type { LayersConfig } from '@/construction/config/types'
 import { formatLength } from '@/shared/utils/formatLength'
 
 export interface WallSegment3D {

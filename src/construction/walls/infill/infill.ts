@@ -1,4 +1,4 @@
-import type { PerimeterWall, Perimeter } from '@/shared/types/model'
+import type { PerimeterWall, Perimeter } from '@/building/model/model'
 import type { Length, Vec3 } from '@/shared/geometry'
 import { constructPost, type PostConfig } from '@/construction/materials/posts'
 import type { ConstructionElementId } from '@/construction/elements'
@@ -23,7 +23,7 @@ import {
   calculateOpeningSpacingMeasurements
 } from '@/construction/measurements/measurements'
 import { calculateWallCornerInfo, calculateWallConstructionLength } from '@/construction/walls/corners/corners'
-import type { LayersConfig } from '@/shared/types/config'
+import type { LayersConfig } from '@/construction/config/types'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {
   type: 'infill'

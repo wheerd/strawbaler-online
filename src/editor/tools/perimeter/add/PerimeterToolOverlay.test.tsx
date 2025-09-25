@@ -4,14 +4,14 @@ import { PerimeterToolOverlay } from './PerimeterToolOverlay'
 import { PerimeterTool } from './PerimeterTool'
 import { createVec2, createLength } from '@/shared/geometry'
 import type { SnapResult } from '@/editor/services/snapping/types'
-import { createPerimeterConstructionMethodId } from '@/shared/types/ids'
+import { createPerimeterConstructionMethodId } from '@/building/model/ids'
 
 // Mock the viewport store
 const mockUseZoom = vi.fn()
 const mockUseStageWidth = vi.fn()
 const mockUseStageHeight = vi.fn()
 
-vi.mock('../../../hooks/useViewportStore', () => ({
+vi.mock('@/editor/hooks/useViewportStore', () => ({
   useZoom: () => mockUseZoom(),
   useStageWidth: () => mockUseStageWidth(),
   useStageHeight: () => mockUseStageHeight()

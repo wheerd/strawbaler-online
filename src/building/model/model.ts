@@ -6,7 +6,7 @@ import type {
   OpeningId,
   RingBeamConstructionMethodId,
   PerimeterConstructionMethodId
-} from '@/shared/types/ids'
+} from '@/building/model/ids'
 import type { Length, LineSegment2D, Vec2 } from '@/shared/geometry'
 
 // Storey level branded type

@@ -1,4 +1,4 @@
-import type { PerimeterWall, PerimeterCorner, Perimeter } from '@/shared/types/model'
+import type { PerimeterWall, PerimeterCorner, Perimeter } from '@/building/model/model'
 import type { Length } from '@/shared/geometry'
 import { distance } from '@/shared/geometry'
 import type { WallCornerInfo } from '@/construction/walls/construction'

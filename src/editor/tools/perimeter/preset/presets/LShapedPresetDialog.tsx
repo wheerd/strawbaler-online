@@ -21,7 +21,7 @@ import {
   useConfigStore
 } from '@/construction/config/store'
 import type { LShapedPresetConfig } from './types'
-import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/shared/types/ids'
+import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/building/model/ids'
 import { formatLength } from '@/shared/utils/formatLength'
 import { LShapedPreset } from './LShapedPreset'
 import { LShape0Icon, LShape90Icon, LShape180Icon, LShape270Icon } from './Icons'

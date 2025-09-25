@@ -1,8 +1,8 @@
 import type { StateCreator } from 'zustand'
-import type { Storey } from '@/shared/types/model'
-import { createStoreyLevel } from '@/shared/types/model'
-import type { StoreyId } from '@/shared/types/ids'
-import { createStoreyId } from '@/shared/types/ids'
+import type { Storey } from '@/building/model/model'
+import { createStoreyLevel } from '@/building/model/model'
+import type { StoreyId } from '@/building/model/ids'
+import { createStoreyId } from '@/building/model/ids'
 import type { Length } from '@/shared/geometry'
 import { createLength } from '@/shared/geometry'
 

@@ -3,7 +3,7 @@ import { vi } from 'vitest'
 import { PerimeterToolInspector } from './PerimeterToolInspector'
 import { PerimeterTool } from './PerimeterTool'
 import { createVec2, createLength } from '@/shared/geometry'
-import { createPerimeterConstructionMethodId } from '@/shared/types/ids'
+import { createPerimeterConstructionMethodId } from '@/building/model/ids'
 
 // Mock the config store
 vi.mock('@/construction/config/store', () => ({

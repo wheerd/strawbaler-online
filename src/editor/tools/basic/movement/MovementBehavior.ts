@@ -1,6 +1,6 @@
 import type { SnapResult } from '@/editor/services/snapping/types'
 import type { Vec2 } from '@/shared/geometry'
-import type { SelectableId } from '@/shared/types/ids'
+import type { SelectableId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import type { SnappingService } from '@/editor/services/snapping/SnappingService'
 import type React from 'react'

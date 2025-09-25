@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import type { SelectableId, EntityId } from '@/shared/types/ids'
+import type { SelectableId, EntityId } from '@/building/model/ids'
 
 interface SelectionState {
   // Simple stack of IDs - parent is always previous item in array

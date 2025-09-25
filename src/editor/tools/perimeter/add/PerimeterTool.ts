@@ -1,6 +1,6 @@
 import type { Tool, CanvasEvent } from '@/editor/tools/system/types'
 import type { Vec2, Polygon2D, LineSegment2D, Length } from '@/shared/geometry'
-import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/shared/types/ids'
+import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/building/model/ids'
 import { useConfigStore } from '@/construction/config/store'
 import {
   createLength,

@@ -3,12 +3,12 @@ import type {
   MovementContext,
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
-import type { SelectableId } from '@/shared/types/ids'
+import type { SelectableId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import type { Opening, PerimeterWall, Perimeter } from '@/shared/types/model'
+import type { Opening, PerimeterWall, Perimeter } from '@/building/model/model'
 import type { Length } from '@/shared/geometry'
 import { add, dot, scale, createLength, subtract } from '@/shared/geometry'
-import { isPerimeterId, isPerimeterWallId, isOpeningId } from '@/shared/types/ids'
+import { isPerimeterId, isPerimeterWallId, isOpeningId } from '@/building/model/ids'
 import { OpeningMovementPreview } from '@/editor/tools/basic/movement/previews/OpeningMovementPreview'
 
 // Opening movement needs access to the wall, wall, and opening

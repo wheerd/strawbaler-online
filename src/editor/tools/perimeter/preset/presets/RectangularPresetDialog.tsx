@@ -9,7 +9,7 @@ import {
   useConfigStore
 } from '@/construction/config/store'
 import type { RectangularPresetConfig } from './types'
-import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/shared/types/ids'
+import type { RingBeamConstructionMethodId, PerimeterConstructionMethodId } from '@/building/model/ids'
 import { formatLength } from '@/shared/utils/formatLength'
 
 interface RectangularPresetDialogProps {

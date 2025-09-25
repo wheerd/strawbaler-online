@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { ChevronUpIcon, ChevronDownIcon, CopyIcon, TrashIcon, HeightIcon, EnterIcon } from '@radix-ui/react-icons'
-import type { Storey } from '@/shared/types/model'
+import type { Storey } from '@/building/model/model'
 import { useModelActions, useActiveStoreyId } from '@/building/store'
 import { defaultStoreyManagementService } from '@/building/store/services/StoreyManagementService'
 import { useDebouncedNumericInput } from '@/shared/hooks/useDebouncedInput'

@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import type { Opening, PerimeterWall } from '@/shared/types/model'
+import type { Opening, PerimeterWall } from '@/building/model/model'
 import type { Length } from '@/shared/geometry'
-import type { LayersConfig } from '@/shared/types/config'
+import type { LayersConfig } from '@/construction/config/types'
 import { createLength } from '@/shared/geometry'
-import { createOpeningId, createPerimeterWallId, createPerimeterConstructionMethodId } from '@/shared/types/ids'
+import { createOpeningId, createPerimeterWallId, createPerimeterConstructionMethodId } from '@/building/model/ids'
 import { segmentWall } from './segmentation'
 
 const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
