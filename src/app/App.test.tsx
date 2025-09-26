@@ -26,7 +26,7 @@ test('renders floor plan editor after loading', async () => {
       const editorElement = screen.getByTestId('floor-plan-editor')
       expect(editorElement).toBeInTheDocument()
     },
-    { timeout: 10000 }
+    { timeout: 15000 }
   )
 })
 

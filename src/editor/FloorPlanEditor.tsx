@@ -2,6 +2,7 @@ import { Box, Flex } from '@radix-ui/themes'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { FloorPlanStage } from './canvas/layers/FloorPlanStage'
+import { AutoSaveIndicator } from './overlays/AutoSaveIndicator'
 import { GridSizeDisplay } from './overlays/GridSizeDisplay'
 import { StoreySelector } from './overlays/StoreySelector'
 import { PropertiesPanel } from './properties/PropertiesPanel'
@@ -159,6 +160,7 @@ function FloorPlanEditorContent(): React.JSX.Element {
           }}
         >
           <FloorPlanStage width={dimensions.width} height={dimensions.height} />
+          <AutoSaveIndicator />
           <GridSizeDisplay />
           <StoreySelector />
           <LengthInputComponent />

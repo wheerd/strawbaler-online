@@ -9,6 +9,7 @@ import { immer } from 'zustand/middleware/immer'
 import type { PerimeterId, StoreyId } from '@/building/model/ids'
 import type { Perimeter, Storey } from '@/building/model/model'
 
+import { setPersistenceState } from './persistenceState'
 import { createPerimetersSlice } from './slices/perimeterSlice'
 import { createStoreysSlice } from './slices/storeysSlice'
 import type { Store, StoreActions } from './types'
@@ -65,7 +66,20 @@ const useModelStore = create<Store>()(
         setItem: debounce(
           1000,
           (name, value) => {
-            localStorage.setItem(name, JSON.stringify(value))
+            setPersistenceState({ isSaving: true, saveError: null })
+            try {
+              localStorage.setItem(name, JSON.stringify(value))
+              setPersistenceState({
+                isSaving: false,
+                lastSaved: new Date(),
+                saveError: null
+              })
+            } catch (error) {
+              setPersistenceState({
+                isSaving: false,
+                saveError: error instanceof Error ? error.message : 'Save failed'
+              })
+            }
           },
           { atBegin: false }
         ),
