@@ -42,6 +42,24 @@ function FloorPlanEditorContent(): React.JSX.Element {
     },
     [] // Stable handler with no dependencies
   )
+  // Handle keyboard shortcuts
+  const handleKeyUp = useCallback(
+    (event: KeyboardEvent) => {
+      // Don't intercept keyboard events when user is typing in input fields
+      const target = event.target as HTMLElement
+      const isInputElement = target.matches('input, select, button, textarea, [contenteditable="true"]')
+
+      if (isInputElement) {
+        return // Let the input handle the event normally
+      }
+
+      // Use ref to get current context without dependency issues
+      if (keyboardShortcutManager.handleKeyUp(event, toolContextRef.current)) {
+        event.preventDefault()
+      }
+    },
+    [] // Stable handler with no dependencies
+  )
 
   // Add keyboard event listener
   useEffect(() => {
@@ -50,6 +68,13 @@ function FloorPlanEditorContent(): React.JSX.Element {
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [handleKeyDown])
+
+  useEffect(() => {
+    document.addEventListener('keyup', handleKeyUp)
+    return () => {
+      document.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [handleKeyUp])
 
   const updateDimensions = useCallback(() => {
     if (containerRef.current != null) {

@@ -1,5 +1,6 @@
 import type { SelectableId } from '@/building/model/ids'
 import { isOpeningId, isPerimeterCornerId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
+import { useCanRedo, useCanUndo, useRedo, useUndo } from '@/building/store'
 
 import type { ShortcutDefinition, Tool, ToolContext } from './types'
 
@@ -51,6 +52,17 @@ export class KeyboardShortcutManager {
     const toolId = this.toolActivationShortcuts.get(key)
     if (toolId) {
       return context.activateTool(toolId)
+    }
+
+    return false
+  }
+
+  handleKeyUp(event: KeyboardEvent, context: ToolContext): boolean {
+    const activeTool = context.getActiveTool()
+    if (activeTool?.handleKeyUp) {
+      if (activeTool.handleKeyUp(event, context)) {
+        return true
+      }
     }
 
     return false
@@ -138,6 +150,25 @@ export class KeyboardShortcutManager {
         priority: 90,
         scope: 'global',
         source: 'builtin:escape'
+      },
+
+      {
+        key: 'Ctrl+Z',
+        label: 'Undo',
+        action: useUndo(),
+        condition: () => useCanUndo(),
+        priority: 90,
+        scope: 'global',
+        source: 'builtin:undo'
+      },
+      {
+        key: 'Ctrl+Y',
+        label: 'Redo',
+        action: useRedo(),
+        condition: () => useCanRedo(),
+        priority: 90,
+        scope: 'global',
+        source: 'builtin:redo'
       }
     ]
   }

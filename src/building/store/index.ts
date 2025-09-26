@@ -1,4 +1,6 @@
+import isDeepEqual from 'fast-deep-equal'
 import { useMemo } from 'react'
+import { throttle } from 'throttle-debounce'
 import { temporal } from 'zundo'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
@@ -40,7 +42,9 @@ const useModelStore = create<Store>()(
     },
     {
       // Undo/redo configuration
-      limit: 50
+      limit: 50,
+      equality: (pastState, currentState) => isDeepEqual(pastState, currentState),
+      handleSet: set => throttle(100, set, { noLeading: true })
     }
   )
 )
