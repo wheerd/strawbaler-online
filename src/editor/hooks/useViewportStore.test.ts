@@ -1,18 +1,19 @@
 import { act, renderHook } from '@testing-library/react'
+
 import {
+  usePanX,
+  usePanY,
+  useStageHeight,
+  useStageWidth,
   useViewportActions,
   useViewportState,
   useZoom,
-  usePanX,
-  usePanY,
-  useStageWidth,
-  useStageHeight,
-  _getViewportStore
+  viewportActions
 } from './useViewportStore'
 
 describe('Viewport Store', () => {
   beforeEach(() => {
-    _getViewportStore().getState().reset()
+    viewportActions().reset()
   })
 
   describe('useViewportState', () => {
