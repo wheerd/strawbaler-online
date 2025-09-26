@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { debounce } from 'throttle-debounce'
 import { temporal } from 'zundo'
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 
 import type { PerimeterId, StoreyId } from '@/building/model/ids'
@@ -12,39 +13,64 @@ import { createPerimetersSlice } from './slices/perimeterSlice'
 import { createStoreysSlice } from './slices/storeysSlice'
 import type { Store, StoreActions } from './types'
 
-// Create the main store with slices and undo/redo
+// Create the main store with persistence, undo/redo, and slices
 const useModelStore = create<Store>()(
-  temporal(
-    (set, get, store) => {
-      const storeysSlice = immer(createStoreysSlice)(set, get, store)
-      const perimetersSlice = immer(createPerimetersSlice)(set, get, store)
+  persist(
+    temporal(
+      (set, get, store) => {
+        const storeysSlice = immer(createStoreysSlice)(set, get, store)
+        const perimetersSlice = immer(createPerimetersSlice)(set, get, store)
 
-      const initialStoreys = storeysSlice.storeys
-      const initialPerimeters = perimetersSlice.perimeters
+        const initialStoreys = storeysSlice.storeys
+        const initialPerimeters = perimetersSlice.perimeters
 
-      return {
-        // Combine state properties
-        ...storeysSlice,
-        ...perimetersSlice,
-        // Merge actions properly
-        actions: {
-          ...storeysSlice.actions,
-          ...perimetersSlice.actions,
-          reset: () => {
-            // Reset both slices to their initial state
-            set({
-              storeys: initialStoreys,
-              perimeters: initialPerimeters
-            })
+        return {
+          // Combine state properties
+          ...storeysSlice,
+          ...perimetersSlice,
+          // Merge actions properly
+          actions: {
+            ...storeysSlice.actions,
+            ...perimetersSlice.actions,
+            reset: () => {
+              // Reset both slices to their initial state
+              set({
+                storeys: initialStoreys,
+                perimeters: initialPerimeters
+              })
+            }
           }
         }
+      },
+      {
+        // Undo/redo configuration
+        limit: 50,
+        equality: (pastState, currentState) => isDeepEqual(pastState, currentState),
+        handleSet: set => debounce(500, set, { atBegin: false })
       }
-    },
+    ),
     {
-      // Undo/redo configuration
-      limit: 50,
-      equality: (pastState, currentState) => isDeepEqual(pastState, currentState),
-      handleSet: set => debounce(500, set, { atBegin: false })
+      // Persistence configuration
+      name: 'strawbaler-model',
+      partialize: state => ({
+        storeys: state.storeys,
+        perimeters: state.perimeters,
+        activeStoreyId: state.activeStoreyId
+      }),
+      storage: {
+        getItem: name => {
+          const item = localStorage.getItem(name)
+          return item ? JSON.parse(item) : null
+        },
+        setItem: debounce(
+          1000,
+          (name, value) => {
+            localStorage.setItem(name, JSON.stringify(value))
+          },
+          { atBegin: false }
+        ),
+        removeItem: name => localStorage.removeItem(name)
+      }
     }
   )
 )
@@ -86,6 +112,11 @@ export const getUndoFunction = (): (() => void) => useModelStore.temporal.getSta
 export const getRedoFunction = (): (() => void) => useModelStore.temporal.getState().redo
 export const getCanUndo = (): boolean => useModelStore.temporal.getState().pastStates.length > 0
 export const getCanRedo = (): boolean => useModelStore.temporal.getState().futureStates.length > 0
+
+// Non-reactive persistence functions for direct access
+export const clearPersistence = (): void => {
+  localStorage.removeItem('strawbaler-model')
+}
 
 // Export types
 export type { StoreActions } from './types'
