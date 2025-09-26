@@ -34,8 +34,8 @@ export interface Tool extends BaseTool {
   handlePointerDown?(event: CanvasEvent): boolean
   handlePointerMove?(event: CanvasEvent): boolean
   handlePointerUp?(event: CanvasEvent): boolean
-  handleKeyDown?(event: CanvasEvent): boolean
-  handleKeyUp?(event: CanvasEvent): boolean
+  handleKeyDown?(event: KeyboardEvent, context: ToolContext): boolean
+  handleKeyUp?(event: KeyboardEvent, context: ToolContext): boolean
 
   // Lifecycle methods
   onActivate?(context?: ToolContext): void

@@ -79,15 +79,17 @@ describe('PerimeterTool', () => {
       ;(tool as any).activateLengthInputForNextSegment()
 
       expect(activateLengthInputSpy).toHaveBeenCalledTimes(1)
-      expect(activateLengthInputSpy).toHaveBeenCalledWith({
-        position: expect.objectContaining({
-          x: expect.any(Number),
-          y: expect.any(Number)
-        }),
-        placeholder: 'Enter length...',
-        onCommit: expect.any(Function),
-        onCancel: expect.any(Function)
-      })
+      expect(activateLengthInputSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          position: expect.objectContaining({
+            x: expect.any(Number),
+            y: expect.any(Number)
+          }),
+          placeholder: 'Enter length...',
+          onCommit: expect.any(Function),
+          onCancel: expect.any(Function)
+        })
+      )
     })
 
     it('should set length override when length is committed', () => {
@@ -114,14 +116,9 @@ describe('PerimeterTool', () => {
 
       // Create mock keyboard event
       const mockKeyboardEvent = new KeyboardEvent('keydown', { key: 'Escape' })
-      const mockCanvasEvent = {
-        originalEvent: mockKeyboardEvent,
-        stageCoordinates: createVec2(0, 0),
-        context: {} as any
-      }
 
       // Call handleKeyDown directly
-      const result = tool.handleKeyDown(mockCanvasEvent)
+      const result = tool.handleKeyDown(mockKeyboardEvent, {} as any)
 
       // Should return true (handled) and clear the override
       expect(result).toBe(true)

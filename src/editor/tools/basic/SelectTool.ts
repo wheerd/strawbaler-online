@@ -1,7 +1,7 @@
 import { CursorArrowIcon } from '@radix-ui/react-icons'
 
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
-import type { CanvasEvent, Tool } from '@/editor/tools/system/types'
+import type { CanvasEvent, Tool, ToolContext } from '@/editor/tools/system/types'
 
 export class SelectTool implements Tool {
   id = 'basic.select'
@@ -52,15 +52,13 @@ export class SelectTool implements Tool {
     }
   }
 
-  handleKeyDown(event: CanvasEvent): boolean {
-    const keyEvent = event.originalEvent as KeyboardEvent
-
-    if (keyEvent.key === 'Escape') {
+  handleKeyDown(event: KeyboardEvent, context: ToolContext): boolean {
+    if (event.key === 'Escape') {
       // Progressive deselection - pop from selection stack
-      const currentSelection = event.context.getCurrentSelection()
+      const currentSelection = context.getCurrentSelection()
 
       if (currentSelection) {
-        event.context.popSelection()
+        context.popSelection()
       }
       return true
     }

@@ -1,7 +1,6 @@
 import type Konva from 'konva'
 
 import type { CanvasEvent, ToolContext } from '@/editor/tools/system/types'
-import { createVec2 } from '@/shared/geometry'
 
 export class CanvasEventDispatcher {
   private toolContext: ToolContext
@@ -34,19 +33,6 @@ export class CanvasEventDispatcher {
       konvaEvent,
       stageCoordinates,
       pointerCoordinates: pointer, // Original pointer coordinates for hit testing
-      context: this.toolContext
-    }
-  }
-
-  // Convert keyboard event to our CanvasEvent format
-  private createKeyboardCanvasEvent(type: 'keydown' | 'keyup', keyboardEvent: KeyboardEvent): CanvasEvent {
-    return {
-      type,
-      originalEvent: keyboardEvent,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      konvaEvent: null as unknown as Konva.KonvaEventObject<any>, // Not applicable for keyboard events
-      stageCoordinates: createVec2(0, 0), // Not applicable for keyboard events
-      pointerCoordinates: undefined, // Not applicable for keyboard events
       context: this.toolContext
     }
   }
@@ -89,28 +75,6 @@ export class CanvasEventDispatcher {
     // Most wheel events should be handled by the default zoom behavior
     // Tools typically don't need to handle wheel events
     return false
-  }
-
-  // Handle keyboard events
-  handleKeyDown(keyboardEvent: KeyboardEvent): boolean {
-    try {
-      const canvasEvent = this.createKeyboardCanvasEvent('keydown', keyboardEvent)
-      return this.handleToolEvent(canvasEvent)
-    } catch (error) {
-      console.error('Error handling key down event:', error)
-      return false
-    }
-  }
-
-  // Handle key up events
-  handleKeyUp(keyboardEvent: KeyboardEvent): boolean {
-    try {
-      const canvasEvent = this.createKeyboardCanvasEvent('keyup', keyboardEvent)
-      return this.handleToolEvent(canvasEvent)
-    } catch (error) {
-      console.error('Error handling key up event:', error)
-      return false
-    }
   }
 
   // Update tool context reference

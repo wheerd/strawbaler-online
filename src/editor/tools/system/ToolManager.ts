@@ -114,10 +114,6 @@ export class ToolManager {
           return tool.handlePointerMove?.(event) ?? false
         case 'pointerup':
           return tool.handlePointerUp?.(event) ?? false
-        case 'keydown':
-          return tool.handleKeyDown?.(event) ?? false
-        case 'keyup':
-          return tool.handleKeyUp?.(event) ?? false
         default:
           return false
       }

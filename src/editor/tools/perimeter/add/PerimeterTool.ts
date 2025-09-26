@@ -8,7 +8,7 @@ import type { LengthInputPosition } from '@/editor/services/length-input'
 import { SnappingService } from '@/editor/services/snapping'
 import type { SnapResult, SnappingContext } from '@/editor/services/snapping/types'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
-import type { CanvasEvent, Tool } from '@/editor/tools/system/types'
+import type { CanvasEvent, Tool, ToolContext } from '@/editor/tools/system/types'
 import type { Length, LineSegment2D, Polygon2D, Vec2 } from '@/shared/geometry'
 import {
   add,
@@ -117,7 +117,7 @@ export class PerimeterTool extends BaseTool implements Tool {
 
   public complete(): void {
     if (this.state.points.length >= 3 && this.state.isClosingLineValid) {
-      this.completePolygon(null)
+      this.completePolygon()
     }
   }
 
@@ -149,7 +149,7 @@ export class PerimeterTool extends BaseTool implements Tool {
       if (this.isSnappingToFirstPoint()) {
         // Only allow closing if it wouldn't create intersections
         if (this.state.isClosingLineValid) {
-          this.completePolygon(event)
+          this.completePolygon(event.context)
         }
         return true
       }
@@ -195,14 +195,12 @@ export class PerimeterTool extends BaseTool implements Tool {
     return true
   }
 
-  handleKeyDown(event: CanvasEvent): boolean {
-    debugger
-    const keyEvent = event.originalEvent as KeyboardEvent
-
-    if (keyEvent.key === 'Escape') {
+  handleKeyDown(event: KeyboardEvent, context: ToolContext): boolean {
+    if (event.key === 'Escape') {
       // First try to clear length override if it exists
       if (this.state.lengthOverride) {
         this.clearLengthOverride()
+        deactivateLengthInput()
         return true
       }
       // Otherwise handle polygon cancellation if we have points
@@ -213,8 +211,8 @@ export class PerimeterTool extends BaseTool implements Tool {
       return false // Bubble up to allow tool cancellation
     }
 
-    if (keyEvent.key === 'Enter' && this.state.points.length >= 3) {
-      this.completePolygon(event)
+    if (event.key === 'Enter' && this.state.points.length >= 3) {
+      this.completePolygon(context)
       return true
     }
 
@@ -264,7 +262,7 @@ export class PerimeterTool extends BaseTool implements Tool {
     deactivateLengthInput()
   }
 
-  private completePolygon(event: CanvasEvent | null): void {
+  private completePolygon(context?: ToolContext): void {
     if (this.state.points.length < 3) return
 
     // Only complete if closing wouldn't create intersections
@@ -278,9 +276,9 @@ export class PerimeterTool extends BaseTool implements Tool {
       polygon = { points: [...this.state.points].reverse() }
     }
 
-    if (event) {
-      const modelStore = event.context.getModelStore()
-      const activeStoreyId = event.context.getActiveStoreyId()
+    if (context) {
+      const modelStore = context.getModelStore()
+      const activeStoreyId = context.getActiveStoreyId()
 
       try {
         if (!this.state.constructionMethodId) {
@@ -390,7 +388,10 @@ export class PerimeterTool extends BaseTool implements Tool {
     activateLengthInput({
       position: this.getLengthInputPosition(),
       placeholder: 'Enter length...',
-      onCommit: this.handleLengthOverrideCommit
+      onCommit: this.handleLengthOverrideCommit,
+      onCancel: () => {
+        this.clearLengthOverride()
+      }
     })
   }
 }

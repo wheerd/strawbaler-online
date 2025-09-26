@@ -1,17 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import type { CanvasEvent } from '@/editor/tools/system/types'
-
 import { MoveTool } from './MoveTool'
 
 describe('MoveTool', () => {
-  const createMockKeydownEvent = (key: string): CanvasEvent => ({
-    type: 'keydown',
-    originalEvent: new KeyboardEvent('keydown', { key }),
-    konvaEvent: {} as any,
-    stageCoordinates: [0, 0],
-    context: {} as any
-  })
+  const createMockKeydownEvent = (key: string) => new KeyboardEvent('keydown', { key })
 
   it('should handle escape key to cancel movement when waiting for movement', () => {
     const tool = new MoveTool()

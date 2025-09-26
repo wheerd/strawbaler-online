@@ -171,9 +171,9 @@ export class MoveTool extends BaseTool implements Tool {
     return true
   }
 
-  handleKeyDown(event: CanvasEvent): boolean {
+  handleKeyDown(event: KeyboardEvent): boolean {
     // Handle escape key to cancel movement
-    if (event.originalEvent instanceof KeyboardEvent && event.originalEvent.key === 'Escape') {
+    if (event.key === 'Escape') {
       if (this.toolState.isWaitingForMovement || this.toolState.isMoving) {
         this.resetState()
         return true // Event consumed

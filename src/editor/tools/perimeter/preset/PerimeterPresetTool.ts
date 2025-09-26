@@ -143,10 +143,8 @@ export class PerimeterPresetTool extends BaseTool implements Tool {
     return true
   }
 
-  handleKeyDown(event: CanvasEvent): boolean {
-    const keyEvent = event.originalEvent as KeyboardEvent
-
-    if (keyEvent.key === 'Escape') {
+  handleKeyDown(event: KeyboardEvent): boolean {
+    if (event.key === 'Escape') {
       if (this.state.presetConfig) {
         this.clearActivePreset()
         return true

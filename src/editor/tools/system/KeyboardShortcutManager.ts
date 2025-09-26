@@ -1,9 +1,7 @@
-import type Konva from 'konva'
-
 import type { SelectableId } from '@/building/model/ids'
 import { isOpeningId, isPerimeterCornerId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
 
-import type { CanvasEvent, ShortcutDefinition, Tool, ToolContext } from './types'
+import type { ShortcutDefinition, Tool, ToolContext } from './types'
 
 export class KeyboardShortcutManager {
   private builtInShortcuts: ShortcutDefinition[] = []
@@ -36,8 +34,7 @@ export class KeyboardShortcutManager {
     // Priority 1: Active tool's handleKeyDown (highest priority)
     const activeTool = context.getActiveTool()
     if (activeTool?.handleKeyDown) {
-      const canvasEvent = this.createCanvasEvent(event, context)
-      if (activeTool.handleKeyDown(canvasEvent)) {
+      if (activeTool.handleKeyDown(event, context)) {
         return true
       }
     }
@@ -198,17 +195,6 @@ export class KeyboardShortcutManager {
     } catch (error) {
       console.error(`Failed to delete entity ${selectedId}:`, error)
       return false
-    }
-  }
-
-  private createCanvasEvent(event: KeyboardEvent, context: ToolContext): CanvasEvent {
-    return {
-      type: 'keydown',
-      originalEvent: event,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      konvaEvent: null as unknown as Konva.KonvaEventObject<any>, // Not needed for keyboard events
-      stageCoordinates: [0, 0], // Not relevant for keyboard
-      context
     }
   }
 

@@ -212,25 +212,6 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
     setTouches([])
   }, [])
 
-  // Handle keyboard events
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent): void => {
-      eventDispatcher.handleKeyDown(e)
-    }
-
-    const handleKeyUp = (e: KeyboardEvent): void => {
-      eventDispatcher.handleKeyUp(e)
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    document.addEventListener('keyup', handleKeyUp)
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.removeEventListener('keyup', handleKeyUp)
-    }
-  }, [eventDispatcher])
-
   return (
     <Stage
       ref={stageRef}
