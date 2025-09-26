@@ -1,6 +1,6 @@
 import type { SelectableId } from '@/building/model/ids'
 import { isOpeningId, isPerimeterCornerId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
-import { useCanRedo, useCanUndo, useRedo, useUndo } from '@/building/store'
+import { getCanRedo, getCanUndo, getRedoFunction, getUndoFunction } from '@/building/store'
 
 import type { ShortcutDefinition, Tool, ToolContext } from './types'
 
@@ -155,8 +155,11 @@ export class KeyboardShortcutManager {
       {
         key: 'Ctrl+Z',
         label: 'Undo',
-        action: useUndo(),
-        condition: () => useCanUndo(),
+        action: () => {
+          // Get undo function directly from store to avoid React hook issues
+          getUndoFunction()()
+        },
+        condition: () => getCanUndo(),
         priority: 90,
         scope: 'global',
         source: 'builtin:undo'
@@ -164,8 +167,11 @@ export class KeyboardShortcutManager {
       {
         key: 'Ctrl+Y',
         label: 'Redo',
-        action: useRedo(),
-        condition: () => useCanRedo(),
+        action: () => {
+          // Get redo function directly from store to avoid React hook issues
+          getRedoFunction()()
+        },
+        condition: () => getCanRedo(),
         priority: 90,
         scope: 'global',
         source: 'builtin:redo'

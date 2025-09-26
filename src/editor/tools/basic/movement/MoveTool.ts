@@ -2,7 +2,7 @@ import { MoveIcon } from '@radix-ui/react-icons'
 
 import { defaultSnappingService } from '@/editor/services/snapping/SnappingService'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
-import type { CanvasEvent, Tool } from '@/editor/tools/system/types'
+import type { CanvasEvent, Tool, ToolContext } from '@/editor/tools/system/types'
 import type { Vec2 } from '@/shared/geometry'
 import { distanceSquared, subtract } from '@/shared/geometry'
 
@@ -171,7 +171,7 @@ export class MoveTool extends BaseTool implements Tool {
     return true
   }
 
-  handleKeyDown(event: KeyboardEvent): boolean {
+  handleKeyDown(event: KeyboardEvent, _context: ToolContext): boolean {
     // Handle escape key to cancel movement
     if (event.key === 'Escape') {
       if (this.toolState.isWaitingForMovement || this.toolState.isMoving) {

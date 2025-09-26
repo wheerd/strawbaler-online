@@ -1,6 +1,6 @@
 import isDeepEqual from 'fast-deep-equal'
 import { useMemo } from 'react'
-import { throttle } from 'throttle-debounce'
+import { debounce } from 'throttle-debounce'
 import { temporal } from 'zundo'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
@@ -44,7 +44,7 @@ const useModelStore = create<Store>()(
       // Undo/redo configuration
       limit: 50,
       equality: (pastState, currentState) => isDeepEqual(pastState, currentState),
-      handleSet: set => throttle(100, set, { noLeading: true })
+      handleSet: set => debounce(500, set, { atBegin: false })
     }
   )
 )
@@ -80,6 +80,12 @@ export const useModelActions = (): StoreActions => useModelStore(state => state.
 
 // Non-reactive actions-only accessor for tools and services
 export const getModelActions = (): StoreActions => useModelStore.getState().actions
+
+// Non-reactive undo/redo functions for direct access (not hooks)
+export const getUndoFunction = (): (() => void) => useModelStore.temporal.getState().undo
+export const getRedoFunction = (): (() => void) => useModelStore.temporal.getState().redo
+export const getCanUndo = (): boolean => useModelStore.temporal.getState().pastStates.length > 0
+export const getCanRedo = (): boolean => useModelStore.temporal.getState().futureStates.length > 0
 
 // Export types
 export type { StoreActions } from './types'
