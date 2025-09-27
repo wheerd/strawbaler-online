@@ -2,27 +2,32 @@ import type { IconProps } from '@radix-ui/react-icons/dist/types'
 import type Konva from 'konva'
 import type React from 'react'
 
-import type { EntityId, SelectableId, StoreyId } from '@/building/model/ids'
-import type { StoreActions } from '@/building/store'
-import type { EntityHitResult } from '@/editor/canvas/services/EntityHitTestService'
-import type { Bounds2D, Vec2 } from '@/shared/geometry'
+import type { Vec2 } from '@/shared/geometry'
 
-export interface BaseTool {
-  id: string
+export type ToolId =
+  | 'basic.select'
+  | 'basic.move'
+  | 'basic.fit-to-view'
+  | 'perimeter.add'
+  | 'perimeter.preset'
+  | 'perimeter.add-opening'
+  | 'test.data'
+  | 'test.reset'
+
+export interface ToolMetadata {
   name: string
   icon: string
   iconComponent?: React.ExoticComponent<IconProps>
   hotkey?: string
-  category?: string
 }
 
-export interface ToolGroup extends BaseTool {
-  tools: Tool[]
-  defaultTool?: string
+export interface ToolGroup {
+  name: string
+  tools: ToolId[]
 }
 
-export interface Tool extends BaseTool {
-  cursor?: string
+export interface ToolImplementation {
+  id: ToolId
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   inspectorComponent?: React.ComponentType<ToolInspectorProps<any>>
@@ -34,32 +39,27 @@ export interface Tool extends BaseTool {
   handlePointerDown?(event: CanvasEvent): boolean
   handlePointerMove?(event: CanvasEvent): boolean
   handlePointerUp?(event: CanvasEvent): boolean
-  handleKeyDown?(event: KeyboardEvent, context: ToolContext): boolean
-  handleKeyUp?(event: KeyboardEvent, context: ToolContext): boolean
+  handleKeyDown?(event: KeyboardEvent): boolean
+  handleKeyUp?(event: KeyboardEvent): boolean
 
   // Lifecycle methods
-  onActivate?(context?: ToolContext): void
-  onDeactivate?(context?: ToolContext): void
+  onActivate?(): void
+  onDeactivate?(): void
 }
 
-export interface ToolInspectorProps<T extends Tool = Tool> {
+export interface ToolInspectorProps<T extends ToolImplementation = ToolImplementation> {
   tool: T
 }
 
-export interface ToolOverlayComponentProps<T extends Tool = Tool> {
+export interface ToolOverlayComponentProps<T extends ToolImplementation = ToolImplementation> {
   tool: T
-}
-
-export interface ToolOverlayContext {
-  toolContext: ToolContext
-  currentPointerPos?: Vec2
 }
 
 // Keyboard shortcut system
 export interface ShortcutDefinition {
   key: string // e.g., 'Delete', 'Escape', 'Ctrl+C', 'Shift+R'
-  action: (context: ToolContext) => void
-  condition?: (context: ToolContext) => boolean // When this shortcut is active
+  action: () => void
+  condition?: () => boolean // When this shortcut is active
   priority: number // Higher priority wins conflicts
   scope: 'global' | 'selection' | 'tool'
   source: string // For debugging: 'builtin:delete' or 'tool:basic.select'
@@ -67,40 +67,10 @@ export interface ShortcutDefinition {
 }
 
 export interface CanvasEvent {
-  type: 'pointerdown' | 'pointermove' | 'pointerup' | 'wheel' | 'keydown' | 'keyup'
-  originalEvent: PointerEvent | KeyboardEvent | WheelEvent
+  type: 'pointerdown' | 'pointermove' | 'pointerup' | 'wheel'
+  originalEvent: PointerEvent | WheelEvent
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   konvaEvent: Konva.KonvaEventObject<any>
   stageCoordinates: Vec2 // Transformed coordinates (accounting for pan/zoom)
   pointerCoordinates?: { x: number; y: number } // Original pointer coordinates for hit testing
-  context: ToolContext
-}
-export interface ToolContext {
-  // Coordinate conversion (viewport functionality)
-  getStageCoordinates(event: { x: number; y: number }): Vec2
-  getScreenCoordinates(point: Vec2): { x: number; y: number }
-
-  // Entity discovery (on-demand) using original pointer coordinates
-  findEntityAt(pointerCoordinates: { x: number; y: number }): EntityHitResult | null
-
-  // Hierarchical selection management
-  selectEntity(entityId: EntityId): void
-  selectSubEntity(subEntityId: SelectableId): void
-  popSelection(): void // Go up one level in hierarchy
-  clearSelection(): void
-
-  // Store access (tools use these directly)
-  getModelStore(): StoreActions // Tools access model store directly
-  getActiveStoreyId(): StoreyId
-
-  // State access
-  getActiveTool(): Tool | null
-  getCurrentSelection(): SelectableId | null
-  getSelectedEntityId(): EntityId | null // Backward compatibility
-  getSelectionPath(): SelectableId[] // Full selection hierarchy path
-
-  // Tool activation
-  activateTool(toolId: string): boolean
-
-  fitToView(bounds: Bounds2D): void
 }

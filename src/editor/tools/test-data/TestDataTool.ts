@@ -1,33 +1,27 @@
-import { RocketIcon } from '@radix-ui/react-icons'
-
+import { getModelActions } from '@/building/store'
 import { useConfigStore } from '@/construction/config/store'
-import { toolManager } from '@/editor/tools/system/ToolManager'
-import type { Tool, ToolContext } from '@/editor/tools/system/types'
+import { viewportActions } from '@/editor/hooks/useViewportStore'
+import type { ToolImplementation } from '@/editor/tools/system/types'
 import { boundsFromPoints, createLength, createVec2 } from '@/shared/geometry'
 
 /**
  * Tool for adding test perimeter data to demonstrate entity hit testing.
  * Triggers on activation to add a T-shaped test perimeter with multiple doors and windows.
  */
-export class TestDataTool implements Tool {
-  id = 'basic.test-data'
-  name = 'Test Data'
-  icon = '🏗️'
-  iconComponent = RocketIcon
-  hotkey = 't'
-  cursor = 'default'
-  category = 'basic'
+export class TestDataTool implements ToolImplementation {
+  readonly id = 'test.data'
 
   // Lifecycle methods
-  onActivate(context: ToolContext): void {
+  onActivate(): void {
     // Immediately deactivate and return to select tool
-    setTimeout(() => {
-      toolManager.activateTool('basic.select', context)
+    setTimeout(async () => {
+      const { pushTool } = await import('@/editor/tools/system/store')
+      pushTool('basic.select')
     }, 0)
 
     // Perform the test data creation operation
-    const modelStore = context.getModelStore()
-    const activeStoreyId = context.getActiveStoreyId()
+    const modelStore = getModelActions()
+    const activeStoreyId = modelStore.getActiveStorey()
 
     // Create a T-shaped perimeter (realistic building scale)
     const boundary = {
@@ -150,7 +144,7 @@ export class TestDataTool implements Tool {
         const wallPoints = newPerimeter.corners.map(c => c.outsidePoint)
         const bounds = boundsFromPoints(wallPoints)
         if (bounds) {
-          context.fitToView(bounds)
+          viewportActions().fitToView(bounds)
         }
       }
     } catch (error) {

@@ -1,18 +1,10 @@
-import { AllSidesIcon } from '@radix-ui/react-icons'
-
 import { getModelActions } from '@/building/store'
-import { toolManager } from '@/editor/tools/system/ToolManager'
-import type { CanvasEvent, Tool, ToolContext } from '@/editor/tools/system/types'
+import { viewportActions } from '@/editor/hooks/useViewportStore'
+import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
 import { boundsFromPoints } from '@/shared/geometry'
 
-export class FitToViewTool implements Tool {
-  id = 'basic.fitToView'
-  name = 'Fit to View'
-  icon = '⊞' // Box fit icon
-  iconComponent = AllSidesIcon
-  hotkey = 'f'
-  cursor = 'default'
-  category = 'basic'
+export class FitToViewTool implements ToolImplementation {
+  readonly id = 'basic.fit-to-view'
 
   // Event handlers - not needed for this tool
   handlePointerDown(_event: CanvasEvent): boolean {
@@ -20,10 +12,11 @@ export class FitToViewTool implements Tool {
   }
 
   // Lifecycle methods
-  onActivate(context: ToolContext): void {
+  onActivate(): void {
     // Immediately deactivate and return to select tool
-    setTimeout(() => {
-      toolManager.activateTool('basic.select', context)
+    setTimeout(async () => {
+      const { pushTool } = await import('@/editor/tools/system/store')
+      pushTool('basic.select')
     }, 0)
 
     const { getActiveStorey, getPerimetersByStorey } = getModelActions()
@@ -38,7 +31,7 @@ export class FitToViewTool implements Tool {
       return
     }
 
-    context.fitToView(bounds)
+    viewportActions().fitToView(bounds)
   }
 
   onDeactivate(): void {

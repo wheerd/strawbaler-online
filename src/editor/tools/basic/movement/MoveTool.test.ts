@@ -16,7 +16,7 @@ describe('MoveTool', () => {
 
     // Press escape key
     const escapeEvent = createMockKeydownEvent('Escape')
-    const handled = tool.handleKeyDown(escapeEvent, {} as any)
+    const handled = tool.handleKeyDown(escapeEvent)
 
     // Verify escape key was handled and state was reset
     expect(handled).toBe(true)
@@ -43,7 +43,7 @@ describe('MoveTool', () => {
 
     // Press escape key
     const escapeEvent = createMockKeydownEvent('Escape')
-    const handled = tool.handleKeyDown(escapeEvent, {} as any)
+    const handled = tool.handleKeyDown(escapeEvent)
 
     // Verify escape key was handled and state was reset
     expect(handled).toBe(true)
@@ -58,7 +58,7 @@ describe('MoveTool', () => {
 
     // Press escape key without any movement state
     const escapeEvent = createMockKeydownEvent('Escape')
-    const handled = tool.handleKeyDown(escapeEvent, {} as any)
+    const handled = tool.handleKeyDown(escapeEvent)
 
     // Verify escape key was not handled
     expect(handled).toBe(false)
@@ -73,7 +73,7 @@ describe('MoveTool', () => {
 
     // Press a non-escape key
     const otherKeyEvent = createMockKeydownEvent('a')
-    const handled = tool.handleKeyDown(otherKeyEvent, {} as any)
+    const handled = tool.handleKeyDown(otherKeyEvent)
 
     // Verify other keys are not handled
     expect(handled).toBe(false)

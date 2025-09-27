@@ -9,8 +9,9 @@ test('renders loading state initially', () => {
       <App />
     </Theme>
   )
-  const loadingElement = screen.getByText(/Loading Floor Plan Editor.../i)
-  expect(loadingElement).toBeInTheDocument()
+
+  const skeletonElement = screen.getByTestId('app-skeleton')
+  expect(skeletonElement).toBeInTheDocument()
 })
 
 test('renders floor plan editor after loading', async () => {

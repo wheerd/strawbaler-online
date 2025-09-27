@@ -1,11 +1,16 @@
 import type Konva from 'konva'
+import 'konva/lib/shapes/Arrow'
+import 'konva/lib/shapes/Circle'
+import 'konva/lib/shapes/Line'
+import 'konva/lib/shapes/Rect'
+import 'konva/lib/shapes/Text'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Stage } from 'react-konva/lib/ReactKonvaCore'
 
 import { stageReference } from '@/editor/canvas/services/StageReference'
 import { usePanX, usePanY, useViewportActions, useZoom } from '@/editor/hooks/useViewportStore'
-import { useToolContext, useToolManager } from '@/editor/tools/system/ToolContext'
 import { useCanvasEventDispatcher } from '@/editor/tools/system/events/CanvasEventDispatcher'
+import { handleCanvasEvent } from '@/editor/tools/system/store'
 import type { CanvasEvent } from '@/editor/tools/system/types'
 
 import { GridLayer } from './GridLayer'
@@ -25,8 +30,6 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
   const panX = usePanX()
   const panY = usePanY()
   const { setViewport, setStageDimensions, zoomBy, panBy, setPan } = useViewportActions()
-  const toolManager = useToolManager()
-  const toolContext = useToolContext()
 
   // Local state for panning (non-tool related)
   const [dragStart, setDragStart] = useState<{ pos: { x: number; y: number } } | null>(null)
@@ -52,15 +55,12 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
   }, [])
 
   // Tool event handler
-  const handleToolEvent = useCallback(
-    (canvasEvent: CanvasEvent) => {
-      return toolManager.handleCanvasEvent(canvasEvent)
-    },
-    [toolManager]
-  )
+  const handleToolEvent = useCallback((canvasEvent: CanvasEvent) => {
+    return handleCanvasEvent(canvasEvent)
+  }, [])
 
   // Event dispatcher for routing events to tools
-  const eventDispatcher = useCanvasEventDispatcher(toolContext, handleToolEvent)
+  const eventDispatcher = useCanvasEventDispatcher(handleToolEvent)
 
   // Handle wheel events (zoom)
   const handleWheel = useCallback(
