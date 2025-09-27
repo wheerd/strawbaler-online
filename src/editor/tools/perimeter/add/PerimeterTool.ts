@@ -1,5 +1,3 @@
-import { BorderAllIcon } from '@radix-ui/react-icons'
-
 import type { PerimeterConstructionMethodId, RingBeamConstructionMethodId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { useConfigStore } from '@/construction/config/store'
@@ -9,7 +7,7 @@ import type { LengthInputPosition } from '@/editor/services/length-input'
 import { SnappingService } from '@/editor/services/snapping'
 import type { SnapResult, SnappingContext } from '@/editor/services/snapping/types'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
-import type { CanvasEvent, Tool } from '@/editor/tools/system/types'
+import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
 import type { Length, LineSegment2D, Polygon2D, Vec2 } from '@/shared/geometry'
 import {
   add,
@@ -41,14 +39,8 @@ interface PerimeterToolState {
   lengthOverride: Length | null
 }
 
-export class PerimeterTool extends BaseTool implements Tool {
+export class PerimeterTool extends BaseTool implements ToolImplementation {
   readonly id = 'perimeter.add'
-  readonly name = 'Building Perimeter'
-  readonly icon = '⬜'
-  readonly iconComponent = BorderAllIcon
-  readonly hotkey = 'w'
-  readonly cursor = 'crosshair'
-  readonly category = 'walls'
   readonly overlayComponent = PerimeterToolOverlay
   readonly inspectorComponent = PerimeterToolInspector
 

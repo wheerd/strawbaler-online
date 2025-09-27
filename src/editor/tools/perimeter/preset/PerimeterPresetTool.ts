@@ -1,8 +1,6 @@
-import { BoxModelIcon } from '@radix-ui/react-icons'
-
 import { getModelActions } from '@/building/store'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
-import type { CanvasEvent, Tool } from '@/editor/tools/system/types'
+import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
 import type { Polygon2D, Vec2 } from '@/shared/geometry'
 import { add, polygonIsClockwise } from '@/shared/geometry'
 
@@ -18,14 +16,8 @@ interface PerimeterPresetToolState {
   previewPolygon: Polygon2D | null
 }
 
-export class PerimeterPresetTool extends BaseTool implements Tool {
+export class PerimeterPresetTool extends BaseTool implements ToolImplementation {
   readonly id = 'perimeter.preset'
-  readonly name = 'Perimeter Presets'
-  readonly icon = '⬜'
-  readonly iconComponent = BoxModelIcon
-  readonly hotkey = 'p'
-  readonly cursor = 'crosshair'
-  readonly category = 'walls'
   readonly overlayComponent = PerimeterPresetToolOverlay
   readonly inspectorComponent = PerimeterPresetToolInspector
 

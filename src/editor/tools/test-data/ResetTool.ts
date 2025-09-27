@@ -1,20 +1,12 @@
-import { TrashIcon } from '@radix-ui/react-icons'
-
 import { clearPersistence, getModelActions } from '@/building/store'
-import type { Tool } from '@/editor/tools/system/types'
+import type { ToolImplementation } from '@/editor/tools/system/types'
 
 /**
  * Tool for resetting the entire model to empty state.
  * Triggers on activation to clear all data and localStorage persistence.
  */
-export class ResetTool implements Tool {
-  id = 'test.reset'
-  name = 'Reset'
-  icon = '🗑️'
-  iconComponent = TrashIcon
-  hotkey = 'r'
-  cursor = 'default'
-  category = 'test-data'
+export class ResetTool implements ToolImplementation {
+  readonly id = 'test.reset'
 
   // Lifecycle methods
   onActivate(): void {

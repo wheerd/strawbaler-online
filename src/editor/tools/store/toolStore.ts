@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
-import type { CanvasEvent, Tool } from '../system/types'
+import type { CanvasEvent, ToolImplementation } from '../system/types'
 import { DEFAULT_TOOL, type ToolId, getToolById } from './toolDefinitions'
 
 interface ToolState {
@@ -17,7 +17,7 @@ interface ToolActions {
   replaceTool: (toolId: ToolId) => void
 
   // Convenience getters
-  getActiveTool: () => Tool
+  getActiveTool: () => ToolImplementation
   getActiveToolId: () => ToolId
   getPreviousToolId: () => ToolId | null
   canPop: () => boolean

@@ -18,6 +18,7 @@ import {
 } from '@/building/model/ids'
 import { useModelActions } from '@/building/store'
 import { useCurrentSelection, useSelectionPath } from '@/editor/hooks/useSelectionStore'
+import { type ToolId, getToolInfoById } from '@/editor/tools/store/toolDefinitions'
 import { useActiveTool } from '@/editor/tools/store/toolStore'
 import { getEntityDisplayName } from '@/shared/utils/entityDisplay'
 
@@ -170,11 +171,12 @@ export function usePropertiesPanel(): UsePropertiesPanelReturn {
   // Generate tab labels
   const entityDisplayName = getEntityDisplayName(selectionPath, selectedId, modelActions)
   const selectionTabLabel = entityDisplayName
-  const toolTabLabel = activeTool?.name || 'Tool'
+  const toolInfo = activeTool ? getToolInfoById(activeTool.id as ToolId) : null
+  const toolTabLabel = toolInfo?.name || 'Tool'
 
   // Tab icons
   const selectionTabIcon = '↖' // Select tool icon
-  const toolTabIcon = activeTool?.icon || '🔧'
+  const toolTabIcon = toolInfo?.icon || '🔧'
 
   return {
     activeTab,

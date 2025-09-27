@@ -1,4 +1,3 @@
-import { BoxIcon } from '@radix-ui/react-icons'
 import { round } from '@turf/helpers'
 
 import {
@@ -14,7 +13,7 @@ import { getModelActions } from '@/building/store'
 import { entityHitTestService } from '@/editor/canvas/services/EntityHitTestService'
 import { getSelectionActions } from '@/editor/hooks/useSelectionStore'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
-import type { CanvasEvent, Tool } from '@/editor/tools/system/types'
+import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
 import type { Length, Vec2 } from '@/shared/geometry'
 import { createLength, createVec2, distance, lineFromSegment, projectPointOntoLine } from '@/shared/geometry'
 
@@ -55,14 +54,8 @@ const DEFAULT_OPENING_CONFIG = {
   passage: { width: createLength(1000), height: createLength(2200), type: 'passage' as const }
 }
 
-export class AddOpeningTool extends BaseTool implements Tool {
+export class AddOpeningTool extends BaseTool implements ToolImplementation {
   readonly id = 'perimeter.add-opening'
-  readonly name = 'Add Opening'
-  readonly icon = '🚪'
-  readonly iconComponent = BoxIcon
-  readonly hotkey = 'o'
-  readonly cursor = 'crosshair'
-  readonly category = 'walls'
   readonly overlayComponent = AddOpeningToolOverlay
   readonly inspectorComponent = AddOpeningToolInspector
 

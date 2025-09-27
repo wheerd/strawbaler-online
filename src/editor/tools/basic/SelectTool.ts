@@ -1,5 +1,3 @@
-import { CursorArrowIcon } from '@radix-ui/react-icons'
-
 import { entityHitTestService } from '@/editor/canvas/services/EntityHitTestService'
 import {
   clearSelection,
@@ -9,16 +7,10 @@ import {
   pushSelection,
   replaceSelection
 } from '@/editor/hooks/useSelectionStore'
-import type { CanvasEvent, Tool } from '@/editor/tools/system/types'
+import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
 
-export class SelectTool implements Tool {
-  id = 'basic.select'
-  name = 'Select'
-  icon = '↖'
-  iconComponent = CursorArrowIcon
-  hotkey = 'v'
-  cursor = 'default'
-  category = 'basic'
+export class SelectTool implements ToolImplementation {
+  readonly id = 'basic.select'
 
   // Event handlers
   handlePointerDown(event: CanvasEvent): boolean {

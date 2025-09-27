@@ -1,23 +1,15 @@
-import { RocketIcon } from '@radix-ui/react-icons'
-
 import { getModelActions } from '@/building/store'
 import { useConfigStore } from '@/construction/config/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
-import type { Tool } from '@/editor/tools/system/types'
+import type { ToolImplementation } from '@/editor/tools/system/types'
 import { boundsFromPoints, createLength, createVec2 } from '@/shared/geometry'
 
 /**
  * Tool for adding test perimeter data to demonstrate entity hit testing.
  * Triggers on activation to add a T-shaped test perimeter with multiple doors and windows.
  */
-export class TestDataTool implements Tool {
-  id = 'test.data'
-  name = 'Test Data'
-  icon = '🏗️'
-  iconComponent = RocketIcon
-  hotkey = 't'
-  cursor = 'default'
-  category = 'basic'
+export class TestDataTool implements ToolImplementation {
+  readonly id = 'test.data'
 
   // Lifecycle methods
   onActivate(): void {

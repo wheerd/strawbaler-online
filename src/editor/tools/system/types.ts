@@ -2,27 +2,19 @@ import type { IconProps } from '@radix-ui/react-icons/dist/types'
 import type Konva from 'konva'
 import type React from 'react'
 
-import type { EntityId, SelectableId, StoreyId } from '@/building/model/ids'
-import type { StoreActions } from '@/building/store'
-import type { EntityHitResult } from '@/editor/canvas/services/EntityHitTestService'
-import type { Bounds2D, Vec2 } from '@/shared/geometry'
+import type { Vec2 } from '@/shared/geometry'
 
-export interface BaseTool {
-  id: string
+import type { ToolId } from '../store/toolDefinitions'
+
+export interface ToolMetadata {
   name: string
   icon: string
   iconComponent?: React.ExoticComponent<IconProps>
   hotkey?: string
-  category?: string
 }
 
-export interface ToolGroup extends BaseTool {
-  tools: Tool[]
-  defaultTool?: string
-}
-
-export interface Tool extends BaseTool {
-  cursor?: string
+export interface ToolImplementation {
+  id: ToolId
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   inspectorComponent?: React.ComponentType<ToolInspectorProps<any>>
@@ -42,16 +34,12 @@ export interface Tool extends BaseTool {
   onDeactivate?(): void
 }
 
-export interface ToolInspectorProps<T extends Tool = Tool> {
+export interface ToolInspectorProps<T extends ToolImplementation = ToolImplementation> {
   tool: T
 }
 
-export interface ToolOverlayComponentProps<T extends Tool = Tool> {
+export interface ToolOverlayComponentProps<T extends ToolImplementation = ToolImplementation> {
   tool: T
-}
-
-export interface ToolOverlayContext {
-  currentPointerPos?: Vec2
 }
 
 // Keyboard shortcut system
@@ -66,39 +54,10 @@ export interface ShortcutDefinition {
 }
 
 export interface CanvasEvent {
-  type: 'pointerdown' | 'pointermove' | 'pointerup' | 'wheel' | 'keydown' | 'keyup'
-  originalEvent: PointerEvent | KeyboardEvent | WheelEvent
+  type: 'pointerdown' | 'pointermove' | 'pointerup' | 'wheel'
+  originalEvent: PointerEvent | WheelEvent
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   konvaEvent: Konva.KonvaEventObject<any>
   stageCoordinates: Vec2 // Transformed coordinates (accounting for pan/zoom)
   pointerCoordinates?: { x: number; y: number } // Original pointer coordinates for hit testing
-}
-export interface ToolContext {
-  // Coordinate conversion (viewport functionality)
-  getStageCoordinates(event: { x: number; y: number }): Vec2
-  getScreenCoordinates(point: Vec2): { x: number; y: number }
-
-  // Entity discovery (on-demand) using original pointer coordinates
-  findEntityAt(pointerCoordinates: { x: number; y: number }): EntityHitResult | null
-
-  // Hierarchical selection management
-  selectEntity(entityId: EntityId): void
-  selectSubEntity(subEntityId: SelectableId): void
-  popSelection(): void // Go up one level in hierarchy
-  clearSelection(): void
-
-  // Store access (tools use these directly)
-  getModelStore(): StoreActions // Tools access model store directly
-  getActiveStoreyId(): StoreyId
-
-  // State access
-  getActiveTool(): Tool | null
-  getCurrentSelection(): SelectableId | null
-  getSelectedEntityId(): EntityId | null // Backward compatibility
-  getSelectionPath(): SelectableId[] // Full selection hierarchy path
-
-  // Tool activation
-  activateTool(toolId: string): boolean
-
-  fitToView(bounds: Bounds2D): void
 }

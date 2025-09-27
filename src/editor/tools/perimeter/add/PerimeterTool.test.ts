@@ -2,20 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as useViewportStore from '@/editor/hooks/useViewportStore'
 import * as lengthInputService from '@/editor/services/length-input'
-import { perimeterToolGroup } from '@/editor/tools/perimeter'
 import { createLength, createVec2 } from '@/shared/geometry'
 
 import { PerimeterTool } from './PerimeterTool'
 
 describe('PerimeterTool', () => {
-  it('should have correct tool properties', () => {
+  it('should have correct id', () => {
     const tool = new PerimeterTool()
 
     expect(tool.id).toBe('perimeter.add')
-    expect(tool.name).toBe('Building Perimeter')
-    expect(tool.icon).toBe('⬜')
-    expect(tool.cursor).toBe('crosshair')
-    expect(tool.category).toBe('walls')
   })
 
   it('should initialize with empty state', () => {
@@ -31,14 +26,6 @@ describe('PerimeterTool', () => {
     tool.onActivate()
 
     expect(tool.state.points).toEqual([])
-  })
-
-  it('should be registered in perimeter tool group', () => {
-    expect(perimeterToolGroup.id).toBe('perimeters')
-    expect(perimeterToolGroup.name).toBe('Perimeter Walls')
-    expect(perimeterToolGroup.tools).toHaveLength(3)
-    expect(perimeterToolGroup.tools.find(tool => tool.id === 'perimeter.add')).toBeInstanceOf(PerimeterTool)
-    expect(perimeterToolGroup.defaultTool).toBe('perimeter.add')
   })
 
   describe('length input integration', () => {

@@ -1,4 +1,4 @@
-import type { Tool } from './types'
+import type { ToolImplementation } from './types'
 
 /**
  * Abstract base class for tools that provides common functionality.
@@ -23,7 +23,7 @@ import type { Tool } from './types'
  * }
  * ```
  */
-export abstract class BaseTool implements Pick<Tool, 'onRenderNeeded'> {
+export abstract class BaseTool implements Pick<ToolImplementation, 'onRenderNeeded'> {
   private listeners: (() => void)[] = []
 
   /**

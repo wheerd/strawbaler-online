@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import type { Tool } from '@/editor/tools/system/types'
+import type { ToolImplementation } from '@/editor/tools/system/types'
 
 /**
  * Custom hook that makes tool instances reactive in React components.
@@ -25,7 +25,7 @@ import type { Tool } from '@/editor/tools/system/types'
  * }
  * ```
  */
-export function useReactiveTool<T extends Tool>(tool: T): T {
+export function useReactiveTool<T extends ToolImplementation>(tool: T): T {
   // Force re-renders when tool state changes
   const [, forceUpdate] = useState({})
 

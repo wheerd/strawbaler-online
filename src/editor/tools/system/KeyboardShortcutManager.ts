@@ -2,7 +2,7 @@ import type { SelectableId } from '@/building/model/ids'
 import { isOpeningId, isPerimeterCornerId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
 import { getCanRedo, getCanUndo, getModelActions, getRedoFunction, getUndoFunction } from '@/building/store'
 import { clearSelection, getCurrentSelection, getSelectionPath, popSelection } from '@/editor/hooks/useSelectionStore'
-import { type ToolId, getAllTools } from '@/editor/tools/store/toolDefinitions'
+import { type ToolId, getAllTools, getToolInfoById } from '@/editor/tools/store/toolDefinitions'
 import { getActiveTool, pushTool } from '@/editor/tools/store/toolStore'
 
 import type { ShortcutDefinition } from './types'
@@ -20,8 +20,9 @@ export class KeyboardShortcutManager {
   private initializeToolShortcuts(): void {
     const tools = getAllTools()
     for (const tool of tools) {
-      if (tool.hotkey) {
-        const normalizedKey = this.normalizeKey(tool.hotkey)
+      const toolInfo = getToolInfoById(tool.id as ToolId)
+      if (toolInfo.hotkey) {
+        const normalizedKey = this.normalizeKey(toolInfo.hotkey)
         this.toolActivationShortcuts.set(normalizedKey, tool.id)
       }
     }

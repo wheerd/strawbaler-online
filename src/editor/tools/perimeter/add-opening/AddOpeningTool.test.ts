@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createPerimeterToolGroup } from '@/editor/tools/perimeter/index'
 import { createLength } from '@/shared/geometry'
 
 import { AddOpeningTool } from './AddOpeningTool'
@@ -12,13 +11,8 @@ describe('AddOpeningTool', () => {
     addOpeningTool = new AddOpeningTool()
   })
 
-  it('should have correct tool properties', () => {
+  it('should have correct id', () => {
     expect(addOpeningTool.id).toBe('perimeter.add-opening')
-    expect(addOpeningTool.name).toBe('Add Opening')
-    expect(addOpeningTool.icon).toBe('🚪')
-    expect(addOpeningTool.hotkey).toBe('o')
-    expect(addOpeningTool.cursor).toBe('crosshair')
-    expect(addOpeningTool.category).toBe('walls')
   })
 
   it('should initialize with default door configuration', () => {
@@ -100,13 +94,5 @@ describe('AddOpeningTool', () => {
     addOpeningTool.setOpeningType('door')
 
     expect(mockListener).not.toHaveBeenCalled()
-  })
-
-  it('should be registered in perimeter tool group', () => {
-    const outerWallToolGroup = createPerimeterToolGroup()
-
-    expect(outerWallToolGroup.tools.find((tool: any) => tool.id === 'perimeter.add-opening')).toBeInstanceOf(
-      AddOpeningTool
-    )
   })
 })

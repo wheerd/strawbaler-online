@@ -1,10 +1,8 @@
-import { MoveIcon } from '@radix-ui/react-icons'
-
 import { getModelActions } from '@/building/store'
 import { entityHitTestService } from '@/editor/canvas/services/EntityHitTestService'
 import { defaultSnappingService } from '@/editor/services/snapping/SnappingService'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
-import type { CanvasEvent, Tool } from '@/editor/tools/system/types'
+import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
 import type { Vec2 } from '@/shared/geometry'
 import { distanceSquared, subtract } from '@/shared/geometry'
 
@@ -12,14 +10,8 @@ import { MoveToolOverlay } from './MoveToolOverlay'
 import type { MovementBehavior, MovementContext, PointerMovementState } from './MovementBehavior'
 import { getMovementBehavior } from './movementBehaviors'
 
-export class MoveTool extends BaseTool implements Tool {
-  id = 'basic.move'
-  name = 'Move'
-  icon = '↔'
-  iconComponent = MoveIcon
-  hotkey = 'm'
-  cursor = 'move'
-  category = 'basic'
+export class MoveTool extends BaseTool implements ToolImplementation {
+  readonly id = 'basic.move'
 
   private static readonly MOVEMENT_THRESHOLD = 3 // pixels
 

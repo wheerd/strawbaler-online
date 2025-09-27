@@ -1,18 +1,10 @@
-import { AllSidesIcon } from '@radix-ui/react-icons'
-
 import { getModelActions } from '@/building/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
-import type { CanvasEvent, Tool } from '@/editor/tools/system/types'
+import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
 import { boundsFromPoints } from '@/shared/geometry'
 
-export class FitToViewTool implements Tool {
-  id = 'basic.fit-to-view'
-  name = 'Fit to View'
-  icon = '⊞' // Box fit icon
-  iconComponent = AllSidesIcon
-  hotkey = 'f'
-  cursor = 'default'
-  category = 'basic'
+export class FitToViewTool implements ToolImplementation {
+  readonly id = 'basic.fit-to-view'
 
   // Event handlers - not needed for this tool
   handlePointerDown(_event: CanvasEvent): boolean {
