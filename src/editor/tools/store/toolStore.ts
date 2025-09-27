@@ -1,0 +1,198 @@
+import { create } from 'zustand'
+import { devtools } from 'zustand/middleware'
+
+import type { CanvasEvent, Tool, ToolContext } from '../system/types'
+import { DEFAULT_TOOL, type ToolId, getToolById } from './toolDefinitions'
+
+interface ToolState {
+  // Stack with select tool always at bottom - cannot be popped
+  toolStack: ToolId[]
+}
+
+interface ToolActions {
+  // Stack operations
+  pushTool: (toolId: ToolId, context?: ToolContext) => void
+  popTool: (context?: ToolContext) => void
+  clearToDefault: (context?: ToolContext) => void
+  replaceTool: (toolId: ToolId, context?: ToolContext) => void
+
+  // Convenience getters
+  getActiveTool: () => Tool
+  getActiveToolId: () => ToolId
+  getPreviousToolId: () => ToolId | null
+  canPop: () => boolean
+  getStackDepth: () => number
+
+  // Canvas event handling
+  handleCanvasEvent: (event: CanvasEvent) => boolean
+}
+
+type ToolStore = ToolState & ToolActions
+
+export const useToolStore = create<ToolStore>()(
+  devtools(
+    (set, get) => ({
+      // Initial state - select tool always at bottom
+      toolStack: [DEFAULT_TOOL],
+
+      // Stack operations
+      pushTool: (toolId: ToolId, context?: ToolContext) => {
+        const state = get()
+
+        // Don't push if already at top of stack
+        if (state.getActiveToolId() === toolId) return
+
+        // Deactivate current tool
+        const currentTool = state.getActiveTool()
+        currentTool.onDeactivate?.(context)
+
+        // Add to stack
+        set(
+          state => ({
+            toolStack: [...state.toolStack, toolId]
+          }),
+          false,
+          'tool/push'
+        )
+
+        // Activate new tool
+        const newTool = getToolById(toolId)
+        newTool.onActivate?.(context)
+      },
+
+      popTool: (context?: ToolContext) => {
+        const state = get()
+        if (state.toolStack.length <= 1) return // Can't pop default tool
+
+        // Deactivate current tool
+        const currentTool = state.getActiveTool()
+        currentTool.onDeactivate?.(context)
+
+        // Remove from stack
+        set(
+          state => ({
+            toolStack: state.toolStack.slice(0, -1)
+          }),
+          false,
+          'tool/pop'
+        )
+
+        // Activate previous tool
+        const newTool = get().getActiveTool()
+        newTool.onActivate?.(context)
+      },
+
+      clearToDefault: (context?: ToolContext) => {
+        const state = get()
+        if (state.toolStack.length <= 1) return // Already at default
+
+        // Deactivate current tool
+        const currentTool = state.getActiveTool()
+        currentTool.onDeactivate?.(context)
+
+        // Reset to default tool only
+        set(
+          {
+            toolStack: [DEFAULT_TOOL]
+          },
+          false,
+          'tool/clearToDefault'
+        )
+
+        // Activate default tool
+        const defaultTool = getToolById(DEFAULT_TOOL)
+        defaultTool.onActivate?.(context)
+      },
+
+      replaceTool: (toolId: ToolId, context?: ToolContext) => {
+        const state = get()
+
+        // Don't replace if already active
+        if (state.getActiveToolId() === toolId) return
+
+        // Deactivate current tool
+        const currentTool = state.getActiveTool()
+        currentTool.onDeactivate?.(context)
+
+        // Replace top of stack
+        set(
+          state => ({
+            toolStack: [...state.toolStack.slice(0, -1), toolId]
+          }),
+          false,
+          'tool/replace'
+        )
+
+        // Activate new tool
+        const newTool = getToolById(toolId)
+        newTool.onActivate?.(context)
+      },
+
+      // Convenience getters
+      getActiveTool: () => {
+        const stack = get().toolStack
+        const toolId = stack[stack.length - 1]
+        return getToolById(toolId)
+      },
+
+      getActiveToolId: () => {
+        const stack = get().toolStack
+        return stack[stack.length - 1]
+      },
+
+      getPreviousToolId: () => {
+        const stack = get().toolStack
+        return stack.length > 1 ? stack[stack.length - 2] : null
+      },
+
+      canPop: () => get().toolStack.length > 1,
+
+      getStackDepth: () => get().toolStack.length,
+
+      // Canvas event handling
+      handleCanvasEvent: (event: CanvasEvent) => {
+        const tool = get().getActiveTool()
+        if (!tool) return false
+
+        try {
+          switch (event.type) {
+            case 'pointerdown':
+              return tool.handlePointerDown?.(event) ?? false
+            case 'pointermove':
+              return tool.handlePointerMove?.(event) ?? false
+            case 'pointerup':
+              return tool.handlePointerUp?.(event) ?? false
+            default:
+              return false
+          }
+        } catch (error) {
+          console.error(`Error handling ${event.type} event in tool ${tool.id}:`, error)
+          return false
+        }
+      }
+    }),
+    { name: 'tool-store' }
+  )
+)
+
+// Non-reactive access functions for external usage (similar to other stores)
+export const getToolActions = (): ToolActions => useToolStore.getState()
+export const getActiveTool = () => useToolStore.getState().getActiveTool()
+export const getActiveToolId = () => useToolStore.getState().getActiveToolId()
+export const getPreviousToolId = () => useToolStore.getState().getPreviousToolId()
+export const canPopTool = () => useToolStore.getState().canPop()
+export const getToolStackDepth = () => useToolStore.getState().getStackDepth()
+
+// Non-reactive action functions for direct usage
+export const pushTool = (toolId: ToolId, context?: ToolContext) => useToolStore.getState().pushTool(toolId, context)
+export const popTool = (context?: ToolContext) => useToolStore.getState().popTool(context)
+export const clearToDefaultTool = (context?: ToolContext) => useToolStore.getState().clearToDefault(context)
+export const replaceTool = (toolId: ToolId, context?: ToolContext) =>
+  useToolStore.getState().replaceTool(toolId, context)
+export const handleCanvasEvent = (event: CanvasEvent) => useToolStore.getState().handleCanvasEvent(event)
+
+// Convenience hooks
+export const useActiveTool = () => useToolStore(state => state.getActiveTool())
+export const useActiveToolId = () => useToolStore(state => state.getActiveToolId())
+export const useCanPopTool = () => useToolStore(state => state.canPop())
+export const useToolStackDepth = () => useToolStore(state => state.getStackDepth())

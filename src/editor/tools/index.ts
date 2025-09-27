@@ -18,6 +18,37 @@ export {
   useToolContext
 } from './system/ToolContext'
 
+// NEW: Export new tool store and definitions (Phase 1)
+export {
+  useToolStore,
+  useActiveTool as useActiveToolNew,
+  useActiveToolId as useActiveToolIdNew,
+  useCanPopTool,
+  useToolStackDepth,
+  getActiveTool as getActiveToolNew,
+  getActiveToolId as getActiveToolIdNew,
+  getPreviousToolId,
+  canPopTool,
+  getToolStackDepth,
+  getToolActions,
+  pushTool,
+  popTool,
+  clearToDefaultTool,
+  replaceTool,
+  handleCanvasEvent
+} from './store/toolStore'
+
+export {
+  TOOL_DEFINITIONS,
+  TOOL_GROUPS,
+  DEFAULT_TOOL,
+  type ToolId,
+  getToolById,
+  getToolGroupByName,
+  getAllTools,
+  getToolsInGroup
+} from './store/toolDefinitions'
+
 // Export individual tool groups for external registration
 export { basicToolGroup } from './basic'
 export { perimeterToolGroup } from './perimeter'
