@@ -2,8 +2,9 @@ import * as Toolbar from '@radix-ui/react-toolbar'
 import { Flex, IconButton, Kbd, Separator, Text, Tooltip } from '@radix-ui/themes'
 import React, { useCallback } from 'react'
 
-import { TOOL_GROUPS, type ToolId, getToolInfoById } from '@/editor/tools/store/toolDefinitions'
-import { pushTool, useActiveToolId } from '@/editor/tools/store/toolStore'
+import { TOOL_GROUPS, getToolInfoById } from '@/editor/tools/system/metadata'
+import { pushTool, useActiveToolId } from '@/editor/tools/system/store'
+import type { ToolId } from '@/editor/tools/system/types'
 import { Logo } from '@/shared/components/Logo'
 
 export function MainToolbar(): React.JSX.Element {

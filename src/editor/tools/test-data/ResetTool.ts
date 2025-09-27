@@ -12,7 +12,7 @@ export class ResetTool implements ToolImplementation {
   onActivate(): void {
     // Immediately deactivate and return to select tool
     setTimeout(async () => {
-      const { pushTool } = await import('@/editor/tools/store/toolStore')
+      const { pushTool } = await import('@/editor/tools/system/store')
       pushTool('basic.select')
     }, 0)
 

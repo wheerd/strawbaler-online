@@ -1,6 +1,6 @@
 import { Layer } from 'react-konva/lib/ReactKonvaCore'
 
-import { useActiveTool } from '@/editor/tools/store/toolStore'
+import { useActiveTool } from '@/editor/tools/system/store'
 
 import { SelectionOverlay } from './SelectionOverlay'
 

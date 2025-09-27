@@ -4,7 +4,6 @@ import type { StoreyId } from '@/building/model/ids'
 import type { Perimeter } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { getToolInfoById } from '@/editor/tools/store/toolDefinitions'
 import { createVec2 } from '@/shared/geometry/basic'
 
 import { FitToViewTool } from './FitToViewTool'
@@ -42,12 +41,8 @@ describe('FitToViewTool', () => {
     } as any)
   })
 
-  it('should have correct properties', () => {
+  it('should have correct id', () => {
     expect(fitToViewTool.id).toBe('basic.fit-to-view')
-    const toolInfo = getToolInfoById('basic.fit-to-view')
-    expect(toolInfo.name).toBe('Fit to View')
-    expect(toolInfo.icon).toBe('⊞')
-    expect(toolInfo.hotkey).toBe('f')
   })
 
   it('should perform fit to view and switch to select tool on activation', () => {

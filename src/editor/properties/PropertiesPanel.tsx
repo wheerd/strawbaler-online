@@ -18,8 +18,8 @@ import {
 } from '@/building/model/ids'
 import { useModelActions } from '@/building/store'
 import { useCurrentSelection, useSelectionPath } from '@/editor/hooks/useSelectionStore'
-import { type ToolId, getToolInfoById } from '@/editor/tools/store/toolDefinitions'
-import { useActiveTool } from '@/editor/tools/store/toolStore'
+import { type ToolId, getToolInfoById } from '@/editor/tools'
+import { useActiveTool } from '@/editor/tools/system/store'
 import { getEntityDisplayName } from '@/shared/utils/entityDisplay'
 
 export function PropertiesPanel(): React.JSX.Element {

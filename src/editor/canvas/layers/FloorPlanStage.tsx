@@ -9,8 +9,8 @@ import { Stage } from 'react-konva/lib/ReactKonvaCore'
 
 import { stageReference } from '@/editor/canvas/services/StageReference'
 import { usePanX, usePanY, useViewportActions, useZoom } from '@/editor/hooks/useViewportStore'
-import { handleCanvasEvent } from '@/editor/tools/store/toolStore'
 import { useCanvasEventDispatcher } from '@/editor/tools/system/events/CanvasEventDispatcher'
+import { handleCanvasEvent } from '@/editor/tools/system/store'
 import type { CanvasEvent } from '@/editor/tools/system/types'
 
 import { GridLayer } from './GridLayer'

@@ -4,13 +4,26 @@ import type React from 'react'
 
 import type { Vec2 } from '@/shared/geometry'
 
-import type { ToolId } from '../store/toolDefinitions'
+export type ToolId =
+  | 'basic.select'
+  | 'basic.move'
+  | 'basic.fit-to-view'
+  | 'perimeter.add'
+  | 'perimeter.preset'
+  | 'perimeter.add-opening'
+  | 'test.data'
+  | 'test.reset'
 
 export interface ToolMetadata {
   name: string
   icon: string
   iconComponent?: React.ExoticComponent<IconProps>
   hotkey?: string
+}
+
+export interface ToolGroup {
+  name: string
+  tools: ToolId[]
 }
 
 export interface ToolImplementation {

@@ -1,8 +1,9 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
-import type { CanvasEvent, ToolImplementation } from '../system/types'
-import { DEFAULT_TOOL, type ToolId, getToolById } from './toolDefinitions'
+import { getToolById } from './implementations'
+import { DEFAULT_TOOL } from './metadata'
+import type { CanvasEvent, ToolId, ToolImplementation } from './types'
 
 interface ToolState {
   // Stack with select tool always at bottom - cannot be popped
