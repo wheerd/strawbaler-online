@@ -63,8 +63,6 @@ const createTestConfig = (overrides: Partial<OpeningConstructionConfig> = {}): O
   headerMaterial: createMaterialId(),
   sillThickness: 60 as Length,
   sillMaterial: createMaterialId(),
-  fillingThickness: 30 as Length,
-  fillingMaterial: createMaterialId(),
   ...overrides
 })
 
@@ -78,21 +76,11 @@ const createTestInfillConfig = (): InfillConstructionConfig => ({
     material: createMaterialId()
   },
   openings: {
-    door: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: createMaterialId()
-    },
-    window: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: createMaterialId()
-    },
-    passage: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: createMaterialId()
-    }
+    padding: 15 as Length,
+    headerThickness: 60 as Length,
+    headerMaterial: createMaterialId(),
+    sillThickness: 60 as Length,
+    sillMaterial: createMaterialId()
   },
   straw: {
     baleLength: 800 as Length,
@@ -144,18 +132,18 @@ describe('constructOpeningFrame', () => {
       const infillConfig = createTestInfillConfig()
 
       const results = [...constructOpeningFrame(openingSegment, config, infillConfig, resolveDefaultMaterial)]
-      const { elements, errors } = aggregateResults(results)
+      const { elements, errors, areas } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
       expect(elements.length).toBeGreaterThan(3)
 
       const header = elements.find(el => hasTag(el, TAG_HEADER))
       const sill = elements.find(el => hasTag(el, TAG_SILL))
-      const filling = elements.find(el => hasTag(el, TAG_OPENING_WINDOW) || hasTag(el, TAG_OPENING_DOOR))
+      const window = areas.find(a => a.tags?.includes(TAG_OPENING_WINDOW))
 
       expect(header).toBeDefined()
       expect(sill).toBeDefined()
-      expect(filling).toBeDefined()
+      expect(window).toBeDefined()
     })
 
     it('generates measurements', () => {
@@ -231,17 +219,17 @@ describe('constructOpeningFrame', () => {
       const infillConfig = createTestInfillConfig()
 
       const results = [...constructOpeningFrame(openingSegment, config, infillConfig, resolveDefaultMaterial)]
-      const { elements, errors } = aggregateResults(results)
+      const { elements, errors, areas } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
 
       const header = elements.find(el => hasTag(el, TAG_HEADER))
       const sill = elements.find(el => hasTag(el, TAG_SILL))
-      const filling = elements.find(el => hasTag(el, TAG_OPENING_WINDOW) || hasTag(el, TAG_OPENING_DOOR))
+      const door = areas.find(a => a.tags?.includes(TAG_OPENING_DOOR))
 
       expect(header).toBeDefined()
       expect(sill).toBeUndefined()
-      expect(filling).toBeDefined()
+      expect(door).toBeDefined()
     })
   })
 

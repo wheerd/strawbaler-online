@@ -3,7 +3,7 @@ import { vec3 } from 'gl-matrix'
 import type { Opening } from '@/building/model/model'
 import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
 import type { MaterialId, ResolveMaterialFunction } from '@/construction/materials/material'
-import { type ConstructionResult, yieldElement, yieldError, yieldMeasurement } from '@/construction/results'
+import { type ConstructionResult, yieldArea, yieldElement, yieldError, yieldMeasurement } from '@/construction/results'
 import type { InfillConstructionConfig } from '@/construction/walls/infill/infill'
 import { infillWallArea } from '@/construction/walls/infill/infill'
 import type { WallSegment3D } from '@/construction/walls/segmentation'
@@ -25,14 +25,11 @@ import {
 export interface OpeningConstructionConfig {
   padding: Length // Default: 15mm
 
-  sillThickness?: Length // Default: 60mm
-  sillMaterial?: MaterialId
+  sillThickness: Length // Default: 60mm
+  sillMaterial: MaterialId
 
   headerThickness: Length // Default: 60mm
   headerMaterial: MaterialId
-
-  fillingThickness?: Length // Default: 30mm
-  fillingMaterial?: MaterialId
 }
 
 function extractUnifiedDimensions(openings: Opening[]): {
@@ -166,34 +163,31 @@ export function* constructOpeningFrame(
     }
   }
 
-  // Create individual filling elements for each opening if configured
-  if (config.fillingMaterial && config.fillingThickness) {
-    for (const opening of openings) {
-      const fillingWidth = (opening.width - 2 * config.padding) as Length
-      const fillingHeight = (opening.height - 2 * config.padding) as Length
+  for (const opening of openings) {
+    const fillingWidth = (opening.width - 2 * config.padding) as Length
+    const fillingHeight = (opening.height - 2 * config.padding) as Length
 
-      // Calculate position relative to segment start
-      // opening.offsetFromStart is relative to wall start, but segment is already positioned correctly
-      // So we need the offset within this segment
-      const openingOffsetInSegment = (opening.offsetFromStart - openings[0].offsetFromStart) as Length
+    // Calculate position relative to segment start
+    // opening.offsetFromStart is relative to wall start, but segment is already positioned correctly
+    // So we need the offset within this segment
+    const openingOffsetInSegment = (opening.offsetFromStart - openings[0].offsetFromStart) as Length
 
-      const tags = opening.type === 'door' ? [TAG_OPENING_DOOR] : opening.type === 'window' ? [TAG_OPENING_WINDOW] : []
+    const tags = opening.type === 'door' ? [TAG_OPENING_DOOR] : opening.type === 'window' ? [TAG_OPENING_WINDOW] : []
+    const label = opening.type === 'door' ? 'Door' : opening.type === 'window' ? 'Window' : 'Passage'
 
-      const fillingElement: ConstructionElement = createConstructionElement(
-        config.fillingMaterial,
-        createCuboidShape(
-          [
-            (segmentPosition[0] + openingOffsetInSegment + config.padding) as Length,
-            (wallThickness - config.fillingThickness) / 2,
-            (sillHeight + config.padding) as Length
-          ] as Vec3,
-          [fillingWidth, config.fillingThickness, fillingHeight] as Vec3
-        ),
-        IDENTITY,
-        tags
-      )
-      yield yieldElement(fillingElement)
-    }
+    const openingPos = [
+      (segmentPosition[0] + openingOffsetInSegment + config.padding) as Length,
+      0,
+      (sillHeight + config.padding) as Length
+    ] as Vec3
+    const openingEnd = [openingPos[0] + fillingWidth, wallThickness, openingPos[2] + fillingHeight] as Vec3
+
+    yield yieldArea({
+      label,
+      bounds: { min: openingPos, max: openingEnd },
+      transform: IDENTITY,
+      tags
+    })
   }
 
   // Create wall above header (if space remains)

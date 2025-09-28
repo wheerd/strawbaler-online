@@ -11,7 +11,7 @@ import type {
   RingBeamConstructionMethod
 } from '@/construction/config/types'
 import type { RingBeamConfig } from '@/construction/walls'
-import { door, strawbale, validateRingBeamConfig, window as windowOpening, wood360x60 } from '@/construction/walls'
+import { strawbale, validateRingBeamConfig, wood360x60 } from '@/construction/walls'
 import { createLength } from '@/shared/geometry'
 
 export interface ConfigState {
@@ -102,27 +102,11 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
         material: wood360x60.id
       },
       openings: {
-        door: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
-          headerMaterial: wood360x60.id,
-          fillingMaterial: door.id,
-          fillingThickness: createLength(50)
-        },
-        window: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
-          headerMaterial: wood360x60.id,
-          sillThickness: createLength(60),
-          sillMaterial: wood360x60.id,
-          fillingMaterial: windowOpening.id,
-          fillingThickness: createLength(30)
-        },
-        passage: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
-          headerMaterial: wood360x60.id
-        }
+        padding: createLength(15),
+        headerThickness: createLength(60),
+        headerMaterial: wood360x60.id,
+        sillThickness: createLength(60),
+        sillMaterial: wood360x60.id
       },
       straw: {
         baleLength: createLength(800),
@@ -160,27 +144,11 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
           material: wood360x60.id
         },
         openings: {
-          door: {
-            padding: createLength(15),
-            headerThickness: createLength(60),
-            headerMaterial: wood360x60.id,
-            fillingMaterial: door.id,
-            fillingThickness: createLength(50)
-          },
-          window: {
-            padding: createLength(15),
-            headerThickness: createLength(60),
-            headerMaterial: wood360x60.id,
-            sillThickness: createLength(60),
-            sillMaterial: wood360x60.id,
-            fillingMaterial: windowOpening.id,
-            fillingThickness: createLength(30)
-          },
-          passage: {
-            padding: createLength(15),
-            headerThickness: createLength(60),
-            headerMaterial: wood360x60.id
-          }
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id,
+          sillThickness: createLength(60),
+          sillMaterial: wood360x60.id
         },
         straw: {
           baleLength: createLength(800),
@@ -190,27 +158,11 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
         }
       },
       openings: {
-        door: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
-          headerMaterial: wood360x60.id,
-          fillingMaterial: door.id,
-          fillingThickness: createLength(50)
-        },
-        window: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
-          headerMaterial: wood360x60.id,
-          sillThickness: createLength(60),
-          sillMaterial: wood360x60.id,
-          fillingMaterial: windowOpening.id,
-          fillingThickness: createLength(30)
-        },
-        passage: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
-          headerMaterial: wood360x60.id
-        }
+        padding: createLength(15),
+        headerThickness: createLength(60),
+        headerMaterial: wood360x60.id,
+        sillThickness: createLength(60),
+        sillMaterial: wood360x60.id
       },
       straw: {
         baleLength: createLength(800),
@@ -232,27 +184,11 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
       material: wood360x60.id,
       thickness: 200,
       openings: {
-        door: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
-          headerMaterial: wood360x60.id,
-          fillingMaterial: door.id,
-          fillingThickness: createLength(50)
-        },
-        window: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
-          headerMaterial: wood360x60.id,
-          sillThickness: createLength(60),
-          sillMaterial: wood360x60.id,
-          fillingMaterial: windowOpening.id,
-          fillingThickness: createLength(30)
-        },
-        passage: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
-          headerMaterial: wood360x60.id
-        }
+        padding: createLength(15),
+        headerThickness: createLength(60),
+        headerMaterial: wood360x60.id,
+        sillThickness: createLength(60),
+        sillMaterial: wood360x60.id
       },
       straw: {
         baleLength: createLength(800),

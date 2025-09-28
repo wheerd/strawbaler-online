@@ -89,6 +89,9 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
         const position = projection(area.transform.position)
         const rotation = rotationProjection(area.transform.rotation)
 
+        const cx = (bounds2D.max[0] + bounds2D.min[0]) / 2
+        const cy = (bounds2D.max[1] + bounds2D.min[1]) / 2
+
         return (
           <g key={`area-${index}`} transform={`translate(${position[0]} ${position[1]}) rotate(${rotation})`}>
             <rect
@@ -102,6 +105,9 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
               strokeDasharray="200,100"
               opacity={0.7}
             />
+            <text x={cx} y={cy} fontSize={100} textAnchor="middle" opacity={0.7} color="#666666">
+              {area.label}
+            </text>
           </g>
         )
       })}

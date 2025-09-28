@@ -1,5 +1,5 @@
 import type { PerimeterCornerId } from '@/building/model/ids'
-import type { OpeningType, Perimeter, PerimeterWall } from '@/building/model/model'
+import type { Perimeter, PerimeterWall } from '@/building/model/model'
 import type { LayersConfig } from '@/construction/config/types'
 import type { StrawConfig } from '@/construction/materials/straw'
 import type { OpeningConstructionConfig } from '@/construction/openings/openings'
@@ -11,7 +11,7 @@ export type ConstructionType = 'infill' | 'strawhenge' | 'non-strawbale'
 
 export interface BaseConstructionConfig {
   type: ConstructionType
-  openings: Record<OpeningType, OpeningConstructionConfig>
+  openings: OpeningConstructionConfig
   straw: StrawConfig
 }
 

@@ -271,13 +271,7 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
         )
       )
     } else if (segment.type === 'opening' && segment.openings) {
-      // Construct opening segment - use first opening's type for configuration
-      // (all openings in a merged segment must be same type for now)
-      // TODO: Refactor opening config
-      const openingType = segment.openings[0].type
-      const openingConfig = config.openings[openingType]
-
-      allResults.push(...constructOpeningFrame(segment, openingConfig, config, resolveDefaultMaterial))
+      allResults.push(...constructOpeningFrame(segment, config.openings, config, resolveDefaultMaterial))
     }
   }
 

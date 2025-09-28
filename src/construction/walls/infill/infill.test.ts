@@ -54,21 +54,11 @@ const defaultInfillConfig: InfillConstructionConfig = {
   minStrawSpace: 70 as Length,
   posts: defaultPostConfig,
   openings: {
-    door: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: mockHeaderMaterial
-    },
-    window: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: mockHeaderMaterial
-    },
-    passage: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: mockHeaderMaterial
-    }
+    padding: 15 as Length,
+    headerThickness: 60 as Length,
+    headerMaterial: mockHeaderMaterial,
+    sillThickness: 60 as Length,
+    sillMaterial: mockHeaderMaterial
   },
   straw: defaultStrawConfig
 }

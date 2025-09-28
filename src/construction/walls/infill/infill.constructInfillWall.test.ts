@@ -71,33 +71,11 @@ const createTestConfig = (): InfillConstructionConfig => ({
     material: createMaterialId()
   },
   openings: {
-    door: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: createMaterialId(),
-      sillThickness: 60 as Length,
-      sillMaterial: createMaterialId(),
-      fillingThickness: 30 as Length,
-      fillingMaterial: createMaterialId()
-    },
-    window: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: createMaterialId(),
-      sillThickness: 60 as Length,
-      sillMaterial: createMaterialId(),
-      fillingThickness: 30 as Length,
-      fillingMaterial: createMaterialId()
-    },
-    passage: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: createMaterialId(),
-      sillThickness: 60 as Length,
-      sillMaterial: createMaterialId(),
-      fillingThickness: 30 as Length,
-      fillingMaterial: createMaterialId()
-    }
+    padding: 15 as Length,
+    headerThickness: 60 as Length,
+    headerMaterial: createMaterialId(),
+    sillThickness: 60 as Length,
+    sillMaterial: createMaterialId()
   },
   straw: {
     baleLength: 800 as Length,
