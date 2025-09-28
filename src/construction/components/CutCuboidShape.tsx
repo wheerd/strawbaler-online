@@ -1,7 +1,11 @@
+import { subtract } from '@/shared/geometry'
+
+import { type Projection, bounds3Dto2D } from '../geometry'
 import type { CutCuboid } from '../shapes'
 
 export interface CutCuboidShapeProps {
   shape: CutCuboid
+  projection: Projection
   fill: string
   stroke?: string
   strokeWidth?: number
@@ -10,14 +14,16 @@ export interface CutCuboidShapeProps {
 
 export function CutCuboidShape({
   shape,
+  projection,
   fill,
   stroke = '#000',
   strokeWidth = 5,
-  showDebugMarkers = false
+  showDebugMarkers = true
 }: CutCuboidShapeProps): React.JSX.Element {
   const calculatePolygonPoints = (shape: CutCuboid): string => {
-    const [x, y] = shape.offset
-    const [length, width] = shape.size
+    const bounds = bounds3Dto2D(shape.bounds, projection)
+    const [x, y] = bounds.min
+    const [length, width] = subtract(bounds.max, bounds.min)
 
     const points: [number, number][] = [
       [x, y], // bottom-left (start, inside edge)
@@ -64,7 +70,7 @@ export function CutCuboidShape({
       {showDebugMarkers && (
         <g>
           {/* Origin marker */}
-          <circle cx={shape.offset[0]} cy={shape.offset[1]} r="2" fill="blue" />
+          <circle cx={shape.offset[0]} cy={shape.offset[1]} r="20" fill="blue" />
         </g>
       )}
     </g>

@@ -76,7 +76,7 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
             startPoint={svgStartPoint}
             endPoint={svgEndPoint}
             label={measurement.label}
-            offset={0}
+            offset={(measurement.offset ?? 0) * 60}
             color={COLORS.indicators.main}
             fontSize={60}
             strokeWidth={10}

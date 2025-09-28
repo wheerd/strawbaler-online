@@ -91,8 +91,9 @@ export function* constructOpeningFrame(
       startPoint: vec3.fromValues(segmentPosition[0], 0, wallHeight),
       endPoint: vec3.fromValues(segmentPosition[0] + segmentSize[0], 0, wallHeight),
       label: formatLength(segmentSize[0] as Length),
-      groupKey: 'opening',
-      tags: [TAG_OPENING_WIDTH]
+      groupKey: 'segment',
+      tags: [TAG_OPENING_WIDTH],
+      offset: -1
     })
 
     // Generate header height measurement (vertical, in opening center)
@@ -101,7 +102,8 @@ export function* constructOpeningFrame(
       startPoint: vec3.fromValues(headerCenterX, 0, 0),
       endPoint: vec3.fromValues(headerCenterX, 0, headerBottom),
       label: formatLength(headerBottom),
-      tags: [TAG_HEADER_HEIGHT]
+      tags: [TAG_HEADER_HEIGHT],
+      offset: -1
     })
 
     if (headerTop > wallHeight) {
@@ -138,7 +140,8 @@ export function* constructOpeningFrame(
       startPoint: vec3.fromValues(sillCenterX, 0, 0),
       endPoint: vec3.fromValues(sillCenterX, 0, sillTop),
       label: formatLength(sillTop),
-      tags: [TAG_SILL_HEIGHT]
+      tags: [TAG_SILL_HEIGHT],
+      offset: 1
     })
 
     // Generate opening height measurement if both sill and header exist
@@ -149,7 +152,8 @@ export function* constructOpeningFrame(
           startPoint: vec3.fromValues(sillCenterX, 0, sillTop),
           endPoint: vec3.fromValues(sillCenterX, 0, headerHeight),
           label: formatLength(openingHeight),
-          tags: [TAG_OPENING_HEIGHT]
+          tags: [TAG_OPENING_HEIGHT],
+          offset: 1
         })
       }
     }

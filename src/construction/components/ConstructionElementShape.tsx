@@ -51,6 +51,7 @@ export function ConstructionElementShape({
         <g className={className} transform={`translate(${position[0]} ${position[1]}) rotate(${rotation})`}>
           <CutCuboidShape
             shape={element.shape}
+            projection={projection}
             fill={fill}
             stroke={stroke}
             strokeWidth={strokeWidth}

@@ -146,13 +146,15 @@ function* _constructFullRingBeam(
     yield yieldMeasurement({
       startPoint: [...startInside, 0],
       endPoint: [...endInside, 0],
-      label: formatLength(distance(startInside, endInside))
+      label: formatLength(distance(startInside, endInside)),
+      offset: 1
     })
 
     yield yieldMeasurement({
       startPoint: [...startOutside, 0],
       endPoint: [...endOutside, 0],
-      label: formatLength(distance(startOutside, endOutside))
+      label: formatLength(distance(startOutside, endOutside)),
+      offset: -1
     })
   }
 }

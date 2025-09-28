@@ -1,3 +1,5 @@
+import { vec3 } from 'gl-matrix'
+
 import type { Perimeter, PerimeterWall } from '@/building/model/model'
 import type { LayersConfig } from '@/construction/config/types'
 import type { ConstructionElementId } from '@/construction/elements'
@@ -5,10 +7,18 @@ import { resolveDefaultMaterial } from '@/construction/materials/material'
 import type { ResolveMaterialFunction } from '@/construction/materials/material'
 import { type PostConfig, constructPost } from '@/construction/materials/posts'
 import { constructStraw } from '@/construction/materials/straw'
+import type { Measurement } from '@/construction/measurements'
 import type { ConstructionModel, HighlightedArea } from '@/construction/model'
 import { constructOpeningFrame } from '@/construction/openings/openings'
 import type { ConstructionResult } from '@/construction/results'
-import { aggregateResults, yieldAndCollectElementIds, yieldError, yieldWarning } from '@/construction/results'
+import {
+  aggregateResults,
+  yieldAndCollectElementIds,
+  yieldError,
+  yieldMeasurement,
+  yieldWarning
+} from '@/construction/results'
+import { TAG_OPENING_SPACING, TAG_POST_SPACING } from '@/construction/tags'
 import type {
   BaseConstructionConfig,
   PerimeterWallConstructionMethod,
@@ -17,6 +27,7 @@ import type {
 import { calculateWallConstructionLength, calculateWallCornerInfo } from '@/construction/walls/corners/corners'
 import { segmentWall } from '@/construction/walls/segmentation'
 import { type Length, type Vec3, mergeBounds } from '@/shared/geometry'
+import { formatLength } from '@/shared/utils/formatLength'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {
   type: 'infill'
@@ -118,6 +129,15 @@ function* constructInfillRecursive(
         elements: strawElementIds
       })
     }
+
+    yield yieldMeasurement({
+      startPoint: strawPosition,
+      endPoint: vec3.fromValues(strawPosition[0] + strawSize[0], strawPosition[1], strawPosition[2]),
+      label: formatLength(strawSize[0] as Length),
+      tags: [TAG_POST_SPACING],
+      groupKey: 'post-spacing',
+      offset: 1
+    })
   }
 
   let postOffset: Length
@@ -224,6 +244,23 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
 
   const allResults: ConstructionResult[] = []
 
+  const segmentMeasurements =
+    wallSegments.length > 1
+      ? wallSegments
+          .filter(s => s.type === 'wall')
+          .map(
+            s =>
+              ({
+                startPoint: [s.position[0], 0, s.position[2] + s.size[2]],
+                endPoint: [s.position[0] + s.size[0], 0, s.position[2] + s.size[2]],
+                label: formatLength(s.size[0] as Length),
+                groupKey: 'segment',
+                offset: -1,
+                tags: [TAG_OPENING_SPACING]
+              }) as Measurement
+          )
+      : []
+
   for (const segment of wallSegments) {
     if (segment.type === 'wall') {
       allResults.push(
@@ -253,7 +290,7 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
   return {
     bounds: mergeBounds(...aggRes.elements.map(e => e.bounds)),
     elements: aggRes.elements,
-    measurements: aggRes.measurements,
+    measurements: [...aggRes.measurements, ...segmentMeasurements],
     areas: [...aggRes.areas, ...cornerAreas],
     errors: aggRes.errors,
     warnings: aggRes.warnings
