@@ -1,21 +1,26 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import type { Cuboid } from '@/construction/walls'
+import type { Cuboid } from '@/construction/shapes'
+import type { Vec3 } from '@/shared/geometry'
 
 import { CuboidShape } from './CuboidShape'
 
 describe('CuboidShape', () => {
   const mockCuboid: Cuboid = {
     type: 'cuboid',
-    position: [100, 50, 0],
-    size: [500, 200, 60]
+    offset: [100, 50, 0],
+    size: [500, 200, 60],
+    bounds: { min: [100, 50, 0], max: [600, 250, 60] }
   }
+
+  // Mock projection function
+  const mockProjection = (p: Vec3): Vec3 => [p[0], -p[1], p[2]] // Simple Y-flip projection
 
   it('renders a basic cuboid as a rectangle', () => {
     const { container } = render(
       <svg>
-        <CuboidShape shape={mockCuboid} fill="#8B4513" />
+        <CuboidShape shape={mockCuboid} projection={mockProjection} fill="#8B4513" />
       </svg>
     )
 
@@ -31,7 +36,7 @@ describe('CuboidShape', () => {
   it('applies custom stroke and strokeWidth', () => {
     const { container } = render(
       <svg>
-        <CuboidShape shape={mockCuboid} fill="#ff0000" stroke="#00ff00" strokeWidth={10} />
+        <CuboidShape shape={mockCuboid} projection={mockProjection} fill="#ff0000" stroke="#00ff00" strokeWidth={10} />
       </svg>
     )
 
@@ -43,21 +48,21 @@ describe('CuboidShape', () => {
   it('shows debug markers when enabled', () => {
     const { container } = render(
       <svg>
-        <CuboidShape shape={mockCuboid} fill="#8B4513" showDebugMarkers />
+        <CuboidShape shape={mockCuboid} projection={mockProjection} fill="#8B4513" showDebugMarkers />
       </svg>
     )
 
     const circle = container.querySelector('circle')
     expect(circle).toBeInTheDocument()
     expect(circle).toHaveAttribute('cx', '100')
-    expect(circle).toHaveAttribute('cy', '-50') // -Y coordinate
+    expect(circle).toHaveAttribute('cy', '-250') // Projected Y coordinate from bounds
     expect(circle).toHaveAttribute('fill', 'blue')
   })
 
   it('does not show debug markers when disabled', () => {
     const { container } = render(
       <svg>
-        <CuboidShape shape={mockCuboid} fill="#8B4513" showDebugMarkers={false} />
+        <CuboidShape shape={mockCuboid} projection={mockProjection} fill="#8B4513" showDebugMarkers={false} />
       </svg>
     )
 

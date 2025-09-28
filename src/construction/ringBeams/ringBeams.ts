@@ -159,7 +159,7 @@ function* _constructFullRingBeam(
   }
 }
 
-function constructFullRingBeam(
+export function constructFullRingBeam(
   perimeter: Perimeter,
   config: FullRingBeamConfig,
   _resolveMaterial: ResolveMaterialFunction

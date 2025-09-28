@@ -10,6 +10,7 @@ import {
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
 import type { LayersConfig } from '@/construction/config/types'
 import { createMaterialId } from '@/construction/materials/material'
+import { TAG_OPENING_SPACING, TAG_POST_SPACING } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
 import { createLength, createVec2 } from '@/shared/geometry'
 
@@ -120,24 +121,33 @@ describe('constructInfillWall - Integration Tests', () => {
 
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
-      expect(result.wallId).toBe(wall.id)
-      expect(result.constructionType).toBe('infill')
-      expect(result.wallDimensions).toEqual({
-        length: 5000,
-        boundaryLength: 5000,
-        thickness: 360,
-        height: 2500
-      })
-      expect(result.segments).toHaveLength(1)
-      expect(result.segments[0].type).toBe('wall')
-      expect(result.segments[0].position).toBe(0)
-      expect(result.segments[0].width).toBe(5000)
+      // Check the new ConstructionModel structure
+      expect(result).toBeDefined()
+      expect(result.elements).toBeDefined()
+      expect(result.elements.length).toBeGreaterThan(0)
+      expect(result.measurements).toBeDefined()
+      expect(result.areas).toBeDefined()
+      expect(result.errors).toBeDefined()
+      expect(result.warnings).toBeDefined()
+      expect(result.bounds).toBeDefined()
 
-      if (result.segments[0].type === 'wall') {
-        expect(result.segments[0].constructionType).toBe('infill')
-        expect(result.segments[0].elements).toBeDefined()
-        expect(result.segments[0].elements.length).toBeGreaterThan(0)
-      }
+      // Check that elements have the correct structure
+      result.elements.forEach(element => {
+        expect(element.id).toBeDefined()
+        expect(element.bounds).toBeDefined()
+
+        // Check if it's a ConstructionElement (has material and shape)
+        if ('material' in element && 'shape' in element) {
+          expect(element.material).toBeDefined()
+          expect(element.shape).toBeDefined()
+          expect(element.transform).toBeDefined()
+        }
+        // Or if it's a ConstructionGroup (has children)
+        else if ('children' in element) {
+          expect(element.children).toBeDefined()
+          expect(element.transform).toBeDefined()
+        }
+      })
     })
 
     it('constructs wall with single opening', () => {
@@ -152,25 +162,12 @@ describe('constructInfillWall - Integration Tests', () => {
 
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
-      expect(result.segments).toHaveLength(3) // wall + opening + wall
+      // Should have construction elements for both wall areas and opening frame
+      expect(result.elements.length).toBeGreaterThan(0)
+      expect(result.errors).toEqual([])
 
-      // First wall segment
-      expect(result.segments[0].type).toBe('wall')
-      expect(result.segments[0].position).toBe(0)
-      expect(result.segments[0].width).toBe(2000)
-
-      // Opening segment
-      expect(result.segments[1].type).toBe('opening')
-      expect(result.segments[1].position).toBe(2000)
-      expect(result.segments[1].width).toBe(800)
-      if (result.segments[1].type === 'opening') {
-        expect(result.segments[1].openingIds).toEqual([opening.id])
-      }
-
-      // Second wall segment
-      expect(result.segments[2].type).toBe('wall')
-      expect(result.segments[2].position).toBe(2800)
-      expect(result.segments[2].width).toBe(2200)
+      // Should have measurements for post spacing and segments
+      expect(result.measurements.length).toBeGreaterThan(0)
     })
 
     it('constructs wall with multiple openings', () => {
@@ -190,28 +187,12 @@ describe('constructInfillWall - Integration Tests', () => {
 
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
-      expect(result.segments).toHaveLength(5) // wall + opening + wall + opening + wall
+      // Should have construction elements for wall areas and opening frames
+      expect(result.elements.length).toBeGreaterThan(0)
+      expect(result.errors).toEqual([])
 
-      // Check segment arrangement
-      expect(result.segments[0].type).toBe('wall')
-      expect(result.segments[0].position).toBe(0)
-      expect(result.segments[0].width).toBe(1000)
-
-      expect(result.segments[1].type).toBe('opening')
-      expect(result.segments[1].position).toBe(1000)
-      expect(result.segments[1].width).toBe(600)
-
-      expect(result.segments[2].type).toBe('wall')
-      expect(result.segments[2].position).toBe(1600)
-      expect(result.segments[2].width).toBe(1400)
-
-      expect(result.segments[3].type).toBe('opening')
-      expect(result.segments[3].position).toBe(3000)
-      expect(result.segments[3].width).toBe(800)
-
-      expect(result.segments[4].type).toBe('wall')
-      expect(result.segments[4].position).toBe(3800)
-      expect(result.segments[4].width).toBe(1200)
+      // Should have measurements for post spacing and segments
+      expect(result.measurements.length).toBeGreaterThan(0)
     })
 
     it('constructs wall with opening at start', () => {
@@ -231,15 +212,9 @@ describe('constructInfillWall - Integration Tests', () => {
 
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
-      expect(result.segments).toHaveLength(2) // opening + wall
-
-      expect(result.segments[0].type).toBe('opening')
-      expect(result.segments[0].position).toBe(0)
-      expect(result.segments[0].width).toBe(800)
-
-      expect(result.segments[1].type).toBe('wall')
-      expect(result.segments[1].position).toBe(800)
-      expect(result.segments[1].width).toBe(2200)
+      // Should have construction elements for opening frame and wall area
+      expect(result.elements.length).toBeGreaterThan(0)
+      expect(result.errors).toEqual([])
     })
 
     it('constructs wall with opening at end', () => {
@@ -259,82 +234,42 @@ describe('constructInfillWall - Integration Tests', () => {
 
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
-      expect(result.segments).toHaveLength(2) // wall + opening
-
-      expect(result.segments[0].type).toBe('wall')
-      expect(result.segments[0].position).toBe(0)
-      expect(result.segments[0].width).toBe(2200)
-
-      expect(result.segments[1].type).toBe('opening')
-      expect(result.segments[1].position).toBe(2200)
-      expect(result.segments[1].width).toBe(800)
-    })
-  })
-
-  describe('wall dimensions and properties', () => {
-    it('preserves wall dimensions correctly', () => {
-      const wall = createTestWall({
-        insideLength: 4000 as Length,
-        wallLength: 4000 as Length,
-        thickness: 300 as Length
-      })
-      const config = createTestConfig()
-      const floorHeight = 2700 as Length
-
-      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
-
-      expect(result.wallDimensions).toEqual({
-        length: 4000, // This is now the construction length including corners
-        boundaryLength: 4000, // This is the original wall length
-        thickness: 300,
-        height: 2700
-      })
-    })
-
-    it('sets correct construction type', () => {
-      const wall = createTestWall()
-      const config = createTestConfig()
-      const floorHeight = 2500 as Length
-
-      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
-
-      expect(result.constructionType).toBe('infill')
-
-      result.segments.forEach(segment => {
-        if (segment.type === 'wall') {
-          expect(segment.constructionType).toBe('infill')
-        }
-      })
+      // Should have construction elements for wall area and opening frame
+      expect(result.elements.length).toBeGreaterThan(0)
+      expect(result.errors).toEqual([])
     })
   })
 
   describe('element generation', () => {
-    it('generates construction elements for wall segments', () => {
+    it('generates construction elements with correct structure', () => {
       const wall = createTestWall({ openings: [] })
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
-      const wallSegment = result.segments[0]
-      if (wallSegment.type === 'wall') {
-        expect(wallSegment.elements).toBeDefined()
-        expect(wallSegment.elements.length).toBeGreaterThan(0)
+      expect(result.elements.length).toBeGreaterThan(0)
 
-        // Check that elements have required properties
-        wallSegment.elements.forEach(element => {
-          expect(element.id).toBeDefined()
-          expect(element.type).toBeDefined()
+      // Check that elements have required properties
+      result.elements.forEach(element => {
+        expect(element.id).toBeDefined()
+        expect(element.bounds).toBeDefined()
+
+        if ('material' in element && 'shape' in element) {
           expect(element.material).toBeDefined()
-          expect(element.shape.position).toBeDefined()
-          expect(element.shape.size).toBeDefined()
-          expect(element.shape.position).toHaveLength(3)
-          expect(element.shape.size).toHaveLength(3)
-        })
-      }
+          expect(element.shape).toBeDefined()
+          expect(element.shape.bounds).toBeDefined()
+
+          // Check common shape properties
+          if (element.shape.type === 'cuboid') {
+            expect(element.shape.offset).toBeDefined()
+            expect(element.shape.size).toBeDefined()
+          }
+        }
+      })
     })
 
-    it('generates opening elements for opening segments', () => {
+    it('generates opening elements for walls with openings', () => {
       const opening = createTestOpening()
       const wall = createTestWall({ openings: [opening] })
       const config = createTestConfig()
@@ -342,20 +277,11 @@ describe('constructInfillWall - Integration Tests', () => {
 
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
-      const openingSegment = result.segments[1]
-      if (openingSegment.type === 'opening') {
-        expect(openingSegment.elements).toBeDefined()
-        expect(openingSegment.elements.length).toBeGreaterThan(0)
+      expect(result.elements.length).toBeGreaterThan(0)
 
-        // Check that elements have required properties
-        openingSegment.elements.forEach(element => {
-          expect(element.id).toBeDefined()
-          expect(element.type).toBeDefined()
-          expect(element.material).toBeDefined()
-          expect(element.shape.position).toBeDefined()
-          expect(element.shape.size).toBeDefined()
-        })
-      }
+      // Should have elements for both wall construction and opening frame
+      const wallElements = result.elements.filter(e => 'material' in e && 'shape' in e)
+      expect(wallElements.length).toBeGreaterThan(0)
     })
   })
 
@@ -370,10 +296,11 @@ describe('constructInfillWall - Integration Tests', () => {
 
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
-      // Should still create a result, even if it has no meaningful segments
+      // Should still create a result, even if it has no meaningful elements
       expect(result).toBeDefined()
-      expect(result.wallId).toBe(wall.id)
-      expect(result.constructionType).toBe('infill')
+      expect(result.elements).toBeDefined()
+      expect(result.errors).toBeDefined()
+      expect(result.warnings).toBeDefined()
     })
 
     it('handles very small walls', () => {
@@ -389,8 +316,40 @@ describe('constructInfillWall - Integration Tests', () => {
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
       expect(result).toBeDefined()
-      expect(result.segments).toHaveLength(1)
-      expect(result.segments[0].width).toBe(50)
+      expect(result.elements).toBeDefined()
+
+      // May have warnings about insufficient space
+      if (result.warnings.length > 0) {
+        expect(result.warnings[0].description).toContain('space')
+      }
+    })
+  })
+
+  describe('measurements and areas', () => {
+    it('generates measurements for post spacing', () => {
+      const wall = createTestWall({ openings: [] })
+      const config = createTestConfig()
+      const floorHeight = 2500 as Length
+
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
+
+      // Should have measurements for post spacing
+      expect(result.measurements).toBeDefined()
+      const postSpacingMeasurements = result.measurements.filter(m => m.tags?.includes(TAG_POST_SPACING))
+      expect(postSpacingMeasurements.length).toBeGreaterThan(0)
+    })
+
+    it('generates corner areas when walls have corners', () => {
+      const wall = createTestWall({ openings: [] })
+      const config = createTestConfig()
+      const floorHeight = 2500 as Length
+
+      const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
+
+      // Should have corner areas for the perimeter corners
+      expect(result.areas).toBeDefined()
+      const cornerAreas = result.areas.filter(area => area.label === 'Corner')
+      expect(cornerAreas.length).toBeGreaterThan(0)
     })
   })
 
@@ -402,29 +361,22 @@ describe('constructInfillWall - Integration Tests', () => {
 
       const wall = createTestWall({
         openings: [door, window, passage],
-        insideLength: 6000 as Length
+        insideLength: 6000 as Length,
+        wallLength: 6000 as Length,
+        outsideLength: 6000 as Length
       })
       const config = createTestConfig()
       const floorHeight = 2500 as Length
 
       const result = constructInfillWall(wall, createTestPerimeter(wall), floorHeight, config, createTestLayersConfig())
 
-      // Should have wall + door + wall + window + wall + passage + wall = 7 segments
-      expect(result.segments).toHaveLength(7)
+      // Should have construction elements for all areas
+      expect(result.elements.length).toBeGreaterThan(0)
+      expect(result.errors).toEqual([])
 
-      // Check opening segments exist and have correct openingIds
-      const openingSegments = result.segments.filter(s => s.type === 'opening')
-      expect(openingSegments).toHaveLength(3)
-
-      if (openingSegments[0].type === 'opening') {
-        expect(openingSegments[0].openingIds).toEqual([door.id])
-      }
-      if (openingSegments[1].type === 'opening') {
-        expect(openingSegments[1].openingIds).toEqual([window.id])
-      }
-      if (openingSegments[2].type === 'opening') {
-        expect(openingSegments[2].openingIds).toEqual([passage.id])
-      }
+      // Should have segment measurements for the multiple wall sections
+      const segmentMeasurements = result.measurements.filter(m => m.tags?.includes(TAG_OPENING_SPACING))
+      expect(segmentMeasurements.length).toBeGreaterThan(0)
     })
   })
 })

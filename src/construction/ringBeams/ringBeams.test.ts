@@ -5,20 +5,22 @@ import type { Perimeter, PerimeterCorner } from '@/building/model/model'
 import { type ConstructionElementId } from '@/construction/elements'
 import * as base from '@/construction/elements'
 import type { MaterialId, ResolveMaterialFunction } from '@/construction/materials/material'
+import type { CutCuboid } from '@/construction/shapes'
 import { createLength, createVec2, polygonIsClockwise } from '@/shared/geometry'
 
-import { type FullRingBeamConfig, constructFullRingBeam } from './ringBeams'
+import { type FullRingBeamConfig, constructFullRingBeam, constructRingBeam } from './ringBeams'
 
 vi.mock('@/construction/elements', async () => {
   const original = await vi.importActual('@/construction/elements')
   return { ...original, createConstructionElement: vi.fn() }
 })
 
-vi.mocked(base.createConstructionElement).mockImplementation((type, material, shape) => ({
+vi.mocked(base.createConstructionElement).mockImplementation((material, shape, transform) => ({
   id: 'test-element' as ConstructionElementId,
-  type,
   material,
-  shape
+  shape,
+  transform: transform || { position: [0, 0, 0], rotation: [0, 0, 0] },
+  bounds: shape.bounds
 }))
 
 // Mock data helpers
@@ -74,22 +76,21 @@ describe('constructFullRingBeam', () => {
       ]
 
       const perimeter = createMockPerimeter(corners)
-      const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
+      const result = constructRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      expect(result.segments.length).toBeGreaterThan(0)
+      expect(result.elements.length).toBeGreaterThan(0)
       expect(result.errors).toHaveLength(0)
       expect(result.warnings).toHaveLength(0)
-      expect(result.perimeterId).toBe(perimeter.id)
 
-      result.segments.forEach(segment => {
-        expect(segment.elements).toHaveLength(1)
-        expect(segment.elements[0].type).toBe('plate')
-        expect(segment.elements[0].material).toBe(mockMaterial)
-        expect(segment.elements[0].shape.type).toBe('cut-cuboid')
+      result.elements.forEach(element => {
+        if ('material' in element) {
+          expect(element.material).toBe(mockMaterial)
+          expect(element.shape.type).toBe('cut-cuboid')
+        }
       })
     })
 
-    it('should create segments with correct dimensions', () => {
+    it('should create elements with correct dimensions', () => {
       const corners = [
         createMockCorner('c1', [0, 0], 'next'),
         createMockCorner('c4', [0, 1000], 'next'),
@@ -100,9 +101,8 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      result.segments.forEach(segment => {
-        const element = segment.elements[0]
-        if (element.shape.type === 'cut-cuboid') {
+      result.elements.forEach(element => {
+        if ('material' in element && element.shape.type === 'cut-cuboid') {
           expect(element.shape.size[0]).toBeGreaterThan(0) // Length > 0
           expect(element.shape.size[1]).toBe(defaultConfig.width) // Width
           expect(element.shape.size[2]).toBe(defaultConfig.height) // Height
@@ -121,7 +121,7 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      expect(result.segments.length).toBeGreaterThan(0)
+      expect(result.elements.length).toBeGreaterThan(0)
       expect(result.errors).toHaveLength(0)
     })
   })
@@ -146,7 +146,7 @@ describe('constructFullRingBeam', () => {
 
       configs.forEach(config => {
         const result = constructFullRingBeam(perimeter, config, mockResolveMaterial)
-        expect(result.segments.length).toBeGreaterThan(0)
+        expect(result.elements.length).toBeGreaterThan(0)
         expect(result.errors).toHaveLength(0)
       })
     })
@@ -169,9 +169,8 @@ describe('constructFullRingBeam', () => {
 
       const result = constructFullRingBeam(perimeter, customConfig, mockResolveMaterial)
 
-      result.segments.forEach(segment => {
-        const element = segment.elements[0]
-        if (element.shape.type === 'cut-cuboid') {
+      result.elements.forEach(element => {
+        if ('material' in element && element.shape.type === 'cut-cuboid') {
           expect(element.shape.size[1]).toBe(240) // Custom width
           expect(element.shape.size[2]).toBe(90) // Custom height
         }
@@ -180,7 +179,7 @@ describe('constructFullRingBeam', () => {
   })
 
   describe('Position and Rotation', () => {
-    it('should create segments with valid positions and rotations', () => {
+    it('should create elements with valid positions and rotations', () => {
       const corners = [
         createMockCorner('c1', [0, 0], 'next'),
         createMockCorner('c4', [0, 1000], 'next'),
@@ -191,18 +190,20 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      result.segments.forEach(segment => {
-        // Position should be valid 3D coordinates
-        expect(segment.position).toHaveLength(3)
-        expect(Number.isFinite(segment.position[0])).toBe(true)
-        expect(Number.isFinite(segment.position[1])).toBe(true)
-        expect(segment.position[2]).toBe(0) // Z should be 0
+      result.elements.forEach(element => {
+        if ('material' in element) {
+          // Position should be valid 3D coordinates
+          expect(element.transform.position).toHaveLength(3)
+          expect(Number.isFinite(element.transform.position[0])).toBe(true)
+          expect(Number.isFinite(element.transform.position[1])).toBe(true)
+          expect(element.transform.position[2]).toBe(0) // Z should be 0
 
-        // Rotation should be valid
-        expect(segment.rotation).toHaveLength(3)
-        expect(Number.isFinite(segment.rotation[2])).toBe(true)
-        expect(segment.rotation[0]).toBe(0) // X rotation should be 0
-        expect(segment.rotation[1]).toBe(0) // Y rotation should be 0
+          // Rotation should be valid
+          expect(element.transform.rotation).toHaveLength(3)
+          expect(Number.isFinite(element.transform.rotation[2])).toBe(true)
+          expect(element.transform.rotation[0]).toBe(0) // X rotation should be 0
+          expect(element.transform.rotation[1]).toBe(0) // Y rotation should be 0
+        }
       })
     })
   })
@@ -219,10 +220,15 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.segments.map(s => {
-        const shape = s.elements[0].shape as base.CutCuboid
-        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-      })
+      const cutsAndLengths = result.elements
+        .map(element => {
+          if ('material' in element && element.shape.type === 'cut-cuboid') {
+            const shape = element.shape as CutCuboid
+            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+          }
+          return { startCut: undefined, endCut: undefined, length: 0 }
+        })
+        .filter(item => item.length > 0)
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -238,10 +244,15 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.segments.map(s => {
-        const shape = s.elements[0].shape as base.CutCuboid
-        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-      })
+      const cutsAndLengths = result.elements
+        .map(element => {
+          if ('material' in element && element.shape.type === 'cut-cuboid') {
+            const shape = element.shape as CutCuboid
+            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+          }
+          return { startCut: undefined, endCut: undefined, length: 0 }
+        })
+        .filter(item => item.length > 0)
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -256,10 +267,15 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.segments.map(s => {
-        const shape = s.elements[0].shape as base.CutCuboid
-        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-      })
+      const cutsAndLengths = result.elements
+        .map(element => {
+          if ('material' in element && element.shape.type === 'cut-cuboid') {
+            const shape = element.shape as CutCuboid
+            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+          }
+          return { startCut: undefined, endCut: undefined, length: 0 }
+        })
+        .filter(item => item.length > 0)
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -277,10 +293,15 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.segments.map(s => {
-        const shape = s.elements[0].shape as base.CutCuboid
-        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-      })
+      const cutsAndLengths = result.elements
+        .map(element => {
+          if ('material' in element && element.shape.type === 'cut-cuboid') {
+            const shape = element.shape as CutCuboid
+            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+          }
+          return { startCut: undefined, endCut: undefined, length: 0 }
+        })
+        .filter(item => item.length > 0)
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -327,8 +348,16 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const startCut = (result.segments[0].elements[0].shape as base.CutCuboid).startCut?.angle
-      const endCut = (result.segments[result.segments.length - 1].elements[0].shape as base.CutCuboid).endCut?.angle
+      const firstElement = result.elements.find(element => 'material' in element)
+      const lastElement = result.elements[result.elements.length - 1]
+      const startCut =
+        firstElement && 'material' in firstElement && firstElement.shape.type === 'cut-cuboid'
+          ? (firstElement.shape as CutCuboid).startCut?.angle
+          : undefined
+      const endCut =
+        lastElement && 'material' in lastElement && lastElement.shape.type === 'cut-cuboid'
+          ? (lastElement.shape as CutCuboid).endCut?.angle
+          : undefined
 
       expect(startCut).toBeCloseTo(cut)
       expect(endCut).toBeCloseTo(cut === 0 ? cut : -cut)
@@ -348,10 +377,15 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.segments.map(s => {
-        const shape = s.elements[0].shape as base.CutCuboid
-        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-      })
+      const cutsAndLengths = result.elements
+        .map(element => {
+          if ('material' in element && element.shape.type === 'cut-cuboid') {
+            const shape = element.shape as CutCuboid
+            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+          }
+          return { startCut: undefined, endCut: undefined, length: 0 }
+        })
+        .filter(item => item.length > 0)
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -367,10 +401,15 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.segments.map(segment => {
-        const shape = segment.elements[0].shape as any
-        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-      })
+      const cutsAndLengths = result.elements
+        .map(element => {
+          if ('material' in element && element.shape.type === 'cut-cuboid') {
+            const shape = element.shape as CutCuboid
+            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+          }
+          return { startCut: undefined, endCut: undefined, length: 0 }
+        })
+        .filter(item => item.length > 0)
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -388,10 +427,15 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.segments.map(segment => {
-        const shape = segment.elements[0].shape as any
-        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-      })
+      const cutsAndLengths = result.elements
+        .map(element => {
+          if ('material' in element && element.shape.type === 'cut-cuboid') {
+            const shape = element.shape as CutCuboid
+            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+          }
+          return { startCut: undefined, endCut: undefined, length: 0 }
+        })
+        .filter(item => item.length > 0)
 
       expect(cutsAndLengths).toMatchSnapshot()
     })

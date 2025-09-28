@@ -2,15 +2,27 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createOpeningId } from '@/building/model/ids'
 import type { Opening } from '@/building/model/model'
-import { createConstructionElement } from '@/construction/elements'
+import { type ConstructionElement, type GroupOrElement, createConstructionElement } from '@/construction/elements'
 import { createMaterialId, resolveDefaultMaterial } from '@/construction/materials/material'
+import type { Measurement } from '@/construction/measurements'
 import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
+import {
+  TAG_HEADER,
+  TAG_HEADER_HEIGHT,
+  TAG_OPENING_DOOR,
+  TAG_OPENING_HEIGHT,
+  TAG_OPENING_WIDTH,
+  TAG_OPENING_WINDOW,
+  TAG_SILL,
+  TAG_SILL_HEIGHT,
+  type Tag
+} from '@/construction/tags'
 import type { InfillConstructionConfig } from '@/construction/walls/infill/infill'
 import { infillWallArea } from '@/construction/walls/infill/infill'
 import type { WallSegment3D } from '@/construction/walls/segmentation'
-import type { Length, Vec3 } from '@/shared/geometry'
+import { type Length, type Vec3, vec3Add } from '@/shared/geometry'
 
-import { type OpeningConstructionConfig, constructOpening, constructOpeningFrame } from './openings'
+import { type OpeningConstructionConfig, constructOpeningFrame } from './openings'
 
 // Mock the infill module
 vi.mock('@/construction/walls/infill/infill', () => ({
@@ -23,6 +35,17 @@ vi.mock('@/shared/utils/formatLength', () => ({
 }))
 
 const mockInfillWallArea = vi.mocked(infillWallArea)
+
+// Helper function to check if an element has a specific tag
+const hasTag = (element: GroupOrElement, tag: Tag): boolean => {
+  const constructionElement = element as ConstructionElement
+  return constructionElement.tags?.some(t => t.id === tag.id) ?? false
+}
+
+// Helper function to check if a measurement has a specific tag
+const measurementHasTag = (measurement: Measurement, tag: Tag): boolean => {
+  return measurement.tags?.some(t => t.id === tag.id) ?? false
+}
 
 const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
   id: createOpeningId(),
@@ -89,12 +112,16 @@ const createTestOpeningSegment = (opening: Opening): WallSegment3D => ({
 // Helper to create mock generator for infillWallArea
 const createMockInfillGenerator = function* (numElements = 2): Generator<ConstructionResult> {
   for (let i = 0; i < numElements; i++) {
-    const position = [100 * i, 0, 0] as Vec3
+    const offset = [100 * i, 0, 0] as Vec3
     const size = [100, 360, 500] as Vec3
-    const element = createConstructionElement('straw' as const, createMaterialId(), {
+    const element = createConstructionElement(createMaterialId(), {
       type: 'cuboid' as const,
-      position,
-      size
+      offset,
+      size,
+      bounds: {
+        min: offset,
+        max: vec3Add(offset, size)
+      }
     })
     yield yieldElement(element)
   }
@@ -122,9 +149,9 @@ describe('constructOpeningFrame', () => {
       expect(errors).toHaveLength(0)
       expect(elements.length).toBeGreaterThan(3)
 
-      const header = elements.find(el => el.type === 'header')
-      const sill = elements.find(el => el.type === 'sill')
-      const filling = elements.find(el => el.type === 'opening')
+      const header = elements.find(el => hasTag(el, TAG_HEADER))
+      const sill = elements.find(el => hasTag(el, TAG_SILL))
+      const filling = elements.find(el => hasTag(el, TAG_OPENING_WINDOW) || hasTag(el, TAG_OPENING_DOOR))
 
       expect(header).toBeDefined()
       expect(sill).toBeDefined()
@@ -147,10 +174,10 @@ describe('constructOpeningFrame', () => {
       expect(measurements.length).toBeGreaterThan(0)
 
       // Check specific measurement types
-      const openingWidthMeasurements = measurements.filter(m => m.type === 'opening-width')
-      const headerHeightMeasurements = measurements.filter(m => m.type === 'header-height')
-      const sillHeightMeasurements = measurements.filter(m => m.type === 'sill-height')
-      const openingHeightMeasurements = measurements.filter(m => m.type === 'opening-height')
+      const openingWidthMeasurements = measurements.filter(m => measurementHasTag(m, TAG_OPENING_WIDTH))
+      const headerHeightMeasurements = measurements.filter(m => measurementHasTag(m, TAG_HEADER_HEIGHT))
+      const sillHeightMeasurements = measurements.filter(m => measurementHasTag(m, TAG_SILL_HEIGHT))
+      const openingHeightMeasurements = measurements.filter(m => measurementHasTag(m, TAG_OPENING_HEIGHT))
 
       expect(openingWidthMeasurements).toHaveLength(1)
       expect(headerHeightMeasurements).toHaveLength(1)
@@ -178,10 +205,10 @@ describe('constructOpeningFrame', () => {
       const { measurements } = aggregateResults(results)
 
       // Should generate fewer measurements for door (no sill)
-      const openingWidthMeasurements = measurements.filter(m => m.type === 'opening-width')
-      const headerHeightMeasurements = measurements.filter(m => m.type === 'header-height')
-      const sillHeightMeasurements = measurements.filter(m => m.type === 'sill-height')
-      const openingHeightMeasurements = measurements.filter(m => m.type === 'opening-height')
+      const openingWidthMeasurements = measurements.filter(m => measurementHasTag(m, TAG_OPENING_WIDTH))
+      const headerHeightMeasurements = measurements.filter(m => measurementHasTag(m, TAG_HEADER_HEIGHT))
+      const sillHeightMeasurements = measurements.filter(m => measurementHasTag(m, TAG_SILL_HEIGHT))
+      const openingHeightMeasurements = measurements.filter(m => measurementHasTag(m, TAG_OPENING_HEIGHT))
 
       expect(openingWidthMeasurements).toHaveLength(1)
       expect(headerHeightMeasurements).toHaveLength(1)
@@ -208,9 +235,9 @@ describe('constructOpeningFrame', () => {
 
       expect(errors).toHaveLength(0)
 
-      const header = elements.find(el => el.type === 'header')
-      const sill = elements.find(el => el.type === 'sill')
-      const filling = elements.find(el => el.type === 'opening')
+      const header = elements.find(el => hasTag(el, TAG_HEADER))
+      const sill = elements.find(el => hasTag(el, TAG_SILL))
+      const filling = elements.find(el => hasTag(el, TAG_OPENING_WINDOW) || hasTag(el, TAG_OPENING_DOOR))
 
       expect(header).toBeDefined()
       expect(sill).toBeUndefined()
@@ -254,43 +281,5 @@ describe('constructOpeningFrame', () => {
       expect(errors).toHaveLength(1)
       expect(errors[0].description).toContain('Sill does not fit')
     })
-  })
-})
-
-describe('constructOpening', () => {
-  beforeEach(() => {
-    mockInfillWallArea.mockReset()
-    mockInfillWallArea.mockReturnValue(createMockInfillGenerator())
-  })
-
-  it('yields elements from constructOpeningFrame', () => {
-    const opening = createTestOpening()
-    const openingSegment = createTestOpeningSegment(opening)
-    const config = createTestConfig()
-    const infillConfig = createTestInfillConfig()
-
-    const results = [...constructOpening(openingSegment, config, infillConfig, resolveDefaultMaterial)]
-    const { elements, errors } = aggregateResults(results)
-
-    expect(errors).toHaveLength(0)
-    expect(elements.length).toBeGreaterThan(0)
-  })
-
-  it('propagates errors from constructOpeningFrame', () => {
-    const opening = createTestOpening({
-      sillHeight: 50 as Length,
-      height: 1200 as Length
-    })
-    const openingSegment = createTestOpeningSegment(opening)
-    const config = createTestConfig({
-      sillThickness: 100 as Length
-    })
-    const infillConfig = createTestInfillConfig()
-
-    const results = [...constructOpening(openingSegment, config, infillConfig, resolveDefaultMaterial)]
-    const { errors } = aggregateResults(results)
-
-    expect(errors).toHaveLength(1)
-    expect(errors[0].description).toContain('Sill does not fit')
   })
 })
