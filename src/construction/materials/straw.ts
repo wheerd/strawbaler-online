@@ -39,10 +39,18 @@ export function* constructStraw(position: Vec3, size: Vec3, config: StrawConfig)
   } else if (size[1] > config.baleWidth) {
     const element = createConstructionElement(config.material, createCuboidShape(position, size))
     yield yieldElement(element)
-    yield yieldError({ description: 'Wall is too thick for a single strawbale', elements: [element.id] })
+    yield yieldError({
+      description: 'Wall is too thick for a single strawbale',
+      elements: [element.id],
+      bounds: element.bounds
+    })
   } else {
     const element = createConstructionElement(config.material, createCuboidShape(position, size))
     yield yieldElement(element)
-    yield yieldWarning({ description: 'Wall is too thin for a single strawbale', elements: [element.id] })
+    yield yieldWarning({
+      description: 'Wall is too thin for a single strawbale',
+      elements: [element.id],
+      bounds: element.bounds
+    })
   }
 }

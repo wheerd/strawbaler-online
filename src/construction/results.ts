@@ -1,3 +1,5 @@
+import { type Bounds3D, mergeBounds } from '@/shared/geometry'
+
 import type { ConstructionElement, ConstructionElementId, GroupOrElement } from './elements'
 import type { Measurement } from './measurements'
 import type { HighlightedArea } from './model'
@@ -5,6 +7,7 @@ import type { HighlightedArea } from './model'
 export interface ConstructionIssue {
   description: string
   elements: ConstructionElementId[]
+  bounds?: Bounds3D
   /** Groups issues in UI - same groupKey shows as single item */
   groupKey?: string
 }
@@ -47,6 +50,7 @@ export function* yieldAndCollectElementIds(
     yield result
   }
 }
+
 export function collectElementIds(element: GroupOrElement, elementIds: ConstructionElementId[]) {
   if ('children' in element) {
     for (const child of element.children) {
@@ -54,5 +58,17 @@ export function collectElementIds(element: GroupOrElement, elementIds: Construct
     }
   } else {
     elementIds.push(element.id)
+  }
+}
+
+export function* yieldAndCollectBounds(
+  generator: Generator<ConstructionResult>,
+  boundsRef: [Bounds3D]
+): Generator<ConstructionResult> {
+  for (const result of generator) {
+    if (result.type === 'element') {
+      boundsRef[0] = boundsRef[0] ? mergeBounds(boundsRef[0], result.element.bounds) : result.element.bounds
+    }
+    yield result
   }
 }

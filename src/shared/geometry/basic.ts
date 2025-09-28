@@ -122,6 +122,13 @@ export const vec3Add = (a: Vec3, b: Vec3): Vec3 => {
   return r
 }
 
+export function boundsFromCuboid(position: Vec3, size: Vec3): Bounds3D {
+  return {
+    min: position,
+    max: vec3Add(position, size)
+  }
+}
+
 export function boundsFromPoints3D(points: Vec3[]): Bounds3D | null {
   if (points.length === 0) return null
 

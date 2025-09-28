@@ -1,6 +1,6 @@
 import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
-import { type Length, type Vec3 } from '@/shared/geometry'
+import { type Length, type Vec3, mergeBounds } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import type { Material, MaterialId, ResolveMaterialFunction } from './material'
@@ -69,7 +69,8 @@ function* constructFullPost(
     if (!dimensionsMatch(postDimensions, materialDimensions)) {
       yield yieldWarning({
         description: `Post dimensions (${formatLength(config.width)}x${formatLength(size[1] as Length)}) don't match material dimensions (${formatLength(dimensionalMaterial.width)}x${formatLength(dimensionalMaterial.thickness)})`,
-        elements: [postElement.id]
+        elements: [postElement.id],
+        bounds: postElement.bounds
       })
     }
   }
@@ -92,7 +93,8 @@ function* constructDoublePost(
     yield yieldElement(errorElement)
     yield yieldError({
       description: `Wall thickness (${formatLength(size[1] as Length)}) is not wide enough for double posts requiring ${formatLength(minimumWallThickness as Length)} minimum`,
-      elements: [errorElement.id]
+      elements: [errorElement.id],
+      bounds: errorElement.bounds
     })
     return
   }
@@ -135,7 +137,8 @@ function* constructDoublePost(
     if (!dimensionsMatch(postDimensions, materialDimensions)) {
       yield yieldWarning({
         description: `Post dimensions (${formatLength(config.width)}x${formatLength(config.thickness)}) don't match material dimensions (${formatLength(dimensionalMaterial.width)}x${formatLength(dimensionalMaterial.thickness)})`,
-        elements: [post1.id, post2.id]
+        elements: [post1.id, post2.id],
+        bounds: mergeBounds(post1.bounds, post2.bounds)
       })
     }
   }

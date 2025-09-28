@@ -27,7 +27,7 @@ import type {
 } from '@/construction/walls/construction'
 import { calculateWallConstructionLength, calculateWallCornerInfo } from '@/construction/walls/corners/corners'
 import { segmentWall } from '@/construction/walls/segmentation'
-import { type Length, type Vec3, mergeBounds } from '@/shared/geometry'
+import { type Length, type Vec3, boundsFromCuboid, mergeBounds } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {
@@ -99,11 +99,11 @@ export function* infillWallArea(
 
   // Add warning/error with references to all created elements
   if (warning) {
-    yield yieldWarning({ description: warning, elements: allElementIds })
+    yield yieldWarning({ description: warning, elements: allElementIds, bounds: boundsFromCuboid(position, size) })
   }
 
   if (error) {
-    yield yieldError({ description: error, elements: allElementIds })
+    yield yieldError({ description: error, elements: allElementIds, bounds: boundsFromCuboid(position, size) })
   }
 }
 
@@ -127,7 +127,8 @@ function* constructInfillRecursive(
     if (baleWidth < config.minStrawSpace) {
       yield yieldWarning({
         description: 'Not enough space for infilling straw',
-        elements: strawElementIds
+        elements: strawElementIds,
+        bounds: boundsFromCuboid(strawPosition, strawSize)
       })
     }
 

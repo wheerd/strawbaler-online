@@ -106,7 +106,8 @@ export function* constructOpeningFrame(
     if (headerTop > wallHeight) {
       yield yieldError({
         description: `Header does not fit: needs ${formatLength(config.headerThickness)} but only ${formatLength((wallHeight - headerBottom) as Length)} available`,
-        elements: [headerElement.id]
+        elements: [headerElement.id],
+        bounds: headerElement.bounds
       })
     }
   }
@@ -158,7 +159,8 @@ export function* constructOpeningFrame(
     if (sillBottom < 0) {
       yield yieldError({
         description: `Sill does not fit: needs ${formatLength(config.sillThickness)} but only ${formatLength(sillTop)} available`,
-        elements: [sillElement.id]
+        elements: [sillElement.id],
+        bounds: sillElement.bounds
       })
     }
   }

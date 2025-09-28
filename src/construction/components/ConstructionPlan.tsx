@@ -62,6 +62,48 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
         )
       )}
 
+      {/* Warnings */}
+      {model.warnings?.map((warning, index) => {
+        if (warning.bounds) {
+          const bounds2D = bounds3Dto2D(warning.bounds, projection)
+          return (
+            <rect
+              key={`warning-${index}`}
+              x={bounds2D.min[0]}
+              y={bounds2D.min[1]}
+              width={bounds2D.max[0] - bounds2D.min[0]}
+              height={bounds2D.max[1] - bounds2D.min[1]}
+              stroke={COLORS.ui.warning}
+              strokeWidth={30}
+              fill={`${COLORS.ui.warning}88`}
+              strokeDasharray="100,100"
+            />
+          )
+        }
+        return null
+      })}
+
+      {/* Errors */}
+      {model.errors?.map((error, index) => {
+        if (error.bounds) {
+          const bounds2D = bounds3Dto2D(error.bounds, projection)
+          return (
+            <rect
+              key={`error-${index}`}
+              x={bounds2D.min[0]}
+              y={bounds2D.min[1]}
+              width={bounds2D.max[0] - bounds2D.min[0]}
+              height={bounds2D.max[1] - bounds2D.min[1]}
+              stroke={COLORS.ui.danger}
+              strokeWidth={50}
+              fill={`${COLORS.ui.danger}AA`}
+              strokeDasharray="100,100"
+            />
+          )
+        }
+        return null
+      })}
+
       {/* Measurements */}
       {model.measurements?.map((measurement, index) => {
         const svgStartPoint = projection(measurement.startPoint)
