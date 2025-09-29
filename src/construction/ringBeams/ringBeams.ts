@@ -4,21 +4,29 @@ import type { Perimeter, PerimeterCorner } from '@/building/model/model'
 import { createConstructionElement, createCutCuboidShape } from '@/construction/elements'
 import type { MaterialId, ResolveMaterialFunction } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
-import { type ConstructionResult, aggregateResults, yieldElement, yieldMeasurement } from '@/construction/results'
+import {
+  type ConstructionResult,
+  aggregateResults,
+  yieldArea,
+  yieldElement,
+  yieldMeasurement
+} from '@/construction/results'
 import {
   type Length,
   type Polygon2D,
+  boundsFromPoints,
   direction,
   distance,
   distanceSquared,
   lineFromPoints,
   lineIntersection,
-  mergeBounds,
   offsetPolygon,
   projectPointOntoLine,
   simplifyPolygon
 } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
+
+import { TAG_PERIMETER_INSIDE, TAG_PERIMETER_OUTSIDE } from '../tags'
 
 export interface BaseRingBeamConfig {
   type: 'full' | 'double'
@@ -155,6 +163,22 @@ function* _constructFullRingBeam(
       label: formatLength(distance(startOutside, endOutside)),
       offset: -1
     })
+
+    yield yieldArea({
+      type: 'polygon',
+      renderPosition: 'bottom',
+      plane: 'xy',
+      polygon: { points: perimeter.corners.map(c => c.outsidePoint) },
+      tags: [TAG_PERIMETER_OUTSIDE]
+    })
+
+    yield yieldArea({
+      type: 'polygon',
+      renderPosition: 'bottom',
+      plane: 'xy',
+      polygon: { points: perimeter.corners.map(c => c.insidePoint) },
+      tags: [TAG_PERIMETER_INSIDE]
+    })
   }
 }
 
@@ -164,9 +188,11 @@ export function constructFullRingBeam(
   _resolveMaterial: ResolveMaterialFunction
 ): ConstructionModel {
   const aggRes = aggregateResults([..._constructFullRingBeam(perimeter, config, _resolveMaterial)])
+  const bounds2D = boundsFromPoints(perimeter.corners.map(c => c.outsidePoint))!
+  const bounds3D = { min: [...bounds2D.min, 0], max: [...bounds2D.max, config.height] }
 
   return {
-    bounds: mergeBounds(...aggRes.elements.map(e => e.bounds)),
+    bounds: bounds3D,
     elements: aggRes.elements,
     measurements: aggRes.measurements,
     areas: aggRes.areas,

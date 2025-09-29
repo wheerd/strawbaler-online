@@ -13,7 +13,8 @@ export const ALL_CATEGORIES = {
   'wall-wood': { label: 'Wall Wood' },
   'wall-construction-type': { label: 'Wall Construction Type' },
   measurement: { label: 'Measurement' },
-  opening: { label: 'Opening' }
+  opening: { label: 'Opening' },
+  area: { label: 'Area' }
 } as const
 
 export const CATEGORIES: Record<TagCategoryId, TagCategory> = ALL_CATEGORIES
@@ -157,4 +158,17 @@ export const TAG_WALL_LENGTH: Tag = {
   id: 'measurement_wall-length',
   label: 'Wall Length',
   category: 'measurement'
+}
+
+// Area tags
+export const TAG_PERIMETER_INSIDE: Tag = {
+  id: 'area_perimeter-inside',
+  label: 'Perimeter Inside',
+  category: 'area'
+}
+
+export const TAG_PERIMETER_OUTSIDE: Tag = {
+  id: 'area_perimeter-outside',
+  label: 'Perimeter Outside',
+  category: 'area'
 }

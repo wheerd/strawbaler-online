@@ -198,6 +198,8 @@ function* createCornerAreas(
       ? 0 // Overlap: starts at wall beginning
       : -cornerInfo.startCorner.extensionDistance // Adjacent: before wall
     yield {
+      type: 'cuboid',
+      renderPosition: 'top',
       label: 'Corner',
       bounds: {
         min: [x, 0, 0],
@@ -211,6 +213,8 @@ function* createCornerAreas(
       ? wallLength - cornerInfo.endCorner.extensionDistance // Overlap: extends backward from wall end
       : wallLength
     yield {
+      type: 'cuboid',
+      renderPosition: 'top',
       label: 'Corner',
       bounds: {
         min: [x, 0, 0],

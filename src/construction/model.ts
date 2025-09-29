@@ -1,4 +1,4 @@
-import type { Bounds3D } from '@/shared/geometry'
+import type { Bounds3D, Plane3D, Polygon2D } from '@/shared/geometry'
 
 import type { GroupOrElement } from './elements'
 import type { Transform } from './geometry'
@@ -15,10 +15,23 @@ export interface ConstructionModel {
   bounds: Bounds3D
 }
 
+export type HighlightedArea = HighlightedCuboid | HighlightedPolygon
+
 /** Highlighted area for visual feedback (corners, critical zones, etc.) */
-export interface HighlightedArea {
-  label: string
+export interface HighlightedCuboid {
+  type: 'cuboid'
+  label?: string
   transform: Transform
   bounds: Bounds3D
   tags?: Tag[]
+  renderPosition: 'bottom' | 'top'
+}
+
+export interface HighlightedPolygon {
+  type: 'polygon'
+  label?: string
+  polygon: Polygon2D
+  plane: Plane3D
+  tags?: Tag[]
+  renderPosition: 'bottom' | 'top'
 }
