@@ -9,7 +9,7 @@ import { resolveDefaultMaterial } from '@/construction/materials/material'
 import { constructRingBeam } from '@/construction/ringBeams/ringBeams'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
-import { ConstructionPlan } from './ConstructionPlan'
+import { ConstructionPlan, TOP_VIEW } from './ConstructionPlan'
 
 export interface RingBeamConstructionModalProps {
   perimeterId: PerimeterId
@@ -145,11 +145,7 @@ export function RingBeamConstructionModal({
           >
             {currentMethod ? (
               constructionModel ? (
-                <ConstructionPlan
-                  model={constructionModel}
-                  containerSize={containerSize}
-                  view={{ plane: 'xy', xDirection: 1, yDirection: -1, zOrder: 'max' }}
-                />
+                <ConstructionPlan model={constructionModel} containerSize={containerSize} view={TOP_VIEW} />
               ) : (
                 <Flex align="center" justify="center" style={{ height: '100%' }}>
                   <Text align="center" color="gray">

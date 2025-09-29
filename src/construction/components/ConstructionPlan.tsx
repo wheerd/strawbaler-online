@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { resolveDefaultMaterial } from '@/construction/walls'
-import { SVGViewport } from '@/shared/components/SVGViewport'
-import { type Plane3D, complementaryAxis } from '@/shared/geometry'
+import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
+import { type Plane3D, add, complementaryAxis, direction, distance } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
 
 import { bounds3Dto2D, createZOrder, project, projectRotation } from '../geometry'
@@ -11,12 +11,16 @@ import type { ConstructionModel } from '../model'
 import { ConstructionElementShape } from './ConstructionElementShape'
 import { ConstructionGroupElement } from './ConstructionGroupElement'
 
-interface View {
+export interface View {
   plane: Plane3D
   zOrder: 'min' | 'max'
   xDirection: 1 | -1
   yDirection: 1 | -1
 }
+
+export const TOP_VIEW: View = { plane: 'xy', xDirection: 1, yDirection: -1, zOrder: 'max' }
+export const FRONT_VIEW: View = { plane: 'xz', xDirection: 1, yDirection: -1, zOrder: 'min' }
+export const BACK_VIEW: View = { plane: 'xz', xDirection: -1, yDirection: -1, zOrder: 'max' }
 
 interface ConstructionPlanProps {
   model: ConstructionModel
@@ -25,6 +29,10 @@ interface ConstructionPlanProps {
 }
 
 export function ConstructionPlan({ model, view, containerSize }: ConstructionPlanProps): React.JSX.Element {
+  const viewportRef = useRef<SVGViewportRef>(null)
+
+  useEffect(() => viewportRef.current?.fitToContent(), [view])
+
   const axis = complementaryAxis(view.plane)
   const projection = project(view.plane, view.xDirection, view.yDirection, view.zOrder === 'min' ? 1 : -1)
   const rotationProjection = projectRotation(view.plane, view.xDirection, view.yDirection)
@@ -34,6 +42,7 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
 
   return (
     <SVGViewport
+      ref={viewportRef}
       contentBounds={contentBounds}
       padding={0.05} // 5% padding for wall construction
       className="w-full h-full"
@@ -109,13 +118,18 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
         const svgStartPoint = projection(measurement.startPoint)
         const svgEndPoint = projection(measurement.endPoint)
 
+        const dir = direction(measurement.startPoint, measurement.endPoint)
+        const svgDir = direction(svgStartPoint, svgEndPoint)
+
+        const offsetSign = distance(add(dir, svgDir), [0, 0, 0]) === 0 ? -1 : 1
+
         return svgStartPoint[2] === svgEndPoint[2] ? (
           <SvgMeasurementIndicator
             key={`measurement-${index}`}
             startPoint={svgStartPoint}
             endPoint={svgEndPoint}
             label={measurement.label}
-            offset={(measurement.offset ?? 0) * 60}
+            offset={(measurement.offset ?? 0) * 60 * offsetSign}
             color={COLORS.indicators.main}
             fontSize={60}
             strokeWidth={10}

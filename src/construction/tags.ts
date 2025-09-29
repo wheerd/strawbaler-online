@@ -152,3 +152,9 @@ export const TAG_RING_BEAM_INNER: Tag = {
   label: 'Ring Beam Inner',
   category: 'measurement'
 }
+
+export const TAG_WALL_LENGTH: Tag = {
+  id: 'measurement_wall-length',
+  label: 'Wall Length',
+  category: 'measurement'
+}

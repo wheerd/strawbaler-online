@@ -1,9 +1,21 @@
 import { AllSidesIcon } from '@radix-ui/react-icons'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  type RefAttributes,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 
 import type { Bounds2D } from '@/shared/geometry'
 
-interface SVGViewportProps {
+export interface SVGViewportRef {
+  fitToContent: () => void
+}
+
+interface SVGViewportProps extends RefAttributes<SVGViewportRef> {
   children: React.ReactNode
   contentBounds: Bounds2D // Required - defines the content area
   svgSize: { width: number; height: number } // Fixed SVG size
@@ -91,6 +103,7 @@ export function SVGViewport({
   children,
   contentBounds,
   svgSize,
+  ref,
   className = 'w-full h-full',
   resetButtonPosition = 'top-right',
   padding = DEFAULT_PADDING,
@@ -111,6 +124,14 @@ export function SVGViewport({
     const initialViewport = calculateInitialViewport()
     setViewport(initialViewport)
   }, [])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      fitToContent
+    }),
+    []
+  )
 
   // Reset viewport when container size changes significantly
   useEffect(() => {

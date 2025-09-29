@@ -7,7 +7,7 @@ import { elementSizeRef } from '@/shared/hooks/useElementSize'
 import { type ViewType } from '@/shared/utils/constructionCoordinates'
 
 import type { ConstructionModel } from '../model'
-import { ConstructionPlan } from './ConstructionPlan'
+import { BACK_VIEW, ConstructionPlan, FRONT_VIEW } from './ConstructionPlan'
 
 interface IssueDescriptionPanelProps {
   errors: ConstructionIssue[]
@@ -105,7 +105,7 @@ export function WallConstructionPlanModal({ model, children }: WallConstructionP
           >
             <ConstructionPlan
               model={model}
-              view={{ plane: 'xz', xDirection: 1, yDirection: -1, zOrder: 'min' }}
+              view={view === 'inside' ? FRONT_VIEW : BACK_VIEW}
               containerSize={containerSize}
             />
 

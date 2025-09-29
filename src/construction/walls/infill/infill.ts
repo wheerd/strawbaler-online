@@ -19,7 +19,7 @@ import {
   yieldMeasurement,
   yieldWarning
 } from '@/construction/results'
-import { TAG_OPENING_SPACING, TAG_POST_SPACING } from '@/construction/tags'
+import { TAG_OPENING_SPACING, TAG_POST_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
 import type {
   BaseConstructionConfig,
   PerimeterWallConstructionMethod,
@@ -257,6 +257,21 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
               }) as Measurement
           )
       : []
+
+  if (wallSegments.length > 1) {
+    segmentMeasurements.push({
+      startPoint: wallSegments[0].position,
+      endPoint: [
+        wallSegments[0].position[0] + constructionLength,
+        wallSegments[0].position[1],
+        wallSegments[0].position[2]
+      ],
+      label: formatLength(constructionLength),
+      tags: [TAG_WALL_LENGTH],
+      groupKey: 'wall-length',
+      offset: 2
+    })
+  }
 
   for (const segment of wallSegments) {
     if (segment.type === 'wall') {
