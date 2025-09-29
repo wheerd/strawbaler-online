@@ -11,7 +11,7 @@ vi.mock('@/building/store', () => ({
 }))
 
 vi.mock('@/construction/config/store', () => ({
-  useConfigStore: vi.fn(() => ({
+  useConfigActions: vi.fn(() => ({
     getRingBeamConstructionMethodById: vi.fn(() => null)
   }))
 }))

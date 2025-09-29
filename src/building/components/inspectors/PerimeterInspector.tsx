@@ -4,6 +4,7 @@ import React from 'react'
 
 import type { PerimeterId, RingBeamConstructionMethodId } from '@/building/model/ids'
 import { useModelActions, usePerimeterById } from '@/building/store'
+import { PerimeterConstructionPlanModal } from '@/construction/components/PerimeterConstructionPlanModal'
 import { RingBeamConstructionPlanModal } from '@/construction/components/RingBeamConstructionPlan'
 import { useRingBeamConstructionMethods } from '@/construction/config/store'
 import { type Length, calculatePolygonArea } from '@/shared/geometry'
@@ -54,6 +55,17 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
             <DataList.Value>{(totalArea / (1000 * 1000)).toFixed(2)} m²</DataList.Value>
           </DataList.Item>
         </DataList.Root>
+
+        <Box pt="1">
+          <PerimeterConstructionPlanModal
+            perimeterId={selectedId}
+            trigger={
+              <Button size="2" style={{ width: '100%' }}>
+                View Construction
+              </Button>
+            }
+          />
+        </Box>
 
         {/* Ring Beam Configuration */}
         <Box pt="1" style={{ borderTop: '1px solid var(--gray-6)' }}>

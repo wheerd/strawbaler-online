@@ -1,5 +1,5 @@
 import { getModelActions } from '@/building/store'
-import { useConfigStore } from '@/construction/config/store'
+import { useConfigActions } from '@/construction/config/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
 import type { ToolImplementation } from '@/editor/tools/system/types'
 import { boundsFromPoints, createLength, createVec2 } from '@/shared/geometry'
@@ -21,7 +21,7 @@ export class TestDataTool implements ToolImplementation {
 
     // Perform the test data creation operation
     const modelStore = getModelActions()
-    const activeStoreyId = modelStore.getActiveStorey()
+    const activeStoreyId = modelStore.getActiveStoreyId()
 
     // Create a T-shaped perimeter (realistic building scale)
     const boundary = {
@@ -43,7 +43,7 @@ export class TestDataTool implements ToolImplementation {
 
     try {
       // Get default construction methods from config store
-      const configStore = useConfigStore.getState()
+      const configStore = useConfigActions()
       const defaultBaseId = configStore.getDefaultBaseRingBeamMethodId()
       const defaultTopId = configStore.getDefaultTopRingBeamMethodId()
       const defaultMethodId = configStore.getDefaultPerimeterMethodId()

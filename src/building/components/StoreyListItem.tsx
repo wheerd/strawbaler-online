@@ -33,7 +33,7 @@ export function StoreyListItem({
   highestStorey
 }: StoreyListItemProps): React.JSX.Element {
   const activeStoreyId = useActiveStoreyId()
-  const { setActiveStorey } = useModelActions()
+  const { setActiveStoreyId } = useModelActions()
   const [editName, setEditName] = useState(storey.name)
 
   const { updateStoreyName, updateStoreyHeight } = useModelActions()
@@ -111,7 +111,7 @@ export function StoreyListItem({
   const handleDuplicate = useCallback(() => {
     try {
       const newStorey = defaultStoreyManagementService.duplicateStorey(storey.id)
-      setActiveStorey(newStorey.id) // Switch to new storey
+      setActiveStoreyId(newStorey.id) // Switch to new storey
     } catch (error) {
       console.error('Failed to duplicate storey:', error)
     }
@@ -224,7 +224,7 @@ export function StoreyListItem({
           </AlertDialog.Root>
 
           <IconButton
-            onClick={() => setActiveStorey(storey.id)}
+            onClick={() => setActiveStoreyId(storey.id)}
             disabled={isActive}
             title="Switch to floor"
             color="green"

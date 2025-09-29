@@ -1,7 +1,7 @@
 import { Box, Button, DataList, Flex, Heading, Separator, Text } from '@radix-ui/themes'
 import { useCallback } from 'react'
 
-import { useConfigStore, usePerimeterConstructionMethods } from '@/construction/config/store'
+import { useDefaultPerimeterMethodId, usePerimeterConstructionMethods } from '@/construction/config/store'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import { createLength } from '@/shared/geometry'
@@ -16,7 +16,7 @@ import type { LShapedPresetConfig, RectangularPresetConfig } from './presets/typ
 export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<PerimeterPresetTool>): React.JSX.Element {
   const { state } = useReactiveTool(tool)
   const allPerimeterMethods = usePerimeterConstructionMethods()
-  const configStore = useConfigStore()
+  const defaultPerimeterMethodId = useDefaultPerimeterMethodId()
 
   // Get available presets
   const availablePresets = tool.getAvailablePresets()
@@ -57,7 +57,7 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
             width: createLength(4000),
             length: createLength(6000),
             thickness: createLength(440),
-            constructionMethodId: configStore.getDefaultPerimeterMethodId()
+            constructionMethodId: defaultPerimeterMethodId
           }}
           trigger={
             <Button className="w-full" size="2">
@@ -77,7 +77,7 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
             length2: createLength(3000),
             rotation: 0,
             thickness: createLength(440),
-            constructionMethodId: configStore.getDefaultPerimeterMethodId()
+            constructionMethodId: defaultPerimeterMethodId
           }}
           trigger={
             <Button className="w-full" size="2">

@@ -19,7 +19,7 @@ export function getLevelColor(level: number): 'grass' | 'indigo' | 'brown' {
 export function StoreySelector(): React.JSX.Element {
   const storeysOrdered = useStoreysOrderedByLevel()
   const activeStoreyId = useActiveStoreyId()
-  const { setActiveStorey } = useModelActions()
+  const { setActiveStoreyId } = useModelActions()
 
   // Display storeys in intuitive order (highest to lowest, like elevator buttons)
   const storeysDisplayOrder = [...storeysOrdered].reverse()
@@ -27,9 +27,9 @@ export function StoreySelector(): React.JSX.Element {
   const handleStoreyChange = useCallback(
     (newStoreyId: string) => {
       console.log('Changing active storey to', newStoreyId)
-      setActiveStorey(newStoreyId as StoreyId)
+      setActiveStoreyId(newStoreyId as StoreyId)
     },
-    [setActiveStorey]
+    [setActiveStoreyId]
   )
 
   return (

@@ -14,8 +14,8 @@ export function useAutoFitOnHydration(): void {
       hasRun.current = true
 
       setTimeout(() => {
-        const { getActiveStorey, getPerimetersByStorey } = getModelActions()
-        const activeStoreyId = getActiveStorey()
+        const { getActiveStoreyId, getPerimetersByStorey } = getModelActions()
+        const activeStoreyId = getActiveStoreyId()
         const perimeters = getPerimetersByStorey(activeStoreyId)
 
         if (perimeters.length > 0) {

@@ -3,7 +3,7 @@ import { Box, Callout, Dialog, Flex, IconButton, SegmentedControl, Text } from '
 import React, { useState } from 'react'
 
 import type { ConstructionModel } from '@/construction/model'
-import { type ConstructionIssue } from '@/construction/walls'
+import type { ConstructionIssue } from '@/construction/results'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 import { type ViewType } from '@/shared/utils/constructionCoordinates'
 

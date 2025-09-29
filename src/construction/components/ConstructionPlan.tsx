@@ -3,11 +3,11 @@ import React, { useEffect, useRef } from 'react'
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { bounds3Dto2D, createZOrder, project, projectRotation } from '@/construction/geometry'
 import type { ConstructionModel, HighlightedCuboid, HighlightedPolygon } from '@/construction/model'
-import { resolveDefaultMaterial } from '@/construction/walls'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
 import { type Plane3D, add, complementaryAxis, direction, distance } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
 
+import { resolveDefaultMaterial } from '../materials/material'
 import { ConstructionElementShape } from './ConstructionElementShape'
 import { ConstructionGroupElement } from './ConstructionGroupElement'
 import { CuboidAreaShape } from './CuboidAreaShape'
@@ -17,12 +17,11 @@ export interface View {
   plane: Plane3D
   zOrder: 'min' | 'max'
   xDirection: 1 | -1
-  yDirection: 1 | -1
 }
 
-export const TOP_VIEW: View = { plane: 'xy', xDirection: 1, yDirection: -1, zOrder: 'max' }
-export const FRONT_VIEW: View = { plane: 'xz', xDirection: 1, yDirection: -1, zOrder: 'min' }
-export const BACK_VIEW: View = { plane: 'xz', xDirection: -1, yDirection: -1, zOrder: 'max' }
+export const TOP_VIEW: View = { plane: 'xy', xDirection: 1, zOrder: 'max' }
+export const FRONT_VIEW: View = { plane: 'xz', xDirection: 1, zOrder: 'min' }
+export const BACK_VIEW: View = { plane: 'xz', xDirection: -1, zOrder: 'max' }
 
 interface ConstructionPlanProps {
   model: ConstructionModel
@@ -36,8 +35,8 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
   useEffect(() => viewportRef.current?.fitToContent(), [view])
 
   const axis = complementaryAxis(view.plane)
-  const projection = project(view.plane, view.xDirection, view.yDirection, view.zOrder === 'min' ? 1 : -1)
-  const rotationProjection = projectRotation(view.plane, view.xDirection, view.yDirection)
+  const projection = project(view.plane)
+  const rotationProjection = projectRotation(view.plane)
   const zOrder = createZOrder(axis, view.zOrder)
   const sortedElements = [...model.elements].sort()
   const contentBounds = bounds3Dto2D(model.bounds, projection)
@@ -53,6 +52,7 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
       className="w-full h-full"
       resetButtonPosition="top-right"
       svgSize={containerSize}
+      flipX={view.xDirection === -1}
     >
       {/* Polygon Areas - Bottom */}
       {polygonAreas

@@ -165,10 +165,10 @@ describe('StoreysSlice', () => {
       const floor1 = store.actions.addStorey('Floor 1')
       const floor2 = store.actions.addStorey('Floor 2')
 
-      store.actions.setActiveStorey(floor1.id)
+      store.actions.setActiveStoreyId(floor1.id)
       store.actions.removeStorey(floor1.id)
 
-      expect(store.actions.getActiveStorey()).toBe(floor2.id)
+      expect(store.actions.getActiveStoreyId()).toBe(floor2.id)
     })
   })
 

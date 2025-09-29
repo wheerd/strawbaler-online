@@ -4,19 +4,10 @@ import type { ConstructionType, PerimeterWallConstructionMethod } from './constr
 import { constructInfillWall } from './infill/infill'
 import { constructStrawhengeWall } from './strawhenge/strawhenge'
 
-// Re-export from new modular structure
-export * from '@/construction/elements'
-export * from '@/construction/results'
-export * from '@/construction/measurements'
 export * from './construction'
 export * from './segmentation'
 export * from './corners/corners'
 export * from './infill/infill'
-export * from '@/construction/materials/material'
-export * from '@/construction/openings/openings'
-export * from '@/construction/materials/posts'
-export * from '@/construction/ringBeams/ringBeams'
-export * from '@/construction/materials/straw'
 export * from './strawhenge/strawhenge'
 
 // Placeholder construction method for non-strawbale walls

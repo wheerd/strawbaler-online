@@ -1,14 +1,15 @@
 import type { Projection, RotationProjection } from '@/construction/geometry'
 import { createSvgTransform } from '@/construction/geometry'
-import type { ConstructionElement, ResolveMaterialFunction } from '@/construction/walls'
 
+import type { ConstructionElement } from '../elements'
+import type { ResolveMaterialFunction } from '../materials/material'
 import { CuboidShape } from './CuboidShape'
 import { CutCuboidShape } from './CutCuboidShape'
 
 export interface ConstructionElementShapeProps {
   element: ConstructionElement
-  projection: Projection
-  rotationProjection: RotationProjection
+  projection?: Projection
+  rotationProjection?: RotationProjection
   resolveMaterial: ResolveMaterialFunction
   stroke?: string
   strokeWidth?: number

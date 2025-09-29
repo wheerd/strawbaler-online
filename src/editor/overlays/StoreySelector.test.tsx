@@ -18,7 +18,7 @@ vi.mock('@/building/store', async importOriginal => {
     useActiveStoreyId: vi.fn(),
     useModelActions: vi.fn(() => ({
       addStorey: vi.fn(),
-      setActiveStorey: vi.fn()
+      setActiveStoreyId: vi.fn()
     }))
   }
 })
@@ -56,7 +56,7 @@ describe('StoreySelector', () => {
 
     // Mock the model actions hook
     mockUseModelActions.mockReturnValue({
-      setActiveStorey: mockSetActiveStorey,
+      setActiveStoreyId: mockSetActiveStorey,
       addStorey: vi.fn()
     } as any)
   })
@@ -84,7 +84,7 @@ describe('StoreySelector', () => {
     expect(editButton).toBeInTheDocument()
   })
 
-  it('calls setActiveStorey when selection changes', () => {
+  it('calls setActiveStoreyId when selection changes', () => {
     // Mock scrollIntoView for Radix UI Select
     Element.prototype.scrollIntoView = vi.fn()
 

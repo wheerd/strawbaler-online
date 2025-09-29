@@ -107,33 +107,29 @@ export const bounds3Dto2D = (bounds: Bounds3D, projection: Projection): Bounds2D
 export type Projection = (p: Vec3) => Vec3
 export type RotationProjection = (r: Vec3) => number
 
-export const project = (plane: Plane3D, xDir: 1 | -1, yDir: 1 | -1, zDir: 1 | -1): Projection => {
-  return (p: Vec3): Vec3 => {
-    switch (plane) {
-      case 'xy':
-        return vec3.fromValues(p[0] * xDir, p[1] * yDir, p[2] * zDir)
-      case 'xz':
-        return vec3.fromValues(p[0] * xDir, p[2] * yDir, p[1] * zDir)
-      case 'yz':
-        return vec3.fromValues(p[1] * xDir, p[2] * yDir, p[0] * zDir)
-      default:
-        throw new Error(`Unknown plane: ${plane}`)
-    }
+export const project = (plane: Plane3D): Projection => {
+  switch (plane) {
+    case 'xy':
+      return (p: Vec3): Vec3 => vec3.fromValues(p[0], p[1], p[2])
+    case 'xz':
+      return (p: Vec3): Vec3 => vec3.fromValues(p[0], p[2], p[1])
+    case 'yz':
+      return (p: Vec3): Vec3 => vec3.fromValues(p[1], p[2], p[0])
+    default:
+      throw new Error(`Unknown plane: ${plane}`)
   }
 }
 
-export const projectRotation = (plane: Plane3D, _xDir: 1 | -1, yDir: 1 | -1): RotationProjection => {
-  return (r: Vec3): number => {
-    switch (plane) {
-      case 'xy':
-        return (r[2] / Math.PI) * 180 + (yDir === -1 ? -90 : 0) // TODO: Needs adjustment based on xDir/yDir
-      case 'xz':
-        return (r[1] / Math.PI) * 180 // TODO: Needs adjustment based on xDir/yDir
-      case 'yz':
-        return (r[0] / Math.PI) * 180 // TODO: Needs adjustment based on xDir/yDir
-      default:
-        throw new Error(`Unknown plane: ${plane}`)
-    }
+export const projectRotation = (plane: Plane3D): RotationProjection => {
+  switch (plane) {
+    case 'xy':
+      return (r: Vec3): number => (r[2] / Math.PI) * 180
+    case 'xz':
+      return (r: Vec3): number => (r[1] / Math.PI) * 180
+    case 'yz':
+      return (r: Vec3): number => (r[0] / Math.PI) * 180
+    default:
+      throw new Error(`Unknown plane: ${plane}`)
   }
 }
 
@@ -148,10 +144,13 @@ export const projectRotation = (plane: Plane3D, _xDir: 1 | -1, yDir: 1 | -1): Ro
  */
 export const createSvgTransform = (
   transform: Transform,
-  projection: Projection,
-  rotationProjection: RotationProjection
-): string => {
+  projection?: Projection,
+  rotationProjection?: RotationProjection
+): string | undefined => {
+  if (!projection || !rotationProjection) return undefined
   const position = projection(transform.position)
   const rotation = rotationProjection(transform.rotation)
   return `translate(${position[0]} ${position[1]}) rotate(${rotation})`
 }
+
+export const IDENTITY_PROJECTION: Projection = v => v

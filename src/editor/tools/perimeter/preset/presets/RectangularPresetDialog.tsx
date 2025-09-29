@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import type { PerimeterConstructionMethodId, RingBeamConstructionMethodId } from '@/building/model/ids'
 import {
-  useConfigStore,
+  useConfigActions,
   usePerimeterConstructionMethods,
   useRingBeamConstructionMethods
 } from '@/construction/config/store'
@@ -101,7 +101,7 @@ function RectangularPresetDialogContent({
   // Get construction methods and defaults from config store
   const allRingBeamMethods = useRingBeamConstructionMethods()
   const allPerimeterMethods = usePerimeterConstructionMethods()
-  const configStore = useConfigStore()
+  const configStore = useConfigActions()
 
   // Form state with defaults from config store
   const [config, setConfig] = useState<RectangularPresetConfig>(() => ({

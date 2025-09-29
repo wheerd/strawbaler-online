@@ -1,19 +1,17 @@
 import { CheckCircledIcon, Cross2Icon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import { Box, Callout, Card, Dialog, Flex, Heading, IconButton, SegmentedControl, Text } from '@radix-ui/themes'
-import React, { useMemo, useState } from 'react'
+import { Box, Callout, Dialog, Flex, IconButton, Text } from '@radix-ui/themes'
+import React, { useMemo } from 'react'
 
 import type { PerimeterId } from '@/building/model/ids'
 import { usePerimeterById } from '@/building/store'
 import { resolveDefaultMaterial } from '@/construction/materials/material'
-import { constructRingBeam } from '@/construction/ringBeams/ringBeams'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
-import { useConfigActions } from '../config'
+import { constructPerimeter } from '../perimeter'
 import { ConstructionPlan, TOP_VIEW } from './ConstructionPlan'
 
-export interface RingBeamConstructionModalProps {
+export interface PerimeterConstructionModalProps {
   perimeterId: PerimeterId
-  position: 'base' | 'top'
   trigger: React.ReactNode
 }
 
@@ -82,42 +80,18 @@ const IssueDescriptionPanel = ({ errors, warnings }: IssueDescriptionPanelProps)
   </Box>
 )
 
-export function RingBeamConstructionPlanModal({
+export function PerimeterConstructionPlanModal({
   perimeterId,
-  position,
   trigger
-}: RingBeamConstructionModalProps): React.JSX.Element {
-  const [currentPosition, setCurrentPosition] = useState<'base' | 'top'>(position)
+}: PerimeterConstructionModalProps): React.JSX.Element {
   const [containerSize, containerRef] = elementSizeRef()
 
   const perimeter = usePerimeterById(perimeterId)
-  const { getRingBeamConstructionMethodById } = useConfigActions()
 
   const constructionModel = useMemo(() => {
     if (!perimeter) return null
-
-    const methodId = currentPosition === 'base' ? perimeter.baseRingBeamMethodId : perimeter.topRingBeamMethodId
-
-    if (!methodId) return null
-
-    const method = getRingBeamConstructionMethodById(methodId)
-    if (!method) return null
-
-    try {
-      return constructRingBeam(perimeter, method.config, resolveDefaultMaterial)
-    } catch (error) {
-      console.error('Failed to generate ring beam construction plan:', error)
-      return null
-    }
-  }, [perimeter, currentPosition, getRingBeamConstructionMethodById])
-
-  const currentMethod = useMemo(() => {
-    if (!perimeter) return null
-
-    const methodId = currentPosition === 'base' ? perimeter.baseRingBeamMethodId : perimeter.topRingBeamMethodId
-
-    return methodId ? getRingBeamConstructionMethodById(methodId) : null
-  }, [perimeter, currentPosition, getRingBeamConstructionMethodById])
+    return constructPerimeter(perimeter, resolveDefaultMaterial)
+  }, [perimeter])
 
   if (!perimeter) {
     return <>{trigger}</>
@@ -143,63 +117,20 @@ export function RingBeamConstructionPlanModal({
             ref={containerRef}
             className="relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2"
           >
-            {currentMethod ? (
-              constructionModel ? (
-                <ConstructionPlan model={constructionModel} containerSize={containerSize} view={TOP_VIEW} />
-              ) : (
-                <Flex align="center" justify="center" style={{ height: '100%' }}>
-                  <Text align="center" color="gray">
-                    <Text size="6">⚠</Text>
-                    <br />
-                    <Text size="2">Failed to generate construction plan</Text>
-                  </Text>
-                </Flex>
-              )
+            {constructionModel ? (
+              <ConstructionPlan model={constructionModel} containerSize={containerSize} view={TOP_VIEW} />
             ) : (
               <Flex align="center" justify="center" style={{ height: '100%' }}>
                 <Text align="center" color="gray">
-                  <Text size="6">📋</Text>
+                  <Text size="6">⚠</Text>
                   <br />
-                  <Text size="2">No {currentPosition} ring beam method selected</Text>
+                  <Text size="2">Failed to generate construction plan</Text>
                 </Text>
               </Flex>
             )}
-
-            {/* Overlay SegmentedControl in top-left corner */}
-            <Box position="absolute" top="3" left="3" p="0S" className="z-10 shadow-md bg-panel rounded-2">
-              <SegmentedControl.Root
-                value={currentPosition}
-                onValueChange={value => setCurrentPosition(value as 'base' | 'top')}
-                size="1"
-              >
-                <SegmentedControl.Item value="base">Base Plate</SegmentedControl.Item>
-                <SegmentedControl.Item value="top">Top Plate</SegmentedControl.Item>
-              </SegmentedControl.Root>
-            </Box>
           </div>
 
           <Flex direction="row" gap="3" flexShrink="0">
-            {/* Method Info Panel */}
-            <Box flexGrow="1">
-              {currentMethod && (
-                <Card variant="surface" size="1">
-                  <Heading size="2" mb="1">
-                    {currentMethod.name}
-                  </Heading>
-                  <Flex direction="column" gap="1">
-                    <Text size="1">Type: {currentMethod.config.type}</Text>
-                    <Text size="1">Height: {currentMethod.config.height}mm</Text>
-                    {currentMethod.config.type === 'full' && (
-                      <Text size="1">Width: {currentMethod.config.width}mm</Text>
-                    )}
-                    {currentMethod.config.type === 'double' && (
-                      <Text size="1">Thickness: {currentMethod.config.thickness}mm</Text>
-                    )}
-                  </Flex>
-                </Card>
-              )}
-            </Box>
-
             {/* Issues Panel */}
             {constructionModel && (
               <Box flexGrow="1">

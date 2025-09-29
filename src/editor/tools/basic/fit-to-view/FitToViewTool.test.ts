@@ -30,7 +30,7 @@ describe('FitToViewTool', () => {
     // Mock model actions accessor
     const mockedGetModelActions = vi.mocked(getModelActions)
     mockedGetModelActions.mockReturnValue({
-      getActiveStorey: () => 'floor1' as StoreyId,
+      getActiveStoreyId: () => 'floor1' as StoreyId,
       getPerimetersByStorey: mockGetPerimetersByStorey
     } as any)
 

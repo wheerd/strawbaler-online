@@ -11,6 +11,8 @@ import React, {
 
 import type { Bounds2D } from '@/shared/geometry'
 
+import './SVGViewport.css'
+
 export interface SVGViewportRef {
   fitToContent: () => void
 }
@@ -24,6 +26,8 @@ interface SVGViewportProps extends RefAttributes<SVGViewportRef> {
   padding?: number // Padding around content (default: 0.1 = 10%)
   minZoom?: number // Minimum zoom level (default: 0.01)
   maxZoom?: number // Maximum zoom level (default: 50)
+  flipY?: boolean
+  flipX?: boolean
 }
 
 interface ViewportState {
@@ -108,7 +112,9 @@ export function SVGViewport({
   resetButtonPosition = 'top-right',
   padding = DEFAULT_PADDING,
   minZoom = DEFAULT_MIN_ZOOM,
-  maxZoom = DEFAULT_MAX_ZOOM
+  maxZoom = DEFAULT_MAX_ZOOM,
+  flipX = false,
+  flipY = true
 }: SVGViewportProps): React.JSX.Element {
   const svgRef = useRef<SVGSVGElement>(null)
 
@@ -324,7 +330,7 @@ export function SVGViewport({
         viewBox={viewBox}
         width={svgSize.width || 100}
         height={svgSize.height || 100}
-        className="w-full h-full touch-none block"
+        className="w-full h-full touch-none block viewport"
         preserveAspectRatio="none"
         onWheel={handleWheel}
         onPointerDown={handlePointerDown}
@@ -334,7 +340,9 @@ export function SVGViewport({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <g transform={transform}>{children}</g>
+        <g transform={transform}>
+          <g className={`${flipY ? 'flipY' : 'normalY'} ${flipX ? 'flipX' : 'normalX'}`}>{children}</g>
+        </g>
       </svg>
 
       <button

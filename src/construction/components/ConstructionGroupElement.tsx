@@ -1,14 +1,15 @@
 import type { Projection, RotationProjection, ZOrder } from '@/construction/geometry'
 import { createSvgTransform } from '@/construction/geometry'
-import type { ConstructionGroup, ResolveMaterialFunction } from '@/construction/walls'
 
+import type { ConstructionGroup } from '../elements'
+import type { ResolveMaterialFunction } from '../materials/material'
 import { ConstructionElementShape } from './ConstructionElementShape'
 
 export interface ConstructionGroupElementProps {
   group: ConstructionGroup
-  projection: Projection
+  projection?: Projection
   zOrder: ZOrder
-  rotationProjection: RotationProjection
+  rotationProjection?: RotationProjection
   resolveMaterial: ResolveMaterialFunction
 }
 
@@ -27,19 +28,11 @@ export function ConstructionGroupElement({
           <ConstructionGroupElement
             key={element.id}
             group={element}
-            projection={projection}
-            rotationProjection={rotationProjection}
             zOrder={zOrder}
             resolveMaterial={resolveMaterial}
           />
         ) : (
-          <ConstructionElementShape
-            projection={projection}
-            rotationProjection={rotationProjection}
-            key={element.id}
-            element={element}
-            resolveMaterial={resolveMaterial}
-          />
+          <ConstructionElementShape key={element.id} element={element} resolveMaterial={resolveMaterial} />
         )
       )}
     </g>

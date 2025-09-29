@@ -116,7 +116,7 @@ export class PerimeterPresetTool extends BaseTool implements ToolImplementation 
 
       // Create the perimeter using the model store
       const modelStore = getModelActions()
-      const activeStoreyId = modelStore.getActiveStorey()
+      const activeStoreyId = modelStore.getActiveStoreyId()
 
       modelStore.addPerimeter(
         activeStoreyId,

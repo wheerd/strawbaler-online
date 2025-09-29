@@ -1,10 +1,10 @@
-import { type Projection, bounds3Dto2D } from '@/construction/geometry'
+import { IDENTITY_PROJECTION, type Projection, bounds3Dto2D } from '@/construction/geometry'
 import type { Cuboid } from '@/construction/shapes'
 import { subtract } from '@/shared/geometry'
 
 export interface CuboidShapeProps {
   shape: Cuboid
-  projection: Projection
+  projection?: Projection
   fill: string
   stroke?: string
   strokeWidth?: number
@@ -19,7 +19,7 @@ export function CuboidShape({
   strokeWidth = 5,
   showDebugMarkers = false
 }: CuboidShapeProps): React.JSX.Element {
-  const bounds = bounds3Dto2D(shape.bounds, projection)
+  const bounds = bounds3Dto2D(shape.bounds, projection ?? IDENTITY_PROJECTION)
   const [x, y] = bounds.min
   const [length, width] = subtract(bounds.max, bounds.min)
 

@@ -1,10 +1,10 @@
-import { type Projection, bounds3Dto2D } from '@/construction/geometry'
+import { IDENTITY_PROJECTION, type Projection, bounds3Dto2D } from '@/construction/geometry'
 import type { CutCuboid } from '@/construction/shapes'
 import { subtract } from '@/shared/geometry'
 
 export interface CutCuboidShapeProps {
   shape: CutCuboid
-  projection: Projection
+  projection?: Projection
   fill: string
   stroke?: string
   strokeWidth?: number
@@ -20,7 +20,7 @@ export function CutCuboidShape({
   showDebugMarkers = false
 }: CutCuboidShapeProps): React.JSX.Element {
   const calculatePolygonPoints = (shape: CutCuboid): string => {
-    const bounds = bounds3Dto2D(shape.bounds, projection)
+    const bounds = bounds3Dto2D(shape.bounds, projection ?? IDENTITY_PROJECTION)
     const [x, y] = bounds.min
     const [length, width] = subtract(bounds.max, bounds.min)
 

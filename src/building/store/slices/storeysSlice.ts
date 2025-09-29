@@ -15,8 +15,9 @@ export interface StoreysState {
 
 export interface StoreysActions {
   // Active storey management
-  getActiveStorey: () => StoreyId
-  setActiveStorey: (storeyId: StoreyId) => void
+  getActiveStoreyId: () => StoreyId
+  getActiveStorey: () => Storey
+  setActiveStoreyId: (storeyId: StoreyId) => void
 
   // CRUD operations
   addStorey: (name: string, height?: Length) => Storey
@@ -67,9 +68,14 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
 
   actions: {
     // Active storey management
-    getActiveStorey: () => get().activeStoreyId,
+    getActiveStoreyId: () => get().activeStoreyId,
 
-    setActiveStorey: (activeStoreyId: StoreyId) =>
+    getActiveStorey: () => {
+      const state = get()
+      return state.storeys[state.activeStoreyId]
+    },
+
+    setActiveStoreyId: (activeStoreyId: StoreyId) =>
       set(state => {
         state.activeStoreyId = activeStoreyId
       }),
