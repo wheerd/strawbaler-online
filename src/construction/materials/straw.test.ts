@@ -31,12 +31,11 @@ describe('constructStraw', () => {
 
       const bale = elements[0]
       expect('material' in bale).toBe(true) // Should be ConstructionElement
-      if ('material' in bale) {
-        expect(bale.material).toBe(mockMaterialId)
-        expect(bale.shape.type).toBe('cuboid')
-        expect(bale.transform.position).toEqual([0, 0, 0])
-        expect(bale.shape.size).toEqual([800, 360, 500])
-      }
+      const baleElement = bale as ConstructionElement
+      expect(baleElement.material).toBe(mockMaterialId)
+      expect(baleElement.shape.type).toBe('cuboid')
+      expect(baleElement.transform.position).toEqual([0, 0, 0])
+      expect(baleElement.shape.size).toEqual([800, 360, 500])
     })
 
     it('should create multiple bales in a horizontal row', () => {

@@ -9,6 +9,7 @@ import {
 } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
 import type { LayersConfig } from '@/construction/config/types'
+import type { ConstructionElement, ConstructionGroup } from '@/construction/elements'
 import { createMaterialId } from '@/construction/materials/material'
 import { TAG_OPENING_SPACING, TAG_POST_SPACING } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
@@ -116,14 +117,19 @@ describe('constructInfillWall - Integration Tests', () => {
 
         // Check if it's a ConstructionElement (has material and shape)
         if ('material' in element && 'shape' in element) {
-          expect(element.material).toBeDefined()
-          expect(element.shape).toBeDefined()
-          expect(element.transform).toBeDefined()
+          const constructionElement = element as ConstructionElement
+          expect(constructionElement.material).toBeDefined()
+          expect(constructionElement.shape).toBeDefined()
+          expect(constructionElement.transform).toBeDefined()
         }
         // Or if it's a ConstructionGroup (has children)
         else if ('children' in element) {
-          expect(element.children).toBeDefined()
-          expect(element.transform).toBeDefined()
+          const constructionGroup = element as ConstructionGroup
+          expect(constructionGroup.children).toBeDefined()
+          expect(constructionGroup.transform).toBeDefined()
+        } else {
+          // This should not happen - every element should be either a ConstructionElement or ConstructionGroup
+          throw new Error(`Unexpected element type: ${JSON.stringify(element)}`)
         }
       })
     })
@@ -234,15 +240,22 @@ describe('constructInfillWall - Integration Tests', () => {
         expect(element.bounds).toBeDefined()
 
         if ('material' in element && 'shape' in element) {
-          expect(element.material).toBeDefined()
-          expect(element.shape).toBeDefined()
-          expect(element.shape.bounds).toBeDefined()
+          const constructionElement = element as ConstructionElement
+          expect(constructionElement.material).toBeDefined()
+          expect(constructionElement.shape).toBeDefined()
+          expect(constructionElement.shape.bounds).toBeDefined()
 
           // Check common shape properties
-          if (element.shape.type === 'cuboid') {
-            expect(element.shape.offset).toBeDefined()
-            expect(element.shape.size).toBeDefined()
+          if (constructionElement.shape.type === 'cuboid') {
+            expect(constructionElement.shape.offset).toBeDefined()
+            expect(constructionElement.shape.size).toBeDefined()
           }
+        } else if ('children' in element) {
+          const constructionGroup = element as ConstructionGroup
+          expect(constructionGroup.children).toBeDefined()
+        } else {
+          // This should not happen - every element should be either a ConstructionElement or ConstructionGroup
+          throw new Error(`Unexpected element type: ${JSON.stringify(element)}`)
         }
       })
     })

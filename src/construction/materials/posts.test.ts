@@ -48,13 +48,12 @@ describe('constructPost', () => {
 
       const post = elements[0]
       expect('material' in post).toBe(true) // Should be ConstructionElement, not ConstructionGroup
-      if ('material' in post) {
-        expect(post.material).toBe(mockWoodMaterial)
-        expect(post.shape.type).toBe('cuboid')
-        expect((post.shape as Cuboid).offset).toEqual([100, 50, 25]) // Shape offset contains position
-        expect((post.shape as Cuboid).size).toEqual([60, 360, 3000])
-        expect(post.transform.position).toEqual([0, 0, 0]) // Transform position is at origin
-      }
+      const postElement = post as ConstructionElement
+      expect(postElement.material).toBe(mockWoodMaterial)
+      expect(postElement.shape.type).toBe('cuboid')
+      expect((postElement.shape as Cuboid).offset).toEqual([100, 50, 25]) // Shape offset contains position
+      expect((postElement.shape as Cuboid).size).toEqual([60, 360, 3000])
+      expect(postElement.transform.position).toEqual([0, 0, 0]) // Transform position is at origin
     })
 
     it('should handle zero offset', () => {
@@ -69,10 +68,10 @@ describe('constructPost', () => {
       expect(elements).toHaveLength(1)
 
       const post = elements[0]
-      if ('material' in post) {
-        expect(post.transform.position).toEqual([0, 0, 0])
-        expect((post.shape as Cuboid).size).toEqual([60, 360, 3000])
-      }
+      expect('material' in post).toBe(true)
+      const postElement = post as ConstructionElement
+      expect(postElement.transform.position).toEqual([0, 0, 0])
+      expect((postElement.shape as Cuboid).size).toEqual([60, 360, 3000])
     })
 
     it('should handle different wall dimensions', () => {
@@ -87,10 +86,10 @@ describe('constructPost', () => {
       expect(elements).toHaveLength(1)
 
       const post = elements[0]
-      if ('material' in post) {
-        expect(post.shape.offset).toEqual([200, 100, 0])
-        expect((post.shape as Cuboid).size).toEqual([60, 180, 2500])
-      }
+      expect('material' in post).toBe(true)
+      const postElement = post as ConstructionElement
+      expect(postElement.shape.offset).toEqual([200, 100, 0])
+      expect((postElement.shape as Cuboid).size).toEqual([60, 180, 2500])
     })
 
     it('should use correct material from config', () => {
@@ -116,9 +115,9 @@ describe('constructPost', () => {
       const { elements } = aggregateResults(results)
 
       const post = elements[0]
-      if ('material' in post) {
-        expect((post.shape as Cuboid).size).toEqual([80, 360, 3000])
-      }
+      expect('material' in post).toBe(true)
+      const postElement = post as ConstructionElement
+      expect((postElement.shape as Cuboid).size).toEqual([80, 360, 3000])
     })
 
     it('should generate unique IDs for multiple posts', () => {
@@ -205,18 +204,18 @@ describe('constructPost', () => {
       expect(elements).toHaveLength(3)
 
       // First post
-      if ('material' in elements[0]) {
-        expect(elements[0].material).toBe(mockWoodMaterial)
-        expect(elements[0].shape.offset).toEqual([100, 50, 25])
-        expect((elements[0].shape as Cuboid).size).toEqual([60, 120, 3000])
-      }
+      expect('material' in elements[0]).toBe(true)
+      const firstPost = elements[0] as ConstructionElement
+      expect(firstPost.material).toBe(mockWoodMaterial)
+      expect(firstPost.shape.offset).toEqual([100, 50, 25])
+      expect((firstPost.shape as Cuboid).size).toEqual([60, 120, 3000])
 
       // Second post
-      if ('material' in elements[1]) {
-        expect(elements[1].material).toBe(mockWoodMaterial)
-        expect(elements[1].shape.offset).toEqual([100, 290, 25])
-        expect((elements[1].shape as Cuboid).size).toEqual([60, 120, 3000])
-      }
+      expect('material' in elements[1]).toBe(true)
+      const secondPost = elements[1] as ConstructionElement
+      expect(secondPost.material).toBe(mockWoodMaterial)
+      expect(secondPost.shape.offset).toEqual([100, 290, 25])
+      expect((secondPost.shape as Cuboid).size).toEqual([60, 120, 3000])
 
       // Infill
       expect('material' in elements[2]).toBe(true)
@@ -237,9 +236,12 @@ describe('constructPost', () => {
       expect(warnings).toHaveLength(0)
       expect(elements).toHaveLength(3)
       // Check element positions via shape offset
-      if ('material' in elements[0]) expect(elements[0].shape.offset).toEqual([0, 0, 0])
-      if ('material' in elements[1]) expect(elements[1].shape.offset).toEqual([0, 240, 0])
-      if ('material' in elements[2]) expect(elements[2].shape.offset).toEqual([0, 120, 0])
+      expect('material' in elements[0]).toBe(true)
+      expect('material' in elements[1]).toBe(true)
+      expect('material' in elements[2]).toBe(true)
+      expect((elements[0] as ConstructionElement).shape.offset).toEqual([0, 0, 0])
+      expect((elements[1] as ConstructionElement).shape.offset).toEqual([0, 240, 0])
+      expect((elements[2] as ConstructionElement).shape.offset).toEqual([0, 120, 0])
     })
 
     it('should handle different wall dimensions', () => {
@@ -253,9 +255,12 @@ describe('constructPost', () => {
       expect(warnings).toHaveLength(0)
       expect(elements).toHaveLength(3)
       // Check element positions via shape offset
-      if ('material' in elements[0]) expect(elements[0].shape.offset).toEqual([200, 100, 0])
-      if ('material' in elements[1]) expect(elements[1].shape.offset).toEqual([200, 380, 0])
-      if ('material' in elements[2]) expect(elements[2].shape.offset).toEqual([200, 220, 0])
+      expect('material' in elements[0]).toBe(true)
+      expect('material' in elements[1]).toBe(true)
+      expect('material' in elements[2]).toBe(true)
+      expect((elements[0] as ConstructionElement).shape.offset).toEqual([200, 100, 0])
+      expect((elements[1] as ConstructionElement).shape.offset).toEqual([200, 380, 0])
+      expect((elements[2] as ConstructionElement).shape.offset).toEqual([200, 220, 0])
     })
 
     it('should use custom post dimensions', () => {
@@ -269,9 +274,12 @@ describe('constructPost', () => {
       const { elements } = aggregateResults(results)
 
       // Check element sizes via shape size
-      if ('material' in elements[0]) expect((elements[0].shape as Cuboid).size).toEqual([80, 150, 3000])
-      if ('material' in elements[1]) expect((elements[1].shape as Cuboid).size).toEqual([80, 150, 3000])
-      if ('material' in elements[2]) expect((elements[2].shape as Cuboid).size).toEqual([80, 100, 3000])
+      expect('material' in elements[0]).toBe(true)
+      expect('material' in elements[1]).toBe(true)
+      expect('material' in elements[2]).toBe(true)
+      expect(((elements[0] as ConstructionElement).shape as Cuboid).size).toEqual([80, 150, 3000])
+      expect(((elements[1] as ConstructionElement).shape as Cuboid).size).toEqual([80, 150, 3000])
+      expect(((elements[2] as ConstructionElement).shape as Cuboid).size).toEqual([80, 100, 3000])
     })
 
     it('should use correct materials from config', () => {

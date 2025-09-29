@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { PerimeterId } from '@/building/model/ids'
 import type { Perimeter, PerimeterCorner } from '@/building/model/model'
-import { type ConstructionElementId } from '@/construction/elements'
+import { type ConstructionElement, type ConstructionElementId } from '@/construction/elements'
 import * as base from '@/construction/elements'
 import type { MaterialId, ResolveMaterialFunction } from '@/construction/materials/material'
 import type { CutCuboid } from '@/construction/shapes'
@@ -83,10 +83,10 @@ describe('constructFullRingBeam', () => {
       expect(result.warnings).toHaveLength(0)
 
       result.elements.forEach(element => {
-        if ('material' in element) {
-          expect(element.material).toBe(mockMaterial)
-          expect(element.shape.type).toBe('cut-cuboid')
-        }
+        expect('material' in element).toBe(true)
+        const constructionElement = element as ConstructionElement
+        expect(constructionElement.material).toBe(mockMaterial)
+        expect(constructionElement.shape.type).toBe('cut-cuboid')
       })
     })
 
@@ -102,11 +102,12 @@ describe('constructFullRingBeam', () => {
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
       result.elements.forEach(element => {
-        if ('material' in element && element.shape.type === 'cut-cuboid') {
-          expect(element.shape.size[0]).toBeGreaterThan(0) // Length > 0
-          expect(element.shape.size[1]).toBe(defaultConfig.width) // Width
-          expect(element.shape.size[2]).toBe(defaultConfig.height) // Height
-        }
+        expect('material' in element).toBe(true)
+        const constructionElement = element as ConstructionElement
+        expect(constructionElement.shape.type).toBe('cut-cuboid')
+        expect(constructionElement.shape.size[0]).toBeGreaterThan(0) // Length > 0
+        expect(constructionElement.shape.size[1]).toBe(defaultConfig.width) // Width
+        expect(constructionElement.shape.size[2]).toBe(defaultConfig.height) // Height
       })
     })
 
@@ -170,10 +171,11 @@ describe('constructFullRingBeam', () => {
       const result = constructFullRingBeam(perimeter, customConfig, mockResolveMaterial)
 
       result.elements.forEach(element => {
-        if ('material' in element && element.shape.type === 'cut-cuboid') {
-          expect(element.shape.size[1]).toBe(240) // Custom width
-          expect(element.shape.size[2]).toBe(90) // Custom height
-        }
+        expect('material' in element).toBe(true)
+        const constructionElement = element as ConstructionElement
+        expect(constructionElement.shape.type).toBe('cut-cuboid')
+        expect(constructionElement.shape.size[1]).toBe(240) // Custom width
+        expect(constructionElement.shape.size[2]).toBe(90) // Custom height
       })
     })
   })
@@ -191,19 +193,20 @@ describe('constructFullRingBeam', () => {
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
       result.elements.forEach(element => {
-        if ('material' in element) {
-          // Position should be valid 3D coordinates
-          expect(element.transform.position).toHaveLength(3)
-          expect(Number.isFinite(element.transform.position[0])).toBe(true)
-          expect(Number.isFinite(element.transform.position[1])).toBe(true)
-          expect(element.transform.position[2]).toBe(0) // Z should be 0
+        expect('material' in element).toBe(true)
+        const constructionElement = element as ConstructionElement
 
-          // Rotation should be valid
-          expect(element.transform.rotation).toHaveLength(3)
-          expect(Number.isFinite(element.transform.rotation[2])).toBe(true)
-          expect(element.transform.rotation[0]).toBe(0) // X rotation should be 0
-          expect(element.transform.rotation[1]).toBe(0) // Y rotation should be 0
-        }
+        // Position should be valid 3D coordinates
+        expect(constructionElement.transform.position).toHaveLength(3)
+        expect(Number.isFinite(constructionElement.transform.position[0])).toBe(true)
+        expect(Number.isFinite(constructionElement.transform.position[1])).toBe(true)
+        expect(constructionElement.transform.position[2]).toBe(0) // Z should be 0
+
+        // Rotation should be valid
+        expect(constructionElement.transform.rotation).toHaveLength(3)
+        expect(Number.isFinite(constructionElement.transform.rotation[2])).toBe(true)
+        expect(constructionElement.transform.rotation[0]).toBe(0) // X rotation should be 0
+        expect(constructionElement.transform.rotation[1]).toBe(0) // Y rotation should be 0
       })
     })
   })
@@ -223,7 +226,8 @@ describe('constructFullRingBeam', () => {
       const cutsAndLengths = result.elements
         .map(element => {
           if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const shape = element.shape as CutCuboid
+            const constructionElement = element as ConstructionElement
+            const shape = constructionElement.shape as CutCuboid
             return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
           }
           return { startCut: undefined, endCut: undefined, length: 0 }
@@ -247,7 +251,8 @@ describe('constructFullRingBeam', () => {
       const cutsAndLengths = result.elements
         .map(element => {
           if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const shape = element.shape as CutCuboid
+            const constructionElement = element as ConstructionElement
+            const shape = constructionElement.shape as CutCuboid
             return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
           }
           return { startCut: undefined, endCut: undefined, length: 0 }
@@ -270,7 +275,8 @@ describe('constructFullRingBeam', () => {
       const cutsAndLengths = result.elements
         .map(element => {
           if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const shape = element.shape as CutCuboid
+            const constructionElement = element as ConstructionElement
+            const shape = constructionElement.shape as CutCuboid
             return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
           }
           return { startCut: undefined, endCut: undefined, length: 0 }
@@ -296,7 +302,8 @@ describe('constructFullRingBeam', () => {
       const cutsAndLengths = result.elements
         .map(element => {
           if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const shape = element.shape as CutCuboid
+            const constructionElement = element as ConstructionElement
+            const shape = constructionElement.shape as CutCuboid
             return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
           }
           return { startCut: undefined, endCut: undefined, length: 0 }
@@ -380,7 +387,8 @@ describe('constructFullRingBeam', () => {
       const cutsAndLengths = result.elements
         .map(element => {
           if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const shape = element.shape as CutCuboid
+            const constructionElement = element as ConstructionElement
+            const shape = constructionElement.shape as CutCuboid
             return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
           }
           return { startCut: undefined, endCut: undefined, length: 0 }
@@ -404,7 +412,8 @@ describe('constructFullRingBeam', () => {
       const cutsAndLengths = result.elements
         .map(element => {
           if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const shape = element.shape as CutCuboid
+            const constructionElement = element as ConstructionElement
+            const shape = constructionElement.shape as CutCuboid
             return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
           }
           return { startCut: undefined, endCut: undefined, length: 0 }
@@ -430,7 +439,8 @@ describe('constructFullRingBeam', () => {
       const cutsAndLengths = result.elements
         .map(element => {
           if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const shape = element.shape as CutCuboid
+            const constructionElement = element as ConstructionElement
+            const shape = constructionElement.shape as CutCuboid
             return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
           }
           return { startCut: undefined, endCut: undefined, length: 0 }
