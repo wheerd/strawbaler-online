@@ -223,16 +223,11 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.elements
-        .map(element => {
-          if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const constructionElement = element as ConstructionElement
-            const shape = constructionElement.shape as CutCuboid
-            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-          }
-          return { startCut: undefined, endCut: undefined, length: 0 }
-        })
-        .filter(item => item.length > 0)
+      const cutsAndLengths = result.elements.map(element => {
+        const constructionElement = element as ConstructionElement
+        const shape = constructionElement.shape as CutCuboid
+        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+      })
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -248,16 +243,11 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.elements
-        .map(element => {
-          if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const constructionElement = element as ConstructionElement
-            const shape = constructionElement.shape as CutCuboid
-            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-          }
-          return { startCut: undefined, endCut: undefined, length: 0 }
-        })
-        .filter(item => item.length > 0)
+      const cutsAndLengths = result.elements.map(element => {
+        const constructionElement = element as ConstructionElement
+        const shape = constructionElement.shape as CutCuboid
+        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+      })
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -272,16 +262,11 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.elements
-        .map(element => {
-          if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const constructionElement = element as ConstructionElement
-            const shape = constructionElement.shape as CutCuboid
-            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-          }
-          return { startCut: undefined, endCut: undefined, length: 0 }
-        })
-        .filter(item => item.length > 0)
+      const cutsAndLengths = result.elements.map(element => {
+        const constructionElement = element as ConstructionElement
+        const shape = constructionElement.shape as CutCuboid
+        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+      })
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -299,16 +284,11 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.elements
-        .map(element => {
-          if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const constructionElement = element as ConstructionElement
-            const shape = constructionElement.shape as CutCuboid
-            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-          }
-          return { startCut: undefined, endCut: undefined, length: 0 }
-        })
-        .filter(item => item.length > 0)
+      const cutsAndLengths = result.elements.map(element => {
+        const constructionElement = element as ConstructionElement
+        const shape = constructionElement.shape as CutCuboid
+        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+      })
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -355,16 +335,10 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const firstElement = result.elements.find(element => 'material' in element)
-      const lastElement = result.elements[result.elements.length - 1]
-      const startCut =
-        firstElement && 'material' in firstElement && firstElement.shape.type === 'cut-cuboid'
-          ? (firstElement.shape as CutCuboid).startCut?.angle
-          : undefined
-      const endCut =
-        lastElement && 'material' in lastElement && lastElement.shape.type === 'cut-cuboid'
-          ? (lastElement.shape as CutCuboid).endCut?.angle
-          : undefined
+      const firstElement = result.elements.find(element => 'material' in element) as ConstructionElement
+      const lastElement = result.elements[result.elements.length - 1] as ConstructionElement
+      const startCut = (firstElement.shape as CutCuboid).startCut?.angle
+      const endCut = (lastElement.shape as CutCuboid).endCut?.angle
 
       expect(startCut).toBeCloseTo(cut)
       expect(endCut).toBeCloseTo(cut === 0 ? cut : -cut)
@@ -384,16 +358,11 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.elements
-        .map(element => {
-          if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const constructionElement = element as ConstructionElement
-            const shape = constructionElement.shape as CutCuboid
-            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-          }
-          return { startCut: undefined, endCut: undefined, length: 0 }
-        })
-        .filter(item => item.length > 0)
+      const cutsAndLengths = result.elements.map(element => {
+        const constructionElement = element as ConstructionElement
+        const shape = constructionElement.shape as CutCuboid
+        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+      })
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -409,16 +378,11 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.elements
-        .map(element => {
-          if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const constructionElement = element as ConstructionElement
-            const shape = constructionElement.shape as CutCuboid
-            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-          }
-          return { startCut: undefined, endCut: undefined, length: 0 }
-        })
-        .filter(item => item.length > 0)
+      const cutsAndLengths = result.elements.map(element => {
+        const constructionElement = element as ConstructionElement
+        const shape = constructionElement.shape as CutCuboid
+        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+      })
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
@@ -436,16 +400,11 @@ describe('constructFullRingBeam', () => {
       const perimeter = createMockPerimeter(corners)
       const result = constructFullRingBeam(perimeter, defaultConfig, mockResolveMaterial)
 
-      const cutsAndLengths = result.elements
-        .map(element => {
-          if ('material' in element && element.shape.type === 'cut-cuboid') {
-            const constructionElement = element as ConstructionElement
-            const shape = constructionElement.shape as CutCuboid
-            return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
-          }
-          return { startCut: undefined, endCut: undefined, length: 0 }
-        })
-        .filter(item => item.length > 0)
+      const cutsAndLengths = result.elements.map(element => {
+        const constructionElement = element as ConstructionElement
+        const shape = constructionElement.shape as CutCuboid
+        return { startCut: shape.startCut?.angle, endCut: shape.endCut?.angle, length: shape.size[0] }
+      })
 
       expect(cutsAndLengths).toMatchSnapshot()
     })
