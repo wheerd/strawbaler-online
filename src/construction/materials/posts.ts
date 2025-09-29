@@ -1,6 +1,6 @@
 import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
-import { type Length, type Vec3 } from '@/shared/geometry'
+import { type Length, type Vec3, mergeBounds } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import type { Material, MaterialId, ResolveMaterialFunction } from './material'
@@ -53,7 +53,6 @@ function* constructFullPost(
   resolveMaterial: ResolveMaterialFunction
 ): Generator<ConstructionResult> {
   const postElement: ConstructionElement = createConstructionElement(
-    'post',
     config.material,
     createCuboidShape(position, [config.width, size[1], size[2]])
   )
@@ -70,7 +69,8 @@ function* constructFullPost(
     if (!dimensionsMatch(postDimensions, materialDimensions)) {
       yield yieldWarning({
         description: `Post dimensions (${formatLength(config.width)}x${formatLength(size[1] as Length)}) don't match material dimensions (${formatLength(dimensionalMaterial.width)}x${formatLength(dimensionalMaterial.thickness)})`,
-        elements: [postElement.id]
+        elements: [postElement.id],
+        bounds: postElement.bounds
       })
     }
   }
@@ -86,7 +86,6 @@ function* constructDoublePost(
   const minimumWallThickness = 2 * config.thickness
   if (size[1] < minimumWallThickness) {
     const errorElement: ConstructionElement = createConstructionElement(
-      'post',
       config.material,
       createCuboidShape(position, [config.width, size[1], size[2]])
     )
@@ -94,20 +93,19 @@ function* constructDoublePost(
     yield yieldElement(errorElement)
     yield yieldError({
       description: `Wall thickness (${formatLength(size[1] as Length)}) is not wide enough for double posts requiring ${formatLength(minimumWallThickness as Length)} minimum`,
-      elements: [errorElement.id]
+      elements: [errorElement.id],
+      bounds: errorElement.bounds
     })
     return
   }
 
   const post1: ConstructionElement = createConstructionElement(
-    'post',
     config.material,
     createCuboidShape(position, [config.width, config.thickness, size[2]])
   )
   yield yieldElement(post1)
 
   const post2: ConstructionElement = createConstructionElement(
-    'post',
     config.material,
     createCuboidShape(
       [position[0], position[1] + size[1] - config.thickness, position[2]],
@@ -120,7 +118,6 @@ function* constructDoublePost(
   const infillThickness = size[1] - 2 * config.thickness
   if (infillThickness > 0) {
     const infill: ConstructionElement = createConstructionElement(
-      'infill',
       config.infillMaterial,
       createCuboidShape(
         [position[0], position[1] + config.thickness, position[2]],
@@ -140,7 +137,8 @@ function* constructDoublePost(
     if (!dimensionsMatch(postDimensions, materialDimensions)) {
       yield yieldWarning({
         description: `Post dimensions (${formatLength(config.width)}x${formatLength(config.thickness)}) don't match material dimensions (${formatLength(dimensionalMaterial.width)}x${formatLength(dimensionalMaterial.thickness)})`,
-        elements: [post1.id, post2.id]
+        elements: [post1.id, post2.id],
+        bounds: mergeBounds(post1.bounds, post2.bounds)
       })
     }
   }

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type ConstructionElement, createCuboidShape } from '@/construction/elements'
+import { IDENTITY } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'
 import { constructPost } from '@/construction/materials/posts'
@@ -13,7 +14,7 @@ import {
   yieldError,
   yieldWarning
 } from '@/construction/results'
-import type { Length, Vec3 } from '@/shared/geometry'
+import { type Length, type Vec3, vec3Add } from '@/shared/geometry'
 
 import { type InfillConstructionConfig, infillWallArea } from './infill'
 
@@ -53,21 +54,11 @@ const defaultInfillConfig: InfillConstructionConfig = {
   minStrawSpace: 70 as Length,
   posts: defaultPostConfig,
   openings: {
-    door: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: mockHeaderMaterial
-    },
-    window: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: mockHeaderMaterial
-    },
-    passage: {
-      padding: 15 as Length,
-      headerThickness: 60 as Length,
-      headerMaterial: mockHeaderMaterial
-    }
+    padding: 15 as Length,
+    headerThickness: 60 as Length,
+    headerMaterial: mockHeaderMaterial,
+    sillThickness: 60 as Length,
+    sillMaterial: mockHeaderMaterial
   },
   straw: defaultStrawConfig
 }
@@ -75,16 +66,18 @@ const defaultInfillConfig: InfillConstructionConfig = {
 // Mock element creation helpers
 const createMockPost = (id: string, position: Vec3, size: Vec3): ConstructionElement => ({
   id: id as any,
-  type: 'post',
   material: mockWoodMaterial,
-  shape: createCuboidShape(position, size)
+  shape: createCuboidShape(position, size),
+  transform: IDENTITY,
+  bounds: { min: position, max: vec3Add(position, size) }
 })
 
 const createMockStraw = (id: string, position: Vec3, size: Vec3): ConstructionElement => ({
   id: id as any,
-  type: 'straw',
   material: mockStrawMaterial,
-  shape: createCuboidShape(position, size)
+  shape: createCuboidShape(position, size),
+  transform: IDENTITY,
+  bounds: { min: position, max: vec3Add(position, size) }
 })
 
 // Helper to create generator mocks

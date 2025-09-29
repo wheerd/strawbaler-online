@@ -67,8 +67,13 @@ export function SvgMeasurementIndicator({
   const connectionStrokeWidth = strokeWidth / 2
 
   // Calculate line gap for text similar to canvas version
-  const estimatedTextWidth = label.length * fontSize * 0.6
-  const gapHalfWidth = estimatedTextWidth * 0.6
+  let actualFontSize = fontSize
+  let gapHalfWidth = label.length * actualFontSize * 0.6 * 0.6
+  while (gapHalfWidth >= length / 3) {
+    actualFontSize *= 0.9
+    const estimatedTextWidth = label.length * actualFontSize * 0.6
+    gapHalfWidth = estimatedTextWidth * 0.6
+  }
 
   // Calculate left and right endpoints for line gap
   const leftEndpointX = textX - gapHalfWidth * dirX
@@ -139,7 +144,7 @@ export function SvgMeasurementIndicator({
       <text
         x={textX}
         y={textY}
-        fontSize={fontSize}
+        fontSize={actualFontSize}
         fontFamily="Arial"
         fontWeight="bold"
         fill={color}

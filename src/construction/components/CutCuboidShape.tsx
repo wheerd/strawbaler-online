@@ -1,7 +1,10 @@
-import type { CutCuboid } from '@/construction/walls'
+import { type Projection, bounds3Dto2D } from '@/construction/geometry'
+import type { CutCuboid } from '@/construction/shapes'
+import { subtract } from '@/shared/geometry'
 
 export interface CutCuboidShapeProps {
   shape: CutCuboid
+  projection: Projection
   fill: string
   stroke?: string
   strokeWidth?: number
@@ -10,15 +13,16 @@ export interface CutCuboidShapeProps {
 
 export function CutCuboidShape({
   shape,
+  projection,
   fill,
   stroke = '#000',
   strokeWidth = 5,
   showDebugMarkers = false
 }: CutCuboidShapeProps): React.JSX.Element {
-  // Hardcoded coordinate transformation (as requested)
   const calculatePolygonPoints = (shape: CutCuboid): string => {
-    const [x, y] = shape.position
-    const [length, width] = shape.size
+    const bounds = bounds3Dto2D(shape.bounds, projection)
+    const [x, y] = bounds.min
+    const [length, width] = subtract(bounds.max, bounds.min)
 
     const points: [number, number][] = [
       [x, y], // bottom-left (start, inside edge)
@@ -52,7 +56,7 @@ export function CutCuboidShape({
     }
 
     // Convert to SVG coordinate system (flip Y) - hardcoded transformation
-    return points.map(([px, py]) => `${px},${-py}`).join(' ')
+    return points.map(([px, py]) => `${px},${py}`).join(' ')
   }
 
   const polygonPoints = calculatePolygonPoints(shape)
@@ -65,24 +69,7 @@ export function CutCuboidShape({
       {showDebugMarkers && (
         <g>
           {/* Origin marker */}
-          <circle cx={shape.position[0]} cy={-shape.position[1]} r="2" fill="blue" />
-
-          {/* Cut angle indicators */}
-          {shape.startCut && (
-            <text x={shape.position[0] - 50} y={-shape.position[1] - shape.size[1] / 2} fontSize="12" fill="red">
-              Start: {shape.startCut.angle.toFixed(1)}°
-            </text>
-          )}
-          {shape.endCut && (
-            <text
-              x={shape.position[0] + shape.size[0] + 10}
-              y={-shape.position[1] - shape.size[1] / 2}
-              fontSize="12"
-              fill="red"
-            >
-              End: {shape.endCut.angle.toFixed(1)}°
-            </text>
-          )}
+          <circle cx={shape.offset[0]} cy={shape.offset[1]} r="20" fill="blue" />
         </g>
       )}
     </g>

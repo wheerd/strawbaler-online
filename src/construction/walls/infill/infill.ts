@@ -1,29 +1,34 @@
+import { vec3 } from 'gl-matrix'
+
 import type { Perimeter, PerimeterWall } from '@/building/model/model'
 import type { LayersConfig } from '@/construction/config/types'
 import type { ConstructionElementId } from '@/construction/elements'
-import { createConstructionElementId } from '@/construction/elements'
+import { IDENTITY } from '@/construction/geometry'
 import { resolveDefaultMaterial } from '@/construction/materials/material'
 import type { ResolveMaterialFunction } from '@/construction/materials/material'
 import { type PostConfig, constructPost } from '@/construction/materials/posts'
 import { constructStraw } from '@/construction/materials/straw'
 import type { Measurement } from '@/construction/measurements'
+import type { ConstructionModel, HighlightedArea } from '@/construction/model'
+import { constructOpeningFrame } from '@/construction/openings/openings'
+import type { ConstructionResult } from '@/construction/results'
 import {
-  calculateOpeningSpacingMeasurements,
-  calculatePostSpacingMeasurements
-} from '@/construction/measurements/measurements'
-import { constructOpening } from '@/construction/openings/openings'
-import type { ConstructionIssue, ConstructionResult } from '@/construction/results'
-import { aggregateResults, yieldAndCollectElementIds, yieldError, yieldWarning } from '@/construction/results'
+  aggregateResults,
+  yieldAndCollectElementIds,
+  yieldError,
+  yieldMeasurement,
+  yieldWarning
+} from '@/construction/results'
+import { TAG_OPENING_SPACING, TAG_POST_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
 import type {
   BaseConstructionConfig,
-  ConstructionSegment,
   PerimeterWallConstructionMethod,
-  WallConstructionPlan,
-  WallConstructionSegment
+  WallCornerInfo
 } from '@/construction/walls/construction'
 import { calculateWallConstructionLength, calculateWallCornerInfo } from '@/construction/walls/corners/corners'
 import { segmentWall } from '@/construction/walls/segmentation'
-import type { Length, Vec3 } from '@/shared/geometry'
+import { type Length, type Vec3, boundsFromCuboid, mergeBounds } from '@/shared/geometry'
+import { formatLength } from '@/shared/utils/formatLength'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {
   type: 'infill'
@@ -94,11 +99,11 @@ export function* infillWallArea(
 
   // Add warning/error with references to all created elements
   if (warning) {
-    yield yieldWarning({ description: warning, elements: allElementIds })
+    yield yieldWarning({ description: warning, elements: allElementIds, bounds: boundsFromCuboid(position, size) })
   }
 
   if (error) {
-    yield yieldError({ description: error, elements: allElementIds })
+    yield yieldError({ description: error, elements: allElementIds, bounds: boundsFromCuboid(position, size) })
   }
 }
 
@@ -122,9 +127,19 @@ function* constructInfillRecursive(
     if (baleWidth < config.minStrawSpace) {
       yield yieldWarning({
         description: 'Not enough space for infilling straw',
-        elements: strawElementIds
+        elements: strawElementIds,
+        bounds: boundsFromCuboid(strawPosition, strawSize)
       })
     }
+
+    yield yieldMeasurement({
+      startPoint: strawPosition,
+      endPoint: vec3.fromValues(strawPosition[0] + strawSize[0], strawPosition[1], strawPosition[2]),
+      label: formatLength(strawSize[0] as Length),
+      tags: [TAG_POST_SPACING],
+      groupKey: 'post-spacing',
+      offset: 1
+    })
   }
 
   let postOffset: Length
@@ -172,20 +187,47 @@ function getBaleWidth(availableWidth: Length, config: InfillConstructionConfig):
   return maxPostSpacing
 }
 
+function* createCornerAreas(
+  cornerInfo: WallCornerInfo,
+  wallLength: Length,
+  wallHeight: Length,
+  wallThickness: Length
+): Generator<HighlightedArea> {
+  if (cornerInfo.startCorner) {
+    const x = cornerInfo.startCorner.constructedByThisWall
+      ? 0 // Overlap: starts at wall beginning
+      : -cornerInfo.startCorner.extensionDistance // Adjacent: before wall
+    yield {
+      label: 'Corner',
+      bounds: {
+        min: [x, 0, 0],
+        max: [x + cornerInfo.startCorner.extensionDistance, wallThickness, wallHeight]
+      },
+      transform: IDENTITY
+    }
+  }
+  if (cornerInfo.endCorner) {
+    const x = cornerInfo.endCorner.constructedByThisWall
+      ? wallLength - cornerInfo.endCorner.extensionDistance // Overlap: extends backward from wall end
+      : wallLength
+    yield {
+      label: 'Corner',
+      bounds: {
+        min: [x, 0, 0],
+        max: [x + cornerInfo.endCorner.extensionDistance, wallThickness, wallHeight]
+      },
+      transform: IDENTITY
+    }
+  }
+}
+
 export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstructionConfig> = (
   wall: PerimeterWall,
   perimeter: Perimeter,
   floorHeight: Length,
   config: InfillConstructionConfig,
   layers: LayersConfig
-): WallConstructionPlan => {
-  // Using imported functions
-
-  const errors: ConstructionIssue[] = []
-  const warnings: ConstructionIssue[] = []
-  const segments: ConstructionSegment[] = []
-  const allMeasurements: Measurement[] = []
-
+): ConstructionModel => {
   // Calculate corner information and construction length including assigned corners
   const cornerInfo = calculateWallCornerInfo(wall, perimeter)
   const { startCorner, endCorner } = cornerInfo
@@ -195,11 +237,45 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
 
   // Segment the wall based on openings, using the actual construction length
   const wallSegments = segmentWall(wall, floorHeight, constructionLength, startExtension, layers)
+  const cornerAreas = createCornerAreas(cornerInfo, constructionLength, floorHeight, wall.thickness)
+
+  const allResults: ConstructionResult[] = []
+
+  const segmentMeasurements =
+    wallSegments.length > 1
+      ? wallSegments
+          .filter(s => s.type === 'wall')
+          .map(
+            s =>
+              ({
+                startPoint: [s.position[0], 0, s.position[2] + s.size[2]],
+                endPoint: [s.position[0] + s.size[0], 0, s.position[2] + s.size[2]],
+                label: formatLength(s.size[0] as Length),
+                groupKey: 'segment',
+                offset: -1,
+                tags: [TAG_OPENING_SPACING]
+              }) as Measurement
+          )
+      : []
+
+  if (wallSegments.length > 1) {
+    segmentMeasurements.push({
+      startPoint: wallSegments[0].position,
+      endPoint: [
+        wallSegments[0].position[0] + constructionLength,
+        wallSegments[0].position[1],
+        wallSegments[0].position[2]
+      ],
+      label: formatLength(constructionLength),
+      tags: [TAG_WALL_LENGTH],
+      groupKey: 'wall-length',
+      offset: 2
+    })
+  }
 
   for (const segment of wallSegments) {
     if (segment.type === 'wall') {
-      // Construct infill wall segment - segment already has Vec3 position and size
-      const wallResults = [
+      allResults.push(
         ...infillWallArea(
           segment.position,
           segment.size,
@@ -209,77 +285,20 @@ export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstruc
           true, // endsWithStand
           false // startAtEnd
         )
-      ]
-
-      const { elements: wallElements, errors: wallErrors, warnings: wallWarnings } = aggregateResults(wallResults)
-
-      const wallConstruction: WallConstructionSegment = {
-        id: createConstructionElementId(),
-        type: 'wall',
-        position: segment.position[0] as Length,
-        width: segment.size[0] as Length,
-        constructionType: 'infill',
-        elements: wallElements
-      }
-
-      segments.push(wallConstruction)
-      errors.push(...wallErrors)
-      warnings.push(...wallWarnings)
+      )
     } else if (segment.type === 'opening' && segment.openings) {
-      // Construct opening segment - use first opening's type for configuration
-      // (all openings in a merged segment must be same type for now)
-      const openingType = segment.openings[0].type
-      const openingConfig = config.openings[openingType]
-
-      const openingResults = [...constructOpening(segment, openingConfig, config, resolveDefaultMaterial)]
-      const {
-        elements: openingElements,
-        measurements: openingMeasurements,
-        errors: openingErrors,
-        warnings: openingWarnings
-      } = aggregateResults(openingResults)
-
-      // Note: constructOpening now yields elements directly, but the original returned an OpeningConstruction
-      // For now, we'll create a placeholder segment structure - this needs to be addressed in the full migration
-      const openingConstruction = {
-        id: createConstructionElementId(),
-        type: 'opening' as const,
-        position: segment.position[0] as Length,
-        width: segment.size[0] as Length,
-        openingIds: segment.openings?.map(o => o.id) ?? [],
-        elements: openingElements
-      }
-
-      segments.push(openingConstruction)
-      errors.push(...openingErrors)
-      warnings.push(...openingWarnings)
-
-      // Collect measurements generated during opening construction
-      allMeasurements.push(...openingMeasurements)
+      allResults.push(...constructOpeningFrame(segment, config.openings, config, resolveDefaultMaterial))
     }
   }
 
-  // Calculate remaining measurements (post spacing and opening spacing)
-  const allElements = segments.flatMap(s => s.elements)
-  const postSpacingMeasurements = calculatePostSpacingMeasurements(allElements)
-  const openingSpacingMeasurements = calculateOpeningSpacingMeasurements(segments, constructionLength, floorHeight)
-
-  // Combine generated measurements with calculated ones
-  const measurements = [...allMeasurements, ...postSpacingMeasurements, ...openingSpacingMeasurements]
+  const aggRes = aggregateResults(allResults)
 
   return {
-    wallId: wall.id,
-    constructionType: 'infill',
-    wallDimensions: {
-      length: constructionLength,
-      boundaryLength: wall.wallLength,
-      thickness: wall.thickness,
-      height: floorHeight
-    },
-    segments,
-    measurements,
-    cornerInfo,
-    errors,
-    warnings
+    bounds: mergeBounds(...aggRes.elements.map(e => e.bounds)),
+    elements: aggRes.elements,
+    measurements: [...aggRes.measurements, ...segmentMeasurements],
+    areas: [...aggRes.areas, ...cornerAreas],
+    errors: aggRes.errors,
+    warnings: aggRes.warnings
   }
 }

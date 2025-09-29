@@ -1,3 +1,5 @@
+import type { Projection, RotationProjection } from '@/construction/geometry'
+import { createSvgTransform } from '@/construction/geometry'
 import type { ConstructionElement, ResolveMaterialFunction } from '@/construction/walls'
 
 import { CuboidShape } from './CuboidShape'
@@ -5,6 +7,8 @@ import { CutCuboidShape } from './CutCuboidShape'
 
 export interface ConstructionElementShapeProps {
   element: ConstructionElement
+  projection: Projection
+  rotationProjection: RotationProjection
   resolveMaterial: ResolveMaterialFunction
   stroke?: string
   strokeWidth?: number
@@ -14,6 +18,8 @@ export interface ConstructionElementShapeProps {
 
 export function ConstructionElementShape({
   element,
+  projection,
+  rotationProjection,
   resolveMaterial,
   stroke = '#000',
   strokeWidth = 5,
@@ -28,9 +34,10 @@ export function ConstructionElementShape({
   switch (element.shape.type) {
     case 'cuboid':
       return (
-        <g className={className}>
+        <g className={className} transform={createSvgTransform(element.transform, projection, rotationProjection)}>
           <CuboidShape
             shape={element.shape}
+            projection={projection}
             fill={fill}
             stroke={stroke}
             strokeWidth={strokeWidth}
@@ -40,9 +47,10 @@ export function ConstructionElementShape({
       )
     case 'cut-cuboid':
       return (
-        <g className={className}>
+        <g className={className} transform={createSvgTransform(element.transform, projection, rotationProjection)}>
           <CutCuboidShape
             shape={element.shape}
+            projection={projection}
             fill={fill}
             stroke={stroke}
             strokeWidth={strokeWidth}

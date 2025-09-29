@@ -1,9 +1,11 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { ConstructionElement, MaterialId, ResolveMaterialFunction } from '@/construction/walls'
-import { createConstructionElementId } from '@/construction/walls'
-import type { Length } from '@/shared/geometry'
+import type { ConstructionElement } from '@/construction/elements'
+import { createConstructionElement } from '@/construction/elements'
+import type { MaterialId, ResolveMaterialFunction } from '@/construction/materials/material'
+import { createCuboidShape, createCutCuboidShape } from '@/construction/shapes'
+import type { Length, Vec3 } from '@/shared/geometry'
 
 import { ConstructionElementShape } from './ConstructionElementShape'
 
@@ -29,32 +31,25 @@ describe('ConstructionElementShape', () => {
     availableLengths: [1000 as Length]
   }))
 
-  const mockCuboidElement: ConstructionElement = {
-    id: createConstructionElementId(),
-    type: 'plate',
-    material: mockMaterialId,
-    shape: {
-      type: 'cuboid',
-      position: [0, 0, 0],
-      size: [100, 50, 25]
-    }
-  }
+  // Mock projection functions for testing
+  const mockProjection = vi.fn((p: Vec3): Vec3 => p)
+  const mockRotationProjection = vi.fn((r: Vec3): number => (r[2] * 180) / Math.PI)
 
-  const mockCutCuboidElement: ConstructionElement = {
-    id: createConstructionElementId(),
-    type: 'plate',
-    material: mockMaterialId,
-    shape: {
-      type: 'cut-cuboid',
-      position: [0, 0, 0],
-      size: [100, 50, 25],
-      startCut: {
-        plane: 'xy',
-        axis: 'y',
-        angle: 45
-      }
-    }
-  }
+  const mockCuboidElement: ConstructionElement = createConstructionElement(
+    mockMaterialId,
+    createCuboidShape([0, 0, 0], [100, 50, 25]),
+    { position: [0, 0, 0], rotation: [0, 0, 0] }
+  )
+
+  const mockCutCuboidElement: ConstructionElement = createConstructionElement(
+    mockMaterialId,
+    createCutCuboidShape([0, 0, 0], [100, 50, 25], {
+      plane: 'xy',
+      axis: 'y',
+      angle: 45
+    }),
+    { position: [0, 0, 0], rotation: [0, 0, 0] }
+  )
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -63,7 +58,12 @@ describe('ConstructionElementShape', () => {
   it('renders cuboid shapes correctly', () => {
     const { getByTestId } = render(
       <svg>
-        <ConstructionElementShape element={mockCuboidElement} resolveMaterial={mockResolveMaterial} />
+        <ConstructionElementShape
+          element={mockCuboidElement}
+          resolveMaterial={mockResolveMaterial}
+          projection={mockProjection}
+          rotationProjection={mockRotationProjection}
+        />
       </svg>
     )
 
@@ -75,7 +75,12 @@ describe('ConstructionElementShape', () => {
   it('renders cut-cuboid shapes correctly', () => {
     const { getByTestId } = render(
       <svg>
-        <ConstructionElementShape element={mockCutCuboidElement} resolveMaterial={mockResolveMaterial} />
+        <ConstructionElementShape
+          element={mockCutCuboidElement}
+          resolveMaterial={mockResolveMaterial}
+          projection={mockProjection}
+          rotationProjection={mockRotationProjection}
+        />
       </svg>
     )
 
@@ -97,7 +102,12 @@ describe('ConstructionElementShape', () => {
 
     const { getByTestId } = render(
       <svg>
-        <ConstructionElementShape element={mockCuboidElement} resolveMaterial={customMaterialResolver} />
+        <ConstructionElementShape
+          element={mockCuboidElement}
+          resolveMaterial={customMaterialResolver}
+          projection={mockProjection}
+          rotationProjection={mockRotationProjection}
+        />
       </svg>
     )
 
@@ -110,7 +120,12 @@ describe('ConstructionElementShape', () => {
 
     const { getByTestId } = render(
       <svg>
-        <ConstructionElementShape element={mockCuboidElement} resolveMaterial={failingResolver} />
+        <ConstructionElementShape
+          element={mockCuboidElement}
+          resolveMaterial={failingResolver}
+          projection={mockProjection}
+          rotationProjection={mockRotationProjection}
+        />
       </svg>
     )
 
@@ -119,21 +134,26 @@ describe('ConstructionElementShape', () => {
   })
 
   it('throws error for unsupported shape types', () => {
-    const unsupportedElement: ConstructionElement = {
-      id: createConstructionElementId(),
-      type: 'plate',
-      material: mockMaterialId,
-      shape: {
+    const unsupportedElement: ConstructionElement = createConstructionElement(
+      mockMaterialId,
+      {
         type: 'unsupported-shape' as any,
-        position: [0, 0, 0],
-        size: [100, 50, 25]
-      }
-    }
+        offset: [0, 0, 0],
+        size: [100, 50, 25],
+        bounds: { min: [0, 0, 0], max: [100, 50, 25] }
+      },
+      { position: [0, 0, 0], rotation: [0, 0, 0] }
+    )
 
     expect(() => {
       render(
         <svg>
-          <ConstructionElementShape element={unsupportedElement} resolveMaterial={mockResolveMaterial} />
+          <ConstructionElementShape
+            element={unsupportedElement}
+            resolveMaterial={mockResolveMaterial}
+            projection={mockProjection}
+            rotationProjection={mockRotationProjection}
+          />
         </svg>
       )
     }).toThrow('Unsupported shape type: unsupported-shape')
@@ -145,6 +165,8 @@ describe('ConstructionElementShape', () => {
         <ConstructionElementShape
           element={mockCuboidElement}
           resolveMaterial={mockResolveMaterial}
+          projection={mockProjection}
+          rotationProjection={mockRotationProjection}
           stroke="#0000FF"
           strokeWidth={10}
           showDebugMarkers

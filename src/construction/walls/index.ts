@@ -1,5 +1,4 @@
 import type { NonStrawbaleConfig } from '@/construction/config/types'
-import { createLength } from '@/shared/geometry'
 
 import type { ConstructionType, PerimeterWallConstructionMethod } from './construction'
 import { constructInfillWall } from './infill/infill'
@@ -22,28 +21,11 @@ export * from './strawhenge/strawhenge'
 
 // Placeholder construction method for non-strawbale walls
 const constructNonStrawbaleWall: PerimeterWallConstructionMethod<NonStrawbaleConfig> = (
-  wall,
+  _wall,
   _perimeter,
-  floorHeight
+  _floorHeight
 ) => {
-  return {
-    wallId: wall.id,
-    constructionType: 'non-strawbale',
-    wallDimensions: {
-      length: wall.wallLength,
-      boundaryLength: wall.wallLength,
-      thickness: createLength(200), // 200mm default
-      height: floorHeight
-    },
-    segments: [],
-    measurements: [],
-    cornerInfo: {
-      startCorner: null,
-      endCorner: null
-    },
-    errors: [],
-    warnings: []
-  }
+  throw new Error('Not implemented yet')
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
