@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
-import { bounds3Dto2D, createZOrder, project, projectRotation } from '@/construction/geometry'
+import { bounds3Dto2D, createSvgTransform, createZOrder, project, projectRotation } from '@/construction/geometry'
 import type { ConstructionModel } from '@/construction/model'
 import { resolveDefaultMaterial } from '@/construction/walls'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
@@ -142,14 +142,12 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
       {/* Areas */}
       {model.areas?.map((area, index) => {
         const bounds2D = bounds3Dto2D(area.bounds, projection)
-        const position = projection(area.transform.position)
-        const rotation = rotationProjection(area.transform.rotation)
 
         const cx = (bounds2D.max[0] + bounds2D.min[0]) / 2
         const cy = (bounds2D.max[1] + bounds2D.min[1]) / 2
 
         return (
-          <g key={`area-${index}`} transform={`translate(${position[0]} ${position[1]}) rotate(${rotation})`}>
+          <g key={`area-${index}`} transform={createSvgTransform(area.transform, projection, rotationProjection)}>
             <rect
               x={bounds2D.min[0]}
               y={bounds2D.min[1]}

@@ -1,4 +1,5 @@
 import type { Projection, RotationProjection } from '@/construction/geometry'
+import { createSvgTransform } from '@/construction/geometry'
 import type { ConstructionElement, ResolveMaterialFunction } from '@/construction/walls'
 
 import { CuboidShape } from './CuboidShape'
@@ -28,14 +29,12 @@ export function ConstructionElementShape({
   // Get material color for fill
   const material = resolveMaterial(element.material)
   const fill = material?.color ?? '#8B4513' // fallback color
-  const position = projection(element.transform.position)
-  const rotation = rotationProjection(element.transform.rotation)
 
   // Delegate to appropriate shape component
   switch (element.shape.type) {
     case 'cuboid':
       return (
-        <g className={className} transform={`translate(${position[0]} ${position[1]}) rotate(${rotation})`}>
+        <g className={className} transform={createSvgTransform(element.transform, projection, rotationProjection)}>
           <CuboidShape
             shape={element.shape}
             projection={projection}
@@ -48,7 +47,7 @@ export function ConstructionElementShape({
       )
     case 'cut-cuboid':
       return (
-        <g className={className} transform={`translate(${position[0]} ${position[1]}) rotate(${rotation})`}>
+        <g className={className} transform={createSvgTransform(element.transform, projection, rotationProjection)}>
           <CutCuboidShape
             shape={element.shape}
             projection={projection}

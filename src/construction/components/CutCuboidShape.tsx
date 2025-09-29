@@ -17,7 +17,7 @@ export function CutCuboidShape({
   fill,
   stroke = '#000',
   strokeWidth = 5,
-  showDebugMarkers = true
+  showDebugMarkers = false
 }: CutCuboidShapeProps): React.JSX.Element {
   const calculatePolygonPoints = (shape: CutCuboid): string => {
     const bounds = bounds3Dto2D(shape.bounds, projection)

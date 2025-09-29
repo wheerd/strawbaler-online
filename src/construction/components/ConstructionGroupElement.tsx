@@ -1,4 +1,5 @@
 import type { Projection, RotationProjection, ZOrder } from '@/construction/geometry'
+import { createSvgTransform } from '@/construction/geometry'
 import type { ConstructionGroup, ResolveMaterialFunction } from '@/construction/walls'
 
 import { ConstructionElementShape } from './ConstructionElementShape'
@@ -18,11 +19,9 @@ export function ConstructionGroupElement({
   rotationProjection,
   resolveMaterial
 }: ConstructionGroupElementProps): React.JSX.Element {
-  const position = projection(group.transform.position)
-  const rotation = rotationProjection(group.transform.rotation)
   const sortedElements = [...group.children].sort(zOrder)
   return (
-    <g transform={`translate(${position[0]} ${position[1]}) rotate(${rotation})`}>
+    <g transform={createSvgTransform(group.transform, projection, rotationProjection)}>
       {sortedElements.map(element =>
         'children' in element ? (
           <ConstructionGroupElement

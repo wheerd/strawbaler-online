@@ -140,3 +140,22 @@ export const projectRotation = (plane: Plane3D, _xDir: 1 | -1, yDir: 1 | -1): Ro
     }
   }
 }
+
+/**
+ * Creates an SVG transform string from a Transform object using projection functions.
+ * Common pattern used throughout construction plan rendering.
+ *
+ * @param transform - Transform object containing position and rotation
+ * @param projection - Function to project 3D position to 2D/3D coordinates
+ * @param rotationProjection - Function to project 3D rotation to 2D rotation angle
+ * @returns SVG transform string in the format "translate(x y) rotate(angle)"
+ */
+export const createSvgTransform = (
+  transform: Transform,
+  projection: Projection,
+  rotationProjection: RotationProjection
+): string => {
+  const position = projection(transform.position)
+  const rotation = rotationProjection(transform.rotation)
+  return `translate(${position[0]} ${position[1]}) rotate(${rotation})`
+}
