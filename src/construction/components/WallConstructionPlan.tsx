@@ -16,8 +16,8 @@ interface IssueDescriptionPanelProps {
 }
 
 const IssueDescriptionPanel = ({ errors, warnings }: IssueDescriptionPanelProps) => (
-  <Box maxHeight="200px" className="overflow-y-auto border-t border-gray-6">
-    <Flex direction="column" gap="2" p="3">
+  <Box className="border-t border-gray-6">
+    <Flex direction="column" gap="2" p="3" style={{ maxHeight: '120px', overflowY: 'auto' }}>
       {errors.length > 0 && (
         <Callout.Root color="red" size="1">
           <Callout.Icon>
@@ -116,7 +116,7 @@ export function WallConstructionPlanModal({ model, children }: WallConstructionP
 
           <div
             ref={containerRef}
-            className={`relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2 ${midCutEnabled ? 'mid-cut-enabled' : ''}`}
+            className={`relative flex-1 min-h-[300px] max-h-[calc(100vh-400px)] overflow-hidden border border-gray-6 rounded-2 ${midCutEnabled ? 'mid-cut-enabled' : ''}`}
           >
             <ConstructionPlan model={model} view={currentView} containerSize={containerSize} zCutOffset={zCutOffset} />
 
