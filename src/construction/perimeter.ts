@@ -9,7 +9,12 @@ import { constructRingBeam } from './ringBeams/ringBeams'
 import { constructInfillWall, constructNonStrawbaleWall } from './walls'
 
 export function constructPerimeter(perimeter: Perimeter, resolveMaterial: ResolveMaterialFunction): ConstructionModel {
-  const { getActiveStorey } = getModelActions()
+  const { getStoreyById } = getModelActions()
+  const storey = getStoreyById(perimeter.storeyId)
+  if (!storey) {
+    throw new Error('Invalid storey on perimeter')
+  }
+
   const { getRingBeamConstructionMethodById, getPerimeterConstructionMethodById } = getConfigActions()
 
   const allModels: ConstructionModel[] = []
@@ -24,10 +29,14 @@ export function constructPerimeter(perimeter: Perimeter, resolveMaterial: Resolv
     const method = getRingBeamConstructionMethodById(perimeter.topRingBeamMethodId)
     if (method) {
       const ringBeam = constructRingBeam(perimeter, method.config, resolveMaterial)
-      allModels.push(ringBeam)
+      const transformedModel = transformModel(ringBeam, {
+        position: [0, 0, storey.height - method.config.height],
+        rotation: [0, 0, 0]
+      })
+      allModels.push(transformedModel)
     }
   }
-  const storey = getActiveStorey()
+
   for (const wall of perimeter.walls) {
     const method = getPerimeterConstructionMethodById(wall.constructionMethodId)
     let wallModel: ConstructionModel | null = null

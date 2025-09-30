@@ -40,6 +40,32 @@ export interface HighlightedPolygon {
   renderPosition: 'bottom' | 'top'
 }
 
+/**
+ * Creates a construction group with bounds calculated from transformed children
+ */
+export function createConstructionGroup(
+  children: GroupOrElement[],
+  transform: Transform,
+  tags?: Tag[]
+): ConstructionGroup {
+  // Calculate bounds from all transformed children
+  const childBounds = children.map(child => {
+    // Apply the group transform to each child's bounds
+    return transformBounds(child.bounds, transform)
+  })
+
+  const groupBounds =
+    childBounds.length > 0 ? mergeBounds(...childBounds) : ({ min: [0, 0, 0], max: [0, 0, 0] } as Bounds3D)
+
+  return {
+    id: createConstructionElementId(),
+    transform,
+    bounds: groupBounds,
+    children,
+    tags
+  }
+}
+
 export function mergeModels(...models: ConstructionModel[]): ConstructionModel {
   return {
     elements: models.flatMap(m => m.elements),
@@ -52,15 +78,11 @@ export function mergeModels(...models: ConstructionModel[]): ConstructionModel {
 }
 
 export function transformModel(model: ConstructionModel, t: Transform): ConstructionModel {
+  // Create a group with properly calculated bounds from transformed children
+  const transformedGroup = createConstructionGroup(model.elements, t)
+
   return {
-    elements: [
-      {
-        id: createConstructionElementId(),
-        bounds: model.bounds,
-        children: model.elements,
-        transform: t
-      } as ConstructionGroup
-    ],
+    elements: [transformedGroup],
     measurements: model.measurements.map(m => ({
       ...m,
       startPoint: transform(m.startPoint, t),
