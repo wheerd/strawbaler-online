@@ -2,6 +2,7 @@ export const COLORS = {
   // Material/Construction colors
   materials: {
     strawbale: '#daa520',
+    straw: '#dcb550ff',
     limePlaster: '#555555',
     clayPlaster: '#8b4513',
     other: '#2f2f2f',

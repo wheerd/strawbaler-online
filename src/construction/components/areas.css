@@ -46,3 +46,9 @@
   stroke-dasharray: 200, 100;
   opacity: 0.7;
 }
+
+/* Mid cut functionality */
+.mid-cut-enabled .construction-element.above-cut,
+.mid-cut-enabled .construction-group.above-cut {
+  display: none;
+}

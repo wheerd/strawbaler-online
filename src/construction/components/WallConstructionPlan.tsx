@@ -1,9 +1,10 @@
 import { CheckCircledIcon, Cross2Icon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import { Box, Callout, Dialog, Flex, IconButton, SegmentedControl, Text } from '@radix-ui/themes'
-import React, { useState } from 'react'
+import { Box, Button, Callout, Dialog, Flex, IconButton, SegmentedControl, Text } from '@radix-ui/themes'
+import React, { useMemo, useState } from 'react'
 
 import type { ConstructionModel } from '@/construction/model'
 import type { ConstructionIssue } from '@/construction/results'
+import { complementaryAxis } from '@/shared/geometry'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 import { type ViewType } from '@/shared/utils/constructionCoordinates'
 
@@ -81,7 +82,21 @@ interface WallConstructionPlanModalProps {
 
 export function WallConstructionPlanModal({ model, children }: WallConstructionPlanModalProps): React.JSX.Element {
   const [view, setView] = useState<ViewType>('outside')
+  const [midCutEnabled, setMidCutEnabled] = useState(false)
   const [containerSize, containerRef] = elementSizeRef()
+
+  const currentView = view === 'inside' ? BACK_VIEW : FRONT_VIEW
+
+  // Calculate cut position when enabled
+  const zCutOffset = useMemo(() => {
+    if (!midCutEnabled) return undefined
+
+    const axis = complementaryAxis(currentView.plane)
+    const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2
+
+    // Cut at middle of model depth
+    return (model.bounds.min[axisIndex] + model.bounds.max[axisIndex]) / 2
+  }, [midCutEnabled, view, model.bounds])
 
   return (
     <Dialog.Root>
@@ -101,20 +116,26 @@ export function WallConstructionPlanModal({ model, children }: WallConstructionP
 
           <div
             ref={containerRef}
-            className="relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2"
+            className={`relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2 ${midCutEnabled ? 'mid-cut-enabled' : ''}`}
           >
-            <ConstructionPlan
-              model={model}
-              view={view === 'inside' ? FRONT_VIEW : BACK_VIEW}
-              containerSize={containerSize}
-            />
+            <ConstructionPlan model={model} view={currentView} containerSize={containerSize} zCutOffset={zCutOffset} />
 
-            {/* Overlay SegmentedControl in top-left corner */}
+            {/* Overlay controls in top-left corner */}
             <Box position="absolute" top="3" left="3" p="1" className="z-10 shadow-md bg-panel rounded-2">
-              <SegmentedControl.Root value={view} onValueChange={value => setView(value as ViewType)} size="1">
-                <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
-                <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
-              </SegmentedControl.Root>
+              <Flex direction="column" gap="2">
+                <SegmentedControl.Root value={view} onValueChange={value => setView(value as ViewType)} size="1">
+                  <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
+                  <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
+                </SegmentedControl.Root>
+
+                <Button
+                  variant={midCutEnabled ? 'solid' : 'outline'}
+                  size="1"
+                  onClick={() => setMidCutEnabled(!midCutEnabled)}
+                >
+                  Mid Cut
+                </Button>
+              </Flex>
             </Box>
           </div>
 

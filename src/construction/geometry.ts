@@ -69,15 +69,23 @@ export function transformBounds(bounds: Bounds3D, t: Transform): Bounds3D {
 
 export type ZOrder = (a: { bounds: Bounds3D }, b: { bounds: Bounds3D }) => number
 
-export const createZOrder = (axis: Axis3D, order: 'min' | 'max'): ZOrder => {
+export const createZOrder = (axis: Axis3D, viewOrder: 'ascending' | 'descending'): ZOrder => {
   const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2
-  const boundKey = order === 'min' ? 'min' : 'max'
-  const sign = order === 'min' ? 1 : -1
 
-  return (a, b) => {
-    const aValue = a.bounds[boundKey][axisIndex]
-    const bValue = b.bounds[boundKey][axisIndex]
-    return sign * (aValue - bValue)
+  if (viewOrder === 'descending') {
+    return (a, b) => {
+      // For front view: sort by front face (max), farthest front face first
+      const aValue = a.bounds.max[axisIndex]
+      const bValue = b.bounds.max[axisIndex]
+      return aValue - bValue
+    }
+  } else {
+    return (a, b) => {
+      // For back view: sort by back face (min), farthest back face first
+      const aValue = a.bounds.min[axisIndex]
+      const bValue = b.bounds.min[axisIndex]
+      return bValue - aValue
+    }
   }
 }
 
@@ -106,6 +114,7 @@ export const bounds3Dto2D = (bounds: Bounds3D, projection: Projection): Bounds2D
 
 export type Projection = (p: Vec3) => Vec3
 export type RotationProjection = (r: Vec3) => number
+export type CutFunction = (element: { bounds: Bounds3D }) => boolean
 
 export const project = (plane: Plane3D): Projection => {
   switch (plane) {

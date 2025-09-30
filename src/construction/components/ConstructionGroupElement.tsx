@@ -1,5 +1,5 @@
 import type { ConstructionGroup } from '@/construction/elements'
-import type { Projection, RotationProjection, ZOrder } from '@/construction/geometry'
+import type { CutFunction, Projection, RotationProjection, ZOrder } from '@/construction/geometry'
 import { createSvgTransform } from '@/construction/geometry'
 import type { ResolveMaterialFunction } from '@/construction/materials/material'
 
@@ -11,6 +11,7 @@ export interface ConstructionGroupElementProps {
   zOrder: ZOrder
   rotationProjection?: RotationProjection
   resolveMaterial: ResolveMaterialFunction
+  aboveCut?: CutFunction
 }
 
 export function ConstructionGroupElement({
@@ -18,21 +19,37 @@ export function ConstructionGroupElement({
   projection,
   zOrder,
   rotationProjection,
-  resolveMaterial
+  resolveMaterial,
+  aboveCut
 }: ConstructionGroupElementProps): React.JSX.Element {
   const sortedElements = [...group.children].sort(zOrder)
+
+  // Check if group should be hidden by cut
+  const shouldHide = aboveCut?.(group) ?? false
+  const className = shouldHide ? 'construction-group above-cut' : 'construction-group'
+
   return (
-    <g transform={createSvgTransform(group.transform, projection, rotationProjection)}>
+    <g className={className} transform={createSvgTransform(group.transform, projection, rotationProjection)}>
       {sortedElements.map(element =>
         'children' in element ? (
           <ConstructionGroupElement
             key={element.id}
             group={element}
+            projection={projection}
             zOrder={zOrder}
+            rotationProjection={rotationProjection}
             resolveMaterial={resolveMaterial}
+            aboveCut={aboveCut}
           />
         ) : (
-          <ConstructionElementShape key={element.id} element={element} resolveMaterial={resolveMaterial} />
+          <ConstructionElementShape
+            key={element.id}
+            element={element}
+            projection={projection}
+            rotationProjection={rotationProjection}
+            resolveMaterial={resolveMaterial}
+            aboveCut={aboveCut}
+          />
         )
       )}
     </g>

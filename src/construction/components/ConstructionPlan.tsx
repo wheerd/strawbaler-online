@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
-import { bounds3Dto2D, createZOrder, project, projectRotation } from '@/construction/geometry'
+import { type CutFunction, bounds3Dto2D, createZOrder, project, projectRotation } from '@/construction/geometry'
 import { resolveDefaultMaterial } from '@/construction/materials/material'
 import type { ConstructionModel, HighlightedCuboid, HighlightedPolygon } from '@/construction/model'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
-import { type Plane3D, add, complementaryAxis, direction, distance } from '@/shared/geometry'
+import { type Bounds3D, type Plane3D, add, complementaryAxis, direction, distance } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
 
 import { ConstructionElementShape } from './ConstructionElementShape'
@@ -15,21 +15,22 @@ import { PolygonAreaShape } from './PolygonAreaShape'
 
 export interface View {
   plane: Plane3D
-  zOrder: 'min' | 'max'
+  zOrder: 'ascending' | 'descending'
   xDirection: 1 | -1
 }
 
-export const TOP_VIEW: View = { plane: 'xy', xDirection: 1, zOrder: 'min' }
-export const FRONT_VIEW: View = { plane: 'xz', xDirection: 1, zOrder: 'min' }
-export const BACK_VIEW: View = { plane: 'xz', xDirection: -1, zOrder: 'max' }
+export const TOP_VIEW: View = { plane: 'xy', xDirection: 1, zOrder: 'descending' }
+export const FRONT_VIEW: View = { plane: 'xz', xDirection: 1, zOrder: 'descending' }
+export const BACK_VIEW: View = { plane: 'xz', xDirection: -1, zOrder: 'ascending' }
 
 interface ConstructionPlanProps {
   model: ConstructionModel
   view: View
   containerSize: { width: number; height: number }
+  zCutOffset?: number
 }
 
-export function ConstructionPlan({ model, view, containerSize }: ConstructionPlanProps): React.JSX.Element {
+export function ConstructionPlan({ model, view, containerSize, zCutOffset }: ConstructionPlanProps): React.JSX.Element {
   const viewportRef = useRef<SVGViewportRef>(null)
 
   useEffect(() => viewportRef.current?.fitToContent(), [view])
@@ -38,8 +39,22 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
   const projection = project(view.plane)
   const rotationProjection = projectRotation(view.plane)
   const zOrder = createZOrder(axis, view.zOrder)
-  const sortedElements = [...model.elements].sort()
+  const sortedElements = [...model.elements].sort(zOrder)
   const contentBounds = bounds3Dto2D(model.bounds, projection)
+
+  // Create cut function if zCutOffset is provided
+  const aboveCut: CutFunction | undefined = useMemo(() => {
+    if (zCutOffset === undefined) return undefined
+
+    const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2
+    if (view.zOrder === 'ascending') {
+      // For front view: hide elements whose front face is beyond cut
+      return (element: { bounds: Bounds3D }) => element.bounds.max[axisIndex] < zCutOffset
+    } else {
+      // For back view: hide elements whose back face is beyond cut
+      return (element: { bounds: Bounds3D }) => element.bounds.min[axisIndex] > zCutOffset
+    }
+  }, [zCutOffset, axis, view.zOrder])
 
   const polygonAreas = model.areas.filter(a => a.type === 'polygon' && a.plane === view.plane) as HighlightedPolygon[]
   const cuboidAreas = model.areas.filter(a => a.type === 'cuboid') as HighlightedCuboid[]
@@ -52,7 +67,7 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
       className="w-full h-full"
       resetButtonPosition="top-right"
       svgSize={containerSize}
-      flipX={view.xDirection === -1}
+      flipX={view.xDirection !== -1}
     >
       {/* Polygon Areas - Bottom */}
       {polygonAreas
@@ -83,6 +98,7 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
             resolveMaterial={resolveDefaultMaterial}
             zOrder={zOrder}
             rotationProjection={rotationProjection}
+            aboveCut={aboveCut}
           />
         ) : (
           <ConstructionElementShape
@@ -91,6 +107,7 @@ export function ConstructionPlan({ model, view, containerSize }: ConstructionPla
             rotationProjection={rotationProjection}
             element={element}
             resolveMaterial={resolveDefaultMaterial}
+            aboveCut={aboveCut}
           />
         )
       )}

@@ -1,5 +1,5 @@
 import type { ConstructionElement } from '@/construction/elements'
-import type { Projection, RotationProjection } from '@/construction/geometry'
+import type { CutFunction, Projection, RotationProjection } from '@/construction/geometry'
 import { createSvgTransform } from '@/construction/geometry'
 import type { ResolveMaterialFunction } from '@/construction/materials/material'
 
@@ -15,6 +15,7 @@ export interface ConstructionElementShapeProps {
   strokeWidth?: number
   showDebugMarkers?: boolean
   className?: string
+  aboveCut?: CutFunction
 }
 
 export function ConstructionElementShape({
@@ -25,17 +26,27 @@ export function ConstructionElementShape({
   stroke = '#000',
   strokeWidth = 5,
   showDebugMarkers = false,
-  className
+  className,
+  aboveCut
 }: ConstructionElementShapeProps): React.JSX.Element {
   // Get material color for fill
   const material = resolveMaterial(element.material)
   const fill = material?.color ?? '#8B4513' // fallback color
 
+  // Check if element should be hidden by cut
+  const shouldHide = aboveCut?.(element) ?? false
+  const cutClassName = shouldHide ? 'above-cut' : ''
+  const tagClasses = element.tags?.flatMap(t => [`tag__${t.id}`, `tag-cat__${t.category}`]) ?? []
+  const combinedClassName = [className, ...tagClasses, 'construction-element', cutClassName].filter(Boolean).join(' ')
+
   // Delegate to appropriate shape component
   switch (element.shape.type) {
     case 'cuboid':
       return (
-        <g className={className} transform={createSvgTransform(element.transform, projection, rotationProjection)}>
+        <g
+          className={combinedClassName}
+          transform={createSvgTransform(element.transform, projection, rotationProjection)}
+        >
           <CuboidShape
             shape={element.shape}
             projection={projection}
@@ -48,7 +59,10 @@ export function ConstructionElementShape({
       )
     case 'cut-cuboid':
       return (
-        <g className={className} transform={createSvgTransform(element.transform, projection, rotationProjection)}>
+        <g
+          className={combinedClassName}
+          transform={createSvgTransform(element.transform, projection, rotationProjection)}
+        >
           <CutCuboidShape
             shape={element.shape}
             projection={projection}

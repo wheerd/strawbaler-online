@@ -10,7 +10,7 @@ import type {
   PerimeterConstructionMethod,
   RingBeamConstructionMethod
 } from '@/construction/config/types'
-import { concrete, strawbale, wood360x60 } from '@/construction/materials/material'
+import { concrete, straw, strawbale, wood120x60, wood360x60 } from '@/construction/materials/material'
 import { type RingBeamConfig, validateRingBeamConfig } from '@/construction/ringBeams/ringBeams'
 import { createLength } from '@/shared/geometry'
 
@@ -97,9 +97,11 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
       maxPostSpacing: createLength(800),
       minStrawSpace: createLength(70),
       posts: {
-        type: 'full',
+        type: 'double',
         width: createLength(60),
-        material: wood360x60.id
+        thickness: createLength(120),
+        infillMaterial: straw.id,
+        material: wood120x60.id
       },
       openings: {
         padding: createLength(15),

@@ -1,5 +1,6 @@
 import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
+import { TAG_POST } from '@/construction/tags'
 import { type Length, type Vec3, mergeBounds } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
@@ -101,7 +102,9 @@ function* constructDoublePost(
 
   const post1: ConstructionElement = createConstructionElement(
     config.material,
-    createCuboidShape(position, [config.width, config.thickness, size[2]])
+    createCuboidShape(position, [config.width, config.thickness, size[2]]),
+    undefined,
+    [TAG_POST]
   )
   yield yieldElement(post1)
 

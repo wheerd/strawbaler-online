@@ -52,8 +52,8 @@ function generateViewBoxFromBounds(
   padding: number,
   containerWidth: number,
   containerHeight: number,
-  flipX: boolean = false,
-  flipY: boolean = false
+  flipX = false,
+  flipY = false
 ): string {
   const contentWidth = bounds.max[0] - bounds.min[0]
   const contentHeight = bounds.max[1] - bounds.min[1]
