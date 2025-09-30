@@ -4,7 +4,7 @@ import React from 'react'
 
 import type { PerimeterId, RingBeamConstructionMethodId } from '@/building/model/ids'
 import { useModelActions, usePerimeterById } from '@/building/store'
-import { PerimeterConstructionPlanModal } from '@/construction/components/PerimeterConstructionPlanModal'
+import { PerimeterConstructionPlanModal } from '@/construction/components/PerimeterConstructionPlan'
 import { RingBeamConstructionPlanModal } from '@/construction/components/RingBeamConstructionPlan'
 import { useRingBeamConstructionMethods } from '@/construction/config/store'
 import { type Length, calculatePolygonArea } from '@/shared/geometry'

@@ -1,11 +1,12 @@
 import { CheckCircledIcon, Cross2Icon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import { Box, Callout, Dialog, Flex, IconButton, Text } from '@radix-ui/themes'
-import React, { useMemo } from 'react'
+import { Box, Button, Callout, Dialog, Flex, IconButton, Text } from '@radix-ui/themes'
+import React, { useMemo, useState } from 'react'
 
 import type { PerimeterId } from '@/building/model/ids'
 import { usePerimeterById } from '@/building/store'
 import { resolveDefaultMaterial } from '@/construction/materials/material'
 import { constructPerimeter } from '@/construction/perimeter'
+import { complementaryAxis } from '@/shared/geometry'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
 import { ConstructionPlan, TOP_VIEW } from './ConstructionPlan'
@@ -84,6 +85,7 @@ export function PerimeterConstructionPlanModal({
   perimeterId,
   trigger
 }: PerimeterConstructionModalProps): React.JSX.Element {
+  const [midCutEnabled, setMidCutEnabled] = useState(false)
   const [containerSize, containerRef] = elementSizeRef()
 
   const perimeter = usePerimeterById(perimeterId)
@@ -92,6 +94,17 @@ export function PerimeterConstructionPlanModal({
     if (!perimeter) return null
     return constructPerimeter(perimeter, resolveDefaultMaterial)
   }, [perimeter])
+
+  // Calculate cut position when enabled
+  const zCutOffset = useMemo(() => {
+    if (!midCutEnabled || !constructionModel) return undefined
+
+    const axis = complementaryAxis(TOP_VIEW.plane)
+    const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2
+
+    // Cut at middle of model depth
+    return (constructionModel.bounds.min[axisIndex] + constructionModel.bounds.max[axisIndex]) / 2
+  }, [midCutEnabled, constructionModel])
 
   if (!perimeter) {
     return <>{trigger}</>
@@ -115,10 +128,15 @@ export function PerimeterConstructionPlanModal({
 
           <div
             ref={containerRef}
-            className="relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2"
+            className={`relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2 ${midCutEnabled ? 'mid-cut-enabled' : ''}`}
           >
             {constructionModel ? (
-              <ConstructionPlan model={constructionModel} containerSize={containerSize} view={TOP_VIEW} />
+              <ConstructionPlan
+                model={constructionModel}
+                containerSize={containerSize}
+                view={TOP_VIEW}
+                zCutOffset={zCutOffset}
+              />
             ) : (
               <Flex align="center" justify="center" style={{ height: '100%' }}>
                 <Text align="center" color="gray">
@@ -128,16 +146,24 @@ export function PerimeterConstructionPlanModal({
                 </Text>
               </Flex>
             )}
+
+            {/* Overlay controls in top-left corner */}
+            <Box position="absolute" top="3" left="3" p="1" className="z-10 shadow-md bg-panel rounded-2">
+              <Button
+                variant={midCutEnabled ? 'solid' : 'outline'}
+                size="1"
+                onClick={() => setMidCutEnabled(!midCutEnabled)}
+              >
+                Mid Cut
+              </Button>
+            </Box>
           </div>
 
-          <Flex direction="row" gap="3" flexShrink="0">
-            {/* Issues Panel */}
-            {constructionModel && (
-              <Box flexGrow="1">
-                <IssueDescriptionPanel errors={constructionModel.errors} warnings={constructionModel.warnings} />
-              </Box>
-            )}
-          </Flex>
+          {constructionModel && (
+            <Box flexShrink="0">
+              <IssueDescriptionPanel errors={constructionModel.errors} warnings={constructionModel.warnings} />
+            </Box>
+          )}
         </Flex>
       </Dialog.Content>
     </Dialog.Root>
