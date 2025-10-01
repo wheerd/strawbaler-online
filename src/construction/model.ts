@@ -77,9 +77,9 @@ export function mergeModels(...models: ConstructionModel[]): ConstructionModel {
   }
 }
 
-export function transformModel(model: ConstructionModel, t: Transform): ConstructionModel {
+export function transformModel(model: ConstructionModel, t: Transform, tags?: Tag[]): ConstructionModel {
   // Create a group with properly calculated bounds from transformed children
-  const transformedGroup = createConstructionGroup(model.elements, t)
+  const transformedGroup = createConstructionGroup(model.elements, t, tags)
 
   return {
     elements: [transformedGroup],

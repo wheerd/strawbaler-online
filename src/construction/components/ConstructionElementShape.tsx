@@ -5,6 +5,7 @@ import type { ResolveMaterialFunction } from '@/construction/materials/material'
 
 import { CuboidShape } from './CuboidShape'
 import { CutCuboidShape } from './CutCuboidShape'
+import { getConstructionElementClasses } from './cssHelpers'
 
 export interface ConstructionElementShapeProps {
   element: ConstructionElement
@@ -33,10 +34,7 @@ export function ConstructionElementShape({
   const material = resolveMaterial(element.material)
   const fill = material?.color ?? '#8B4513' // fallback color
 
-  // Check if element should be hidden by cut
-  const cutClassName = aboveCut(element) ? 'above-cut' : ''
-  const tagClasses = element.tags?.flatMap(t => [`tag__${t.id}`, `tag-cat__${t.category}`]) ?? []
-  const combinedClassName = [className, ...tagClasses, 'construction-element', cutClassName].filter(Boolean).join(' ')
+  const combinedClassName = getConstructionElementClasses(element, aboveCut, className)
 
   // Delegate to appropriate shape component
   switch (element.shape.type) {

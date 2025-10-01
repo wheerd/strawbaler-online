@@ -14,7 +14,8 @@ export const ALL_CATEGORIES = {
   'wall-construction-type': { label: 'Wall Construction Type' },
   measurement: { label: 'Measurement' },
   opening: { label: 'Opening' },
-  area: { label: 'Area' }
+  area: { label: 'Area' },
+  construction: { label: 'Construction' }
 } as const
 
 export const CATEGORIES: Record<TagCategoryId, TagCategory> = ALL_CATEGORIES
@@ -171,4 +172,23 @@ export const TAG_PERIMETER_OUTSIDE: Tag = {
   id: 'area_perimeter-outside',
   label: 'Perimeter Outside',
   category: 'area'
+}
+
+// Construction parts
+export const TAG_BASE_PLATE: Tag = {
+  id: 'construction_base-plate',
+  label: 'Base Plate',
+  category: 'construction'
+}
+
+export const TAG_TOP_PLATE: Tag = {
+  id: 'construction_top-plate',
+  label: 'Top Plate',
+  category: 'construction'
+}
+
+export const TAG_WALLS: Tag = {
+  id: 'construction_walls',
+  label: 'Walls',
+  category: 'construction'
 }

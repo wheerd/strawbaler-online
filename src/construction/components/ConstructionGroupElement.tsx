@@ -4,6 +4,7 @@ import { createSvgTransform } from '@/construction/geometry'
 import type { ResolveMaterialFunction } from '@/construction/materials/material'
 
 import { ConstructionElementShape } from './ConstructionElementShape'
+import { getConstructionElementClasses } from './cssHelpers'
 
 export interface ConstructionGroupElementProps {
   group: ConstructionGroup
@@ -24,8 +25,7 @@ export function ConstructionGroupElement({
 }: ConstructionGroupElementProps): React.JSX.Element {
   const sortedElements = [...group.children].sort(zOrder)
 
-  // Check if group should be hidden by cut
-  const className = aboveCut(group) ? 'construction-group above-cut' : 'construction-group'
+  const className = getConstructionElementClasses(group, aboveCut)
 
   return (
     <g className={className} transform={createSvgTransform(group.transform, projection, rotationProjection)}>
