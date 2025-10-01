@@ -145,7 +145,11 @@ export function RingBeamConstructionPlanModal({
           >
             {currentMethod ? (
               constructionModel ? (
-                <ConstructionPlan model={constructionModel} containerSize={containerSize} view={TOP_VIEW} />
+                <ConstructionPlan
+                  model={constructionModel}
+                  views={[{ view: TOP_VIEW, label: 'Top' }]}
+                  containerSize={containerSize}
+                />
               ) : (
                 <Flex align="center" justify="center" style={{ height: '100%' }}>
                   <Text align="center" color="gray">

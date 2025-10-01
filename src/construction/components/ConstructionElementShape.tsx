@@ -8,14 +8,14 @@ import { CutCuboidShape } from './CutCuboidShape'
 
 export interface ConstructionElementShapeProps {
   element: ConstructionElement
-  projection?: Projection
-  rotationProjection?: RotationProjection
+  projection: Projection
+  rotationProjection: RotationProjection
+  aboveCut: CutFunction
   resolveMaterial: ResolveMaterialFunction
   stroke?: string
   strokeWidth?: number
   showDebugMarkers?: boolean
   className?: string
-  aboveCut?: CutFunction
 }
 
 export function ConstructionElementShape({
@@ -34,8 +34,7 @@ export function ConstructionElementShape({
   const fill = material?.color ?? '#8B4513' // fallback color
 
   // Check if element should be hidden by cut
-  const shouldHide = aboveCut?.(element) ?? false
-  const cutClassName = shouldHide ? 'above-cut' : ''
+  const cutClassName = aboveCut(element) ? 'above-cut' : ''
   const tagClasses = element.tags?.flatMap(t => [`tag__${t.id}`, `tag-cat__${t.category}`]) ?? []
   const combinedClassName = [className, ...tagClasses, 'construction-element', cutClassName].filter(Boolean).join(' ')
 

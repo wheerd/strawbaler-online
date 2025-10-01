@@ -7,11 +7,11 @@ import { ConstructionElementShape } from './ConstructionElementShape'
 
 export interface ConstructionGroupElementProps {
   group: ConstructionGroup
-  projection?: Projection
+  projection: Projection
   zOrder: ZOrder
-  rotationProjection?: RotationProjection
+  rotationProjection: RotationProjection
   resolveMaterial: ResolveMaterialFunction
-  aboveCut?: CutFunction
+  aboveCut: CutFunction
 }
 
 export function ConstructionGroupElement({
@@ -25,8 +25,7 @@ export function ConstructionGroupElement({
   const sortedElements = [...group.children].sort(zOrder)
 
   // Check if group should be hidden by cut
-  const shouldHide = aboveCut?.(group) ?? false
-  const className = shouldHide ? 'construction-group above-cut' : 'construction-group'
+  const className = aboveCut(group) ? 'construction-group above-cut' : 'construction-group'
 
   return (
     <g className={className} transform={createSvgTransform(group.transform, projection, rotationProjection)}>
