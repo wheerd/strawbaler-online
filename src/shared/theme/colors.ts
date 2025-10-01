@@ -2,13 +2,15 @@ export const COLORS = {
   // Material/Construction colors
   materials: {
     strawbale: '#daa520',
+    straw: '#dcb550ff',
     limePlaster: '#555555',
     clayPlaster: '#8b4513',
     other: '#2f2f2f',
     woodSupport: '#cd853f',
     // Opening types
     door: '#8b4513',
-    window: '#87ceeb'
+    window: '#87ceeb',
+    concrete: '#545452'
   },
 
   // Interactive States

@@ -1,6 +1,6 @@
 import type { PerimeterConstructionMethodId, RingBeamConstructionMethodId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { useConfigStore } from '@/construction/config/store'
+import { getConfigActions } from '@/construction/config/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
 import { activateLengthInput, deactivateLengthInput } from '@/editor/services/length-input'
 import type { LengthInputPosition } from '@/editor/services/length-input'
@@ -235,7 +235,7 @@ export class PerimeterTool extends BaseTool implements ToolImplementation {
     this.state.lengthOverride = null
 
     // Set default methods from config store
-    const configStore = useConfigStore.getState()
+    const configStore = getConfigActions()
     this.state.baseRingBeamMethodId = configStore.getDefaultBaseRingBeamMethodId()
     this.state.topRingBeamMethodId = configStore.getDefaultTopRingBeamMethodId()
     this.state.constructionMethodId = configStore.getDefaultPerimeterMethodId()
@@ -268,9 +268,9 @@ export class PerimeterTool extends BaseTool implements ToolImplementation {
       polygon = { points: [...this.state.points].reverse() }
     }
 
-    const { addPerimeter, getActiveStorey } = getModelActions()
+    const { addPerimeter, getActiveStoreyId } = getModelActions()
 
-    const activeStoreyId = getActiveStorey()
+    const activeStoreyId = getActiveStoreyId()
 
     try {
       if (!this.state.constructionMethodId) {

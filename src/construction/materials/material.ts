@@ -2,7 +2,8 @@ import type { Length } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
 
 export type MaterialId = string & { readonly brand: unique symbol }
-export const createMaterialId = (): MaterialId => `material_${Date.now()}_${Math.random()}` as MaterialId
+export const createMaterialId = (): MaterialId =>
+  `material_${Date.now().toString(36)}${Math.random().toString(36).slice(2)}` as MaterialId
 export const isMaterialId = (id: string): id is MaterialId => id.startsWith('material_')
 
 export type Material = DimensionalMaterial | SheetMaterial | VolumeMaterial | GenericMaterial
@@ -87,6 +88,13 @@ export const strawbale: DimensionalMaterial = {
   availableLengths: [800 as Length]
 }
 
+export const straw: GenericMaterial = {
+  id: createMaterialId(),
+  name: 'Straw',
+  type: 'generic',
+  color: COLORS.materials.straw
+}
+
 export const window: GenericMaterial = {
   id: createMaterialId(),
   name: 'Window',
@@ -101,14 +109,23 @@ export const door: GenericMaterial = {
   type: 'generic'
 }
 
+export const concrete: GenericMaterial = {
+  id: createMaterialId(),
+  name: 'Concrete',
+  type: 'generic',
+  color: COLORS.materials.concrete
+}
+
 export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [wood360x60.id]: wood360x60,
   [wood240x60.id]: wood240x60,
   [wood120x60.id]: wood120x60,
   [wood140x140.id]: wood140x140,
   [strawbale.id]: strawbale,
+  [straw.id]: straw,
   [window.id]: window,
-  [door.id]: door
+  [door.id]: door,
+  [concrete.id]: concrete
 }
 
 export type ResolveMaterialFunction = (materialId: MaterialId) => Material | undefined

@@ -1,15 +1,16 @@
-import type { Projection, RotationProjection, ZOrder } from '@/construction/geometry'
+import type { ConstructionGroup } from '@/construction/elements'
+import type { CutFunction, Projection, RotationProjection, ZOrder } from '@/construction/geometry'
 import { createSvgTransform } from '@/construction/geometry'
-import type { ConstructionGroup, ResolveMaterialFunction } from '@/construction/walls'
 
 import { ConstructionElementShape } from './ConstructionElementShape'
+import { getConstructionElementClasses } from './cssHelpers'
 
 export interface ConstructionGroupElementProps {
   group: ConstructionGroup
   projection: Projection
   zOrder: ZOrder
   rotationProjection: RotationProjection
-  resolveMaterial: ResolveMaterialFunction
+  aboveCut?: CutFunction
 }
 
 export function ConstructionGroupElement({
@@ -17,28 +18,31 @@ export function ConstructionGroupElement({
   projection,
   zOrder,
   rotationProjection,
-  resolveMaterial
+  aboveCut
 }: ConstructionGroupElementProps): React.JSX.Element {
   const sortedElements = [...group.children].sort(zOrder)
+
+  const className = getConstructionElementClasses(group, aboveCut)
+
   return (
-    <g transform={createSvgTransform(group.transform, projection, rotationProjection)}>
+    <g className={className} transform={createSvgTransform(group.transform, projection, rotationProjection)}>
       {sortedElements.map(element =>
         'children' in element ? (
           <ConstructionGroupElement
             key={element.id}
             group={element}
             projection={projection}
-            rotationProjection={rotationProjection}
             zOrder={zOrder}
-            resolveMaterial={resolveMaterial}
+            rotationProjection={rotationProjection}
+            aboveCut={aboveCut}
           />
         ) : (
           <ConstructionElementShape
-            projection={projection}
-            rotationProjection={rotationProjection}
             key={element.id}
             element={element}
-            resolveMaterial={resolveMaterial}
+            projection={projection}
+            rotationProjection={rotationProjection}
+            aboveCut={aboveCut}
           />
         )
       )}

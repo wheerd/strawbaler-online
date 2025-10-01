@@ -141,22 +141,23 @@ export function SvgMeasurementIndicator({
       />
 
       {/* Label text */}
-      <text
-        x={textX}
-        y={textY}
-        fontSize={actualFontSize}
-        fontFamily="Arial"
-        fontWeight="bold"
-        fill={color}
-        textAnchor="middle"
-        dominantBaseline="central"
-        transform={textAngle !== 0 ? `rotate(${textAngle} ${textX} ${textY})` : undefined}
-        style={{
-          filter: 'drop-shadow(2px 2px 4px rgba(255, 255, 255, 0.8))'
-        }}
-      >
-        {label}
-      </text>
+      <g className="text" transform={`translate( ${textX} ${textY}) rotate(${textAngle})`}>
+        <text
+          x={0}
+          y={0}
+          fontSize={actualFontSize}
+          fontFamily="Arial"
+          fontWeight="bold"
+          fill={color}
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{
+            filter: 'drop-shadow(2px 2px 4px rgba(255, 255, 255, 0.8))'
+          }}
+        >
+          {label}
+        </text>
+      </g>
     </g>
   )
 }

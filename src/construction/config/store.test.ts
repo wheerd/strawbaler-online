@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { createMaterialId } from '@/construction/walls'
-import type { RingBeamConfig } from '@/construction/walls'
+import { createMaterialId } from '@/construction/materials/material'
+import type { RingBeamConfig } from '@/construction/ringBeams/ringBeams'
 import { createLength } from '@/shared/geometry'
 
-import { useConfigStore } from './store'
+import { _clearAllMethods, getConfigActions } from './store'
 
 describe('ConfigStore', () => {
   describe('Default Ring Beam Method', () => {
     it('should initialize with a default ring beam construction method', () => {
       // Check the initial state (don't clear first)
-      const methods = useConfigStore.getState().getAllRingBeamConstructionMethods()
+      const methods = getConfigActions().getAllRingBeamConstructionMethods()
 
       expect(methods.length).toBeGreaterThanOrEqual(1)
 
@@ -29,10 +29,11 @@ describe('ConfigStore', () => {
   describe('Ring Beam Construction Methods', () => {
     beforeEach(() => {
       // Clear the store manually for CRUD tests
-      useConfigStore.setState({ ringBeamConstructionMethods: new Map() })
+      _clearAllMethods()
+      // TODO: Fix this
     })
     it('should add a full ring beam construction method', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
@@ -53,7 +54,7 @@ describe('ConfigStore', () => {
     })
 
     it('should add a double ring beam construction method', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const infillMaterial = createMaterialId()
       const config: RingBeamConfig = {
@@ -73,7 +74,7 @@ describe('ConfigStore', () => {
     })
 
     it('should throw error for empty name', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
@@ -89,7 +90,7 @@ describe('ConfigStore', () => {
     })
 
     it('should throw error for invalid height', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
@@ -105,7 +106,7 @@ describe('ConfigStore', () => {
     })
 
     it('should allow duplicate names', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
@@ -125,7 +126,7 @@ describe('ConfigStore', () => {
     })
 
     it('should remove a ring beam construction method', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
@@ -143,7 +144,7 @@ describe('ConfigStore', () => {
     })
 
     it('should update ring beam construction method name', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
@@ -163,7 +164,7 @@ describe('ConfigStore', () => {
     })
 
     it('should update ring beam construction method config', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const originalConfig: RingBeamConfig = {
         type: 'full',
@@ -192,7 +193,7 @@ describe('ConfigStore', () => {
     })
 
     it('should handle validation errors for invalid config', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const invalidConfig: RingBeamConfig = {
         type: 'full',
@@ -208,7 +209,7 @@ describe('ConfigStore', () => {
     })
 
     it('should allow negative offset from edge', () => {
-      const store = useConfigStore.getState()
+      const store = getConfigActions()
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',

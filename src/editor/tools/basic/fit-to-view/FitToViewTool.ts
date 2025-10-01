@@ -19,9 +19,9 @@ export class FitToViewTool implements ToolImplementation {
       pushTool('basic.select')
     }, 0)
 
-    const { getActiveStorey, getPerimetersByStorey } = getModelActions()
+    const { getActiveStoreyId, getPerimetersByStorey } = getModelActions()
 
-    const activeStoreyId = getActiveStorey()
+    const activeStoreyId = getActiveStoreyId()
     const perimeters = getPerimetersByStorey(activeStoreyId)
 
     if (perimeters.length === 0) {

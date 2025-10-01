@@ -1,7 +1,7 @@
 import { Arrow, Circle, Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { PerimeterCorner, PerimeterWall } from '@/building/model/model'
-import { useConfigStore } from '@/construction/config/store'
+import { usePerimeterConstructionMethodById } from '@/construction/config/store'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { add, midpoint, scale } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
@@ -20,7 +20,6 @@ export function PerimeterCornerShape({
   perimeterId
 }: PerimeterCornerShapeProps): React.JSX.Element {
   const select = useSelectionStore()
-  const configStore = useConfigStore()
   const isSelected = select.isCurrentSelection(corner.id)
 
   const cornerPolygon = [
@@ -42,7 +41,7 @@ export function PerimeterCornerShape({
   const arrowEnd = add(arrowCenter, scale(arrowDir, 90))
 
   const constructingWall = corner.constuctedByWall === 'previous' ? previousWall : nextWall
-  const constructionMethod = configStore.perimeterConstructionMethods.get(constructingWall.constructionMethodId)
+  const constructionMethod = usePerimeterConstructionMethodById(constructingWall.constructionMethodId)
   const cornerColor =
     constructionMethod?.config.type === 'non-strawbale' ? COLORS.materials.other : COLORS.materials.strawbale
   const finalColor = isSelected ? COLORS.selection.primary : cornerColor

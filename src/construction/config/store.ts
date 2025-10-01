@@ -10,8 +10,8 @@ import type {
   PerimeterConstructionMethod,
   RingBeamConstructionMethod
 } from '@/construction/config/types'
-import type { RingBeamConfig } from '@/construction/walls'
-import { strawbale, validateRingBeamConfig, wood360x60 } from '@/construction/walls'
+import { concrete, straw, strawbale, wood120x60, wood360x60 } from '@/construction/materials/material'
+import { type RingBeamConfig, validateRingBeamConfig } from '@/construction/ringBeams/ringBeams'
 import { createLength } from '@/shared/geometry'
 
 export interface ConfigState {
@@ -57,7 +57,7 @@ export interface ConfigActions {
   getDefaultPerimeterMethodId: () => PerimeterConstructionMethodId
 }
 
-export type ConfigStore = ConfigState & ConfigActions
+export type ConfigStore = ConfigState & { actions: ConfigActions }
 
 // Validation functions
 const validateRingBeamName = (name: string): void => {
@@ -97,9 +97,11 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
       maxPostSpacing: createLength(800),
       minStrawSpace: createLength(70),
       posts: {
-        type: 'full',
+        type: 'double',
         width: createLength(60),
-        material: wood360x60.id
+        thickness: createLength(120),
+        infillMaterial: straw.id,
+        material: wood120x60.id
       },
       openings: {
         padding: createLength(15),
@@ -181,7 +183,7 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
     name: 'Non-Strawbale Wall',
     config: {
       type: 'non-strawbale',
-      material: wood360x60.id,
+      material: concrete.id,
       thickness: 200,
       openings: {
         padding: createLength(15),
@@ -198,13 +200,13 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
       }
     },
     layers: {
-      insideThickness: createLength(0),
-      outsideThickness: createLength(0)
+      insideThickness: createLength(30),
+      outsideThickness: createLength(30)
     }
   }
 ]
 
-export const useConfigStore = create<ConfigStore>()(
+const useConfigStore = create<ConfigStore>()(
   devtools(
     (set, get) => {
       // Initialize with default methods
@@ -222,211 +224,213 @@ export const useConfigStore = create<ConfigStore>()(
         defaultTopRingBeamMethodId: defaultRingBeamMethod.id,
         defaultPerimeterMethodId: defaultPerimeterMethods[0].id,
 
-        // CRUD operations
-        addRingBeamConstructionMethod: (name: string, config: RingBeamConfig) => {
-          // Validate inputs
-          validateRingBeamName(name)
-          validateRingBeamConfig(config)
-
-          const id = createRingBeamConstructionMethodId()
-          const method: RingBeamConstructionMethod = {
-            id,
-            name: name.trim(),
-            config
-          }
-
-          set(state => ({
-            ...state,
-            ringBeamConstructionMethods: new Map(state.ringBeamConstructionMethods).set(id, method)
-          }))
-
-          return method
-        },
-
-        removeRingBeamConstructionMethod: (id: RingBeamConstructionMethodId) => {
-          set(state => {
-            const newMethods = new Map(state.ringBeamConstructionMethods)
-            newMethods.delete(id)
-            return {
-              ...state,
-              ringBeamConstructionMethods: newMethods,
-              // Clear defaults if removing the default method
-              defaultBaseRingBeamMethodId:
-                state.defaultBaseRingBeamMethodId === id ? undefined : state.defaultBaseRingBeamMethodId,
-              defaultTopRingBeamMethodId:
-                state.defaultTopRingBeamMethodId === id ? undefined : state.defaultTopRingBeamMethodId
-            }
-          })
-        },
-
-        updateRingBeamConstructionMethodName: (id: RingBeamConstructionMethodId, name: string) => {
-          set(state => {
-            const method = state.ringBeamConstructionMethods.get(id)
-            if (method == null) return state
-
+        actions: {
+          // CRUD operations
+          addRingBeamConstructionMethod: (name: string, config: RingBeamConfig) => {
+            // Validate inputs
             validateRingBeamName(name)
-
-            const updatedMethod: RingBeamConstructionMethod = {
-              ...method,
-              name: name.trim()
-            }
-
-            return {
-              ...state,
-              ringBeamConstructionMethods: new Map(state.ringBeamConstructionMethods).set(id, updatedMethod)
-            }
-          })
-        },
-
-        updateRingBeamConstructionMethodConfig: (id: RingBeamConstructionMethodId, config: RingBeamConfig) => {
-          set(state => {
-            const method = state.ringBeamConstructionMethods.get(id)
-            if (method == null) return state
-
             validateRingBeamConfig(config)
 
-            const updatedMethod: RingBeamConstructionMethod = {
-              ...method,
+            const id = createRingBeamConstructionMethodId()
+            const method: RingBeamConstructionMethod = {
+              id,
+              name: name.trim(),
               config
             }
 
-            return {
+            set(state => ({
               ...state,
-              ringBeamConstructionMethods: new Map(state.ringBeamConstructionMethods).set(id, updatedMethod)
-            }
-          })
-        },
+              ringBeamConstructionMethods: new Map(state.ringBeamConstructionMethods).set(id, method)
+            }))
 
-        // Queries
-        getRingBeamConstructionMethodById: (id: RingBeamConstructionMethodId) => {
-          const state = get()
-          return state.ringBeamConstructionMethods.get(id) ?? null
-        },
+            return method
+          },
 
-        getAllRingBeamConstructionMethods: () => {
-          const state = get()
-          return Array.from(state.ringBeamConstructionMethods.values())
-        },
+          removeRingBeamConstructionMethod: (id: RingBeamConstructionMethodId) => {
+            set(state => {
+              const newMethods = new Map(state.ringBeamConstructionMethods)
+              newMethods.delete(id)
+              return {
+                ...state,
+                ringBeamConstructionMethods: newMethods,
+                // Clear defaults if removing the default method
+                defaultBaseRingBeamMethodId:
+                  state.defaultBaseRingBeamMethodId === id ? undefined : state.defaultBaseRingBeamMethodId,
+                defaultTopRingBeamMethodId:
+                  state.defaultTopRingBeamMethodId === id ? undefined : state.defaultTopRingBeamMethodId
+              }
+            })
+          },
 
-        // Default ring beam management
-        setDefaultBaseRingBeamMethod: (methodId: RingBeamConstructionMethodId | undefined) => {
-          set(state => ({
-            ...state,
-            defaultBaseRingBeamMethodId: methodId
-          }))
-        },
+          updateRingBeamConstructionMethodName: (id: RingBeamConstructionMethodId, name: string) => {
+            set(state => {
+              const method = state.ringBeamConstructionMethods.get(id)
+              if (method == null) return state
 
-        setDefaultTopRingBeamMethod: (methodId: RingBeamConstructionMethodId | undefined) => {
-          set(state => ({
-            ...state,
-            defaultTopRingBeamMethodId: methodId
-          }))
-        },
+              validateRingBeamName(name)
 
-        getDefaultBaseRingBeamMethodId: () => {
-          const state = get()
-          return state.defaultBaseRingBeamMethodId
-        },
+              const updatedMethod: RingBeamConstructionMethod = {
+                ...method,
+                name: name.trim()
+              }
 
-        getDefaultTopRingBeamMethodId: () => {
-          const state = get()
-          return state.defaultTopRingBeamMethodId
-        },
+              return {
+                ...state,
+                ringBeamConstructionMethods: new Map(state.ringBeamConstructionMethods).set(id, updatedMethod)
+              }
+            })
+          },
 
-        // Perimeter construction method CRUD operations
-        addPerimeterConstructionMethod: (name: string, config: PerimeterConstructionConfig, layers: LayersConfig) => {
-          validatePerimeterMethodName(name)
+          updateRingBeamConstructionMethodConfig: (id: RingBeamConstructionMethodId, config: RingBeamConfig) => {
+            set(state => {
+              const method = state.ringBeamConstructionMethods.get(id)
+              if (method == null) return state
 
-          const id = createPerimeterConstructionMethodId()
-          const method: PerimeterConstructionMethod = {
-            id,
-            name: name.trim(),
-            config,
-            layers
-          }
+              validateRingBeamConfig(config)
 
-          set(state => ({
-            ...state,
-            perimeterConstructionMethods: new Map(state.perimeterConstructionMethods).set(id, method)
-          }))
+              const updatedMethod: RingBeamConstructionMethod = {
+                ...method,
+                config
+              }
 
-          return method
-        },
+              return {
+                ...state,
+                ringBeamConstructionMethods: new Map(state.ringBeamConstructionMethods).set(id, updatedMethod)
+              }
+            })
+          },
 
-        removePerimeterConstructionMethod: (id: PerimeterConstructionMethodId) => {
-          set(state => {
-            const newMethods = new Map(state.perimeterConstructionMethods)
-            newMethods.delete(id)
-            return {
+          // Queries
+          getRingBeamConstructionMethodById: (id: RingBeamConstructionMethodId) => {
+            const state = get()
+            return state.ringBeamConstructionMethods.get(id) ?? null
+          },
+
+          getAllRingBeamConstructionMethods: () => {
+            const state = get()
+            return Array.from(state.ringBeamConstructionMethods.values())
+          },
+
+          // Default ring beam management
+          setDefaultBaseRingBeamMethod: (methodId: RingBeamConstructionMethodId | undefined) => {
+            set(state => ({
               ...state,
-              perimeterConstructionMethods: newMethods,
-              defaultPerimeterMethodId:
-                state.defaultPerimeterMethodId === id ? undefined : state.defaultPerimeterMethodId
-            }
-          })
-        },
+              defaultBaseRingBeamMethodId: methodId
+            }))
+          },
 
-        updatePerimeterConstructionMethodName: (id: PerimeterConstructionMethodId, name: string) => {
-          set(state => {
-            const method = state.perimeterConstructionMethods.get(id)
-            if (method == null) return state
+          setDefaultTopRingBeamMethod: (methodId: RingBeamConstructionMethodId | undefined) => {
+            set(state => ({
+              ...state,
+              defaultTopRingBeamMethodId: methodId
+            }))
+          },
 
+          getDefaultBaseRingBeamMethodId: () => {
+            const state = get()
+            return state.defaultBaseRingBeamMethodId
+          },
+
+          getDefaultTopRingBeamMethodId: () => {
+            const state = get()
+            return state.defaultTopRingBeamMethodId
+          },
+
+          // Perimeter construction method CRUD operations
+          addPerimeterConstructionMethod: (name: string, config: PerimeterConstructionConfig, layers: LayersConfig) => {
             validatePerimeterMethodName(name)
 
-            const updatedMethod: PerimeterConstructionMethod = {
-              ...method,
-              name: name.trim()
+            const id = createPerimeterConstructionMethodId()
+            const method: PerimeterConstructionMethod = {
+              id,
+              name: name.trim(),
+              config,
+              layers
             }
 
-            return {
+            set(state => ({
               ...state,
-              perimeterConstructionMethods: new Map(state.perimeterConstructionMethods).set(id, updatedMethod)
-            }
-          })
-        },
+              perimeterConstructionMethods: new Map(state.perimeterConstructionMethods).set(id, method)
+            }))
 
-        updatePerimeterConstructionMethodConfig: (
-          id: PerimeterConstructionMethodId,
-          config: PerimeterConstructionConfig
-        ) => {
-          set(state => {
-            const method = state.perimeterConstructionMethods.get(id)
-            if (method == null) return state
+            return method
+          },
 
-            const updatedMethod: PerimeterConstructionMethod = {
-              ...method,
-              config
-            }
+          removePerimeterConstructionMethod: (id: PerimeterConstructionMethodId) => {
+            set(state => {
+              const newMethods = new Map(state.perimeterConstructionMethods)
+              newMethods.delete(id)
+              return {
+                ...state,
+                perimeterConstructionMethods: newMethods,
+                defaultPerimeterMethodId:
+                  state.defaultPerimeterMethodId === id ? undefined : state.defaultPerimeterMethodId
+              }
+            })
+          },
 
-            return {
+          updatePerimeterConstructionMethodName: (id: PerimeterConstructionMethodId, name: string) => {
+            set(state => {
+              const method = state.perimeterConstructionMethods.get(id)
+              if (method == null) return state
+
+              validatePerimeterMethodName(name)
+
+              const updatedMethod: PerimeterConstructionMethod = {
+                ...method,
+                name: name.trim()
+              }
+
+              return {
+                ...state,
+                perimeterConstructionMethods: new Map(state.perimeterConstructionMethods).set(id, updatedMethod)
+              }
+            })
+          },
+
+          updatePerimeterConstructionMethodConfig: (
+            id: PerimeterConstructionMethodId,
+            config: PerimeterConstructionConfig
+          ) => {
+            set(state => {
+              const method = state.perimeterConstructionMethods.get(id)
+              if (method == null) return state
+
+              const updatedMethod: PerimeterConstructionMethod = {
+                ...method,
+                config
+              }
+
+              return {
+                ...state,
+                perimeterConstructionMethods: new Map(state.perimeterConstructionMethods).set(id, updatedMethod)
+              }
+            })
+          },
+
+          // Perimeter queries
+          getPerimeterConstructionMethodById: (id: PerimeterConstructionMethodId) => {
+            const state = get()
+            return state.perimeterConstructionMethods.get(id) ?? null
+          },
+
+          getAllPerimeterConstructionMethods: () => {
+            const state = get()
+            return Array.from(state.perimeterConstructionMethods.values())
+          },
+
+          // Default perimeter method management
+          setDefaultPerimeterMethod: (methodId: PerimeterConstructionMethodId | undefined) => {
+            set(state => ({
               ...state,
-              perimeterConstructionMethods: new Map(state.perimeterConstructionMethods).set(id, updatedMethod)
-            }
-          })
-        },
+              defaultPerimeterMethodId: methodId
+            }))
+          },
 
-        // Perimeter queries
-        getPerimeterConstructionMethodById: (id: PerimeterConstructionMethodId) => {
-          const state = get()
-          return state.perimeterConstructionMethods.get(id) ?? null
-        },
-
-        getAllPerimeterConstructionMethods: () => {
-          const state = get()
-          return Array.from(state.perimeterConstructionMethods.values())
-        },
-
-        // Default perimeter method management
-        setDefaultPerimeterMethod: (methodId: PerimeterConstructionMethodId | undefined) => {
-          set(state => ({
-            ...state,
-            defaultPerimeterMethodId: methodId
-          }))
-        },
-
-        getDefaultPerimeterMethodId: () => {
-          const state = get()
-          return state.defaultPerimeterMethodId
+          getDefaultPerimeterMethodId: () => {
+            const state = get()
+            return state.defaultPerimeterMethodId
+          }
         }
       }
     },
@@ -442,13 +446,13 @@ export const useRingBeamConstructionMethods = (): RingBeamConstructionMethod[] =
 
 export const useRingBeamConstructionMethodById = (
   id: RingBeamConstructionMethodId
-): RingBeamConstructionMethod | null => useConfigStore(state => state.getRingBeamConstructionMethodById(id))
+): RingBeamConstructionMethod | null => useConfigStore(state => state.actions.getRingBeamConstructionMethodById(id))
 
 export const useDefaultBaseRingBeamMethodId = (): RingBeamConstructionMethodId | undefined =>
-  useConfigStore(state => state.getDefaultBaseRingBeamMethodId())
+  useConfigStore(state => state.actions.getDefaultBaseRingBeamMethodId())
 
 export const useDefaultTopRingBeamMethodId = (): RingBeamConstructionMethodId | undefined =>
-  useConfigStore(state => state.getDefaultTopRingBeamMethodId())
+  useConfigStore(state => state.actions.getDefaultTopRingBeamMethodId())
 
 // Perimeter construction method selector hooks
 export const usePerimeterConstructionMethods = (): PerimeterConstructionMethod[] => {
@@ -458,7 +462,16 @@ export const usePerimeterConstructionMethods = (): PerimeterConstructionMethod[]
 
 export const usePerimeterConstructionMethodById = (
   id: PerimeterConstructionMethodId
-): PerimeterConstructionMethod | null => useConfigStore(state => state.getPerimeterConstructionMethodById(id))
+): PerimeterConstructionMethod | null => useConfigStore(state => state.actions.getPerimeterConstructionMethodById(id))
 
 export const useDefaultPerimeterMethodId = (): PerimeterConstructionMethodId | undefined =>
-  useConfigStore(state => state.getDefaultPerimeterMethodId())
+  useConfigStore(state => state.actions.getDefaultPerimeterMethodId())
+
+export const useConfigActions = (): ConfigActions => useConfigStore(state => state.actions)
+
+// For non-reactive contexts
+export const getConfigActions = (): ConfigActions => useConfigStore.getState().actions
+
+// Only for the tests
+export const _clearAllMethods = () =>
+  useConfigStore.setState({ ringBeamConstructionMethods: new Map(), perimeterConstructionMethods: new Map() })

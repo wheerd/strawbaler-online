@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react'
 
 import type { PerimeterId } from '@/building/model/ids'
 import { usePerimeterById } from '@/building/store'
-import { useConfigStore } from '@/construction/config/store'
+import { useConfigActions } from '@/construction/config'
 import { resolveDefaultMaterial } from '@/construction/materials/material'
 import { constructRingBeam } from '@/construction/ringBeams/ringBeams'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
@@ -91,7 +91,7 @@ export function RingBeamConstructionPlanModal({
   const [containerSize, containerRef] = elementSizeRef()
 
   const perimeter = usePerimeterById(perimeterId)
-  const getRingBeamMethodById = useConfigStore(state => state.getRingBeamConstructionMethodById)
+  const { getRingBeamConstructionMethodById } = useConfigActions()
 
   const constructionModel = useMemo(() => {
     if (!perimeter) return null
@@ -100,7 +100,7 @@ export function RingBeamConstructionPlanModal({
 
     if (!methodId) return null
 
-    const method = getRingBeamMethodById(methodId)
+    const method = getRingBeamConstructionMethodById(methodId)
     if (!method) return null
 
     try {
@@ -109,15 +109,15 @@ export function RingBeamConstructionPlanModal({
       console.error('Failed to generate ring beam construction plan:', error)
       return null
     }
-  }, [perimeter, currentPosition, getRingBeamMethodById])
+  }, [perimeter, currentPosition, getRingBeamConstructionMethodById])
 
   const currentMethod = useMemo(() => {
     if (!perimeter) return null
 
     const methodId = currentPosition === 'base' ? perimeter.baseRingBeamMethodId : perimeter.topRingBeamMethodId
 
-    return methodId ? getRingBeamMethodById(methodId) : null
-  }, [perimeter, currentPosition, getRingBeamMethodById])
+    return methodId ? getRingBeamConstructionMethodById(methodId) : null
+  }, [perimeter, currentPosition, getRingBeamConstructionMethodById])
 
   if (!perimeter) {
     return <>{trigger}</>
@@ -145,7 +145,11 @@ export function RingBeamConstructionPlanModal({
           >
             {currentMethod ? (
               constructionModel ? (
-                <ConstructionPlan model={constructionModel} containerSize={containerSize} view={TOP_VIEW} />
+                <ConstructionPlan
+                  model={constructionModel}
+                  views={[{ view: TOP_VIEW, label: 'Top' }]}
+                  containerSize={containerSize}
+                />
               ) : (
                 <Flex align="center" justify="center" style={{ height: '100%' }}>
                   <Text align="center" color="gray">

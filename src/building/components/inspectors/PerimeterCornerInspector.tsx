@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react'
 
 import type { PerimeterCornerId, PerimeterId } from '@/building/model/ids'
 import { useModelActions, usePerimeterById } from '@/building/store'
-import { useConfigStore } from '@/construction/config/store'
+import { useConfigActions } from '@/construction/config/store'
 
 interface PerimeterCornerInspectorProps {
   perimeterId: PerimeterId
@@ -13,7 +13,7 @@ interface PerimeterCornerInspectorProps {
 export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCornerInspectorProps): React.JSX.Element {
   // Get model store functions - use specific selectors for stable references
   const { updatePerimeterCornerConstructedByWall: updateCornerConstructedByWall } = useModelActions()
-  const configStore = useConfigStore()
+  const { getPerimeterConstructionMethodById } = useConfigActions()
 
   // Get perimeter from store
   const outerWall = usePerimeterById(perimeterId)
@@ -78,13 +78,13 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
   const hasConstructionNotes = useMemo(() => {
     if (!previousWall || !nextWall) return false
 
-    const prevMethod = configStore.perimeterConstructionMethods.get(previousWall.constructionMethodId)
-    const nextMethod = configStore.perimeterConstructionMethods.get(nextWall.constructionMethodId)
+    const prevMethod = getPerimeterConstructionMethodById(previousWall.constructionMethodId)
+    const nextMethod = getPerimeterConstructionMethodById(nextWall.constructionMethodId)
     const hasMixedConstruction = prevMethod?.config.type !== nextMethod?.config.type
     const hasThicknessDifference = Math.abs(previousWall.thickness - nextWall.thickness) > 5
 
     return hasMixedConstruction || hasThicknessDifference
-  }, [previousWall, nextWall, configStore])
+  }, [previousWall, nextWall, getPerimeterConstructionMethodById])
 
   return (
     <Flex direction="column" gap="4">
@@ -118,8 +118,8 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
           <Heading size="2">Construction Notes</Heading>
 
           {(() => {
-            const prevMethod = configStore.perimeterConstructionMethods.get(previousWall.constructionMethodId)
-            const nextMethod = configStore.perimeterConstructionMethods.get(nextWall.constructionMethodId)
+            const prevMethod = getPerimeterConstructionMethodById(previousWall.constructionMethodId)
+            const nextMethod = getPerimeterConstructionMethodById(nextWall.constructionMethodId)
             return prevMethod?.config.type !== nextMethod?.config.type
           })() && (
             <Callout.Root color="amber">

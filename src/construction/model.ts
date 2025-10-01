@@ -1,7 +1,7 @@
-import type { Bounds3D, Plane3D, Polygon2D } from '@/shared/geometry'
+import { type Bounds3D, type Plane3D, type Polygon2D, mergeBounds } from '@/shared/geometry'
 
-import type { GroupOrElement } from './elements'
-import type { Transform } from './geometry'
+import { type ConstructionGroup, type GroupOrElement, createConstructionElementId } from './elements'
+import { type Transform, transform, transformBounds } from './geometry'
 import type { Measurement } from './measurements'
 import type { ConstructionIssue } from './results'
 import type { Tag } from './tags'
@@ -38,4 +38,66 @@ export interface HighlightedPolygon {
   plane: Plane3D
   tags?: Tag[]
   renderPosition: 'bottom' | 'top'
+}
+
+/**
+ * Creates a construction group with bounds calculated from transformed children
+ */
+export function createConstructionGroup(
+  children: GroupOrElement[],
+  transform: Transform,
+  tags?: Tag[]
+): ConstructionGroup {
+  // Calculate bounds from all transformed children
+  const childBounds = children.map(child => {
+    // Apply the group transform to each child's bounds
+    return transformBounds(child.bounds, child.transform)
+  })
+
+  const groupBounds =
+    childBounds.length > 0 ? mergeBounds(...childBounds) : ({ min: [0, 0, 0], max: [0, 0, 0] } as Bounds3D)
+
+  return {
+    id: createConstructionElementId(),
+    transform,
+    bounds: groupBounds,
+    children,
+    tags
+  }
+}
+
+export function mergeModels(...models: ConstructionModel[]): ConstructionModel {
+  return {
+    elements: models.flatMap(m => m.elements),
+    measurements: models.flatMap(m => m.measurements),
+    areas: models.flatMap(m => m.areas),
+    errors: models.flatMap(m => m.errors),
+    warnings: models.flatMap(m => m.warnings),
+    bounds: mergeBounds(...models.map(m => m.bounds))
+  }
+}
+
+export function transformModel(model: ConstructionModel, t: Transform, tags?: Tag[]): ConstructionModel {
+  // Create a group with properly calculated bounds from transformed children
+  const transformedGroup = createConstructionGroup(model.elements, t, tags)
+
+  return {
+    elements: [transformedGroup],
+    measurements: model.measurements.map(m => ({
+      ...m,
+      startPoint: transform(m.startPoint, t),
+      endPoint: transform(m.endPoint, t)
+    })),
+    areas: model.areas.map(a => transformArea(a, t)),
+    errors: model.errors.map(e => ({ ...e, bounds: e.bounds ? transformBounds(e.bounds, t) : undefined })),
+    warnings: model.warnings.map(w => ({ ...w, bounds: w.bounds ? transformBounds(w.bounds, t) : undefined })),
+    bounds: transformBounds(model.bounds, t)
+  }
+}
+
+function transformArea(a: HighlightedArea, t: Transform): HighlightedArea {
+  if (a.type === 'cuboid') {
+    return { ...a, transform: t }
+  }
+  return a
 }

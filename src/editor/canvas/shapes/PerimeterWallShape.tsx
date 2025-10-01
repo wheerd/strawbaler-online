@@ -2,7 +2,7 @@ import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { PerimeterId } from '@/building/model/ids'
 import type { PerimeterWall } from '@/building/model/model'
-import { useConfigStore } from '@/construction/config/store'
+import { usePerimeterConstructionMethodById } from '@/construction/config/store'
 import { LengthIndicator } from '@/editor/canvas/utils/LengthIndicator'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { type Vec2, direction } from '@/shared/geometry'
@@ -29,7 +29,6 @@ export function PerimeterWallShape({
   outsideEndCorner
 }: PerimeterWallShapeProps): React.JSX.Element {
   const select = useSelectionStore()
-  const configStore = useConfigStore()
 
   // Calculate wall properties
   const insideStart = wall.insideLine.start
@@ -48,7 +47,7 @@ export function PerimeterWallShape({
     angleDegrees += 180
   }
 
-  const constructionMethod = configStore.perimeterConstructionMethods.get(wall.constructionMethodId)
+  const constructionMethod = usePerimeterConstructionMethodById(wall.constructionMethodId)
   const baseColor =
     constructionMethod?.config.type === 'non-strawbale' ? COLORS.materials.other : COLORS.materials.strawbale
   const finalMainColor = select.isSelected(wall.id) ? COLORS.selection.primary : baseColor

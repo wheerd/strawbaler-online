@@ -39,9 +39,11 @@ export function CuboidAreaShape({ cuboid, projection, rotationProjection }: Cubo
       />
 
       {cuboid.label && (
-        <text x={cx} y={cy}>
-          {cuboid.label}
-        </text>
+        <g className="text" transform={`translate( ${cx} ${cy})`}>
+          <text x={0} y={0}>
+            {cuboid.label}
+          </text>
+        </g>
       )}
     </g>
   )

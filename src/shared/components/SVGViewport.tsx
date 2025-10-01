@@ -11,6 +11,8 @@ import React, {
 
 import type { Bounds2D } from '@/shared/geometry'
 
+import './SVGViewport.css'
+
 export interface SVGViewportRef {
   fitToContent: () => void
 }
@@ -24,6 +26,8 @@ interface SVGViewportProps extends RefAttributes<SVGViewportRef> {
   padding?: number // Padding around content (default: 0.1 = 10%)
   minZoom?: number // Minimum zoom level (default: 0.01)
   maxZoom?: number // Maximum zoom level (default: 50)
+  flipY?: boolean
+  flipX?: boolean
 }
 
 interface ViewportState {
@@ -47,7 +51,9 @@ function generateViewBoxFromBounds(
   bounds: Bounds2D,
   padding: number,
   containerWidth: number,
-  containerHeight: number
+  containerHeight: number,
+  flipX = false,
+  flipY = false
 ): string {
   const contentWidth = bounds.max[0] - bounds.min[0]
   const contentHeight = bounds.max[1] - bounds.min[1]
@@ -78,9 +84,23 @@ function generateViewBoxFromBounds(
     viewBoxWidth = paddedContentHeight * containerAspectRatio
   }
 
-  // Center the viewBox on the content
-  const viewBoxX = contentCenterX - viewBoxWidth / 2
-  const viewBoxY = contentCenterY - viewBoxHeight / 2
+  // With transform-origin: 0 0, flips happen around the origin
+  // So we need to adjust the content bounds before calculating the viewBox
+  let adjustedContentCenterX = contentCenterX
+  let adjustedContentCenterY = contentCenterY
+
+  if (flipX) {
+    // X coordinates get negated: x' = -x
+    adjustedContentCenterX = -contentCenterX
+  }
+  if (flipY) {
+    // Y coordinates get negated: y' = -y
+    adjustedContentCenterY = -contentCenterY
+  }
+
+  // Center the viewBox on the adjusted content center
+  const viewBoxX = adjustedContentCenterX - viewBoxWidth / 2
+  const viewBoxY = adjustedContentCenterY - viewBoxHeight / 2
 
   return `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`
 }
@@ -108,7 +128,9 @@ export function SVGViewport({
   resetButtonPosition = 'top-right',
   padding = DEFAULT_PADDING,
   minZoom = DEFAULT_MIN_ZOOM,
-  maxZoom = DEFAULT_MAX_ZOOM
+  maxZoom = DEFAULT_MAX_ZOOM,
+  flipX = false,
+  flipY = true
 }: SVGViewportProps): React.JSX.Element {
   const svgRef = useRef<SVGSVGElement>(null)
 
@@ -150,9 +172,9 @@ export function SVGViewport({
   const viewBox = useMemo(
     () =>
       svgSize.width > 0 && svgSize.height > 0
-        ? generateViewBoxFromBounds(contentBounds, padding, svgSize.width, svgSize.height)
+        ? generateViewBoxFromBounds(contentBounds, padding, svgSize.width, svgSize.height, flipX, flipY)
         : '0 0 100 100', // Fallback viewBox
-    [contentBounds, padding, svgSize]
+    [contentBounds, padding, svgSize, flipX, flipY]
   )
 
   // Convert screen coordinates to SVG coordinates using CTM
@@ -324,7 +346,7 @@ export function SVGViewport({
         viewBox={viewBox}
         width={svgSize.width || 100}
         height={svgSize.height || 100}
-        className="w-full h-full touch-none block"
+        className="w-full h-full touch-none block viewport"
         preserveAspectRatio="none"
         onWheel={handleWheel}
         onPointerDown={handlePointerDown}
@@ -334,7 +356,9 @@ export function SVGViewport({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <g transform={transform}>{children}</g>
+        <g transform={transform}>
+          <g className={`${flipY ? 'flipY' : 'normalY'} ${flipX ? 'flipX' : 'normalX'}`}>{children}</g>
+        </g>
       </svg>
 
       <button

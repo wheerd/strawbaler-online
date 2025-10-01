@@ -123,7 +123,7 @@ function* _constructFullRingBeam(
     const startAngleDeg = 90 - (startAngle * 180) / Math.PI
     const endAngleDeg = 90 - (endAngle * 180) / Math.PI
 
-    const segmentAngle = Math.atan2(insideEdge.direction[0], insideEdge.direction[1])
+    const segmentAngle = Math.atan2(insideEdge.direction[1], insideEdge.direction[0])
 
     yield yieldElement(
       createConstructionElement(

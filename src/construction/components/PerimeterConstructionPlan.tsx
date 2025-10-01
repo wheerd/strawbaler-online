@@ -1,16 +1,23 @@
 import { CheckCircledIcon, Cross2Icon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { Box, Callout, Dialog, Flex, IconButton, Text } from '@radix-ui/themes'
-import React from 'react'
+import React, { useMemo } from 'react'
 
-import type { ConstructionModel } from '@/construction/model'
-import type { ConstructionIssue } from '@/construction/results'
+import type { PerimeterId } from '@/building/model/ids'
+import { usePerimeterById } from '@/building/store'
+import { resolveDefaultMaterial } from '@/construction/materials/material'
+import { constructPerimeter } from '@/construction/perimeter'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
-import { BACK_VIEW, ConstructionPlan, FRONT_VIEW, type ViewOption } from './ConstructionPlan'
+import { ConstructionPlan, TOP_VIEW, type ViewOption } from './ConstructionPlan'
+
+export interface PerimeterConstructionModalProps {
+  perimeterId: PerimeterId
+  trigger: React.ReactNode
+}
 
 interface IssueDescriptionPanelProps {
-  errors: ConstructionIssue[]
-  warnings: ConstructionIssue[]
+  errors: { description: string }[]
+  warnings: { description: string }[]
 }
 
 const IssueDescriptionPanel = ({ errors, warnings }: IssueDescriptionPanelProps) => (
@@ -73,28 +80,34 @@ const IssueDescriptionPanel = ({ errors, warnings }: IssueDescriptionPanelProps)
   </Box>
 )
 
-interface WallConstructionPlanModalProps {
-  model: ConstructionModel
-  children: React.ReactNode
-}
-
-export function WallConstructionPlanModal({ model, children }: WallConstructionPlanModalProps): React.JSX.Element {
+export function PerimeterConstructionPlanModal({
+  perimeterId,
+  trigger
+}: PerimeterConstructionModalProps): React.JSX.Element {
   const [containerSize, containerRef] = elementSizeRef()
 
-  // Define views for wall construction
-  const views: ViewOption[] = [
-    { view: FRONT_VIEW, label: 'Outside' },
-    { view: BACK_VIEW, label: 'Inside' }
-  ]
+  const perimeter = usePerimeterById(perimeterId)
+
+  const constructionModel = useMemo(() => {
+    if (!perimeter) return null
+    return constructPerimeter(perimeter, resolveDefaultMaterial)
+  }, [perimeter])
+
+  // Define views for perimeter construction (only top view)
+  const views: ViewOption[] = [{ view: TOP_VIEW, label: 'Top' }]
+
+  if (!perimeter) {
+    return <>{trigger}</>
+  }
 
   return (
     <Dialog.Root>
-      <Dialog.Trigger>{children}</Dialog.Trigger>
+      <Dialog.Trigger>{trigger}</Dialog.Trigger>
       <Dialog.Content size="2" width="95%" maxWidth="95%" maxHeight="90vh" className="flex flex-col overflow-hidden">
         <Flex direction="column" gap="3" height="100%" className="overflow-hidden">
           <Dialog.Title>
             <Flex justify="between" align="center">
-              Wall Construction Plan
+              Ring Beam Construction
               <Dialog.Close>
                 <IconButton variant="ghost" size="1">
                   <Cross2Icon />
@@ -107,12 +120,24 @@ export function WallConstructionPlanModal({ model, children }: WallConstructionP
             ref={containerRef}
             className="relative flex-1 min-h-[300px] max-h-[calc(100vh-400px)] overflow-hidden border border-gray-6 rounded-2"
           >
-            <ConstructionPlan model={model} views={views} containerSize={containerSize} />
+            {constructionModel ? (
+              <ConstructionPlan model={constructionModel} views={views} containerSize={containerSize} />
+            ) : (
+              <Flex align="center" justify="center" style={{ height: '100%' }}>
+                <Text align="center" color="gray">
+                  <Text size="6">⚠</Text>
+                  <br />
+                  <Text size="2">Failed to generate construction plan</Text>
+                </Text>
+              </Flex>
+            )}
           </div>
 
-          <Box flexShrink="0">
-            <IssueDescriptionPanel errors={model.errors} warnings={model.warnings} />
-          </Box>
+          {constructionModel && (
+            <Box flexShrink="0">
+              <IssueDescriptionPanel errors={constructionModel.errors} warnings={constructionModel.warnings} />
+            </Box>
+          )}
         </Flex>
       </Dialog.Content>
     </Dialog.Root>

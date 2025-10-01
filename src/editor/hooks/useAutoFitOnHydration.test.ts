@@ -6,7 +6,7 @@ import { useAutoFitOnHydration } from './useAutoFitOnHydration'
 // Mock dependencies
 vi.mock('@/building/store', () => ({
   getModelActions: vi.fn(() => ({
-    getActiveStorey: vi.fn(() => 'storey-1'),
+    getActiveStoreyId: vi.fn(() => 'storey-1'),
     getPerimetersByStorey: vi.fn(() => [])
   }))
 }))
