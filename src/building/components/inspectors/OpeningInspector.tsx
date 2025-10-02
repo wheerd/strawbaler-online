@@ -22,6 +22,7 @@ import { usePerimeterConstructionMethodById } from '@/construction/config/store'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { createLength } from '@/shared/geometry'
 import { useDebouncedNumericInput } from '@/shared/hooks/useDebouncedInput'
+import { formatLength } from '@/shared/utils/formatLength'
 
 import { DoorIcon, PassageIcon, WindowIcon } from './OpeningIcons'
 import { OpeningPreview } from './OpeningPreview'
@@ -63,7 +64,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
 
   // Preview state
   const [highlightMode, setHighlightMode] = useState<'fitting' | 'finished'>('fitting')
-  const [focusedField, setFocusedField] = useState<'width' | 'height' | 'sillHeight' | undefined>()
+  const [focusedField, setFocusedField] = useState<'width' | 'height' | 'sillHeight' | 'topHeight' | undefined>()
 
   // Dimension input mode - whether user is inputting fitting or finished dimensions
   const [dimensionInputMode, setDimensionInputMode] = useState<'fitting' | 'finished'>('fitting')
@@ -75,7 +76,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
 
   // Helper functions for dimension conversion
   const getDisplayValue = useCallback(
-    (fittingValue: number, type: 'width' | 'height' | 'sillHeight') => {
+    (fittingValue: number, type: 'width' | 'height' | 'sillHeight' | 'topHeight') => {
       if (!constructionMethod) return fittingValue
       const padding = constructionMethod.config.openings.padding
 
@@ -86,6 +87,9 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
         if (type === 'sillHeight') {
           // Sill height: finished = fitting + padding (sill sits on padding)
           return fittingValue > 0 ? fittingValue + padding : 0
+        } else if (type === 'topHeight') {
+          // Top height: same as fitting since it's a floor-to-top measurement
+          return fittingValue
         } else {
           // Width/Height: finished = fitting - 2×padding
           return Math.max(0, fittingValue - 2 * padding)
@@ -96,7 +100,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   )
 
   const convertToFittingValue = useCallback(
-    (inputValue: number, type: 'width' | 'height' | 'sillHeight') => {
+    (inputValue: number, type: 'width' | 'height' | 'sillHeight' | 'topHeight') => {
       if (!constructionMethod) return inputValue
       const padding = constructionMethod.config.openings.padding
 
@@ -107,6 +111,9 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
         if (type === 'sillHeight') {
           // Sill height: fitting = finished - padding (remove padding offset)
           return Math.max(0, inputValue - padding)
+        } else if (type === 'topHeight') {
+          // Top height: same as fitting since it's a floor-to-top measurement
+          return inputValue
         } else {
           // Width/Height: fitting = finished + 2×padding
           return inputValue + 2 * padding
@@ -170,6 +177,28 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
     }
   )
 
+  // Calculate top height (sill height + opening height)
+  const currentTopHeight = (opening?.sillHeight || 0) + (opening?.height || 0)
+
+  const topHeightInput = useDebouncedNumericInput(
+    getDisplayValue(currentTopHeight, 'topHeight'),
+    useCallback(
+      (value: number) => {
+        const fittingTopHeight = convertToFittingValue(value, 'topHeight')
+        const currentSillHeight = opening?.sillHeight || 0
+        const newOpeningHeight = Math.max(100, fittingTopHeight - currentSillHeight)
+        updateOpening(perimeterId, wallId, openingId, { height: createLength(newOpeningHeight) })
+      },
+      [updateOpening, perimeterId, wallId, openingId, convertToFittingValue, opening?.sillHeight]
+    ),
+    {
+      debounceMs: 300,
+      min: Math.max(opening?.sillHeight || 0, 100), // Cannot be less than sill height, minimum 100
+      max: 5000,
+      step: 10
+    }
+  )
+
   // If opening not found, show error
   if (!opening || !wall || !perimeter || !perimeterId || !wallId) {
     return (
@@ -201,8 +230,6 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
       removeOpeningFromOuterWall(perimeterId, wallId, openingId)
     }
   }, [removeOpeningFromOuterWall, perimeterId, wallId, openingId])
-
-  const area = (opening.width * opening.height) / (1000 * 1000)
 
   return (
     <Flex direction="column" gap="4">
@@ -275,13 +302,35 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             <SegmentedControl.Item value="finished">Finished</SegmentedControl.Item>
           </SegmentedControl.Root>
         </Flex>
+        <Flex align="center" justify="between" gap="1">
+          <Text size="1" weight="medium" color="gray">
+            Padding
+          </Text>
+          <Text size="1" color="gray">
+            {constructionMethod
+              ? `${formatLength(constructionMethod?.config.openings.padding)} (configured by ${constructionMethod.name})`
+              : '???'}
+          </Text>
+        </Flex>
 
-        <Flex align="center" justify="between" gap="3">
+        {/* Dimension inputs in CSS Grid layout */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto min-content auto min-content',
+            gridTemplateRows: 'auto auto',
+            gap: 'var(--space-2) var(--space-3)',
+            alignItems: 'center'
+          }}
+        >
+          {/* Row 1, Column 1: Width Label */}
           <Label.Root htmlFor="opening-width">
             <Text size="1" weight="medium" color="gray">
               Width
             </Text>
           </Label.Root>
+
+          {/* Row 1, Column 2: Width Input */}
           <TextField.Root
             id="opening-width"
             type="number"
@@ -297,20 +346,21 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             max="5000"
             step="10"
             size="1"
-            style={{ width: '5rem', textAlign: 'right' }}
+            style={{ textAlign: 'right', width: '80px' }}
           >
             <TextField.Slot side="right" pl="1">
               mm
             </TextField.Slot>
           </TextField.Root>
-        </Flex>
 
-        <Flex align="center" justify="between" gap="3">
+          {/* Row 1, Column 3: Height Label */}
           <Label.Root htmlFor="opening-height">
             <Text size="1" weight="medium" color="gray">
               Height
             </Text>
           </Label.Root>
+
+          {/* Row 1, Column 4: Height Input */}
           <TextField.Root
             id="opening-height"
             type="number"
@@ -326,57 +376,73 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             max="4000"
             step="10"
             size="1"
-            style={{ width: '5rem', textAlign: 'right' }}
+            style={{ textAlign: 'right', width: '80px' }}
           >
             <TextField.Slot side="right" pl="1">
               mm
             </TextField.Slot>
           </TextField.Root>
-        </Flex>
 
-        <Flex direction="column" gap="1">
-          <Flex align="center" justify="between" gap="3">
-            <Label.Root htmlFor="opening-sill-height">
-              <Text size="1" weight="medium" color="gray">
-                Sill Height
-              </Text>
-            </Label.Root>
-            <TextField.Root
-              id="opening-sill-height"
-              type="number"
-              value={sillHeightInput.value.toString()}
-              onChange={e => sillHeightInput.handleChange(e.target.value)}
-              onBlur={() => {
-                sillHeightInput.handleBlur()
-                setFocusedField(undefined)
-              }}
-              onFocus={() => setFocusedField('sillHeight')}
-              onKeyDown={sillHeightInput.handleKeyDown}
-              min="0"
-              max="2000"
-              step="10"
-              size="1"
-              style={{ width: '5rem', textAlign: 'right' }}
-            >
-              <TextField.Slot side="right" pl="1">
-                mm
-              </TextField.Slot>
-            </TextField.Root>
-          </Flex>
-        </Flex>
-      </Flex>
+          {/* Row 2, Column 1: Sill Height Label */}
+          <Label.Root htmlFor="opening-sill-height">
+            <Text size="1" weight="medium" color="gray">
+              Sill
+            </Text>
+          </Label.Root>
 
-      <Separator size="4" />
+          {/* Row 2, Column 2: Sill Height Input */}
+          <TextField.Root
+            id="opening-sill-height"
+            type="number"
+            value={sillHeightInput.value.toString()}
+            onChange={e => sillHeightInput.handleChange(e.target.value)}
+            onBlur={() => {
+              sillHeightInput.handleBlur()
+              setFocusedField(undefined)
+            }}
+            onFocus={() => setFocusedField('sillHeight')}
+            onKeyDown={sillHeightInput.handleKeyDown}
+            min="0"
+            max="2000"
+            step="10"
+            size="1"
+            style={{ textAlign: 'right', width: '80px' }}
+          >
+            <TextField.Slot side="right" pl="1">
+              mm
+            </TextField.Slot>
+          </TextField.Root>
 
-      {/* Measurements */}
-      <Flex direction="column" gap="2">
-        <Heading size="2">Measurements</Heading>
-        <DataList.Root size="1">
-          <DataList.Item>
-            <DataList.Label>Area</DataList.Label>
-            <DataList.Value>{area.toFixed(2)} m²</DataList.Value>
-          </DataList.Item>
-        </DataList.Root>
+          {/* Row 2, Column 3: Top Height Label */}
+          <Label.Root htmlFor="opening-top-height">
+            <Text size="1" weight="medium" color="gray">
+              Top
+            </Text>
+          </Label.Root>
+
+          {/* Row 2, Column 4: Top Height Input */}
+          <TextField.Root
+            id="opening-top-height"
+            type="number"
+            value={topHeightInput.value.toString()}
+            onChange={e => topHeightInput.handleChange(e.target.value)}
+            onBlur={() => {
+              topHeightInput.handleBlur()
+              setFocusedField(undefined)
+            }}
+            onFocus={() => setFocusedField('topHeight')}
+            onKeyDown={topHeightInput.handleKeyDown}
+            min={Math.max(opening?.sillHeight || 0, 100)}
+            max="5000"
+            step="10"
+            size="1"
+            style={{ textAlign: 'right', width: '80px' }}
+          >
+            <TextField.Slot side="right" pl="1">
+              mm
+            </TextField.Slot>
+          </TextField.Root>
+        </div>
       </Flex>
 
       <Separator size="4" />

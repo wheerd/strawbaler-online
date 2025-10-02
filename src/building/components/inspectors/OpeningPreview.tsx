@@ -15,7 +15,7 @@ export interface OpeningPreviewProps {
   wallHeight: Length
   padding: Length
   highlightMode: 'fitting' | 'finished'
-  focusedField?: 'width' | 'height' | 'sillHeight'
+  focusedField?: 'width' | 'height' | 'sillHeight' | 'topHeight'
 }
 
 export function OpeningPreview({
@@ -78,6 +78,9 @@ export function OpeningPreview({
   const finishedHeightSvg = finishedHeightMm * scale
   const finishedRight = finishedLeft + finishedWidthSvg
 
+  const area =
+    (highlightMode == 'fitting' ? opening.width * opening.height : finishedWidthMm * finishedHeightMm) / (1000 * 1000)
+
   // Styling based on highlight mode and focus
   const getFittingStyle = () => ({
     fill: highlightMode === 'fitting' ? 'var(--blue-3)' : 'var(--gray-3)',
@@ -93,7 +96,10 @@ export function OpeningPreview({
   })
 
   // Get color for measurement based on mode and focus
-  const getMeasurementColor = (field: 'width' | 'height' | 'sillHeight' | 'top', type: 'fitting' | 'finished') => {
+  const getMeasurementColor = (
+    field: 'width' | 'height' | 'sillHeight' | 'topHeight',
+    type: 'fitting' | 'finished'
+  ) => {
     const isFocused = focusedField === field
     const isHighlighted = highlightMode === type
 
@@ -258,7 +264,7 @@ export function OpeningPreview({
             endPoint={[openingLeft + openingWidthSvg, openingTop]}
             label={formatLength(fittingFloorToTop as Length)}
             offset={sideHasSpace ? 16 : -16}
-            color={getMeasurementColor('top', 'fitting')}
+            color={getMeasurementColor('topHeight', 'fitting')}
             fontSize={7}
             strokeWidth={1}
           />
@@ -267,12 +273,23 @@ export function OpeningPreview({
             endPoint={[openingLeft + openingWidthSvg, finishedTop]}
             label={formatLength(finishedFloorToTop as Length)}
             offset={sideHasSpace ? 8 : -8}
-            color={getMeasurementColor('top', 'finished')}
+            color={getMeasurementColor('topHeight', 'finished')}
             fontSize={7}
             strokeWidth={1}
           />
         </>
       )}
+
+      <text
+        x={openingCenterX}
+        y={(openingBottom + openingTop) / 2}
+        fontSize={9}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        color="var(--gray-8)"
+      >
+        {area.toFixed(2)}m²
+      </text>
     </svg>
   )
 }
