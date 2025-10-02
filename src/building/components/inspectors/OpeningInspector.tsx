@@ -1,18 +1,7 @@
 import { InfoCircledIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import * as Tooltip from '@radix-ui/react-tooltip'
-import {
-  Box,
-  Button,
-  Callout,
-  DataList,
-  Flex,
-  Heading,
-  SegmentedControl,
-  Separator,
-  Text,
-  TextField
-} from '@radix-ui/themes'
+import { Box, Button, Callout, Flex, Grid, SegmentedControl, Separator, Text, TextField } from '@radix-ui/themes'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { OpeningId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
@@ -257,16 +246,16 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             onValueChange={(value: OpeningType) =>
               handleTypeChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)
             }
-            size="1"
+            size="2"
           >
             <SegmentedControl.Item value="door">
-              <DoorIcon width={16} height={16} />
+              <DoorIcon width={20} height={20} />
             </SegmentedControl.Item>
             <SegmentedControl.Item value="window">
-              <WindowIcon width={16} height={16} />
+              <WindowIcon width={20} height={20} />
             </SegmentedControl.Item>
             <SegmentedControl.Item value="passage">
-              <PassageIcon width={16} height={16} />
+              <PassageIcon width={20} height={20} />
             </SegmentedControl.Item>
           </SegmentedControl.Root>
         </Flex>
@@ -313,16 +302,8 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           </Text>
         </Flex>
 
-        {/* Dimension inputs in CSS Grid layout */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'auto min-content auto min-content',
-            gridTemplateRows: 'auto auto',
-            gap: 'var(--space-2) var(--space-3)',
-            alignItems: 'center'
-          }}
-        >
+        {/* Dimension inputs in Radix Grid layout */}
+        <Grid columns="auto min-content auto min-content" rows="2" gap="2" gapX="3" align="center" flexGrow="1">
           {/* Row 1, Column 1: Width Label */}
           <Label.Root htmlFor="opening-width">
             <Text size="1" weight="medium" color="gray">
@@ -442,7 +423,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
               mm
             </TextField.Slot>
           </TextField.Root>
-        </div>
+        </Grid>
       </Flex>
 
       <Separator size="4" />
