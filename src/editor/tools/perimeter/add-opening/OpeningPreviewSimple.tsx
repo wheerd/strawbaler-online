@@ -64,10 +64,9 @@ export function OpeningPreviewSimple({
 
   // Styling - simplified single mode
   const getStyle = () => ({
-    fill: 'var(--blue-3)',
-    stroke: 'var(--blue-8)',
-    strokeWidth: 2,
-    strokeDasharray: '4,2'
+    fill: 'var(--gray-2)',
+    stroke: 'var(--gray-10)',
+    strokeWidth: 2
   })
 
   // Get color for measurement based on focus
