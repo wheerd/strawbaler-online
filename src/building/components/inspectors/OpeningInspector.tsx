@@ -59,7 +59,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   }, [wall, openingId])
 
   // Get construction method for padding config
-  const constructionMethod = usePerimeterConstructionMethodById(wall?.constructionMethodId || ('' as any))
+  const constructionMethod = wall?.constructionMethodId && usePerimeterConstructionMethodById(wall.constructionMethodId)
 
   // Preview state
   const [highlightMode, setHighlightMode] = useState<'fitting' | 'finished'>('fitting')

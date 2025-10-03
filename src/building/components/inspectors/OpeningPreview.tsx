@@ -79,7 +79,7 @@ export function OpeningPreview({
   const finishedRight = finishedLeft + finishedWidthSvg
 
   const area =
-    (highlightMode == 'fitting' ? opening.width * opening.height : finishedWidthMm * finishedHeightMm) / (1000 * 1000)
+    (highlightMode === 'fitting' ? opening.width * opening.height : finishedWidthMm * finishedHeightMm) / (1000 * 1000)
 
   // Styling based on highlight mode and focus
   const getFittingStyle = () => ({
