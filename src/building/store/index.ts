@@ -47,9 +47,6 @@ const useModelStore = create<Store>()(
         const storeysSlice = immer(createStoreysSlice)(set, get, store)
         const perimetersSlice = immer(createPerimetersSlice)(set, get, store)
 
-        const initialStoreys = storeysSlice.storeys
-        const initialPerimeters = perimetersSlice.perimeters
-
         return {
           ...storeysSlice,
           ...perimetersSlice,
@@ -57,10 +54,7 @@ const useModelStore = create<Store>()(
             ...storeysSlice.actions,
             ...perimetersSlice.actions,
             reset: () => {
-              set({
-                storeys: initialStoreys,
-                perimeters: initialPerimeters
-              })
+              set(store.getInitialState())
             }
           }
         }

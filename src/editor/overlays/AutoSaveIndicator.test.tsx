@@ -18,6 +18,14 @@ vi.mock('@/building/store/persistenceStore', () => ({
   usePersistenceStore: (f: (p: PersistenceState) => any) => f(mockPersistenceState)
 }))
 
+// Mock the ProjectImportExportService
+vi.mock('@/shared/services/ProjectImportExportService', () => ({
+  ProjectImportExportService: {
+    exportProject: vi.fn().mockResolvedValue({ success: true }),
+    importProject: vi.fn().mockResolvedValue({ success: true })
+  }
+}))
+
 function renderAutoSaveIndicator() {
   return render(
     <Theme>
