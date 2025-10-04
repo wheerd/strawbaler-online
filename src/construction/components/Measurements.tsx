@@ -1,32 +1,17 @@
 import { useMemo } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
-import type { GroupOrElement } from '@/construction/elements'
-import { type Projection, transform } from '@/construction/geometry'
+import { getTagClasses } from '@/construction/components/cssHelpers'
+import { type Projection, allPoints } from '@/construction/geometry'
 import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
-import { type Vec2, distance } from '@/shared/geometry'
+import { distance } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
 import { formatLength } from '@/shared/utils/formatLength'
 
 export interface MeasurementsProps {
   model: ConstructionModel
   projection: Projection
-}
-
-function* allPoints(element: GroupOrElement, projection: Projection): Generator<Vec2> {
-  if ('shape' in element) {
-    yield projection(transform(element.shape.bounds.min, element.transform))
-    yield projection(transform([element.shape.bounds.min[0], element.bounds.max[1]], element.transform))
-    yield projection(transform(element.shape.bounds.max, element.transform))
-    yield projection(transform([element.shape.bounds.max[0], element.bounds.min[1]], element.transform))
-  } else if ('children' in element) {
-    for (const child of element.children) {
-      for (const p of allPoints(child, projection)) {
-        yield transform(p, element.transform)
-      }
-    }
-  }
 }
 
 export function Measurements({ model, projection }: MeasurementsProps): React.JSX.Element {
@@ -39,55 +24,27 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
   const autoMeasurements = model.measurements.filter((m): m is AutoMeasurement => 'size' in m)
 
   const processedMeasurements = useMemo(() => {
-    return processMeasurements(autoMeasurements, projection, planPoints)
+    return Array.from(processMeasurements(autoMeasurements, projection, planPoints))
   }, [autoMeasurements, projection, planPoints])
 
-  // Convert processed measurements back to renderable format
-  const renderableMeasurements: {
-    startPoint: Vec2
-    endPoint: Vec2
-    label: string
-    offset: number
-    classes: string[]
-  }[] = []
-
-  for (const [, { left, right }] of processedMeasurements) {
-    // Process left side measurements
-    left.lines.forEach((line, rowIndex) => {
-      line.forEach(measurement => {
+  const renderableMeasurements = processedMeasurements.flatMap(group =>
+    group.lines.flatMap((line, rowIndex) =>
+      line.map(measurement => {
         // Calculate distance-based offset: distance from chosen point to its projection on line + row offset
         const baseOffset = distance(measurement.startPoint, measurement.startOnLine)
-        const rowOffset = 60 * (rowIndex + 1)
+        const rowOffset = 60 * (rowIndex + 2)
         const totalOffset = baseOffset + rowOffset
 
-        renderableMeasurements.push({
+        return {
           startPoint: measurement.startPoint,
           endPoint: measurement.endPoint,
           label: formatLength(measurement.length),
           offset: totalOffset,
-          classes: measurement.tags?.flatMap(t => [`tag__${t.id}`, `tag-cat__${t.category}`]) ?? []
-        })
+          tags: measurement.tags
+        }
       })
-    })
-
-    // Process right side measurements
-    right.lines.forEach((line, rowIndex) => {
-      line.forEach(measurement => {
-        // Calculate distance-based offset: distance from chosen point to its projection on line + row offset
-        const baseOffset = distance(measurement.startPoint, measurement.startOnLine)
-        const rowOffset = 60 * (rowIndex + 1)
-        const totalOffset = baseOffset + rowOffset
-
-        renderableMeasurements.push({
-          startPoint: measurement.startPoint,
-          endPoint: measurement.endPoint,
-          label: formatLength(measurement.length),
-          offset: totalOffset,
-          classes: measurement.tags?.flatMap(t => [`tag__${t.id}`, `tag-cat__${t.category}`]) ?? []
-        })
-      })
-    })
-  }
+    )
+  )
 
   const directMeasurements = model.measurements
     .filter((m): m is DirectMeasurement => 'label' in m)
@@ -110,7 +67,7 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
           color={COLORS.indicators.main}
           fontSize={60}
           strokeWidth={10}
-          className={measurement.classes.join(' ')}
+          className={getTagClasses(measurement.tags, 'measurement')}
         />
       ))}
 
@@ -124,6 +81,7 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
           color={COLORS.indicators.main}
           fontSize={60}
           strokeWidth={10}
+          className={getTagClasses(measurement.tags, 'measurement')}
         />
       ))}
     </g>

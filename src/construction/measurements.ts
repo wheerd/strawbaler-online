@@ -339,20 +339,17 @@ function layout(group: MeasurementGroup): { left: MeasurementLines; right: Measu
   }
 }
 
-export function processMeasurements(
+export function* processMeasurements(
   measurements: AutoMeasurement[],
   projection: Projection,
   planPoints: Vec2[]
-): Map<Vec2, { left: MeasurementLines; right: MeasurementLines }> {
+): Generator<MeasurementLines> {
   const projected = projectMeasurements(measurements, projection)
   const grouped = groupMeasurements(projected)
-  const result = new Map()
-
   for (const [direction, groupMeasurements] of grouped) {
     const group = processMeasurementGroup(direction, groupMeasurements, planPoints)
     const layoutResult = layout(group)
-    result.set(direction, layoutResult)
+    yield layoutResult.left
+    yield layoutResult.right
   }
-
-  return result
 }
