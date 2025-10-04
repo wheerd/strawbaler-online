@@ -19,6 +19,7 @@ import { useModelActions, usePerimeterById } from '@/building/store'
 import { WallConstructionPlanModal } from '@/construction/components/WallConstructionPlan'
 import { usePerimeterConstructionMethodById, usePerimeterConstructionMethods } from '@/construction/config/store'
 import { type InfillConstructionConfig, constructInfillWall } from '@/construction/walls'
+import { pushTool } from '@/editor/tools/system/store'
 import { type Length, createLength } from '@/shared/geometry'
 import { useDebouncedNumericInput } from '@/shared/hooks/useDebouncedInput'
 import { formatLength } from '@/shared/utils/formatLength'
@@ -238,6 +239,9 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
 
       {/* Actions */}
       <Flex direction="column" gap="2">
+        <Button size="1" onClick={() => pushTool('perimeter.split-wall')}>
+          Split Wall
+        </Button>
         {constructionModel && (
           <WallConstructionPlanModal model={constructionModel}>
             <Button size="1">View Construction Plan</Button>

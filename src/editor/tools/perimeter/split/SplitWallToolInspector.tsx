@@ -1,0 +1,57 @@
+import { Button, Callout, Flex, Heading, Text } from '@radix-ui/themes'
+
+import type { ToolInspectorProps } from '@/editor/tools/system/types'
+
+import type { SplitWallTool } from './SplitWallTool'
+
+export function SplitWallToolInspector({ tool }: ToolInspectorProps<SplitWallTool>): React.JSX.Element {
+  const { state } = tool
+
+  if (!state.selectedWallId) {
+    return (
+      <Flex direction="column" gap="3">
+        <Heading size="2">Split Wall</Heading>
+        <Text size="2" color="gray">
+          Click on a wall to select it for splitting
+        </Text>
+      </Flex>
+    )
+  }
+
+  return (
+    <Flex direction="column" gap="4">
+      <Heading size="2">Split Wall</Heading>
+      {state.isValidSplit && (
+        <Callout.Root color="green">
+          <Callout.Text>Ready to split wall</Callout.Text>
+        </Callout.Root>
+      )}
+
+      {/* Action Buttons */}
+      <Flex direction="column" gap="2">
+        <Button onClick={() => tool.commitSplit()} disabled={!state.isValidSplit} size="2">
+          Split Wall (Enter)
+        </Button>
+        <Button variant="soft" onClick={() => tool.cancel()} size="2">
+          Cancel (Esc)
+        </Button>
+      </Flex>
+
+      {/* Instructions */}
+      <Flex direction="column" gap="1">
+        <Text size="1" color="gray">
+          • Hover over wall to preview split position
+        </Text>
+        <Text size="1" color="gray">
+          • Click to set target position
+        </Text>
+        <Text size="1" color="gray">
+          • Click measurements to enter precise values
+        </Text>
+        <Text size="1" color="gray">
+          • Press Enter to confirm split
+        </Text>
+      </Flex>
+    </Flex>
+  )
+}

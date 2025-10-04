@@ -4,6 +4,7 @@ import {
   BoxIcon,
   BoxModelIcon,
   CursorArrowIcon,
+  DividerHorizontalIcon,
   MoveIcon,
   RocketIcon,
   TrashIcon
@@ -48,6 +49,12 @@ export const TOOL_METADATA: Record<ToolId, ToolMetadata> = {
     iconComponent: BoxIcon,
     hotkey: 'o'
   },
+  'perimeter.split-wall': {
+    name: 'Split Wall',
+    icon: '⫽',
+    iconComponent: DividerHorizontalIcon,
+    hotkey: 's'
+  },
   'test.data': {
     name: 'Test Data',
     icon: '🏗️',
@@ -69,7 +76,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
   },
   {
     name: 'Perimeter',
-    tools: ['perimeter.add', 'perimeter.preset', 'perimeter.add-opening'] as const
+    tools: ['perimeter.add', 'perimeter.preset', 'perimeter.add-opening', 'perimeter.split-wall'] as const
   },
   {
     name: 'Test Data',

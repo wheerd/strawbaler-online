@@ -11,6 +11,7 @@ export type ToolId =
   | 'perimeter.add'
   | 'perimeter.preset'
   | 'perimeter.add-opening'
+  | 'perimeter.split-wall'
   | 'test.data'
   | 'test.reset'
 

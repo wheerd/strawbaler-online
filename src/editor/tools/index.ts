@@ -4,6 +4,7 @@ import { MoveTool } from './basic/movement/MoveTool'
 import { AddOpeningTool } from './perimeter/add-opening/AddOpeningTool'
 import { PerimeterTool } from './perimeter/add/PerimeterTool'
 import { PerimeterPresetTool } from './perimeter/preset/PerimeterPresetTool'
+import { SplitWallTool } from './perimeter/split/SplitWallTool'
 import type { ToolId, ToolImplementation } from './system/types'
 import { ResetTool } from './test-data/ResetTool'
 import { TestDataTool } from './test-data/TestDataTool'
@@ -20,6 +21,7 @@ const TOOL_IMPLEMENTATIONS: Record<ToolId, ToolImplementation> = {
   'perimeter.add': new PerimeterTool(),
   'perimeter.preset': new PerimeterPresetTool(),
   'perimeter.add-opening': new AddOpeningTool(),
+  'perimeter.split-wall': new SplitWallTool(),
   'test.data': new TestDataTool(),
   'test.reset': new ResetTool()
 }

@@ -51,6 +51,13 @@ export interface PerimetersActions {
   removePerimeterCorner: (perimeterId: PerimeterId, cornerId: PerimeterCornerId) => boolean
   removePerimeterWall: (perimeterId: PerimeterId, wallId: PerimeterWallId) => boolean
 
+  // Wall splitting operation
+  splitPerimeterWall: (
+    perimeterId: PerimeterId,
+    wallId: PerimeterWallId,
+    splitPosition: Length
+  ) => PerimeterWallId | null
+
   // Updated to use IDs instead of indices
   updatePerimeterWallConstructionMethod: (
     perimeterId: PerimeterId,
@@ -257,6 +264,106 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         success = true
       })
       return success
+    },
+
+    // Wall splitting operation
+    splitPerimeterWall: (
+      perimeterId: PerimeterId,
+      wallId: PerimeterWallId,
+      splitPosition: Length
+    ): PerimeterWallId | null => {
+      let newWallId: PerimeterWallId | null = null
+
+      set(state => {
+        const perimeter = state.perimeters[perimeterId]
+        if (!perimeter) return
+
+        const wallIndex = perimeter.walls.findIndex((wall: PerimeterWall) => wall.id === wallId)
+        if (wallIndex === -1) return
+
+        const originalWall = perimeter.walls[wallIndex]
+
+        // Validate split position
+        if (splitPosition <= 0 || splitPosition >= originalWall.wallLength) return
+
+        // Check opening intersections
+        for (const opening of originalWall.openings) {
+          const openingStart = opening.offsetFromStart
+          const openingEnd = opening.offsetFromStart + opening.width
+          if (splitPosition > openingStart && splitPosition < openingEnd) return
+        }
+
+        // Calculate split point in world coordinates
+        const wallDirection = originalWall.direction
+        const splitPoint = add(originalWall.insideLine.start, scale(wallDirection, splitPosition))
+
+        // Create new corner at split position
+        const newCorner: PerimeterCorner = {
+          id: createPerimeterCornerId(),
+          insidePoint: splitPoint,
+          outsidePoint: createVec2(0, 0), // Will be calculated by updatePerimeterGeometry
+          constuctedByWall: 'next'
+        }
+
+        // Redistribute openings
+        const firstWallOpenings = []
+        const secondWallOpenings = []
+        for (const opening of originalWall.openings) {
+          if (opening.offsetFromStart < splitPosition) {
+            firstWallOpenings.push(opening)
+          } else {
+            secondWallOpenings.push({
+              ...opening,
+              offsetFromStart: (opening.offsetFromStart - splitPosition) as Length
+            })
+          }
+        }
+
+        // Create two new walls
+        const firstWall: PerimeterWall = {
+          id: createPerimeterWallId(),
+          thickness: originalWall.thickness,
+          constructionMethodId: originalWall.constructionMethodId,
+          openings: firstWallOpenings,
+          // Geometry will be set by updatePerimeterGeometry
+          insideLength: createLength(0),
+          outsideLength: createLength(0),
+          wallLength: createLength(0),
+          insideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
+          outsideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
+          direction: createVec2(1, 0),
+          outsideDirection: createVec2(0, 1)
+        }
+
+        const secondWall: PerimeterWall = {
+          id: createPerimeterWallId(),
+          thickness: originalWall.thickness,
+          constructionMethodId: originalWall.constructionMethodId,
+          openings: secondWallOpenings,
+          // Geometry will be set by updatePerimeterGeometry
+          insideLength: createLength(0),
+          outsideLength: createLength(0),
+          wallLength: createLength(0),
+          insideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
+          outsideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
+          direction: createVec2(1, 0),
+          outsideDirection: createVec2(0, 1)
+        }
+
+        // Insert new corner at the correct position
+        const cornerIndex = wallIndex + 1
+        perimeter.corners.splice(cornerIndex, 0, newCorner)
+
+        // Replace original wall with two new walls
+        perimeter.walls.splice(wallIndex, 1, firstWall, secondWall)
+
+        // Recalculate geometry
+        updatePerimeterGeometry(perimeter)
+
+        newWallId = secondWall.id
+      })
+
+      return newWallId
     },
 
     // Update operations
