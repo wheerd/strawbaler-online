@@ -95,10 +95,10 @@ export function distanceToLineSegment(point: Vec2, line: LineSegment2D): Length 
 
 /**
  * Given a direction d and a set of points,
- * compute two parallel offset lines with the given direction d
- * so that all the points lie between those two line
+ * compute two parallel offset line segments with the given direction d
+ * so that all the points lie between those two line segments
  */
-export function computeBoundsLine(d: Vec2, points: Vec2[]): { left: Line2D; right: Line2D } {
+export function computeBoundsLines(d: Vec2, points: Vec2[]): { left: LineSegment2D; right: LineSegment2D } {
   const A = points[0]
   const n1 = perpendicularCCW(d)
   const n2 = perpendicularCW(d)
@@ -124,14 +124,39 @@ export function computeBoundsLine(d: Vec2, points: Vec2[]): { left: Line2D; righ
   const rightOrigin = vec2.create()
   vec2.scaleAndAdd(rightOrigin, A, n2, maxOffset2)
 
+  // Find min and max projections along the direction to create line segments
+  let minProjection = Infinity
+  let maxProjection = -Infinity
+
+  for (const p of points) {
+    const projection = dot(subtract(p, A), d)
+    if (projection < minProjection) {
+      minProjection = projection
+    }
+    if (projection > maxProjection) {
+      maxProjection = projection
+    }
+  }
+
+  // Create line segments with proper start and end points
+  const leftStart = vec2.create()
+  vec2.scaleAndAdd(leftStart, leftOrigin, d, minProjection)
+  const leftEnd = vec2.create()
+  vec2.scaleAndAdd(leftEnd, leftOrigin, d, maxProjection)
+
+  const rightStart = vec2.create()
+  vec2.scaleAndAdd(rightStart, rightOrigin, d, minProjection)
+  const rightEnd = vec2.create()
+  vec2.scaleAndAdd(rightEnd, rightOrigin, d, maxProjection)
+
   return {
     left: {
-      point: leftOrigin, // a point on the offset line
-      direction: d // same direction as original measurement line
+      start: leftStart,
+      end: leftEnd
     },
     right: {
-      point: rightOrigin, // a point on the offset line
-      direction: d // same direction as original measurement line
+      start: rightStart,
+      end: rightEnd
     }
   }
 }

@@ -3,26 +3,23 @@ import { useMemo } from 'react'
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import type { GroupOrElement } from '@/construction/elements'
 import { type Projection, transform } from '@/construction/geometry'
-import type { Measurement } from '@/construction/measurements'
+import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
-import { type Vec2, computeBoundsLine, direction, distanceToInfiniteLine } from '@/shared/geometry'
+import { type Vec2, distance } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
+import { formatLength } from '@/shared/utils/formatLength'
 
 export interface MeasurementsProps {
   model: ConstructionModel
   projection: Projection
 }
 
-const EPSILON = 1e-5
-
 function* allPoints(element: GroupOrElement, projection: Projection): Generator<Vec2> {
   if ('shape' in element) {
-    if (element.shape.type === 'cuboid') {
-      yield projection(transform(element.shape.bounds.min, element.transform))
-      yield projection(transform([element.shape.bounds.min[0], element.bounds.max[1]], element.transform))
-      yield projection(transform(element.shape.bounds.max, element.transform))
-      yield projection(transform([element.shape.bounds.max[0], element.bounds.min[1]], element.transform))
-    }
+    yield projection(transform(element.shape.bounds.min, element.transform))
+    yield projection(transform([element.shape.bounds.min[0], element.bounds.max[1]], element.transform))
+    yield projection(transform(element.shape.bounds.max, element.transform))
+    yield projection(transform([element.shape.bounds.max[0], element.bounds.min[1]], element.transform))
   } else if ('children' in element) {
     for (const child of element.children) {
       for (const p of allPoints(child, projection)) {
@@ -33,82 +30,102 @@ function* allPoints(element: GroupOrElement, projection: Projection): Generator<
 }
 
 export function Measurements({ model, projection }: MeasurementsProps): React.JSX.Element {
-  const groupedMeasurements = new Map<Vec2, Measurement[]>()
-  for (const measurement of model.measurements) {
-    let dir = direction(measurement.startPoint, measurement.endPoint)
-    if (dir[0] == 0 && dir[1] == 0) continue
-    if (dir[0] < 0 || (dir[0] === 0 && dir[1] < 0)) {
-      dir[0] = -dir[0]
-      dir[1] = -dir[1]
-    }
-    let existingGroup: Measurement[] | null = null
-    for (const [groupDir, group] of groupedMeasurements.entries()) {
-      if (Math.abs(groupDir[0] - dir[0]) < EPSILON && Math.abs(groupDir[1] - dir[1]) < EPSILON) {
-        existingGroup = group
-        break
-      }
-    }
-    if (!existingGroup) {
-      existingGroup = []
-      groupedMeasurements.set(dir, existingGroup)
-    }
-    existingGroup.push(measurement)
-  }
-
   const planPoints = useMemo(
     () => model.elements.flatMap(e => Array.from(allPoints(e, projection))),
     [model.elements, projection]
   )
 
-  const actualMeasurements: Measurement[] = []
-  for (const [groupDir, group] of groupedMeasurements.entries()) {
-    const { left, right } = computeBoundsLine(groupDir, planPoints)
-    console.log('left', left, 'right', right)
-    for (const measurement of group) {
-      const start = projection(measurement.startPoint)
-      const end = projection(measurement.endPoint)
-      const dLeft = distanceToInfiniteLine(start, left)
-      const dRight = distanceToInfiniteLine(start, right)
-      console.log(start, dLeft, end, dRight)
+  // Filter only AutoMeasurement from model.measurements
+  const autoMeasurements = model.measurements.filter((m): m is AutoMeasurement => 'size' in m)
 
-      const dir = direction(start, end)
-      const sign = Math.abs(dir[0] - groupDir[0]) < EPSILON && Math.abs(dir[1] - groupDir[1]) < EPSILON ? -1 : 1
+  const processedMeasurements = useMemo(() => {
+    return processMeasurements(autoMeasurements, projection, planPoints)
+  }, [autoMeasurements, projection, planPoints])
 
-      if (dLeft < dRight) {
-        actualMeasurements.push({
-          ...measurement,
-          offset: sign * -dLeft + 60 * (measurement.offset ?? 0)
+  // Convert processed measurements back to renderable format
+  const renderableMeasurements: Array<{
+    startPoint: Vec2
+    endPoint: Vec2
+    label: string
+    offset: number
+    classes: string[]
+  }> = []
+
+  for (const [, { left, right }] of processedMeasurements) {
+    // Process left side measurements
+    left.lines.forEach((line, rowIndex) => {
+      line.forEach(measurement => {
+        // Calculate distance-based offset: distance from chosen point to its projection on line + row offset
+        const baseOffset = distance(measurement.startPoint, measurement.startOnLine)
+        const rowOffset = 60 * (rowIndex + 1)
+        const totalOffset = baseOffset + rowOffset
+
+        renderableMeasurements.push({
+          startPoint: measurement.startPoint,
+          endPoint: measurement.endPoint,
+          label: formatLength(measurement.length),
+          offset: totalOffset,
+          classes: measurement.tags?.flatMap(t => [`tag__${t.id}`, `tag-cat__${t.category}`]) ?? []
         })
-      } else {
-        actualMeasurements.push({
-          ...measurement,
-          offset: sign * dRight - 60 * (measurement.offset ?? 0)
+      })
+    })
+
+    // Process right side measurements
+    right.lines.forEach((line, rowIndex) => {
+      line.forEach(measurement => {
+        // Calculate distance-based offset: distance from chosen point to its projection on line + row offset
+        const baseOffset = distance(measurement.startPoint, measurement.startOnLine)
+        const rowOffset = 60 * (rowIndex + 1)
+        const totalOffset = baseOffset + rowOffset
+
+        renderableMeasurements.push({
+          startPoint: measurement.startPoint,
+          endPoint: measurement.endPoint,
+          label: formatLength(measurement.length),
+          offset: totalOffset,
+          classes: measurement.tags?.flatMap(t => [`tag__${t.id}`, `tag-cat__${t.category}`]) ?? []
         })
-      }
-    }
+      })
+    })
   }
+
+  const directMeasurements = model.measurements
+    .filter((m): m is DirectMeasurement => 'label' in m)
+    .map(m => ({
+      ...m,
+      startPoint: projection(m.startPoint),
+      endPoint: projection(m.endPoint),
+      offset: m.offset * 60
+    }))
 
   return (
     <g>
-      {actualMeasurements?.map((measurement, index) => {
-        const svgStartPoint = projection(measurement.startPoint)
-        const svgEndPoint = projection(measurement.endPoint)
+      {renderableMeasurements.map((measurement, index) => (
+        <SvgMeasurementIndicator
+          key={`measurement-${index}`}
+          startPoint={measurement.startPoint}
+          endPoint={measurement.endPoint}
+          label={measurement.label}
+          offset={measurement.offset}
+          color={COLORS.indicators.main}
+          fontSize={60}
+          strokeWidth={10}
+          className={measurement.classes.join(' ')}
+        />
+      ))}
 
-        return svgStartPoint[2] === svgEndPoint[2] ? (
-          <SvgMeasurementIndicator
-            key={`measurement-${index}`}
-            startPoint={svgStartPoint}
-            endPoint={svgEndPoint}
-            label={measurement.label}
-            offset={measurement.offset}
-            color={COLORS.indicators.main}
-            fontSize={60}
-            strokeWidth={10}
-          />
-        ) : (
-          <></>
-        )
-      })}
+      {directMeasurements.map((measurement, index) => (
+        <SvgMeasurementIndicator
+          key={`direct-measurement-${index}`}
+          startPoint={measurement.startPoint}
+          endPoint={measurement.endPoint}
+          label={measurement.label}
+          offset={measurement.offset}
+          color={COLORS.indicators.main}
+          fontSize={60}
+          strokeWidth={10}
+        />
+      ))}
     </g>
   )
 }
