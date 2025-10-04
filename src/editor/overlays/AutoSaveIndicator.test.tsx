@@ -11,20 +11,19 @@ const mockPersistenceState: PersistenceState = {
   isSaving: false,
   lastSaved: null as Date | null,
   saveError: null as string | null,
-  isHydrated: true,
-  isExporting: false,
-  isImporting: false,
-  exportError: null as string | null,
-  importError: null as string | null
+  isHydrated: true
 }
 
 vi.mock('@/building/store/persistenceStore', () => ({
-  usePersistenceStore: (f: (p: PersistenceState & { exportProject: () => void; importProject: () => void }) => any) =>
-    f({
-      ...mockPersistenceState,
-      exportProject: vi.fn(),
-      importProject: vi.fn()
-    })
+  usePersistenceStore: (f: (p: PersistenceState) => any) => f(mockPersistenceState)
+}))
+
+// Mock the ProjectImportExportService
+vi.mock('@/shared/services/ProjectImportExportService', () => ({
+  ProjectImportExportService: {
+    exportProject: vi.fn().mockResolvedValue({ success: true }),
+    importProject: vi.fn().mockResolvedValue({ success: true })
+  }
 }))
 
 function renderAutoSaveIndicator() {
@@ -41,10 +40,6 @@ describe('AutoSaveIndicator', () => {
     mockPersistenceState.isSaving = false
     mockPersistenceState.lastSaved = null
     mockPersistenceState.saveError = null
-    mockPersistenceState.isExporting = false
-    mockPersistenceState.isImporting = false
-    mockPersistenceState.exportError = null
-    mockPersistenceState.importError = null
   })
 
   it('shows error icon when no save has occurred', () => {

@@ -1,21 +1,48 @@
 import { CheckIcon, Cross2Icon, DownloadIcon, UpdateIcon, UploadIcon } from '@radix-ui/react-icons'
 import { Box, DropdownMenu, IconButton, Tooltip } from '@radix-ui/themes'
-import React from 'react'
+import React, { useState } from 'react'
 
 import { usePersistenceStore } from '@/building/store/persistenceStore'
+import { ProjectImportExportService } from '@/shared/services/ProjectImportExportService'
 
 export function AutoSaveIndicator(): React.JSX.Element {
+  // Auto-save state from persistence store
   const isSaving = usePersistenceStore(s => s.isSaving)
   const lastSaved = usePersistenceStore(s => s.lastSaved)
   const saveError = usePersistenceStore(s => s.saveError)
-  const isExporting = usePersistenceStore(s => s.isExporting)
-  const isImporting = usePersistenceStore(s => s.isImporting)
-  const exportError = usePersistenceStore(s => s.exportError)
-  const importError = usePersistenceStore(s => s.importError)
-  const exportProject = usePersistenceStore(s => s.exportProject)
-  const importProject = usePersistenceStore(s => s.importProject)
+
+  // Local state for export/import operations
+  const [isExporting, setIsExporting] = useState(false)
+  const [isImporting, setIsImporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
+
+  const handleExport = async () => {
+    setIsExporting(true)
+    setExportError(null)
+
+    const result = await ProjectImportExportService.exportProject()
+
+    setIsExporting(false)
+    if (!result.success) {
+      setExportError(result.error)
+    }
+  }
+
+  const handleImport = async () => {
+    setIsImporting(true)
+    setImportError(null)
+
+    const result = await ProjectImportExportService.importProject()
+
+    setIsImporting(false)
+    if (!result.success) {
+      setImportError(result.error)
+    }
+  }
 
   const getStatusInfo = () => {
+    // Prioritize export/import errors and states
     if (exportError || importError) {
       return {
         text: exportError || importError || 'Export/Import failed',
@@ -40,9 +67,10 @@ export function AutoSaveIndicator(): React.JSX.Element {
       }
     }
 
+    // Fall back to auto-save states
     if (saveError) {
       return {
-        text: 'Save failed',
+        text: 'Auto-save failed',
         icon: <Cross2Icon />,
         color: 'red' as const
       }
@@ -50,7 +78,7 @@ export function AutoSaveIndicator(): React.JSX.Element {
 
     if (isSaving) {
       return {
-        text: 'Saving...',
+        text: 'Auto-saving...',
         icon: <UpdateIcon className="animate-spin" />,
         color: 'blue' as const
       }
@@ -72,7 +100,7 @@ export function AutoSaveIndicator(): React.JSX.Element {
       }
 
       return {
-        text: `Saved ${timeText}`,
+        text: `Auto-saved ${timeText}`,
         icon: <CheckIcon />,
         color: 'green' as const
       }
@@ -99,12 +127,12 @@ export function AutoSaveIndicator(): React.JSX.Element {
         </DropdownMenu.Trigger>
 
         <DropdownMenu.Content>
-          <DropdownMenu.Item onClick={exportProject} disabled={isExporting || isImporting}>
+          <DropdownMenu.Item onClick={handleExport} disabled={isExporting || isImporting}>
             <DownloadIcon />
             Save to File
           </DropdownMenu.Item>
 
-          <DropdownMenu.Item onClick={importProject} disabled={isExporting || isImporting}>
+          <DropdownMenu.Item onClick={handleImport} disabled={isExporting || isImporting}>
             <UploadIcon />
             Load from File
           </DropdownMenu.Item>
