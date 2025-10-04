@@ -4,10 +4,8 @@ import type { PerimeterConstructionMethod, RingBeamConstructionMethod } from '@/
 import type { Polygon2D } from '@/shared/geometry'
 import { createLength, createVec2 } from '@/shared/geometry'
 
-// Export/Import Types (consolidated from exportImport.ts)
 export interface ExportedStorey {
   name: string
-  level: number
   height: number
   perimeters: ExportedPerimeter[]
 }
@@ -44,6 +42,7 @@ export interface ExportData {
   timestamp: string
   modelStore: {
     storeys: ExportedStorey[]
+    minLevel: number
   }
   configStore: {
     ringBeamConstructionMethods: Record<RingBeamConstructionMethodId, RingBeamConstructionMethod>
@@ -94,9 +93,11 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
       // Use store getters for proper encapsulation
       const storeys = modelActions.getStoreysOrderedByLevel()
 
+      // Calculate the minimum level
+      const minLevel = storeys.length > 0 ? Math.min(...storeys.map(s => s.level)) : 0
+
       const exportedStoreys: ExportedStorey[] = storeys.map(storey => ({
         name: storey.name,
-        level: storey.level,
         height: Number(storey.height),
         perimeters: modelActions.getPerimetersByStorey(storey.id).map(perimeter => ({
           corners: perimeter.corners.map(corner => ({
@@ -120,7 +121,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
         }))
       }))
 
-      const result = this.exportToJSON({ storeys: exportedStoreys }, getConfigState())
+      const result = this.exportToJSON({ storeys: exportedStoreys, minLevel }, getConfigState())
 
       if (result.success) {
         const content = JSON.stringify(result.data, null, 2)
@@ -174,12 +175,6 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           targetStorey = defaultGroundFloor
           modelActions.updateStoreyName(targetStorey.id, exportedStorey.name)
           modelActions.updateStoreyHeight(targetStorey.id, createLength(exportedStorey.height))
-
-          // Adjust level if needed
-          if (exportedStorey.level !== targetStorey.level) {
-            const adjustment = exportedStorey.level - targetStorey.level
-            modelActions.adjustAllLevels(adjustment)
-          }
         } else {
           // Add additional storeys
           targetStorey = modelActions.addStorey(exportedStorey.name, createLength(exportedStorey.height))
@@ -194,10 +189,6 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           // Get construction method from first wall or use default
           const constructionMethodId = exportedPerimeter.walls[0]?.constructionMethodId as PerimeterConstructionMethodId
           const thickness = createLength(exportedPerimeter.walls[0]?.thickness || 200)
-
-          if (!constructionMethodId) {
-            throw new Error('No construction method found for perimeter')
-          }
 
           // Basic perimeter creation - auto-computes geometry, outsidePoints, etc.
           const perimeter = modelActions.addPerimeter(
@@ -240,6 +231,12 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           })
         })
       })
+
+      // 8. Adjust levels based on minLevel
+      const minLevel = importResult.data.modelStore.minLevel
+      if (minLevel !== 0) {
+        modelActions.adjustAllLevels(minLevel)
+      }
 
       return { success: true, data: importResult.data }
     } catch (error) {
@@ -306,7 +303,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
     }
 
     const modelStore = obj.modelStore as Record<string, unknown>
-    if (!Array.isArray(modelStore.storeys)) {
+    if (!Array.isArray(modelStore.storeys) || typeof modelStore.minLevel !== 'number') {
       return false
     }
 

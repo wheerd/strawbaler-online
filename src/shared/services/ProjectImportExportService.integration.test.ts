@@ -278,4 +278,45 @@ describe('ProjectImportExportService Integration', () => {
     expect(importedStoreys[2].level).toBe(2)
     expect(importedStoreys[2].name).toBe('Second Floor')
   })
+
+  it('correctly handles level adjustments with minLevel', async () => {
+    const modelActions = getModelActions()
+
+    // Create storeys and manually adjust levels to start at a higher base
+    modelActions.addStorey('First Floor', createLength(2800))
+    modelActions.addStorey('Second Floor', createLength(2600))
+
+    // Adjust all levels up by -1 (so we have levels -1, 0, 1)
+    modelActions.adjustAllLevels(-1)
+
+    const originalStoreys = modelActions.getStoreysOrderedByLevel()
+    expect(originalStoreys[0].level).toBe(-1)
+    expect(originalStoreys[1].level).toBe(0)
+    expect(originalStoreys[2].level).toBe(1)
+
+    // Export and import
+    const exportResult = await ProjectImportExportService.exportToString()
+    expect(exportResult.success).toBe(true)
+
+    if (!exportResult.success) return
+
+    // Verify the export includes the correct minLevel
+    const exportedData = JSON.parse(exportResult.content)
+    expect(exportedData.modelStore.minLevel).toBe(-1)
+
+    modelActions.reset()
+
+    const importResult = await ProjectImportExportService.importFromString(exportResult.content)
+    expect(importResult.success).toBe(true)
+
+    // Verify levels are restored correctly
+    const importedStoreys = modelActions.getStoreysOrderedByLevel()
+    expect(importedStoreys).toHaveLength(3)
+    expect(importedStoreys[0].level).toBe(-1)
+    expect(importedStoreys[0].name).toBe('Ground Floor')
+    expect(importedStoreys[1].level).toBe(0)
+    expect(importedStoreys[1].name).toBe('First Floor')
+    expect(importedStoreys[2].level).toBe(1)
+    expect(importedStoreys[2].name).toBe('Second Floor')
+  })
 })

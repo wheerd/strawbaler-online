@@ -103,6 +103,8 @@ describe('ProjectImportExportService', () => {
         expect(parsed.version).toBeDefined()
         expect(parsed.timestamp).toBeDefined()
         expect(parsed.modelStore).toBeDefined()
+        expect(parsed.modelStore.storeys).toBeDefined()
+        expect(parsed.modelStore.minLevel).toBeDefined()
         expect(parsed.configStore).toBeDefined()
       }
     })
@@ -131,11 +133,11 @@ describe('ProjectImportExportService', () => {
           storeys: [
             {
               name: 'Test Floor',
-              level: 0,
               height: 2500,
               perimeters: []
             }
-          ]
+          ],
+          minLevel: 0
         },
         configStore: {
           ringBeamConstructionMethods: { beam_1: { id: 'beam_1', name: 'Test Beam' } },
