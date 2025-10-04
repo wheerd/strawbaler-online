@@ -39,7 +39,7 @@ export interface GenericMaterial extends BaseMaterial {
 }
 
 export const wood360x60: DimensionalMaterial = {
-  id: createMaterialId(),
+  id: 'material_wood360x60' as MaterialId,
   name: 'Wood 36cm x 6cm',
   width: 360 as Length,
   thickness: 60 as Length,
@@ -49,7 +49,7 @@ export const wood360x60: DimensionalMaterial = {
 }
 
 export const wood240x60: DimensionalMaterial = {
-  id: createMaterialId(),
+  id: 'material_wood240x60' as MaterialId,
   name: 'Wood 24cm x 6cm',
   width: 240 as Length,
   thickness: 60 as Length,
@@ -59,7 +59,7 @@ export const wood240x60: DimensionalMaterial = {
 }
 
 export const wood120x60: DimensionalMaterial = {
-  id: createMaterialId(),
+  id: 'material_wood120x60' as MaterialId,
   name: 'Wood 12cm x 6cm',
   width: 120 as Length,
   thickness: 60 as Length,
@@ -69,7 +69,7 @@ export const wood120x60: DimensionalMaterial = {
 }
 
 export const wood140x140: DimensionalMaterial = {
-  id: createMaterialId(),
+  id: 'material_wood140x140' as MaterialId,
   name: 'Wood 14cm x 14cm',
   width: 140 as Length,
   thickness: 140 as Length,
@@ -79,7 +79,7 @@ export const wood140x140: DimensionalMaterial = {
 }
 
 export const strawbale: DimensionalMaterial = {
-  id: createMaterialId(),
+  id: 'material_strawbale' as MaterialId,
   name: 'Strawbale',
   width: 500 as Length,
   thickness: 360 as Length,
@@ -89,28 +89,28 @@ export const strawbale: DimensionalMaterial = {
 }
 
 export const straw: GenericMaterial = {
-  id: createMaterialId(),
+  id: 'material_straw' as MaterialId,
   name: 'Straw',
   type: 'generic',
   color: COLORS.materials.straw
 }
 
 export const window: GenericMaterial = {
-  id: createMaterialId(),
+  id: 'material_window' as MaterialId,
   name: 'Window',
   color: COLORS.materials.window,
   type: 'generic'
 }
 
 export const door: GenericMaterial = {
-  id: createMaterialId(),
+  id: 'material_door' as MaterialId,
   name: 'Door',
   color: COLORS.materials.door,
   type: 'generic'
 }
 
 export const concrete: GenericMaterial = {
-  id: createMaterialId(),
+  id: 'material_concrete' as MaterialId,
   name: 'Concrete',
   type: 'generic',
   color: COLORS.materials.concrete
