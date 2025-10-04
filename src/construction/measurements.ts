@@ -41,11 +41,6 @@ export interface ProjectedMeasurement {
   endPointMin: Vec2 // Original measurement line end
   startPointMax: Vec2 // Extended rectangle start
   endPointMax: Vec2 // Extended rectangle end
-
-  // Legacy fields for compatibility (computed from closest corners)
-  startPoint: Vec2
-  endPoint: Vec2
-
   perpendicularRange: number
   length: Length
   tags?: Tag[]
@@ -58,9 +53,13 @@ export interface IntervalMeasurement extends ProjectedMeasurement {
   distanceRight: number
 }
 
-export interface LineMeasurement extends ProjectedMeasurement {
+export interface LineMeasurement {
+  startPoint: Vec2
+  endPoint: Vec2
   startOnLine: Vec2
   endOnLine: Vec2
+  length: Length
+  tags?: Tag[]
 }
 
 export interface MeasurementGroup {
@@ -124,7 +123,7 @@ function groupMeasurements(measurements: ProjectedMeasurement[]) {
   const groupedMeasurements = new Map<Vec2, ProjectedMeasurement[]>()
 
   for (const measurement of measurements) {
-    const dir = normalizeDirection(direction(measurement.startPoint, measurement.endPoint))
+    const dir = normalizeDirection(direction(measurement.startPointMin, measurement.endPointMin))
     let existingGroup: ProjectedMeasurement[] | null = null
 
     for (const [groupDir, group] of groupedMeasurements.entries()) {
@@ -179,6 +178,10 @@ function processMeasurementGroup(
 
       return {
         ...m,
+        startPointMin: t1 < t2 ? m.startPointMin : m.endPointMin,
+        endPointMin: t1 < t2 ? m.endPointMin : m.startPointMin,
+        startPointMax: t1 < t2 ? m.startPointMax : m.endPointMax,
+        endPointMax: t1 < t2 ? m.endPointMax : m.startPointMax,
         distanceLeft,
         distanceRight,
         t1: Math.min(t1, t2),
@@ -289,7 +292,8 @@ function selectClosestPoints(
 function convertToLineMeasurements(
   measurements: IntervalMeasurement[],
   lineStart: Vec2,
-  direction: Vec2
+  direction: Vec2,
+  swapDir: boolean
 ): LineMeasurement[] {
   const line: Line2D = { point: lineStart, direction }
 
@@ -301,17 +305,13 @@ function convertToLineMeasurements(
     const endOnLine = projectPointOntoLine(endPoint, line)
 
     return {
-      startPointMin: m.startPointMin,
-      endPointMin: m.endPointMin,
-      startPointMax: m.startPointMax,
-      endPointMax: m.endPointMax,
-      startPoint,
-      endPoint,
+      startPoint: swapDir ? endPoint : startPoint,
+      endPoint: swapDir ? startPoint : endPoint,
       perpendicularRange: m.perpendicularRange,
       length: m.length,
       tags: m.tags,
-      startOnLine,
-      endOnLine
+      startOnLine: swapDir ? endOnLine : startOnLine,
+      endOnLine: swapDir ? startOnLine : endOnLine
     }
   })
 }
@@ -329,12 +329,12 @@ function layout(group: MeasurementGroup): { left: MeasurementLines; right: Measu
     left: {
       direction: group.direction,
       start: group.startLeft,
-      lines: leftRows.map(row => convertToLineMeasurements(row, group.startLeft, group.direction))
+      lines: leftRows.map(row => convertToLineMeasurements(row, group.startLeft, group.direction, false))
     },
     right: {
       direction: group.direction,
       start: group.startRight,
-      lines: rightRows.map(row => convertToLineMeasurements(row, group.startRight, group.direction))
+      lines: rightRows.map(row => convertToLineMeasurements(row, group.startRight, group.direction, true))
     }
   }
 }

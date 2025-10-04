@@ -32,7 +32,7 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
       line.map(measurement => {
         // Calculate distance-based offset: distance from chosen point to its projection on line + row offset
         const baseOffset = distance(measurement.startPoint, measurement.startOnLine)
-        const rowOffset = 60 * (rowIndex + 2)
+        const rowOffset = 60 * (rowIndex + 1.2)
         const totalOffset = baseOffset + rowOffset
 
         return {
