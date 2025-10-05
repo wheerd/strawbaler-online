@@ -192,3 +192,8 @@ export const TAG_WALLS: Tag = {
   label: 'Walls',
   category: 'construction'
 }
+export const TAG_MODULE: Tag = {
+  id: 'construction_module',
+  label: 'Module',
+  category: 'construction'
+}

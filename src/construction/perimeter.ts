@@ -8,7 +8,7 @@ import { getConfigActions } from './config'
 import type { ResolveMaterialFunction } from './materials/material'
 import { type ConstructionModel, mergeModels, transformModel } from './model'
 import { constructRingBeam } from './ringBeams/ringBeams'
-import { constructInfillWall, constructNonStrawbaleWall } from './walls'
+import { PERIMETER_WALL_CONSTRUCTION_METHODS } from './walls'
 
 export function constructPerimeter(perimeter: Perimeter, resolveMaterial: ResolveMaterialFunction): ConstructionModel {
   const { getStoreyById } = getModelActions()
@@ -47,10 +47,10 @@ export function constructPerimeter(perimeter: Perimeter, resolveMaterial: Resolv
   for (const wall of perimeter.walls) {
     const method = getPerimeterConstructionMethodById(wall.constructionMethodId)
     let wallModel: ConstructionModel | null = null
-    if (method?.config?.type === 'infill') {
-      wallModel = constructInfillWall(wall, perimeter, storey.height, method.config, method.layers)
-    } else if (method?.config?.type === 'non-strawbale') {
-      wallModel = constructNonStrawbaleWall(wall, perimeter, storey.height, method.config, method.layers)
+
+    if (method?.config?.type) {
+      const constructionMethod = PERIMETER_WALL_CONSTRUCTION_METHODS[method.config.type]
+      wallModel = constructionMethod(wall, perimeter, storey.height, method.config, method.layers)
     }
 
     if (wallModel) {

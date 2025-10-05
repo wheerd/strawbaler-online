@@ -133,11 +133,9 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
       type: 'strawhenge',
       module: {
         width: createLength(920),
-        frame: {
-          type: 'full',
-          width: createLength(60),
-          material: wood360x60.id
-        },
+        type: 'single',
+        frameThickness: createLength(60),
+        frameMaterial: wood360x60.id,
         strawMaterial: strawbale.id
       },
       infill: {

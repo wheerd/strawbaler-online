@@ -18,7 +18,6 @@ import type { PerimeterConstructionMethodId, PerimeterId, PerimeterWallId } from
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { WallConstructionPlanModal } from '@/construction/components/WallConstructionPlan'
 import { usePerimeterConstructionMethodById, usePerimeterConstructionMethods } from '@/construction/config/store'
-import { type InfillConstructionConfig, constructInfillWall } from '@/construction/walls'
 import { pushTool } from '@/editor/tools/system/store'
 import { type Length, createLength } from '@/shared/geometry'
 import { useDebouncedNumericInput } from '@/shared/hooks/useDebouncedInput'
@@ -32,7 +31,6 @@ interface PerimeterWallInspectorProps {
 export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallInspectorProps): React.JSX.Element {
   const allPerimeterMethods = usePerimeterConstructionMethods()
   const {
-    getStoreyById,
     updatePerimeterWallThickness: updateOuterWallThickness,
     updatePerimeterWallConstructionMethod: updateOuterWallConstructionMethod
   } = useModelActions()
@@ -74,30 +72,10 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
     )
   }
 
-  const storey = getStoreyById(outerWall.storeyId)
-
   // Get construction method for this wall
   const constructionMethod = wall?.constructionMethodId
     ? usePerimeterConstructionMethodById(wall.constructionMethodId)
     : null
-
-  const constructionModel = useMemo(() => {
-    if (!outerWall || !wall || !storey || !constructionMethod) return null
-
-    // For now, only support infill construction until other types are implemented
-    if (constructionMethod.config.type === 'infill') {
-      return constructInfillWall(
-        wall,
-        outerWall,
-        storey.height,
-        constructionMethod.config as InfillConstructionConfig,
-        constructionMethod.layers
-      )
-    }
-
-    // TODO: Add support for other construction types
-    return null
-  }, [wall, outerWall, storey, constructionMethod])
 
   return (
     <Flex direction="column" gap="4">
@@ -242,11 +220,9 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
         <Button size="1" onClick={() => pushTool('perimeter.split-wall')}>
           Split Wall
         </Button>
-        {constructionModel && (
-          <WallConstructionPlanModal model={constructionModel}>
-            <Button size="1">View Construction Plan</Button>
-          </WallConstructionPlanModal>
-        )}
+        <WallConstructionPlanModal perimeterId={perimeterId} wallId={wallId}>
+          <Button size="1">View Construction Plan</Button>
+        </WallConstructionPlanModal>
       </Flex>
     </Flex>
   )

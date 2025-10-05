@@ -1,9 +1,12 @@
 import { CheckCircledIcon, Cross2Icon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { Box, Callout, Dialog, Flex, IconButton, Text } from '@radix-ui/themes'
-import React from 'react'
+import React, { useMemo } from 'react'
 
-import type { ConstructionModel } from '@/construction/model'
+import type { PerimeterId, PerimeterWallId } from '@/building/model/ids'
+import { useModelActions, usePerimeterById } from '@/building/store'
+import { getConfigActions } from '@/construction/config'
 import type { ConstructionIssue } from '@/construction/results'
+import { PERIMETER_WALL_CONSTRUCTION_METHODS } from '@/construction/walls'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
 import { BACK_VIEW, ConstructionPlan, FRONT_VIEW, type ViewOption } from './ConstructionPlan'
@@ -74,18 +77,49 @@ const IssueDescriptionPanel = ({ errors, warnings }: IssueDescriptionPanelProps)
 )
 
 interface WallConstructionPlanModalProps {
-  model: ConstructionModel
+  perimeterId: PerimeterId
+  wallId: PerimeterWallId
   children: React.ReactNode
 }
 
-export function WallConstructionPlanModal({ model, children }: WallConstructionPlanModalProps): React.JSX.Element {
+export function WallConstructionPlanModal({
+  perimeterId,
+  wallId,
+  children
+}: WallConstructionPlanModalProps): React.JSX.Element {
   const [containerSize, containerRef] = elementSizeRef()
+  const perimeter = usePerimeterById(perimeterId)
+  const { getStoreyById } = useModelActions()
+  const { getPerimeterConstructionMethodById } = getConfigActions()
+
+  const constructionModel = useMemo(() => {
+    if (!perimeter) return null
+
+    const wall = perimeter.walls.find(w => w.id === wallId)
+    if (!wall) return null
+
+    const storey = getStoreyById(perimeter.storeyId)
+    if (!storey) return null
+
+    const method = getPerimeterConstructionMethodById(wall.constructionMethodId)
+    if (!method?.config?.type) return null
+
+    // Use generic construction method registry
+    const constructionMethod = PERIMETER_WALL_CONSTRUCTION_METHODS[method.config.type]
+    if (!constructionMethod) return null
+
+    return constructionMethod(wall, perimeter, storey.height, method.config, method.layers)
+  }, [perimeter, wallId, getStoreyById, getPerimeterConstructionMethodById])
 
   // Define views for wall construction
   const views: ViewOption[] = [
     { view: FRONT_VIEW, label: 'Outside' },
     { view: BACK_VIEW, label: 'Inside' }
   ]
+
+  if (!perimeter) {
+    return <>{children}</>
+  }
 
   return (
     <Dialog.Root>
@@ -107,12 +141,24 @@ export function WallConstructionPlanModal({ model, children }: WallConstructionP
             ref={containerRef}
             className="relative flex-1 min-h-[300px] max-h-[calc(100vh-400px)] overflow-hidden border border-gray-6 rounded-2"
           >
-            <ConstructionPlan model={model} views={views} containerSize={containerSize} />
+            {constructionModel ? (
+              <ConstructionPlan model={constructionModel} views={views} containerSize={containerSize} />
+            ) : (
+              <Flex align="center" justify="center" style={{ height: '100%' }}>
+                <Text align="center" color="gray">
+                  <Text size="6">⚠</Text>
+                  <br />
+                  <Text size="2">Failed to generate construction plan</Text>
+                </Text>
+              </Flex>
+            )}
           </div>
 
-          <Box flexShrink="0">
-            <IssueDescriptionPanel errors={model.errors} warnings={model.warnings} />
-          </Box>
+          {constructionModel && (
+            <Box flexShrink="0">
+              <IssueDescriptionPanel errors={constructionModel.errors} warnings={constructionModel.warnings} />
+            </Box>
+          )}
         </Flex>
       </Dialog.Content>
     </Dialog.Root>

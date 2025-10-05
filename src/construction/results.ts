@@ -1,6 +1,14 @@
+import { IDENTITY, type Transform } from '@/construction/geometry'
+import type { Tag } from '@/construction/tags'
 import { type Bounds3D, mergeBounds } from '@/shared/geometry'
 
-import type { ConstructionElement, ConstructionElementId, GroupOrElement } from './elements'
+import {
+  type ConstructionElement,
+  type ConstructionElementId,
+  type GroupOrElement,
+  type PartId,
+  createConstructionElementId
+} from './elements'
 import type { RawMeasurement } from './measurements'
 import type { HighlightedArea } from './model'
 
@@ -73,5 +81,32 @@ export function* yieldAndCollectBounds(
       boundsRef[0] = boundsRef[0] ? mergeBounds(boundsRef[0], result.element.bounds) : result.element.bounds
     }
     yield result
+  }
+}
+
+export function* yieldAsGroup(
+  generator: Generator<ConstructionResult>,
+  tags?: Tag[],
+  transform: Transform = IDENTITY,
+  partId?: PartId
+): Generator<ConstructionResult> {
+  const children: GroupOrElement[] = []
+  for (const result of generator) {
+    if (result.type === 'element') {
+      children.push(result.element)
+    } else {
+      yield result
+    }
+  }
+  yield {
+    type: 'element',
+    element: {
+      id: createConstructionElementId(),
+      bounds: mergeBounds(...children.map(c => c.bounds)),
+      transform,
+      tags,
+      partId,
+      children
+    }
   }
 }
