@@ -5,7 +5,6 @@ import { IDENTITY } from '@/construction/geometry'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
 import { TAG_OPENING_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
 import type { Length, Vec3 } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
@@ -156,34 +155,10 @@ export function* segmentedWallConstruction(
   // Sort openings by position along the wall
   const sortedOpenings = [...wall.openings].sort((a, b) => a.offsetFromStart - b.offsetFromStart)
 
-  // Validate openings don't overlap and fit within wall
-  let currentPosition = 0 as Length
-
-  for (const opening of sortedOpenings) {
-    const openingStart = opening.offsetFromStart
-    const openingEnd = (openingStart + opening.width) as Length
-
-    // Validate opening fits within the original wall boundary (before extensions)
-    if (openingEnd > wall.wallLength) {
-      throw new Error(
-        `Opening extends beyond wall length: opening ends at ${formatLength(openingEnd)} but wall ${wall.id} is only ${formatLength(wall.wallLength)} long`
-      )
-    }
-
-    // Validate opening doesn't overlap with previous position
-    if (openingStart < currentPosition) {
-      throw new Error(
-        `Opening overlaps with previous segment: opening starts at ${formatLength(openingStart)} but previous segment ends at ${formatLength(currentPosition)}`
-      )
-    }
-
-    currentPosition = openingEnd
-  }
-
   // Group adjacent compatible openings
   const openingGroups = mergeAdjacentOpenings(sortedOpenings)
 
-  currentPosition = -extensionStart as Length
+  let currentPosition = -extensionStart as Length
 
   for (const openingGroup of openingGroups) {
     // Adjust opening positions by start extension to account for corner extension

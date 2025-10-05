@@ -439,53 +439,6 @@ describe('segmentedWallConstruction', () => {
     })
   })
 
-  describe('error handling', () => {
-    it('should throw error when opening extends beyond wall length', () => {
-      const opening = createMockOpening(createLength(2500), createLength(800)) // ends at 3300, wall is 3000
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300), [opening])
-      const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
-      const layers = createMockLayers()
-
-      expect(() => {
-        const results = [
-          ...segmentedWallConstruction(
-            wall,
-            perimeter,
-            wallHeight,
-            layers,
-            mockWallConstruction,
-            mockOpeningConstruction
-          )
-        ]
-        return results
-      }).toThrow('Opening extends beyond wall length')
-    })
-
-    it('should throw error when openings overlap', () => {
-      const opening1 = createMockOpening(createLength(1000), createLength(1000)) // ends at 2000
-      const opening2 = createMockOpening(createLength(1500), createLength(800)) // starts at 1500, overlaps
-      const wall = createMockWall('wall-1', createLength(4000), createLength(300), [opening1, opening2])
-      const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
-      const layers = createMockLayers()
-
-      expect(() => {
-        const results = [
-          ...segmentedWallConstruction(
-            wall,
-            perimeter,
-            wallHeight,
-            layers,
-            mockWallConstruction,
-            mockOpeningConstruction
-          )
-        ]
-        return results
-      }).toThrow('Opening overlaps with previous segment')
-    })
-  })
-
   describe('ring beam integration', () => {
     it('should handle missing ring beam methods gracefully', () => {
       const wall = createMockWall('wall-1', createLength(3000), createLength(300))

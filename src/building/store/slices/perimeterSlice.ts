@@ -66,6 +66,11 @@ export interface PerimetersActions {
     methodId: PerimeterConstructionMethodId
   ) => void
   updatePerimeterWallThickness: (perimeterId: PerimeterId, wallId: PerimeterWallId, thickness: Length) => void
+
+  // Bulk update actions for all walls in a perimeter
+  updateAllPerimeterWallsConstructionMethod: (perimeterId: PerimeterId, methodId: PerimeterConstructionMethodId) => void
+  updateAllPerimeterWallsThickness: (perimeterId: PerimeterId, thickness: Length) => void
+
   updatePerimeterCornerConstructedByWall: (
     perimeterId: PerimeterId,
     cornerId: PerimeterCornerId,
@@ -402,6 +407,36 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           perimeter.walls[wallIndex].thickness = thickness
           updatePerimeterGeometry(perimeter)
         }
+      })
+    },
+
+    // Bulk update operations for all walls in a perimeter
+    updateAllPerimeterWallsConstructionMethod: (perimeterId: PerimeterId, methodId: PerimeterConstructionMethodId) => {
+      set(state => {
+        const perimeter = state.perimeters[perimeterId]
+        if (perimeter == null) return
+
+        perimeter.walls.forEach(wall => {
+          wall.constructionMethodId = methodId
+        })
+      })
+    },
+
+    updateAllPerimeterWallsThickness: (perimeterId: PerimeterId, thickness: Length) => {
+      if (thickness <= 0) {
+        throw new Error('Wall thickness must be greater than 0')
+      }
+
+      set(state => {
+        const perimeter = state.perimeters[perimeterId]
+        if (perimeter == null) return
+
+        perimeter.walls.forEach(wall => {
+          wall.thickness = thickness
+        })
+
+        // Update geometry since wall thickness affects perimeter shape
+        updatePerimeterGeometry(perimeter)
       })
     },
 

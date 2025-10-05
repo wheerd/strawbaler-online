@@ -1,30 +1,112 @@
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { Box, Button, Callout, DataList, Flex, Heading, Select, Text } from '@radix-ui/themes'
-import React from 'react'
+import { Box, Button, Callout, DataList, Flex, Heading, Select, Text, TextField, Tooltip } from '@radix-ui/themes'
+import React, { useCallback, useMemo } from 'react'
 
-import type { PerimeterId, RingBeamConstructionMethodId } from '@/building/model/ids'
+import type { PerimeterConstructionMethodId, PerimeterId, RingBeamConstructionMethodId } from '@/building/model/ids'
+import type { PerimeterWall } from '@/building/model/model'
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { PerimeterConstructionPlanModal } from '@/construction/components/PerimeterConstructionPlan'
 import { RingBeamConstructionPlanModal } from '@/construction/components/RingBeamConstructionPlan'
-import { useRingBeamConstructionMethods } from '@/construction/config/store'
-import { type Length, calculatePolygonArea } from '@/shared/geometry'
+import { usePerimeterConstructionMethods, useRingBeamConstructionMethods } from '@/construction/config/store'
+import { type Length, calculatePolygonArea, createLength } from '@/shared/geometry'
+import { useDebouncedNumericInput } from '@/shared/hooks/useDebouncedInput'
 import { formatLength } from '@/shared/utils/formatLength'
 
 interface PerimeterInspectorProps {
   selectedId: PerimeterId
 }
 
+interface MixedState<T> {
+  isMixed: boolean
+  value: T | null
+}
+
+function detectMixedConstructionMethod(walls: PerimeterWall[]): MixedState<PerimeterConstructionMethodId> {
+  if (walls.length === 0) return { isMixed: false, value: null }
+
+  const firstMethod = walls[0].constructionMethodId
+  const allSame = walls.every(wall => wall.constructionMethodId === firstMethod)
+
+  return {
+    isMixed: !allSame,
+    value: allSame ? firstMethod : null
+  }
+}
+
+function detectMixedThickness(walls: PerimeterWall[]): MixedState<Length> {
+  if (walls.length === 0) return { isMixed: false, value: null }
+
+  const firstThickness = walls[0].thickness
+  const allSame = walls.every(wall => wall.thickness === firstThickness)
+
+  return {
+    isMixed: !allSame,
+    value: allSame ? firstThickness : null
+  }
+}
+
+interface MixedStateIndicatorProps {
+  children: React.ReactNode
+}
+
+function MixedStateIndicator({ children }: MixedStateIndicatorProps) {
+  return (
+    <Flex align="center" gap="2">
+      {children}
+      <Tooltip content="Different values across walls. Changing this will update all walls.">
+        <ExclamationTriangleIcon width={14} height={14} style={{ color: 'var(--amber-9)' }} />
+      </Tooltip>
+    </Flex>
+  )
+}
+
 export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): React.JSX.Element {
   // Get perimeter data from model store
-  const { setPerimeterBaseRingBeam, setPerimeterTopRingBeam, removePerimeterBaseRingBeam, removePerimeterTopRingBeam } =
-    useModelActions()
-  const outerWall = usePerimeterById(selectedId)
+  const {
+    setPerimeterBaseRingBeam,
+    setPerimeterTopRingBeam,
+    removePerimeterBaseRingBeam,
+    removePerimeterTopRingBeam,
+    updateAllPerimeterWallsConstructionMethod,
+    updateAllPerimeterWallsThickness
+  } = useModelActions()
+  const perimeter = usePerimeterById(selectedId)
 
-  // Get ring beam methods from config store
+  // Get construction methods from config store
   const allRingBeamMethods = useRingBeamConstructionMethods()
+  const allPerimeterMethods = usePerimeterConstructionMethods()
+
+  // Mixed state detection
+  const constructionMethodState = useMemo(
+    () => (perimeter ? detectMixedConstructionMethod(perimeter.walls) : { isMixed: false, value: null }),
+    [perimeter?.walls]
+  )
+
+  const thicknessState = useMemo(
+    () => (perimeter ? detectMixedThickness(perimeter.walls) : { isMixed: false, value: null }),
+    [perimeter?.walls]
+  )
+
+  // Create debounced thickness input for perimeter
+  const perimeterThicknessInput = useDebouncedNumericInput(
+    thicknessState.isMixed ? 0 : thicknessState.value || 0,
+    useCallback(
+      (value: number) => {
+        updateAllPerimeterWallsThickness(selectedId, createLength(value))
+      },
+      [updateAllPerimeterWallsThickness, selectedId]
+    ),
+    {
+      debounceMs: 300,
+      min: 50,
+      max: 1500,
+      step: 10
+    }
+  )
 
   // If perimeter not found, show error
-  if (!outerWall) {
+  if (!perimeter) {
     return (
       <Box p="2">
         <Callout.Root color="red">
@@ -38,10 +120,10 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
     )
   }
 
-  const totalInnerPerimeter = outerWall.walls.reduce((l, s) => l + s.insideLength, 0)
-  const totalOuterPerimeter = outerWall.walls.reduce((l, s) => l + s.outsideLength, 0)
-  const totalInnerArea = calculatePolygonArea({ points: outerWall.corners.map(c => c.insidePoint) })
-  const totalOuterArea = calculatePolygonArea({ points: outerWall.corners.map(c => c.outsidePoint) })
+  const totalInnerPerimeter = perimeter.walls.reduce((l, s) => l + s.insideLength, 0)
+  const totalOuterPerimeter = perimeter.walls.reduce((l, s) => l + s.outsideLength, 0)
+  const totalInnerArea = calculatePolygonArea({ points: perimeter.corners.map(c => c.insidePoint) })
+  const totalOuterArea = calculatePolygonArea({ points: perimeter.corners.map(c => c.outsidePoint) })
 
   return (
     <Box p="2">
@@ -77,6 +159,87 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
           />
         </Box>
 
+        {/* Wall Configuration */}
+        <Box pt="1" style={{ borderTop: '1px solid var(--gray-6)' }}>
+          <Heading size="2" mb="2">
+            Wall Configuration
+          </Heading>
+
+          <Flex direction="column" gap="2">
+            {/* Construction Method */}
+            <Flex align="center" justify="between" gap="3">
+              <Label.Root htmlFor="perimeter-construction-method">
+                {constructionMethodState.isMixed ? (
+                  <MixedStateIndicator>
+                    <Text size="1" weight="medium" color="gray">
+                      Construction Method
+                    </Text>
+                  </MixedStateIndicator>
+                ) : (
+                  <Text size="1" weight="medium" color="gray">
+                    Construction Method
+                  </Text>
+                )}
+              </Label.Root>
+              <Select.Root
+                value={constructionMethodState.isMixed ? '' : constructionMethodState.value || ''}
+                onValueChange={(value: PerimeterConstructionMethodId) => {
+                  updateAllPerimeterWallsConstructionMethod(selectedId, value)
+                }}
+                size="1"
+              >
+                <Select.Trigger
+                  id="perimeter-construction-method"
+                  placeholder={constructionMethodState.isMixed ? 'Mixed' : 'Select method'}
+                  style={{ flex: 1, minWidth: 0 }}
+                />
+                <Select.Content>
+                  {allPerimeterMethods.map(method => (
+                    <Select.Item key={method.id} value={method.id}>
+                      {method.name}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
+            </Flex>
+
+            {/* Thickness Input */}
+            <Flex align="center" justify="between" gap="3">
+              <Label.Root htmlFor="perimeter-thickness">
+                {thicknessState.isMixed ? (
+                  <MixedStateIndicator>
+                    <Text size="1" weight="medium" color="gray">
+                      Wall Thickness
+                    </Text>
+                  </MixedStateIndicator>
+                ) : (
+                  <Text size="1" weight="medium" color="gray">
+                    Wall Thickness
+                  </Text>
+                )}
+              </Label.Root>
+              <TextField.Root
+                id="perimeter-thickness"
+                type="number"
+                value={thicknessState.isMixed ? '' : perimeterThicknessInput.value.toString()}
+                placeholder={thicknessState.isMixed ? 'Mixed' : undefined}
+                onChange={e => perimeterThicknessInput.handleChange(e.target.value)}
+                onBlur={perimeterThicknessInput.handleBlur}
+                onKeyDown={perimeterThicknessInput.handleKeyDown}
+                min="50"
+                max="1500"
+                step="10"
+                size="1"
+                style={{ width: '5rem', textAlign: 'right' }}
+              >
+                <TextField.Slot side="right" pl="1">
+                  mm
+                </TextField.Slot>
+              </TextField.Root>
+            </Flex>
+          </Flex>
+        </Box>
+
         {/* Ring Beam Configuration */}
         <Box pt="1" style={{ borderTop: '1px solid var(--gray-6)' }}>
           <Heading size="2" mb="2">
@@ -92,7 +255,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                 </Text>
               </Label.Root>
               <Select.Root
-                value={outerWall.baseRingBeamMethodId || 'none'}
+                value={perimeter.baseRingBeamMethodId || 'none'}
                 onValueChange={value => {
                   if (value === 'none') {
                     removePerimeterBaseRingBeam(selectedId)
@@ -115,7 +278,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
             </Flex>
 
             {/* Base Ring Beam View Construction Button */}
-            {outerWall.baseRingBeamMethodId && (
+            {perimeter.baseRingBeamMethodId && (
               <RingBeamConstructionPlanModal
                 perimeterId={selectedId}
                 position="base"
@@ -135,7 +298,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                 </Text>
               </Label.Root>
               <Select.Root
-                value={outerWall.topRingBeamMethodId || 'none'}
+                value={perimeter.topRingBeamMethodId || 'none'}
                 onValueChange={value => {
                   if (value === 'none') {
                     removePerimeterTopRingBeam(selectedId)
@@ -158,7 +321,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
             </Flex>
 
             {/* Top Ring Beam View Construction Button */}
-            {outerWall.topRingBeamMethodId && (
+            {perimeter.topRingBeamMethodId && (
               <RingBeamConstructionPlanModal
                 perimeterId={selectedId}
                 position="top"

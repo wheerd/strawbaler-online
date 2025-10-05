@@ -2247,4 +2247,98 @@ describe('OuterWallsSlice', () => {
       })
     })
   })
+
+  describe('Bulk Wall Updates', () => {
+    it('should update construction method for all walls in perimeter', () => {
+      // Add perimeter with multiple walls
+      const boundary: Polygon2D = {
+        points: [createVec2(0, 0), createVec2(5000, 0), createVec2(5000, 3000), createVec2(0, 3000)]
+      }
+      const perimeter = store.actions.addPerimeter(
+        testStoreyId,
+        boundary,
+        createPerimeterConstructionMethodId(),
+        createLength(360)
+      )
+
+      // Verify we have multiple walls
+      expect(perimeter.walls.length).toBeGreaterThan(1)
+
+      // Verify initial state - all walls should have same method
+      const initialMethod = perimeter.walls[0].constructionMethodId
+      expect(perimeter.walls.every(wall => wall.constructionMethodId === initialMethod)).toBe(true)
+
+      // Update all walls to new method
+      const newMethodId = createPerimeterConstructionMethodId()
+      store.actions.updateAllPerimeterWallsConstructionMethod(perimeter.id, newMethodId)
+
+      // Verify all walls now have new method
+      const updatedPerimeter = store.actions.getPerimeterById(perimeter.id)
+      expect(updatedPerimeter).toBeTruthy()
+      expect(updatedPerimeter!.walls.every(wall => wall.constructionMethodId === newMethodId)).toBe(true)
+    })
+
+    it('should update thickness for all walls in perimeter', () => {
+      // Add perimeter with multiple walls
+      const boundary: Polygon2D = {
+        points: [createVec2(0, 0), createVec2(5000, 0), createVec2(5000, 3000), createVec2(0, 3000)]
+      }
+      const perimeter = store.actions.addPerimeter(
+        testStoreyId,
+        boundary,
+        createPerimeterConstructionMethodId(),
+        createLength(360)
+      )
+
+      // Verify we have multiple walls
+      expect(perimeter.walls.length).toBeGreaterThan(1)
+
+      // Update all walls to new thickness
+      const newThickness = createLength(400)
+      store.actions.updateAllPerimeterWallsThickness(perimeter.id, newThickness)
+
+      // Verify all walls now have new thickness
+      const updatedPerimeter = store.actions.getPerimeterById(perimeter.id)
+      expect(updatedPerimeter).toBeTruthy()
+      expect(updatedPerimeter!.walls.every(wall => wall.thickness === newThickness)).toBe(true)
+    })
+
+    it('should throw error for invalid thickness in bulk update', () => {
+      // Add perimeter
+      const boundary: Polygon2D = {
+        points: [createVec2(0, 0), createVec2(5000, 0), createVec2(5000, 3000), createVec2(0, 3000)]
+      }
+      const perimeter = store.actions.addPerimeter(
+        testStoreyId,
+        boundary,
+        createPerimeterConstructionMethodId(),
+        createLength(360)
+      )
+
+      // Should throw error for zero thickness
+      expect(() => {
+        store.actions.updateAllPerimeterWallsThickness(perimeter.id, createLength(0))
+      }).toThrow('Wall thickness must be greater than 0')
+
+      // Should throw error for negative thickness
+      expect(() => {
+        store.actions.updateAllPerimeterWallsThickness(perimeter.id, createLength(-100))
+      }).toThrow('Wall thickness must be greater than 0')
+    })
+
+    it('should handle non-existent perimeter gracefully in bulk updates', () => {
+      const fakePerimeterId = createPerimeterId()
+      const newMethodId = createPerimeterConstructionMethodId()
+      const newThickness = createLength(400)
+
+      // Should not throw error for non-existent perimeter
+      expect(() => {
+        store.actions.updateAllPerimeterWallsConstructionMethod(fakePerimeterId, newMethodId)
+      }).not.toThrow()
+
+      expect(() => {
+        store.actions.updateAllPerimeterWallsThickness(fakePerimeterId, newThickness)
+      }).not.toThrow()
+    })
+  })
 })
