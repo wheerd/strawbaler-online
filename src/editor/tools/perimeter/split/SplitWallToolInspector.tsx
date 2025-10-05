@@ -1,11 +1,12 @@
 import { Button, Callout, Flex, Heading, Text } from '@radix-ui/themes'
 
+import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 
 import type { SplitWallTool } from './SplitWallTool'
 
 export function SplitWallToolInspector({ tool }: ToolInspectorProps<SplitWallTool>): React.JSX.Element {
-  const { state } = tool
+  const { state } = useReactiveTool(tool)
 
   if (!state.selectedWallId) {
     return (

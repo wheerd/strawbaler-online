@@ -78,7 +78,7 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
 
   public updateTargetPosition(position: Length | null): void {
     this.state.targetPosition = position
-    if (position) {
+    if (position !== null) {
       const validation = this.validateSplitPosition(position)
       this.state.isValidSplit = validation.valid
     } else {
@@ -116,7 +116,13 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
   }
 
   public moveDelta(delta: Length): void {
-    this.updateTargetPosition((this.state.targetPosition ?? 0 + delta) as Length)
+    if (!this.state.wall) return
+
+    const currentPosition = this.state.targetPosition ?? 0
+    const newPosition = currentPosition + delta
+    const clampedPosition = Math.max(0, Math.min(newPosition, this.state.wall.wallLength)) as Length
+
+    this.updateTargetPosition(clampedPosition)
   }
 
   private validateSplitPosition(position: Length): { valid: boolean; error?: string } {
@@ -210,8 +216,7 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
 
     if (event.key === 'Escape') {
       if (this.state.targetPosition !== null) {
-        this.state.targetPosition = null
-        this.state.isValidSplit = false
+        this.updateTargetPosition(null)
         return true
       }
     }

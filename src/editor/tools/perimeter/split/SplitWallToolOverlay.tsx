@@ -2,6 +2,7 @@ import { vec2 } from 'gl-matrix'
 import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import { ClickableLengthIndicator } from '@/editor/canvas/utils/ClickableLengthIndicator'
+import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { activateLengthInput } from '@/editor/services/length-input'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
@@ -15,6 +16,7 @@ export function SplitWallToolOverlay({ tool }: ToolOverlayComponentProps<SplitWa
   const { state } = useReactiveTool(tool)
   const { wall, perimeter } = state
   const { worldToStage } = useViewportActions()
+  const isCurrentSelection = useSelectionStore(s => s.isCurrentSelection)
 
   if (!wall || !perimeter) {
     return null
@@ -44,35 +46,44 @@ export function SplitWallToolOverlay({ tool }: ToolOverlayComponentProps<SplitWa
 
   const insideStart = prevCorner.insidePoint
   const insideEnd = nextCorner.insidePoint
-  const insideSplit = state.targetPosition
-    ? vec2.scaleAndAdd(vec2.create(), wall.insideLine.start, wall.direction, state.targetPosition)
-    : null
-  const outsideSplit = state.targetPosition
-    ? vec2.scaleAndAdd(vec2.create(), wall.outsideLine.start, wall.direction, state.targetPosition)
-    : null
+  const insideSplit =
+    state.targetPosition !== null
+      ? vec2.scaleAndAdd(vec2.create(), wall.insideLine.start, wall.direction, state.targetPosition)
+      : null
+  const outsideSplit =
+    state.targetPosition !== null
+      ? vec2.scaleAndAdd(vec2.create(), wall.outsideLine.start, wall.direction, state.targetPosition)
+      : null
   const outsideStart = prevCorner.outsidePoint
   const outsideEnd = nextCorner.outsidePoint
 
-  const insideHover = state.hoverPosition
-    ? vec2.scaleAndAdd(vec2.create(), wall.insideLine.start, wall.direction, state.hoverPosition)
-    : null
-  const outsideHover = state.hoverPosition
-    ? vec2.scaleAndAdd(vec2.create(), wall.outsideLine.start, wall.direction, state.hoverPosition)
-    : null
+  const insideHover =
+    state.hoverPosition !== null
+      ? vec2.scaleAndAdd(vec2.create(), wall.insideLine.start, wall.direction, state.hoverPosition)
+      : null
+  const outsideHover =
+    state.hoverPosition !== null
+      ? vec2.scaleAndAdd(vec2.create(), wall.outsideLine.start, wall.direction, state.hoverPosition)
+      : null
 
   // Colors based on validation state
-  const hoverColor = state.isValidHover ? COLORS.indicators.selected : COLORS.ui.danger
+  const isWallSelected = state.selectedWallId ? isCurrentSelection(state.selectedWallId) : false
+  const hoverColor = state.isValidHover
+    ? isWallSelected
+      ? COLORS.selection.secondary
+      : COLORS.selection.primary
+    : COLORS.ui.danger
   const splitColor = state.isValidSplit ? COLORS.ui.success : COLORS.ui.danger
 
   return (
-    <Group listening>
+    <Group>
       {/* Hover Line (perpendicular to wall) */}
       {insideHover && outsideHover ? (
         <Line
           points={[insideHover[0], insideHover[1], outsideHover[0], outsideHover[1]]}
           stroke={hoverColor}
           strokeWidth={20}
-          dash={[100, 50]}
+          dash={[50, 50]}
           listening={false}
         />
       ) : null}

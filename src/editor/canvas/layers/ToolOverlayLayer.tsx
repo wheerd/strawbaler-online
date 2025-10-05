@@ -8,7 +8,7 @@ export function ToolOverlayLayer(): React.JSX.Element {
   const activeTool = useActiveTool()
 
   return (
-    <Layer name="tool-overlay" listening={false}>
+    <Layer name="tool-overlay">
       {/* Selection outlines - rendered first so tool overlays appear on top */}
       <SelectionOverlay />
 
