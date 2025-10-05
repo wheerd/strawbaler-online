@@ -1,9 +1,9 @@
-import { Arrow, Circle, Group, Line } from 'react-konva/lib/ReactKonvaCore'
+import { Arrow, Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { PerimeterCorner, PerimeterWall } from '@/building/model/model'
 import { usePerimeterConstructionMethodById } from '@/construction/config/store'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
-import { add, midpoint, scale } from '@/shared/geometry'
+import { add, direction, midpoint, perpendicular, scale } from '@/shared/geometry'
 import { COLORS } from '@/shared/theme/colors'
 
 interface PerimeterCornerShapeProps {
@@ -46,6 +46,14 @@ export function PerimeterCornerShape({
     constructionMethod?.config.type === 'non-strawbale' ? COLORS.materials.other : COLORS.materials.strawbale
   const finalColor = isSelected ? COLORS.selection.primary : cornerColor
 
+  // Check if corner is nearly straight (close to 180°)
+  const interiorAngleDegrees = corner.interiorAngle
+  const exteriorAngleDegrees = corner.exteriorAngle
+  const isNearStraight = Math.abs(interiorAngleDegrees - 180) <= 5 || Math.abs(exteriorAngleDegrees - 180) <= 5
+
+  const normal = perpendicular(direction(corner.insidePoint, corner.outsidePoint))
+  const overlayWidth = 80
+
   return (
     <Group
       name={`perimeter-corner-${corner.id}`}
@@ -57,29 +65,38 @@ export function PerimeterCornerShape({
       {/* Corner polygon fill */}
       <Line points={polygonArray} fill={finalColor} stroke={COLORS.ui.black} strokeWidth={10} closed listening />
 
-      <Line
-        points={[corner.insidePoint[0], corner.insidePoint[1], corner.outsidePoint[0], corner.outsidePoint[1]]}
-        stroke={COLORS.ui.black}
-        opacity={0.5}
-        strokeWidth={8}
-        dash={[20, 20]}
-        listening={false}
-      />
+      {/* Rounded rectangle overlay for near-straight corners */}
+      {isNearStraight && (
+        <Line
+          points={[
+            corner.insidePoint[0] - normal[0] * (overlayWidth / 2),
+            corner.insidePoint[1] - (normal[1] * overlayWidth) / 2,
+            corner.insidePoint[0] + (normal[0] * overlayWidth) / 2,
+            corner.insidePoint[1] + (normal[1] * overlayWidth) / 2,
+            corner.outsidePoint[0] + (normal[0] * overlayWidth) / 2,
+            corner.outsidePoint[1] + (normal[1] * overlayWidth) / 2,
+            corner.outsidePoint[0] - (normal[0] * overlayWidth) / 2,
+            corner.outsidePoint[1] - (normal[1] * overlayWidth) / 2
+          ]}
+          fill={finalColor}
+          stroke={COLORS.ui.black}
+          strokeWidth={8}
+          opacity={0.5}
+          dash={[20, 20]}
+          closed
+          listening
+        />
+      )}
 
-      {/* Selection indicator */}
-      {isSelected && (
-        <>
-          <Circle
-            x={corner.insidePoint[0]}
-            y={corner.insidePoint[1]}
-            radius={30}
-            fill={COLORS.selection.secondary}
-            stroke={COLORS.selection.secondaryOutline}
-            strokeWidth={10}
-            opacity={0.8}
-            listening={false}
-          />
-        </>
+      {!isNearStraight && (
+        <Line
+          points={[corner.insidePoint[0], corner.insidePoint[1], corner.outsidePoint[0], corner.outsidePoint[1]]}
+          stroke={COLORS.ui.black}
+          opacity={0.5}
+          strokeWidth={8}
+          dash={[20, 20]}
+          listening={false}
+        />
       )}
 
       {/* Corner ownership indicator - small arrow */}

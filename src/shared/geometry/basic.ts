@@ -8,13 +8,10 @@ export type Matrix2D = mat2d
 // Branded numeric types for type safety
 export type Length = number & { __brand: 'Length' }
 export type Area = number & { __brand: 'Area' }
-export type Angle = number & { __brand: 'Angle' }
 
 // Helper functions to create branded types
 export const createLength = (value: number): Length => value as Length
 export const createArea = (value: number): Area => value as Area
-export const createAngle = (value: number): Angle => value as Angle
-
 // Helper function to create Vec2
 export const createVec2 = (x: number, y: number): Vec2 => vec2.fromValues(x, y)
 
@@ -39,10 +36,10 @@ export function midpoint(p1: Vec2, p2: Vec2): Vec2 {
   return result
 }
 
-export function angle(from: Vec2, to: Vec2): Angle {
+export function angle(from: Vec2, to: Vec2): number {
   const direction = vec2.create()
   vec2.subtract(direction, to, from)
-  return createAngle(Math.atan2(direction[1], direction[0]))
+  return Math.atan2(direction[1], direction[0])
 }
 
 export function add(a: Vec2, b: Vec2): Vec2 {
@@ -183,4 +180,26 @@ export function mergeBounds(...bounds: Bounds3D[]): Bounds3D {
     min: vec3.fromValues(minX, minY, minZ),
     max: vec3.fromValues(maxX, maxY, maxZ)
   }
+}
+
+// Cross product for 2D vectors (returns scalar z-component)
+export function cross2D(a: Vec2, b: Vec2): number {
+  return a[0] * b[1] - a[1] * b[0]
+}
+
+// Calculate the angle between two vectors in radians
+export function angleBetweenVectors(v1: Vec2, v2: Vec2): number {
+  const dotProduct = dot(v1, v2)
+  const crossProduct = cross2D(v1, v2)
+  return Math.atan2(crossProduct, dotProduct)
+}
+
+// Convert degrees to radians
+export function degreesToRadians(degrees: number): number {
+  return (degrees * Math.PI) / 180
+}
+
+// Convert radians to degrees
+export function radiansToDegrees(radians: number): number {
+  return (radians * 180) / Math.PI
 }

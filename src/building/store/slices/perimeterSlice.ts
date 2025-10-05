@@ -28,6 +28,7 @@ import {
   midpoint,
   perpendicularCCW,
   projectPointOntoLine,
+  radiansToDegrees,
   scale
 } from '@/shared/geometry'
 import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
@@ -162,7 +163,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           id: createPerimeterCornerId(),
           insidePoint: point,
           outsidePoint: createVec2(0, 0), // Will be calculated by updatePerimeterGeometry
-          constuctedByWall: 'next'
+          constuctedByWall: 'next',
+          interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
+          exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
         }))
 
         // Create walls with placeholder geometry
@@ -302,7 +305,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           id: createPerimeterCornerId(),
           insidePoint: splitPoint,
           outsidePoint: createVec2(0, 0), // Will be calculated by updatePerimeterGeometry
-          constuctedByWall: 'next'
+          constuctedByWall: 'next',
+          interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
+          exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
         }
 
         // Redistribute openings
@@ -806,6 +811,58 @@ const updateAllCornerOutsidePoints = (
     updateCornerOutsidePoint(corners[i], prevThickness, currentThickness, prevOutsideLine, currentOutsideLine)
   }
 }
+
+// Calculate interior and exterior angles at a corner formed by three points (in degrees)
+const calculateCornerAngles = (
+  previousPoint: Vec2,
+  cornerPoint: Vec2,
+  nextPoint: Vec2
+): { interiorAngle: number; exteriorAngle: number } => {
+  // Vectors from corner to adjacent points
+  const toPrevious = direction(cornerPoint, previousPoint)
+  const toNext = direction(cornerPoint, nextPoint)
+
+  // Calculate the angle between the vectors using atan2 for full range
+  const angle1 = Math.atan2(toPrevious[1], toPrevious[0])
+  const angle2 = Math.atan2(toNext[1], toNext[0])
+
+  // Calculate the difference, ensuring positive result
+  let angleDiff = angle2 - angle1
+  if (angleDiff < 0) {
+    angleDiff += 2 * Math.PI
+  }
+
+  // Convert to degrees and round
+  const angleDegrees = Math.round(radiansToDegrees(angleDiff))
+
+  // Assume the angle calculated is the interior angle (this works for convex polygons)
+  const interiorAngleDegrees = angleDegrees
+  const exteriorAngleDegrees = 360 - angleDegrees
+
+  return {
+    interiorAngle: interiorAngleDegrees,
+    exteriorAngle: exteriorAngleDegrees
+  }
+}
+
+// Calculate angles for all corners
+const updateAllCornerAngles = (corners: PerimeterCorner[]): void => {
+  const numCorners = corners.length
+
+  for (let i = 0; i < numCorners; i++) {
+    const prevIndex = (i - 1 + numCorners) % numCorners
+    const nextIndex = (i + 1) % numCorners
+
+    const previousPoint = corners[prevIndex].insidePoint
+    const cornerPoint = corners[i].insidePoint
+    const nextPoint = corners[nextIndex].insidePoint
+
+    const angles = calculateCornerAngles(previousPoint, cornerPoint, nextPoint)
+    corners[i].interiorAngle = angles.interiorAngle
+    corners[i].exteriorAngle = angles.exteriorAngle
+  }
+}
+
 const updateWallGeometry = (wall: PerimeterWall, startCorner: PerimeterCorner, endCorner: PerimeterCorner): void => {
   const insideStart = startCorner.insidePoint
   const insideEnd = endCorner.insidePoint
@@ -865,6 +922,9 @@ const updatePerimeterGeometry = (perimeter: Perimeter): void => {
 
   // Update corner outside points in place
   updateAllCornerOutsidePoints(perimeter.corners, thicknesses, infiniteLines)
+
+  // Update corner angles in place
+  updateAllCornerAngles(perimeter.corners)
 
   // Update wall geometry in place
   for (let i = 0; i < perimeter.walls.length; i++) {

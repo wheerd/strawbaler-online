@@ -83,4 +83,10 @@ export interface PerimeterCorner {
 
   // Which wall "owns" this corner - this is relevant for construction
   constuctedByWall: 'previous' | 'next'
+
+  // Interior angle (inside the building perimeter) in degrees
+  interiorAngle: number
+
+  // Exterior angle (outside the building perimeter) in degrees
+  exteriorAngle: number
 }

@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import { useMemo } from 'react'
 import { Group } from 'react-konva/lib/ReactKonvaCore'
 
@@ -8,7 +9,7 @@ import { usePerimeterById } from '@/building/store'
 import { SelectionOutline } from '@/editor/canvas/utils/SelectionOutline'
 import { useCurrentSelection, useSelectionPath } from '@/editor/hooks/useSelectionStore'
 import type { Vec2 } from '@/shared/geometry'
-import { add, scale } from '@/shared/geometry'
+import { add, direction, perpendicular, scale } from '@/shared/geometry'
 
 /**
  * Selection Path Structure Documentation:
@@ -158,15 +159,33 @@ function getPerimeterCornerPoints(wall: Perimeter, cornerId: PerimeterCornerId):
   const previousWall = wall.walls[prevWallIndex]
   const nextWall = wall.walls[nextWallIndex]
 
+  // Check if corner is nearly straight (close to 180°) - same logic as PerimeterCornerShape
+  const interiorAngleDegrees = corner.interiorAngle
+  const exteriorAngleDegrees = corner.exteriorAngle
+  const isNearStraight = Math.abs(interiorAngleDegrees - 180) <= 5 || Math.abs(exteriorAngleDegrees - 180) <= 5
+
+  if (isNearStraight) {
+    // For near-straight corners, use improved overlay shape (same as PerimeterCornerShape)
+    const normal = perpendicular(direction(corner.insidePoint, corner.outsidePoint))
+    const halfOverlayWidth = 80 / 2
+
+    return [
+      vec2.scaleAndAdd(vec2.create(), corner.insidePoint, normal, -halfOverlayWidth),
+      vec2.scaleAndAdd(vec2.create(), corner.insidePoint, normal, halfOverlayWidth),
+      vec2.scaleAndAdd(vec2.create(), corner.outsidePoint, normal, halfOverlayWidth),
+      vec2.scaleAndAdd(vec2.create(), corner.outsidePoint, normal, -halfOverlayWidth)
+    ]
+  }
+
   // Create corner polygon (same logic as PerimeterCornerShape)
   return [
     corner.insidePoint,
-    previousWall.insideLine.end,
-    previousWall.outsideLine.end,
+    vec2.equals(corner.insidePoint, previousWall.insideLine.end) ? null : previousWall.insideLine.end,
+    vec2.equals(corner.outsidePoint, previousWall.outsideLine.end) ? null : previousWall.outsideLine.end,
     corner.outsidePoint,
-    nextWall.outsideLine.start,
-    nextWall.insideLine.start
-  ]
+    vec2.equals(corner.outsidePoint, nextWall.outsideLine.start) ? null : nextWall.outsideLine.start,
+    vec2.equals(corner.insidePoint, nextWall.insideLine.start) ? null : nextWall.insideLine.start
+  ].filter(p => p !== null)
 }
 
 /**

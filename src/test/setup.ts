@@ -74,6 +74,7 @@ vi.mock('react-konva/lib/ReactKonvaCore', async () => {
         ...propsAttrs(props)
       }),
     Circle: ({ ...props }: any) => React.createElement('div', { 'data-testid': 'konva-circle', ...propsAttrs(props) }),
+    Rect: ({ ...props }: any) => React.createElement('rect', { 'data-testid': 'konva-rect', ...propsAttrs(props) }),
     Text: ({ text, ...props }: any) =>
       React.createElement('div', { 'data-testid': 'konva-text', ...propsAttrs(props) }, text)
   }

@@ -59,21 +59,6 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
     updateCornerConstructedByWall(perimeterId, cornerId, newConstructedByWall)
   }, [updateCornerConstructedByWall, perimeterId, cornerId, corner.constuctedByWall])
 
-  // Calculate angle between walls (simplified)
-  const cornerAngle = useMemo(() => {
-    if (!previousWall || !nextWall) return null
-
-    // Calculate angle between the two walls
-    const prevDir = previousWall.direction
-    const nextDir = nextWall.direction
-
-    // Dot product to get angle
-    const dot = prevDir[0] * nextDir[0] + prevDir[1] * nextDir[1]
-    const angle = Math.acos(Math.max(-1, Math.min(1, dot))) * (180 / Math.PI)
-
-    return angle
-  }, [previousWall, nextWall])
-
   // Check if there are construction notes to display
   const hasConstructionNotes = useMemo(() => {
     if (!previousWall || !nextWall) return false
@@ -91,14 +76,16 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
       {/* Geometry Information */}
       <Flex direction="column" gap="2">
         <Heading size="2">Geometry</Heading>
-        {cornerAngle && (
-          <DataList.Root>
-            <DataList.Item>
-              <DataList.Label minWidth="88px">Interior Angle</DataList.Label>
-              <DataList.Value>{cornerAngle.toFixed(1)}°</DataList.Value>
-            </DataList.Item>
-          </DataList.Root>
-        )}
+        <DataList.Root>
+          <DataList.Item>
+            <DataList.Label minWidth="88px">Interior Angle</DataList.Label>
+            <DataList.Value>{corner.interiorAngle}°</DataList.Value>
+          </DataList.Item>
+          <DataList.Item>
+            <DataList.Label minWidth="88px">Exterior Angle</DataList.Label>
+            <DataList.Value>{corner.exteriorAngle}°</DataList.Value>
+          </DataList.Item>
+        </DataList.Root>
       </Flex>
 
       <Separator size="4" />
