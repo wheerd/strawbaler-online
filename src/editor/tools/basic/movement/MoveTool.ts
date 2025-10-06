@@ -1,14 +1,25 @@
 import { getModelActions } from '@/building/store'
 import { entityHitTestService } from '@/editor/canvas/services/EntityHitTestService'
+import { activateLengthInput, deactivateLengthInput } from '@/editor/services/length-input'
+import type { LengthInputConfig } from '@/editor/services/length-input'
 import { defaultSnappingService } from '@/editor/services/snapping/SnappingService'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
-import type { Vec2 } from '@/shared/geometry'
-import { distanceSquared, subtract } from '@/shared/geometry'
+import type { Length, Vec2 } from '@/shared/geometry'
+import { add, distanceSquared, normalize, scale, subtract } from '@/shared/geometry'
 
 import { MoveToolOverlay } from './MoveToolOverlay'
 import type { MovementBehavior, MovementContext, PointerMovementState } from './MovementBehavior'
 import { getMovementBehavior } from './movementBehaviors'
+
+interface LastMovementRecord {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  behavior: MovementBehavior<any, any>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: MovementContext<any>
+  movementVector: Vec2
+  startPosition: Vec2
+}
 
 export class MoveTool extends BaseTool implements ToolImplementation {
   readonly id = 'basic.move'
@@ -30,6 +41,9 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     currentMovementState: any // Generic state from behavior
     isValid: boolean
+
+    // Last completed movement for length input modification
+    lastMovement: LastMovementRecord | null
   } = {
     isWaitingForMovement: false,
     downPosition: null,
@@ -38,7 +52,8 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     context: null,
     pointerState: null,
     currentMovementState: null,
-    isValid: true
+    isValid: true,
+    lastMovement: null
   }
 
   handlePointerDown(event: CanvasEvent): boolean {
@@ -147,7 +162,7 @@ export class MoveTool extends BaseTool implements ToolImplementation {
   handlePointerUp(_event: CanvasEvent): boolean {
     if (this.toolState.isWaitingForMovement) {
       // User just clicked without dragging - treat as selection, not movement
-      this.resetState()
+      this.resetTransientState()
       return false // Let other tools handle the click
     }
 
@@ -159,9 +174,16 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     // Only commit if position is valid
     if (isValid) {
       behavior.commitMovement(currentMovementState, context)
+      this.storeLastMovement()
     }
 
-    this.resetState()
+    this.resetTransientState()
+
+    // Activate length input for modifying the last movement
+    if (isValid) {
+      this.activateLengthInputForLastMovement()
+    }
+
     return true
   }
 
@@ -169,7 +191,7 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     // Handle escape key to cancel movement
     if (event.key === 'Escape') {
       if (this.toolState.isWaitingForMovement || this.toolState.isMoving) {
-        this.resetState()
+        this.resetTransientState()
         return true // Event consumed
       }
     }
@@ -181,21 +203,163 @@ export class MoveTool extends BaseTool implements ToolImplementation {
   }
 
   onDeactivate(): void {
-    this.resetState()
+    this.resetCompleteState()
   }
 
-  private resetState(): void {
-    this.toolState = {
-      isWaitingForMovement: false,
-      downPosition: null,
-      isMoving: false,
-      behavior: null,
-      context: null,
-      pointerState: null,
-      currentMovementState: null,
-      isValid: true
-    }
+  private resetTransientState(): void {
+    this.toolState.isWaitingForMovement = false
+    this.toolState.downPosition = null
+    this.toolState.isMoving = false
+    this.toolState.behavior = null
+    this.toolState.context = null
+    this.toolState.pointerState = null
+    this.toolState.currentMovementState = null
+    this.toolState.isValid = true
     this.triggerRender()
+  }
+
+  private resetCompleteState(): void {
+    this.resetTransientState()
+    this.toolState.lastMovement = null
+    deactivateLengthInput()
+  }
+
+  private storeLastMovement(): void {
+    const { behavior, context, pointerState } = this.toolState
+    if (!behavior || !context || !pointerState) return
+
+    this.toolState.lastMovement = {
+      behavior,
+      context: { ...context }, // Shallow copy
+      movementVector: pointerState.delta,
+      startPosition: pointerState.startPosition
+    }
+  }
+
+  private activateLengthInputForLastMovement(): void {
+    if (!this.toolState.lastMovement) return
+
+    const config: LengthInputConfig = {
+      position: this.calculateEntityScreenPosition(),
+      showImmediately: false, // Wait for user typing
+      onCommit: (distance: Length) => this.applyLastMovementWithNewDistance(distance),
+      onCancel: () => {
+        // Keep length input ready for more modifications
+      }
+    }
+
+    activateLengthInput(config)
+  }
+
+  private calculateEntityScreenPosition(): { x: number; y: number } {
+    const lastMovement = this.toolState.lastMovement
+    if (!lastMovement) {
+      return { x: 100, y: 100 }
+    }
+
+    // Calculate the final position after the last movement
+    const finalPosition = add(lastMovement.startPosition, lastMovement.movementVector)
+
+    // TODO: Convert stage coordinates to screen coordinates
+    // For now, just use the stage coordinates directly
+    // In a real implementation, this would need to account for stage transform
+    return { x: finalPosition[0], y: finalPosition[1] }
+  }
+
+  private applyLastMovementWithNewDistance(distance: Length): boolean {
+    const lastMovement = this.toolState.lastMovement
+    if (!lastMovement) return false
+
+    // Refresh entity context in case entity has moved
+    const refreshedContext = this.refreshContextFromLast(lastMovement)
+    if (!refreshedContext) return false
+
+    // Calculate direction from stored movement vector
+    const direction = normalize(lastMovement.movementVector)
+
+    // Handle negative distances by reversing direction
+    if (distance < 0) {
+      const reversedDirection = scale(direction, -1)
+      const positiveDistance = Math.abs(distance) as Length
+      return this.applyDirectionalMovement(
+        lastMovement.startPosition,
+        reversedDirection,
+        positiveDistance,
+        refreshedContext
+      )
+    }
+
+    return this.applyDirectionalMovement(lastMovement.startPosition, direction, distance, refreshedContext)
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private refreshContextFromLast(lastMovement: LastMovementRecord): MovementContext<any> | null {
+    const { behavior, context } = lastMovement
+
+    try {
+      // Refresh entity data in case it changed
+      const freshEntity = behavior.getEntity(context.entityId, context.parentIds, context.store)
+
+      return {
+        ...context,
+        entity: freshEntity
+      }
+    } catch (error) {
+      console.warn('Failed to refresh movement context:', error)
+      return null
+    }
+  }
+
+  private applyDirectionalMovement(
+    origin: Vec2,
+    direction: Vec2,
+    distance: Length,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    context: MovementContext<any>
+  ): boolean {
+    const lastMovement = this.toolState.lastMovement
+    if (!lastMovement) return false
+
+    const { behavior } = lastMovement
+
+    // Use the behavior's directional movement method if available
+    if (behavior.applyDirectionalMovement) {
+      const success = behavior.applyDirectionalMovement(origin, direction, distance, context)
+
+      if (success) {
+        // Update last movement with new distance
+        this.updateLastMovementDistance(distance, direction)
+      }
+
+      return success
+    }
+
+    // Fallback: calculate target position and use normal movement workflow
+    const target = add(origin, scale(direction, distance))
+    const mockPointerState: PointerMovementState = {
+      startPosition: origin,
+      currentPosition: target,
+      delta: subtract(target, origin)
+    }
+
+    const movementState = behavior.constrainAndSnap(mockPointerState, context)
+    const isValid = behavior.validatePosition(movementState, context)
+
+    if (isValid) {
+      const success = behavior.commitMovement(movementState, context)
+      if (success) {
+        this.updateLastMovementDistance(distance, direction)
+      }
+      return success
+    }
+
+    return false
+  }
+
+  private updateLastMovementDistance(distance: Length, direction: Vec2): void {
+    if (this.toolState.lastMovement) {
+      this.toolState.lastMovement.movementVector = scale(direction, distance)
+    }
   }
 
   // For overlay component to access state

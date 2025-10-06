@@ -8,8 +8,8 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { PerimeterMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterMovementPreview'
-import type { Vec2 } from '@/shared/geometry'
-import { add } from '@/shared/geometry'
+import type { Length, Vec2 } from '@/shared/geometry'
+import { add, scale } from '@/shared/geometry'
 import { arePolygonsIntersecting } from '@/shared/geometry/polygon'
 
 export interface PerimeterMovementState {
@@ -67,5 +67,33 @@ export class PerimeterMovementBehavior implements MovementBehavior<Perimeter, Pe
   commitMovement(movementState: PerimeterMovementState, context: MovementContext<Perimeter>): boolean {
     const wallId = context.entity.id
     return context.store.movePerimeter(wallId, movementState.offset)
+  }
+
+  applyDirectionalMovement(
+    _origin: Vec2,
+    direction: Vec2,
+    distance: Length,
+    context: MovementContext<Perimeter>
+  ): boolean {
+    // Calculate movement offset
+    const offset = scale(direction, distance)
+
+    // Validate the movement by checking intersections
+    const previewBoundary = context.entity.corners.map(corner => add(corner.insidePoint, offset))
+
+    // Get other walls on the same floor
+    const currentWall = context.entity
+    const allWalls = context.store.getPerimetersByStorey(currentWall.storeyId)
+    const otherWalls = allWalls.filter(wall => wall.id !== currentWall.id)
+
+    // Check for intersections with other wall polygons
+    for (const otherWall of otherWalls) {
+      if (arePolygonsIntersecting({ points: previewBoundary }, { points: otherWall.corners.map(c => c.insidePoint) })) {
+        return false
+      }
+    }
+
+    // Apply the movement
+    return context.store.movePerimeter(context.entity.id, offset)
   }
 }

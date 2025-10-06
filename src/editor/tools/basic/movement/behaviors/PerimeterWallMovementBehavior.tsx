@@ -8,7 +8,7 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { PerimeterWallMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterWallMovementPreview'
-import { type Vec2, add, dot, scale } from '@/shared/geometry'
+import { type Length, type Vec2, add, dot, scale } from '@/shared/geometry'
 import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
 // Wall wall movement needs access to the wall to update the boundary
@@ -97,5 +97,34 @@ export class PerimeterWallMovementBehavior
     context: MovementContext<PerimeterWallEntityContext>
   ): boolean {
     return context.store.updatePerimeterBoundary(context.entity.perimeter.id, movementState.newBoundary)
+  }
+
+  applyDirectionalMovement(
+    _origin: Vec2,
+    direction: Vec2,
+    distance: Length,
+    context: MovementContext<PerimeterWallEntityContext>
+  ): boolean {
+    const { perimeter, wall, wallIndex } = context.entity
+
+    // Project the movement direction onto the wall's outside direction
+    const projectedDistance = dot(direction, wall.outsideDirection) * distance
+    const projectedDelta = scale(wall.outsideDirection, projectedDistance)
+
+    // Create new boundary by moving both wall endpoints
+    const newBoundary = perimeter.corners.map(c => c.insidePoint)
+    newBoundary[wallIndex] = add(perimeter.corners[wallIndex].insidePoint, projectedDelta)
+    newBoundary[(wallIndex + 1) % perimeter.corners.length] = add(
+      perimeter.corners[(wallIndex + 1) % perimeter.corners.length].insidePoint,
+      projectedDelta
+    )
+
+    // Validate the new boundary
+    if (wouldClosingPolygonSelfIntersect(newBoundary)) {
+      return false
+    }
+
+    // Commit the movement
+    return context.store.updatePerimeterBoundary(perimeter.id, newBoundary)
   }
 }

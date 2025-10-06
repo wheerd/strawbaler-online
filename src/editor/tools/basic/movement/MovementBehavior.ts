@@ -4,7 +4,7 @@ import type { SelectableId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import type { SnappingService } from '@/editor/services/snapping/SnappingService'
 import type { SnapResult } from '@/editor/services/snapping/types'
-import type { Vec2 } from '@/shared/geometry'
+import type { Length, Vec2 } from '@/shared/geometry'
 
 export interface MovementContext<T> {
   entityId: SelectableId
@@ -50,4 +50,8 @@ export interface MovementBehavior<TEntity, TState> {
 
   // Commit movement using slice operations
   commitMovement(movementState: TState, context: MovementContext<TEntity>): boolean
+
+  // Apply movement in a specific direction with given distance
+  // Used for length input to reapply last movement with new distance
+  applyDirectionalMovement?(origin: Vec2, direction: Vec2, distance: Length, context: MovementContext<TEntity>): boolean
 }

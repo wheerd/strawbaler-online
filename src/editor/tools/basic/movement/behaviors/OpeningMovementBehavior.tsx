@@ -8,7 +8,7 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { OpeningMovementPreview } from '@/editor/tools/basic/movement/previews/OpeningMovementPreview'
-import type { Length } from '@/shared/geometry'
+import type { Length, Vec2 } from '@/shared/geometry'
 import { add, createLength, dot, scale, subtract } from '@/shared/geometry'
 
 // Opening movement needs access to the wall, wall, and opening
@@ -110,6 +110,37 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
     // Update opening position
     context.store.updatePerimeterWallOpening(perimeter.id, wall.id, opening.id, {
       offsetFromStart: movementState.newOffset
+    })
+
+    return true
+  }
+
+  applyDirectionalMovement(
+    _origin: Vec2,
+    direction: Vec2,
+    distance: Length,
+    context: MovementContext<OpeningEntityContext>
+  ): boolean {
+    const { perimeter, wall, opening } = context.entity
+
+    // Project movement direction onto wall direction
+    const wallDirection = wall.direction
+    const projectedDistance = dot(direction, wallDirection) * distance
+
+    // Calculate new offset from current position
+    const currentOffset = opening.offsetFromStart
+    const newOffset = createLength(Math.max(0, currentOffset + projectedDistance))
+
+    // Validate the new position
+    if (
+      !context.store.isPerimeterWallOpeningPlacementValid(perimeter.id, wall.id, newOffset, opening.width, opening.id)
+    ) {
+      return false
+    }
+
+    // Apply the movement
+    context.store.updatePerimeterWallOpening(perimeter.id, wall.id, opening.id, {
+      offsetFromStart: newOffset
     })
 
     return true

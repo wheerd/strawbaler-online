@@ -9,8 +9,8 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { PerimeterCornerMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterCornerMovementPreview'
-import type { LineSegment2D, Vec2 } from '@/shared/geometry'
-import { add, wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
+import type { Length, LineSegment2D, Vec2 } from '@/shared/geometry'
+import { add, scale, wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
 
 // Corner movement needs access to the wall to update the boundary
 export interface CornerEntityContext {
@@ -105,6 +105,34 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
 
   commitMovement(movementState: CornerMovementState, context: MovementContext<CornerEntityContext>): boolean {
     return context.store.updatePerimeterBoundary(context.entity.wall.id, movementState.newBoundary)
+  }
+
+  applyDirectionalMovement(
+    origin: Vec2,
+    direction: Vec2,
+    distance: Length,
+    context: MovementContext<CornerEntityContext>
+  ): boolean {
+    const { wall, cornerIndex, snapContext } = context.entity
+
+    // Calculate target position
+    const targetPosition = add(origin, scale(direction, distance))
+
+    // Apply snapping to the target position
+    const snapResult = context.snappingService.findSnapResult(targetPosition, snapContext)
+    const finalPosition = snapResult?.position || targetPosition
+
+    // Create new boundary with updated corner position
+    const newBoundary = wall.corners.map(c => c.insidePoint)
+    newBoundary[cornerIndex] = finalPosition
+
+    // Validate the new boundary
+    if (newBoundary.length < 3 || wouldClosingPolygonSelfIntersect(newBoundary)) {
+      return false
+    }
+
+    // Commit the movement
+    return context.store.updatePerimeterBoundary(wall.id, newBoundary)
   }
 
   private getSnapLines(wall: Perimeter, cornerIndex: number): LineSegment2D[] {
