@@ -2222,8 +2222,6 @@ describe('OuterWallsSlice', () => {
           height: createLength(2100)
         })
 
-        console.log(perimeter.walls[0])
-
         store.actions.addPerimeterWallOpening(perimeter.id, perimeter.walls[1].id, {
           type: 'window',
           offsetFromStart: createLength(300),

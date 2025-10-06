@@ -5,24 +5,34 @@ import type { Length } from '@/shared/geometry'
  * Convert a length value from millimeters to the specified unit for display
  */
 export function lengthToDisplayValue(lengthMm: Length, unit: LengthUnit, precision: number): string {
-  const value = Math.round(lengthMm)
+  let value
 
   switch (unit) {
     case 'mm': {
-      return value.toString()
+      value = Math.round(lengthMm)
+      break
     }
     case 'cm': {
-      const cm = value / 10
-      return cm.toFixed(precision)
+      value = Math.round(lengthMm) / 10
+      break
     }
     case 'm': {
-      const m = value / 1000
-      return m.toFixed(precision)
+      value = Math.round(lengthMm) / 1000
+      break
     }
     default: {
       throw new Error(`Unsupported unit: ${unit}`)
     }
   }
+
+  const formatted = value.toFixed(precision)
+
+  // Remove trailing zeros after decimal point, but keep at least one decimal if there was one
+  if (formatted.includes('.')) {
+    return formatted.replace(/\.?0+$/, '')
+  }
+
+  return formatted
 }
 
 /**

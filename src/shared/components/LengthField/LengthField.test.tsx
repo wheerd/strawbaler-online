@@ -21,11 +21,11 @@ describe('LengthField', () => {
       expect(screen.getByText('mm')).toBeInTheDocument()
     })
 
-    it('displays cm values with 1 decimal place', () => {
+    it('displays cm values', () => {
       render(<LengthField value={1250 as Length} onChange={mockOnChange} unit="cm" />)
 
       const input = screen.getByRole('textbox')
-      expect(input).toHaveValue('125.0')
+      expect(input).toHaveValue('125')
       expect(screen.getByText('cm')).toBeInTheDocument()
     })
 

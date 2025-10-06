@@ -1,17 +1,6 @@
 import { InfoCircledIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import {
-  Box,
-  Button,
-  Callout,
-  Flex,
-  Grid,
-  SegmentedControl,
-  Separator,
-  Text,
-  TextField,
-  Tooltip
-} from '@radix-ui/themes'
+import { Box, Button, Callout, Flex, Grid, SegmentedControl, Separator, Text, Tooltip } from '@radix-ui/themes'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { OpeningId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
@@ -19,9 +8,9 @@ import type { OpeningType } from '@/building/model/model'
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { usePerimeterConstructionMethodById } from '@/construction/config/store'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
+import { LengthField } from '@/shared/components/LengthField'
 import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/components/OpeningIcons'
 import { createLength } from '@/shared/geometry'
-import { useDebouncedNumericInput } from '@/shared/hooks/useDebouncedInput'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import { OpeningPreview } from './OpeningPreview'
@@ -120,82 +109,6 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
       }
     },
     [constructionMethod, dimensionInputMode]
-  )
-
-  // Debounced input handlers for numeric values
-  const widthInput = useDebouncedNumericInput(
-    getDisplayValue(opening?.width || 0, 'width'),
-    useCallback(
-      (value: number) => {
-        const fittingValue = convertToFittingValue(value, 'width')
-        updateOpening(perimeterId, wallId, openingId, { width: createLength(fittingValue) })
-      },
-      [updateOpening, perimeterId, wallId, openingId, convertToFittingValue]
-    ),
-    {
-      debounceMs: 300,
-      min: dimensionInputMode === 'fitting' ? 100 : 50, // Allow smaller finished dimensions
-      max: 5000,
-      step: 10
-    }
-  )
-
-  const heightInput = useDebouncedNumericInput(
-    getDisplayValue(opening?.height || 0, 'height'),
-    useCallback(
-      (value: number) => {
-        const fittingValue = convertToFittingValue(value, 'height')
-        updateOpening(perimeterId, wallId, openingId, { height: createLength(fittingValue) })
-      },
-      [updateOpening, perimeterId, wallId, openingId, convertToFittingValue]
-    ),
-    {
-      debounceMs: 300,
-      min: dimensionInputMode === 'fitting' ? 100 : 50, // Allow smaller finished dimensions
-      max: 4000,
-      step: 10
-    }
-  )
-
-  const sillHeightInput = useDebouncedNumericInput(
-    getDisplayValue(opening?.sillHeight || 0, 'sillHeight'),
-    useCallback(
-      (value: number) => {
-        const fittingValue = convertToFittingValue(value, 'sillHeight')
-        updateOpening(perimeterId, wallId, openingId, {
-          sillHeight: fittingValue === 0 ? undefined : createLength(fittingValue)
-        })
-      },
-      [updateOpening, perimeterId, wallId, openingId, convertToFittingValue]
-    ),
-    {
-      debounceMs: 300,
-      min: 0,
-      max: 2000,
-      step: 10
-    }
-  )
-
-  // Calculate top height (sill height + opening height)
-  const currentTopHeight = (opening?.sillHeight || 0) + (opening?.height || 0)
-
-  const topHeightInput = useDebouncedNumericInput(
-    getDisplayValue(currentTopHeight, 'topHeight'),
-    useCallback(
-      (value: number) => {
-        const fittingTopHeight = convertToFittingValue(value, 'topHeight')
-        const currentSillHeight = opening?.sillHeight || 0
-        const newOpeningHeight = Math.max(100, fittingTopHeight - currentSillHeight)
-        updateOpening(perimeterId, wallId, openingId, { height: createLength(newOpeningHeight) })
-      },
-      [updateOpening, perimeterId, wallId, openingId, convertToFittingValue, opening?.sillHeight]
-    ),
-    {
-      debounceMs: 300,
-      min: Math.max(opening?.sillHeight || 0, 100), // Cannot be less than sill height, minimum 100
-      max: 5000,
-      step: 10
-    }
   )
 
   // If opening not found, show error
@@ -330,27 +243,21 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           </Label.Root>
 
           {/* Row 1, Column 2: Width Input */}
-          <TextField.Root
-            id="opening-width"
-            type="number"
-            value={widthInput.value.toString()}
-            onChange={e => widthInput.handleChange(e.target.value)}
-            onBlur={() => {
-              widthInput.handleBlur()
-              setFocusedField(undefined)
+          <LengthField
+            value={createLength(getDisplayValue(opening?.width || 0, 'width'))}
+            onChange={value => {
+              const fittingValue = convertToFittingValue(value, 'width')
+              updateOpening(perimeterId, wallId, openingId, { width: createLength(fittingValue) })
             }}
-            onFocus={() => setFocusedField('width')}
-            onKeyDown={widthInput.handleKeyDown}
-            min="100"
-            max="5000"
-            step="10"
+            unit="cm"
+            min={createLength(dimensionInputMode === 'fitting' ? 100 : 50)}
+            max={createLength(5000)}
+            step={createLength(100)}
             size="1"
-            style={{ textAlign: 'right', width: '80px' }}
-          >
-            <TextField.Slot side="right" pl="1">
-              mm
-            </TextField.Slot>
-          </TextField.Root>
+            style={{ width: '80px' }}
+            onFocus={() => setFocusedField('width')}
+            onBlur={() => setFocusedField(undefined)}
+          />
 
           {/* Row 1, Column 3: Height Label */}
           <Label.Root htmlFor="opening-height">
@@ -360,27 +267,21 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           </Label.Root>
 
           {/* Row 1, Column 4: Height Input */}
-          <TextField.Root
-            id="opening-height"
-            type="number"
-            value={heightInput.value.toString()}
-            onChange={e => heightInput.handleChange(e.target.value)}
-            onBlur={() => {
-              heightInput.handleBlur()
-              setFocusedField(undefined)
+          <LengthField
+            value={createLength(getDisplayValue(opening?.height || 0, 'height'))}
+            onChange={value => {
+              const fittingValue = convertToFittingValue(value, 'height')
+              updateOpening(perimeterId, wallId, openingId, { height: createLength(fittingValue) })
             }}
-            onFocus={() => setFocusedField('height')}
-            onKeyDown={heightInput.handleKeyDown}
-            min="100"
-            max="4000"
-            step="10"
+            unit="cm"
+            min={createLength(dimensionInputMode === 'fitting' ? 100 : 50)}
+            max={createLength(4000)}
+            step={createLength(100)}
             size="1"
-            style={{ textAlign: 'right', width: '80px' }}
-          >
-            <TextField.Slot side="right" pl="1">
-              mm
-            </TextField.Slot>
-          </TextField.Root>
+            style={{ width: '80px' }}
+            onFocus={() => setFocusedField('height')}
+            onBlur={() => setFocusedField(undefined)}
+          />
 
           {/* Row 2, Column 1: Sill Height Label */}
           <Label.Root htmlFor="opening-sill-height">
@@ -390,27 +291,23 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           </Label.Root>
 
           {/* Row 2, Column 2: Sill Height Input */}
-          <TextField.Root
-            id="opening-sill-height"
-            type="number"
-            value={sillHeightInput.value.toString()}
-            onChange={e => sillHeightInput.handleChange(e.target.value)}
-            onBlur={() => {
-              sillHeightInput.handleBlur()
-              setFocusedField(undefined)
+          <LengthField
+            value={createLength(getDisplayValue(opening?.sillHeight || 0, 'sillHeight'))}
+            onChange={value => {
+              const fittingValue = convertToFittingValue(value, 'sillHeight')
+              updateOpening(perimeterId, wallId, openingId, {
+                sillHeight: fittingValue === 0 ? undefined : createLength(fittingValue)
+              })
             }}
-            onFocus={() => setFocusedField('sillHeight')}
-            onKeyDown={sillHeightInput.handleKeyDown}
-            min="0"
-            max="2000"
-            step="10"
+            unit="cm"
+            min={createLength(0)}
+            max={createLength(2000)}
+            step={createLength(100)}
             size="1"
-            style={{ textAlign: 'right', width: '80px' }}
-          >
-            <TextField.Slot side="right" pl="1">
-              mm
-            </TextField.Slot>
-          </TextField.Root>
+            style={{ width: '80px' }}
+            onFocus={() => setFocusedField('sillHeight')}
+            onBlur={() => setFocusedField(undefined)}
+          />
 
           {/* Row 2, Column 3: Top Height Label */}
           <Label.Root htmlFor="opening-top-height">
@@ -420,27 +317,23 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           </Label.Root>
 
           {/* Row 2, Column 4: Top Height Input */}
-          <TextField.Root
-            id="opening-top-height"
-            type="number"
-            value={topHeightInput.value.toString()}
-            onChange={e => topHeightInput.handleChange(e.target.value)}
-            onBlur={() => {
-              topHeightInput.handleBlur()
-              setFocusedField(undefined)
+          <LengthField
+            value={createLength(getDisplayValue((opening?.sillHeight || 0) + (opening?.height || 0), 'topHeight'))}
+            onChange={value => {
+              const fittingTopHeight = convertToFittingValue(value, 'topHeight')
+              const currentSillHeight = opening?.sillHeight || 0
+              const newOpeningHeight = Math.max(100, fittingTopHeight - currentSillHeight)
+              updateOpening(perimeterId, wallId, openingId, { height: createLength(newOpeningHeight) })
             }}
-            onFocus={() => setFocusedField('topHeight')}
-            onKeyDown={topHeightInput.handleKeyDown}
-            min={Math.max(opening?.sillHeight || 0, 100)}
-            max="5000"
-            step="10"
+            unit="cm"
+            min={createLength(Math.max(opening?.sillHeight || 0, 100))}
+            max={createLength(5000)}
+            step={createLength(100)}
             size="1"
-            style={{ textAlign: 'right', width: '80px' }}
-          >
-            <TextField.Slot side="right" pl="1">
-              mm
-            </TextField.Slot>
-          </TextField.Root>
+            style={{ width: '80px' }}
+            onFocus={() => setFocusedField('topHeight')}
+            onBlur={() => setFocusedField(undefined)}
+          />
         </Grid>
       </Flex>
 
