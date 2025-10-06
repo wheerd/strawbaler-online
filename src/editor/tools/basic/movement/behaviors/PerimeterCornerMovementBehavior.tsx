@@ -6,6 +6,7 @@ import type { SnapResult, SnappingContext } from '@/editor/services/snapping/typ
 import type {
   MovementBehavior,
   MovementContext,
+  MovementState,
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { PerimeterCornerMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterCornerMovementPreview'
@@ -21,8 +22,9 @@ export interface CornerEntityContext {
 }
 
 // Corner movement state
-export interface CornerMovementState {
+export interface CornerMovementState extends MovementState {
   position: Vec2
+  movementDelta: Vec2 // The 2D movement delta
   snapResult?: SnapResult
   newBoundary: Vec2[]
 }
@@ -60,7 +62,7 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
   }
 
   initializeState(
-    _pointerState: PointerMovementState,
+    pointerState: PointerMovementState,
     context: MovementContext<CornerEntityContext>
   ): CornerMovementState {
     const { wall, cornerIndex } = context.entity
@@ -69,6 +71,7 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
 
     return {
       position: boundaryPoint,
+      movementDelta: pointerState.delta,
       newBoundary
     }
   }
@@ -90,6 +93,7 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
 
     return {
       position: finalPosition,
+      movementDelta: pointerState.delta,
       snapResult: snapResult ?? undefined,
       newBoundary
     }
@@ -105,6 +109,25 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
 
   commitMovement(movementState: CornerMovementState, context: MovementContext<CornerEntityContext>): boolean {
     return context.store.updatePerimeterBoundary(context.entity.wall.id, movementState.newBoundary)
+  }
+
+  applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<CornerEntityContext>): boolean {
+    const { wall, cornerIndex } = context.entity
+
+    const currentPosition = wall.corners[cornerIndex].insidePoint
+    const newPosition = add(currentPosition, deltaDifference)
+
+    // Create new boundary with updated corner position
+    const newBoundary = wall.corners.map(c => c.insidePoint)
+    newBoundary[cornerIndex] = newPosition
+
+    // Validate the new boundary
+    if (wouldClosingPolygonSelfIntersect(newBoundary)) {
+      return false
+    }
+
+    // Commit the movement
+    return context.store.updatePerimeterBoundary(wall.id, newBoundary)
   }
 
   private getSnapLines(wall: Perimeter, cornerIndex: number): LineSegment2D[] {

@@ -5,6 +5,7 @@ import type { StoreActions } from '@/building/store/types'
 import type {
   MovementBehavior,
   MovementContext,
+  MovementState,
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { PerimeterWallMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterWallMovementPreview'
@@ -18,9 +19,9 @@ export interface PerimeterWallEntityContext {
   wallIndex: number // Index of the wall in the wall
 }
 
-// Wall wall movement state - just the projected delta along perpendicular
-export interface PerimeterWallMovementState {
-  projectedDelta: Vec2
+// Wall wall movement state - projected delta along perpendicular
+export interface PerimeterWallMovementState extends MovementState {
+  movementDelta: Vec2 // The projected delta (perpendicular to wall)
   newBoundary: Vec2[]
 }
 
@@ -65,7 +66,7 @@ export class PerimeterWallMovementBehavior
       perimeter.corners[(wallIndex + 1) % perimeter.corners.length].insidePoint,
       projectedDelta
     )
-    return { projectedDelta, newBoundary }
+    return { movementDelta: projectedDelta, newBoundary }
   }
 
   constrainAndSnap(
@@ -82,7 +83,7 @@ export class PerimeterWallMovementBehavior
       perimeter.corners[(wallIndex + 1) % perimeter.corners.length].insidePoint,
       projectedDelta
     )
-    return { projectedDelta, newBoundary }
+    return { movementDelta: projectedDelta, newBoundary }
   }
 
   validatePosition(
@@ -97,5 +98,29 @@ export class PerimeterWallMovementBehavior
     context: MovementContext<PerimeterWallEntityContext>
   ): boolean {
     return context.store.updatePerimeterBoundary(context.entity.perimeter.id, movementState.newBoundary)
+  }
+
+  applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<PerimeterWallEntityContext>): boolean {
+    const { perimeter, wall, wallIndex } = context.entity
+
+    // Project delta difference onto wall's perpendicular direction
+    const projectedDistance = dot(deltaDifference, wall.outsideDirection)
+    const projectedDelta = scale(wall.outsideDirection, projectedDistance)
+
+    // Create new boundary by moving both wall endpoints by the projected delta
+    const newBoundary = perimeter.corners.map(c => c.insidePoint)
+    newBoundary[wallIndex] = add(perimeter.corners[wallIndex].insidePoint, projectedDelta)
+    newBoundary[(wallIndex + 1) % perimeter.corners.length] = add(
+      perimeter.corners[(wallIndex + 1) % perimeter.corners.length].insidePoint,
+      projectedDelta
+    )
+
+    // Validate the new boundary
+    if (wouldClosingPolygonSelfIntersect(newBoundary)) {
+      return false
+    }
+
+    // Commit the movement
+    return context.store.updatePerimeterBoundary(perimeter.id, newBoundary)
   }
 }

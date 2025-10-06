@@ -5,10 +5,11 @@ import type { StoreActions } from '@/building/store/types'
 import type {
   MovementBehavior,
   MovementContext,
+  MovementState,
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { OpeningMovementPreview } from '@/editor/tools/basic/movement/previews/OpeningMovementPreview'
-import type { Length } from '@/shared/geometry'
+import type { Length, Vec2 } from '@/shared/geometry'
 import { add, createLength, dot, scale, subtract } from '@/shared/geometry'
 
 // Opening movement needs access to the wall, wall, and opening
@@ -19,8 +20,9 @@ export interface OpeningEntityContext {
 }
 
 // Opening movement state tracks offset changes along the wall
-export interface OpeningMovementState {
+export interface OpeningMovementState extends MovementState {
   newOffset: Length
+  movementDelta: Vec2 // [offsetChange, 0] format for simplicity
 }
 
 export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityContext, OpeningMovementState> {
@@ -48,8 +50,10 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
     context: MovementContext<OpeningEntityContext>
   ): OpeningMovementState {
     const { opening } = context.entity
+
     return {
-      newOffset: opening.offsetFromStart
+      newOffset: opening.offsetFromStart,
+      movementDelta: [0, 0] // Store as [1D_change, 0]
     }
   }
 
@@ -89,7 +93,8 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
         : createLength(Math.max(0, signedOffset)) // Clamp to non-negative only if no snap
 
     return {
-      newOffset: finalOffset
+      newOffset: finalOffset,
+      movementDelta: [finalOffset - opening.offsetFromStart, 0]
     }
   }
 
@@ -110,6 +115,27 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
     // Update opening position
     context.store.updatePerimeterWallOpening(perimeter.id, wall.id, opening.id, {
       offsetFromStart: movementState.newOffset
+    })
+
+    return true
+  }
+
+  applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<OpeningEntityContext>): boolean {
+    const { perimeter, wall, opening } = context.entity
+
+    // Use deltaDifference[0] as the offset change (1D movement along wall)
+    const newOffset = createLength(opening.offsetFromStart + deltaDifference[0])
+
+    // Validate the new position
+    if (
+      !context.store.isPerimeterWallOpeningPlacementValid(perimeter.id, wall.id, newOffset, opening.width, opening.id)
+    ) {
+      return false
+    }
+
+    // Apply the movement
+    context.store.updatePerimeterWallOpening(perimeter.id, wall.id, opening.id, {
+      offsetFromStart: newOffset
     })
 
     return true
