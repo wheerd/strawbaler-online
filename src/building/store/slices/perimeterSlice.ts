@@ -168,7 +168,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           id: createPerimeterCornerId(),
           insidePoint: point,
           outsidePoint: createVec2(0, 0), // Will be calculated by updatePerimeterGeometry
-          constuctedByWall: 'next',
+          constructedByWall: 'next',
           interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
           exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
         }))
@@ -310,7 +310,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           id: createPerimeterCornerId(),
           insidePoint: splitPoint,
           outsidePoint: createVec2(0, 0), // Will be calculated by updatePerimeterGeometry
-          constuctedByWall: 'next',
+          constructedByWall: 'next',
           interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
           exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
         }
@@ -451,7 +451,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
 
         const cornerIndex = perimeter.corners.findIndex(c => c.id === cornerId)
         if (cornerIndex !== -1) {
-          perimeter.corners[cornerIndex].constuctedByWall = constructedByWall
+          perimeter.corners[cornerIndex].constructedByWall = constructedByWall
         }
       })
     },

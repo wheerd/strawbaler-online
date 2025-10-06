@@ -44,23 +44,31 @@ export function calculateWallCornerInfo(wall: PerimeterWall, context: WallContex
     distance(wall.outsideLine.start, startCorner.outsidePoint) - previousMethod.layers.outsideThickness
   const innerStartExtension =
     distance(wall.insideLine.start, startCorner.insidePoint) - previousMethod.layers.insideThickness
-  const startExtended = startCorner.constuctedByWall === 'next'
-  const startExtension = Math.max(outerStartExtension, innerStartExtension) as Length
-  const appliedStartExtension = startExtended
-    ? startExtension
-    : startExtension === outerStartExtension
-      ? previousMethod.layers.insideThickness
-      : previousMethod.layers.outsideThickness
+  const startExtended = startCorner.constructedByWall === 'next'
+  const startExtension =
+    startCorner.exteriorAngle === 180 ? (0 as Length) : (Math.max(outerStartExtension, innerStartExtension) as Length)
+  const appliedStartExtension =
+    startCorner.exteriorAngle === 180
+      ? (0 as Length)
+      : startExtended
+        ? startExtension
+        : startExtension === outerStartExtension
+          ? previousMethod.layers.insideThickness
+          : previousMethod.layers.outsideThickness
 
   const outerEndExtension = distance(wall.outsideLine.end, endCorner.outsidePoint) - nextMethod.layers.outsideThickness
   const innerEndExtension = distance(wall.insideLine.end, endCorner.insidePoint) - nextMethod.layers.insideThickness
-  const endExtended = endCorner.constuctedByWall === 'previous'
-  const endExtension = Math.max(outerEndExtension, innerEndExtension) as Length
-  const appliedEndExtension = endExtended
-    ? endExtension
-    : endExtension === outerEndExtension
-      ? nextMethod.layers.insideThickness
-      : nextMethod.layers.outsideThickness
+  const endExtended = endCorner.constructedByWall === 'previous'
+  const endExtension =
+    endCorner.exteriorAngle === 180 ? (0 as Length) : (Math.max(outerEndExtension, innerEndExtension) as Length)
+  const appliedEndExtension =
+    endCorner.exteriorAngle === 180
+      ? (0 as Length)
+      : endExtended
+        ? endExtension
+        : endExtension === outerEndExtension
+          ? nextMethod.layers.insideThickness
+          : nextMethod.layers.outsideThickness
 
   const constructionLength = (wall.wallLength + appliedStartExtension + appliedEndExtension) as Length
 

@@ -139,6 +139,9 @@ export function* segmentedWallConstruction(
   const z = bottomPlateHeight
   const sizeZ = wallHeight - bottomPlateHeight - topPlateHeight
 
+  const standAtWallStart = wallContext.startCorner.exteriorAngle !== 180 || cornerInfo.startCorner.constructedByThisWall
+  const standAtWallEnd = wallContext.endCorner.exteriorAngle !== 180 || cornerInfo.endCorner.constructedByThisWall
+
   yield yieldMeasurement({
     startPoint: [-extensionStart, y, z],
     endPoint: [-extensionStart + constructionLength, y, z],
@@ -148,7 +151,13 @@ export function* segmentedWallConstruction(
 
   if (wall.openings.length === 0) {
     // No openings - just one wall segment for the entire length
-    yield* wallConstruction([-extensionStart, y, z], [constructionLength, sizeY, sizeZ], true, true, extensionEnd > 0)
+    yield* wallConstruction(
+      [-extensionStart, y, z],
+      [constructionLength, sizeY, sizeZ],
+      standAtWallStart,
+      standAtWallEnd,
+      extensionEnd > 0
+    )
     return
   }
 
@@ -172,7 +181,7 @@ export function* segmentedWallConstruction(
       yield* wallConstruction(
         [currentPosition, y, z],
         [wallSegmentWidth, sizeY, sizeZ],
-        true,
+        currentPosition !== -extensionStart || standAtWallStart,
         true,
         currentPosition > 0
       )
@@ -195,7 +204,13 @@ export function* segmentedWallConstruction(
   // Create final wall segment if there's remaining space
   if (currentPosition < constructionLength - extensionStart) {
     const remainingWidth = (constructionLength - currentPosition - extensionStart) as Length
-    yield* wallConstruction([currentPosition, y, z], [remainingWidth, sizeY, sizeZ], true, true, currentPosition > 0)
+    yield* wallConstruction(
+      [currentPosition, y, z],
+      [remainingWidth, sizeY, sizeZ],
+      true,
+      standAtWallEnd,
+      currentPosition > 0
+    )
 
     yield yieldMeasurement({
       startPoint: [currentPosition, y, z],

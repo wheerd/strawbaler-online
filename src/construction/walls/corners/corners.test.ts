@@ -58,7 +58,7 @@ function createMockCorner(
     id: id as any,
     insidePoint: createVec2(insidePoint[0], insidePoint[1]),
     outsidePoint: createVec2(outsidePoint[0], outsidePoint[1]),
-    constuctedByWall: constructedByWall,
+    constructedByWall,
     interiorAngle: 90, // Default angle for testing
     exteriorAngle: 270 // Default angle for testing
   }

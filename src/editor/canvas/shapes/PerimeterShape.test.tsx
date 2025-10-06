@@ -102,7 +102,7 @@ describe('PerimeterShape', () => {
         id: createPerimeterCornerId(),
         insidePoint: createVec2(0, 0),
         outsidePoint: createVec2(1400, -400),
-        constuctedByWall: 'next',
+        constructedByWall: 'next',
         interiorAngle: 90,
         exteriorAngle: 270
       },
@@ -110,7 +110,7 @@ describe('PerimeterShape', () => {
         id: createPerimeterCornerId(),
         insidePoint: createVec2(1000, 0),
         outsidePoint: createVec2(1400, 1400),
-        constuctedByWall: 'previous',
+        constructedByWall: 'previous',
         interiorAngle: 90,
         exteriorAngle: 270
       },
@@ -118,7 +118,7 @@ describe('PerimeterShape', () => {
         id: createPerimeterCornerId(),
         insidePoint: createVec2(1000, 1000),
         outsidePoint: createVec2(-400, 1400),
-        constuctedByWall: 'next',
+        constructedByWall: 'next',
         interiorAngle: 90,
         exteriorAngle: 270
       },
@@ -126,7 +126,7 @@ describe('PerimeterShape', () => {
         id: createPerimeterCornerId(),
         insidePoint: createVec2(0, 1000),
         outsidePoint: createVec2(-400, -400),
-        constuctedByWall: 'previous',
+        constructedByWall: 'previous',
         interiorAngle: 90,
         exteriorAngle: 270
       }

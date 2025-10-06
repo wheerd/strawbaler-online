@@ -76,11 +76,11 @@ function* _constructFullRingBeam(
     )
 
     const previousEdge =
-      startCorner?.constuctedByWall === 'previous'
+      startCorner?.constructedByWall === 'previous'
         ? lineFromPoints(beamOutsidePolygon[previousStart], beamOutsidePolygon[currentStart])
         : lineFromPoints(beamInsidePolygon[previousStart], beamInsidePolygon[currentStart])
     const nextEdge =
-      endCorner?.constuctedByWall === 'next'
+      endCorner?.constructedByWall === 'next'
         ? lineFromPoints(beamOutsidePolygon[currentEnd], beamOutsidePolygon[nextEnd])
         : lineFromPoints(beamInsidePolygon[currentEnd], beamInsidePolygon[nextEnd])
     const insideEdge = lineFromPoints(beamInsidePolygon[currentStart], beamInsidePolygon[currentEnd])

@@ -39,7 +39,7 @@ describe('PerimeterCornerShape', () => {
     id: createPerimeterCornerId(),
     insidePoint: createVec2(100, 100),
     outsidePoint: createVec2(120, 120),
-    constuctedByWall: 'next',
+    constructedByWall: 'next',
     interiorAngle: interiorAngleDegrees,
     exteriorAngle: 360 - interiorAngleDegrees
   })

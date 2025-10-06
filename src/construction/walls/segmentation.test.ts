@@ -125,7 +125,7 @@ describe('segmentedWallConstruction', () => {
         id: 'start' as any,
         insidePoint: createVec2(0, 0),
         outsidePoint: createVec2(0, 300),
-        constuctedByWall: 'next',
+        constructedByWall: 'next',
         interiorAngle: 90,
         exteriorAngle: 270
       },
@@ -133,7 +133,7 @@ describe('segmentedWallConstruction', () => {
         id: 'end' as any,
         insidePoint: createVec2(3000, 0),
         outsidePoint: createVec2(3000, 300),
-        constuctedByWall: 'previous',
+        constructedByWall: 'previous',
         interiorAngle: 90,
         exteriorAngle: 270
       },

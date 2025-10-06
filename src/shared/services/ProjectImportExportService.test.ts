@@ -16,10 +16,10 @@ const mockActions = {
     {
       id: 'perimeter_1',
       corners: [
-        { id: 'corner_1', insidePoint: [0, 0], constuctedByWall: 'next' },
-        { id: 'corner_2', insidePoint: [100, 0], constuctedByWall: 'next' },
-        { id: 'corner_3', insidePoint: [100, 100], constuctedByWall: 'next' },
-        { id: 'corner_4', insidePoint: [0, 100], constuctedByWall: 'next' }
+        { id: 'corner_1', insidePoint: [0, 0], constructedByWall: 'next' },
+        { id: 'corner_2', insidePoint: [100, 0], constructedByWall: 'next' },
+        { id: 'corner_3', insidePoint: [100, 100], constructedByWall: 'next' },
+        { id: 'corner_4', insidePoint: [0, 100], constructedByWall: 'next' }
       ],
       walls: [
         {

@@ -32,15 +32,15 @@ export function PerimeterCornerShape({
   ]
   const polygonArray = cornerPolygon.flatMap(point => [point[0], point[1]])
 
-  const arrowDir = corner.constuctedByWall === 'previous' ? previousWall.direction : scale(nextWall.direction, -1)
+  const arrowDir = corner.constructedByWall === 'previous' ? previousWall.direction : scale(nextWall.direction, -1)
   const arrowCenter =
-    corner.constuctedByWall === 'previous'
+    corner.constructedByWall === 'previous'
       ? midpoint(previousWall.insideLine.end, previousWall.outsideLine.end)
       : midpoint(nextWall.insideLine.start, nextWall.outsideLine.start)
   const arrowStart = add(arrowCenter, scale(arrowDir, -60))
   const arrowEnd = add(arrowCenter, scale(arrowDir, 90))
 
-  const constructingWall = corner.constuctedByWall === 'previous' ? previousWall : nextWall
+  const constructingWall = corner.constructedByWall === 'previous' ? previousWall : nextWall
   const constructionMethod = usePerimeterConstructionMethodById(constructingWall.constructionMethodId)
   const cornerColor =
     constructionMethod?.config.type === 'non-strawbale' ? COLORS.materials.other : COLORS.materials.strawbale

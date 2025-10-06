@@ -98,7 +98,7 @@ describe('OuterWallsSlice', () => {
       // Check corners have correct properties
       perimeter.corners.forEach(corner => {
         expect(corner.id).toBeTruthy()
-        expect(corner.constuctedByWall).toBe('next') // Default
+        expect(corner.constructedByWall).toBe('next') // Default
         expect(corner.outsidePoint).toBeTruthy()
       })
     })
@@ -241,7 +241,7 @@ describe('OuterWallsSlice', () => {
         expect(corner.outsidePoint).toBeDefined()
         expect(typeof corner.outsidePoint[0]).toBe('number')
         expect(typeof corner.outsidePoint[1]).toBe('number')
-        expect(corner.constuctedByWall).toMatch(/^(previous|next)$/)
+        expect(corner.constructedByWall).toMatch(/^(previous|next)$/)
       })
     })
   })
@@ -378,7 +378,7 @@ describe('OuterWallsSlice', () => {
       const updatedPerimeter = store.perimeters[perimeter.id]!
       // Corner IDs should be preserved when thickness changes
       const updatedCorner = updatedPerimeter.corners.find((c: any) => c.id === cornerId)!
-      expect(updatedCorner.constuctedByWall).toBe('previous') // Should be preserved
+      expect(updatedCorner.constructedByWall).toBe('previous') // Should be preserved
       expect(updatedCorner.id).toBe(cornerId) // ID should be preserved
     })
 
@@ -435,7 +435,7 @@ describe('OuterWallsSlice', () => {
 
       const updatedPerimeter = store.perimeters[perimeter.id]!
       const updatedCorner = updatedPerimeter.corners.find((c: any) => c.id === cornerId)!
-      expect(updatedCorner.constuctedByWall).toBe('previous')
+      expect(updatedCorner.constructedByWall).toBe('previous')
     })
 
     it('should preserve other corner properties', () => {
@@ -1137,7 +1137,7 @@ describe('OuterWallsSlice', () => {
 
       expect(updatedWall.openings).toHaveLength(2)
       expect(updatedWall.constructionMethodId).toBe(newMethodId)
-      expect(updatedCorner.constuctedByWall).toBe('previous')
+      expect(updatedCorner.constructedByWall).toBe('previous')
 
       // Update opening
       store.actions.updatePerimeterWallOpening(perimeter.id, wallId, doorId, {
@@ -1298,7 +1298,7 @@ describe('OuterWallsSlice', () => {
       const originalPerimeter = Object.values(store.perimeters)[0]
       const originalWallIds = originalPerimeter.walls.map((s: any) => s.id)
       const originalCornerIds = originalPerimeter.corners.map((c: any) => c.id)
-      const originalConstructedByWall = originalPerimeter.corners.map((c: any) => c.constuctedByWall)
+      const originalConstructedByWall = originalPerimeter.corners.map((c: any) => c.constructedByWall)
 
       // Update thickness of a wall that creates reflex angle
       const targetWallId = originalWallIds[2]
@@ -1309,7 +1309,7 @@ describe('OuterWallsSlice', () => {
       // Verify IDs are preserved
       expect(updatedPerimeter.walls.map((s: any) => s.id)).toEqual(originalWallIds)
       expect(updatedPerimeter.corners.map((c: any) => c.id)).toEqual(originalCornerIds)
-      expect(updatedPerimeter.corners.map((c: any) => c.constuctedByWall)).toEqual(originalConstructedByWall)
+      expect(updatedPerimeter.corners.map((c: any) => c.constructedByWall)).toEqual(originalConstructedByWall)
 
       // Verify the specific wall was updated
       const updatedWall = updatedPerimeter.walls.find((s: any) => s.id === targetWallId)!

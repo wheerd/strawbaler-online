@@ -152,7 +152,7 @@ describe('ProjectImportExportService Integration', () => {
 
           expect(importedCorner.insidePoint[0]).toBeCloseTo(originalCorner.insidePoint[0], 0)
           expect(importedCorner.insidePoint[1]).toBeCloseTo(originalCorner.insidePoint[1], 0)
-          expect(importedCorner.constuctedByWall).toBe(originalCorner.constuctedByWall)
+          expect(importedCorner.constructedByWall).toBe(originalCorner.constructedByWall)
         }
 
         // Compare walls (excluding IDs)

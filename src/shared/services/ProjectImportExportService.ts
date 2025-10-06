@@ -20,7 +20,7 @@ export interface ExportedPerimeter {
 export interface ExportedCorner {
   insideX: number
   insideY: number
-  constuctedByWall: 'previous' | 'next'
+  constructedByWall: 'previous' | 'next'
 }
 
 export interface ExportedWall {
@@ -103,7 +103,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           corners: perimeter.corners.map(corner => ({
             insideX: corner.insidePoint[0],
             insideY: corner.insidePoint[1],
-            constuctedByWall: corner.constuctedByWall
+            constructedByWall: corner.constructedByWall
           })),
           walls: perimeter.walls.map(wall => ({
             thickness: Number(wall.thickness),
@@ -227,7 +227,11 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           // 7. Update corner properties - auto-recomputes outsidePoints
           exportedPerimeter.corners.forEach((exportedCorner, cornerIndex) => {
             const cornerId = perimeter.corners[cornerIndex].id
-            modelActions.updatePerimeterCornerConstructedByWall(perimeter.id, cornerId, exportedCorner.constuctedByWall)
+            modelActions.updatePerimeterCornerConstructedByWall(
+              perimeter.id,
+              cornerId,
+              exportedCorner.constructedByWall
+            )
           })
         })
       })

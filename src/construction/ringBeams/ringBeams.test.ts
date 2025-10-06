@@ -33,7 +33,7 @@ function createMockCorner(
     id: id as any,
     insidePoint: createVec2(insidePoint[0], insidePoint[1]),
     outsidePoint: createVec2(0, 0), // Not used in ring beam construction
-    constuctedByWall: constructedByWall,
+    constructedByWall,
     interiorAngle: 90, // Default angle for testing
     exteriorAngle: 270 // Default angle for testing
   }

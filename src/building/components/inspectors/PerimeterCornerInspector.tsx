@@ -57,9 +57,9 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
 
   // Event handlers with stable references
   const handleToggleConstructedByWall = useCallback(() => {
-    const newConstructedByWall = corner.constuctedByWall === 'previous' ? 'next' : 'previous'
+    const newConstructedByWall = corner.constructedByWall === 'previous' ? 'next' : 'previous'
     updateCornerConstructedByWall(perimeterId, cornerId, newConstructedByWall)
-  }, [updateCornerConstructedByWall, perimeterId, cornerId, corner.constuctedByWall])
+  }, [updateCornerConstructedByWall, perimeterId, cornerId, corner.constructedByWall])
 
   const handleMergeCorner = useCallback(() => {
     if (removePerimeterCorner(perimeterId, cornerId)) {

@@ -48,9 +48,6 @@ export interface MovementBehavior<TEntity, TState> {
   // Preview component for rendering movement state
   previewComponent: React.ComponentType<MovementPreviewComponentProps<TEntity, TState>>
 
-  // Generate preview with full state (deprecated - use previewComponent instead)
-  generatePreview?(movementState: TState, isValid: boolean, context: MovementContext<TEntity>): React.ReactNode[]
-
   // Commit movement using slice operations
   commitMovement(movementState: TState, context: MovementContext<TEntity>): boolean
 }
