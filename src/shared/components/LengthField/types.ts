@@ -4,7 +4,10 @@ export type LengthUnit = 'mm' | 'cm' | 'm'
 
 export interface LengthFieldProps {
   value: Length
-  onChange: (value: Length) => void
+
+  // Event handlers - dual event system
+  onChange?: (value: Length) => void // Fires during typing for valid values
+  onCommit?: (value: Length) => void // Fires on blur/enter with final value
 
   // Fixed unit display
   unit: LengthUnit
@@ -46,5 +49,6 @@ export interface LengthFieldOptions {
   precision?: number
   min?: Length
   max?: Length
-  debounceMs?: number
+  onChange?: (value: Length) => void
+  onCommit?: (value: Length) => void
 }

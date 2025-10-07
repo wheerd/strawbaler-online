@@ -32,6 +32,7 @@ export const LengthField = forwardRef<HTMLInputElement, LengthFieldProps>(functi
   {
     value,
     onChange,
+    onCommit,
     unit,
     step,
     precision,
@@ -48,11 +49,13 @@ export const LengthField = forwardRef<HTMLInputElement, LengthFieldProps>(functi
   },
   ref
 ) {
-  const fieldState = useLengthFieldState(value, onChange, unit, {
+  const fieldState = useLengthFieldState(value, unit, {
     step,
     precision,
     min,
-    max
+    max,
+    onChange,
+    onCommit
   })
 
   const { displayValue, handleChange, handleBlur, handleKeyDown, stepUp, stepDown, isValid, canStepUp, canStepDown } =

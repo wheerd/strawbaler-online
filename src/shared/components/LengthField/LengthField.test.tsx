@@ -7,14 +7,16 @@ import { LengthField } from './LengthField'
 
 describe('LengthField', () => {
   const mockOnChange = vi.fn()
+  const mockOnCommit = vi.fn()
 
   beforeEach(() => {
     mockOnChange.mockClear()
+    mockOnCommit.mockClear()
   })
 
   describe('unit display and conversion', () => {
     it('displays mm values correctly', () => {
-      render(<LengthField value={1250 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={1250 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const input = screen.getByRole('textbox')
       expect(input).toHaveValue('1250')
@@ -22,7 +24,7 @@ describe('LengthField', () => {
     })
 
     it('displays cm values', () => {
-      render(<LengthField value={1250 as Length} onChange={mockOnChange} unit="cm" />)
+      render(<LengthField value={1250 as Length} onCommit={mockOnCommit} unit="cm" />)
 
       const input = screen.getByRole('textbox')
       expect(input).toHaveValue('125')
@@ -30,7 +32,7 @@ describe('LengthField', () => {
     })
 
     it('displays m values with 1 decimal place', () => {
-      render(<LengthField value={1250 as Length} onChange={mockOnChange} unit="m" />)
+      render(<LengthField value={1250 as Length} onCommit={mockOnCommit} unit="m" />)
 
       const input = screen.getByRole('textbox')
       expect(input).toHaveValue('1.3')
@@ -40,7 +42,7 @@ describe('LengthField', () => {
 
   describe('input validation', () => {
     it('allows valid numeric input', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const input = screen.getByRole('textbox')
       fireEvent.change(input, { target: { value: '250' } })
@@ -49,7 +51,7 @@ describe('LengthField', () => {
     })
 
     it('blocks invalid characters', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const input = screen.getByRole('textbox')
 
@@ -63,7 +65,7 @@ describe('LengthField', () => {
     })
 
     it('allows decimal points for cm and m units', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="cm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="cm" />)
 
       const input = screen.getByRole('textbox')
       fireEvent.change(input, { target: { value: '12.5' } })
@@ -73,7 +75,7 @@ describe('LengthField', () => {
 
     it('shows validation state for out-of-bounds values', () => {
       render(
-        <LengthField value={100 as Length} onChange={mockOnChange} unit="mm" min={50 as Length} max={200 as Length} />
+        <LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" min={50 as Length} max={200 as Length} />
       )
 
       const input = screen.getByRole('textbox')
@@ -91,54 +93,54 @@ describe('LengthField', () => {
 
   describe('spinner buttons', () => {
     it('renders up and down spinner buttons', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const buttons = screen.getAllByRole('button')
       expect(buttons).toHaveLength(2)
     })
 
     it('increments value when up button is clicked', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const buttons = screen.getAllByRole('button')
       const upButton = buttons[0]
 
       fireEvent.click(upButton)
 
-      expect(mockOnChange).toHaveBeenCalledWith(101)
+      expect(mockOnCommit).toHaveBeenCalledWith(101)
     })
 
     it('decrements value when down button is clicked', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const buttons = screen.getAllByRole('button')
       const downButton = buttons[1]
 
       fireEvent.click(downButton)
 
-      expect(mockOnChange).toHaveBeenCalledWith(99)
+      expect(mockOnCommit).toHaveBeenCalledWith(99)
     })
 
     it('uses correct step sizes for different units', () => {
       // Test cm unit (default step: 10mm = 1cm)
-      const { rerender } = render(<LengthField value={100 as Length} onChange={mockOnChange} unit="cm" />)
+      const { rerender } = render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="cm" />)
 
       const buttons = screen.getAllByRole('button')
       fireEvent.click(buttons[0])
 
-      expect(mockOnChange).toHaveBeenCalledWith(110) // 100 + 10mm
+      expect(mockOnCommit).toHaveBeenCalledWith(110) // 100 + 10mm
 
-      mockOnChange.mockClear()
+      mockOnCommit.mockClear()
 
       // Test m unit (default step: 100mm = 0.1m)
-      rerender(<LengthField value={1000 as Length} onChange={mockOnChange} unit="m" />)
+      rerender(<LengthField value={1000 as Length} onCommit={mockOnCommit} unit="m" />)
 
       fireEvent.click(buttons[0])
-      expect(mockOnChange).toHaveBeenCalledWith(1100) // 1000 + 100mm
+      expect(mockOnCommit).toHaveBeenCalledWith(1100) // 1000 + 100mm
     })
 
     it('respects min/max bounds', () => {
-      render(<LengthField value={5 as Length} onChange={mockOnChange} unit="mm" min={5 as Length} max={10 as Length} />)
+      render(<LengthField value={5 as Length} onCommit={mockOnCommit} unit="mm" min={5 as Length} max={10 as Length} />)
 
       const buttons = screen.getAllByRole('button')
       const upButton = buttons[0]
@@ -146,47 +148,47 @@ describe('LengthField', () => {
 
       // Should not go below min
       fireEvent.click(downButton)
-      expect(mockOnChange).not.toHaveBeenCalled()
+      expect(mockOnCommit).not.toHaveBeenCalled()
 
       // Should increment normally
       fireEvent.click(upButton)
-      expect(mockOnChange).toHaveBeenCalledWith(6)
+      expect(mockOnCommit).toHaveBeenCalledWith(6)
     })
   })
 
   describe('keyboard navigation', () => {
     it('increments on ArrowUp key', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const input = screen.getByRole('textbox')
       fireEvent.keyDown(input, { key: 'ArrowUp' })
 
-      expect(mockOnChange).toHaveBeenCalledWith(101)
+      expect(mockOnCommit).toHaveBeenCalledWith(101)
     })
 
     it('decrements on ArrowDown key', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const input = screen.getByRole('textbox')
       fireEvent.keyDown(input, { key: 'ArrowDown' })
 
-      expect(mockOnChange).toHaveBeenCalledWith(99)
+      expect(mockOnCommit).toHaveBeenCalledWith(99)
     })
 
     it('uses 10x step with Shift modifier', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const input = screen.getByRole('textbox')
       fireEvent.keyDown(input, { key: 'ArrowUp', shiftKey: true })
 
-      expect(mockOnChange).toHaveBeenCalledWith(110) // 100 + (1 * 10)
+      expect(mockOnCommit).toHaveBeenCalledWith(110) // 100 + (1 * 10)
     })
 
     it('uses 0.1x step with Ctrl modifier', () => {
       render(
         <LengthField
           value={100 as Length}
-          onChange={mockOnChange}
+          onCommit={mockOnCommit}
           unit="cm"
           step={10 as Length} // 1cm step for cm unit
         />
@@ -195,11 +197,11 @@ describe('LengthField', () => {
       const input = screen.getByRole('textbox')
       fireEvent.keyDown(input, { key: 'ArrowUp', ctrlKey: true })
 
-      expect(mockOnChange).toHaveBeenCalledWith(101) // 100 + max(1, 10 * 0.1) = 100 + 1
+      expect(mockOnCommit).toHaveBeenCalledWith(101) // 100 + max(1, 10 * 0.1) = 100 + 1
     })
 
     it('handles escape key to revert changes', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const input = screen.getByRole('textbox')
 
@@ -210,11 +212,11 @@ describe('LengthField', () => {
       // Press escape
       fireEvent.keyDown(input, { key: 'Escape' })
       expect(input).toHaveValue('100')
-      expect(mockOnChange).not.toHaveBeenCalled()
+      expect(mockOnCommit).not.toHaveBeenCalled()
     })
 
     it('handles enter key to commit changes', () => {
-      render(<LengthField value={100 as Length} onChange={mockOnChange} unit="mm" />)
+      render(<LengthField value={100 as Length} onCommit={mockOnCommit} unit="mm" />)
 
       const input = screen.getByRole('textbox')
 
@@ -224,7 +226,7 @@ describe('LengthField', () => {
 
       // Press enter
       fireEvent.keyDown(input, { key: 'Enter' })
-      expect(mockOnChange).toHaveBeenCalledWith(150)
+      expect(mockOnCommit).toHaveBeenCalledWith(150)
     })
   })
 
@@ -257,7 +259,7 @@ describe('LengthField', () => {
   })
 
   describe('user experience behavior', () => {
-    it('allows free editing while typing without onChange calls', () => {
+    it('calls onChange on typing only when within bounds', () => {
       render(
         <LengthField value={100 as Length} onChange={mockOnChange} unit="mm" min={50 as Length} max={200 as Length} />
       )
@@ -272,7 +274,8 @@ describe('LengthField', () => {
       // Continue typing
       fireEvent.change(input, { target: { value: '50' } })
       expect(input).toHaveValue('50')
-      expect(mockOnChange).not.toHaveBeenCalled()
+      expect(mockOnChange).toHaveBeenCalledWith(50)
+      mockOnChange.mockClear()
 
       // Type a value that would exceed max
       fireEvent.change(input, { target: { value: '500' } })

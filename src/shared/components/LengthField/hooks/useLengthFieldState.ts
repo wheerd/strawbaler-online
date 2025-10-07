@@ -20,32 +20,58 @@ import type { Length } from '@/shared/geometry'
  *
  * This hook implements the following UX principles:
  * - Allow free editing while typing (no value manipulation)
- * - Only apply rounding and bounds on blur
+ * - Fire onChange during typing for valid values (live feedback)
+ * - Fire onCommit only on blur/enter with final processed value
  * - Show validation state for out-of-bounds values
+ * - Maintain separate internal/external state with proper sync
  */
 export function useLengthFieldState(
   value: Length,
-  onChange: (value: Length) => void,
   unit: LengthUnit,
   options: LengthFieldOptions = {}
 ): LengthFieldState {
-  const { step = getDefaultStepSize(unit), precision = getDefaultPrecision(unit), min, max } = options
+  const {
+    step = getDefaultStepSize(unit),
+    precision = getDefaultPrecision(unit),
+    min,
+    max,
+    onChange,
+    onCommit
+  } = options
 
   // Local input state for immediate UI updates
   const [inputValue, setInputValue] = useState<string>('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
 
+  // Track the last committed value to prevent unnecessary commits
+  const [lastCommittedValue, setLastCommittedValue] = useState<Length>(value)
+
   // Sync input value with external value changes when not editing
   useEffect(() => {
     if (!isEditing) {
       setInputValue(lengthToDisplayValue(value, unit, precision))
+      setLastCommittedValue(value)
     }
   }, [value, unit, precision, isEditing])
 
   // Initialize input value on mount
   useEffect(() => {
     setInputValue(lengthToDisplayValue(value, unit, precision))
+    setLastCommittedValue(value)
   }, []) // Only run on mount
+
+  const doCommit = useCallback(
+    (value: Length) => {
+      if (onChange) {
+        onChange(value)
+      }
+      if (onCommit && value !== lastCommittedValue) {
+        onCommit(value)
+      }
+      setLastCommittedValue(value)
+    },
+    [onChange, onCommit]
+  )
 
   // Validation function for current input
   const validateInputValue = useCallback(
@@ -65,7 +91,7 @@ export function useLengthFieldState(
     [unit, min, max]
   )
 
-  // Handle input changes - allow free editing
+  // Handle input changes - allow free editing with live onChange
   const handleChange = useCallback(
     (newValue: string) => {
       if (isValidNumericInput(newValue)) {
@@ -73,16 +99,29 @@ export function useLengthFieldState(
         if (!isEditing) {
           setIsEditing(true)
         }
+
+        // Fire onChange for valid complete numbers during typing
+        if (onChange && isCompleteNumber(newValue)) {
+          const length = displayValueToLength(newValue, unit)
+          if (length !== null) {
+            // Don't clamp for onChange - just validate bounds for visual feedback
+            const isInBounds = (min === undefined || length >= min) && (max === undefined || length <= max)
+            if (isInBounds) {
+              onChange(length)
+            }
+          }
+        }
       }
     },
-    [isEditing]
+    [isEditing, onChange, unit, min, max]
   )
 
-  // Handle blur - apply formatting, rounding, and bounds
+  // Handle blur - apply formatting, rounding, and bounds, then commit
   const handleBlur = useCallback(() => {
     if (!isEditing) return
 
     let finalValue = inputValue
+    let finalLength = value
 
     if (isCompleteNumber(inputValue)) {
       // Apply formatting (remove trailing zeros, etc.)
@@ -94,34 +133,31 @@ export function useLengthFieldState(
         const clampedLength = clampLength(length, min, max)
         const formattedValue = lengthToDisplayValue(clampedLength, unit, precision)
 
-        // Update the external value if it changed
-        if (clampedLength !== value) {
-          onChange(clampedLength)
-        }
-
-        // Update input to show the final formatted value
+        finalLength = clampedLength
         finalValue = formattedValue
       }
     } else {
       // Invalid or incomplete input - revert to current value
       finalValue = lengthToDisplayValue(value, unit, precision)
+      finalLength = value
     }
 
+    doCommit(finalLength)
     setInputValue(finalValue)
     setIsEditing(false)
-  }, [inputValue, isEditing, unit, precision, min, max, value, onChange])
+  }, [inputValue, isEditing, unit, precision, min, max, value, doCommit])
 
   // Step up function
   const stepUp = useCallback(() => {
     const newValue = clampLength((value + step) as Length, min, max)
-    onChange(newValue)
-  }, [value, step, min, max, onChange])
+    doCommit(newValue)
+  }, [value, step, min, max, doCommit])
 
   // Step down function
   const stepDown = useCallback(() => {
     const newValue = clampLength((value - step) as Length, min, max)
-    onChange(newValue)
-  }, [value, step, min, max, onChange])
+    doCommit(newValue)
+  }, [value, step, min, max, doCommit])
 
   // Keyboard handler with arrow key support
   const handleKeyDown = useCallback(
@@ -133,12 +169,12 @@ export function useLengthFieldState(
             // Shift + Arrow: 10x step
             const largeStep = (step * 10) as Length
             const newValue = clampLength((value + largeStep) as Length, min, max)
-            onChange(newValue)
+            doCommit(newValue)
           } else if (e.ctrlKey || e.metaKey) {
             // Ctrl + Arrow: 0.1x step (minimum 1mm)
             const smallStep = Math.max(1, Math.round(step * 0.1)) as Length
             const newValue = clampLength((value + smallStep) as Length, min, max)
-            onChange(newValue)
+            doCommit(newValue)
           } else {
             stepUp()
           }
@@ -149,12 +185,12 @@ export function useLengthFieldState(
             // Shift + Arrow: 10x step
             const largeStep = (step * 10) as Length
             const newValue = clampLength((value - largeStep) as Length, min, max)
-            onChange(newValue)
+            doCommit(newValue)
           } else if (e.ctrlKey || e.metaKey) {
             // Ctrl + Arrow: 0.1x step (minimum 1mm)
             const smallStep = Math.max(1, Math.round(step * 0.1)) as Length
             const newValue = clampLength((value - smallStep) as Length, min, max)
-            onChange(newValue)
+            doCommit(newValue)
           } else {
             stepDown()
           }
@@ -173,7 +209,7 @@ export function useLengthFieldState(
           break
       }
     },
-    [value, step, min, max, onChange, stepUp, stepDown, handleBlur, unit, precision]
+    [value, step, min, max, doCommit, stepUp, stepDown, handleBlur, unit, precision]
   )
 
   // Check if stepping is possible

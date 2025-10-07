@@ -245,7 +245,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           {/* Row 1, Column 2: Width Input */}
           <LengthField
             value={createLength(getDisplayValue(opening?.width || 0, 'width'))}
-            onChange={value => {
+            onCommit={value => {
               const fittingValue = convertToFittingValue(value, 'width')
               updateOpening(perimeterId, wallId, openingId, { width: createLength(fittingValue) })
             }}
@@ -269,7 +269,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           {/* Row 1, Column 4: Height Input */}
           <LengthField
             value={createLength(getDisplayValue(opening?.height || 0, 'height'))}
-            onChange={value => {
+            onCommit={value => {
               const fittingValue = convertToFittingValue(value, 'height')
               updateOpening(perimeterId, wallId, openingId, { height: createLength(fittingValue) })
             }}
@@ -293,7 +293,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           {/* Row 2, Column 2: Sill Height Input */}
           <LengthField
             value={createLength(getDisplayValue(opening?.sillHeight || 0, 'sillHeight'))}
-            onChange={value => {
+            onCommit={value => {
               const fittingValue = convertToFittingValue(value, 'sillHeight')
               updateOpening(perimeterId, wallId, openingId, {
                 sillHeight: fittingValue === 0 ? undefined : createLength(fittingValue)
@@ -319,7 +319,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           {/* Row 2, Column 4: Top Height Input */}
           <LengthField
             value={createLength(getDisplayValue((opening?.sillHeight || 0) + (opening?.height || 0), 'topHeight'))}
-            onChange={value => {
+            onCommit={value => {
               const fittingTopHeight = convertToFittingValue(value, 'topHeight')
               const currentSillHeight = opening?.sillHeight || 0
               const newOpeningHeight = Math.max(100, fittingTopHeight - currentSillHeight)
