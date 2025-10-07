@@ -22,7 +22,9 @@ export function FloorPlanEditor(): React.JSX.Element {
     (event: KeyboardEvent) => {
       // Don't intercept keyboard events when user is typing in input fields
       const target = event.target as HTMLElement
-      const isInputElement = target.matches('input, select, button, textarea, [contenteditable="true"]')
+      const isInputElement = target.matches(
+        'input[type=text], input[type=number], select, textarea, [contenteditable="true"]'
+      )
 
       if (isInputElement) {
         return // Let the input handle the event normally
