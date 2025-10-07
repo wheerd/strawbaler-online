@@ -71,7 +71,7 @@ function* placeStrawhengeSegments(
     ]
     const moduleSize: Vec3 = [module.width, size[1], size[2]]
 
-    yield* constructModule(modulePosition, moduleSize, module, resolveMaterial)
+    yield* yieldAsGroup(constructModule(modulePosition, moduleSize, module, resolveMaterial), [TAG_MODULE])
 
     const remainingPosition: Vec3 = [atStart ? modulePosition[0] + module.width : position[0], position[1], position[2]]
     const remainingSize: Vec3 = [size[0] - strawSize[0] - module.width, size[1], size[2]]
@@ -102,7 +102,7 @@ export function* strawhengeWallArea(
   }
 
   if (size[0] === oneModule) {
-    yield* constructModule(position, size, module, resolveMaterial)
+    yield* yieldAsGroup(constructModule(position, size, module, resolveMaterial), [TAG_MODULE])
     return
   }
 
@@ -127,7 +127,7 @@ export function* strawhengeWallArea(
       const remainingPosition: Vec3 = [position[0] + oneModule, position[1], position[2]]
       const remainingSize: Vec3 = [size[0] - oneModule, size[1], size[2]]
 
-      yield* constructModule(modulePosition, moduleSize, module, resolveMaterial)
+      yield* yieldAsGroup(constructModule(modulePosition, moduleSize, module, resolveMaterial), [TAG_MODULE])
       yield* infillWallArea(remainingPosition, remainingSize, infill, resolveMaterial, false, true, true)
     }
     return
@@ -140,7 +140,7 @@ export function* strawhengeWallArea(
   if (startsWithStand) {
     const modulePosition: Vec3 = [left, position[1], position[2]]
     const moduleSize: Vec3 = [oneModule, size[1], size[2]]
-    yield* constructModule(modulePosition, moduleSize, module, resolveMaterial)
+    yield* yieldAsGroup(constructModule(modulePosition, moduleSize, module, resolveMaterial), [TAG_MODULE])
     left += oneModule
     width -= oneModule
   }
@@ -149,7 +149,7 @@ export function* strawhengeWallArea(
   if (endsWithStand) {
     const modulePosition: Vec3 = [position[0] + size[0] - oneModule, position[1], position[2]]
     const moduleSize: Vec3 = [oneModule, size[1], size[2]]
-    yield* constructModule(modulePosition, moduleSize, module, resolveMaterial)
+    yield* yieldAsGroup(constructModule(modulePosition, moduleSize, module, resolveMaterial), [TAG_MODULE])
     width -= oneModule
   }
 

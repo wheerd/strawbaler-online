@@ -1,4 +1,4 @@
-import { Box, Button, Flex, SegmentedControl } from '@radix-ui/themes'
+import { Box, Button, Card, Flex, SegmentedControl } from '@radix-ui/themes'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Measurements } from '@/construction/components/Measurements'
@@ -203,32 +203,35 @@ export function ConstructionPlan({
       </SVGViewport>
 
       {/* Overlay controls in top-left corner */}
-      <Box position="absolute" top="3" left="3" p="1" className="z-10 shadow-md bg-panel rounded-2">
-        <Flex direction="column" gap="2">
-          {/* View selector - only show if multiple views */}
-          {views.length > 1 && (
-            <SegmentedControl.Root
-              value={currentViewIndex.toString()}
-              onValueChange={value => setCurrentViewIndex(parseInt(value, 10))}
-              size="1"
-            >
-              {views.map((viewOption, index) => (
-                <SegmentedControl.Item key={index} value={index.toString()}>
-                  {viewOption.label}
-                </SegmentedControl.Item>
-              ))}
-            </SegmentedControl.Root>
-          )}
 
-          {/* Mid-cut toggle */}
-          <Button
-            variant={midCutEnabled ? 'solid' : 'outline'}
-            size="1"
-            onClick={() => setMidCutEnabled(!midCutEnabled)}
-          >
-            Mid Cut
-          </Button>
-        </Flex>
+      <Box position="absolute" top="3" left="3" className="z-10">
+        <Card size="1" variant="surface" className="shadow-md">
+          <Flex direction="column" gap="2" m="-2">
+            {/* View selector - only show if multiple views */}
+            {views.length > 1 && (
+              <SegmentedControl.Root
+                value={currentViewIndex.toString()}
+                onValueChange={value => setCurrentViewIndex(parseInt(value, 10))}
+                size="1"
+              >
+                {views.map((viewOption, index) => (
+                  <SegmentedControl.Item key={index} value={index.toString()}>
+                    {viewOption.label}
+                  </SegmentedControl.Item>
+                ))}
+              </SegmentedControl.Root>
+            )}
+
+            {/* Mid-cut toggle */}
+            <Button
+              variant={midCutEnabled ? 'solid' : 'outline'}
+              size="1"
+              onClick={() => setMidCutEnabled(!midCutEnabled)}
+            >
+              Mid Cut
+            </Button>
+          </Flex>
+        </Card>
       </Box>
     </div>
   )

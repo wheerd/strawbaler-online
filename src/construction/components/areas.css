@@ -52,3 +52,8 @@
 .mid-cut-enabled .construction-group.above-cut {
   display: none;
 }
+
+g.tag__construction_module {
+  outline: solid 30px var(--accent-a8);
+  outline-offset: -30px;
+}

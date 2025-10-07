@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createConstructionElement, createCuboidShape } from '@/construction/elements'
-import type { ConstructionElement } from '@/construction/elements'
 import type { Material } from '@/construction/materials/material'
 import { constructStraw } from '@/construction/materials/straw'
 import { aggregateResults, yieldElement } from '@/construction/results'
@@ -29,9 +28,6 @@ const mockInfillWallArea = vi.mocked(infillWallArea)
 const mockConstructModule = vi.mocked(constructModule)
 
 const mockResolveMaterial = (): Material | undefined => undefined
-
-const isConstructionElement = (item: any): item is ConstructionElement =>
-  item && typeof item === 'object' && 'material' in item
 
 // Test constants matching C# implementation
 const MODULE_WIDTH = 500 as Length
@@ -118,11 +114,11 @@ function* createMockInfillResults(position: Vec3, size: Vec3, material = 'infill
 function extractSnapshotData(results: any[]) {
   const aggregated = aggregateResults(results)
   return aggregated.elements
-    .filter(isConstructionElement)
     .map(el => ({
       position_x: el.bounds.min[0],
       size_x: el.bounds.max[0] - el.bounds.min[0],
-      type: el.material
+      material: 'material' in el ? el.material : null,
+      tags: el.tags?.map(t => t.id)
     }))
     .sort((a, b) => a.position_x - b.position_x)
 }
