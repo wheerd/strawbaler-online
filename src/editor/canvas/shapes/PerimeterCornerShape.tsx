@@ -33,12 +33,8 @@ export function PerimeterCornerShape({
   const polygonArray = cornerPolygon.flatMap(point => [point[0], point[1]])
 
   const arrowDir = corner.constructedByWall === 'previous' ? previousWall.direction : scale(nextWall.direction, -1)
-  const arrowCenter =
-    corner.constructedByWall === 'previous'
-      ? midpoint(previousWall.insideLine.end, previousWall.outsideLine.end)
-      : midpoint(nextWall.insideLine.start, nextWall.outsideLine.start)
-  const arrowStart = add(arrowCenter, scale(arrowDir, -60))
-  const arrowEnd = add(arrowCenter, scale(arrowDir, 90))
+  const arrowEnd = midpoint(corner.insidePoint, corner.outsidePoint)
+  const arrowStart = add(arrowEnd, scale(arrowDir, -180))
 
   const constructingWall = corner.constructedByWall === 'previous' ? previousWall : nextWall
   const constructionMethod = usePerimeterConstructionMethodById(constructingWall.constructionMethodId)
