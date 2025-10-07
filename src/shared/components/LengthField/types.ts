@@ -29,12 +29,13 @@ export interface LengthFieldProps {
   className?: string
   style?: React.CSSProperties
   title?: string
+  id?: string
 
   // Event handlers
   onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
 
-  children: React.ReactNode
+  children?: React.ReactNode
 }
 
 export interface LengthFieldState {

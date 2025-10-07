@@ -38,6 +38,21 @@ describe('LengthField', () => {
       expect(input).toHaveValue('1.3')
       expect(screen.getByText('m')).toBeInTheDocument()
     })
+
+    it('displays m values with configured precision', () => {
+      render(<LengthField value={1258 as Length} precision={3} onCommit={mockOnCommit} unit="m" />)
+
+      const input = screen.getByRole('textbox')
+      expect(input).toHaveValue('1.258')
+      expect(screen.getByText('m')).toBeInTheDocument()
+    })
+
+    it('does not display invalid values', () => {
+      render(<LengthField value={'invalid' as any as Length} onCommit={mockOnCommit} unit="mm" />)
+
+      const input = screen.getByRole('textbox')
+      expect(input).toHaveValue('')
+    })
   })
 
   describe('input validation', () => {

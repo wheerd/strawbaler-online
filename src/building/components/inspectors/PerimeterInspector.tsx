@@ -1,7 +1,7 @@
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { Box, Button, Callout, DataList, Flex, Heading, Select, Text, TextField, Tooltip } from '@radix-ui/themes'
-import React, { useCallback, useMemo } from 'react'
+import { Box, Button, Callout, DataList, Flex, Heading, Select, Text, Tooltip } from '@radix-ui/themes'
+import React, { useMemo } from 'react'
 
 import type { PerimeterConstructionMethodId, PerimeterId, RingBeamConstructionMethodId } from '@/building/model/ids'
 import type { PerimeterWall } from '@/building/model/model'
@@ -9,8 +9,8 @@ import { useModelActions, usePerimeterById } from '@/building/store'
 import { PerimeterConstructionPlanModal } from '@/construction/components/PerimeterConstructionPlan'
 import { RingBeamConstructionPlanModal } from '@/construction/components/RingBeamConstructionPlan'
 import { usePerimeterConstructionMethods, useRingBeamConstructionMethods } from '@/construction/config/store'
-import { type Length, calculatePolygonArea, createLength } from '@/shared/geometry'
-import { useDebouncedNumericInput } from '@/shared/hooks/useDebouncedInput'
+import { LengthField } from '@/shared/components/LengthField'
+import { type Length, calculatePolygonArea } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 interface PerimeterInspectorProps {
@@ -86,23 +86,6 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
   const thicknessState = useMemo(
     () => (perimeter ? detectMixedThickness(perimeter.walls) : { isMixed: false, value: null }),
     [perimeter?.walls]
-  )
-
-  // Create debounced thickness input for perimeter
-  const perimeterThicknessInput = useDebouncedNumericInput(
-    thicknessState.isMixed ? 0 : thicknessState.value || 0,
-    useCallback(
-      (value: number) => {
-        updateAllPerimeterWallsThickness(selectedId, createLength(value))
-      },
-      [updateAllPerimeterWallsThickness, selectedId]
-    ),
-    {
-      debounceMs: 300,
-      min: 50,
-      max: 1500,
-      step: 10
-    }
   )
 
   // If perimeter not found, show error
@@ -218,24 +201,18 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                   </Text>
                 )}
               </Label.Root>
-              <TextField.Root
+              <LengthField
                 id="perimeter-thickness"
-                type="number"
-                value={thicknessState.isMixed ? '' : perimeterThicknessInput.value.toString()}
+                value={thicknessState.value as Length}
                 placeholder={thicknessState.isMixed ? 'Mixed' : undefined}
-                onChange={e => perimeterThicknessInput.handleChange(e.target.value)}
-                onBlur={perimeterThicknessInput.handleBlur}
-                onKeyDown={perimeterThicknessInput.handleKeyDown}
-                min="50"
-                max="1500"
-                step="10"
+                onCommit={value => updateAllPerimeterWallsThickness(selectedId, value)}
+                min={50 as Length}
+                max={1500 as Length}
+                step={10 as Length}
                 size="1"
-                style={{ width: '5rem', textAlign: 'right' }}
-              >
-                <TextField.Slot side="right" pl="1">
-                  mm
-                </TextField.Slot>
-              </TextField.Root>
+                unit="cm"
+                style={{ width: '5rem' }}
+              />
             </Flex>
           </Flex>
         </Box>

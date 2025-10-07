@@ -7,6 +7,10 @@ import type { Length } from '@/shared/geometry'
 export function lengthToDisplayValue(lengthMm: Length, unit: LengthUnit, precision: number): string {
   let value
 
+  if (typeof lengthMm !== 'number' || isNaN(lengthMm) || !isFinite(lengthMm)) {
+    return ''
+  }
+
   switch (unit) {
     case 'mm': {
       value = Math.round(lengthMm)
