@@ -65,8 +65,8 @@ export function GridLayer({ width = 800, height = 600, viewport }: GridLayerProp
       <Line
         key={`v-${x}`}
         points={[x, startY, x, endY]}
-        stroke={COLORS.canvas.grid}
-        strokeWidth={strokeWidth}
+        stroke={x === 0 ? COLORS.canvas.gridVertical : COLORS.canvas.grid}
+        strokeWidth={x === 0 ? strokeWidth * 2 : strokeWidth}
         listening={false}
       />
     )
@@ -77,8 +77,8 @@ export function GridLayer({ width = 800, height = 600, viewport }: GridLayerProp
       <Line
         key={`h-${y}`}
         points={[startX, y, endX, y]}
-        stroke={COLORS.canvas.grid}
-        strokeWidth={strokeWidth}
+        stroke={y === 0 ? COLORS.canvas.gridHorizontal : COLORS.canvas.grid}
+        strokeWidth={y === 0 ? strokeWidth * 2 : strokeWidth}
         listening={false}
       />
     )

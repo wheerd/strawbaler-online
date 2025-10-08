@@ -540,14 +540,14 @@ exports[`PerimeterToolOverlay > snapping behavior > renders snap lines when snap
     >
       <div
         data-opacity="0.5"
-        data-stroke="#0066ff"
+        data-stroke="#00ff66"
         data-stroke-width="2"
         data-testid="konva-line"
         listening="false"
       />
       <div
         data-opacity="0.5"
-        data-stroke="#0066ff"
+        data-stroke="#ff0066"
         data-stroke-width="2"
         data-testid="konva-line"
         listening="false"
@@ -594,14 +594,14 @@ exports[`PerimeterToolOverlay > snapping behavior > renders snap lines when snap
     >
       <div
         data-opacity="0.5"
-        data-stroke="#0066ff"
+        data-stroke="#00ff66"
         data-stroke-width="2"
         data-testid="konva-line"
         listening="false"
       />
       <div
         data-opacity="0.5"
-        data-stroke="#0066ff"
+        data-stroke="#ff0066"
         data-stroke-width="2"
         data-testid="konva-line"
         listening="false"
@@ -684,7 +684,7 @@ exports[`PerimeterToolOverlay > zoom responsiveness > adjusts line extension bas
     >
       <div
         data-opacity="0.5"
-        data-stroke="#0066ff"
+        data-stroke="#00ff66"
         data-stroke-width="1"
         data-testid="konva-line"
         listening="false"

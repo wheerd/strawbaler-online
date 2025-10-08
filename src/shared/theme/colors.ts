@@ -24,6 +24,8 @@ export const COLORS = {
   // Canvas/Drawing & Fills
   canvas: {
     grid: '#cccccc',
+    gridVertical: '#ffaaaa',
+    gridHorizontal: '#aaffaa',
     background: '#ffffff',
     // Shape fill colors
     buildingBackground: '#aaaaaa',
@@ -42,6 +44,8 @@ export const COLORS = {
     points: '#007bff',
     pointStroke: '#ffffff',
     lines: '#0066ff',
+    linesVertical: '#ff0066',
+    linesHorizontal: '#00ff66',
     highlight: '#007bff',
     highlightStroke: '#ffffff'
   },

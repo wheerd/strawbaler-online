@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import React from 'react'
 import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
@@ -22,25 +23,30 @@ export function SnappingLines({ snapResult }: SnappingLinesProps): React.JSX.Ele
   const scaledSnapLineWidth = Math.max(1, 2 / zoom)
   const lineExtend = (Math.max(stageWidth, stageHeight) * 2) / zoom
 
-  const lines = snapResult.lines.map(l => [
-    l.point[0] - lineExtend * l.direction[0],
-    l.point[1] - lineExtend * l.direction[1],
-    l.point[0] + lineExtend * l.direction[0],
-    l.point[1] + lineExtend * l.direction[1]
-  ])
-
   return (
     <Group>
-      {lines.map((line, index) => (
-        <Line
-          key={`snap-line-${index}`}
-          points={line}
-          stroke={COLORS.snapping.lines}
-          strokeWidth={scaledSnapLineWidth}
-          opacity={0.5}
-          listening={false}
-        />
-      ))}
+      {snapResult.lines.map((line, index) => {
+        const color = vec2.equals(line.direction, [0, 1])
+          ? COLORS.snapping.linesVertical
+          : vec2.equals(line.direction, [1, 0])
+            ? COLORS.snapping.linesHorizontal
+            : COLORS.snapping.lines
+        return (
+          <Line
+            key={`snap-line-${index}`}
+            points={[
+              line.point[0] - lineExtend * line.direction[0],
+              line.point[1] - lineExtend * line.direction[1],
+              line.point[0] + lineExtend * line.direction[0],
+              line.point[1] + lineExtend * line.direction[1]
+            ]}
+            stroke={color}
+            strokeWidth={scaledSnapLineWidth}
+            opacity={0.5}
+            listening={false}
+          />
+        )
+      })}
     </Group>
   )
 }

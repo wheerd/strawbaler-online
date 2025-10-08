@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { createLength, createVec2 } from '@/shared/geometry'
@@ -289,15 +290,17 @@ describe('SnappingService', () => {
   })
 
   describe('Edge Cases', () => {
-    it('should handle empty points array', () => {
+    it('should snap to origin even if no points are in context', () => {
       const context: SnappingContext = {
         snapPoints: []
       }
 
-      const target = createVec2(100, 100)
+      const target = createVec2(50, 50)
       const result = service.findSnapResult(target, context)
 
-      expect(result).toBeNull()
+      expect(result).not.toBeNull()
+      expect(result?.position).toEqual(vec2.fromValues(0, 0))
+      expect(result?.lines).toHaveLength(2)
     })
 
     it('should handle single point', () => {
