@@ -5,6 +5,7 @@ import React, { useCallback } from 'react'
 import { StoreyManagementModal } from '@/building/components/StoreyManagementModal'
 import type { StoreyId } from '@/building/model/ids'
 import { useActiveStoreyId, useModelActions, useStoreysOrderedByLevel } from '@/building/store'
+import { clearSelection } from '@/editor/hooks/useSelectionStore'
 
 export function getLevelColor(level: number): 'grass' | 'indigo' | 'brown' {
   if (level === 0) {
@@ -28,6 +29,7 @@ export function StoreySelector(): React.JSX.Element {
     (newStoreyId: string) => {
       console.log('Changing active storey to', newStoreyId)
       setActiveStoreyId(newStoreyId as StoreyId)
+      clearSelection()
     },
     [setActiveStoreyId]
   )
