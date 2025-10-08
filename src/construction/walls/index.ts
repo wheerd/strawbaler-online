@@ -2,6 +2,7 @@ import type { NonStrawbaleConfig } from '@/construction/config/types'
 import { createConstructionElement, createCuboidShape } from '@/construction/elements'
 import type { MaterialId } from '@/construction/materials/material'
 import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
+import { constructModuleWall } from '@/construction/walls/strawhenge/all-modules'
 import { type Vec3, mergeBounds } from '@/shared/geometry'
 
 import type { ConstructionType, PerimeterWallConstructionMethod } from './construction'
@@ -64,5 +65,6 @@ export const constructNonStrawbaleWall: PerimeterWallConstructionMethod<NonStraw
 export const PERIMETER_WALL_CONSTRUCTION_METHODS: Record<ConstructionType, PerimeterWallConstructionMethod<any>> = {
   infill: constructInfillWall,
   strawhenge: constructStrawhengeWall,
+  modules: constructModuleWall,
   'non-strawbale': constructNonStrawbaleWall
 }

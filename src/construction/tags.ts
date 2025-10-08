@@ -161,6 +161,12 @@ export const TAG_WALL_LENGTH: Tag = {
   category: 'measurement'
 }
 
+export const TAG_MODULE_WIDTH: Tag = {
+  id: 'measurement_module-width',
+  label: 'Module Width',
+  category: 'measurement'
+}
+
 // Area tags
 export const TAG_PERIMETER_INSIDE: Tag = {
   id: 'area_perimeter-inside',

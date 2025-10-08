@@ -6,6 +6,7 @@ import type {
   InfillConstructionConfig,
   StrawhengeConstructionConfig
 } from '@/construction/walls'
+import type { ModulesConstructionConfig } from '@/construction/walls/strawhenge/all-modules'
 import type { Length } from '@/shared/geometry'
 
 export interface RingBeamConstructionMethod {
@@ -26,7 +27,11 @@ export interface LayersConfig {
   outsideThickness: Length
 }
 
-export type PerimeterConstructionConfig = InfillConstructionConfig | StrawhengeConstructionConfig | NonStrawbaleConfig
+export type PerimeterConstructionConfig =
+  | InfillConstructionConfig
+  | StrawhengeConstructionConfig
+  | ModulesConstructionConfig
+  | NonStrawbaleConfig
 
 export interface PerimeterConstructionMethod {
   id: PerimeterConstructionMethodId

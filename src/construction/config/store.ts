@@ -181,6 +181,60 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
     }
   },
   {
+    id: 'pwcm_module_default' as PerimeterConstructionMethodId,
+    name: 'Default Module',
+    config: {
+      type: 'modules',
+      module: {
+        width: createLength(920),
+        type: 'single',
+        frameThickness: createLength(60),
+        frameMaterial: wood360x60.id,
+        strawMaterial: strawbale.id
+      },
+      infill: {
+        type: 'infill',
+        maxPostSpacing: createLength(800),
+        minStrawSpace: createLength(70),
+        posts: {
+          type: 'full',
+          width: createLength(60),
+          material: wood360x60.id
+        },
+        openings: {
+          padding: createLength(15),
+          headerThickness: createLength(60),
+          headerMaterial: wood360x60.id,
+          sillThickness: createLength(60),
+          sillMaterial: wood360x60.id
+        },
+        straw: {
+          baleLength: createLength(800),
+          baleHeight: createLength(500),
+          baleWidth: createLength(360),
+          material: strawbale.id
+        }
+      },
+      openings: {
+        padding: createLength(15),
+        headerThickness: createLength(60),
+        headerMaterial: wood360x60.id,
+        sillThickness: createLength(60),
+        sillMaterial: wood360x60.id
+      },
+      straw: {
+        baleLength: createLength(800),
+        baleHeight: createLength(500),
+        baleWidth: createLength(360),
+        material: strawbale.id
+      }
+    },
+    layers: {
+      insideThickness: createLength(30),
+      outsideThickness: createLength(50)
+    }
+  },
+  {
     id: 'pwcm_non_strawbale_default' as PerimeterConstructionMethodId,
     name: 'Non-Strawbale Wall',
     config: {

@@ -6,7 +6,7 @@ import type { ConstructionModel } from '@/construction/model'
 import type { OpeningConstructionConfig } from '@/construction/openings/openings'
 import type { Length } from '@/shared/geometry'
 
-export type ConstructionType = 'infill' | 'strawhenge' | 'non-strawbale'
+export type ConstructionType = 'infill' | 'strawhenge' | 'non-strawbale' | 'modules'
 
 export interface BaseConstructionConfig {
   type: ConstructionType
