@@ -51,6 +51,7 @@ export interface ConfigActions {
     id: PerimeterConstructionMethodId,
     config: PerimeterConstructionConfig
   ) => void
+  updatePerimeterConstructionMethodLayers: (id: PerimeterConstructionMethodId, layers: LayersConfig) => void
 
   // Perimeter queries
   getPerimeterConstructionMethodById: (id: PerimeterConstructionMethodId) => PerimeterConstructionMethod | null
@@ -456,6 +457,23 @@ const useConfigStore = create<ConfigStore>()(
                 const updatedMethod: PerimeterConstructionMethod = {
                   ...method,
                   config
+                }
+
+                return {
+                  ...state,
+                  perimeterConstructionMethods: { ...state.perimeterConstructionMethods, [id]: updatedMethod }
+                }
+              })
+            },
+
+            updatePerimeterConstructionMethodLayers: (id: PerimeterConstructionMethodId, layers: LayersConfig) => {
+              set(state => {
+                const method = state.perimeterConstructionMethods[id]
+                if (method == null) return state
+
+                const updatedMethod: PerimeterConstructionMethod = {
+                  ...method,
+                  layers
                 }
 
                 return {

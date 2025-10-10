@@ -1,9 +1,10 @@
 import { Cross2Icon, GearIcon } from '@radix-ui/react-icons'
-import { Dialog, Flex, IconButton, Tabs, Text } from '@radix-ui/themes'
+import { Dialog, Flex, IconButton, Tabs } from '@radix-ui/themes'
 import React, { useState } from 'react'
 
 import { MaterialsConfigContent } from '@/construction/materials/components/MaterialsConfigContent'
 
+import { PerimeterConfigContent } from './PerimeterConfigContent'
 import { RingBeamConfigContent } from './RingBeamConfigContent'
 
 export interface ConfigurationModalProps {
@@ -58,13 +59,5 @@ export function ConfigurationModal({ trigger }: ConfigurationModalProps): React.
         </Tabs.Root>
       </Dialog.Content>
     </Dialog.Root>
-  )
-}
-
-function PerimeterConfigContent(): React.JSX.Element {
-  return (
-    <Flex direction="column" gap="4">
-      <Text>Perimeter Configuration - Coming Soon</Text>
-    </Flex>
   )
 }
