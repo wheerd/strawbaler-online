@@ -1,37 +1,21 @@
 import { CircleIcon, Cross2Icon, CubeIcon, LayersIcon, OpacityIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import {
-  AlertDialog,
-  Badge,
-  Button,
-  DropdownMenu,
-  Flex,
-  Grid,
-  IconButton,
-  Select,
-  Text,
-  TextField
-} from '@radix-ui/themes'
+import { AlertDialog, Badge, Button, DropdownMenu, Flex, Grid, IconButton, Text, TextField } from '@radix-ui/themes'
 import React, { useCallback, useState } from 'react'
 
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import type { Length } from '@/shared/geometry'
 
-import type { DimensionalMaterial, GenericMaterial, Material, SheetMaterial, VolumeMaterial } from '../material'
+import type {
+  DimensionalMaterial,
+  GenericMaterial,
+  Material,
+  MaterialId,
+  SheetMaterial,
+  VolumeMaterial
+} from '../material'
 import { useMaterialActions, useMaterials } from '../store'
-
-function getMaterialTypeIcon(type: Material['type']) {
-  switch (type) {
-    case 'dimensional':
-      return CubeIcon
-    case 'sheet':
-      return LayersIcon
-    case 'volume':
-      return OpacityIcon
-    case 'generic':
-      return CircleIcon
-  }
-}
+import { MaterialSelect } from './MaterialSelect'
 
 export interface MaterialsConfigModalProps {
   trigger: React.ReactNode
@@ -137,34 +121,11 @@ export function MaterialsConfigContent(): React.JSX.Element {
             <Text size="2" weight="medium">
               Material
             </Text>
-            <Select.Root value={selectedMaterialId ?? ''} onValueChange={setSelectedMaterialId}>
-              <Select.Trigger placeholder="Select material..." />
-              <Select.Content>
-                {materials.map(material => {
-                  const Icon = getMaterialTypeIcon(material.type)
-                  return (
-                    <Select.Item key={material.id} value={material.id}>
-                      <Flex align="center" gap="2">
-                        <div
-                          className="text-shadow-sm text-shadow-white"
-                          style={{
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: material.color,
-                            borderRadius: '2px',
-                            border: '1px solid var(--gray-7)',
-                            flexShrink: 0
-                          }}
-                        >
-                          <Icon />
-                        </div>
-                        <Text>{material.name}</Text>
-                      </Flex>
-                    </Select.Item>
-                  )
-                })}
-              </Select.Content>
-            </Select.Root>
+            <MaterialSelect
+              value={(selectedMaterialId ?? undefined) as MaterialId | undefined}
+              onValueChange={setSelectedMaterialId}
+              placeholder="Select material..."
+            />
           </Flex>
 
           <DropdownMenu.Root>

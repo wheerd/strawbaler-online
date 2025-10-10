@@ -20,11 +20,10 @@ import React, { useCallback, useMemo, useState } from 'react'
 import type { RingBeamConstructionMethodId } from '@/building/model/ids'
 import { usePerimeters, useStoreysOrderedByLevel } from '@/building/store'
 import { getRingBeamConfigUsage } from '@/construction/config/usage'
-import type { MaterialId } from '@/construction/materials/material'
+import { MaterialSelect } from '@/construction/materials/components/MaterialSelect'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import type { Length } from '@/shared/geometry'
 
-import { useMaterials } from '../../materials/store'
 import {
   useConfigActions,
   useDefaultBaseRingBeamMethodId,
@@ -46,7 +45,6 @@ function getRingBeamTypeIcon(type: RingBeamType) {
 
 export function RingBeamConfigContent(): React.JSX.Element {
   const ringBeamMethods = useRingBeamConstructionMethods()
-  const materials = useMaterials()
   const perimeters = usePerimeters()
   const storeys = useStoreysOrderedByLevel()
   const {
@@ -77,7 +75,7 @@ export function RingBeamConfigContent(): React.JSX.Element {
 
   const handleAddNew = useCallback(
     (type: RingBeamType) => {
-      const defaultMaterial = materials[0]?.id ?? ('' as any)
+      const defaultMaterial = '' as any
 
       let config: RingBeamConfig
       if (type === 'full') {
@@ -103,7 +101,7 @@ export function RingBeamConfigContent(): React.JSX.Element {
       const newMethod = addRingBeamConstructionMethod(`New ${type} ring beam`, config)
       setSelectedMethodId(newMethod.id)
     },
-    [addRingBeamConstructionMethod, materials]
+    [addRingBeamConstructionMethod]
   )
 
   const handleDuplicate = useCallback(() => {
@@ -266,11 +264,11 @@ export function RingBeamConfigContent(): React.JSX.Element {
           </Grid>
 
           {selectedMethod.config.type === 'full' && (
-            <FullRingBeamFields config={selectedMethod.config} onUpdate={handleUpdateConfig} materials={materials} />
+            <FullRingBeamFields config={selectedMethod.config} onUpdate={handleUpdateConfig} />
           )}
 
           {selectedMethod.config.type === 'double' && (
-            <DoubleRingBeamFields config={selectedMethod.config} onUpdate={handleUpdateConfig} materials={materials} />
+            <DoubleRingBeamFields config={selectedMethod.config} onUpdate={handleUpdateConfig} />
           )}
         </Flex>
       )}
@@ -357,12 +355,10 @@ export function RingBeamConfigContent(): React.JSX.Element {
 
 function FullRingBeamFields({
   config,
-  onUpdate,
-  materials
+  onUpdate
 }: {
   config: RingBeamConfig & { type: 'full' }
   onUpdate: (updates: Partial<RingBeamConfig>) => void
-  materials: any[]
 }) {
   return (
     <>
@@ -372,16 +368,12 @@ function FullRingBeamFields({
             Material
           </Text>
         </Label.Root>
-        <Select.Root value={config.material} onValueChange={material => onUpdate({ material: material as MaterialId })}>
-          <Select.Trigger placeholder="Select material..." />
-          <Select.Content>
-            {materials.map(material => (
-              <Select.Item key={material.id} value={material.id}>
-                {material.name}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Root>
+        <MaterialSelect
+          value={config.material}
+          onValueChange={material => onUpdate({ material })}
+          placeholder="Select material..."
+          size="2"
+        />
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
@@ -415,12 +407,10 @@ function FullRingBeamFields({
 
 function DoubleRingBeamFields({
   config,
-  onUpdate,
-  materials
+  onUpdate
 }: {
   config: RingBeamConfig & { type: 'double' }
   onUpdate: (updates: Partial<RingBeamConfig>) => void
-  materials: any[]
 }) {
   return (
     <>
@@ -430,35 +420,24 @@ function DoubleRingBeamFields({
             Material
           </Text>
         </Label.Root>
-        <Select.Root value={config.material} onValueChange={material => onUpdate({ material: material as MaterialId })}>
-          <Select.Trigger placeholder="Select material..." />
-          <Select.Content>
-            {materials.map(material => (
-              <Select.Item key={material.id} value={material.id}>
-                {material.name}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Root>
+        <MaterialSelect
+          value={config.material}
+          onValueChange={material => onUpdate({ material })}
+          placeholder="Select material..."
+          size="2"
+        />
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
             Infill Material
           </Text>
         </Label.Root>
-        <Select.Root
+        <MaterialSelect
           value={config.infillMaterial}
-          onValueChange={infillMaterial => onUpdate({ infillMaterial: infillMaterial as MaterialId })}
-        >
-          <Select.Trigger placeholder="Select infill material..." />
-          <Select.Content>
-            {materials.map(material => (
-              <Select.Item key={material.id} value={material.id}>
-                {material.name}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Root>
+          onValueChange={infillMaterial => onUpdate({ infillMaterial })}
+          placeholder="Select infill material..."
+          size="2"
+        />
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
