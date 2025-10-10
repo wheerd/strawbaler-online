@@ -36,7 +36,7 @@ export function MainToolbar(): React.JSX.Element {
                     <Tooltip
                       key={toolId}
                       content={
-                        <Flex align="center" justify="between" gap="2">
+                        <Flex align="center" justify="between" gap="2" as="span">
                           <Text>{toolInfo.name}</Text>
                           {toolInfo.hotkey && <Kbd>{toolInfo.hotkey.toUpperCase()}</Kbd>}
                         </Flex>
