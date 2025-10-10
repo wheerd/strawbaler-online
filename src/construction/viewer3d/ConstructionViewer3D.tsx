@@ -1,3 +1,4 @@
+import { Box, Card } from '@radix-ui/themes'
 import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 
@@ -5,6 +6,7 @@ import type { ConstructionModel } from '@/construction/model'
 
 import ConstructionElement3D from './components/ConstructionElement3D'
 import ConstructionGroup3D from './components/ConstructionGroup3D'
+import OpacityControlButton from './components/OpacityControlButton'
 
 interface ConstructionViewer3DProps {
   model: ConstructionModel
@@ -30,35 +32,43 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
   const gridSize = Math.max(maxSize * 3, 10000)
 
   return (
-    <Canvas
-      camera={{
-        position: [cameraThreeX, cameraThreeY, cameraThreeZ],
-        fov: 50,
-        near: 1,
-        far: maxSize * 10
-      }}
-      style={{
-        width: `${containerSize.width}px`,
-        height: `${containerSize.height}px`,
-        background: '#f0f0f0'
-      }}
-    >
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[10000, 10000, 5000]} intensity={0.8} />
-      <directionalLight position={[-10000, 5000, -5000]} intensity={0.3} />
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <Canvas
+        camera={{
+          position: [cameraThreeX, cameraThreeY, cameraThreeZ],
+          fov: 50,
+          near: 1,
+          far: maxSize * 10
+        }}
+        style={{
+          width: `${containerSize.width}px`,
+          height: `${containerSize.height}px`,
+          background: '#f0f0f0'
+        }}
+      >
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[10000, 10000, 5000]} intensity={0.8} />
+        <directionalLight position={[-10000, 5000, -5000]} intensity={0.3} />
 
-      <gridHelper args={[gridSize, 50]} position={[centerX, 0, -centerY]} />
+        <gridHelper args={[gridSize, 50]} position={[centerX, 0, -centerY]} />
 
-      {model.elements.map(element =>
-        'children' in element ? (
-          <ConstructionGroup3D key={element.id} group={element} />
-        ) : (
-          <ConstructionElement3D key={element.id} element={element} />
-        )
-      )}
+        {model.elements.map(element =>
+          'children' in element ? (
+            <ConstructionGroup3D key={element.id} group={element} />
+          ) : (
+            <ConstructionElement3D key={element.id} element={element} />
+          )
+        )}
 
-      <OrbitControls target={[centerX, centerZ, -centerY]} makeDefault />
-    </Canvas>
+        <OrbitControls target={[centerX, centerZ, -centerY]} makeDefault />
+      </Canvas>
+
+      <Box position="absolute" top="3" left="3" style={{ zIndex: 10 }}>
+        <Card size="1" variant="surface" className="shadow-md">
+          <OpacityControlButton />
+        </Card>
+      </Box>
+    </div>
   )
 }
 

@@ -7,6 +7,8 @@ import { usePerimeterById } from '@/building/store'
 import { constructPerimeter } from '@/construction/perimeter'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
+import { OpacityControlProvider } from './context/OpacityControlContext'
+
 const ConstructionViewer3D = lazy(() => import('./ConstructionViewer3D'))
 
 export interface ConstructionViewer3DModalProps {
@@ -63,7 +65,9 @@ export function ConstructionViewer3DModal({ perimeterId, trigger }: Construction
                   </Flex>
                 }
               >
-                <ConstructionViewer3D model={constructionModel} containerSize={containerSize} />
+                <OpacityControlProvider>
+                  <ConstructionViewer3D model={constructionModel} containerSize={containerSize} />
+                </OpacityControlProvider>
               </Suspense>
             ) : (
               <Flex align="center" justify="center" style={{ height: '100%' }}>

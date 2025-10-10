@@ -6,9 +6,10 @@ import type { Cuboid } from '@/construction/shapes'
 interface Cuboid3DProps {
   shape: Cuboid
   color: string
+  opacity?: number
 }
 
-function Cuboid3D({ shape, color }: Cuboid3DProps): React.JSX.Element {
+function Cuboid3D({ shape, color, opacity = 1.0 }: Cuboid3DProps): React.JSX.Element | null {
   const [x, y, z] = shape.offset
   const [w, h, d] = shape.size
 
@@ -20,10 +21,12 @@ function Cuboid3D({ shape, color }: Cuboid3DProps): React.JSX.Element {
     return new THREE.EdgesGeometry(new THREE.BoxGeometry(w, d, h), 1)
   }, [w, d, h])
 
+  if (opacity === 0) return null
+
   return (
     <mesh position={[centerThreeX, centerThreeY, centerThreeZ]}>
       <boxGeometry args={[w, d, h]} />
-      <meshStandardMaterial color={color} />
+      <meshStandardMaterial color={color} opacity={opacity} transparent depthWrite={opacity === 1.0} />
       <lineSegments geometry={edgesGeometry}>
         <lineBasicMaterial color="#000000" opacity={0.4} transparent linewidth={1} />
       </lineSegments>

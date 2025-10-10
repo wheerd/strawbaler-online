@@ -7,9 +7,10 @@ import { computeCutCuboidVertices } from '@/construction/viewer3d/utils/geometry
 interface CutCuboid3DProps {
   shape: CutCuboid
   color: string
+  opacity?: number
 }
 
-function CutCuboid3D({ shape, color }: CutCuboid3DProps): React.JSX.Element {
+function CutCuboid3D({ shape, color, opacity = 1.0 }: CutCuboid3DProps): React.JSX.Element | null {
   const geometry = useMemo(() => {
     const { vertices, indices } = computeCutCuboidVertices(shape)
     const geometry = new THREE.BufferGeometry()
@@ -20,12 +21,14 @@ function CutCuboid3D({ shape, color }: CutCuboid3DProps): React.JSX.Element {
   }, [shape])
 
   const edgesGeometry = useMemo(() => {
-    return new THREE.EdgesGeometry(geometry, 1)
+    return new THREE.EdgesGeometry(geometry)
   }, [geometry])
+
+  if (opacity === 0) return null
 
   return (
     <mesh geometry={geometry}>
-      <meshStandardMaterial color={color} />
+      <meshStandardMaterial color={color} opacity={opacity} transparent depthWrite={opacity === 1.0} />
       <lineSegments geometry={edgesGeometry}>
         <lineBasicMaterial color="#000000" opacity={0.4} transparent linewidth={1} />
       </lineSegments>
