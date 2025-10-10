@@ -1,4 +1,4 @@
-import { CopyIcon, PlusIcon, SquareIcon, TrashIcon, ViewVerticalIcon } from '@radix-ui/react-icons'
+import { CopyIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import {
   AlertDialog,
@@ -8,7 +8,6 @@ import {
   Flex,
   Grid,
   IconButton,
-  Select,
   Separator,
   Text,
   TextField
@@ -30,17 +29,10 @@ import { LengthField } from '@/shared/components/LengthField/LengthField'
 import type { Length } from '@/shared/geometry'
 
 import type { RingBeamConfig } from './../../ringBeams/ringBeams'
+import { getRingBeamTypeIcon } from './Icons'
+import { RingBeamMethodSelect } from './RingBeamMethodSelect'
 
 type RingBeamType = 'full' | 'double'
-
-function getRingBeamTypeIcon(type: RingBeamType) {
-  switch (type) {
-    case 'full':
-      return SquareIcon
-    case 'double':
-      return ViewVerticalIcon
-  }
-}
 
 export function RingBeamConfigContent(): React.JSX.Element {
   const ringBeamMethods = useRingBeamConstructionMethods()
@@ -147,26 +139,12 @@ export function RingBeamConfigContent(): React.JSX.Element {
       <Flex direction="column" gap="2">
         <Flex gap="2" align="end">
           <Flex direction="column" gap="1" flexGrow="1">
-            <Select.Root value={selectedMethodId ?? ''} onValueChange={setSelectedMethodId}>
-              <Select.Trigger placeholder="Select ring beam method..." />
-              <Select.Content>
-                {ringBeamMethods.map(method => {
-                  const Icon = getRingBeamTypeIcon(method.config.type)
-                  const isDefault = method.id === defaultBaseId || method.id === defaultTopId
-                  return (
-                    <Select.Item key={method.id} value={method.id}>
-                      <Flex align="center" gap="2">
-                        <Icon style={{ flexShrink: 0 }} />
-                        <Text>
-                          {method.name}
-                          {isDefault && <Text color="gray"> (default)</Text>}
-                        </Text>
-                      </Flex>
-                    </Select.Item>
-                  )
-                })}
-              </Select.Content>
-            </Select.Root>
+            <RingBeamMethodSelect
+              value={selectedMethodId as RingBeamConstructionMethodId | undefined}
+              onValueChange={value => setSelectedMethodId(value ?? null)}
+              showDefaultIndicator
+              defaultMethodIds={[defaultBaseId, defaultTopId].filter(Boolean) as RingBeamConstructionMethodId[]}
+            />
           </Flex>
 
           <DropdownMenu.Root>
@@ -178,13 +156,13 @@ export function RingBeamConfigContent(): React.JSX.Element {
             <DropdownMenu.Content>
               <DropdownMenu.Item onSelect={() => handleAddNew('full')}>
                 <Flex align="center" gap="1">
-                  <SquareIcon />
+                  {React.createElement(getRingBeamTypeIcon('full'))}
                   Full Ring Beam
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item onSelect={() => handleAddNew('double')}>
                 <Flex align="center" gap="1">
-                  <ViewVerticalIcon />
+                  {React.createElement(getRingBeamTypeIcon('double'))}
                   Double Ring Beam
                 </Flex>
               </DropdownMenu.Item>
@@ -254,7 +232,7 @@ export function RingBeamConfigContent(): React.JSX.Element {
               </Text>
             </Label.Root>
             <Flex gap="2" align="center">
-              {selectedMethod.config.type === 'full' ? <SquareIcon /> : <ViewVerticalIcon />}
+              {React.createElement(getRingBeamTypeIcon(selectedMethod.config.type))}
               <Text size="2" color="gray">
                 {selectedMethod.config.type === 'full' ? 'Full' : 'Double'}
               </Text>
@@ -286,48 +264,26 @@ export function RingBeamConfigContent(): React.JSX.Element {
               Default Base Plate
             </Text>
           </Label.Root>
-          <Select.Root
-            value={defaultBaseId ?? 'none'}
-            onValueChange={value =>
-              setDefaultBaseRingBeamMethod(value === 'none' ? undefined : (value as RingBeamConstructionMethodId))
-            }
-          >
-            <Select.Trigger placeholder="Select default..." />
-            <Select.Content>
-              <Select.Item value="none">
-                <Text color="gray">None</Text>
-              </Select.Item>
-              {ringBeamMethods.map(method => (
-                <Select.Item key={method.id} value={method.id}>
-                  {method.name}
-                </Select.Item>
-              ))}
-            </Select.Content>
-          </Select.Root>
+          <RingBeamMethodSelect
+            value={defaultBaseId}
+            onValueChange={setDefaultBaseRingBeamMethod}
+            placeholder="Select default..."
+            size="2"
+            allowNone
+          />
 
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
               Default Top Plate
             </Text>
           </Label.Root>
-          <Select.Root
-            value={defaultTopId ?? 'none'}
-            onValueChange={value =>
-              setDefaultTopRingBeamMethod(value === 'none' ? undefined : (value as RingBeamConstructionMethodId))
-            }
-          >
-            <Select.Trigger placeholder="Select default..." />
-            <Select.Content>
-              <Select.Item value="none">
-                <Text color="gray">None</Text>
-              </Select.Item>
-              {ringBeamMethods.map(method => (
-                <Select.Item key={method.id} value={method.id}>
-                  {method.name}
-                </Select.Item>
-              ))}
-            </Select.Content>
-          </Select.Root>
+          <RingBeamMethodSelect
+            value={defaultTopId}
+            onValueChange={setDefaultTopRingBeamMethod}
+            placeholder="Select default..."
+            size="2"
+            allowNone
+          />
         </Grid>
 
         {usage.isUsed && (

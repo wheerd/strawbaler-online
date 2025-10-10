@@ -1,4 +1,7 @@
+import { SquareIcon, ViewVerticalIcon } from '@radix-ui/react-icons'
 import React from 'react'
+
+import type { PerimeterConstructionConfig } from '@/construction/config/types'
 
 interface IconProps {
   className?: string
@@ -94,4 +97,26 @@ export function ModulesIcon({ className, width = 15, height = 15 }: IconProps): 
       <rect x="10" y="2" width="3.5" height="12.5" stroke="currentColor" strokeWidth="0.5" />
     </svg>
   )
+}
+
+export function getPerimeterConfigTypeIcon(type: PerimeterConstructionConfig['type']) {
+  switch (type) {
+    case 'infill':
+      return InfillIcon
+    case 'strawhenge':
+      return StrawhengeIcon
+    case 'modules':
+      return ModulesIcon
+    case 'non-strawbale':
+      return NonStrawbaleIcon
+  }
+}
+
+export function getRingBeamTypeIcon(type: 'full' | 'double') {
+  switch (type) {
+    case 'full':
+      return SquareIcon
+    case 'double':
+      return ViewVerticalIcon
+  }
 }

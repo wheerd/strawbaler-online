@@ -30,22 +30,10 @@ import type { MaterialId } from '@/construction/materials/material'
 import { LengthField } from '@/shared/components/LengthField'
 import type { Length } from '@/shared/geometry'
 
-import { InfillIcon, ModulesIcon, NonStrawbaleIcon, StrawhengeIcon } from './Icons'
+import { getPerimeterConfigTypeIcon } from './Icons'
+import { PerimeterMethodSelect } from './PerimeterMethodSelect'
 
 type PerimeterConfigType = PerimeterConstructionConfig['type']
-
-function getPerimeterConfigTypeIcon(type: PerimeterConfigType) {
-  switch (type) {
-    case 'infill':
-      return InfillIcon
-    case 'strawhenge':
-      return StrawhengeIcon
-    case 'modules':
-      return ModulesIcon
-    case 'non-strawbale':
-      return NonStrawbaleIcon
-  }
-}
 
 interface InfillConfigFormProps {
   config: Extract<PerimeterConstructionConfig, { type: 'infill' }>
@@ -655,15 +643,7 @@ function ConfigForm({ method, onUpdateName }: ConfigFormProps): React.JSX.Elemen
         </Label.Root>
 
         <Flex gap="2" align="center">
-          {method.config.type === 'infill' ? (
-            <InfillIcon />
-          ) : method.config.type === 'modules' ? (
-            <ModulesIcon />
-          ) : method.config.type === 'strawhenge' ? (
-            <StrawhengeIcon />
-          ) : (
-            <NonStrawbaleIcon />
-          )}
+          {React.createElement(getPerimeterConfigTypeIcon(method.config.type))}
           <Text size="2" color="gray">
             {method.config.type === 'infill'
               ? 'Infill'
@@ -875,26 +855,12 @@ export function PerimeterConfigContent(): React.JSX.Element {
         <Grid columns="2" gap="2">
           <Flex gap="2" align="end">
             <Flex direction="column" gap="1" flexGrow="1">
-              <Select.Root value={selectedMethodId ?? ''} onValueChange={setSelectedMethodId}>
-                <Select.Trigger placeholder="Select perimeter method..." />
-                <Select.Content>
-                  {perimeterMethods.map(method => {
-                    const Icon = getPerimeterConfigTypeIcon(method.config.type)
-                    const isDefault = method.id === defaultMethodId
-                    return (
-                      <Select.Item key={method.id} value={method.id}>
-                        <Flex align="center" gap="2">
-                          <Icon style={{ flexShrink: 0 }} />
-                          <Text>
-                            {method.name}
-                            {isDefault && <Text color="gray"> (default)</Text>}
-                          </Text>
-                        </Flex>
-                      </Select.Item>
-                    )
-                  })}
-                </Select.Content>
-              </Select.Root>
+              <PerimeterMethodSelect
+                value={selectedMethodId as PerimeterConstructionMethodId | undefined}
+                onValueChange={setSelectedMethodId}
+                showDefaultIndicator
+                defaultMethodId={defaultMethodId}
+              />
             </Flex>
 
             <DropdownMenu.Root>
@@ -972,24 +938,12 @@ export function PerimeterConfigContent(): React.JSX.Element {
                 Default Perimeter Method
               </Text>
             </Label.Root>
-            <Select.Root
-              value={defaultMethodId ?? 'none'}
-              onValueChange={value =>
-                setDefaultPerimeterMethod(value === 'none' ? undefined : (value as PerimeterConstructionMethodId))
-              }
-            >
-              <Select.Trigger placeholder="Select default..." />
-              <Select.Content>
-                <Select.Item value="none">
-                  <Text color="gray">None</Text>
-                </Select.Item>
-                {perimeterMethods.map(method => (
-                  <Select.Item key={method.id} value={method.id}>
-                    {method.name}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
+            <PerimeterMethodSelect
+              value={defaultMethodId}
+              onValueChange={value => setDefaultPerimeterMethod(value)}
+              placeholder="Select default..."
+              size="2"
+            />
           </Grid>
         </Grid>
       </Flex>
