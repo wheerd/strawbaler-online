@@ -12,6 +12,7 @@ import * as Label from '@radix-ui/react-label'
 import { AlertDialog, Badge, Button, DropdownMenu, Flex, Grid, IconButton, Text, TextField } from '@radix-ui/themes'
 import React, { useCallback, useState } from 'react'
 
+import { usePerimeterConstructionMethods, useRingBeamConstructionMethods } from '@/construction/config/store'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import type { Length } from '@/shared/geometry'
 
@@ -24,6 +25,7 @@ import type {
   VolumeMaterial
 } from '../material'
 import { useMaterialActions, useMaterials } from '../store'
+import { getMaterialUsage } from '../usage'
 import { MaterialSelect } from './MaterialSelect'
 
 export interface MaterialsConfigModalProps {
@@ -35,6 +37,8 @@ type MaterialType = Material['type']
 export function MaterialsConfigContent(): React.JSX.Element {
   const materials = useMaterials()
   const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial } = useMaterialActions()
+  const ringBeamMethods = useRingBeamConstructionMethods()
+  const perimeterMethods = usePerimeterConstructionMethods()
 
   const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(
     materials.length > 0 ? materials[0].id : null
@@ -42,8 +46,13 @@ export function MaterialsConfigContent(): React.JSX.Element {
 
   const selectedMaterial = materials.find(m => m.id === selectedMaterialId) ?? null
 
-  // Get usage info - for now, just check if it's a default material
-  const usage = { isUsed: false, usedByConfigs: [] as string[] }
+  const usage = React.useMemo(
+    () =>
+      selectedMaterial
+        ? getMaterialUsage(selectedMaterial.id, ringBeamMethods, perimeterMethods)
+        : { isUsed: false, usedByConfigs: [] },
+    [selectedMaterial, ringBeamMethods, perimeterMethods]
+  )
 
   const handleAddNew = useCallback(
     (type: MaterialType) => {
@@ -205,12 +214,6 @@ export function MaterialsConfigContent(): React.JSX.Element {
             </AlertDialog.Content>
           </AlertDialog.Root>
         </Flex>
-
-        {usage.isUsed && (
-          <Text size="2" color="amber">
-            This material is in use and cannot be deleted
-          </Text>
-        )}
       </Flex>
 
       {/* Form */}
@@ -275,6 +278,23 @@ export function MaterialsConfigContent(): React.JSX.Element {
         <Flex justify="center" align="center" p="5">
           <Text color="gray">No materials yet. Create one using the "New" button above.</Text>
         </Flex>
+      )}
+
+      {usage.isUsed && (
+        <Grid columns="auto 1fr" gap="2" gapX="3" align="baseline">
+          <Label.Root>
+            <Text size="2" weight="medium" color="gray">
+              Used By:
+            </Text>
+          </Label.Root>
+          <Flex gap="1" wrap="wrap">
+            {usage.usedByConfigs.map((use, index) => (
+              <Badge key={index} size="2" variant="soft">
+                {use}
+              </Badge>
+            ))}
+          </Flex>
+        </Grid>
       )}
     </Flex>
   )

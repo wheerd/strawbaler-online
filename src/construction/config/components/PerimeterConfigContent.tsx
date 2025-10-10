@@ -972,8 +972,6 @@ export function PerimeterConfigContent(): React.JSX.Element {
         </Flex>
       )}
 
-      {/* Defaults Section */}
-
       {usage.isUsed && (
         <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
           <Label.Root>
