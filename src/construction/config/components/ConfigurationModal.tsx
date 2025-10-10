@@ -2,7 +2,9 @@ import { Cross2Icon, GearIcon } from '@radix-ui/react-icons'
 import { Dialog, Flex, IconButton, Tabs, Text } from '@radix-ui/themes'
 import React, { useState } from 'react'
 
-import { MaterialsConfigContent } from '@/construction/materials/components/MaterialsConfigModal'
+import { MaterialsConfigContent } from '@/construction/materials/components/MaterialsConfigContent'
+
+import { RingBeamConfigContent } from './RingBeamConfigContent'
 
 export interface ConfigurationModalProps {
   trigger: React.ReactNode
@@ -56,14 +58,6 @@ export function ConfigurationModal({ trigger }: ConfigurationModalProps): React.
         </Tabs.Root>
       </Dialog.Content>
     </Dialog.Root>
-  )
-}
-
-function RingBeamConfigContent(): React.JSX.Element {
-  return (
-    <Flex direction="column" gap="4">
-      <Text>Ring Beam Configuration - Coming Soon</Text>
-    </Flex>
   )
 }
 
