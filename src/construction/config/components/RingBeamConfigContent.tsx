@@ -1,9 +1,8 @@
-import { PlusIcon, SquareIcon, TrashIcon, ViewVerticalIcon } from '@radix-ui/react-icons'
+import { CopyIcon, PlusIcon, SquareIcon, TrashIcon, ViewVerticalIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import {
   AlertDialog,
   Badge,
-  Box,
   Button,
   DropdownMenu,
   Flex,
@@ -12,8 +11,7 @@ import {
   Select,
   Separator,
   Text,
-  TextField,
-  Tooltip
+  TextField
 } from '@radix-ui/themes'
 import React, { useCallback, useMemo, useState } from 'react'
 
@@ -175,10 +173,9 @@ export function RingBeamConfigContent(): React.JSX.Element {
 
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
-              <Button variant="surface">
+              <IconButton title="Add New">
                 <PlusIcon />
-                New...
-              </Button>
+              </IconButton>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
               <DropdownMenu.Item onSelect={() => handleAddNew('full')}>
@@ -196,39 +193,39 @@ export function RingBeamConfigContent(): React.JSX.Element {
             </DropdownMenu.Content>
           </DropdownMenu.Root>
 
-          <Button onClick={handleDuplicate} disabled={!selectedMethod} variant="surface">
-            Duplicate
-          </Button>
+          <IconButton onClick={handleDuplicate} disabled={!selectedMethod} title="Duplicate" variant="soft">
+            <CopyIcon />
+          </IconButton>
 
-          <Tooltip content={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}>
-            <Box>
-              <AlertDialog.Root>
-                <AlertDialog.Trigger>
-                  <IconButton disabled={!selectedMethod || usage.isUsed} color="red" variant="surface">
-                    <TrashIcon />
-                  </IconButton>
-                </AlertDialog.Trigger>
-                <AlertDialog.Content>
-                  <AlertDialog.Title>Delete Ring Beam Method</AlertDialog.Title>
-                  <AlertDialog.Description>
-                    Are you sure you want to delete "{selectedMethod?.name}"? This action cannot be undone.
-                  </AlertDialog.Description>
-                  <Flex gap="3" mt="4" justify="end">
-                    <AlertDialog.Cancel>
-                      <Button variant="soft" color="gray">
-                        Cancel
-                      </Button>
-                    </AlertDialog.Cancel>
-                    <AlertDialog.Action>
-                      <Button variant="solid" color="red" onClick={handleDelete}>
-                        Delete
-                      </Button>
-                    </AlertDialog.Action>
-                  </Flex>
-                </AlertDialog.Content>
-              </AlertDialog.Root>
-            </Box>
-          </Tooltip>
+          <AlertDialog.Root>
+            <AlertDialog.Trigger>
+              <IconButton
+                disabled={!selectedMethod || usage.isUsed}
+                color="red"
+                title={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}
+              >
+                <TrashIcon />
+              </IconButton>
+            </AlertDialog.Trigger>
+            <AlertDialog.Content>
+              <AlertDialog.Title>Delete Ring Beam Method</AlertDialog.Title>
+              <AlertDialog.Description>
+                Are you sure you want to delete "{selectedMethod?.name}"? This action cannot be undone.
+              </AlertDialog.Description>
+              <Flex gap="3" mt="4" justify="end">
+                <AlertDialog.Cancel>
+                  <Button variant="soft" color="gray">
+                    Cancel
+                  </Button>
+                </AlertDialog.Cancel>
+                <AlertDialog.Action>
+                  <Button variant="solid" color="red" onClick={handleDelete}>
+                    Delete
+                  </Button>
+                </AlertDialog.Action>
+              </Flex>
+            </AlertDialog.Content>
+          </AlertDialog.Root>
         </Flex>
       </Flex>
 

@@ -45,6 +45,7 @@ export interface ConfigActions {
     config: PerimeterConstructionConfig,
     layers: LayersConfig
   ) => PerimeterConstructionMethod
+  duplicatePerimeterConstructionMethod: (id: PerimeterConstructionMethodId, name: string) => PerimeterConstructionMethod
   removePerimeterConstructionMethod: (id: PerimeterConstructionMethodId) => void
   updatePerimeterConstructionMethodName: (id: PerimeterConstructionMethodId, name: string) => void
   updatePerimeterConstructionMethodConfig: (
@@ -413,6 +414,31 @@ const useConfigStore = create<ConfigStore>()(
               }))
 
               return method
+            },
+
+            duplicatePerimeterConstructionMethod: (id: PerimeterConstructionMethodId, name: string) => {
+              const state = get()
+              const original = state.perimeterConstructionMethods[id]
+              if (original == null) {
+                throw new Error(`Perimeter construction method with id ${id} not found`)
+              }
+
+              validatePerimeterMethodName(name)
+
+              const newId = createPerimeterConstructionMethodId()
+              const duplicated: PerimeterConstructionMethod = {
+                id: newId,
+                name: name.trim(),
+                config: original.config,
+                layers: original.layers
+              }
+
+              set(state => ({
+                ...state,
+                perimeterConstructionMethods: { ...state.perimeterConstructionMethods, [newId]: duplicated }
+              }))
+
+              return duplicated
             },
 
             removePerimeterConstructionMethod: (id: PerimeterConstructionMethodId) => {

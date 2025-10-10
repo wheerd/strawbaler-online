@@ -1,9 +1,8 @@
-import { CircleIcon, CubeIcon, LayersIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons'
+import { CircleIcon, CopyIcon, CubeIcon, LayersIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import {
   AlertDialog,
   Badge,
-  Box,
   Button,
   DropdownMenu,
   Flex,
@@ -13,8 +12,7 @@ import {
   Select,
   Separator,
   Text,
-  TextField,
-  Tooltip
+  TextField
 } from '@radix-ui/themes'
 import React, { useCallback, useMemo, useState } from 'react'
 
@@ -27,19 +25,20 @@ import type { Length } from '@/shared/geometry'
 
 import { useConfigActions, useDefaultPerimeterMethodId, usePerimeterConstructionMethods } from '../store'
 import type { LayersConfig, PerimeterConstructionConfig } from '../types'
+import { InfillIcon, ModulesIcon, NonStrawbaleIcon, StrawhengeIcon } from './Icons'
 
 type PerimeterConfigType = PerimeterConstructionConfig['type']
 
 function getPerimeterConfigTypeIcon(type: PerimeterConfigType) {
   switch (type) {
     case 'infill':
-      return LayersIcon
+      return InfillIcon
     case 'strawhenge':
-      return CubeIcon
+      return StrawhengeIcon
     case 'modules':
-      return CircleIcon
+      return ModulesIcon
     case 'non-strawbale':
-      return TrashIcon
+      return NonStrawbaleIcon
   }
 }
 
@@ -677,6 +676,7 @@ export function PerimeterConfigContent(): React.JSX.Element {
   const storeys = useStoreysOrderedByLevel()
   const {
     addPerimeterConstructionMethod,
+    duplicatePerimeterConstructionMethod,
     updatePerimeterConstructionMethodName,
     removePerimeterConstructionMethod,
     setDefaultPerimeterMethod
@@ -808,6 +808,13 @@ export function PerimeterConfigContent(): React.JSX.Element {
     [addPerimeterConstructionMethod]
   )
 
+  const handleDuplicate = useCallback(() => {
+    if (!selectedMethod) return
+
+    const duplicated = duplicatePerimeterConstructionMethod(selectedMethod.id, `${selectedMethod.name} (Copy)`)
+    setSelectedMethodId(duplicated.id)
+  }, [selectedMethod, duplicatePerimeterConstructionMethod])
+
   const handleDelete = useCallback(() => {
     if (!selectedMethod || usage.isUsed) return
 
@@ -861,10 +868,9 @@ export function PerimeterConfigContent(): React.JSX.Element {
 
             <DropdownMenu.Root>
               <DropdownMenu.Trigger>
-                <Button variant="surface">
+                <IconButton title="Add New">
                   <PlusIcon />
-                  New...
-                </Button>
+                </IconButton>
               </DropdownMenu.Trigger>
               <DropdownMenu.Content>
                 <DropdownMenu.Item onSelect={() => handleAddNew('infill')}>
@@ -894,54 +900,39 @@ export function PerimeterConfigContent(): React.JSX.Element {
               </DropdownMenu.Content>
             </DropdownMenu.Root>
 
-            <Tooltip
-              content={
-                usage.isUsed ? (
-                  <Flex direction="column" gap="1">
-                    <Text size="1" weight="medium">
-                      In Use - Cannot Delete
-                    </Text>
-                    <Flex gap="1" wrap="wrap">
-                      {usage.usedByWalls.map((use, index) => (
-                        <Badge key={index} size="1" variant="soft">
-                          {use}
-                        </Badge>
-                      ))}
-                    </Flex>
-                  </Flex>
-                ) : (
-                  'Delete'
-                )
-              }
-            >
-              <Box>
-                <AlertDialog.Root>
-                  <AlertDialog.Trigger>
-                    <IconButton disabled={!selectedMethod || usage.isUsed} color="red" variant="surface">
-                      <TrashIcon />
-                    </IconButton>
-                  </AlertDialog.Trigger>
-                  <AlertDialog.Content>
-                    <AlertDialog.Title>Delete Perimeter Method</AlertDialog.Title>
-                    <AlertDialog.Description>
-                      Are you sure you want to delete "{selectedMethod?.name}"? This action cannot be undone.
-                    </AlertDialog.Description>
-                    <Flex gap="3" mt="4" justify="end">
-                      <AlertDialog.Cancel>
-                        <Button variant="soft" color="gray">
-                          Cancel
-                        </Button>
-                      </AlertDialog.Cancel>
-                      <AlertDialog.Action>
-                        <Button variant="solid" color="red" onClick={handleDelete}>
-                          Delete
-                        </Button>
-                      </AlertDialog.Action>
-                    </Flex>
-                  </AlertDialog.Content>
-                </AlertDialog.Root>
-              </Box>
-            </Tooltip>
+            <IconButton onClick={handleDuplicate} disabled={!selectedMethod} title="Duplicate" variant="soft">
+              <CopyIcon />
+            </IconButton>
+
+            <AlertDialog.Root>
+              <AlertDialog.Trigger>
+                <IconButton
+                  disabled={!selectedMethod || usage.isUsed}
+                  color="red"
+                  title={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}
+                >
+                  <TrashIcon />
+                </IconButton>
+              </AlertDialog.Trigger>
+              <AlertDialog.Content>
+                <AlertDialog.Title>Delete Perimeter Method</AlertDialog.Title>
+                <AlertDialog.Description>
+                  Are you sure you want to delete "{selectedMethod?.name}"? This action cannot be undone.
+                </AlertDialog.Description>
+                <Flex gap="3" mt="4" justify="end">
+                  <AlertDialog.Cancel>
+                    <Button variant="soft" color="gray">
+                      Cancel
+                    </Button>
+                  </AlertDialog.Cancel>
+                  <AlertDialog.Action>
+                    <Button variant="solid" color="red" onClick={handleDelete}>
+                      Delete
+                    </Button>
+                  </AlertDialog.Action>
+                </Flex>
+              </AlertDialog.Content>
+            </AlertDialog.Root>
           </Flex>
 
           <Grid columns="auto 1fr" gap="2" align="center">
@@ -982,7 +973,23 @@ export function PerimeterConfigContent(): React.JSX.Element {
       )}
 
       {/* Defaults Section */}
-      <Grid columns="auto auto" gap="2" gapX="3" align="center"></Grid>
+
+      {usage.isUsed && (
+        <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
+          <Label.Root>
+            <Text size="2" weight="medium" color="gray">
+              Used By:
+            </Text>
+          </Label.Root>
+          <Flex gap="1" wrap="wrap">
+            {usage.usedByWalls.map((use, index) => (
+              <Badge key={index} size="2" variant="soft">
+                {use}
+              </Badge>
+            ))}
+          </Flex>
+        </Grid>
+      )}
     </Flex>
   )
 }

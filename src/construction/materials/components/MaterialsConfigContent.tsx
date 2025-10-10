@@ -1,4 +1,13 @@
-import { CircleIcon, Cross2Icon, CubeIcon, LayersIcon, OpacityIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons'
+import {
+  CircleIcon,
+  CopyIcon,
+  Cross2Icon,
+  CubeIcon,
+  LayersIcon,
+  OpacityIcon,
+  PlusIcon,
+  TrashIcon
+} from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import { AlertDialog, Badge, Button, DropdownMenu, Flex, Grid, IconButton, Text, TextField } from '@radix-ui/themes'
 import React, { useCallback, useState } from 'react'
@@ -130,10 +139,9 @@ export function MaterialsConfigContent(): React.JSX.Element {
 
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
-              <Button variant="surface">
+              <IconButton title="Add New">
                 <PlusIcon />
-                New...
-              </Button>
+              </IconButton>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
               <DropdownMenu.Item onSelect={() => handleAddNew('dimensional')}>
@@ -163,13 +171,17 @@ export function MaterialsConfigContent(): React.JSX.Element {
             </DropdownMenu.Content>
           </DropdownMenu.Root>
 
-          <Button onClick={handleDuplicate} disabled={!selectedMaterial} variant="surface">
-            Duplicate
-          </Button>
+          <IconButton onClick={handleDuplicate} disabled={!selectedMaterial} title="Duplicate" variant="soft">
+            <CopyIcon />
+          </IconButton>
 
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton disabled={!selectedMaterial || usage.isUsed} color="red" variant="surface">
+              <IconButton
+                disabled={!selectedMaterial || usage.isUsed}
+                color="red"
+                title={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}
+              >
                 <TrashIcon />
               </IconButton>
             </AlertDialog.Trigger>
