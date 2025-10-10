@@ -3,7 +3,7 @@ import * as Toolbar from '@radix-ui/react-toolbar'
 import { Button, Flex, IconButton, Kbd, Separator, Text, Tooltip } from '@radix-ui/themes'
 import React, { useCallback } from 'react'
 
-import { MaterialsConfigModal } from '@/construction/materials/components/MaterialsConfigModal'
+import { ConfigurationModal } from '@/construction/config/components/ConfigurationModal'
 import { TOOL_GROUPS, getToolInfoById } from '@/editor/tools/system/metadata'
 import { replaceTool, useActiveToolId } from '@/editor/tools/system/store'
 import type { ToolId } from '@/editor/tools/system/types'
@@ -62,7 +62,7 @@ export function MainToolbar(): React.JSX.Element {
 
       {/* Configuration button on the right */}
       <Flex ml="auto">
-        <MaterialsConfigModal
+        <ConfigurationModal
           trigger={
             <Button variant="surface" size="2">
               <GearIcon />

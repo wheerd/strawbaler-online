@@ -4,7 +4,6 @@ import {
   AlertDialog,
   Badge,
   Button,
-  Dialog,
   DropdownMenu,
   Flex,
   Grid,
@@ -40,7 +39,7 @@ export interface MaterialsConfigModalProps {
 
 type MaterialType = Material['type']
 
-export function MaterialsConfigModal({ trigger }: MaterialsConfigModalProps): React.JSX.Element {
+export function MaterialsConfigContent(): React.JSX.Element {
   const materials = useMaterials()
   const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial } = useMaterialActions()
 
@@ -130,197 +129,181 @@ export function MaterialsConfigModal({ trigger }: MaterialsConfigModalProps): Re
   )
 
   return (
-    <Dialog.Root>
-      <Dialog.Trigger>{trigger}</Dialog.Trigger>
-      <Dialog.Content size="3" maxWidth="600px">
-        <Dialog.Title>
-          <Flex justify="between" align="center">
-            Materials Configuration
-            <Dialog.Close>
-              <IconButton variant="ghost" highContrast>
-                <Cross2Icon />
-              </IconButton>
-            </Dialog.Close>
+    <Flex direction="column" gap="4">
+      {/* Selector + Actions */}
+      <Flex direction="column" gap="2">
+        <Flex gap="2" align="end">
+          <Flex direction="column" gap="1" flexGrow="1">
+            <Text size="2" weight="medium">
+              Material
+            </Text>
+            <Select.Root value={selectedMaterialId ?? ''} onValueChange={setSelectedMaterialId}>
+              <Select.Trigger placeholder="Select material..." />
+              <Select.Content>
+                {materials.map(material => {
+                  const Icon = getMaterialTypeIcon(material.type)
+                  return (
+                    <Select.Item key={material.id} value={material.id}>
+                      <Flex align="center" gap="2">
+                        <div
+                          className="text-shadow-sm text-shadow-white"
+                          style={{
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: material.color,
+                            borderRadius: '2px',
+                            border: '1px solid var(--gray-7)',
+                            flexShrink: 0
+                          }}
+                        >
+                          <Icon />
+                        </div>
+                        <Text>{material.name}</Text>
+                      </Flex>
+                    </Select.Item>
+                  )
+                })}
+              </Select.Content>
+            </Select.Root>
           </Flex>
-        </Dialog.Title>
 
-        <Flex direction="column" gap="4">
-          {/* Selector + Actions */}
-          <Flex direction="column" gap="2">
-            <Flex gap="2" align="end">
-              <Flex direction="column" gap="1" flexGrow="1">
-                <Text size="2" weight="medium">
-                  Material
-                </Text>
-                <Select.Root value={selectedMaterialId ?? ''} onValueChange={setSelectedMaterialId}>
-                  <Select.Trigger placeholder="Select material..." />
-                  <Select.Content>
-                    {materials.map(material => {
-                      const Icon = getMaterialTypeIcon(material.type)
-                      return (
-                        <Select.Item key={material.id} value={material.id}>
-                          <Flex align="center" gap="2">
-                            <div
-                              className="text-shadow-sm text-shadow-white"
-                              style={{
-                                width: '16px',
-                                height: '16px',
-                                backgroundColor: material.color,
-                                borderRadius: '2px',
-                                border: '1px solid var(--gray-7)',
-                                flexShrink: 0
-                              }}
-                            >
-                              <Icon />
-                            </div>
-                            <Text>{material.name}</Text>
-                          </Flex>
-                        </Select.Item>
-                      )
-                    })}
-                  </Select.Content>
-                </Select.Root>
-              </Flex>
-
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger>
-                  <Button variant="surface">
-                    <PlusIcon />
-                    New...
-                  </Button>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
-                  <DropdownMenu.Item onSelect={() => handleAddNew('dimensional')}>
-                    <Flex align="center" gap="1">
-                      <CubeIcon />
-                      Dimensional
-                    </Flex>
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item onSelect={() => handleAddNew('sheet')}>
-                    <Flex align="center" gap="1">
-                      <LayersIcon />
-                      Sheet
-                    </Flex>
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item onSelect={() => handleAddNew('volume')}>
-                    <Flex align="center" gap="1">
-                      <OpacityIcon />
-                      Volume
-                    </Flex>
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item onSelect={() => handleAddNew('generic')}>
-                    <Flex align="center" gap="1">
-                      <CircleIcon />
-                      Generic
-                    </Flex>
-                  </DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
-
-              <Button onClick={handleDuplicate} disabled={!selectedMaterial} variant="surface">
-                Duplicate
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+              <Button variant="surface">
+                <PlusIcon />
+                New...
               </Button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content>
+              <DropdownMenu.Item onSelect={() => handleAddNew('dimensional')}>
+                <Flex align="center" gap="1">
+                  <CubeIcon />
+                  Dimensional
+                </Flex>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => handleAddNew('sheet')}>
+                <Flex align="center" gap="1">
+                  <LayersIcon />
+                  Sheet
+                </Flex>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => handleAddNew('volume')}>
+                <Flex align="center" gap="1">
+                  <OpacityIcon />
+                  Volume
+                </Flex>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => handleAddNew('generic')}>
+                <Flex align="center" gap="1">
+                  <CircleIcon />
+                  Generic
+                </Flex>
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
 
-              <AlertDialog.Root>
-                <AlertDialog.Trigger>
-                  <IconButton disabled={!selectedMaterial || usage.isUsed} color="red" variant="surface">
-                    <TrashIcon />
-                  </IconButton>
-                </AlertDialog.Trigger>
-                <AlertDialog.Content>
-                  <AlertDialog.Title>Delete Material</AlertDialog.Title>
-                  <AlertDialog.Description>
-                    Are you sure you want to delete "{selectedMaterial?.name}"? This action cannot be undone.
-                  </AlertDialog.Description>
-                  <Flex gap="3" mt="4" justify="end">
-                    <AlertDialog.Cancel>
-                      <Button variant="soft" color="gray">
-                        Cancel
-                      </Button>
-                    </AlertDialog.Cancel>
-                    <AlertDialog.Action>
-                      <Button variant="solid" color="red" onClick={handleDelete}>
-                        Delete
-                      </Button>
-                    </AlertDialog.Action>
-                  </Flex>
-                </AlertDialog.Content>
-              </AlertDialog.Root>
-            </Flex>
+          <Button onClick={handleDuplicate} disabled={!selectedMaterial} variant="surface">
+            Duplicate
+          </Button>
 
-            {usage.isUsed && (
-              <Text size="2" color="amber">
-                This material is in use and cannot be deleted
+          <AlertDialog.Root>
+            <AlertDialog.Trigger>
+              <IconButton disabled={!selectedMaterial || usage.isUsed} color="red" variant="surface">
+                <TrashIcon />
+              </IconButton>
+            </AlertDialog.Trigger>
+            <AlertDialog.Content>
+              <AlertDialog.Title>Delete Material</AlertDialog.Title>
+              <AlertDialog.Description>
+                Are you sure you want to delete "{selectedMaterial?.name}"? This action cannot be undone.
+              </AlertDialog.Description>
+              <Flex gap="3" mt="4" justify="end">
+                <AlertDialog.Cancel>
+                  <Button variant="soft" color="gray">
+                    Cancel
+                  </Button>
+                </AlertDialog.Cancel>
+                <AlertDialog.Action>
+                  <Button variant="solid" color="red" onClick={handleDelete}>
+                    Delete
+                  </Button>
+                </AlertDialog.Action>
+              </Flex>
+            </AlertDialog.Content>
+          </AlertDialog.Root>
+        </Flex>
+
+        {usage.isUsed && (
+          <Text size="2" color="amber">
+            This material is in use and cannot be deleted
+          </Text>
+        )}
+      </Flex>
+
+      {/* Form */}
+      {selectedMaterial && (
+        <Flex
+          direction="column"
+          gap="3"
+          p="3"
+          style={{ border: '1px solid var(--gray-6)', borderRadius: 'var(--radius-2)' }}
+        >
+          <Grid columns="4em 1fr" gap="2" gapX="3" align="center">
+            <Label.Root>
+              <Text size="2" weight="medium" color="gray">
+                Name
               </Text>
-            )}
-          </Flex>
+            </Label.Root>
+            <TextField.Root
+              value={selectedMaterial.name}
+              onChange={e => handleUpdate({ name: e.target.value })}
+              placeholder="Material name"
+              size="2"
+            />
+          </Grid>
+          <Grid columns="4em 1fr 4em 1fr" gap="2" gapX="3" align="center">
+            <Label.Root>
+              <Text size="2" weight="medium" color="gray">
+                Type
+              </Text>
+            </Label.Root>
+            <Text size="2" color="gray">
+              {selectedMaterial.type}
+            </Text>
 
-          {/* Form */}
-          {selectedMaterial && (
-            <Flex
-              direction="column"
-              gap="3"
-              p="3"
-              style={{ border: '1px solid var(--gray-6)', borderRadius: 'var(--radius-2)' }}
-            >
-              <Grid columns="4em 1fr" gap="2" gapX="3" align="center">
-                <Label.Root>
-                  <Text size="2" weight="medium" color="gray">
-                    Name
-                  </Text>
-                </Label.Root>
-                <TextField.Root
-                  value={selectedMaterial.name}
-                  onChange={e => handleUpdate({ name: e.target.value })}
-                  placeholder="Material name"
-                  size="2"
-                />
-              </Grid>
-              <Grid columns="4em 1fr 4em 1fr" gap="2" gapX="3" align="center">
-                <Label.Root>
-                  <Text size="2" weight="medium" color="gray">
-                    Type
-                  </Text>
-                </Label.Root>
-                <Text size="2" color="gray">
-                  {selectedMaterial.type}
-                </Text>
+            <Label.Root>
+              <Text size="2" weight="medium" color="gray">
+                Color
+              </Text>
+            </Label.Root>
+            <input
+              type="color"
+              value={selectedMaterial.color}
+              onChange={e => handleUpdate({ color: e.target.value })}
+              style={{ width: '60px', height: '24px', cursor: 'pointer' }}
+            />
+          </Grid>
 
-                <Label.Root>
-                  <Text size="2" weight="medium" color="gray">
-                    Color
-                  </Text>
-                </Label.Root>
-                <input
-                  type="color"
-                  value={selectedMaterial.color}
-                  onChange={e => handleUpdate({ color: e.target.value })}
-                  style={{ width: '60px', height: '24px', cursor: 'pointer' }}
-                />
-              </Grid>
-
-              {selectedMaterial.type === 'dimensional' && (
-                <DimensionalMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
-              )}
-
-              {selectedMaterial.type === 'sheet' && (
-                <SheetMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
-              )}
-
-              {selectedMaterial.type === 'volume' && (
-                <VolumeMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
-              )}
-            </Flex>
+          {selectedMaterial.type === 'dimensional' && (
+            <DimensionalMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
           )}
 
-          {!selectedMaterial && materials.length === 0 && (
-            <Flex justify="center" align="center" p="5">
-              <Text color="gray">No materials yet. Create one using the "New" button above.</Text>
-            </Flex>
+          {selectedMaterial.type === 'sheet' && (
+            <SheetMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
+          )}
+
+          {selectedMaterial.type === 'volume' && (
+            <VolumeMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
           )}
         </Flex>
-      </Dialog.Content>
-    </Dialog.Root>
+      )}
+
+      {!selectedMaterial && materials.length === 0 && (
+        <Flex justify="center" align="center" p="5">
+          <Text color="gray">No materials yet. Create one using the "New" button above.</Text>
+        </Flex>
+      )}
+    </Flex>
   )
 }
 
