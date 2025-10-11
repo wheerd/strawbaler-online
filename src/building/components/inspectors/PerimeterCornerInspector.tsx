@@ -9,6 +9,7 @@ import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { FitToViewIcon, SplitWallIcon } from '@/shared/components/Icons'
 import { type Vec2, boundsFromPoints } from '@/shared/geometry'
+import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
 interface PerimeterCornerInspectorProps {
   perimeterId: PerimeterId
@@ -104,6 +105,25 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
     viewportActions.fitToView(bounds)
   }, [corner, previousWall, nextWall, viewportActions])
 
+  const canDeleteCorner = useMemo(() => {
+    if (!outerWall || !corner) return { canDelete: false, reason: 'Corner not found' }
+
+    // Need at least 4 corners (triangle = 3 corners minimum)
+    if (outerWall.corners.length < 4) {
+      return { canDelete: false, reason: 'Cannot delete - perimeter needs at least 3 corners' }
+    }
+
+    // Check if removal would cause self-intersection
+    const newBoundaryPoints: Vec2[] = outerWall.corners.map(c => c.insidePoint)
+    newBoundaryPoints.splice(cornerIndex, 1)
+
+    if (wouldClosingPolygonSelfIntersect(newBoundaryPoints)) {
+      return { canDelete: false, reason: 'Cannot delete - would create self-intersecting polygon' }
+    }
+
+    return { canDelete: true, reason: '' }
+  }, [outerWall, corner, cornerIndex])
+
   return (
     <Flex direction="column" gap="4">
       {/* Geometry Information */}
@@ -152,8 +172,15 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
           <IconButton
             size="2"
             color={corner.interiorAngle === 180 ? undefined : 'red'}
-            title={corner.interiorAngle === 180 ? 'Merge split' : 'Delete corner'}
+            title={
+              !canDeleteCorner.canDelete
+                ? canDeleteCorner.reason
+                : corner.interiorAngle === 180
+                  ? 'Merge split'
+                  : 'Delete corner'
+            }
             onClick={handleMergeCorner}
+            disabled={!canDeleteCorner.canDelete}
           >
             {corner.interiorAngle === 180 ? <SplitWallIcon /> : <TrashIcon />}
           </IconButton>

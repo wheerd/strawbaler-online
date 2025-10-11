@@ -13,7 +13,8 @@ import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { pushTool } from '@/editor/tools/system/store'
 import { FitToViewIcon, SplitWallIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
-import { type Length, boundsFromPoints } from '@/shared/geometry'
+import { type Length, type Vec2, boundsFromPoints } from '@/shared/geometry'
+import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 import { formatLength } from '@/shared/utils/formatLength'
 
 interface PerimeterWallInspectorProps {
@@ -61,10 +62,44 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
     viewportActions.fitToView(bounds)
   }, [wall, viewportActions])
 
+  const canDeleteWall = useMemo(() => {
+    if (!outerWall || !wall) return { canDelete: false, reason: 'Wall not found' }
+
+    // Need at least 5 walls (triangle = 3 walls, removing 1 and merging = min 3 walls remaining, needs 5 to start)
+    if (outerWall.walls.length < 5) {
+      return { canDelete: false, reason: 'Cannot delete - perimeter needs at least 3 walls' }
+    }
+
+    // Check if removal would cause self-intersection
+    const wallIndex = outerWall.walls.findIndex(w => w.id === wallId)
+    if (wallIndex === -1) return { canDelete: false, reason: 'Wall not found' }
+
+    const newBoundaryPoints: Vec2[] = outerWall.corners.map(c => c.insidePoint)
+    const cornerIndex1 = wallIndex
+    const cornerIndex2 = (wallIndex + 1) % outerWall.corners.length
+
+    // Remove corners to test for self-intersection
+    if (cornerIndex2 > cornerIndex1) {
+      newBoundaryPoints.splice(cornerIndex2, 1)
+      newBoundaryPoints.splice(cornerIndex1, 1)
+    } else {
+      newBoundaryPoints.splice(cornerIndex1, 1)
+      newBoundaryPoints.splice(cornerIndex2, 1)
+    }
+
+    if (wouldClosingPolygonSelfIntersect(newBoundaryPoints)) {
+      return { canDelete: false, reason: 'Cannot delete - would create self-intersecting polygon' }
+    }
+
+    return { canDelete: true, reason: '' }
+  }, [outerWall, wall, wallId])
+
   const handleDelete = useCallback(() => {
-    removePerimeterWall(perimeterId, wallId)
-    popSelection()
-  }, [removePerimeterWall, perimeterId, wallId])
+    if (canDeleteWall.canDelete) {
+      removePerimeterWall(perimeterId, wallId)
+      popSelection()
+    }
+  }, [removePerimeterWall, perimeterId, wallId, canDeleteWall.canDelete])
 
   return (
     <Flex direction="column" gap="4">
@@ -203,7 +238,13 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
           <IconButton size="2" title="Fit to View" onClick={handleFitToView}>
             <FitToViewIcon />
           </IconButton>
-          <IconButton size="2" color="red" title="Delete Wall" onClick={handleDelete}>
+          <IconButton
+            size="2"
+            color="red"
+            title={canDeleteWall.canDelete ? 'Delete Wall' : canDeleteWall.reason}
+            onClick={handleDelete}
+            disabled={!canDeleteWall.canDelete}
+          >
             <TrashIcon />
           </IconButton>
         </Flex>
