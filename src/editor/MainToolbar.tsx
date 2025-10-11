@@ -1,4 +1,4 @@
-import { GearIcon } from '@radix-ui/react-icons'
+import { GearIcon, InfoCircledIcon } from '@radix-ui/react-icons'
 import * as Toolbar from '@radix-ui/react-toolbar'
 import { Button, Flex, IconButton, Kbd, Separator, Text, Tooltip } from '@radix-ui/themes'
 import React, { useCallback } from 'react'
@@ -9,7 +9,11 @@ import { replaceTool, useActiveToolId } from '@/editor/tools/system/store'
 import type { ToolId } from '@/editor/tools/system/types'
 import { Logo } from '@/shared/components/Logo'
 
-export function MainToolbar(): React.JSX.Element {
+export interface MainToolbarProps {
+  onInfoClick?: () => void
+}
+
+export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Element {
   const activeToolId = useActiveToolId()
 
   const handleToolSelect = useCallback((toolId: ToolId) => {
@@ -61,7 +65,11 @@ export function MainToolbar(): React.JSX.Element {
       </Toolbar.Root>
 
       {/* Configuration button on the right */}
-      <Flex ml="auto">
+      <Flex ml="auto" gap="2" align="center">
+        <IconButton title="About" variant="ghost" size="2" onClick={onInfoClick}>
+          <InfoCircledIcon />
+        </IconButton>
+
         <ConfigurationModal
           trigger={
             <Button variant="surface" size="2">

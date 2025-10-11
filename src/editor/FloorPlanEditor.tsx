@@ -1,6 +1,9 @@
 import { Box, Grid } from '@radix-ui/themes'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { WelcomeModal } from '@/shared/components/WelcomeModal'
+import { useWelcomeModal } from '@/shared/hooks/useWelcomeModal'
+
 import { MainToolbar } from './MainToolbar'
 import { SidePanel } from './SidePanel'
 import { FloorPlanStage } from './canvas/layers/FloorPlanStage'
@@ -13,6 +16,7 @@ import { keyboardShortcutManager } from './tools/system/KeyboardShortcutManager'
 
 export function FloorPlanEditor(): React.JSX.Element {
   useAutoFitOnHydration()
+  const { isOpen, mode, openManually, handleAccept } = useWelcomeModal()
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -140,8 +144,11 @@ export function FloorPlanEditor(): React.JSX.Element {
     >
       {/* Top Toolbar - Tabs for tool groups + tools */}
       <Box style={{ zIndex: 100, borderBottom: '1px solid var(--gray-6)' }}>
-        <MainToolbar />
+        <MainToolbar onInfoClick={openManually} />
       </Box>
+
+      {/* Welcome Modal */}
+      <WelcomeModal isOpen={isOpen} mode={mode} onAccept={handleAccept} />
 
       {/* Main Content Area - Canvas + Side Panel */}
       <Grid p="0" gap="0" columns="1fr 320px" style={{ overflow: 'hidden' }}>
