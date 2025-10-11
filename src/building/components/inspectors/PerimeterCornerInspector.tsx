@@ -1,11 +1,14 @@
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import { Box, Button, Callout, DataList, Flex, Heading, Separator, Text } from '@radix-ui/themes'
+import { ExclamationTriangleIcon, PinLeftIcon, PinRightIcon, TrashIcon } from '@radix-ui/react-icons'
+import { Box, Callout, DataList, Flex, Heading, IconButton, Separator, Text } from '@radix-ui/themes'
 import { useCallback, useMemo } from 'react'
 
 import type { PerimeterCornerId, PerimeterId } from '@/building/model/ids'
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { useConfigActions } from '@/construction/config/store'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
+import { useViewportActions } from '@/editor/hooks/useViewportStore'
+import { FitToViewIcon, SplitWallIcon } from '@/shared/components/Icons'
+import { type Vec2, boundsFromPoints } from '@/shared/geometry'
 
 interface PerimeterCornerInspectorProps {
   perimeterId: PerimeterId
@@ -17,6 +20,7 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
   const { updatePerimeterCornerConstructedByWall: updateCornerConstructedByWall, removePerimeterCorner } =
     useModelActions()
   const { getPerimeterConstructionMethodById } = useConfigActions()
+  const viewportActions = useViewportActions()
 
   // Get perimeter from store
   const outerWall = usePerimeterById(perimeterId)
@@ -82,6 +86,24 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
 
   const isNonStandardAngle = corner.interiorAngle % 90 !== 0
 
+  const handleFitToView = useCallback(() => {
+    if (!corner || !previousWall || !nextWall) return
+
+    // Calculate midpoints of adjacent walls
+    const prevMidpoint: Vec2 = [
+      (previousWall.insideLine.start[0] + previousWall.insideLine.end[0]) / 2,
+      (previousWall.insideLine.start[1] + previousWall.insideLine.end[1]) / 2
+    ]
+    const nextMidpoint: Vec2 = [
+      (nextWall.insideLine.start[0] + nextWall.insideLine.end[0]) / 2,
+      (nextWall.insideLine.start[1] + nextWall.insideLine.end[1]) / 2
+    ]
+
+    const points = [corner.insidePoint, corner.outsidePoint, prevMidpoint, nextMidpoint]
+    const bounds = boundsFromPoints(points)
+    viewportActions.fitToView(bounds)
+  }, [corner, previousWall, nextWall, viewportActions])
+
   return (
     <Flex direction="column" gap="4">
       {/* Geometry Information */}
@@ -120,15 +142,22 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
 
       {/* Actions */}
       <Flex direction="column" gap="2">
-        <Button size="1" onClick={handleToggleConstructedByWall}>
-          Switch main wall
-        </Button>
-
-        {corner.interiorAngle === 180 && (
-          <Button size="1" onClick={handleMergeCorner} variant="soft">
-            Merge Straight Corner
-          </Button>
-        )}
+        <Flex gap="2" justify="end">
+          <IconButton size="2" onClick={handleToggleConstructedByWall} title="Switch main wall">
+            {corner.constructedByWall === 'next' ? <PinLeftIcon /> : <PinRightIcon />}
+          </IconButton>
+          <IconButton size="2" title="Fit to view" onClick={handleFitToView}>
+            <FitToViewIcon />
+          </IconButton>
+          <IconButton
+            size="2"
+            color={corner.interiorAngle === 180 ? undefined : 'red'}
+            title={corner.interiorAngle === 180 ? 'Merge split' : 'Delete corner'}
+            onClick={handleMergeCorner}
+          >
+            {corner.interiorAngle === 180 ? <SplitWallIcon /> : <TrashIcon />}
+          </IconButton>
+        </Flex>
       </Flex>
 
       <Separator size="4" />

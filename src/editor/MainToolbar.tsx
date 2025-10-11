@@ -48,7 +48,7 @@ export function MainToolbar(): React.JSX.Element {
                           variant={activeToolId === toolId ? 'solid' : 'surface'}
                           onClick={() => handleToolSelect(toolId)}
                         >
-                          {toolInfo.iconComponent ? <toolInfo.iconComponent /> : <Text>{toolInfo.icon}</Text>}
+                          <toolInfo.iconComponent width={20} height={20} />
                         </IconButton>
                       </Toolbar.Button>
                     </Tooltip>

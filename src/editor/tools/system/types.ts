@@ -16,8 +16,7 @@ export type ToolId =
 
 export interface ToolMetadata {
   name: string
-  icon: string
-  iconComponent?: React.ExoticComponent<IconProps>
+  iconComponent: React.ComponentType<IconProps>
   hotkey?: string
 }
 

@@ -1,6 +1,6 @@
 import { InfoCircledIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { Box, Button, Callout, Flex, Grid, Kbd, SegmentedControl, Separator, Text, Tooltip } from '@radix-ui/themes'
+import { Box, Callout, Flex, Grid, IconButton, Kbd, SegmentedControl, Separator, Text, Tooltip } from '@radix-ui/themes'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { OpeningId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
@@ -8,9 +8,11 @@ import type { OpeningType } from '@/building/model/model'
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { usePerimeterConstructionMethodById } from '@/construction/config/store'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
+import { useViewportActions } from '@/editor/hooks/useViewportStore'
+import { FitToViewIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
 import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/components/OpeningIcons'
-import { createLength } from '@/shared/geometry'
+import { type Vec2, add, boundsFromPoints, createLength, offsetPolygon, scale } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import { OpeningPreview } from './OpeningPreview'
@@ -49,6 +51,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
 
   // Get construction method for padding config
   const constructionMethod = wall?.constructionMethodId && usePerimeterConstructionMethodById(wall.constructionMethodId)
+  const viewportActions = useViewportActions()
 
   // Preview state
   const [highlightMode, setHighlightMode] = useState<'fitting' | 'finished'>('fitting')
@@ -141,7 +144,34 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
       select.popSelection()
       removeOpeningFromOuterWall(perimeterId, wallId, openingId)
     }
-  }, [removeOpeningFromOuterWall, perimeterId, wallId, openingId])
+  }, [removeOpeningFromOuterWall, perimeterId, wallId, openingId, select])
+
+  const handleFitToView = useCallback(() => {
+    if (!wall || !opening) return
+
+    // Calculate opening polygon (same as OpeningShape.tsx)
+    const insideStart = wall.insideLine.start
+    const outsideStart = wall.outsideLine.start
+    const wallVector = wall.direction
+    const offsetStart = scale(wallVector, opening.offsetFromStart)
+    const offsetEnd = add(offsetStart, scale(wallVector, opening.width))
+
+    const insideOpeningStart = add(insideStart, offsetStart)
+    const insideOpeningEnd = add(insideStart, offsetEnd)
+    const outsideOpeningStart = add(outsideStart, offsetStart)
+    const outsideOpeningEnd = add(outsideStart, offsetEnd)
+
+    const openingPolygon: Vec2[] = [insideOpeningStart, insideOpeningEnd, outsideOpeningEnd, outsideOpeningStart]
+
+    // Expand the polygon by 1.5x on each side (3x total area)
+    const expandAmount = Math.max(opening.width, wall.thickness) * 1.5
+    const expandedPolygon = offsetPolygon(openingPolygon, expandAmount)
+
+    // Calculate bounds from expanded polygon
+    const bounds = boundsFromPoints(expandedPolygon)
+
+    viewportActions.fitToView(bounds)
+  }, [wall, opening, viewportActions])
 
   return (
     <Flex direction="column" gap="4">
@@ -344,12 +374,14 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
 
       <Separator size="4" />
 
-      {/* Actions */}
-      <Flex direction="column" gap="2">
-        <Button color="red" size="1" onClick={handleRemoveOpening}>
+      {/* Action Buttons */}
+      <Flex gap="2" justify="end">
+        <IconButton size="2" title="Fit to view" onClick={handleFitToView}>
+          <FitToViewIcon />
+        </IconButton>
+        <IconButton size="2" color="red" title="Delete opening" onClick={handleRemoveOpening}>
           <TrashIcon />
-          Remove Opening
-        </Button>
+        </IconButton>
       </Flex>
 
       <Callout.Root color="blue">

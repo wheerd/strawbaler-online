@@ -1,15 +1,19 @@
+import { TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { Button, Callout, Card, DataList, Flex, Grid, Heading, Separator, Text } from '@radix-ui/themes'
-import { useMemo } from 'react'
+import { Button, Callout, Card, DataList, Flex, Grid, Heading, IconButton, Separator, Text } from '@radix-ui/themes'
+import { useCallback, useMemo } from 'react'
 
 import type { PerimeterConstructionMethodId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { WallConstructionPlanModal } from '@/construction/components/WallConstructionPlan'
 import { PerimeterMethodSelect } from '@/construction/config/components/PerimeterMethodSelect'
 import { usePerimeterConstructionMethodById } from '@/construction/config/store'
+import { popSelection } from '@/editor/hooks/useSelectionStore'
+import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { pushTool } from '@/editor/tools/system/store'
+import { FitToViewIcon, SplitWallIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
-import { type Length } from '@/shared/geometry'
+import { type Length, boundsFromPoints } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 interface PerimeterWallInspectorProps {
@@ -20,10 +24,12 @@ interface PerimeterWallInspectorProps {
 export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallInspectorProps): React.JSX.Element {
   const {
     updatePerimeterWallThickness: updateOuterWallThickness,
-    updatePerimeterWallConstructionMethod: updateOuterWallConstructionMethod
+    updatePerimeterWallConstructionMethod: updateOuterWallConstructionMethod,
+    removePerimeterWall
   } = useModelActions()
 
   const outerWall = usePerimeterById(perimeterId)
+  const viewportActions = useViewportActions()
 
   // Use useMemo to find wall within the wall object
   const wall = useMemo(() => {
@@ -47,6 +53,18 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
   const constructionMethod = wall?.constructionMethodId
     ? usePerimeterConstructionMethodById(wall.constructionMethodId)
     : null
+
+  const handleFitToView = useCallback(() => {
+    if (!wall) return
+    const points = [wall.insideLine.start, wall.insideLine.end, wall.outsideLine.start, wall.outsideLine.end]
+    const bounds = boundsFromPoints(points)
+    viewportActions.fitToView(bounds)
+  }, [wall, viewportActions])
+
+  const handleDelete = useCallback(() => {
+    removePerimeterWall(perimeterId, wallId)
+    popSelection()
+  }, [removePerimeterWall, perimeterId, wallId])
 
   return (
     <Flex direction="column" gap="4">
@@ -174,12 +192,21 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
 
       {/* Actions */}
       <Flex direction="column" gap="2">
-        <Button size="1" onClick={() => pushTool('perimeter.split-wall')}>
-          Split Wall
-        </Button>
         <WallConstructionPlanModal perimeterId={perimeterId} wallId={wallId}>
-          <Button size="1">View Construction Plan</Button>
+          <Button size="2">View Construction Plan</Button>
         </WallConstructionPlanModal>
+
+        <Flex gap="2" justify="end">
+          <IconButton size="2" title="Split Wall" onClick={() => pushTool('perimeter.split-wall')}>
+            <SplitWallIcon />
+          </IconButton>
+          <IconButton size="2" title="Fit to View" onClick={handleFitToView}>
+            <FitToViewIcon />
+          </IconButton>
+          <IconButton size="2" color="red" title="Delete Wall" onClick={handleDelete}>
+            <TrashIcon />
+          </IconButton>
+        </Flex>
       </Flex>
     </Flex>
   )

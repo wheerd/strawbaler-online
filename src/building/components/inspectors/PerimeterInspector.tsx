@@ -1,7 +1,7 @@
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
+import { ExclamationTriangleIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { Box, Button, Callout, DataList, Flex, Heading, Text, Tooltip } from '@radix-ui/themes'
-import React, { useMemo } from 'react'
+import { Box, Button, Callout, DataList, Flex, Heading, IconButton, Separator, Text, Tooltip } from '@radix-ui/themes'
+import React, { useCallback, useMemo } from 'react'
 
 import type { PerimeterConstructionMethodId, PerimeterId } from '@/building/model/ids'
 import type { PerimeterWall } from '@/building/model/model'
@@ -11,8 +11,11 @@ import { RingBeamConstructionPlanModal } from '@/construction/components/RingBea
 import { PerimeterMethodSelect } from '@/construction/config/components/PerimeterMethodSelect'
 import { RingBeamMethodSelect } from '@/construction/config/components/RingBeamMethodSelect'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
+import { popSelection } from '@/editor/hooks/useSelectionStore'
+import { useViewportActions } from '@/editor/hooks/useViewportStore'
+import { FitToViewIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
-import { type Length, calculatePolygonArea } from '@/shared/geometry'
+import { type Length, boundsFromPoints, calculatePolygonArea } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 interface PerimeterInspectorProps {
@@ -71,9 +74,11 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
     removePerimeterBaseRingBeam,
     removePerimeterTopRingBeam,
     updateAllPerimeterWallsConstructionMethod,
-    updateAllPerimeterWallsThickness
+    updateAllPerimeterWallsThickness,
+    removePerimeter
   } = useModelActions()
   const perimeter = usePerimeterById(selectedId)
+  const viewportActions = useViewportActions()
 
   // Mixed state detection
   const constructionMethodState = useMemo(
@@ -107,6 +112,18 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
   const totalOuterArea = calculatePolygonArea({ points: perimeter.corners.map(c => c.outsidePoint) })
 
   const hasNonStandardAngles = perimeter.corners.some(corner => corner.interiorAngle % 90 !== 0)
+
+  const handleFitToView = useCallback(() => {
+    if (!perimeter) return
+    const points = perimeter.corners.map(c => c.outsidePoint)
+    const bounds = boundsFromPoints(points)
+    viewportActions.fitToView(bounds)
+  }, [perimeter, viewportActions])
+
+  const handleDelete = useCallback(() => {
+    removePerimeter(selectedId)
+    popSelection()
+  }, [removePerimeter, selectedId])
 
   return (
     <Box p="2">
@@ -298,6 +315,18 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
             )}
           </Flex>
         </Box>
+
+        <Separator size="4" />
+
+        {/* Action Buttons */}
+        <Flex gap="2" justify="end">
+          <IconButton size="2" title="Fit to view" onClick={handleFitToView}>
+            <FitToViewIcon />
+          </IconButton>
+          <IconButton size="2" color="red" title="Delete perimeter" onClick={handleDelete}>
+            <TrashIcon />
+          </IconButton>
+        </Flex>
       </Flex>
     </Box>
   )

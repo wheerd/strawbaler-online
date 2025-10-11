@@ -1,62 +1,53 @@
+import { CursorArrowIcon, MoveIcon, RocketIcon } from '@radix-ui/react-icons'
+
 import {
-  AllSidesIcon,
-  BorderAllIcon,
-  BoxIcon,
-  BoxModelIcon,
-  CursorArrowIcon,
-  DividerHorizontalIcon,
-  MoveIcon,
-  RocketIcon
-} from '@radix-ui/react-icons'
+  FitToViewIcon,
+  OpeningsIcon,
+  PerimeterDrawIcon,
+  PerimeterPresetsIcon,
+  SplitWallIcon
+} from '@/shared/components/Icons'
 
 import type { ToolGroup, ToolId, ToolMetadata } from './types'
 
 export const TOOL_METADATA: Record<ToolId, ToolMetadata> = {
   'basic.select': {
     name: 'Select',
-    icon: '↖',
     iconComponent: CursorArrowIcon,
     hotkey: 'v'
   },
   'basic.move': {
     name: 'Move',
-    icon: '↔',
     iconComponent: MoveIcon,
     hotkey: 'm'
   },
   'basic.fit-to-view': {
     name: 'Fit to View',
-    icon: '⊞',
-    iconComponent: AllSidesIcon,
+    iconComponent: FitToViewIcon,
     hotkey: 'f'
   },
   'perimeter.add': {
     name: 'Building Perimeter',
-    icon: '⬜',
-    iconComponent: BorderAllIcon,
+    iconComponent: PerimeterDrawIcon,
     hotkey: 'w'
   },
   'perimeter.preset': {
     name: 'Perimeter Presets',
-    icon: '⬜',
-    iconComponent: BoxModelIcon,
+    iconComponent: PerimeterPresetsIcon,
     hotkey: 'p'
   },
   'perimeter.add-opening': {
     name: 'Add Opening',
-    icon: '🚪',
-    iconComponent: BoxIcon,
+    iconComponent: OpeningsIcon,
     hotkey: 'o'
   },
   'perimeter.split-wall': {
     name: 'Split Wall',
-    icon: '⫽',
-    iconComponent: DividerHorizontalIcon,
+    iconComponent: SplitWallIcon,
     hotkey: 's'
   },
   'test.data': {
     name: 'Test Data',
-    icon: '🏗️',
     iconComponent: RocketIcon,
     hotkey: 't'
   }
