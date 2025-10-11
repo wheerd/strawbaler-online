@@ -4,8 +4,8 @@ import { Box, Button, Callout, Code, Flex, Grid, IconButton, Kbd, Separator, Tex
 import { useEffect, useState } from 'react'
 
 import type { PerimeterConstructionMethodId, RingBeamConstructionMethodId } from '@/building/model/ids'
-import { PerimeterMethodSelect } from '@/construction/config/components/PerimeterMethodSelect'
-import { RingBeamMethodSelect } from '@/construction/config/components/RingBeamMethodSelect'
+import { PerimeterMethodSelectWithEdit } from '@/construction/config/components/PerimeterMethodSelectWithEdit'
+import { RingBeamMethodSelectWithEdit } from '@/construction/config/components/RingBeamMethodSelectWithEdit'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import { LengthField } from '@/shared/components/LengthField'
@@ -52,7 +52,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
               Construction Method
             </Text>
           </Label.Root>
-          <PerimeterMethodSelect
+          <PerimeterMethodSelectWithEdit
             value={state.constructionMethodId ?? undefined}
             onValueChange={(value: PerimeterConstructionMethodId) => {
               tool.setConstructionMethod(value)
@@ -83,7 +83,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
               Base Plate
             </Text>
           </Label.Root>
-          <RingBeamMethodSelect
+          <RingBeamMethodSelectWithEdit
             value={state.baseRingBeamMethodId ?? undefined}
             onValueChange={(value: RingBeamConstructionMethodId | undefined) => {
               tool.setBaseRingBeam(value)
@@ -99,7 +99,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
               Top Plate
             </Text>
           </Label.Root>
-          <RingBeamMethodSelect
+          <RingBeamMethodSelectWithEdit
             value={state.topRingBeamMethodId ?? undefined}
             onValueChange={(value: RingBeamConstructionMethodId | undefined) => {
               tool.setTopRingBeam(value)

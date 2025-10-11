@@ -32,17 +32,24 @@ export interface MaterialsConfigModalProps {
   trigger: React.ReactNode
 }
 
+export interface MaterialsConfigContentProps {
+  initialSelectionId?: string
+}
+
 type MaterialType = Material['type']
 
-export function MaterialsConfigContent(): React.JSX.Element {
+export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigContentProps): React.JSX.Element {
   const materials = useMaterials()
   const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial } = useMaterialActions()
   const ringBeamMethods = useRingBeamConstructionMethods()
   const perimeterMethods = usePerimeterConstructionMethods()
 
-  const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(
-    materials.length > 0 ? materials[0].id : null
-  )
+  const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(() => {
+    if (initialSelectionId && materials.some(m => m.id === initialSelectionId)) {
+      return initialSelectionId
+    }
+    return materials.length > 0 ? materials[0].id : null
+  })
 
   const selectedMaterial = materials.find(m => m.id === selectedMaterialId) ?? null
 

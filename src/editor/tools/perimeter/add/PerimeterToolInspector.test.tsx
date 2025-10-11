@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 
 import { createPerimeterConstructionMethodId } from '@/building/model/ids'
+import { ConfigurationModalContext } from '@/construction/config/context/ConfigurationModalContext'
 import { createLength, createVec2 } from '@/shared/geometry'
 
 import { PerimeterTool } from './PerimeterTool'
@@ -84,10 +85,13 @@ describe('PerimeterToolInspector', () => {
   })
 
   const renderInspector = (tool = mockTool) => {
+    const mockOpenConfiguration = vi.fn()
     return render(
-      <Theme>
-        <PerimeterToolInspector tool={tool} />
-      </Theme>
+      <ConfigurationModalContext.Provider value={{ openConfiguration: mockOpenConfiguration }}>
+        <Theme>
+          <PerimeterToolInspector tool={tool} />
+        </Theme>
+      </ConfigurationModalContext.Provider>
     )
   }
 

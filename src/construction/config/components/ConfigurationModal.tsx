@@ -1,22 +1,34 @@
 import { Cross2Icon, GearIcon } from '@radix-ui/react-icons'
 import { Dialog, Flex, IconButton, Tabs } from '@radix-ui/themes'
-import React, { useState } from 'react'
+import React from 'react'
 
+import type { ConfigTab } from '@/construction/config/context/ConfigurationModalContext'
 import { MaterialsConfigContent } from '@/construction/materials/components/MaterialsConfigContent'
 
 import { PerimeterConfigContent } from './PerimeterConfigContent'
 import { RingBeamConfigContent } from './RingBeamConfigContent'
 
 export interface ConfigurationModalProps {
-  trigger: React.ReactNode
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  activeTab: ConfigTab
+  onTabChange: (tab: ConfigTab) => void
+  initialSelectionId?: string
 }
 
-export function ConfigurationModal({ trigger }: ConfigurationModalProps): React.JSX.Element {
-  const [activeTab, setActiveTab] = useState('materials')
+export function ConfigurationModal({
+  open,
+  onOpenChange,
+  activeTab,
+  onTabChange,
+  initialSelectionId
+}: ConfigurationModalProps): React.JSX.Element {
+  const setActiveTab = (tab: string) => {
+    onTabChange(tab as ConfigTab)
+  }
 
   return (
-    <Dialog.Root>
-      <Dialog.Trigger>{trigger}</Dialog.Trigger>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Content size="4" width="95%" maxWidth="95%" height="90vh" maxHeight="90vh">
         <Dialog.Title>
           <Flex justify="between" align="center">
@@ -41,19 +53,19 @@ export function ConfigurationModal({ trigger }: ConfigurationModalProps): React.
 
           <Tabs.Content value="materials">
             <Flex pt="4" style={{ width: '100%' }}>
-              <MaterialsConfigContent />
+              <MaterialsConfigContent initialSelectionId={initialSelectionId} />
             </Flex>
           </Tabs.Content>
 
           <Tabs.Content value="ringbeams">
             <Flex pt="4" style={{ width: '100%' }}>
-              <RingBeamConfigContent />
+              <RingBeamConfigContent initialSelectionId={initialSelectionId} />
             </Flex>
           </Tabs.Content>
 
           <Tabs.Content value="perimeter">
             <Flex pt="4" style={{ width: '100%' }}>
-              <PerimeterConfigContent />
+              <PerimeterConfigContent initialSelectionId={initialSelectionId} />
             </Flex>
           </Tabs.Content>
         </Tabs.Root>

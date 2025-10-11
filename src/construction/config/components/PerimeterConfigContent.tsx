@@ -25,7 +25,7 @@ import {
 } from '@/construction/config/store'
 import type { LayersConfig, PerimeterConstructionConfig } from '@/construction/config/types'
 import { getPerimeterConfigUsage } from '@/construction/config/usage'
-import { MaterialSelect } from '@/construction/materials/components'
+import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { LengthField } from '@/shared/components/LengthField'
 import type { Length } from '@/shared/geometry'
@@ -153,7 +153,7 @@ function PostsConfigSection({ posts, onUpdate }: PostsConfigSectionProps): React
             Material
           </Text>
         </Label.Root>
-        <MaterialSelect
+        <MaterialSelectWithEdit
           value={'material' in posts ? posts.material : undefined}
           onValueChange={material => onUpdate({ ...posts, material })}
           size="1"
@@ -166,7 +166,7 @@ function PostsConfigSection({ posts, onUpdate }: PostsConfigSectionProps): React
                 Infill Material
               </Text>
             </Label.Root>
-            <MaterialSelect
+            <MaterialSelectWithEdit
               value={posts.infillMaterial}
               onValueChange={infillMaterial => onUpdate({ ...posts, infillMaterial })}
               size="1"
@@ -275,7 +275,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
               Frame Material
             </Text>
           </Label.Root>
-          <MaterialSelect
+          <MaterialSelectWithEdit
             value={module.frameMaterial}
             onValueChange={frameMaterial => onUpdate({ ...module, frameMaterial })}
             size="1"
@@ -288,7 +288,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
               Straw Material
             </Text>
           </Label.Root>
-          <MaterialSelect
+          <MaterialSelectWithEdit
             value={module.strawMaterial}
             onValueChange={strawMaterial => onUpdate({ ...module, strawMaterial })}
             size="1"
@@ -354,7 +354,7 @@ function NonStrawbaleConfigForm({ config, onUpdate }: NonStrawbaleConfigFormProp
               Material
             </Text>
           </Label.Root>
-          <MaterialSelect
+          <MaterialSelectWithEdit
             value={config.material}
             onValueChange={material => onUpdate({ ...config, material })}
             size="1"
@@ -437,7 +437,7 @@ function CommonConfigSections({ methodId, config, layers }: CommonConfigSections
               Header Material
             </Text>
           </Label.Root>
-          <MaterialSelect
+          <MaterialSelectWithEdit
             value={config.openings.headerMaterial}
             onValueChange={headerMaterial =>
               updatePerimeterConstructionMethodConfig(methodId, {
@@ -474,7 +474,7 @@ function CommonConfigSections({ methodId, config, layers }: CommonConfigSections
               Sill Material
             </Text>
           </Label.Root>
-          <MaterialSelect
+          <MaterialSelectWithEdit
             value={config.openings.sillMaterial}
             onValueChange={sillMaterial =>
               updatePerimeterConstructionMethodConfig(methodId, {
@@ -548,7 +548,7 @@ function CommonConfigSections({ methodId, config, layers }: CommonConfigSections
             Material
           </Text>
         </Label.Root>
-        <MaterialSelect
+        <MaterialSelectWithEdit
           value={config.straw.material}
           onValueChange={material =>
             updatePerimeterConstructionMethodConfig(methodId, {
@@ -681,7 +681,11 @@ function ConfigForm({ method, onUpdateName }: ConfigFormProps): React.JSX.Elemen
   )
 }
 
-export function PerimeterConfigContent(): React.JSX.Element {
+export interface PerimeterConfigContentProps {
+  initialSelectionId?: string
+}
+
+export function PerimeterConfigContent({ initialSelectionId }: PerimeterConfigContentProps): React.JSX.Element {
   const perimeterMethods = usePerimeterConstructionMethods()
   const perimeters = usePerimeters()
   const storeys = useStoreysOrderedByLevel()
@@ -695,9 +699,12 @@ export function PerimeterConfigContent(): React.JSX.Element {
 
   const defaultMethodId = useDefaultPerimeterMethodId()
 
-  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(
-    perimeterMethods.length > 0 ? perimeterMethods[0].id : null
-  )
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(() => {
+    if (initialSelectionId && perimeterMethods.some(m => m.id === initialSelectionId)) {
+      return initialSelectionId
+    }
+    return perimeterMethods.length > 0 ? perimeterMethods[0].id : null
+  })
 
   const selectedMethod = perimeterMethods.find(m => m.id === selectedMethodId) ?? null
 

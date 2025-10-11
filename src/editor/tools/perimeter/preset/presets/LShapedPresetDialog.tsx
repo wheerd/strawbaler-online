@@ -3,8 +3,8 @@ import { Button, Dialog, Flex, Grid, Heading, IconButton, SegmentedControl, Text
 import { useCallback, useEffect, useState } from 'react'
 
 import type { PerimeterConstructionMethodId } from '@/building/model/ids'
-import { PerimeterMethodSelect } from '@/construction/config/components/PerimeterMethodSelect'
-import { RingBeamMethodSelect } from '@/construction/config/components/RingBeamMethodSelect'
+import { PerimeterMethodSelectWithEdit } from '@/construction/config/components/PerimeterMethodSelectWithEdit'
+import { RingBeamMethodSelectWithEdit } from '@/construction/config/components/RingBeamMethodSelectWithEdit'
 import { useConfigActions } from '@/construction/config/store'
 import { LengthField } from '@/shared/components/LengthField'
 import { createLength, offsetPolygon } from '@/shared/geometry'
@@ -337,7 +337,7 @@ function LShapedPresetDialogContent({
                 <Text size="1" color="gray">
                   Construction Method
                 </Text>
-                <PerimeterMethodSelect
+                <PerimeterMethodSelectWithEdit
                   value={config.constructionMethodId ?? undefined}
                   onValueChange={(value: PerimeterConstructionMethodId) => {
                     setConfig(prev => ({ ...prev, constructionMethodId: value }))
@@ -352,7 +352,7 @@ function LShapedPresetDialogContent({
                 <Text size="1" color="gray">
                   Base Plate
                 </Text>
-                <RingBeamMethodSelect
+                <RingBeamMethodSelectWithEdit
                   value={config.baseRingBeamMethodId}
                   onValueChange={value => {
                     setConfig(prev => ({ ...prev, baseRingBeamMethodId: value }))
@@ -368,7 +368,7 @@ function LShapedPresetDialogContent({
                 <Text size="1" color="gray">
                   Top Plate
                 </Text>
-                <RingBeamMethodSelect
+                <RingBeamMethodSelectWithEdit
                   value={config.topRingBeamMethodId}
                   onValueChange={value => {
                     setConfig(prev => ({ ...prev, topRingBeamMethodId: value }))

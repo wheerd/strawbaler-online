@@ -23,7 +23,7 @@ import {
   useRingBeamConstructionMethods
 } from '@/construction/config/store'
 import { getRingBeamConfigUsage } from '@/construction/config/usage'
-import { MaterialSelect } from '@/construction/materials/components/MaterialSelect'
+import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import type { Length } from '@/shared/geometry'
@@ -34,7 +34,11 @@ import { RingBeamMethodSelect } from './RingBeamMethodSelect'
 
 type RingBeamType = 'full' | 'double'
 
-export function RingBeamConfigContent(): React.JSX.Element {
+export interface RingBeamConfigContentProps {
+  initialSelectionId?: string
+}
+
+export function RingBeamConfigContent({ initialSelectionId }: RingBeamConfigContentProps): React.JSX.Element {
   const ringBeamMethods = useRingBeamConstructionMethods()
   const perimeters = usePerimeters()
   const storeys = useStoreysOrderedByLevel()
@@ -50,9 +54,12 @@ export function RingBeamConfigContent(): React.JSX.Element {
   const defaultBaseId = useDefaultBaseRingBeamMethodId()
   const defaultTopId = useDefaultTopRingBeamMethodId()
 
-  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(
-    ringBeamMethods.length > 0 ? ringBeamMethods[0].id : null
-  )
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(() => {
+    if (initialSelectionId && ringBeamMethods.some(m => m.id === initialSelectionId)) {
+      return initialSelectionId
+    }
+    return ringBeamMethods.length > 0 ? ringBeamMethods[0].id : null
+  })
 
   const selectedMethod = ringBeamMethods.find(m => m.id === selectedMethodId) ?? null
 
@@ -322,7 +329,7 @@ function FullRingBeamFields({
             Material
           </Text>
         </Label.Root>
-        <MaterialSelect
+        <MaterialSelectWithEdit
           value={config.material}
           onValueChange={material => onUpdate({ material })}
           placeholder="Select material..."
@@ -374,7 +381,7 @@ function DoubleRingBeamFields({
             Material
           </Text>
         </Label.Root>
-        <MaterialSelect
+        <MaterialSelectWithEdit
           value={config.material}
           onValueChange={material => onUpdate({ material })}
           placeholder="Select material..."
@@ -386,7 +393,7 @@ function DoubleRingBeamFields({
             Infill Material
           </Text>
         </Label.Root>
-        <MaterialSelect
+        <MaterialSelectWithEdit
           value={config.infillMaterial}
           onValueChange={infillMaterial => onUpdate({ infillMaterial })}
           placeholder="Select infill material..."

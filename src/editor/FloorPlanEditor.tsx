@@ -1,6 +1,8 @@
 import { Box, Grid } from '@radix-ui/themes'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { ConfigurationModal } from '@/construction/config/components/ConfigurationModal'
+import { type ConfigTab, ConfigurationModalContext } from '@/construction/config/context/ConfigurationModalContext'
 import { WelcomeModal } from '@/shared/components/WelcomeModal'
 import { useWelcomeModal } from '@/shared/hooks/useWelcomeModal'
 
@@ -20,6 +22,16 @@ export function FloorPlanEditor(): React.JSX.Element {
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
+
+  const [configModalOpen, setConfigModalOpen] = useState(false)
+  const [configActiveTab, setConfigActiveTab] = useState<ConfigTab>('materials')
+  const [configSelectedItemId, setConfigSelectedItemId] = useState<string | undefined>()
+
+  const openConfiguration = useCallback((tab: ConfigTab, itemId?: string) => {
+    setConfigActiveTab(tab)
+    setConfigSelectedItemId(itemId)
+    setConfigModalOpen(true)
+  }, [])
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback(
@@ -128,49 +140,60 @@ export function FloorPlanEditor(): React.JSX.Element {
   }, [])
 
   return (
-    <Grid
-      ref={containerRef}
-      rows="auto 1fr"
-      style={{
-        width: '100vw',
-        height: '100vh',
-        margin: 0,
-        padding: 0,
-        backgroundColor: 'var(--gray-2)'
-      }}
-      tabIndex={0}
-      onClick={handleClick}
-      data-testid="floor-plan-editor"
-    >
-      {/* Top Toolbar - Tabs for tool groups + tools */}
-      <Box style={{ zIndex: 100, borderBottom: '1px solid var(--gray-6)' }}>
-        <MainToolbar onInfoClick={openManually} />
-      </Box>
-
-      {/* Welcome Modal */}
-      <WelcomeModal isOpen={isOpen} mode={mode} onAccept={handleAccept} />
-
-      {/* Main Content Area - Canvas + Side Panel */}
-      <Grid p="0" gap="0" columns="1fr 320px" style={{ overflow: 'hidden' }}>
-        {/* Canvas Area */}
-        <Box
-          style={{
-            position: 'relative',
-            overflow: 'hidden',
-            backgroundColor: 'white',
-            borderRight: '1px solid var(--gray-6)'
-          }}
-        >
-          <FloorPlanStage width={dimensions.width} height={dimensions.height} />
-          <AutoSaveIndicator />
-          <GridSizeDisplay />
-          <StoreySelector />
-          <LengthInputComponent />
+    <ConfigurationModalContext.Provider value={{ openConfiguration }}>
+      <Grid
+        ref={containerRef}
+        rows="auto 1fr"
+        style={{
+          width: '100vw',
+          height: '100vh',
+          margin: 0,
+          padding: 0,
+          backgroundColor: 'var(--gray-2)'
+        }}
+        tabIndex={0}
+        onClick={handleClick}
+        data-testid="floor-plan-editor"
+      >
+        {/* Top Toolbar - Tabs for tool groups + tools */}
+        <Box style={{ zIndex: 100, borderBottom: '1px solid var(--gray-6)' }}>
+          <MainToolbar onInfoClick={openManually} />
         </Box>
 
-        {/* Right Side Panel */}
-        <SidePanel />
+        {/* Configuration Modal - Rendered at app level */}
+        <ConfigurationModal
+          open={configModalOpen}
+          onOpenChange={setConfigModalOpen}
+          activeTab={configActiveTab}
+          onTabChange={setConfigActiveTab}
+          initialSelectionId={configSelectedItemId}
+        />
+
+        {/* Welcome Modal */}
+        <WelcomeModal isOpen={isOpen} mode={mode} onAccept={handleAccept} />
+
+        {/* Main Content Area - Canvas + Side Panel */}
+        <Grid p="0" gap="0" columns="1fr 320px" style={{ overflow: 'hidden' }}>
+          {/* Canvas Area */}
+          <Box
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              backgroundColor: 'white',
+              borderRight: '1px solid var(--gray-6)'
+            }}
+          >
+            <FloorPlanStage width={dimensions.width} height={dimensions.height} />
+            <AutoSaveIndicator />
+            <GridSizeDisplay />
+            <StoreySelector />
+            <LengthInputComponent />
+          </Box>
+
+          {/* Right Side Panel */}
+          <SidePanel />
+        </Grid>
       </Grid>
-    </Grid>
+    </ConfigurationModalContext.Provider>
   )
 }

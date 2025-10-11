@@ -8,8 +8,8 @@ import type { PerimeterWall } from '@/building/model/model'
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { PerimeterConstructionPlanModal } from '@/construction/components/PerimeterConstructionPlan'
 import { RingBeamConstructionPlanModal } from '@/construction/components/RingBeamConstructionPlan'
-import { PerimeterMethodSelect } from '@/construction/config/components/PerimeterMethodSelect'
-import { RingBeamMethodSelect } from '@/construction/config/components/RingBeamMethodSelect'
+import { PerimeterMethodSelectWithEdit } from '@/construction/config/components/PerimeterMethodSelectWithEdit'
+import { RingBeamMethodSelectWithEdit } from '@/construction/config/components/RingBeamMethodSelectWithEdit'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
@@ -206,7 +206,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                   </Text>
                 )}
               </Label.Root>
-              <PerimeterMethodSelect
+              <PerimeterMethodSelectWithEdit
                 value={
                   constructionMethodState.isMixed
                     ? undefined
@@ -265,7 +265,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                   Base Plate
                 </Text>
               </Label.Root>
-              <RingBeamMethodSelect
+              <RingBeamMethodSelectWithEdit
                 value={perimeter.baseRingBeamMethodId}
                 onValueChange={value => {
                   if (value === undefined) {
@@ -287,7 +287,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                   Top Plate
                 </Text>
               </Label.Root>
-              <RingBeamMethodSelect
+              <RingBeamMethodSelectWithEdit
                 value={perimeter.topRingBeamMethodId}
                 onValueChange={value => {
                   if (value === undefined) {

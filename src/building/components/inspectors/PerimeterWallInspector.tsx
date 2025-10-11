@@ -6,7 +6,7 @@ import { useCallback, useMemo } from 'react'
 import type { PerimeterConstructionMethodId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { WallConstructionPlanModal } from '@/construction/components/WallConstructionPlan'
-import { PerimeterMethodSelect } from '@/construction/config/components/PerimeterMethodSelect'
+import { PerimeterMethodSelectWithEdit } from '@/construction/config/components/PerimeterMethodSelectWithEdit'
 import { usePerimeterConstructionMethodById } from '@/construction/config/store'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
@@ -112,7 +112,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               Construction Method
             </Text>
           </Label.Root>
-          <PerimeterMethodSelect
+          <PerimeterMethodSelectWithEdit
             value={wall.constructionMethodId}
             onValueChange={(value: PerimeterConstructionMethodId) => {
               updateOuterWallConstructionMethod(perimeterId, wallId, value)
