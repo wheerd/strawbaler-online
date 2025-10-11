@@ -134,7 +134,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
             perimeterId={selectedId}
             trigger={
               <Button size="2" style={{ width: '100%' }}>
-                View Construction
+                View Construction Plan
               </Button>
             }
           />
@@ -142,7 +142,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
             perimeterId={selectedId}
             trigger={
               <Button size="2" variant="outline" style={{ width: '100%' }}>
-                View 3D
+                View 3D Construction
               </Button>
             }
           />

@@ -11,7 +11,7 @@ function OpacityControlButton(): React.JSX.Element {
   const label = strawOpacity === 1.0 ? 'Straw: 100%' : strawOpacity === 0.5 ? 'Straw: 50%' : 'Straw: 0%'
 
   return (
-    <IconButton size="2" variant="soft" onClick={() => cycleOpacityForCategory('straw')} title={label}>
+    <IconButton size="2" variant="surface" onClick={() => cycleOpacityForCategory('straw')} title={label}>
       {strawOpacity === 1.0 ? (
         <EyeOpenIcon />
       ) : strawOpacity === 0.5 ? (

@@ -7,7 +7,7 @@ import type { ConstructionModel } from '@/construction/model'
 
 import ConstructionElement3D from './components/ConstructionElement3D'
 import ConstructionGroup3D from './components/ConstructionGroup3D'
-import ExportGLTFButton from './components/ExportGLTFButton'
+import ExportButton, { type ExportFormat } from './components/ExportButton'
 import OpacityControlButton from './components/OpacityControlButton'
 import SceneExporter from './components/SceneExporter'
 
@@ -17,7 +17,7 @@ interface ConstructionViewer3DProps {
 }
 
 function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProps): React.JSX.Element {
-  const exportFnRef = useRef<(() => void) | null>(null)
+  const exportFnRef = useRef<((format: ExportFormat) => void) | null>(null)
 
   const centerX = (model.bounds.min[0] + model.bounds.max[0]) / 2
   const centerY = (model.bounds.min[1] + model.bounds.max[1]) / 2
@@ -36,13 +36,13 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
 
   const gridSize = Math.max(maxSize * 3, 10000)
 
-  const handleExportReady = useCallback((fn: () => void) => {
+  const handleExportReady = useCallback((fn: (format: ExportFormat) => void) => {
     exportFnRef.current = fn
   }, [])
 
-  const handleExport = (): void => {
+  const handleExport = (format: ExportFormat): void => {
     if (exportFnRef.current) {
-      exportFnRef.current()
+      exportFnRef.current(format)
     }
   }
 
@@ -79,9 +79,9 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
 
       <Box position="absolute" top="3" left="3" style={{ zIndex: 10 }}>
         <Card size="1" variant="surface" className="shadow-md">
-          <Flex direction="column" gap="2" m="-2">
+          <Flex direction="row" gap="2" m="-2">
             <OpacityControlButton />
-            <ExportGLTFButton onExport={handleExport} />
+            <ExportButton onExport={handleExport} />
           </Flex>
         </Card>
       </Box>
