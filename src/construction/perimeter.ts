@@ -31,6 +31,8 @@ export function constructPerimeter(perimeter: Perimeter): ConstructionModel {
   const nextSlabConfig = nextStorey ? getSlabConstructionConfigById(nextStorey.slabConstructionConfigId) : null
 
   const storeyContext = createWallStoreyContext(storey, currentSlabConfig, nextSlabConfig)
+  const constructionHeight =
+    storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
 
   const allModels: ConstructionModel[] = []
   if (perimeter.baseRingBeamMethodId) {
@@ -48,7 +50,7 @@ export function constructPerimeter(perimeter: Perimeter): ConstructionModel {
       const transformedModel = transformModel(
         ringBeam,
         {
-          position: [0, 0, storey.height - method.config.height],
+          position: [0, 0, constructionHeight - method.config.height],
           rotation: [0, 0, 0]
         },
         [TAG_TOP_PLATE]
