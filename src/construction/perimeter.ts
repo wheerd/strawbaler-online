@@ -1,6 +1,7 @@
 import type { Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { IDENTITY } from '@/construction/geometry'
+import { SLAB_CONSTRUCTION_METHODS } from '@/construction/slabs'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
 import { angle } from '@/shared/geometry'
 
@@ -81,6 +82,11 @@ export function constructPerimeter(perimeter: Perimeter): ConstructionModel {
       allModels.push(transformedModel)
     }
   }
+
+  const outerPolygon = { points: perimeter.corners.map(c => c.outsidePoint) }
+  const slabMethod = SLAB_CONSTRUCTION_METHODS[currentSlabConfig.type]
+  const slabModel = slabMethod.construct({ outer: outerPolygon, holes: [] }, currentSlabConfig)
+  allModels.push(slabModel)
 
   return mergeModels(...allModels)
 }

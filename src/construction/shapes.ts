@@ -5,6 +5,7 @@ import {
   type Length,
   type Plane3D,
   type PolygonWithHoles2D,
+  type Vec2,
   type Vec3,
   boundsFromPoints
 } from '@/shared/geometry'
@@ -156,5 +157,58 @@ export const createExtrudedPolygon = (
     plane,
     thickness,
     bounds: { min, max }
+  }
+}
+
+export interface Face3D {
+  outer: Vec3[]
+  holes: Vec3[][]
+}
+
+function point2DTo3D(p: Vec2, plane: Plane3D, z: number) {
+  switch (plane) {
+    case 'xy':
+      return vec3.fromValues(p[0], p[1], z)
+    case 'xz':
+      return vec3.fromValues(p[0], z, p[1])
+    case 'yz':
+      return vec3.fromValues(z, p[0], p[1])
+  }
+}
+
+export function* extrudedPolygonFaces(polygon: ExtrudedPolygon): Generator<Face3D> {
+  yield {
+    outer: polygon.polygon.outer.points.map(p => point2DTo3D(p, polygon.plane, 0)),
+    holes: polygon.polygon.holes.map(h => h.points.map(p => point2DTo3D(p, polygon.plane, 0)))
+  }
+  yield {
+    outer: polygon.polygon.outer.points.map(p => point2DTo3D(p, polygon.plane, polygon.thickness)),
+    holes: polygon.polygon.holes.map(h => h.points.map(p => point2DTo3D(p, polygon.plane, polygon.thickness)))
+  }
+  const op = polygon.polygon.outer.points
+  for (let i = 0; i < op.length; i++) {
+    yield {
+      outer: [
+        point2DTo3D(op[i], polygon.plane, 0),
+        point2DTo3D(op[(i + 1) % op.length], polygon.plane, 0),
+        point2DTo3D(op[(i + 1) % op.length], polygon.plane, polygon.thickness),
+        point2DTo3D(op[i], polygon.plane, polygon.thickness)
+      ],
+      holes: []
+    }
+  }
+  for (const hole of polygon.polygon.holes) {
+    const op = hole.points
+    for (let i = 0; i < op.length; i++) {
+      yield {
+        outer: [
+          point2DTo3D(op[i], polygon.plane, 0),
+          point2DTo3D(op[(i + 1) % op.length], polygon.plane, 0),
+          point2DTo3D(op[(i + 1) % op.length], polygon.plane, polygon.thickness),
+          point2DTo3D(op[i], polygon.plane, polygon.thickness)
+        ],
+        holes: []
+      }
+    }
   }
 }

@@ -8,8 +8,7 @@ export function generateMaterialCSS(materials: Material[]): string {
   const materialRules = materials
     .map(
       material =>
-        `.${material.id} rect,
-.${material.id} polygon {
+        `.${material.id} .apply-material {
   fill: ${material.color};
   stroke: #000;
   stroke-width: 5;
