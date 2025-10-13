@@ -90,7 +90,7 @@ export function WallConstructionPlanModal({
   const [containerSize, containerRef] = elementSizeRef()
   const perimeter = usePerimeterById(perimeterId)
   const { getStoreyById, getStoreysOrderedByLevel } = useModelActions()
-  const { getPerimeterConstructionMethodById, getFloorConstructionConfigById } = getConfigActions()
+  const { getPerimeterConstructionMethodById, getSlabConstructionConfigById } = getConfigActions()
 
   const constructionModel = useMemo(() => {
     if (!perimeter) return null
@@ -108,15 +108,15 @@ export function WallConstructionPlanModal({
     const constructionMethod = PERIMETER_WALL_CONSTRUCTION_METHODS[method.config.type]
     if (!constructionMethod) return null
 
-    const currentFloorConfig = getFloorConstructionConfigById(storey.floorConstructionConfigId)
-    if (!currentFloorConfig) return null
+    const currentSlabConfig = getSlabConstructionConfigById(storey.slabConstructionConfigId)
+    if (!currentSlabConfig) return null
 
     const allStoreys = getStoreysOrderedByLevel()
     const currentIndex = allStoreys.findIndex(s => s.id === storey.id)
     const nextStorey = currentIndex >= 0 && currentIndex < allStoreys.length - 1 ? allStoreys[currentIndex + 1] : null
-    const nextFloorConfig = nextStorey ? getFloorConstructionConfigById(nextStorey.floorConstructionConfigId) : null
+    const nextSlabConfig = nextStorey ? getSlabConstructionConfigById(nextStorey.slabConstructionConfigId) : null
 
-    const storeyContext = createWallStoreyContext(storey, currentFloorConfig, nextStorey, nextFloorConfig)
+    const storeyContext = createWallStoreyContext(storey, currentSlabConfig, nextSlabConfig)
 
     return constructionMethod(wall, perimeter, storeyContext, method.config, method.layers)
   }, [
@@ -125,7 +125,7 @@ export function WallConstructionPlanModal({
     getStoreyById,
     getStoreysOrderedByLevel,
     getPerimeterConstructionMethodById,
-    getFloorConstructionConfigById
+    getSlabConstructionConfigById
   ])
 
   // Define views for wall construction

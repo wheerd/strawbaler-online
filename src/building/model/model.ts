@@ -1,11 +1,11 @@
 import type {
-  FloorConstructionConfigId,
   OpeningId,
   PerimeterConstructionMethodId,
   PerimeterCornerId,
   PerimeterId,
   PerimeterWallId,
   RingBeamConstructionMethodId,
+  SlabConstructionConfigId,
   StoreyId
 } from '@/building/model/ids'
 import type { Length, LineSegment2D, Vec2 } from '@/shared/geometry'
@@ -40,7 +40,7 @@ export interface Storey {
   readonly name: string
   readonly level: StoreyLevel // Floor level (0 = ground floor, 1 = first floor, etc.)
   readonly height: Length
-  readonly floorConstructionConfigId: FloorConstructionConfigId
+  readonly slabConstructionConfigId: SlabConstructionConfigId
 }
 
 export interface Perimeter {

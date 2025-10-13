@@ -1,10 +1,10 @@
-import type { FloorBaseConstructionConfig } from '@/construction/config/types'
-import type { FloorConstructionMethod } from '@/construction/floors/types'
+import type { SlabBaseConstructionConfig } from '@/construction/config/types'
 import type { ConstructionModel } from '@/construction/model'
+import type { SlabConstructionMethod } from '@/construction/slabs/types'
 import { type Length, type PolygonWithHoles2D, createLength } from '@/shared/geometry'
 
-export abstract class BaseFloorConstructionMethod<TConfig extends FloorBaseConstructionConfig>
-  implements FloorConstructionMethod<TConfig>
+export abstract class BaseSlabConstructionMethod<TConfig extends SlabBaseConstructionConfig>
+  implements SlabConstructionMethod<TConfig>
 {
   abstract construct: (polygon: PolygonWithHoles2D, config: TConfig) => ConstructionModel
   abstract getTopOffset: (config: TConfig) => Length

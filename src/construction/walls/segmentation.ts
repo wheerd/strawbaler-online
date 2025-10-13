@@ -1,9 +1,9 @@
 import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model/model'
 import { getConfigActions } from '@/construction/config'
-import type { FloorConstructionConfig, WallLayersConfig } from '@/construction/config/types'
-import { FLOOR_CONSTRUCTION_METHODS } from '@/construction/floors'
+import type { SlabConstructionConfig, WallLayersConfig } from '@/construction/config/types'
 import { IDENTITY } from '@/construction/geometry'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
+import { SLAB_CONSTRUCTION_METHODS } from '@/construction/slabs'
 import { TAG_OPENING_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
 import type { Length, Vec3 } from '@/shared/geometry'
 
@@ -155,28 +155,25 @@ function* createPlateAreas(
 }
 
 export interface WallStoreyContext {
-  ceilingBottomLayersThickness: Length
-  ceilingBottomConstructionOffset: Length
+  ceilingBottomOffset: Length
   storeyHeight: Length
-  floorTopLayersThickness: Length
-  floorTopConstructionOffset: Length
+  floorTopOffset: Length
 }
 
 export function createWallStoreyContext(
   currentStorey: Storey,
-  currentFloorConfig: FloorConstructionConfig,
-  _nextStorey: Storey | null,
-  nextFloorConfig: FloorConstructionConfig | null
+  currentSlabConfig: SlabConstructionConfig,
+  nextSlabConfig: SlabConstructionConfig | null
 ): WallStoreyContext {
-  const currentFloorMethod = FLOOR_CONSTRUCTION_METHODS[currentFloorConfig.type]
-  const nextFloorMethod = nextFloorConfig ? FLOOR_CONSTRUCTION_METHODS[nextFloorConfig.type] : null
+  const currentFloorSlabMethod = SLAB_CONSTRUCTION_METHODS[currentSlabConfig.type]
+  const nextFloorSlabMethod = nextSlabConfig ? SLAB_CONSTRUCTION_METHODS[nextSlabConfig.type] : null
 
   return {
     storeyHeight: currentStorey.height,
-    floorTopLayersThickness: currentFloorConfig.layers.topThickness,
-    floorTopConstructionOffset: currentFloorMethod.getTopOffset(currentFloorConfig),
-    ceilingBottomLayersThickness: (nextFloorConfig?.layers.bottomThickness ?? 0) as Length,
-    ceilingBottomConstructionOffset: (nextFloorMethod?.getBottomOffset(nextFloorConfig) ?? 0) as Length
+    floorTopOffset: (currentSlabConfig.layers.topThickness +
+      currentFloorSlabMethod.getTopOffset(currentSlabConfig)) as Length,
+    ceilingBottomOffset: ((nextSlabConfig?.layers.bottomThickness ?? 0) +
+      (nextFloorSlabMethod?.getBottomOffset(nextSlabConfig) ?? 0)) as Length
   }
 }
 
@@ -203,10 +200,8 @@ export function* segmentedWallConstruction(
   const topPlateHeight = topPlateMethod?.config?.height ?? (0 as Length)
 
   const totalConstructionHeight = (storeyContext.storeyHeight +
-    storeyContext.floorTopLayersThickness +
-    storeyContext.floorTopConstructionOffset +
-    storeyContext.ceilingBottomConstructionOffset +
-    storeyContext.ceilingBottomLayersThickness) as Length
+    storeyContext.floorTopOffset +
+    storeyContext.ceilingBottomOffset) as Length
 
   yield* createCornerAreas(cornerInfo, wall.wallLength, totalConstructionHeight, wall.thickness)
 
@@ -223,7 +218,7 @@ export function* segmentedWallConstruction(
     constructionLength
   )
 
-  const openingZOffset = (storeyContext.floorTopLayersThickness + storeyContext.floorTopConstructionOffset) as Length
+  const finishedFloorZLevel = storeyContext.floorTopOffset
 
   const standAtWallStart = wallContext.startCorner.exteriorAngle !== 180 || cornerInfo.startCorner.constructedByThisWall
   const standAtWallEnd = wallContext.endCorner.exteriorAngle !== 180 || cornerInfo.endCorner.constructedByThisWall
@@ -234,7 +229,7 @@ export function* segmentedWallConstruction(
     renderPosition: 'top',
     label: 'Finished Floor Level',
     axis: 'z',
-    position: openingZOffset
+    position: finishedFloorZLevel
   })
 
   yield yieldMeasurement({
@@ -291,7 +286,7 @@ export function* segmentedWallConstruction(
 
     // Create opening segment for the group
     const groupWidth = (groupEnd - groupStart) as Length
-    yield* openingConstruction([groupStart, y, z], [groupWidth, sizeY, sizeZ], openingZOffset, openingGroup)
+    yield* openingConstruction([groupStart, y, z], [groupWidth, sizeY, sizeZ], finishedFloorZLevel, openingGroup)
 
     currentPosition = groupEnd
   }

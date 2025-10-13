@@ -22,16 +22,14 @@ import { type InfillConstructionConfig, constructInfillWall, infillWallArea } fr
 function createMockStoreyContext(storeyHeight: Length = createLength(2500)): WallStoreyContext {
   return {
     storeyHeight,
-    floorTopLayersThickness: 0 as Length,
-    floorTopConstructionOffset: 0 as Length,
-    ceilingBottomLayersThickness: 0 as Length,
-    ceilingBottomConstructionOffset: 0 as Length
+    floorTopOffset: 0 as Length,
+    ceilingBottomOffset: 0 as Length
   }
 }
 
 // Mock dependencies
 vi.mock('@/construction/floors', () => ({
-  FLOOR_CONSTRUCTION_METHODS: {
+  SLAB_CONSTRUCTION_METHODS: {
     clt: {
       getTopOffset: vi.fn(() => 0),
       getBottomOffset: vi.fn(() => 0)

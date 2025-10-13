@@ -160,7 +160,7 @@ export function JoistIcon({ className, width = 15, height = 15, style }: IconPro
   )
 }
 
-export function getFloorConstructionTypeIcon(type: 'clt' | 'joist') {
+export function getSlabConstructionTypeIcon(type: 'clt' | 'joist') {
   switch (type) {
     case 'clt':
       return CltIcon

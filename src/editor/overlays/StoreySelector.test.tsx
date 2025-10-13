@@ -2,7 +2,7 @@ import { Theme } from '@radix-ui/themes'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { DEFAULT_FLOOR_CONFIG_ID, type StoreyId } from '@/building/model/ids'
+import { DEFAULT_SLAB_CONFIG_ID, type StoreyId } from '@/building/model/ids'
 import { type Storey, createStoreyLevel } from '@/building/model/model'
 import { useActiveStoreyId, useModelActions, useStoreysOrderedByLevel } from '@/building/store'
 import { createLength } from '@/shared/geometry'
@@ -34,14 +34,14 @@ describe('StoreySelector', () => {
       name: 'Ground Floor',
       level: createStoreyLevel(0),
       height: createLength(3000),
-      floorConstructionConfigId: DEFAULT_FLOOR_CONFIG_ID
+      slabConstructionConfigId: DEFAULT_SLAB_CONFIG_ID
     },
     {
       id: 'storey-2' as StoreyId,
       name: 'First Floor',
       level: createStoreyLevel(1),
       height: createLength(3000),
-      floorConstructionConfigId: DEFAULT_FLOOR_CONFIG_ID
+      slabConstructionConfigId: DEFAULT_SLAB_CONFIG_ID
     }
   ]
 

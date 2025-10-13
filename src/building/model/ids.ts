@@ -13,7 +13,7 @@ export type SelectableId = StoreyId | PerimeterId | PerimeterWallId | PerimeterC
 // Config ids
 export type RingBeamConstructionMethodId = string & { readonly brand: unique symbol }
 export type PerimeterConstructionMethodId = string & { readonly brand: unique symbol }
-export type FloorConstructionConfigId = string & { readonly brand: unique symbol }
+export type SlabConstructionConfigId = string & { readonly brand: unique symbol }
 
 // ID generation helpers
 export const createStoreyId = (): StoreyId => `storey_${Date.now()}_${Math.random()}` as StoreyId
@@ -30,11 +30,11 @@ export const createRingBeamConstructionMethodId = (): RingBeamConstructionMethod
   `ringbeam_${Date.now()}_${Math.random()}` as RingBeamConstructionMethodId
 export const createPerimeterConstructionMethodId = (): PerimeterConstructionMethodId =>
   `pwcm_${Date.now()}_${Math.random()}` as PerimeterConstructionMethodId
-export const createFloorConstructionConfigId = (): FloorConstructionConfigId =>
-  `fcm_${Date.now()}_${Math.random()}` as FloorConstructionConfigId
+export const createSlabConstructionConfigId = (): SlabConstructionConfigId =>
+  `fcm_${Date.now()}_${Math.random()}` as SlabConstructionConfigId
 
-// Default floor construction config ID constant
-export const DEFAULT_FLOOR_CONFIG_ID = 'fcm_default' as FloorConstructionConfigId
+// Default slab construction config ID constant
+export const DEFAULT_SLAB_CONFIG_ID = 'fcm_default' as SlabConstructionConfigId
 
 // Type guards for runtime ID validation
 export const isStoreyId = (id: string): id is StoreyId => id.startsWith('storey_')
@@ -50,7 +50,7 @@ export const isRingBeamConstructionMethodId = (id: string): id is RingBeamConstr
   id.startsWith('ringbeam_')
 export const isPerimeterConstructionMethodId = (id: string): id is PerimeterConstructionMethodId =>
   id.startsWith('pwcm_')
-export const isFloorConstructionConfigId = (id: string): id is FloorConstructionConfigId => id.startsWith('fcm_')
+export const isSlabConstructionConfigId = (id: string): id is SlabConstructionConfigId => id.startsWith('fcm_')
 
 // Entity type definitions for hit testing
 export type EntityType = 'storey' | 'perimeter' | 'perimeter-wall' | 'perimeter-corner' | 'opening'

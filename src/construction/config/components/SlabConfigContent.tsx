@@ -16,61 +16,61 @@ import {
 } from '@radix-ui/themes'
 import React, { useCallback, useMemo, useState } from 'react'
 
-import type { FloorConstructionConfigId } from '@/building/model/ids'
-import { createFloorConstructionConfigId } from '@/building/model/ids'
+import type { SlabConstructionConfigId } from '@/building/model/ids'
+import { createSlabConstructionConfigId } from '@/building/model/ids'
 import { useStoreysOrderedByLevel } from '@/building/store'
-import { useConfigActions, useDefaultFloorConfigId, useFloorConstructionConfigs } from '@/construction/config/store'
-import type { CltConstructionConfig, FloorConstructionConfig } from '@/construction/config/types'
-import { getFloorConfigUsage } from '@/construction/config/usage'
+import { useConfigActions, useDefaultSlabConfigId, useSlabConstructionConfigs } from '@/construction/config/store'
+import type { CltConstructionConfig, SlabConstructionConfig } from '@/construction/config/types'
+import { getSlabConfigUsage } from '@/construction/config/usage'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import { createLength } from '@/shared/geometry'
 
-import { FloorConfigSelect } from './FloorConfigSelect'
-import { getFloorConstructionTypeIcon } from './Icons'
+import { getSlabConstructionTypeIcon } from './Icons'
+import { SlabConfigSelect } from './SlabConfigSelect'
 
-export interface FloorConfigContentProps {
+export interface SlabConfigContentProps {
   initialSelectionId?: string
 }
 
-export function FloorConfigContent({ initialSelectionId }: FloorConfigContentProps): React.JSX.Element {
-  const floorConfigs = useFloorConstructionConfigs()
+export function SlabConfigContent({ initialSelectionId }: SlabConfigContentProps): React.JSX.Element {
+  const slabConfigs = useSlabConstructionConfigs()
   const storeys = useStoreysOrderedByLevel()
   const {
-    addFloorConstructionConfig,
-    updateFloorConstructionConfig,
-    duplicateFloorConstructionConfig,
-    removeFloorConstructionConfig,
-    setDefaultFloorConfig
+    addSlabConstructionConfig,
+    updateSlabConstructionConfig,
+    duplicateSlabConstructionConfig,
+    removeSlabConstructionConfig,
+    setDefaultSlabConfig
   } = useConfigActions()
 
-  const defaultConfigId = useDefaultFloorConfigId()
+  const defaultConfigId = useDefaultSlabConfigId()
 
   const [selectedConfigId, setSelectedConfigId] = useState<string | null>(() => {
-    if (initialSelectionId && floorConfigs.some(c => c.id === initialSelectionId)) {
+    if (initialSelectionId && slabConfigs.some(c => c.id === initialSelectionId)) {
       return initialSelectionId
     }
-    return floorConfigs.length > 0 ? floorConfigs[0].id : null
+    return slabConfigs.length > 0 ? slabConfigs[0].id : null
   })
 
-  const selectedConfig = floorConfigs.find(c => c.id === selectedConfigId) ?? null
+  const selectedConfig = slabConfigs.find(c => c.id === selectedConfigId) ?? null
 
   const usage = useMemo(
-    () => (selectedConfig ? getFloorConfigUsage(selectedConfig.id, storeys) : { isUsed: false, usedByStoreys: [] }),
+    () => (selectedConfig ? getSlabConfigUsage(selectedConfig.id, storeys) : { isUsed: false, usedByStoreys: [] }),
     [selectedConfig, storeys]
   )
 
   const handleAddNew = useCallback(
     (type: 'clt' | 'joist') => {
       const defaultMaterial = '' as MaterialId
-      const newId = createFloorConstructionConfigId()
+      const newId = createSlabConstructionConfigId()
 
-      let config: FloorConstructionConfig
+      let config: SlabConstructionConfig
       if (type === 'clt') {
         config = {
           id: newId,
-          name: 'New CLT Floor',
+          name: 'New CLT Slab',
           type: 'clt',
           thickness: createLength(180),
           material: defaultMaterial,
@@ -82,7 +82,7 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
       } else {
         config = {
           id: newId,
-          name: 'New Joist Floor',
+          name: 'New Joist Slab',
           type: 'joist',
           joistThickness: createLength(60),
           joistHeight: createLength(240),
@@ -97,52 +97,52 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
         }
       }
 
-      const newConfig = addFloorConstructionConfig(config)
+      const newConfig = addSlabConstructionConfig(config)
       setSelectedConfigId(newConfig.id)
     },
-    [addFloorConstructionConfig]
+    [addSlabConstructionConfig]
   )
 
   const handleDuplicate = useCallback(() => {
     if (!selectedConfig) return
 
-    const duplicated = duplicateFloorConstructionConfig(selectedConfig.id, `${selectedConfig.name} (Copy)`)
+    const duplicated = duplicateSlabConstructionConfig(selectedConfig.id, `${selectedConfig.name} (Copy)`)
     setSelectedConfigId(duplicated.id)
-  }, [selectedConfig, duplicateFloorConstructionConfig])
+  }, [selectedConfig, duplicateSlabConstructionConfig])
 
   const handleDelete = useCallback(() => {
     if (!selectedConfig || usage.isUsed) return
 
     try {
-      const currentIndex = floorConfigs.findIndex(c => c.id === selectedConfigId)
-      removeFloorConstructionConfig(selectedConfig.id)
+      const currentIndex = slabConfigs.findIndex(c => c.id === selectedConfigId)
+      removeSlabConstructionConfig(selectedConfig.id)
 
-      if (floorConfigs.length > 1) {
-        const nextConfig = floorConfigs[currentIndex + 1] ?? floorConfigs[currentIndex - 1]
+      if (slabConfigs.length > 1) {
+        const nextConfig = slabConfigs[currentIndex + 1] ?? slabConfigs[currentIndex - 1]
         setSelectedConfigId(nextConfig?.id ?? null)
       } else {
         setSelectedConfigId(null)
       }
     } catch (error) {
       // Handle error - probably tried to delete last config
-      console.error('Failed to delete floor config:', error)
+      console.error('Failed to delete slab config:', error)
     }
-  }, [selectedConfig, selectedConfigId, floorConfigs, removeFloorConstructionConfig, usage.isUsed])
+  }, [selectedConfig, selectedConfigId, slabConfigs, removeSlabConstructionConfig, usage.isUsed])
 
   const handleUpdateName = useCallback(
     (name: string) => {
       if (!selectedConfig) return
-      updateFloorConstructionConfig(selectedConfig.id, { ...selectedConfig, name })
+      updateSlabConstructionConfig(selectedConfig.id, { ...selectedConfig, name })
     },
-    [selectedConfig, updateFloorConstructionConfig]
+    [selectedConfig, updateSlabConstructionConfig]
   )
 
   const handleUpdateConfig = useCallback(
-    (updates: Partial<Omit<FloorConstructionConfig, 'id'>>) => {
+    (updates: Partial<Omit<SlabConstructionConfig, 'id'>>) => {
       if (!selectedConfig) return
-      updateFloorConstructionConfig(selectedConfig.id, { ...selectedConfig, ...updates })
+      updateSlabConstructionConfig(selectedConfig.id, { ...selectedConfig, ...updates })
     },
-    [selectedConfig, updateFloorConstructionConfig]
+    [selectedConfig, updateSlabConstructionConfig]
   )
 
   return (
@@ -151,8 +151,8 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
       <Flex direction="column" gap="2">
         <Flex gap="2" align="end">
           <Flex direction="column" gap="1" flexGrow="1">
-            <FloorConfigSelect
-              value={selectedConfigId as FloorConstructionConfigId | undefined}
+            <SlabConfigSelect
+              value={selectedConfigId as SlabConstructionConfigId | undefined}
               onValueChange={value => setSelectedConfigId(value ?? null)}
               showDefaultIndicator
               defaultConfigId={defaultConfigId}
@@ -168,14 +168,14 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
             <DropdownMenu.Content>
               <DropdownMenu.Item onSelect={() => handleAddNew('clt')}>
                 <Flex align="center" gap="1">
-                  {React.createElement(getFloorConstructionTypeIcon('clt'))}
-                  CLT Floor
+                  {React.createElement(getSlabConstructionTypeIcon('clt'))}
+                  CLT Slab
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item onSelect={() => handleAddNew('joist')}>
                 <Flex align="center" gap="1">
-                  {React.createElement(getFloorConstructionTypeIcon('joist'))}
-                  Joist Floor
+                  {React.createElement(getSlabConstructionTypeIcon('joist'))}
+                  Joist Slab
                 </Flex>
               </DropdownMenu.Item>
             </DropdownMenu.Content>
@@ -188,12 +188,12 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
           <AlertDialog.Root>
             <AlertDialog.Trigger>
               <IconButton
-                disabled={!selectedConfig || usage.isUsed || floorConfigs.length === 1}
+                disabled={!selectedConfig || usage.isUsed || slabConfigs.length === 1}
                 color="red"
                 title={
                   !selectedConfig
                     ? 'No config selected'
-                    : floorConfigs.length === 1
+                    : slabConfigs.length === 1
                       ? 'Cannot delete the last config'
                       : usage.isUsed
                         ? 'In Use - Cannot Delete'
@@ -204,7 +204,7 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
-              <AlertDialog.Title>Delete Floor Configuration</AlertDialog.Title>
+              <AlertDialog.Title>Delete Slab Configuration</AlertDialog.Title>
               <AlertDialog.Description>
                 Are you sure you want to delete "{selectedConfig?.name}"? This action cannot be undone.
               </AlertDialog.Description>
@@ -242,7 +242,7 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
             <TextField.Root
               value={selectedConfig.name}
               onChange={e => handleUpdateName(e.target.value)}
-              placeholder="Floor configuration name"
+              placeholder="Slab configuration name"
               size="2"
             />
 
@@ -252,7 +252,7 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
               </Text>
             </Label.Root>
             <Flex gap="2" align="center">
-              {React.createElement(getFloorConstructionTypeIcon(selectedConfig.type))}
+              {React.createElement(getSlabConstructionTypeIcon(selectedConfig.type))}
               <Text size="2" color="gray">
                 {selectedConfig.type === 'clt' ? 'CLT' : 'Joist'}
               </Text>
@@ -264,7 +264,7 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
           {selectedConfig.type === 'clt' && (
             <CltConfigFields
               config={selectedConfig}
-              onUpdate={updates => handleUpdateConfig(updates as Partial<Omit<FloorConstructionConfig, 'id'>>)}
+              onUpdate={updates => handleUpdateConfig(updates as Partial<Omit<SlabConstructionConfig, 'id'>>)}
             />
           )}
 
@@ -276,9 +276,9 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
         </Flex>
       )}
 
-      {!selectedConfig && floorConfigs.length === 0 && (
+      {!selectedConfig && slabConfigs.length === 0 && (
         <Flex justify="center" align="center" p="5">
-          <Text color="gray">No floor configurations yet. Create one using the "New" button above.</Text>
+          <Text color="gray">No slab configurations yet. Create one using the "New" button above.</Text>
         </Flex>
       )}
 
@@ -288,12 +288,12 @@ export function FloorConfigContent({ initialSelectionId }: FloorConfigContentPro
         <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              Default Floor Configuration
+              Default Slab Configuration
             </Text>
           </Label.Root>
-          <FloorConfigSelect
+          <SlabConfigSelect
             value={defaultConfigId}
-            onValueChange={setDefaultFloorConfig}
+            onValueChange={setDefaultSlabConfig}
             placeholder="Select default..."
             size="2"
           />
@@ -364,9 +364,7 @@ function JoistConfigPlaceholder() {
     <>
       <Heading size="2">Joist Configuration</Heading>
       <Callout.Root color="amber">
-        <Callout.Text>
-          Joist floor construction is not yet supported. Please use CLT configuration for now.
-        </Callout.Text>
+        <Callout.Text>Joist slab construction is not yet supported. Please use CLT configuration for now.</Callout.Text>
       </Callout.Root>
     </>
   )
@@ -376,8 +374,8 @@ function LayersFields({
   config,
   onUpdate
 }: {
-  config: FloorConstructionConfig
-  onUpdate: (updates: Partial<Omit<FloorConstructionConfig, 'id'>>) => void
+  config: SlabConstructionConfig
+  onUpdate: (updates: Partial<Omit<SlabConstructionConfig, 'id'>>) => void
 }) {
   return (
     <>

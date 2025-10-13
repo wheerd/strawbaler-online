@@ -16,21 +16,21 @@ export function constructPerimeter(perimeter: Perimeter): ConstructionModel {
     throw new Error('Invalid storey on perimeter')
   }
 
-  const { getRingBeamConstructionMethodById, getPerimeterConstructionMethodById, getFloorConstructionConfigById } =
+  const { getRingBeamConstructionMethodById, getPerimeterConstructionMethodById, getSlabConstructionConfigById } =
     getConfigActions()
 
-  const currentFloorConfig = getFloorConstructionConfigById(storey.floorConstructionConfigId)
-  if (!currentFloorConfig) {
-    throw new Error(`Floor config ${storey.floorConstructionConfigId} not found for storey ${storey.id}`)
+  const currentSlabConfig = getSlabConstructionConfigById(storey.slabConstructionConfigId)
+  if (!currentSlabConfig) {
+    throw new Error(`Slab config ${storey.slabConstructionConfigId} not found for storey ${storey.id}`)
   }
 
   const allStoreys = getStoreysOrderedByLevel()
   const currentIndex = allStoreys.findIndex(s => s.id === storey.id)
   const nextStorey = currentIndex >= 0 && currentIndex < allStoreys.length - 1 ? allStoreys[currentIndex + 1] : null
 
-  const nextFloorConfig = nextStorey ? getFloorConstructionConfigById(nextStorey.floorConstructionConfigId) : null
+  const nextSlabConfig = nextStorey ? getSlabConstructionConfigById(nextStorey.slabConstructionConfigId) : null
 
-  const storeyContext = createWallStoreyContext(storey, currentFloorConfig, nextStorey, nextFloorConfig)
+  const storeyContext = createWallStoreyContext(storey, currentSlabConfig, nextSlabConfig)
 
   const allModels: ConstructionModel[] = []
   if (perimeter.baseRingBeamMethodId) {

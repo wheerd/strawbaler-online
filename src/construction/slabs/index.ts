@@ -1,11 +1,11 @@
-import type { FloorConstructionType } from '@/construction/config/types'
+import type { SlabConstructionType } from '@/construction/config/types'
 
 import { CltConstructionMethod } from './clt'
 import { JoistConstructionMethod } from './joists'
-import type { FloorConstructionMethod } from './types'
+import type { SlabConstructionMethod } from './types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const FLOOR_CONSTRUCTION_METHODS: Record<FloorConstructionType, FloorConstructionMethod<any>> = {
+export const SLAB_CONSTRUCTION_METHODS: Record<SlabConstructionType, SlabConstructionMethod<any>> = {
   clt: new CltConstructionMethod(),
   joist: new JoistConstructionMethod()
 }

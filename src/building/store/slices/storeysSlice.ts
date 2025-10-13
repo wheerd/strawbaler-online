@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand'
 
-import type { FloorConstructionConfigId, StoreyId } from '@/building/model/ids'
-import { DEFAULT_FLOOR_CONFIG_ID, createStoreyId } from '@/building/model/ids'
+import type { SlabConstructionConfigId, StoreyId } from '@/building/model/ids'
+import { DEFAULT_SLAB_CONFIG_ID, createStoreyId } from '@/building/model/ids'
 import type { Storey } from '@/building/model/model'
 import { createStoreyLevel } from '@/building/model/model'
 import type { Length } from '@/shared/geometry'
@@ -20,13 +20,13 @@ export interface StoreysActions {
   setActiveStoreyId: (storeyId: StoreyId) => void
 
   // CRUD operations
-  addStorey: (name: string, height?: Length, floorConfigId?: FloorConstructionConfigId) => Storey
+  addStorey: (name: string, height?: Length, slabConfigId?: SlabConstructionConfigId) => Storey
   removeStorey: (storeyId: StoreyId) => void
 
   // Storey modifications
   updateStoreyName: (storeyId: StoreyId, name: string) => void
   updateStoreyHeight: (storeyId: StoreyId, height: Length) => void
-  updateStoreyFloorConfig: (storeyId: StoreyId, floorConfigId: FloorConstructionConfigId) => void
+  updateStoreySlabConfig: (storeyId: StoreyId, slabConfigId: SlabConstructionConfigId) => void
 
   // Level management operations
   swapStoreyLevels: (storeyId1: StoreyId, storeyId2: StoreyId) => void
@@ -57,7 +57,7 @@ const groundFloor: Storey = {
   name: 'Ground Floor',
   level: createStoreyLevel(0),
   height: createLength(2400),
-  floorConstructionConfigId: DEFAULT_FLOOR_CONFIG_ID
+  slabConstructionConfigId: DEFAULT_SLAB_CONFIG_ID
 }
 
 export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', never]], [], StoreysSlice> = (
@@ -83,7 +83,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
       }),
 
     // CRUD operations
-    addStorey: (name: string, height?: Length, floorConfigId?: FloorConstructionConfigId) => {
+    addStorey: (name: string, height?: Length, slabConfigId?: SlabConstructionConfigId) => {
       validateStoreyName(name)
       if (height !== undefined) validateStoreyHeight(height)
 
@@ -97,7 +97,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
           name: name.trim(),
           level,
           height: height ?? state.defaultHeight,
-          floorConstructionConfigId: floorConfigId ?? DEFAULT_FLOOR_CONFIG_ID
+          slabConstructionConfigId: slabConfigId ?? DEFAULT_SLAB_CONFIG_ID
         }
         state.storeys[storey.id] = storey
       })
@@ -155,10 +155,10 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
         }
       }),
 
-    updateStoreyFloorConfig: (storeyId: StoreyId, floorConfigId: FloorConstructionConfigId) =>
+    updateStoreySlabConfig: (storeyId: StoreyId, slabConfigId: SlabConstructionConfigId) =>
       set(({ storeys }) => {
         if (storeyId in storeys) {
-          storeys[storeyId].floorConstructionConfigId = floorConfigId
+          storeys[storeyId].slabConstructionConfigId = slabConfigId
         }
       }),
 

@@ -1,7 +1,7 @@
 import type {
-  FloorConstructionConfigId,
   PerimeterConstructionMethodId,
-  RingBeamConstructionMethodId
+  RingBeamConstructionMethodId,
+  SlabConstructionConfigId
 } from '@/building/model/ids'
 import type { MaterialId } from '@/construction/materials/material'
 import type { RingBeamConfig } from '@/construction/ringBeams/ringBeams'
@@ -14,11 +14,11 @@ import type { ModulesConstructionConfig } from '@/construction/walls/strawhenge/
 import type { Length } from '@/shared/geometry'
 
 /*
-  This is what the wall + floor construction looks like from the side:
+  This is what the wall + slab construction looks like from the side:
 
-  |   |       Floor Construction                           
+  |   |       Slab Construction                           
   |   +--------------+ . . . . . . . . . . . . . . . . . .  
-  |   |     Top      | Floor Construction Bottom Offset          
+  |   |     Top      | Slab Construction Bottom Offset          
   |   |    Plate     +---+-------------------------------- 
   |   +--------------+   | Floor Bottom layers             
   |   |              |   +--------------------------------
@@ -46,11 +46,11 @@ i | L |     Wall     | e |     .           .
 d | a | Construction | r +--------------------------------  }
 e | y +--------------+ s | Floor top layers                 }
   | e |    Bottom    +---+--------------------------------  }
-  | r |    Plate     | Floor Construction Top Offset        }
+  | r |    Plate     | Slab Construction Top Offset         }
   | s +--------------+ . . . . . . . . . . . . . . . . . .  } . . . . . . .  Zero level for wall construction
-  |   |       Floor Construction                            } Floor
+  |   |       Slab  Construction                            } Floor
   |   +--------------+ . . . . . . . . . . . . . . . . . .  } Thickness
-  |   |     Top      | Floor Construction Bottom Offset     }      
+  |   |     Top      | Slab Construction Bottom Offset      }      
   |   |    Plate     +---+--------------------------------  }
   |   +--------------+ I | Floor Bottom layers              }
   |   |     Wall     | n +--------------------------------  }
@@ -91,12 +91,12 @@ export interface PerimeterConstructionMethod {
   layers: WallLayersConfig
 }
 
-export type FloorConstructionType = 'clt' | 'joist'
+export type SlabConstructionType = 'clt' | 'joist'
 
-export interface FloorBaseConstructionConfig {
-  id: FloorConstructionConfigId
+export interface SlabBaseConstructionConfig {
+  id: SlabConstructionConfigId
   name: string
-  type: FloorConstructionType
+  type: SlabConstructionType
   layers: FloorLayersConfig
 }
 
@@ -105,13 +105,13 @@ export interface FloorLayersConfig {
   topThickness: Length
 }
 
-export interface CltConstructionConfig extends FloorBaseConstructionConfig {
+export interface CltConstructionConfig extends SlabBaseConstructionConfig {
   type: 'clt'
   thickness: Length
   material: MaterialId
 }
 
-export interface JoistFloorConstructionConfig extends FloorBaseConstructionConfig {
+export interface JoistSlabConstructionConfig extends SlabBaseConstructionConfig {
   type: 'joist'
   joistThickness: Length
   joistHeight: Length
@@ -121,4 +121,4 @@ export interface JoistFloorConstructionConfig extends FloorBaseConstructionConfi
   subfloorMaterial: MaterialId
 }
 
-export type FloorConstructionConfig = CltConstructionConfig | JoistFloorConstructionConfig
+export type SlabConstructionConfig = CltConstructionConfig | JoistSlabConstructionConfig

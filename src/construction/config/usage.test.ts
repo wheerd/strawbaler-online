@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  DEFAULT_FLOOR_CONFIG_ID,
+  DEFAULT_SLAB_CONFIG_ID,
   createPerimeterConstructionMethodId,
   createPerimeterId,
   createPerimeterWallId,
@@ -21,7 +21,7 @@ describe('Config Usage Detection', () => {
     name: 'Test Floor',
     level: createStoreyLevel(0),
     height: createLength(3000),
-    floorConstructionConfigId: DEFAULT_FLOOR_CONFIG_ID
+    slabConstructionConfigId: DEFAULT_SLAB_CONFIG_ID
   }
 
   describe('getRingBeamConfigUsage', () => {

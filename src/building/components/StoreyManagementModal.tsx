@@ -16,7 +16,7 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
   const lowestStorey = storeysOrdered[0]
   const highestStorey = storeysOrdered[storeysOrdered.length - 1]
 
-  const handleAddEmptyFloor = useCallback(() => {
+  const handleAddEmptyStorey = useCallback(() => {
     try {
       const newStorey = addStorey('New Floor')
       setActiveStoreyId(newStorey.id) // Switch to new storey
@@ -64,7 +64,7 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
             <Text>No floors yet.</Text>
           )}
 
-          <Button onClick={handleAddEmptyFloor}>
+          <Button onClick={handleAddEmptyStorey}>
             <PlusIcon />
             Add New Floor
           </Button>

@@ -4,21 +4,21 @@ import React from 'react'
 
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 
-import { FloorConfigSelect, type FloorConfigSelectProps } from './FloorConfigSelect'
+import { SlabConfigSelect, type SlabConfigSelectProps } from './SlabConfigSelect'
 
-export function FloorConfigSelectWithEdit(props: FloorConfigSelectProps): React.JSX.Element {
+export function SlabConfigSelectWithEdit(props: SlabConfigSelectProps): React.JSX.Element {
   const { openConfiguration } = useConfigurationModal()
 
   return (
     <Flex gap="1" align="center">
       <Flex direction="column" gap="1" flexGrow="1" mr="1">
-        <FloorConfigSelect {...props} />
+        <SlabConfigSelect {...props} />
       </Flex>
       <IconButton
-        title="Configure Floor"
+        title="Configure Slab Construction"
         variant="ghost"
         size={props.size}
-        onClick={() => openConfiguration('floors', props.value ?? undefined)}
+        onClick={() => openConfiguration('slabs', props.value ?? undefined)}
       >
         <Pencil1Icon />
       </IconButton>

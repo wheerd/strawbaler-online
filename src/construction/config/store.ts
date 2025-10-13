@@ -3,21 +3,21 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 import type {
-  FloorConstructionConfigId,
   PerimeterConstructionMethodId,
-  RingBeamConstructionMethodId
+  RingBeamConstructionMethodId,
+  SlabConstructionConfigId
 } from '@/building/model/ids'
 import {
-  createFloorConstructionConfigId,
   createPerimeterConstructionMethodId,
-  createRingBeamConstructionMethodId
+  createRingBeamConstructionMethodId,
+  createSlabConstructionConfigId
 } from '@/building/model/ids'
 import type {
   CltConstructionConfig,
-  FloorConstructionConfig,
   PerimeterConstructionConfig,
   PerimeterConstructionMethod,
   RingBeamConstructionMethod,
+  SlabConstructionConfig,
   WallLayersConfig
 } from '@/construction/config/types'
 import { clt180, concrete, straw, strawbale, wood120x60, wood360x60 } from '@/construction/materials/material'
@@ -27,11 +27,11 @@ import { createLength } from '@/shared/geometry'
 export interface ConfigState {
   ringBeamConstructionMethods: Record<RingBeamConstructionMethodId, RingBeamConstructionMethod>
   perimeterConstructionMethods: Record<PerimeterConstructionMethodId, PerimeterConstructionMethod>
-  floorConstructionConfigs: Record<FloorConstructionConfigId, FloorConstructionConfig>
+  slabConstructionConfigs: Record<SlabConstructionConfigId, SlabConstructionConfig>
   defaultBaseRingBeamMethodId?: RingBeamConstructionMethodId
   defaultTopRingBeamMethodId?: RingBeamConstructionMethodId
   defaultPerimeterMethodId: PerimeterConstructionMethodId
-  defaultFloorConfigId: FloorConstructionConfigId
+  defaultSlabConfigId: SlabConstructionConfigId
 }
 
 export interface ConfigActions {
@@ -74,19 +74,19 @@ export interface ConfigActions {
   setDefaultPerimeterMethod: (methodId: PerimeterConstructionMethodId | undefined) => void
   getDefaultPerimeterMethodId: () => PerimeterConstructionMethodId
 
-  // CRUD operations for floor construction configs
-  addFloorConstructionConfig: (config: FloorConstructionConfig) => FloorConstructionConfig
-  removeFloorConstructionConfig: (id: FloorConstructionConfigId) => void
-  updateFloorConstructionConfig: (id: FloorConstructionConfigId, config: Omit<FloorConstructionConfig, 'id'>) => void
-  duplicateFloorConstructionConfig: (id: FloorConstructionConfigId, name: string) => FloorConstructionConfig
+  // CRUD operations for slab construction configs
+  addSlabConstructionConfig: (config: SlabConstructionConfig) => SlabConstructionConfig
+  removeSlabConstructionConfig: (id: SlabConstructionConfigId) => void
+  updateSlabConstructionConfig: (id: SlabConstructionConfigId, config: Omit<SlabConstructionConfig, 'id'>) => void
+  duplicateSlabConstructionConfig: (id: SlabConstructionConfigId, name: string) => SlabConstructionConfig
 
-  // Floor queries
-  getFloorConstructionConfigById: (id: FloorConstructionConfigId) => FloorConstructionConfig | null
-  getAllFloorConstructionConfigs: () => FloorConstructionConfig[]
+  // Slab queries
+  getSlabConstructionConfigById: (id: SlabConstructionConfigId) => SlabConstructionConfig | null
+  getAllSlabConstructionConfigs: () => SlabConstructionConfig[]
 
-  // Default floor config management
-  setDefaultFloorConfig: (configId: FloorConstructionConfigId) => void
-  getDefaultFloorConfigId: () => FloorConstructionConfigId
+  // Default slab config management
+  setDefaultSlabConfig: (configId: SlabConstructionConfigId) => void
+  getDefaultSlabConfigId: () => SlabConstructionConfigId
 }
 
 export type ConfigStore = ConfigState & { actions: ConfigActions }
@@ -104,14 +104,14 @@ const validatePerimeterMethodName = (name: string): void => {
   }
 }
 
-const validateFloorConfigName = (name: string): void => {
+const validateSlabConfigName = (name: string): void => {
   if (name.trim().length === 0) {
-    throw new Error('Floor construction config name cannot be empty')
+    throw new Error('Slab construction config name cannot be empty')
   }
 }
 
-const validateFloorConfig = (config: FloorConstructionConfig): void => {
-  validateFloorConfigName(config.name)
+const validateSlabConfig = (config: SlabConstructionConfig): void => {
+  validateSlabConfigName(config.name)
 
   if (config.type === 'clt') {
     if (config.thickness <= 0) {
@@ -149,9 +149,9 @@ const createDefaultRingBeamMethod = (): RingBeamConstructionMethod => ({
   }
 })
 
-// Default floor construction config
-const createDefaultFloorConfig = (): CltConstructionConfig => ({
-  id: 'fcm_default' as FloorConstructionConfigId,
+// Default slab construction config
+const createDefaultSlabConfig = (): CltConstructionConfig => ({
+  id: 'fcm_default' as SlabConstructionConfigId,
   name: 'CLT 18cm',
   type: 'clt',
   thickness: createLength(180),
@@ -340,20 +340,20 @@ const useConfigStore = create<ConfigStore>()(
         // Initialize with default methods
         const defaultRingBeamMethod = createDefaultRingBeamMethod()
         const defaultPerimeterMethods = createDefaultPerimeterMethods()
-        const defaultFloorConfig = createDefaultFloorConfig()
+        const defaultSlabConfig = createDefaultSlabConfig()
 
         return {
           ringBeamConstructionMethods: {
             [defaultRingBeamMethod.id]: defaultRingBeamMethod
           },
           perimeterConstructionMethods: Object.fromEntries(defaultPerimeterMethods.map(method => [method.id, method])),
-          floorConstructionConfigs: {
-            [defaultFloorConfig.id]: defaultFloorConfig
+          slabConstructionConfigs: {
+            [defaultSlabConfig.id]: defaultSlabConfig
           },
           defaultBaseRingBeamMethodId: defaultRingBeamMethod.id,
           defaultTopRingBeamMethodId: defaultRingBeamMethod.id,
           defaultPerimeterMethodId: defaultPerimeterMethods[0].id,
-          defaultFloorConfigId: defaultFloorConfig.id,
+          defaultSlabConfigId: defaultSlabConfig.id,
 
           actions: {
             // CRUD operations
@@ -607,110 +607,110 @@ const useConfigStore = create<ConfigStore>()(
               return state.defaultPerimeterMethodId
             },
 
-            // Floor construction config CRUD operations
-            addFloorConstructionConfig: (config: FloorConstructionConfig) => {
-              validateFloorConfig(config)
+            // Slab construction config CRUD operations
+            addSlabConstructionConfig: (config: SlabConstructionConfig) => {
+              validateSlabConfig(config)
 
               set(state => ({
                 ...state,
-                floorConstructionConfigs: { ...state.floorConstructionConfigs, [config.id]: config }
+                slabConstructionConfigs: { ...state.slabConstructionConfigs, [config.id]: config }
               }))
 
               return config
             },
 
-            removeFloorConstructionConfig: (id: FloorConstructionConfigId) => {
+            removeSlabConstructionConfig: (id: SlabConstructionConfigId) => {
               set(state => {
-                const { floorConstructionConfigs } = state
+                const { slabConstructionConfigs } = state
 
                 // Prevent removing the last config
-                if (Object.keys(floorConstructionConfigs).length === 1) {
-                  throw new Error('Cannot remove the last floor construction config')
+                if (Object.keys(slabConstructionConfigs).length === 1) {
+                  throw new Error('Cannot remove the last slab construction config')
                 }
 
-                const { [id]: removed, ...remainingConfigs } = floorConstructionConfigs
+                const { [id]: removed, ...remainingConfigs } = slabConstructionConfigs
 
                 // If removing the default, set first remaining config as default
-                let newDefaultId = state.defaultFloorConfigId
-                if (state.defaultFloorConfigId === id) {
-                  newDefaultId = Object.keys(remainingConfigs)[0] as FloorConstructionConfigId
+                let newDefaultId = state.defaultSlabConfigId
+                if (state.defaultSlabConfigId === id) {
+                  newDefaultId = Object.keys(remainingConfigs)[0] as SlabConstructionConfigId
                 }
 
                 return {
                   ...state,
-                  floorConstructionConfigs: remainingConfigs,
-                  defaultFloorConfigId: newDefaultId
+                  slabConstructionConfigs: remainingConfigs,
+                  defaultSlabConfigId: newDefaultId
                 }
               })
             },
 
-            updateFloorConstructionConfig: (
-              id: FloorConstructionConfigId,
-              updates: Omit<FloorConstructionConfig, 'id'>
+            updateSlabConstructionConfig: (
+              id: SlabConstructionConfigId,
+              updates: Omit<SlabConstructionConfig, 'id'>
             ) => {
               set(state => {
-                const config = state.floorConstructionConfigs[id]
+                const config = state.slabConstructionConfigs[id]
                 if (config == null) return state
 
-                const updatedConfig = { ...config, ...updates, id } as FloorConstructionConfig
-                validateFloorConfig(updatedConfig)
+                const updatedConfig = { ...config, ...updates, id } as SlabConstructionConfig
+                validateSlabConfig(updatedConfig)
 
                 return {
                   ...state,
-                  floorConstructionConfigs: { ...state.floorConstructionConfigs, [id]: updatedConfig }
+                  slabConstructionConfigs: { ...state.slabConstructionConfigs, [id]: updatedConfig }
                 }
               })
             },
 
-            duplicateFloorConstructionConfig: (id: FloorConstructionConfigId, name: string) => {
+            duplicateSlabConstructionConfig: (id: SlabConstructionConfigId, name: string) => {
               const state = get()
-              const original = state.floorConstructionConfigs[id]
+              const original = state.slabConstructionConfigs[id]
               if (original == null) {
-                throw new Error(`Floor construction config with id ${id} not found`)
+                throw new Error(`Slab construction config with id ${id} not found`)
               }
 
-              validateFloorConfigName(name)
+              validateSlabConfigName(name)
 
-              const newId = createFloorConstructionConfigId()
-              const duplicated = { ...original, id: newId, name: name.trim() } as FloorConstructionConfig
+              const newId = createSlabConstructionConfigId()
+              const duplicated = { ...original, id: newId, name: name.trim() } as SlabConstructionConfig
 
               set(state => ({
                 ...state,
-                floorConstructionConfigs: { ...state.floorConstructionConfigs, [newId]: duplicated }
+                slabConstructionConfigs: { ...state.slabConstructionConfigs, [newId]: duplicated }
               }))
 
               return duplicated
             },
 
-            // Floor queries
-            getFloorConstructionConfigById: (id: FloorConstructionConfigId) => {
+            // Slab queries
+            getSlabConstructionConfigById: (id: SlabConstructionConfigId) => {
               const state = get()
-              return state.floorConstructionConfigs[id] ?? null
+              return state.slabConstructionConfigs[id] ?? null
             },
 
-            getAllFloorConstructionConfigs: () => {
+            getAllSlabConstructionConfigs: () => {
               const state = get()
-              return Object.values(state.floorConstructionConfigs)
+              return Object.values(state.slabConstructionConfigs)
             },
 
-            // Default floor config management
-            setDefaultFloorConfig: (configId: FloorConstructionConfigId) => {
+            // Default slab config management
+            setDefaultSlabConfig: (configId: SlabConstructionConfigId) => {
               set(state => {
                 // Validate that the config exists
-                if (state.floorConstructionConfigs[configId] == null) {
-                  throw new Error(`Floor construction config with id ${configId} not found`)
+                if (state.slabConstructionConfigs[configId] == null) {
+                  throw new Error(`Slab construction config with id ${configId} not found`)
                 }
 
                 return {
                   ...state,
-                  defaultFloorConfigId: configId
+                  defaultSlabConfigId: configId
                 }
               })
             },
 
-            getDefaultFloorConfigId: () => {
+            getDefaultSlabConfigId: () => {
               const state = get()
-              return state.defaultFloorConfigId
+              return state.defaultSlabConfigId
             }
           }
         }
@@ -722,11 +722,11 @@ const useConfigStore = create<ConfigStore>()(
       partialize: state => ({
         ringBeamConstructionMethods: state.ringBeamConstructionMethods,
         perimeterConstructionMethods: state.perimeterConstructionMethods,
-        floorConstructionConfigs: state.floorConstructionConfigs,
+        slabConstructionConfigs: state.slabConstructionConfigs,
         defaultBaseRingBeamMethodId: state.defaultBaseRingBeamMethodId,
         defaultTopRingBeamMethodId: state.defaultTopRingBeamMethodId,
         defaultPerimeterMethodId: state.defaultPerimeterMethodId,
-        defaultFloorConfigId: state.defaultFloorConfigId
+        defaultSlabConfigId: state.defaultSlabConfigId
       })
     }
   )
@@ -761,17 +761,17 @@ export const usePerimeterConstructionMethodById = (
 export const useDefaultPerimeterMethodId = (): PerimeterConstructionMethodId | undefined =>
   useConfigStore(state => state.actions.getDefaultPerimeterMethodId())
 
-// Floor construction config selector hooks
-export const useFloorConstructionConfigs = (): FloorConstructionConfig[] => {
-  const floorConfigs = useConfigStore(state => state.floorConstructionConfigs)
-  return useMemo(() => Object.values(floorConfigs), [floorConfigs])
+// Slab construction config selector hooks
+export const useSlabConstructionConfigs = (): SlabConstructionConfig[] => {
+  const slabConfigs = useConfigStore(state => state.slabConstructionConfigs)
+  return useMemo(() => Object.values(slabConfigs), [slabConfigs])
 }
 
-export const useFloorConstructionConfigById = (id: FloorConstructionConfigId): FloorConstructionConfig | null =>
-  useConfigStore(state => state.actions.getFloorConstructionConfigById(id))
+export const useSlabConstructionConfigById = (id: SlabConstructionConfigId): SlabConstructionConfig | null =>
+  useConfigStore(state => state.actions.getSlabConstructionConfigById(id))
 
-export const useDefaultFloorConfigId = (): FloorConstructionConfigId =>
-  useConfigStore(state => state.actions.getDefaultFloorConfigId())
+export const useDefaultSlabConfigId = (): SlabConstructionConfigId =>
+  useConfigStore(state => state.actions.getDefaultSlabConfigId())
 
 export const useConfigActions = (): ConfigActions => useConfigStore(state => state.actions)
 
@@ -784,11 +784,11 @@ export const getConfigState = () => {
   return {
     ringBeamConstructionMethods: state.ringBeamConstructionMethods,
     perimeterConstructionMethods: state.perimeterConstructionMethods,
-    floorConstructionConfigs: state.floorConstructionConfigs,
+    slabConstructionConfigs: state.slabConstructionConfigs,
     defaultBaseRingBeamMethodId: state.defaultBaseRingBeamMethodId,
     defaultTopRingBeamMethodId: state.defaultTopRingBeamMethodId,
     defaultPerimeterMethodId: state.defaultPerimeterMethodId,
-    defaultFloorConfigId: state.defaultFloorConfigId
+    defaultSlabConfigId: state.defaultSlabConfigId
   }
 }
 
@@ -796,22 +796,22 @@ export const getConfigState = () => {
 export const setConfigState = (data: {
   ringBeamConstructionMethods: Record<RingBeamConstructionMethodId, RingBeamConstructionMethod>
   perimeterConstructionMethods: Record<PerimeterConstructionMethodId, PerimeterConstructionMethod>
-  floorConstructionConfigs?: Record<FloorConstructionConfigId, FloorConstructionConfig>
+  slabConstructionConfigs?: Record<SlabConstructionConfigId, SlabConstructionConfig>
   defaultBaseRingBeamMethodId?: RingBeamConstructionMethodId
   defaultTopRingBeamMethodId?: RingBeamConstructionMethodId
   defaultPerimeterMethodId: PerimeterConstructionMethodId
-  defaultFloorConfigId?: FloorConstructionConfigId
+  defaultSlabConfigId?: SlabConstructionConfigId
 }) => {
   const state = useConfigStore.getState()
 
   useConfigStore.setState({
     ringBeamConstructionMethods: data.ringBeamConstructionMethods,
     perimeterConstructionMethods: data.perimeterConstructionMethods,
-    floorConstructionConfigs: data.floorConstructionConfigs ?? state.floorConstructionConfigs,
+    slabConstructionConfigs: data.slabConstructionConfigs ?? state.slabConstructionConfigs,
     defaultBaseRingBeamMethodId: data.defaultBaseRingBeamMethodId,
     defaultTopRingBeamMethodId: data.defaultTopRingBeamMethodId,
     defaultPerimeterMethodId: data.defaultPerimeterMethodId,
-    defaultFloorConfigId: data.defaultFloorConfigId ?? state.defaultFloorConfigId
+    defaultSlabConfigId: data.defaultSlabConfigId ?? state.defaultSlabConfigId
   })
 }
 
@@ -820,5 +820,5 @@ export const _clearAllMethods = () =>
   useConfigStore.setState({
     ringBeamConstructionMethods: {},
     perimeterConstructionMethods: {},
-    floorConstructionConfigs: {}
+    slabConstructionConfigs: {}
   })
