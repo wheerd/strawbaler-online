@@ -6,7 +6,8 @@ import React, { useCallback, useMemo } from 'react'
 import type { PerimeterConstructionMethodId, PerimeterId } from '@/building/model/ids'
 import type { PerimeterWall } from '@/building/model/model'
 import { useModelActions, usePerimeterById } from '@/building/store'
-import { PerimeterConstructionPlanModal } from '@/construction/components/PerimeterConstructionPlan'
+import { TOP_VIEW } from '@/construction/components/ConstructionPlan'
+import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
 import { RingBeamConstructionPlanModal } from '@/construction/components/RingBeamConstructionPlan'
 import { PerimeterMethodSelectWithEdit } from '@/construction/config/components/PerimeterMethodSelectWithEdit'
 import { RingBeamMethodSelectWithEdit } from '@/construction/config/components/RingBeamMethodSelectWithEdit'
@@ -167,8 +168,11 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
         )}
 
         <Flex direction="row" gap="3" pt="1" align="center" justify="center">
-          <PerimeterConstructionPlanModal
-            perimeterId={selectedId}
+          <ConstructionPlanModal
+            title="Perimeter Construction Plan"
+            constructionModelFactory={async () => constructPerimeter(perimeter)}
+            views={[{ view: TOP_VIEW, label: 'Top' }]}
+            refreshKey={perimeter}
             trigger={
               <IconButton title="View Construction Plan" size="3">
                 <ConstructionPlanIcon width={24} height={24} />
