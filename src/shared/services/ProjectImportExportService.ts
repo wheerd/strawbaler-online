@@ -16,6 +16,7 @@ import { createLength, createVec2 } from '@/shared/geometry'
 export interface ExportedStorey {
   name: string
   height: number
+  floorConstructionConfigId?: string
   perimeters: ExportedPerimeter[]
 }
 
@@ -114,6 +115,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
       const exportedStoreys: ExportedStorey[] = storeys.map(storey => ({
         name: storey.name,
         height: Number(storey.height),
+        floorConstructionConfigId: storey.floorConstructionConfigId,
         perimeters: modelActions.getPerimetersByStorey(storey.id).map(perimeter => ({
           corners: perimeter.corners.map(corner => ({
             insideX: corner.insidePoint[0],
@@ -213,17 +215,29 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
       // 5. Process imported storeys
       const exportedStoreys = importResult.data.modelStore.storeys
 
+      // Get the default floor config to use for old storeys without floor config
+      const { getConfigState: getCurrentConfigState } = await import('@/construction/config/store')
+      const defaultFloorConfigIdFromStore = getCurrentConfigState().defaultFloorConfigId
+
       exportedStoreys.forEach((exportedStorey, index) => {
         let targetStorey: Storey
+
+        // Determine floor config ID:
+        // 1. Use exported floor config if present
+        // 2. Otherwise use the current store's default floor config
+        const floorConfigId =
+          (exportedStorey.floorConstructionConfigId as FloorConstructionConfigId | undefined) ??
+          defaultFloorConfigIdFromStore
 
         if (index === 0) {
           // Modify existing default ground floor
           targetStorey = defaultGroundFloor
           modelActions.updateStoreyName(targetStorey.id, exportedStorey.name)
           modelActions.updateStoreyHeight(targetStorey.id, createLength(exportedStorey.height))
+          modelActions.updateStoreyFloorConfig(targetStorey.id, floorConfigId)
         } else {
-          // Add additional storeys
-          targetStorey = modelActions.addStorey(exportedStorey.name, createLength(exportedStorey.height))
+          // Add additional storeys with floor config
+          targetStorey = modelActions.addStorey(exportedStorey.name, createLength(exportedStorey.height), floorConfigId)
         }
 
         // 6. Recreate perimeters - let store auto-compute all geometry

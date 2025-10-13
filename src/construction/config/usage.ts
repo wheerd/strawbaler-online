@@ -85,13 +85,18 @@ export function getPerimeterConfigUsage(
 
 /**
  * Checks if a floor construction config is currently in use by any storeys
- * Note: This is a stub implementation as storeys don't yet reference floor configs
  */
-export function getFloorConfigUsage(_configId: FloorConstructionConfigId, _storeys: Storey[]): FloorConfigUsage {
-  // TODO: Implement when storeys have floorConstructionConfigId field
-  // For now, always return not used
+export function getFloorConfigUsage(configId: FloorConstructionConfigId, storeys: Storey[]): FloorConfigUsage {
+  const usedByStoreys: string[] = []
+
+  storeys.forEach(storey => {
+    if (storey.floorConstructionConfigId === configId) {
+      usedByStoreys.push(storey.name)
+    }
+  })
+
   return {
-    isUsed: false,
-    usedByStoreys: []
+    isUsed: usedByStoreys.length > 0,
+    usedByStoreys
   }
 }

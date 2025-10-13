@@ -1,4 +1,5 @@
 import type {
+  FloorConstructionConfigId,
   OpeningId,
   PerimeterConstructionMethodId,
   PerimeterCornerId,
@@ -39,6 +40,7 @@ export interface Storey {
   readonly name: string
   readonly level: StoreyLevel // Floor level (0 = ground floor, 1 = first floor, etc.)
   readonly height: Length
+  readonly floorConstructionConfigId: FloorConstructionConfigId
 }
 
 export interface Perimeter {

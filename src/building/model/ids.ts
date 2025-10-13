@@ -33,6 +33,9 @@ export const createPerimeterConstructionMethodId = (): PerimeterConstructionMeth
 export const createFloorConstructionConfigId = (): FloorConstructionConfigId =>
   `fcm_${Date.now()}_${Math.random()}` as FloorConstructionConfigId
 
+// Default floor construction config ID constant
+export const DEFAULT_FLOOR_CONFIG_ID = 'fcm_default' as FloorConstructionConfigId
+
 // Type guards for runtime ID validation
 export const isStoreyId = (id: string): id is StoreyId => id.startsWith('storey_')
 export const isPerimeterId = (id: string): id is PerimeterId => id.startsWith('perimeter_')
