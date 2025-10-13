@@ -151,8 +151,8 @@ export function OpeningShape({
       {/* Opening cutout - render as a different colored line */}
       <Line
         points={openingPolygonArray}
-        fill={isOpeningSelected ? theme.primaryLight : theme.bgCanvas}
-        stroke={isOpeningSelected ? theme.primaryLightOutline : theme.black}
+        fill={theme.bgCanvas}
+        stroke={theme.black}
         strokeWidth={10}
         lineCap="butt"
         opacity={0.8}
@@ -165,7 +165,7 @@ export function OpeningShape({
         <Line
           points={[openingStart[0], openingStart[1], openingEnd[0], openingEnd[1]]}
           stroke={opening.type === 'door' ? MATERIAL_COLORS.door : MATERIAL_COLORS.window}
-          strokeWidth={30}
+          strokeWidth={60}
           lineCap="butt"
           listening
         />

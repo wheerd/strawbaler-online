@@ -42,7 +42,6 @@ export function PerimeterCornerShape({
   const constructionMethod = usePerimeterConstructionMethodById(constructingWall.constructionMethodId)
   const cornerColor =
     constructionMethod?.config.type === 'non-strawbale' ? MATERIAL_COLORS.other : MATERIAL_COLORS.strawbale
-  const finalColor = isSelected ? theme.primary : cornerColor
 
   // Check if corner is nearly straight (close to 180°)
   const interiorAngleDegrees = corner.interiorAngle
@@ -61,7 +60,7 @@ export function PerimeterCornerShape({
       listening
     >
       {/* Corner polygon fill */}
-      <Line points={polygonArray} fill={finalColor} stroke={theme.black} strokeWidth={10} closed listening />
+      <Line points={polygonArray} fill={cornerColor} stroke={theme.black} strokeWidth={10} closed listening />
 
       {/* Rounded rectangle overlay for near-straight corners */}
       {isNearStraight && (
@@ -76,7 +75,7 @@ export function PerimeterCornerShape({
             corner.outsidePoint[0] - (normal[0] * overlayWidth) / 2,
             corner.outsidePoint[1] - (normal[1] * overlayWidth) / 2
           ]}
-          fill={finalColor}
+          fill={cornerColor}
           stroke={theme.black}
           strokeWidth={8}
           opacity={0.5}

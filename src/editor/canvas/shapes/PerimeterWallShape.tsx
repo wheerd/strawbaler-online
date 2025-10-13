@@ -50,9 +50,8 @@ export function PerimeterWallShape({
   }
 
   const constructionMethod = usePerimeterConstructionMethodById(wall.constructionMethodId)
-  const baseColor =
+  const fillColor =
     constructionMethod?.config.type === 'non-strawbale' ? MATERIAL_COLORS.other : MATERIAL_COLORS.strawbale
-  const finalMainColor = select.isSelected(wall.id) ? theme.primary : baseColor
 
   return (
     <Group name={`wall-${wall.id}`} entityId={wall.id} entityType="perimeter-wall" parentIds={[perimeterId]} listening>
@@ -68,7 +67,7 @@ export function PerimeterWallShape({
           outsideStart[0],
           outsideStart[1]
         ]}
-        fill={finalMainColor}
+        fill={fillColor}
         stroke={theme.black}
         strokeWidth={10}
         closed
