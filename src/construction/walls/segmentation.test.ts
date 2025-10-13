@@ -12,12 +12,25 @@ import { createLength, createVec2 } from '@/shared/geometry'
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
-import { segmentedWallConstruction } from './segmentation'
+import { type WallStoreyContext, segmentedWallConstruction } from './segmentation'
 
 // Mock dependencies
 vi.mock('./corners/corners', () => ({
   getWallContext: vi.fn(),
   calculateWallCornerInfo: vi.fn()
+}))
+
+vi.mock('@/construction/floors', () => ({
+  FLOOR_CONSTRUCTION_METHODS: {
+    clt: {
+      getTopOffset: vi.fn(() => 0),
+      getBottomOffset: vi.fn(() => 0)
+    },
+    joist: {
+      getTopOffset: vi.fn(() => 0),
+      getBottomOffset: vi.fn(() => 0)
+    }
+  }
 }))
 
 vi.mock('@/construction/config', () => ({
@@ -111,6 +124,16 @@ function createMockLayers(): WallLayersConfig {
   }
 }
 
+function createMockStoreyContext(storeyHeight: Length = createLength(2500)): WallStoreyContext {
+  return {
+    storeyHeight,
+    floorTopLayersThickness: 0 as Length,
+    floorTopConstructionOffset: 0 as Length,
+    ceilingBottomLayersThickness: 0 as Length,
+    ceilingBottomConstructionOffset: 0 as Length
+  }
+}
+
 describe('segmentedWallConstruction', () => {
   let mockWallConstruction: ReturnType<typeof vi.fn>
   let mockOpeningConstruction: ReturnType<typeof vi.fn>
@@ -189,7 +212,14 @@ describe('segmentedWallConstruction', () => {
       const layers = createMockLayers()
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       const { elements, measurements, areas } = aggregateResults(results)
 
@@ -232,7 +262,14 @@ describe('segmentedWallConstruction', () => {
       mockCalculateWallCornerInfo.mockReturnValue(cornerInfo)
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       const { measurements } = aggregateResults(results)
 
@@ -261,7 +298,14 @@ describe('segmentedWallConstruction', () => {
         .mockReturnValueOnce({ config: { height: createLength(100) } }) // top
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       aggregateResults(results)
 
@@ -286,7 +330,14 @@ describe('segmentedWallConstruction', () => {
       const layers = createMockLayers()
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       const { measurements } = aggregateResults(results)
 
@@ -328,7 +379,14 @@ describe('segmentedWallConstruction', () => {
       const layers = createMockLayers()
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       aggregateResults(results)
 
@@ -348,7 +406,14 @@ describe('segmentedWallConstruction', () => {
       const layers = createMockLayers()
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       aggregateResults(results)
 
@@ -369,7 +434,14 @@ describe('segmentedWallConstruction', () => {
       const layers = createMockLayers()
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       aggregateResults(results)
 
@@ -392,7 +464,14 @@ describe('segmentedWallConstruction', () => {
       const layers = createMockLayers()
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       aggregateResults(results)
 
@@ -411,7 +490,14 @@ describe('segmentedWallConstruction', () => {
       const layers = createMockLayers()
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       aggregateResults(results)
 
@@ -429,7 +515,14 @@ describe('segmentedWallConstruction', () => {
       const layers = createMockLayers()
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       aggregateResults(results)
 
@@ -452,7 +545,14 @@ describe('segmentedWallConstruction', () => {
       mockGetRingBeamConstructionMethodById.mockReturnValue(null)
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       aggregateResults(results)
 
@@ -477,7 +577,14 @@ describe('segmentedWallConstruction', () => {
       const layers = createMockLayers()
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       aggregateResults(results)
 
@@ -497,7 +604,14 @@ describe('segmentedWallConstruction', () => {
       mockCalculateWallCornerInfo.mockReturnValue(cornerInfo)
 
       const results = [
-        ...segmentedWallConstruction(wall, perimeter, wallHeight, layers, mockWallConstruction, mockOpeningConstruction)
+        ...segmentedWallConstruction(
+          wall,
+          perimeter,
+          createMockStoreyContext(wallHeight),
+          layers,
+          mockWallConstruction,
+          mockOpeningConstruction
+        )
       ]
       const { areas } = aggregateResults(results)
 

@@ -157,7 +157,7 @@ const createDefaultFloorConfig = (): CltConstructionConfig => ({
   thickness: createLength(180),
   material: clt180.id,
   layers: {
-    topThickness: createLength(0),
+    topThickness: createLength(60),
     bottomThickness: createLength(0)
   }
 })

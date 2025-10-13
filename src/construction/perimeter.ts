@@ -7,16 +7,30 @@ import { angle } from '@/shared/geometry'
 import { getConfigActions } from './config'
 import { type ConstructionModel, mergeModels, transformModel } from './model'
 import { constructRingBeam } from './ringBeams/ringBeams'
-import { PERIMETER_WALL_CONSTRUCTION_METHODS } from './walls'
+import { PERIMETER_WALL_CONSTRUCTION_METHODS, createWallStoreyContext } from './walls'
 
 export function constructPerimeter(perimeter: Perimeter): ConstructionModel {
-  const { getStoreyById } = getModelActions()
+  const { getStoreyById, getStoreysOrderedByLevel } = getModelActions()
   const storey = getStoreyById(perimeter.storeyId)
   if (!storey) {
     throw new Error('Invalid storey on perimeter')
   }
 
-  const { getRingBeamConstructionMethodById, getPerimeterConstructionMethodById } = getConfigActions()
+  const { getRingBeamConstructionMethodById, getPerimeterConstructionMethodById, getFloorConstructionConfigById } =
+    getConfigActions()
+
+  const currentFloorConfig = getFloorConstructionConfigById(storey.floorConstructionConfigId)
+  if (!currentFloorConfig) {
+    throw new Error(`Floor config ${storey.floorConstructionConfigId} not found for storey ${storey.id}`)
+  }
+
+  const allStoreys = getStoreysOrderedByLevel()
+  const currentIndex = allStoreys.findIndex(s => s.id === storey.id)
+  const nextStorey = currentIndex >= 0 && currentIndex < allStoreys.length - 1 ? allStoreys[currentIndex + 1] : null
+
+  const nextFloorConfig = nextStorey ? getFloorConstructionConfigById(nextStorey.floorConstructionConfigId) : null
+
+  const storeyContext = createWallStoreyContext(storey, currentFloorConfig, nextStorey, nextFloorConfig)
 
   const allModels: ConstructionModel[] = []
   if (perimeter.baseRingBeamMethodId) {
@@ -49,7 +63,7 @@ export function constructPerimeter(perimeter: Perimeter): ConstructionModel {
 
     if (method?.config?.type) {
       const constructionMethod = PERIMETER_WALL_CONSTRUCTION_METHODS[method.config.type]
-      wallModel = constructionMethod(wall, perimeter, storey.height, method.config, method.layers)
+      wallModel = constructionMethod(wall, perimeter, storeyContext, method.config, method.layers)
     }
 
     if (wallModel) {

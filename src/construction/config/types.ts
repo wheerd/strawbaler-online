@@ -16,8 +16,13 @@ import type { Length } from '@/shared/geometry'
 /*
   This is what the wall + floor construction looks like from the side:
 
-  |   |              |   | Floor Bottom layers
+  |   |       Floor Construction                           
+  |   +--------------+ . . . . . . . . . . . . . . . . . .  
+  |   |     Top      | Floor Construction Bottom Offset          
+  |   |    Plate     +---+-------------------------------- 
+  |   +--------------+   | Floor Bottom layers             
   |   |              |   +--------------------------------
+  |   |              |   |                 .
   |   |              |   |                 .
   |   |    Header    |   |       I         .      
   +---+--------------+---+       n         .
@@ -42,17 +47,17 @@ d | a | Construction | r +--------------------------------  }
 e | y +--------------+ s | Floor top layers                 }
   | e |    Bottom    +---+--------------------------------  }
   | r |    Plate     | Floor Construction Top Offset        }
-  | s +--------------+ . . . . . . . . . . . . . . . . . .  }
+  | s +--------------+ . . . . . . . . . . . . . . . . . .  } . . . . . . .  Zero level for wall construction
   |   |       Floor Construction                            } Floor
   |   +--------------+ . . . . . . . . . . . . . . . . . .  } Thickness
   |   |     Top      | Floor Construction Bottom Offset     }      
   |   |    Plate     +---+--------------------------------  }
   |   +--------------+ I | Floor Bottom layers              }
   |   |     Wall     | n +--------------------------------  }
-  |   | Construction | s |
-  |   |              | i |
-  |   |              | d |
-  |   |              | e |
+  |   | Construction | s |                 .
+  |   |              | i |                 .
+  |   |              | d |                 .
+  |   |              | e |                 .
 */
 
 export interface RingBeamConstructionMethod {

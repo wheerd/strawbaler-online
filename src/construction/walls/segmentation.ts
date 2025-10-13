@@ -1,6 +1,7 @@
-import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
+import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model/model'
 import { getConfigActions } from '@/construction/config'
-import type { WallLayersConfig } from '@/construction/config/types'
+import type { FloorConstructionConfig, WallLayersConfig } from '@/construction/config/types'
+import { FLOOR_CONSTRUCTION_METHODS } from '@/construction/floors'
 import { IDENTITY } from '@/construction/geometry'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
 import { TAG_OPENING_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
@@ -110,10 +111,36 @@ function* createCornerAreas(
   }
 }
 
+export interface WallStoreyContext {
+  ceilingBottomLayersThickness: Length
+  ceilingBottomConstructionOffset: Length
+  storeyHeight: Length
+  floorTopLayersThickness: Length
+  floorTopConstructionOffset: Length
+}
+
+export function createWallStoreyContext(
+  currentStorey: Storey,
+  currentFloorConfig: FloorConstructionConfig,
+  _nextStorey: Storey | null,
+  nextFloorConfig: FloorConstructionConfig | null
+): WallStoreyContext {
+  const currentFloorMethod = FLOOR_CONSTRUCTION_METHODS[currentFloorConfig.type]
+  const nextFloorMethod = nextFloorConfig ? FLOOR_CONSTRUCTION_METHODS[nextFloorConfig.type] : null
+
+  return {
+    storeyHeight: currentStorey.height,
+    floorTopLayersThickness: currentFloorConfig.layers.topThickness,
+    floorTopConstructionOffset: currentFloorMethod.getTopOffset(currentFloorConfig),
+    ceilingBottomLayersThickness: (nextFloorConfig?.layers.bottomThickness ?? 0) as Length,
+    ceilingBottomConstructionOffset: (nextFloorMethod?.getBottomOffset(nextFloorConfig) ?? 0) as Length
+  }
+}
+
 export function* segmentedWallConstruction(
   wall: PerimeterWall,
   perimeter: Perimeter,
-  wallHeight: Length,
+  storeyContext: WallStoreyContext,
   layers: WallLayersConfig,
   wallConstruction: WallSegmentConstruction,
   openingConstruction: OpeningSegmentConstruction
@@ -121,8 +148,6 @@ export function* segmentedWallConstruction(
   const wallContext = getWallContext(wall, perimeter)
   const cornerInfo = calculateWallCornerInfo(wall, wallContext)
   const { constructionLength, extensionStart, extensionEnd } = cornerInfo
-
-  yield* createCornerAreas(cornerInfo, wall.wallLength, wallHeight, wall.thickness)
 
   const { getRingBeamConstructionMethodById } = getConfigActions()
   const bottomPlateMethod = perimeter.baseRingBeamMethodId
@@ -134,10 +159,22 @@ export function* segmentedWallConstruction(
     : null
   const topPlateHeight = topPlateMethod?.config?.height ?? 0
 
+  const totalConstructionHeight = (storeyContext.storeyHeight +
+    storeyContext.floorTopLayersThickness +
+    storeyContext.floorTopConstructionOffset +
+    storeyContext.ceilingBottomConstructionOffset +
+    storeyContext.ceilingBottomLayersThickness) as Length
+
+  yield* createCornerAreas(cornerInfo, wall.wallLength, totalConstructionHeight, wall.thickness)
+
   const y = layers.insideThickness
   const sizeY = wall.thickness - layers.insideThickness - layers.outsideThickness
   const z = bottomPlateHeight
-  const sizeZ = wallHeight - bottomPlateHeight - topPlateHeight
+  const sizeZ = (totalConstructionHeight - bottomPlateHeight - topPlateHeight) as Length
+
+  const openingZOffset = (storeyContext.floorTopLayersThickness +
+    storeyContext.floorTopConstructionOffset -
+    bottomPlateHeight) as Length
 
   const standAtWallStart = wallContext.startCorner.exteriorAngle !== 180 || cornerInfo.startCorner.constructedByThisWall
   const standAtWallEnd = wallContext.endCorner.exteriorAngle !== 180 || cornerInfo.endCorner.constructedByThisWall
@@ -196,7 +233,7 @@ export function* segmentedWallConstruction(
 
     // Create opening segment for the group
     const groupWidth = (groupEnd - groupStart) as Length
-    yield* openingConstruction([groupStart, y, z], [groupWidth, sizeY, sizeZ], -z as Length, openingGroup)
+    yield* openingConstruction([groupStart, y, z], [groupWidth, sizeY, sizeZ], openingZOffset, openingGroup)
 
     currentPosition = groupEnd
   }

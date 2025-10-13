@@ -17,7 +17,7 @@ import {
 } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { BaseConstructionConfig, PerimeterWallConstructionMethod } from '@/construction/walls/construction'
-import { segmentedWallConstruction } from '@/construction/walls/segmentation'
+import { type WallStoreyContext, segmentedWallConstruction } from '@/construction/walls/segmentation'
 import { type Length, type Vec3, boundsFromCuboid, mergeBounds } from '@/shared/geometry'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {
@@ -171,14 +171,14 @@ function getBaleWidth(availableWidth: Length, config: InfillConstructionConfig):
 const _constructInfillWall = (
   wall: PerimeterWall,
   perimeter: Perimeter,
-  floorHeight: Length,
+  storeyContext: WallStoreyContext,
   config: InfillConstructionConfig,
   layers: WallLayersConfig
 ): Generator<ConstructionResult> =>
   segmentedWallConstruction(
     wall,
     perimeter,
-    floorHeight,
+    storeyContext,
     layers,
     (position, size, startsWithStand, endsWithStand, startAtEnd) =>
       infillWallArea(position, size, config, startsWithStand, endsWithStand, startAtEnd),
@@ -190,11 +190,11 @@ const _constructInfillWall = (
 export const constructInfillWall: PerimeterWallConstructionMethod<InfillConstructionConfig> = (
   wall: PerimeterWall,
   perimeter: Perimeter,
-  floorHeight: Length,
+  storeyContext: WallStoreyContext,
   config: InfillConstructionConfig,
   layers: WallLayersConfig
 ): ConstructionModel => {
-  const allResults = Array.from(_constructInfillWall(wall, perimeter, floorHeight, config, layers))
+  const allResults = Array.from(_constructInfillWall(wall, perimeter, storeyContext, config, layers))
 
   const aggRes = aggregateResults(allResults)
 

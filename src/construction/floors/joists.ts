@@ -1,6 +1,7 @@
 import type { JoistFloorConstructionConfig } from '@/construction/config/types'
-import { BaseFloorConstructionMethod } from '@/construction/floors'
 import { type PolygonWithHoles2D, createLength } from '@/shared/geometry'
+
+import { BaseFloorConstructionMethod } from './base'
 
 export class JoistConstructionMethod extends BaseFloorConstructionMethod<JoistFloorConstructionConfig> {
   construct = (_polygon: PolygonWithHoles2D, _config: JoistFloorConstructionConfig) => {
