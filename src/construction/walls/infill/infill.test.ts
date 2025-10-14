@@ -30,7 +30,7 @@ function createMockStoreyContext(storeyHeight: Length = createLength(2500)): Wal
 // Mock dependencies
 vi.mock('@/construction/floors', () => ({
   SLAB_CONSTRUCTION_METHODS: {
-    clt: {
+    monolithic: {
       getTopOffset: vi.fn(() => 0),
       getBottomOffset: vi.fn(() => 0)
     },

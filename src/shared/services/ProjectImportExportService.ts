@@ -16,7 +16,7 @@ import { createLength, createVec2 } from '@/shared/geometry'
 export interface ExportedStorey {
   name: string
   height: number
-  slabConstructionConfigId?: string
+  slabConstructionConfigId: string
   perimeters: ExportedPerimeter[]
 }
 
@@ -174,36 +174,10 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
 
       // 1. Import config state with backwards compatibility for floor configs
       const configStore = importResult.data.configStore
-
-      // Add default floor config if missing (backwards compatibility)
-      if (!configStore.slabConstructionConfigs || !configStore.defaultSlabConfigId) {
-        const { createSlabConstructionConfigId } = await import('@/building/model/ids')
-        const { clt180 } = await import('@/construction/materials/material')
-        const { createLength } = await import('@/shared/geometry')
-
-        const defaultSlabConfigId = createSlabConstructionConfigId()
-        configStore.slabConstructionConfigs = {
-          [defaultSlabConfigId]: {
-            id: defaultSlabConfigId,
-            name: 'CLT 18cm',
-            type: 'clt',
-            thickness: createLength(180),
-            material: clt180.id,
-            layers: {
-              topThickness: createLength(0),
-              bottomThickness: createLength(0)
-            }
-          }
-        }
-        configStore.defaultSlabConfigId = defaultSlabConfigId
-      }
-
       setConfigState(configStore)
 
       // 2. Import materials state (if available for backwards compatibility)
-      if (importResult.data.materialsStore) {
-        setMaterialsState(importResult.data.materialsStore)
-      }
+      setMaterialsState(importResult.data.materialsStore)
 
       // 3. Reset model (creates default "Ground Floor" at level 0)
       modelActions.reset()
@@ -215,19 +189,9 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
       // 5. Process imported storeys
       const exportedStoreys = importResult.data.modelStore.storeys
 
-      // Get the default floor config to use for old storeys without floor config
-      const { getConfigState: getCurrentConfigState } = await import('@/construction/config/store')
-      const defaultSlabConfigIdFromStore = getCurrentConfigState().defaultSlabConfigId
-
       exportedStoreys.forEach((exportedStorey, index) => {
         let targetStorey: Storey
-
-        // Determine floor config ID:
-        // 1. Use exported floor config if present
-        // 2. Otherwise use the current store's default floor config
-        const slabConfigId =
-          (exportedStorey.slabConstructionConfigId as SlabConstructionConfigId | undefined) ??
-          defaultSlabConfigIdFromStore
+        const slabConfigId = exportedStorey.slabConstructionConfigId as SlabConstructionConfigId
 
         if (index === 0) {
           // Modify existing default ground floor

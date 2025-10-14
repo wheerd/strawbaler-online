@@ -20,7 +20,11 @@ import type { SlabConstructionConfigId } from '@/building/model/ids'
 import { createSlabConstructionConfigId } from '@/building/model/ids'
 import { useStoreysOrderedByLevel } from '@/building/store'
 import { useConfigActions, useDefaultSlabConfigId, useSlabConstructionConfigs } from '@/construction/config/store'
-import type { CltConstructionConfig, SlabConstructionConfig } from '@/construction/config/types'
+import type {
+  MonolithicSlabConstructionConfig,
+  SlabConstructionConfig,
+  SlabConstructionType
+} from '@/construction/config/types'
 import { getSlabConfigUsage } from '@/construction/config/usage'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
@@ -62,16 +66,16 @@ export function SlabConfigContent({ initialSelectionId }: SlabConfigContentProps
   )
 
   const handleAddNew = useCallback(
-    (type: 'clt' | 'joist') => {
+    (type: SlabConstructionType) => {
       const defaultMaterial = '' as MaterialId
       const newId = createSlabConstructionConfigId()
 
       let config: SlabConstructionConfig
-      if (type === 'clt') {
+      if (type === 'monolithic') {
         config = {
           id: newId,
-          name: 'New CLT Slab',
-          type: 'clt',
+          name: 'New Monolithic Slab',
+          type: 'monolithic',
           thickness: createLength(180),
           material: defaultMaterial,
           layers: {
@@ -166,10 +170,10 @@ export function SlabConfigContent({ initialSelectionId }: SlabConfigContentProps
               </IconButton>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
-              <DropdownMenu.Item onSelect={() => handleAddNew('clt')}>
+              <DropdownMenu.Item onSelect={() => handleAddNew('monolithic')}>
                 <Flex align="center" gap="1">
-                  {React.createElement(getSlabConstructionTypeIcon('clt'))}
-                  CLT Slab
+                  {React.createElement(getSlabConstructionTypeIcon('monolithic'))}
+                  Monolithic Slab
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item onSelect={() => handleAddNew('joist')}>
@@ -254,15 +258,15 @@ export function SlabConfigContent({ initialSelectionId }: SlabConfigContentProps
             <Flex gap="2" align="center">
               {React.createElement(getSlabConstructionTypeIcon(selectedConfig.type))}
               <Text size="2" color="gray">
-                {selectedConfig.type === 'clt' ? 'CLT' : 'Joist'}
+                {selectedConfig.type === 'monolithic' ? 'Monolithic' : 'Joist'}
               </Text>
             </Flex>
           </Grid>
 
           <Separator size="4" />
 
-          {selectedConfig.type === 'clt' && (
-            <CltConfigFields
+          {selectedConfig.type === 'monolithic' && (
+            <MonolithicConfigFields
               config={selectedConfig}
               onUpdate={updates => handleUpdateConfig(updates as Partial<Omit<SlabConstructionConfig, 'id'>>)}
             />
@@ -320,16 +324,16 @@ export function SlabConfigContent({ initialSelectionId }: SlabConfigContentProps
   )
 }
 
-function CltConfigFields({
+function MonolithicConfigFields({
   config,
   onUpdate
 }: {
-  config: CltConstructionConfig
-  onUpdate: (updates: Omit<CltConstructionConfig, 'id'>) => void
+  config: MonolithicSlabConstructionConfig
+  onUpdate: (updates: Omit<MonolithicSlabConstructionConfig, 'id'>) => void
 }) {
   return (
     <>
-      <Heading size="2">CLT Configuration</Heading>
+      <Heading size="2">Monolithic Slab Configuration</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
@@ -364,7 +368,9 @@ function JoistConfigPlaceholder() {
     <>
       <Heading size="2">Joist Configuration</Heading>
       <Callout.Root color="amber">
-        <Callout.Text>Joist slab construction is not yet supported. Please use CLT configuration for now.</Callout.Text>
+        <Callout.Text>
+          Joist slab construction is not yet supported. Please use monolithic configuration for now.
+        </Callout.Text>
       </Callout.Root>
     </>
   )

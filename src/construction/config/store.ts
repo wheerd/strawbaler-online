@@ -8,12 +8,13 @@ import type {
   SlabConstructionConfigId
 } from '@/building/model/ids'
 import {
+  DEFAULT_SLAB_CONFIG_ID,
   createPerimeterConstructionMethodId,
   createRingBeamConstructionMethodId,
   createSlabConstructionConfigId
 } from '@/building/model/ids'
 import type {
-  CltConstructionConfig,
+  MonolithicSlabConstructionConfig,
   PerimeterConstructionConfig,
   PerimeterConstructionMethod,
   RingBeamConstructionMethod,
@@ -113,7 +114,7 @@ const validateSlabConfigName = (name: string): void => {
 const validateSlabConfig = (config: SlabConstructionConfig): void => {
   validateSlabConfigName(config.name)
 
-  if (config.type === 'clt') {
+  if (config.type === 'monolithic') {
     if (config.thickness <= 0) {
       throw new Error('CLT thickness must be greater than 0')
     }
@@ -150,17 +151,30 @@ const createDefaultRingBeamMethod = (): RingBeamConstructionMethod => ({
 })
 
 // Default slab construction config
-const createDefaultSlabConfig = (): CltConstructionConfig => ({
-  id: 'fcm_default' as SlabConstructionConfigId,
-  name: 'CLT 18cm',
-  type: 'clt',
-  thickness: createLength(180),
-  material: clt180.id,
-  layers: {
-    topThickness: createLength(60),
-    bottomThickness: createLength(0)
+const createDefaultSlabConfigs = (): MonolithicSlabConstructionConfig[] => [
+  {
+    id: DEFAULT_SLAB_CONFIG_ID,
+    name: 'CLT 18cm (6m)',
+    type: 'monolithic',
+    thickness: createLength(180),
+    material: clt180.id,
+    layers: {
+      topThickness: createLength(60),
+      bottomThickness: createLength(0)
+    }
+  },
+  {
+    id: 'scm_concrete_default' as SlabConstructionConfigId,
+    name: 'Concrete 20cm (6m)',
+    type: 'monolithic',
+    thickness: createLength(200),
+    material: concrete.id,
+    layers: {
+      topThickness: createLength(60),
+      bottomThickness: createLength(0)
+    }
   }
-})
+]
 
 // Default perimeter construction methods
 const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
@@ -340,20 +354,18 @@ const useConfigStore = create<ConfigStore>()(
         // Initialize with default methods
         const defaultRingBeamMethod = createDefaultRingBeamMethod()
         const defaultPerimeterMethods = createDefaultPerimeterMethods()
-        const defaultSlabConfig = createDefaultSlabConfig()
+        const defaultSlabConfigs = createDefaultSlabConfigs()
 
         return {
           ringBeamConstructionMethods: {
             [defaultRingBeamMethod.id]: defaultRingBeamMethod
           },
           perimeterConstructionMethods: Object.fromEntries(defaultPerimeterMethods.map(method => [method.id, method])),
-          slabConstructionConfigs: {
-            [defaultSlabConfig.id]: defaultSlabConfig
-          },
+          slabConstructionConfigs: Object.fromEntries(defaultSlabConfigs.map(config => [config.id, config])),
           defaultBaseRingBeamMethodId: defaultRingBeamMethod.id,
           defaultTopRingBeamMethodId: defaultRingBeamMethod.id,
           defaultPerimeterMethodId: defaultPerimeterMethods[0].id,
-          defaultSlabConfigId: defaultSlabConfig.id,
+          defaultSlabConfigId: DEFAULT_SLAB_CONFIG_ID,
 
           actions: {
             // CRUD operations

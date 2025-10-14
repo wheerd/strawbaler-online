@@ -31,10 +31,10 @@ export const createRingBeamConstructionMethodId = (): RingBeamConstructionMethod
 export const createPerimeterConstructionMethodId = (): PerimeterConstructionMethodId =>
   `pwcm_${Date.now()}_${Math.random()}` as PerimeterConstructionMethodId
 export const createSlabConstructionConfigId = (): SlabConstructionConfigId =>
-  `fcm_${Date.now()}_${Math.random()}` as SlabConstructionConfigId
+  `scm_${Date.now()}_${Math.random()}` as SlabConstructionConfigId
 
 // Default slab construction config ID constant
-export const DEFAULT_SLAB_CONFIG_ID = 'fcm_default' as SlabConstructionConfigId
+export const DEFAULT_SLAB_CONFIG_ID = 'scm_clt_default' as SlabConstructionConfigId
 
 // Type guards for runtime ID validation
 export const isStoreyId = (id: string): id is StoreyId => id.startsWith('storey_')
@@ -50,7 +50,7 @@ export const isRingBeamConstructionMethodId = (id: string): id is RingBeamConstr
   id.startsWith('ringbeam_')
 export const isPerimeterConstructionMethodId = (id: string): id is PerimeterConstructionMethodId =>
   id.startsWith('pwcm_')
-export const isSlabConstructionConfigId = (id: string): id is SlabConstructionConfigId => id.startsWith('fcm_')
+export const isSlabConstructionConfigId = (id: string): id is SlabConstructionConfigId => id.startsWith('scm_')
 
 // Entity type definitions for hit testing
 export type EntityType = 'storey' | 'perimeter' | 'perimeter-wall' | 'perimeter-corner' | 'opening'

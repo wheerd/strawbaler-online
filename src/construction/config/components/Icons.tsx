@@ -1,7 +1,7 @@
-import { SquareIcon, ViewVerticalIcon } from '@radix-ui/react-icons'
-import React from 'react'
+import { BoxIcon, SquareIcon, ViewVerticalIcon } from '@radix-ui/react-icons'
+import React, { type ComponentType } from 'react'
 
-import type { PerimeterConstructionConfig } from '@/construction/config/types'
+import type { PerimeterConstructionConfig, SlabConstructionType } from '@/construction/config/types'
 
 interface IconProps {
   className?: string
@@ -121,7 +121,7 @@ export function getRingBeamTypeIcon(type: 'full' | 'double') {
   }
 }
 
-export function CltIcon({ className, width = 15, height = 15, style }: IconProps): React.JSX.Element {
+export function MonolithicIcon({ className, width = 15, height = 15, style }: IconProps): React.JSX.Element {
   return (
     <svg
       width={width}
@@ -160,10 +160,10 @@ export function JoistIcon({ className, width = 15, height = 15, style }: IconPro
   )
 }
 
-export function getSlabConstructionTypeIcon(type: 'clt' | 'joist') {
+export function getSlabConstructionTypeIcon(type: SlabConstructionType): ComponentType<IconProps> {
   switch (type) {
-    case 'clt':
-      return CltIcon
+    case 'monolithic':
+      return BoxIcon
     case 'joist':
       return JoistIcon
   }

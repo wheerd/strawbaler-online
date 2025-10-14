@@ -1,4 +1,4 @@
-import type { CltConstructionConfig } from '@/construction/config/types'
+import type { MonolithicSlabConstructionConfig } from '@/construction/config/types'
 import { createConstructionElement } from '@/construction/elements'
 import type { ConstructionModel } from '@/construction/model'
 import { createExtrudedPolygon } from '@/construction/shapes'
@@ -7,8 +7,8 @@ import { type Length, type PolygonWithHoles2D, createLength } from '@/shared/geo
 
 import { BaseSlabConstructionMethod } from './base'
 
-export class CltConstructionMethod extends BaseSlabConstructionMethod<CltConstructionConfig> {
-  construct = (polygon: PolygonWithHoles2D, config: CltConstructionConfig) => {
+export class MonolithicConstructionMethod extends BaseSlabConstructionMethod<MonolithicSlabConstructionConfig> {
+  construct = (polygon: PolygonWithHoles2D, config: MonolithicSlabConstructionConfig) => {
     const slab = createConstructionElement(
       config.material,
       createExtrudedPolygon(polygon, 'xy', config.thickness as Length),
@@ -25,7 +25,7 @@ export class CltConstructionMethod extends BaseSlabConstructionMethod<CltConstru
     } as ConstructionModel
   }
 
-  getTopOffset = (_config: CltConstructionConfig) => createLength(0)
-  getBottomOffset = (_config: CltConstructionConfig) => createLength(0)
-  getConstructionThickness = (config: CltConstructionConfig) => config.thickness
+  getTopOffset = (_config: MonolithicSlabConstructionConfig) => createLength(0)
+  getBottomOffset = (_config: MonolithicSlabConstructionConfig) => createLength(0)
+  getConstructionThickness = (config: MonolithicSlabConstructionConfig) => config.thickness
 }

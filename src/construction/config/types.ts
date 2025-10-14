@@ -91,7 +91,7 @@ export interface PerimeterConstructionMethod {
   layers: WallLayersConfig
 }
 
-export type SlabConstructionType = 'clt' | 'joist'
+export type SlabConstructionType = 'monolithic' | 'joist'
 
 export interface SlabBaseConstructionConfig {
   id: SlabConstructionConfigId
@@ -105,8 +105,8 @@ export interface FloorLayersConfig {
   topThickness: Length
 }
 
-export interface CltConstructionConfig extends SlabBaseConstructionConfig {
-  type: 'clt'
+export interface MonolithicSlabConstructionConfig extends SlabBaseConstructionConfig {
+  type: 'monolithic'
   thickness: Length
   material: MaterialId
 }
@@ -121,4 +121,4 @@ export interface JoistSlabConstructionConfig extends SlabBaseConstructionConfig 
   subfloorMaterial: MaterialId
 }
 
-export type SlabConstructionConfig = CltConstructionConfig | JoistSlabConstructionConfig
+export type SlabConstructionConfig = MonolithicSlabConstructionConfig | JoistSlabConstructionConfig

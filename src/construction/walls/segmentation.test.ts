@@ -22,7 +22,7 @@ vi.mock('./corners/corners', () => ({
 
 vi.mock('@/construction/floors', () => ({
   SLAB_CONSTRUCTION_METHODS: {
-    clt: {
+    monolithic: {
       getTopOffset: vi.fn(() => 0),
       getBottomOffset: vi.fn(() => 0)
     },
