@@ -69,21 +69,29 @@ function RectangularPreview({ config }: { config: RectangularPresetConfig }) {
 
         {/* Dimension labels */}
         <text
-          color="var(--gray-12)"
+          fill="var(--gray-12)"
+          className="font-mono"
           x={displayOutsideWidth / 2}
           y={12 + scaledThickness}
           textAnchor="middle"
           fontSize={12}
+          style={{
+            filter: 'drop-shadow(1px 1px 2px var(--gray-1))'
+          }}
         >
           {formatLength(insideWidth)}
         </text>
         <text
-          color="var(--gray-12)"
+          fill="var(--gray-12)"
+          className="font-mono"
           x={10 + scaledThickness}
           y={displayOutsideLength / 2}
           textAnchor="middle"
           fontSize={12}
           transform={`rotate(-90, ${12 + scaledThickness}, ${displayOutsideLength / 2})`}
+          style={{
+            filter: 'drop-shadow(1px 1px 2px var(--gray-1))'
+          }}
         >
           {formatLength(insideLength)}
         </text>

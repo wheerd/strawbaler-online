@@ -131,7 +131,7 @@ function LShapedPreview({ config }: { config: LShapedPresetConfig }) {
             className="font-mono"
             transform={label.rotation !== 0 ? `rotate(${label.rotation} ${label.x} ${label.y})` : undefined}
             style={{
-              filter: 'drop-shadow(1px 1px 2px rgba(255, 255, 255, 0.8))'
+              filter: 'drop-shadow(1px 1px 2px var(--gray-1))'
             }}
           >
             {formatLength(createLength(label.length))}

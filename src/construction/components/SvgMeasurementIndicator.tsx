@@ -153,7 +153,7 @@ export function SvgMeasurementIndicator({
           textAnchor="middle"
           dominantBaseline="central"
           style={{
-            filter: 'drop-shadow(2px 2px 4px rgba(255, 255, 255, 0.8))'
+            filter: 'drop-shadow(0 0 0.1em var(--gray-1))'
           }}
         >
           {label}

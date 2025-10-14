@@ -287,7 +287,10 @@ export function OpeningPreview({
         fontSize={9}
         textAnchor="middle"
         dominantBaseline="middle"
-        color="var(--gray-8)"
+        fill="var(--gray-8)"
+        style={{
+          filter: 'drop-shadow(0 0 0.2em var(--gray-1))'
+        }}
       >
         {area.toFixed(2)}m²
       </text>

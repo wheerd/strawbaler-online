@@ -166,7 +166,7 @@ export function LengthIndicator({
         offsetY={scaledFontSize / 2}
         rotation={angleDegrees}
         scaleY={-1}
-        shadowColor="white"
+        shadowColor={theme.white}
         shadowBlur={4}
         shadowOpacity={0.8}
         listening={false}

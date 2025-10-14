@@ -27,7 +27,7 @@ export function PerimeterDrawIcon({ width = 15, height = 15, ...props }: IconPro
   return (
     <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <defs>
-        <mask x="-1" y="-1" width="17" height="17" id="myMask" mask-type="luminance">
+        <mask x="-1" y="-1" width="17" height="17" id="pencilMask" mask-type="luminance">
           <rect x="-1" y="-1" width="17" height="17" fill="white" />
           <path
             transform="translate(5 2) scale(0.7)"
@@ -45,7 +45,7 @@ export function PerimeterDrawIcon({ width = 15, height = 15, ...props }: IconPro
         fillRule="evenodd"
         clipRule="evenodd"
       />
-      <path d="M2 2 H 7.5 V 7.5 H 13 V 13 H 2 Z" stroke="currentColor" strokeWidth="1" mask="url(#myMask)" />
+      <path d="M2 2 H 7.5 V 7.5 H 13 V 13 H 2 Z" stroke="currentColor" strokeWidth="1" mask="url(#pencilMask)" />
     </svg>
   )
 }

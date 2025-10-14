@@ -42,25 +42,6 @@ export function AppSkeleton(): React.JSX.Element {
           <SidePanelSkeleton />
         </Box>
       </Flex>
-
-      {/* Enhanced loading indicator */}
-      <Box
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          padding: '12px 16px',
-          backgroundColor: 'var(--gray-12)',
-          color: 'white',
-          borderRadius: 'var(--radius-3)',
-          fontSize: '13px',
-          fontWeight: '500',
-          zIndex: 1000,
-          boxShadow: 'var(--shadow-4)'
-        }}
-      >
-        ⚡ Initializing tools...
-      </Box>
     </Box>
   )
 }

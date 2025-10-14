@@ -1,4 +1,5 @@
 import { AllSidesIcon } from '@radix-ui/react-icons'
+import { IconButton } from '@radix-ui/themes'
 import React, {
   type RefAttributes,
   useCallback,
@@ -361,14 +362,14 @@ export function SVGViewport({
         </g>
       </svg>
 
-      <button
+      <IconButton
+        variant="surface"
         onClick={fitToContent}
-        className={`absolute ${getResetButtonPosition(resetButtonPosition)} bg-white hover:bg-gray-50 border border-gray-300 rounded-md p-2 shadow-sm transition-colors`}
+        className={`absolute ${getResetButtonPosition(resetButtonPosition)}`}
         title="Fit to content"
-        type="button"
       >
-        <AllSidesIcon className="w-4 h-4 text-gray-600" />
-      </button>
+        <AllSidesIcon />
+      </IconButton>
     </div>
   )
 }
