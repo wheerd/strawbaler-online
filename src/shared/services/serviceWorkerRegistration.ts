@@ -23,15 +23,11 @@ export function registerServiceWorker(): void {
 
   workbox.addEventListener('activated', event => {
     if (event.isUpdate !== true) {
-      // eslint-disable-next-line no-console -- Useful signal during early rollout
       console.info('Service worker activated, app is now available offline.')
     }
   })
 
-  workbox
-    .register()
-    .catch(error => {
-      // eslint-disable-next-line no-console -- Provide visibility when registration fails
-      console.error('Service worker registration failed', error)
-    })
+  workbox.register().catch(error => {
+    console.error('Service worker registration failed', error)
+  })
 }
