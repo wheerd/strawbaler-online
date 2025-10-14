@@ -2,10 +2,99 @@
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
+import type { PluginOption, ResolvedConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
+
+function nonBlockingStylesPlugin(): PluginOption {
+  let resolvedConfig: ResolvedConfig | null = null
+
+  return {
+    name: 'non-blocking-styles',
+    enforce: 'post',
+    configResolved(config) {
+      resolvedConfig = config
+    },
+    transformIndexHtml(html: string) {
+      if (resolvedConfig?.command !== 'build') {
+        return html
+      }
+
+      return html.replace(/<link rel="stylesheet" crossorigin href="([^"]+)">/g, (_match, href: string) =>
+        [
+          `<link rel="preload" href="${href}" as="style" crossorigin>`,
+          `<link rel="stylesheet" href="${href}" media="print" onload="this.media='all'">`,
+          `<noscript><link rel="stylesheet" href="${href}" crossorigin></noscript>`
+        ].join('')
+      )
+    }
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    nonBlockingStylesPlugin(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: false,
+      includeAssets: ['favicon.svg', 'favicon-16x16.svg', 'apple-touch-icon.svg'],
+      manifest: false,
+      workbox: {
+        navigateFallback: '/index.html',
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,json,woff2}'],
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+              networkTimeoutSeconds: 30,
+              expiration: { maxEntries: 20 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
+            urlPattern: /\/assets\/vendor-.*\.(?:js|css)$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'vendor-chunks',
+              expiration: { maxEntries: 30, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/assets/') && url.pathname.endsWith('.js'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'feature-chunks',
+              expiration: { maxEntries: 60, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/assets/') && url.pathname.endsWith('.css'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'style-assets',
+              expiration: { maxEntries: 30, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
+            urlPattern: /\/assets\/.*\.(?:png|svg|ico|jpg|jpeg|gif|webp|avif|woff2?)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-assets',
+              expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          }
+        ]
+      }
+    })
+  ],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -18,20 +107,24 @@ export default defineConfig({
     }
   },
   build: {
+    modulePreload: {
+      resolveDependencies: (_url, deps) => deps.filter(dep => !dep.includes('vendor-three'))
+    },
+    manifest: 'manifest.json',
     rollupOptions: {
       output: {
         manualChunks: {
           // Vendor chunk for React and related libraries
-          react: ['react', 'react-dom', 'react/jsx-runtime'],
+          'vendor-react': ['react', 'react-dom', 'react/jsx-runtime'],
 
           // Canvas chunk for Konva and react-konva
-          canvas: ['konva', 'react-konva'],
+          'vendor-canvas': ['konva', 'react-konva'],
 
           // State management chunk
-          store: ['zustand', 'zundo'],
+          'vendor-store': ['zustand', 'zundo'],
 
           // Radix UI chunk
-          radix: [
+          'vendor-radix': [
             '@radix-ui/react-dialog',
             '@radix-ui/react-icons',
             '@radix-ui/react-select',
@@ -44,7 +137,7 @@ export default defineConfig({
           ],
 
           // Geometry utilities chunk (Turf.js and gl-matrix)
-          geometry: [
+          'vendor-geometry': [
             '@turf/helpers',
             '@turf/kinks',
             '@turf/boolean-valid',
@@ -55,10 +148,7 @@ export default defineConfig({
           ],
 
           // Three.js chunk (lazy loaded for 3D viewer)
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
-
-          // Model chunk
-          model: ['./src/building/store', './src/building/model', './src/shared/geometry']
+          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei']
         }
       }
     },

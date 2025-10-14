@@ -1,6 +1,7 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 
 import { AppSkeleton } from '@/app/skeletons/AppSkeleton'
+import { startChunkPreloading } from '@/shared/services/chunkPreloader'
 
 const FloorPlanEditor = React.lazy(
   async () =>
@@ -10,6 +11,10 @@ const FloorPlanEditor = React.lazy(
 )
 
 function App(): React.JSX.Element {
+  useEffect(() => {
+    startChunkPreloading()
+  }, [])
+
   return (
     <Suspense fallback={<AppSkeleton />}>
       <FloorPlanEditor />
