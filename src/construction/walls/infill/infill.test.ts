@@ -207,7 +207,7 @@ describe('infillWallArea', () => {
       expect(warnings).toHaveLength(0)
       expect(mockConstructStraw).toHaveBeenCalled()
       expect(elements.length).toBeGreaterThan(0)
-      expect(elements.some(e => e.id === 'straw-1')).toBe(true)
+      expect(elements.some(e => e.id === ('straw-1' as any))).toBe(true)
     })
 
     it('should create start post when startsWithStand is true', () => {

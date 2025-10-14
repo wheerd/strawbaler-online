@@ -1,9 +1,9 @@
 import type { Length } from '@/shared/geometry'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
+import { createId } from '@/shared/utils/ids'
 
 export type MaterialId = string & { readonly brand: unique symbol }
-export const createMaterialId = (): MaterialId =>
-  `material_${Date.now().toString(36)}${Math.random().toString(36).slice(2)}` as MaterialId
+export const createMaterialId = () => createId<MaterialId>('material_')
 export const isMaterialId = (id: string): id is MaterialId => id.startsWith('material_')
 
 export type Material = DimensionalMaterial | SheetMaterial | VolumeMaterial | GenericMaterial
