@@ -1,8 +1,9 @@
 import { CheckIcon, Cross2Icon, DownloadIcon, UpdateIcon, UploadIcon } from '@radix-ui/react-icons'
-import { Box, DropdownMenu, IconButton, Tooltip } from '@radix-ui/themes'
+import { Button, DropdownMenu, Flex, Tooltip } from '@radix-ui/themes'
 import React, { useState } from 'react'
 
 import { usePersistenceStore } from '@/building/store/persistenceStore'
+import { SaveIcon } from '@/shared/components/Icons'
 import { ProjectImportExportService } from '@/shared/services/ProjectImportExportService'
 import { createFileInput } from '@/shared/utils/createFileInput'
 import { downloadFile } from '@/shared/utils/downloadFile'
@@ -132,11 +133,14 @@ export function AutoSaveIndicator(): React.JSX.Element {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <IconButton size="1" variant="soft" color={statusInfo.color}>
+        <Button size="1" variant="soft" color={statusInfo.color}>
           <Tooltip content={statusInfo.text}>
-            <Box p="1">{statusInfo.icon}</Box>
+            <Flex gap="1">
+              <SaveIcon />
+              {statusInfo.icon}
+            </Flex>
           </Tooltip>
-        </IconButton>
+        </Button>
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Content>
