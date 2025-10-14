@@ -19,14 +19,12 @@ function nonBlockingStylesPlugin(): PluginOption {
         return html
       }
 
-      return html.replace(
-        /<link rel="stylesheet" href="([^"]+)" crossorigin>/g,
-        (_match, href: string) =>
-          [
-            `<link rel="preload" href="${href}" as="style" crossorigin>`,
-            `<link rel="stylesheet" href="${href}" media="print" onload="this.media='all'">`,
-            `<noscript><link rel="stylesheet" href="${href}" crossorigin></noscript>`
-          ].join('')
+      return html.replace(/<link rel="stylesheet" crossorigin href="([^"]+)">/g, (_match, href: string) =>
+        [
+          `<link rel="preload" href="${href}" as="style" crossorigin>`,
+          `<link rel="stylesheet" href="${href}" media="print" onload="this.media='all'">`,
+          `<noscript><link rel="stylesheet" href="${href}" crossorigin></noscript>`
+        ].join('')
       )
     }
   }
@@ -110,10 +108,9 @@ export default defineConfig({
   },
   build: {
     modulePreload: {
-      resolveDependencies: (_url, deps) =>
-        deps.filter(dep => !dep.includes('vendor-three'))
+      resolveDependencies: (_url, deps) => deps.filter(dep => !dep.includes('vendor-three'))
     },
-    manifest: true,
+    manifest: 'manifest.json',
     rollupOptions: {
       output: {
         manualChunks: {

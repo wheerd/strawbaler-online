@@ -23,7 +23,7 @@ interface IdleDeadline {
   timeRemaining: () => number
 }
 
-const MANIFEST_URL = `${import.meta.env.BASE_URL}.vite/manifest.json`
+const MANIFEST_URL = `${import.meta.env.BASE_URL}manifest.json`
 const PREFETCHED_RESOURCES = new Set<string>()
 const PREFETCH_DELAY_MS = 1500
 
