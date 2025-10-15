@@ -4,6 +4,7 @@ import {
   AlertDialog,
   Badge,
   Button,
+  Callout,
   DropdownMenu,
   Flex,
   Grid,
@@ -375,6 +376,12 @@ function DoubleRingBeamFields({
 }) {
   return (
     <>
+      <Callout.Root color="amber">
+        <Callout.Text>
+          Double ring beam construction is not yet supported. Please use a full ring beam configuration for now.
+        </Callout.Text>
+      </Callout.Root>
+
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">

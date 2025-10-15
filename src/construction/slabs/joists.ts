@@ -1,11 +1,13 @@
 import type { JoistSlabConstructionConfig } from '@/construction/config/types'
+import { createUnsupportedModel } from '@/construction/model'
 import { type PolygonWithHoles2D, createLength } from '@/shared/geometry'
 
 import { BaseSlabConstructionMethod } from './base'
 
 export class JoistConstructionMethod extends BaseSlabConstructionMethod<JoistSlabConstructionConfig> {
   construct = (_polygon: PolygonWithHoles2D, _config: JoistSlabConstructionConfig) => {
-    throw new Error('TODO: Implement')
+    // TODO: Implement joist slab construction.
+    return createUnsupportedModel('Joist slab construction is not yet supported.', 'unsupported-slab-joist')
   }
 
   getTopOffset = (config: JoistSlabConstructionConfig) => config.subfloorThickness

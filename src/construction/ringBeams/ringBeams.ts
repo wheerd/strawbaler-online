@@ -3,7 +3,7 @@ import { vec2 } from 'gl-matrix'
 import type { Perimeter, PerimeterCorner } from '@/building/model/model'
 import { createConstructionElement, createCutCuboidShape } from '@/construction/elements'
 import type { MaterialId } from '@/construction/materials/material'
-import type { ConstructionModel } from '@/construction/model'
+import { type ConstructionModel, createUnsupportedModel } from '@/construction/model'
 import {
   type ConstructionResult,
   aggregateResults,
@@ -192,7 +192,8 @@ export function constructFullRingBeam(perimeter: Perimeter, config: FullRingBeam
 }
 
 const constructDoubleRingBeam = (_perimeter: Perimeter, _config: DoubleRingBeamConfig): ConstructionModel => {
-  throw new Error('Not implemented')
+  // TODO: Implement double ring beam construction.
+  return createUnsupportedModel('Double ring beam construction is not yet supported.', 'unsupported-ring-beam-double')
 }
 
 // Validation functions for ring beam configurations

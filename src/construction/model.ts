@@ -70,6 +70,31 @@ export interface HighlightedCut {
 }
 
 /**
+ * Returns a minimal construction model with no geometry but a single warning.
+ * Useful for guarding unfinished construction paths until the real implementation lands.
+ */
+export function createUnsupportedModel(description: string, groupKey?: string): ConstructionModel {
+  const origin = vec3.fromValues(0, 0, 0)
+  return {
+    elements: [],
+    measurements: [],
+    areas: [],
+    errors: [],
+    warnings: [
+      {
+        description,
+        elements: [],
+        groupKey
+      }
+    ],
+    bounds: {
+      min: origin,
+      max: vec3.clone(origin)
+    }
+  }
+}
+
+/**
  * Creates a construction group with bounds calculated from transformed children
  */
 export function createConstructionGroup(
