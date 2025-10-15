@@ -29,7 +29,7 @@ import { getSlabConfigUsage } from '@/construction/config/usage'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { getSlabConstructionTypeIcon } from './Icons'
 import { SlabConfigSelect } from './SlabConfigSelect'
@@ -76,11 +76,11 @@ export function SlabConfigContent({ initialSelectionId }: SlabConfigContentProps
           id: newId,
           name: 'New Monolithic Slab',
           type: 'monolithic',
-          thickness: createLength(180),
+          thickness: 180,
           material: defaultMaterial,
           layers: {
-            topThickness: createLength(0),
-            bottomThickness: createLength(0)
+            topThickness: 0,
+            bottomThickness: 0
           }
         }
       } else {
@@ -88,15 +88,15 @@ export function SlabConfigContent({ initialSelectionId }: SlabConfigContentProps
           id: newId,
           name: 'New Joist Slab',
           type: 'joist',
-          joistThickness: createLength(60),
-          joistHeight: createLength(240),
-          joistSpacing: createLength(400),
+          joistThickness: 60,
+          joistHeight: 240,
+          joistSpacing: 400,
           joistMaterial: defaultMaterial,
-          subfloorThickness: createLength(22),
+          subfloorThickness: 22,
           subfloorMaterial: defaultMaterial,
           layers: {
-            topThickness: createLength(0),
-            bottomThickness: createLength(0)
+            topThickness: 0,
+            bottomThickness: 0
           }
         }
       }

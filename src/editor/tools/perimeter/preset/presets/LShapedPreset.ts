@@ -1,5 +1,7 @@
-import type { Vec2 } from '@/shared/geometry'
-import { createVec2 } from '@/shared/geometry'
+import { vec2 } from 'gl-matrix'
+
+import type {} from '@/shared/geometry'
+import '@/shared/geometry'
 
 import type { LShapedPresetConfig, PerimeterPreset } from './types'
 
@@ -16,7 +18,7 @@ export class LShapedPreset implements PerimeterPreset<LShapedPresetConfig> {
    * Uses inside dimensions - the polygon represents the interior space
    * Returns points in clockwise order for perimeter creation
    */
-  getPolygonPoints(config: LShapedPresetConfig): Vec2[] {
+  getPolygonPoints(config: LShapedPresetConfig): vec2[] {
     const { width1, length1, width2, length2, rotation } = config
 
     // Validate that extension fits within main rectangle
@@ -26,13 +28,13 @@ export class LShapedPreset implements PerimeterPreset<LShapedPresetConfig> {
 
     // Create L-shape points at 0° rotation (extension at bottom-right)
     // Starting from bottom-left, going clockwise
-    const points: Vec2[] = [
-      createVec2(-width1 / 2, -length1 / 2), // Bottom-left of main rectangle
-      createVec2(width1 / 2, -length1 / 2), // Bottom-right of main rectangle
-      createVec2(width1 / 2, -length1 / 2 + length2), // Inner corner (right side)
-      createVec2(-width1 / 2 + width2, -length1 / 2 + length2), // Inner corner (top side)
-      createVec2(-width1 / 2 + width2, length1 / 2), // Top-right of extension
-      createVec2(-width1 / 2, length1 / 2) // Top-left of main rectangle
+    const points: vec2[] = [
+      vec2.fromValues(-width1 / 2, -length1 / 2), // Bottom-left of main rectangle
+      vec2.fromValues(width1 / 2, -length1 / 2), // Bottom-right of main rectangle
+      vec2.fromValues(width1 / 2, -length1 / 2 + length2), // Inner corner (right side)
+      vec2.fromValues(-width1 / 2 + width2, -length1 / 2 + length2), // Inner corner (top side)
+      vec2.fromValues(-width1 / 2 + width2, length1 / 2), // Top-right of extension
+      vec2.fromValues(-width1 / 2, length1 / 2) // Top-left of main rectangle
     ]
 
     // Apply rotation if needed
@@ -41,7 +43,7 @@ export class LShapedPreset implements PerimeterPreset<LShapedPresetConfig> {
       const cos = Math.cos(radians)
       const sin = Math.sin(radians)
 
-      return points.map(point => createVec2(point[0] * cos - point[1] * sin, point[0] * sin + point[1] * cos))
+      return points.map(point => vec2.fromValues(point[0] * cos - point[1] * sin, point[0] * sin + point[1] * cos))
     }
 
     return points

@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import { useMemo } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
@@ -5,7 +6,6 @@ import { getTagClasses } from '@/construction/components/cssHelpers'
 import { type Projection, allPoints } from '@/construction/geometry'
 import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
-import { distance } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 export interface MeasurementsProps {
@@ -30,7 +30,7 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
     group.lines.flatMap((line, rowIndex) =>
       line.map(measurement => {
         // Calculate distance-based offset: distance from chosen point to its projection on line + row offset
-        const baseOffset = distance(measurement.startPoint, measurement.startOnLine)
+        const baseOffset = vec2.distance(measurement.startPoint, measurement.startOnLine)
         const rowOffset = 60 * (rowIndex + 1.2)
         const totalOffset = baseOffset + rowOffset
 

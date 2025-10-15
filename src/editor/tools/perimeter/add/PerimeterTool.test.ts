@@ -1,8 +1,9 @@
+import { vec2 } from 'gl-matrix'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as useViewportStore from '@/editor/hooks/useViewportStore'
 import * as lengthInputService from '@/editor/services/length-input'
-import { createLength, createVec2 } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { PerimeterTool } from './PerimeterTool'
 
@@ -60,7 +61,7 @@ describe('PerimeterTool', () => {
     })
 
     it('should activate length input for next segment after placing second point', () => {
-      tool.state.points = [createVec2(0, 0), createVec2(100, 0)]
+      tool.state.points = [vec2.fromValues(0, 0), vec2.fromValues(100, 0)]
 
       // Call the private method directly for testing
       ;(tool as any).activateLengthInputForNextSegment()
@@ -81,7 +82,7 @@ describe('PerimeterTool', () => {
 
     it('should set length override when length is committed', () => {
       // Set up tool with two points
-      tool.state.points = [createVec2(0, 0), createVec2(100, 0)]
+      tool.state.points = [vec2.fromValues(0, 0), vec2.fromValues(100, 0)]
 
       // Call activateLengthInputForNextSegment to set up the callback
       ;(tool as any).activateLengthInputForNextSegment()
@@ -89,17 +90,17 @@ describe('PerimeterTool', () => {
 
       // Simulate committing a length of 200mm
       if (commitCallback) {
-        commitCallback(createLength(200))
+        commitCallback(200)
       }
 
       // Check that the length override was set
-      expect(tool.state.lengthOverride).toEqual(createLength(200))
+      expect(tool.state.lengthOverride).toEqual(200)
     })
 
     it('should clear length override when escape is pressed', () => {
       // Set up tool with length override
-      tool.state.points = [createVec2(0, 0), createVec2(100, 0)]
-      tool.state.lengthOverride = createLength(100)
+      tool.state.points = [vec2.fromValues(0, 0), vec2.fromValues(100, 0)]
+      tool.state.lengthOverride = 100
 
       // Create mock keyboard event
       const mockKeyboardEvent = new KeyboardEvent('keydown', { key: 'Escape' })
@@ -129,7 +130,7 @@ describe('PerimeterTool', () => {
     })
 
     it('should calculate position based on last placed point', () => {
-      tool.state.points = [createVec2(0, 0), createVec2(100, 50)]
+      tool.state.points = [vec2.fromValues(0, 0), vec2.fromValues(100, 50)]
 
       const position = (tool as any).getLengthInputPosition()
 
@@ -152,7 +153,7 @@ describe('PerimeterTool', () => {
     })
 
     it('should set and clear length override', () => {
-      const testLength = createLength(1000)
+      const testLength = 1000
       tool.setLengthOverride(testLength)
       expect(tool.state.lengthOverride).toBe(testLength)
 

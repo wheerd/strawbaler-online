@@ -1,3 +1,4 @@
+import { vec2, vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createOpeningId, createPerimeterConstructionMethodId, createPerimeterId } from '@/building/model/ids'
@@ -14,16 +15,16 @@ import { aggregateResults, yieldElement, yieldError, yieldMeasurement, yieldWarn
 import { TAG_POST_SPACING } from '@/construction/tags'
 import { type WallStoreyContext } from '@/construction/walls/segmentation'
 import { segmentedWallConstruction } from '@/construction/walls/segmentation'
-import type { Length, Vec3 } from '@/shared/geometry'
-import { createLength, createVec2 } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { type InfillConstructionConfig, constructInfillWall, infillWallArea } from './infill'
 
-function createMockStoreyContext(storeyHeight: Length = createLength(2500)): WallStoreyContext {
+function createMockStoreyContext(storeyHeight: Length = 2500): WallStoreyContext {
   return {
     storeyHeight,
-    floorTopOffset: 0 as Length,
-    ceilingBottomOffset: 0 as Length
+    floorTopOffset: 0,
+    ceilingBottomOffset: 0
   }
 }
 
@@ -71,7 +72,7 @@ const mockWoodMaterial = 'wood-material' as MaterialId
 const mockStrawMaterial = 'straw-material' as MaterialId
 const mockHeaderMaterial = 'header-material' as MaterialId
 
-function createMockElement(id: string, position: Vec3, size: Vec3, material: MaterialId) {
+function createMockElement(id: string, position: vec3, size: vec3, material: MaterialId) {
   return {
     id: id as any,
     material,
@@ -106,16 +107,16 @@ function createMockGenerator(elements: any[] = [], measurements: any[] = [], err
 function createMockPostConfig(): PostConfig {
   return {
     type: 'full',
-    width: createLength(60),
+    width: 60,
     material: mockWoodMaterial
   }
 }
 
 function createMockStrawConfig(): StrawConfig {
   return {
-    baleLength: createLength(800),
-    baleHeight: createLength(500),
-    baleWidth: createLength(360),
+    baleLength: 800,
+    baleHeight: 500,
+    baleWidth: 360,
     material: mockStrawMaterial
   }
 }
@@ -123,14 +124,14 @@ function createMockStrawConfig(): StrawConfig {
 function createMockInfillConfig(): InfillConstructionConfig {
   return {
     type: 'infill',
-    maxPostSpacing: createLength(800),
-    minStrawSpace: createLength(70),
+    maxPostSpacing: 800,
+    minStrawSpace: 70,
     posts: createMockPostConfig(),
     openings: {
-      padding: createLength(15),
-      headerThickness: createLength(60),
+      padding: 15,
+      headerThickness: 60,
       headerMaterial: mockHeaderMaterial,
-      sillThickness: createLength(60),
+      sillThickness: 60,
       sillMaterial: mockHeaderMaterial
     },
     straw: createMockStrawConfig()
@@ -139,8 +140,8 @@ function createMockInfillConfig(): InfillConstructionConfig {
 
 function createMockWall(
   id = 'test-wall',
-  wallLength: Length = createLength(3000),
-  thickness: Length = createLength(300),
+  wallLength: Length = 3000,
+  thickness: Length = 300,
   openings: Opening[] = []
 ): PerimeterWall {
   return {
@@ -152,15 +153,15 @@ function createMockWall(
     outsideLength: wallLength,
     openings,
     insideLine: {
-      start: createVec2(0, 0),
-      end: createVec2(wallLength, 0)
+      start: vec2.fromValues(0, 0),
+      end: vec2.fromValues(wallLength, 0)
     },
     outsideLine: {
-      start: createVec2(0, thickness),
-      end: createVec2(wallLength, thickness)
+      start: vec2.fromValues(0, thickness),
+      end: vec2.fromValues(wallLength, thickness)
     },
-    direction: createVec2(1, 0),
-    outsideDirection: createVec2(0, 1)
+    direction: vec2.fromValues(1, 0),
+    outsideDirection: vec2.fromValues(0, 1)
   }
 }
 
@@ -175,8 +176,8 @@ function createMockPerimeter(walls: PerimeterWall[]): Perimeter {
 
 function createMockLayers(): WallLayersConfig {
   return {
-    insideThickness: createLength(30),
-    outsideThickness: createLength(50)
+    insideThickness: 30,
+    outsideThickness: 50
   }
 }
 
@@ -196,8 +197,8 @@ describe('infillWallArea', () => {
 
   describe('basic functionality', () => {
     it('should create straw infill when no stands are specified', () => {
-      const position: Vec3 = [100, 0, 0]
-      const size: Vec3 = [800, 300, 2500]
+      const position: vec3 = [100, 0, 0]
+      const size: vec3 = [800, 300, 2500]
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config)]
@@ -211,8 +212,8 @@ describe('infillWallArea', () => {
     })
 
     it('should create start post when startsWithStand is true', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1000, 300, 2500]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1000, 300, 2500]
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config, true)]
@@ -225,8 +226,8 @@ describe('infillWallArea', () => {
     })
 
     it('should create end post when endsWithStand is true', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1000, 300, 2500]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1000, 300, 2500]
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config, false, true)]
@@ -239,8 +240,8 @@ describe('infillWallArea', () => {
     })
 
     it('should create both start and end posts when both stands are true', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1600, 300, 2500]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1600, 300, 2500]
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config, true, true)]
@@ -253,8 +254,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate measurements for post spacing', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1000, 300, 2500]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1000, 300, 2500]
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config)]
@@ -268,8 +269,8 @@ describe('infillWallArea', () => {
 
   describe('error conditions', () => {
     it('should generate error when not enough space for a post with start stand', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [30, 300, 2500] // Less than post width
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [30, 300, 2500] // Less than post width
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config, true)]
@@ -280,8 +281,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate error when not enough space for a post with end stand', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [30, 300, 2500] // Less than post width
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [30, 300, 2500] // Less than post width
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config, false, true)]
@@ -292,8 +293,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate error when space for more than one post but not enough for two', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [100, 300, 2500] // More than one post width but less than 2
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [100, 300, 2500] // More than one post width but less than 2
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config, true, true)]
@@ -304,8 +305,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate warning when not enough vertical space for straw', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [800, 300, 50] // Less than minStrawSpace
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [800, 300, 50] // Less than minStrawSpace
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config)]
@@ -316,8 +317,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate warning when not enough space for infilling straw', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [50, 300, 2500] // Less than minStrawSpace for bale width
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [50, 300, 2500] // Less than minStrawSpace for bale width
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config)]
@@ -330,8 +331,8 @@ describe('infillWallArea', () => {
 
   describe('edge cases', () => {
     it('should handle exactly post width with start stand', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [60, 300, 2500] // Exactly post width
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [60, 300, 2500] // Exactly post width
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config, true)]
@@ -343,8 +344,8 @@ describe('infillWallArea', () => {
     })
 
     it('should handle exactly post width with end stand', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [60, 300, 2500] // Exactly post width
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [60, 300, 2500] // Exactly post width
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config, false, true)]
@@ -356,8 +357,8 @@ describe('infillWallArea', () => {
     })
 
     it('should handle zero dimensions gracefully', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [0, 0, 0]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [0, 0, 0]
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config)]
@@ -368,8 +369,8 @@ describe('infillWallArea', () => {
     })
 
     it('should handle startAtEnd parameter correctly', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1000, 300, 2500]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1000, 300, 2500]
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config, false, false, true)]
@@ -384,8 +385,8 @@ describe('infillWallArea', () => {
     it('should work with double post configuration', () => {
       const doublePostConfig: PostConfig = {
         type: 'double',
-        width: createLength(60),
-        thickness: createLength(120),
+        width: 60,
+        thickness: 120,
         material: mockWoodMaterial,
         infillMaterial: mockStrawMaterial
       }
@@ -405,7 +406,7 @@ describe('infillWallArea', () => {
     it('should work with different maxPostSpacing', () => {
       const config: InfillConstructionConfig = {
         ...createMockInfillConfig(),
-        maxPostSpacing: createLength(600)
+        maxPostSpacing: 600
       }
 
       const results = [...infillWallArea([0, 0, 0], [1000, 300, 2500], config)]
@@ -418,11 +419,11 @@ describe('infillWallArea', () => {
     it('should work with different minStrawSpace', () => {
       const config: InfillConstructionConfig = {
         ...createMockInfillConfig(),
-        minStrawSpace: createLength(100)
+        minStrawSpace: 100
       }
 
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [800, 300, 90] // Between old and new minStrawSpace
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [800, 300, 90] // Between old and new minStrawSpace
 
       const results = [...infillWallArea(position, size, config)]
       const { warnings } = aggregateResults(results)
@@ -434,8 +435,8 @@ describe('infillWallArea', () => {
 
   describe('recursive infill behavior', () => {
     it('should create multiple posts and straw sections for large areas', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [2000, 300, 2500] // Large enough for multiple sections
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [2000, 300, 2500] // Large enough for multiple sections
       const config = createMockInfillConfig()
 
       // Mock multiple calls to constructPost and constructStraw
@@ -455,8 +456,8 @@ describe('infillWallArea', () => {
     })
 
     it('should alternate straw placement based on atStart parameter', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1500, 300, 2500]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1500, 300, 2500]
       const config = createMockInfillConfig()
 
       const results = [...infillWallArea(position, size, config)]
@@ -480,7 +481,7 @@ describe('constructInfillWall', () => {
 
         // Simulate calling opening construction if there are openings
         if (wall.openings.length > 0) {
-          yield* openingConstruction([1000, 30, 60], [800, 220, 2380], createLength(-60), wall.openings)
+          yield* openingConstruction([1000, 30, 60], [800, 220, 2380], -60, wall.openings)
         }
       }
     )
@@ -501,7 +502,7 @@ describe('constructInfillWall', () => {
     it('should construct a complete infill wall with no openings', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
-      const floorHeight = createLength(2500)
+      const floorHeight = 2500
       const config = createMockInfillConfig()
       const layers = createMockLayers()
 
@@ -525,14 +526,14 @@ describe('constructInfillWall', () => {
       const opening = {
         id: createOpeningId(),
         type: 'window' as const,
-        offsetFromStart: createLength(1000),
-        width: createLength(800),
-        height: createLength(1200),
-        sillHeight: createLength(900)
+        offsetFromStart: 1000,
+        width: 800,
+        height: 1200,
+        sillHeight: 900
       }
-      const wall = createMockWall('test-wall', createLength(3000), createLength(300), [opening])
+      const wall = createMockWall('test-wall', 3000, 300, [opening])
       const perimeter = createMockPerimeter([wall])
-      const floorHeight = createLength(2500)
+      const floorHeight = 2500
       const config = createMockInfillConfig()
       const layers = createMockLayers()
 
@@ -547,7 +548,7 @@ describe('constructInfillWall', () => {
     it('should propagate errors and warnings from infill construction', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
-      const floorHeight = createLength(2500)
+      const floorHeight = 2500
       const config = createMockInfillConfig()
       const layers = createMockLayers()
 
@@ -571,13 +572,13 @@ describe('constructInfillWall', () => {
     it('should include measurements in the result', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
-      const floorHeight = createLength(2500)
+      const floorHeight = 2500
       const config = createMockInfillConfig()
       const layers = createMockLayers()
 
       const mockMeasurement = {
-        startPoint: [0, 0, 0] as Vec3,
-        endPoint: [800, 0, 0] as Vec3,
+        startPoint: [0, 0, 0] as vec3,
+        endPoint: [800, 0, 0] as vec3,
         label: '800mm',
         tags: [TAG_POST_SPACING],
         groupKey: 'post-spacing',
@@ -596,7 +597,7 @@ describe('constructInfillWall', () => {
     it('should calculate correct bounds from all elements', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
-      const floorHeight = createLength(2500)
+      const floorHeight = 2500
       const config = createMockInfillConfig()
       const layers = createMockLayers()
 
@@ -616,7 +617,7 @@ describe('constructInfillWall', () => {
     it('should pass correct parameters to segmentedWallConstruction', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
-      const floorHeight = createLength(2500)
+      const floorHeight = 2500
       const config = createMockInfillConfig()
       const layers = createMockLayers()
 
@@ -635,7 +636,7 @@ describe('constructInfillWall', () => {
     it('should pass infillWallArea function as wall construction callback', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
-      const floorHeight = createLength(2500)
+      const floorHeight = 2500
       const config = createMockInfillConfig()
       const layers = createMockLayers()
 
@@ -652,7 +653,7 @@ describe('constructInfillWall', () => {
     it('should pass constructOpeningFrame function as opening construction callback', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
-      const floorHeight = createLength(2500)
+      const floorHeight = 2500
       const config = createMockInfillConfig()
       const layers = createMockLayers()
 
@@ -665,13 +666,13 @@ describe('constructInfillWall', () => {
       const mockOpening = {
         id: createOpeningId(),
         type: 'window' as const,
-        offsetFromStart: createLength(0),
-        width: createLength(800),
-        height: createLength(1200),
-        sillHeight: createLength(900)
+        offsetFromStart: 0,
+        width: 800,
+        height: 1200,
+        sillHeight: 900
       }
 
-      const result = [...openingConstructionFn([1000, 30, 60], [800, 220, 2380], createLength(-60), [mockOpening])]
+      const result = [...openingConstructionFn([1000, 30, 60], [800, 220, 2380], -60, [mockOpening])]
       expect(result.length).toBeGreaterThan(0)
       expect(mockConstructOpeningFrame).toHaveBeenCalled()
     })

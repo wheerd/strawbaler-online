@@ -7,7 +7,7 @@ import { PerimeterMethodSelectWithEdit } from '@/construction/config/components/
 import { RingBeamMethodSelectWithEdit } from '@/construction/config/components/RingBeamMethodSelectWithEdit'
 import { useConfigActions } from '@/construction/config/store'
 import { LengthField } from '@/shared/components/LengthField'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import type { RectangularPresetConfig } from './types'
@@ -108,9 +108,9 @@ function RectangularPresetDialogContent({
 
   // Form state with defaults from config store
   const [config, setConfig] = useState<RectangularPresetConfig>(() => ({
-    width: createLength(10000), // 10m default inside width
-    length: createLength(7000), // 7m default inside length
-    thickness: createLength(440), // 44cm default
+    width: 10000, // 10m default inside width
+    length: 7000, // 7m default inside length
+    thickness: 440, // 44cm default
     constructionMethodId: configStore.getDefaultPerimeterMethodId(),
     baseRingBeamMethodId: configStore.getDefaultBaseRingBeamMethodId(),
     topRingBeamMethodId: configStore.getDefaultTopRingBeamMethodId(),
@@ -169,9 +169,9 @@ function RectangularPresetDialogContent({
                 <LengthField
                   value={config.width}
                   onChange={value => setConfig(prev => ({ ...prev, width: value }))}
-                  min={createLength(2000)}
-                  max={createLength(20000)}
-                  step={createLength(100)}
+                  min={2000}
+                  max={20000}
+                  step={100}
                   unit="m"
                   precision={3}
                   size="1"
@@ -187,9 +187,9 @@ function RectangularPresetDialogContent({
                 <LengthField
                   value={config.length}
                   onChange={value => setConfig(prev => ({ ...prev, length: value }))}
-                  min={createLength(2000)}
-                  max={createLength(20000)}
-                  step={createLength(100)}
+                  min={2000}
+                  max={20000}
+                  step={100}
                   unit="m"
                   precision={3}
                   size="1"
@@ -205,9 +205,9 @@ function RectangularPresetDialogContent({
                 <LengthField
                   value={config.thickness}
                   onChange={value => setConfig(prev => ({ ...prev, thickness: value }))}
-                  min={createLength(50)}
-                  max={createLength(1500)}
-                  step={createLength(10)}
+                  min={50}
+                  max={1500}
+                  step={10}
                   unit="cm"
                   size="1"
                   style={{ width: '100%' }}

@@ -23,7 +23,7 @@ import type {
 } from '@/construction/config/types'
 import { clt180, concrete, straw, strawbale, wood120x60, wood360x60 } from '@/construction/materials/material'
 import { type RingBeamConfig, validateRingBeamConfig } from '@/construction/ringBeams/ringBeams'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 export interface ConfigState {
   ringBeamConstructionMethods: Record<RingBeamConstructionMethodId, RingBeamConstructionMethod>
@@ -144,9 +144,9 @@ const createDefaultRingBeamMethod = (): RingBeamConstructionMethod => ({
   config: {
     type: 'full',
     material: wood360x60.id,
-    height: createLength(60),
-    width: createLength(360),
-    offsetFromEdge: createLength(30)
+    height: 60,
+    width: 360,
+    offsetFromEdge: 30
   }
 })
 
@@ -156,22 +156,22 @@ const createDefaultSlabConfigs = (): MonolithicSlabConstructionConfig[] => [
     id: DEFAULT_SLAB_CONFIG_ID,
     name: 'CLT 18cm (6m)',
     type: 'monolithic',
-    thickness: createLength(180),
+    thickness: 180,
     material: clt180.id,
     layers: {
-      topThickness: createLength(60),
-      bottomThickness: createLength(0)
+      topThickness: 60,
+      bottomThickness: 0
     }
   },
   {
     id: 'scm_concrete_default' as SlabConstructionConfigId,
     name: 'Concrete 20cm (6m)',
     type: 'monolithic',
-    thickness: createLength(200),
+    thickness: 200,
     material: concrete.id,
     layers: {
-      topThickness: createLength(60),
-      bottomThickness: createLength(0)
+      topThickness: 60,
+      bottomThickness: 0
     }
   }
 ]
@@ -183,32 +183,32 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
     name: 'Standard Infill',
     config: {
       type: 'infill',
-      maxPostSpacing: createLength(800),
-      minStrawSpace: createLength(70),
+      maxPostSpacing: 800,
+      minStrawSpace: 70,
       posts: {
         type: 'double',
-        width: createLength(60),
-        thickness: createLength(120),
+        width: 60,
+        thickness: 120,
         infillMaterial: straw.id,
         material: wood120x60.id
       },
       openings: {
-        padding: createLength(15),
-        headerThickness: createLength(60),
+        padding: 15,
+        headerThickness: 60,
         headerMaterial: wood360x60.id,
-        sillThickness: createLength(60),
+        sillThickness: 60,
         sillMaterial: wood360x60.id
       },
       straw: {
-        baleLength: createLength(800),
-        baleHeight: createLength(500),
-        baleWidth: createLength(360),
+        baleLength: 800,
+        baleHeight: 500,
+        baleWidth: 360,
         material: strawbale.id
       }
     },
     layers: {
-      insideThickness: createLength(30),
-      outsideThickness: createLength(50)
+      insideThickness: 30,
+      outsideThickness: 50
     }
   },
   {
@@ -217,52 +217,52 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
     config: {
       type: 'strawhenge',
       module: {
-        width: createLength(920),
+        width: 920,
         type: 'single',
-        frameThickness: createLength(60),
+        frameThickness: 60,
         frameMaterial: wood360x60.id,
         strawMaterial: strawbale.id
       },
       infill: {
         type: 'infill',
-        maxPostSpacing: createLength(800),
-        minStrawSpace: createLength(70),
+        maxPostSpacing: 800,
+        minStrawSpace: 70,
         posts: {
           type: 'full',
-          width: createLength(60),
+          width: 60,
           material: wood360x60.id
         },
         openings: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
+          padding: 15,
+          headerThickness: 60,
           headerMaterial: wood360x60.id,
-          sillThickness: createLength(60),
+          sillThickness: 60,
           sillMaterial: wood360x60.id
         },
         straw: {
-          baleLength: createLength(800),
-          baleHeight: createLength(500),
-          baleWidth: createLength(360),
+          baleLength: 800,
+          baleHeight: 500,
+          baleWidth: 360,
           material: strawbale.id
         }
       },
       openings: {
-        padding: createLength(15),
-        headerThickness: createLength(60),
+        padding: 15,
+        headerThickness: 60,
         headerMaterial: wood360x60.id,
-        sillThickness: createLength(60),
+        sillThickness: 60,
         sillMaterial: wood360x60.id
       },
       straw: {
-        baleLength: createLength(800),
-        baleHeight: createLength(500),
-        baleWidth: createLength(360),
+        baleLength: 800,
+        baleHeight: 500,
+        baleWidth: 360,
         material: strawbale.id
       }
     },
     layers: {
-      insideThickness: createLength(30),
-      outsideThickness: createLength(50)
+      insideThickness: 30,
+      outsideThickness: 50
     }
   },
   {
@@ -271,52 +271,52 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
     config: {
       type: 'modules',
       module: {
-        width: createLength(920),
+        width: 920,
         type: 'single',
-        frameThickness: createLength(60),
+        frameThickness: 60,
         frameMaterial: wood360x60.id,
         strawMaterial: strawbale.id
       },
       infill: {
         type: 'infill',
-        maxPostSpacing: createLength(800),
-        minStrawSpace: createLength(70),
+        maxPostSpacing: 800,
+        minStrawSpace: 70,
         posts: {
           type: 'full',
-          width: createLength(60),
+          width: 60,
           material: wood360x60.id
         },
         openings: {
-          padding: createLength(15),
-          headerThickness: createLength(60),
+          padding: 15,
+          headerThickness: 60,
           headerMaterial: wood360x60.id,
-          sillThickness: createLength(60),
+          sillThickness: 60,
           sillMaterial: wood360x60.id
         },
         straw: {
-          baleLength: createLength(800),
-          baleHeight: createLength(500),
-          baleWidth: createLength(360),
+          baleLength: 800,
+          baleHeight: 500,
+          baleWidth: 360,
           material: strawbale.id
         }
       },
       openings: {
-        padding: createLength(15),
-        headerThickness: createLength(60),
+        padding: 15,
+        headerThickness: 60,
         headerMaterial: wood360x60.id,
-        sillThickness: createLength(60),
+        sillThickness: 60,
         sillMaterial: wood360x60.id
       },
       straw: {
-        baleLength: createLength(800),
-        baleHeight: createLength(500),
-        baleWidth: createLength(360),
+        baleLength: 800,
+        baleHeight: 500,
+        baleWidth: 360,
         material: strawbale.id
       }
     },
     layers: {
-      insideThickness: createLength(30),
-      outsideThickness: createLength(50)
+      insideThickness: 30,
+      outsideThickness: 50
     }
   },
   {
@@ -327,22 +327,22 @@ const createDefaultPerimeterMethods = (): PerimeterConstructionMethod[] => [
       material: concrete.id,
       thickness: 200,
       openings: {
-        padding: createLength(15),
-        headerThickness: createLength(60),
+        padding: 15,
+        headerThickness: 60,
         headerMaterial: wood360x60.id,
-        sillThickness: createLength(60),
+        sillThickness: 60,
         sillMaterial: wood360x60.id
       },
       straw: {
-        baleLength: createLength(800),
-        baleHeight: createLength(500),
-        baleWidth: createLength(360),
+        baleLength: 800,
+        baleHeight: 500,
+        baleWidth: 360,
         material: strawbale.id
       }
     },
     layers: {
-      insideThickness: createLength(30),
-      outsideThickness: createLength(30)
+      insideThickness: 30,
+      outsideThickness: 30
     }
   }
 ]
@@ -391,7 +391,7 @@ const useConfigStore = create<ConfigStore>()(
 
             removeRingBeamConstructionMethod: (id: RingBeamConstructionMethodId) => {
               set(state => {
-                const { [id]: removed, ...remainingMethods } = state.ringBeamConstructionMethods
+                const { [id]: _removed, ...remainingMethods } = state.ringBeamConstructionMethods
                 return {
                   ...state,
                   ringBeamConstructionMethods: remainingMethods,
@@ -529,7 +529,7 @@ const useConfigStore = create<ConfigStore>()(
 
             removePerimeterConstructionMethod: (id: PerimeterConstructionMethodId) => {
               set(state => {
-                const { [id]: removed, ...remainingMethods } = state.perimeterConstructionMethods
+                const { [id]: _removed, ...remainingMethods } = state.perimeterConstructionMethods
                 return {
                   ...state,
                   perimeterConstructionMethods: remainingMethods,
@@ -640,7 +640,7 @@ const useConfigStore = create<ConfigStore>()(
                   throw new Error('Cannot remove the last slab construction config')
                 }
 
-                const { [id]: removed, ...remainingConfigs } = slabConstructionConfigs
+                const { [id]: _removed, ...remainingConfigs } = slabConstructionConfigs
 
                 // If removing the default, set first remaining config as default
                 let newDefaultId = state.defaultSlabConfigId

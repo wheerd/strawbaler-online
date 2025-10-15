@@ -1,8 +1,9 @@
 import type { IconProps } from '@radix-ui/react-icons/dist/types'
+import { vec2 } from 'gl-matrix'
 import type Konva from 'konva'
 import React from 'react'
 
-import type { Vec2 } from '@/shared/geometry'
+import type {} from '@/shared/geometry'
 
 export type ToolId =
   | 'basic.select'
@@ -76,6 +77,6 @@ export interface CanvasEvent {
   originalEvent: PointerEvent | WheelEvent
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   konvaEvent: Konva.KonvaEventObject<any>
-  stageCoordinates: Vec2 // Transformed coordinates (accounting for pan/zoom)
+  stageCoordinates: vec2 // Transformed coordinates (accounting for pan/zoom)
   pointerCoordinates?: { x: number; y: number } // Original pointer coordinates for hit testing
 }

@@ -1,9 +1,10 @@
+import { vec2 } from 'gl-matrix'
 import type React from 'react'
 
 import type { SelectableId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import type { SnappingService } from '@/editor/services/snapping/SnappingService'
-import type { Vec2 } from '@/shared/geometry'
+import type {} from '@/shared/geometry'
 
 export interface MovementContext<T> {
   entityId: SelectableId
@@ -14,14 +15,14 @@ export interface MovementContext<T> {
 }
 
 export interface PointerMovementState {
-  startPosition: Vec2 // Initial pointer position
-  currentPosition: Vec2 // Current pointer position
-  delta: Vec2 // pointerCurrentPosition - pointerStartPosition
+  startPosition: vec2 // Initial pointer position
+  currentPosition: vec2 // Current pointer position
+  delta: vec2 // pointerCurrentPosition - pointerStartPosition
 }
 
 // Base interface that all movement states must implement
 export interface MovementState {
-  movementDelta: Vec2 // The movement delta that represents the actual movement
+  movementDelta: vec2 // The movement delta that represents the actual movement
 }
 
 export interface MovementPreviewComponentProps<TEntity, TState> {
@@ -51,5 +52,5 @@ export interface MovementBehavior<TEntity, TState extends MovementState> {
 
   // Apply relative movement based on delta difference from last movement
   // Used for length input to modify last movement with new distance
-  applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<TEntity>): boolean
+  applyRelativeMovement(deltaDifference: vec2, context: MovementContext<TEntity>): boolean
 }

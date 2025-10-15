@@ -20,11 +20,11 @@ import type { LengthFieldProps } from './types'
  * @example
  * ```tsx
  * <LengthField
- *   value={1250 as Length}
+ *   value={1250 }
  *   onChange={setLength}
  *   unit="cm"
- *   min={0 as Length}
- *   max={5000 as Length}
+ *   min={0 }
+ *   max={5000 }
  * />
  * ```
  */

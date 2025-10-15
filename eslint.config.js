@@ -1,5 +1,6 @@
 import eslint from '@eslint/js'
 import eslintConfigPrettier from 'eslint-config-prettier'
+import unusedImports from 'eslint-plugin-unused-imports'
 import { defineConfig } from 'eslint/config'
 import neostandard from 'neostandard'
 import tseslint from 'typescript-eslint'
@@ -13,6 +14,24 @@ export default defineConfig(
     ts: true
   }),
   eslintConfigPrettier, // This disables all formatting-related ESLint rules
+  {
+    plugins: {
+      'unused-imports': unusedImports
+    },
+    rules: {
+      'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_'
+        }
+      ]
+    }
+  },
   {
     rules: {
       'no-restricted-imports': [

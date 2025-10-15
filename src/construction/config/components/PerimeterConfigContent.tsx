@@ -28,7 +28,6 @@ import { getPerimeterConfigUsage } from '@/construction/config/usage'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { LengthField } from '@/shared/components/LengthField'
-import type { Length } from '@/shared/geometry'
 
 import { getPerimeterConfigTypeIcon } from './Icons'
 import { PerimeterMethodSelect } from './PerimeterMethodSelect'
@@ -106,7 +105,7 @@ function PostsConfigSection({ posts, onUpdate }: PostsConfigSectionProps): React
               onUpdate({
                 type: 'double',
                 width: posts.width,
-                thickness: 'thickness' in posts ? posts.thickness : (120 as Length),
+                thickness: 'thickness' in posts ? posts.thickness : 120,
                 infillMaterial: ('infillMaterial' in posts ? posts.infillMaterial : '') as MaterialId,
                 material: posts.material
               })
@@ -212,7 +211,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
                 frameThickness: module.frameThickness,
                 frameMaterial: module.frameMaterial,
                 strawMaterial: module.strawMaterial,
-                frameWidth: 'frameWidth' in module ? module.frameWidth : (120 as Length)
+                frameWidth: 'frameWidth' in module ? module.frameWidth : 120
               })
             }
           }}
@@ -368,7 +367,7 @@ function NonStrawbaleConfigForm({ config, onUpdate }: NonStrawbaleConfigFormProp
             </Text>
           </Label.Root>
           <LengthField
-            value={config.thickness as Length}
+            value={config.thickness}
             onChange={value => onUpdate({ ...config, thickness: value })}
             unit="mm"
             size="1"
@@ -727,16 +726,16 @@ export function PerimeterConfigContent({ initialSelectionId }: PerimeterConfigCo
 
       let config: PerimeterConstructionConfig
       const baseStrawConfig = {
-        baleLength: 800 as Length,
-        baleHeight: 500 as Length,
-        baleWidth: 360 as Length,
+        baleLength: 800,
+        baleHeight: 500,
+        baleWidth: 360,
         material: defaultMaterial
       }
       const baseOpeningsConfig = {
-        padding: 15 as Length,
-        headerThickness: 60 as Length,
+        padding: 15,
+        headerThickness: 60,
         headerMaterial: defaultMaterial,
-        sillThickness: 60 as Length,
+        sillThickness: 60,
         sillMaterial: defaultMaterial
       }
 
@@ -744,12 +743,12 @@ export function PerimeterConfigContent({ initialSelectionId }: PerimeterConfigCo
         case 'infill':
           config = {
             type: 'infill',
-            maxPostSpacing: 800 as Length,
-            minStrawSpace: 70 as Length,
+            maxPostSpacing: 800,
+            minStrawSpace: 70,
             posts: {
               type: 'double',
-              width: 60 as Length,
-              thickness: 120 as Length,
+              width: 60,
+              thickness: 120,
               infillMaterial: defaultMaterial,
               material: defaultMaterial
             },
@@ -762,18 +761,18 @@ export function PerimeterConfigContent({ initialSelectionId }: PerimeterConfigCo
             type: 'strawhenge',
             module: {
               type: 'single',
-              width: 920 as Length,
-              frameThickness: 60 as Length,
+              width: 920,
+              frameThickness: 60,
               frameMaterial: defaultMaterial,
               strawMaterial: defaultMaterial
             },
             infill: {
               type: 'infill',
-              maxPostSpacing: 800 as Length,
-              minStrawSpace: 70 as Length,
+              maxPostSpacing: 800,
+              minStrawSpace: 70,
               posts: {
                 type: 'full',
-                width: 60 as Length,
+                width: 60,
                 material: defaultMaterial
               },
               openings: baseOpeningsConfig,
@@ -788,18 +787,18 @@ export function PerimeterConfigContent({ initialSelectionId }: PerimeterConfigCo
             type: 'modules',
             module: {
               type: 'single',
-              width: 920 as Length,
-              frameThickness: 60 as Length,
+              width: 920,
+              frameThickness: 60,
               frameMaterial: defaultMaterial,
               strawMaterial: defaultMaterial
             },
             infill: {
               type: 'infill',
-              maxPostSpacing: 800 as Length,
-              minStrawSpace: 70 as Length,
+              maxPostSpacing: 800,
+              minStrawSpace: 70,
               posts: {
                 type: 'full',
-                width: 60 as Length,
+                width: 60,
                 material: defaultMaterial
               },
               openings: baseOpeningsConfig,
@@ -821,8 +820,8 @@ export function PerimeterConfigContent({ initialSelectionId }: PerimeterConfigCo
       }
 
       const layers = {
-        insideThickness: 30 as Length,
-        outsideThickness: 50 as Length
+        insideThickness: 30,
+        outsideThickness: 50
       }
 
       const newMethod = addPerimeterConstructionMethod(`New ${type} method`, config, layers)

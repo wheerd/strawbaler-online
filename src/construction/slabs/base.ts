@@ -1,7 +1,7 @@
 import type { SlabBaseConstructionConfig } from '@/construction/config/types'
 import type { ConstructionModel } from '@/construction/model'
 import type { SlabConstructionMethod } from '@/construction/slabs/types'
-import { type Length, type PolygonWithHoles2D, createLength } from '@/shared/geometry'
+import { type Length, type PolygonWithHoles2D } from '@/shared/geometry'
 
 export abstract class BaseSlabConstructionMethod<TConfig extends SlabBaseConstructionConfig>
   implements SlabConstructionMethod<TConfig>
@@ -12,11 +12,9 @@ export abstract class BaseSlabConstructionMethod<TConfig extends SlabBaseConstru
   abstract getConstructionThickness: (config: TConfig) => Length
 
   getTotalThickness = (config: TConfig) =>
-    createLength(
-      config.layers.topThickness +
-        this.getTopOffset(config) +
-        this.getConstructionThickness(config) +
-        this.getBottomOffset(config) +
-        config.layers.bottomThickness
-    )
+    config.layers.topThickness +
+    this.getTopOffset(config) +
+    this.getConstructionThickness(config) +
+    this.getBottomOffset(config) +
+    config.layers.bottomThickness
 }

@@ -1,6 +1,5 @@
 import type { Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { createLength } from '@/shared/geometry'
 
 export interface WindowSpec {
   wallIndex: number
@@ -39,10 +38,10 @@ export function addWindows(perimeter: Perimeter, windowSpecs: WindowSpec[]): voi
         try {
           modelStore.addPerimeterWallOpening(perimeter.id, wall.id, {
             type: 'window',
-            offsetFromStart: createLength(offset),
-            width: createLength(windowWidth),
-            height: createLength(windowSpec.height),
-            sillHeight: createLength(windowSpec.sillHeight || (windowSpec.height < 900 ? 1000 : 900))
+            offsetFromStart: offset,
+            width: windowWidth,
+            height: windowSpec.height,
+            sillHeight: windowSpec.sillHeight || (windowSpec.height < 900 ? 1000 : 900)
           })
         } catch (error) {
           console.warn(`Window ${index} (${windowSpec.type}) on wall ${windowSpec.wallIndex} failed:`, error)
@@ -72,9 +71,9 @@ export function addDoors(perimeter: Perimeter, doorSpecs: DoorSpec[]): void {
         try {
           modelStore.addPerimeterWallOpening(perimeter.id, wall.id, {
             type: 'door',
-            offsetFromStart: createLength(offset),
-            width: createLength(doorWidth),
-            height: createLength(doorSpec.height)
+            offsetFromStart: offset,
+            width: doorWidth,
+            height: doorSpec.height
           })
         } catch (error) {
           console.warn(`Door ${index} (${doorSpec.type}) on wall ${doorSpec.wallIndex} failed:`, error)

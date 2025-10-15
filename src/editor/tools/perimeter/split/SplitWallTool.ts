@@ -1,3 +1,5 @@
+import { vec2 } from 'gl-matrix'
+
 import type { Perimeter, PerimeterWall } from '@/building/model'
 import type { PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import { isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
@@ -7,8 +9,8 @@ import { getCurrentSelection, getSelectionActions, getSelectionPath } from '@/ed
 import { getToolActions } from '@/editor/tools/system'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
-import type { Length, Vec2 } from '@/shared/geometry'
-import { distanceToLineSegment, dot, subtract } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
+import { distanceToLineSegment } from '@/shared/geometry'
 
 import { SplitWallToolInspector } from './SplitWallToolInspector'
 import { SplitWallToolOverlay } from './SplitWallToolOverlay'
@@ -60,7 +62,7 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
     }
 
     if (this.state.wall) {
-      const middlePosition = (this.state.wall.wallLength / 2) as Length
+      const middlePosition = this.state.wall.wallLength / 2
       this.updateTargetPosition(middlePosition)
     }
 
@@ -124,7 +126,7 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
 
     const currentPosition = this.state.targetPosition ?? 0
     const newPosition = currentPosition + delta
-    const clampedPosition = Math.max(0, Math.min(newPosition, this.state.wall.wallLength)) as Length
+    const clampedPosition = Math.max(0, Math.min(newPosition, this.state.wall.wallLength))
 
     this.updateTargetPosition(clampedPosition)
   }
@@ -154,17 +156,17 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
     return { valid: true }
   }
 
-  private positionFromWorldPoint(wall: PerimeterWall, worldPoint: Vec2): Length | null {
+  private positionFromWorldPoint(wall: PerimeterWall, worldPoint: vec2): Length | null {
     const insideDist = distanceToLineSegment(worldPoint, wall.insideLine)
     const outsideDist = distanceToLineSegment(worldPoint, wall.outsideLine)
     if (Math.max(insideDist, outsideDist) <= wall.thickness) {
       // Get signed distance along wall direction
-      const toPoint = subtract(worldPoint, wall.insideLine.start)
-      const signedDistance = dot(toPoint, wall.direction)
+      const toPoint = vec2.subtract(vec2.create(), worldPoint, wall.insideLine.start)
+      const signedDistance = vec2.dot(toPoint, wall.direction)
 
       // Clamp to wall bounds
       const clampedDistance = Math.max(0, Math.min(signedDistance, wall.wallLength))
-      return clampedDistance as Length
+      return clampedDistance
     }
     return null
   }

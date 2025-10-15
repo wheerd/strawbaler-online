@@ -111,7 +111,7 @@ const useMaterialsStore = create<MaterialsStore>()(
 
           removeMaterial: (id: MaterialId) => {
             set(state => {
-              const { [id]: removed, ...remainingMaterials } = state.materials
+              const { [id]: _removed, ...remainingMaterials } = state.materials
               return {
                 ...state,
                 materials: remainingMaterials

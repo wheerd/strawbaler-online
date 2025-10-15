@@ -19,7 +19,7 @@ import {
   WideDoorPresetIcon,
   WindowIcon
 } from '@/shared/components/OpeningIcons'
-import { type Length, createLength } from '@/shared/geometry'
+import { type Length } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import type { AddOpeningTool } from './AddOpeningTool'
@@ -48,46 +48,46 @@ const ALL_OPENING_PRESETS: PresetConfig[] = [
   {
     label: 'Standard Door',
     type: 'door',
-    width: createLength(800),
-    height: createLength(2100),
+    width: 800,
+    height: 2100,
     icon: <StandardDoorPresetIcon width={20} height={20} />
   },
   {
     label: 'Wide Door',
     type: 'door',
-    width: createLength(900),
-    height: createLength(2100),
+    width: 900,
+    height: 2100,
     icon: <WideDoorPresetIcon width={20} height={20} />
   },
   {
     label: 'Double Door',
     type: 'door',
-    width: createLength(1600),
-    height: createLength(2100),
+    width: 1600,
+    height: 2100,
     icon: <DoubleDoorPresetIcon width={20} height={20} />
   },
   {
     label: 'Small Window',
     type: 'window',
-    width: createLength(800),
-    height: createLength(1200),
-    sillHeight: createLength(800),
+    width: 800,
+    height: 1200,
+    sillHeight: 800,
     icon: <SmallWindowPresetIcon width={20} height={20} />
   },
   {
     label: 'Standard Window',
     type: 'window',
-    width: createLength(1200),
-    height: createLength(1200),
-    sillHeight: createLength(800),
+    width: 1200,
+    height: 1200,
+    sillHeight: 800,
     icon: <StandardWindowPresetIcon width={20} height={20} />
   },
   {
     label: 'Floor Window',
     type: 'window',
-    width: createLength(1200),
-    height: createLength(2000),
-    sillHeight: createLength(100),
+    width: 1200,
+    height: 2000,
+    sillHeight: 100,
     icon: <FloorWindowPresetIcon width={20} height={20} />
   }
 ]
@@ -149,7 +149,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
             height: state.height,
             sillHeight: state.sillHeight
           }}
-          wallHeight={activeStorey?.height || createLength(2500)} // Fallback height
+          wallHeight={activeStorey?.height || 2500} // Fallback height
           focusedField={focusedField}
         />
       </Flex>
@@ -205,9 +205,9 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           value={state.width}
           onCommit={value => tool.setWidth(value)}
           unit="cm"
-          min={createLength(100)}
-          max={createLength(5000)}
-          step={createLength(100)}
+          min={100}
+          max={5000}
+          step={100}
           size="1"
           style={{ width: '80px' }}
           onFocus={() => setFocusedField('width')}
@@ -226,9 +226,9 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           value={state.height}
           onCommit={value => tool.setHeight(value)}
           unit="cm"
-          min={createLength(100)}
-          max={createLength(4000)}
-          step={createLength(100)}
+          min={100}
+          max={4000}
+          step={100}
           size="1"
           style={{ width: '80px' }}
           onFocus={() => setFocusedField('height')}
@@ -244,12 +244,12 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
 
         {/* Row 2, Column 2: Sill Height Input */}
         <LengthField
-          value={(state.sillHeight ?? 0) as Length}
+          value={state.sillHeight ?? 0}
           onCommit={value => tool.setSillHeight(value)}
           unit="cm"
-          min={createLength(0)}
-          max={createLength(2000)}
-          step={createLength(100)}
+          min={0}
+          max={2000}
+          step={100}
           size="1"
           style={{ width: '80px' }}
           onFocus={() => setFocusedField('sillHeight')}
@@ -265,12 +265,12 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
 
         {/* Row 2, Column 4: Top Height Input */}
         <LengthField
-          value={((state.sillHeight ?? 0) + state.height) as Length}
-          onCommit={value => tool.setHeight((value - (state.sillHeight ?? 0)) as Length)}
+          value={(state.sillHeight ?? 0) + state.height}
+          onCommit={value => tool.setHeight(value - (state.sillHeight ?? 0))}
           unit="cm"
-          min={((state.sillHeight ?? 0) + 100) as Length}
-          max={createLength(5000)}
-          step={createLength(100)}
+          min={(state.sillHeight ?? 0) + 100}
+          max={5000}
+          step={100}
           size="1"
           style={{ width: '80px' }}
           onFocus={() => setFocusedField('topHeight')}

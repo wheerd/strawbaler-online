@@ -1,9 +1,9 @@
+import type { vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
 import type { ConstructionElement } from '@/construction/elements'
 import { aggregateResults } from '@/construction/results'
 import type { Cuboid } from '@/construction/shapes'
-import type { Length, Vec3 } from '@/shared/geometry'
 
 import type { MaterialId } from './material'
 import { type StrawConfig, constructStraw } from './straw'
@@ -11,17 +11,17 @@ import { type StrawConfig, constructStraw } from './straw'
 const mockMaterialId = 'test-material' as MaterialId
 
 const defaultConfig: StrawConfig = {
-  baleLength: 800 as Length,
-  baleHeight: 500 as Length,
-  baleWidth: 360 as Length,
+  baleLength: 800,
+  baleHeight: 500,
+  baleWidth: 360,
   material: mockMaterialId
 }
 
 describe('constructStraw', () => {
   describe('perfect fit scenarios', () => {
     it('should create a single full strawbale when dimensions match exactly', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [800, 360, 500]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [800, 360, 500]
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -40,8 +40,8 @@ describe('constructStraw', () => {
     })
 
     it('should create multiple bales in a horizontal row', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1600, 360, 500] // 2 bales wide
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1600, 360, 500] // 2 bales wide
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -58,8 +58,8 @@ describe('constructStraw', () => {
     })
 
     it('should create multiple bales in a vertical stack', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [800, 360, 1000] // 2 bales high
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [800, 360, 1000] // 2 bales high
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -76,8 +76,8 @@ describe('constructStraw', () => {
     })
 
     it('should create a 2x2 grid of bales', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1600, 360, 1000] // 2x2 bales
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1600, 360, 1000] // 2x2 bales
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -101,8 +101,8 @@ describe('constructStraw', () => {
 
   describe('partial bales', () => {
     it('should create partial bale when width is less than full bale', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [400, 360, 500] // Half width
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [400, 360, 500] // Half width
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -117,8 +117,8 @@ describe('constructStraw', () => {
     })
 
     it('should create partial bale when height is less than full bale', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [800, 360, 250] // Half height
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [800, 360, 250] // Half height
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -133,8 +133,8 @@ describe('constructStraw', () => {
     })
 
     it('should mix full and partial bales when dimensions do not align', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1200, 360, 500] // 1.5 bales wide
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1200, 360, 500] // 1.5 bales wide
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -153,8 +153,8 @@ describe('constructStraw', () => {
     })
 
     it('should handle complex mixed arrangement', () => {
-      const position: Vec3 = [100, 0, 50] // Non-zero start position
-      const size: Vec3 = [1200, 360, 750] // 1.5 bales wide, 1.5 bales high
+      const position: vec3 = [100, 0, 50] // Non-zero start position
+      const size: vec3 = [1200, 360, 750] // 1.5 bales wide, 1.5 bales high
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -181,8 +181,8 @@ describe('constructStraw', () => {
 
   describe('error conditions', () => {
     it('should generate error when wall is too thick for single strawbale', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [800, 400, 500] // Thicker than bale width
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [800, 400, 500] // Thicker than bale width
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -197,8 +197,8 @@ describe('constructStraw', () => {
     })
 
     it('should generate warning when wall is too thin for single strawbale', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [800, 300, 500] // Thinner than bale width
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [800, 300, 500] // Thinner than bale width
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -215,8 +215,8 @@ describe('constructStraw', () => {
 
   describe('edge cases', () => {
     it('should handle zero dimensions', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [0, 360, 500]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [0, 360, 500]
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -227,8 +227,8 @@ describe('constructStraw', () => {
     })
 
     it('should handle very small dimensions', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [10, 360, 10]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [10, 360, 10]
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -242,8 +242,8 @@ describe('constructStraw', () => {
     })
 
     it('should handle negative positions', () => {
-      const position: Vec3 = [-100, 0, -200]
-      const size: Vec3 = [800, 360, 500]
+      const position: vec3 = [-100, 0, -200]
+      const size: vec3 = [800, 360, 500]
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -261,14 +261,14 @@ describe('constructStraw', () => {
   describe('different configurations', () => {
     it('should work with custom bale dimensions', () => {
       const customConfig: StrawConfig = {
-        baleLength: 1000 as Length,
-        baleHeight: 400 as Length,
-        baleWidth: 300 as Length,
+        baleLength: 1000,
+        baleHeight: 400,
+        baleWidth: 300,
         material: mockMaterialId
       }
 
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1000, 300, 400]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1000, 300, 400]
 
       const results = [...constructStraw(position, size, customConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -288,8 +288,8 @@ describe('constructStraw', () => {
         material: customMaterial
       }
 
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [800, 360, 500]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [800, 360, 500]
 
       const results = [...constructStraw(position, size, customConfig)]
       const { elements } = aggregateResults(results)
@@ -300,8 +300,8 @@ describe('constructStraw', () => {
 
   describe('construction element properties', () => {
     it('should generate unique IDs for each bale', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [1600, 360, 500] // 2 bales
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [1600, 360, 500] // 2 bales
 
       const results = [...constructStraw(position, size, defaultConfig)]
       const { elements } = aggregateResults(results)

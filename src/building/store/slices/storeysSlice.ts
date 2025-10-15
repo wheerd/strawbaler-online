@@ -5,7 +5,7 @@ import { DEFAULT_SLAB_CONFIG_ID, createStoreyId } from '@/building/model/ids'
 import type { Storey } from '@/building/model/model'
 import { createStoreyLevel } from '@/building/model/model'
 import type { Length } from '@/shared/geometry'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 export interface StoreysState {
   readonly activeStoreyId: StoreyId
@@ -56,7 +56,7 @@ const groundFloor: Storey = {
   id: 'storey_ground' as StoreyId,
   name: 'Ground Floor',
   level: createStoreyLevel(0),
-  height: createLength(2400),
+  height: 2400,
   slabConstructionConfigId: DEFAULT_SLAB_CONFIG_ID
 }
 
@@ -65,7 +65,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
   get
 ) => ({
   activeStoreyId: groundFloor.id,
-  defaultHeight: createLength(2400),
+  defaultHeight: 2400,
   storeys: { [groundFloor.id]: groundFloor } as Record<StoreyId, Storey>,
 
   actions: {
@@ -119,7 +119,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
             throw new Error('Cannot remove the last remaining storey')
           }
 
-          const { [storeyId]: removed, ...updatedStoreys } = storeys
+          const { [storeyId]: _removed, ...updatedStoreys } = storeys
           state.storeys = updatedStoreys
 
           const remainingStoreysList = Object.values(updatedStoreys)

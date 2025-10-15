@@ -1,7 +1,9 @@
+import { vec2 } from 'gl-matrix'
+
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { boundsFromPoints, createLength, createVec2, polygonIsClockwise } from '@/shared/geometry'
+import { boundsFromPoints, polygonIsClockwise } from '@/shared/geometry'
 
 import { CommonDoors, CommonWindows, type DoorSpec, type WindowSpec, addDoors, addWindows } from './openings'
 
@@ -28,7 +30,7 @@ export function createHexagonalPerimeter(): void {
     const angle = (i * Math.PI) / 3 // 60 degrees between each point
     const x = centerX + radius * Math.cos(angle)
     const y = centerY + radius * Math.sin(angle)
-    points.push(createVec2(x, y))
+    points.push(vec2.fromValues(x, y))
   }
 
   // Ensure clockwise order for perimeter creation
@@ -55,7 +57,7 @@ export function createHexagonalPerimeter(): void {
       activeStoreyId,
       boundary,
       defaultMethodId,
-      createLength(440),
+      440,
       defaultBaseId,
       defaultTopId
     )

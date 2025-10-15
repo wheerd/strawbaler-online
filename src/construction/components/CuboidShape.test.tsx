@@ -1,8 +1,8 @@
 import { render } from '@testing-library/react'
+import type { vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
 import type { Cuboid } from '@/construction/shapes'
-import type { Vec3 } from '@/shared/geometry'
 
 import { CuboidShape } from './CuboidShape'
 
@@ -15,7 +15,7 @@ describe('CuboidShape', () => {
   }
 
   // Mock projection function
-  const mockProjection = (p: Vec3): Vec3 => [p[0], -p[1], p[2]] // Simple Y-flip projection
+  const mockProjection = (p: vec3): vec3 => [p[0], -p[1], p[2]] // Simple Y-flip projection
 
   it('renders a basic cuboid as a rectangle', () => {
     const { container } = render(

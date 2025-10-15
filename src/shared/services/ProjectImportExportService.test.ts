@@ -84,11 +84,6 @@ vi.mock('@/construction/config/store', () => ({
 
 // DOM operations are now handled by utilities, not the service
 
-vi.mock('@/shared/geometry', () => ({
-  createLength: vi.fn(value => value),
-  createVec2: vi.fn((x, y) => [x, y])
-}))
-
 describe('ProjectImportExportService', () => {
   describe('exportToString', () => {
     it('successfully exports project to string using store getters', async () => {

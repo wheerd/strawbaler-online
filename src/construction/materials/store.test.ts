@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import type { Length } from '@/shared/geometry'
-
 import { DEFAULT_MATERIALS, createMaterialId } from './material'
 import { getMaterialsActions, getMaterialsState, setMaterialsState } from './store'
 
@@ -29,9 +27,9 @@ describe('Materials Store', () => {
         type: 'dimensional',
         name: 'Test Wood',
         color: '#ff0000',
-        width: 100 as Length,
-        thickness: 50 as Length,
-        availableLengths: [3000 as Length, 5000 as Length]
+        width: 100,
+        thickness: 50,
+        availableLengths: [3000, 5000]
       })
 
       expect(newMaterial.id).toBeDefined()
@@ -72,9 +70,9 @@ describe('Materials Store', () => {
           type: 'dimensional',
           name: 'Invalid Wood',
           color: '#ff0000',
-          width: -100 as Length,
-          thickness: 50 as Length,
-          availableLengths: [3000 as Length]
+          width: -100,
+          thickness: 50,
+          availableLengths: [3000]
         })
       }).toThrow('Width must be positive')
     })
@@ -128,9 +126,9 @@ describe('Materials Store', () => {
         type: 'dimensional',
         name: 'Original Wood',
         color: '#ff0000',
-        width: 360 as Length,
-        thickness: 60 as Length,
-        availableLengths: [5000 as Length]
+        width: 360,
+        thickness: 60,
+        availableLengths: [5000]
       })
 
       const duplicate = actions.duplicateMaterial(original.id, 'Copied Wood')
@@ -207,9 +205,9 @@ describe('Materials Store', () => {
         type: 'dimensional',
         name: 'Dimensional 1',
         color: '#00ff00',
-        width: 100 as Length,
-        thickness: 50 as Length,
-        availableLengths: [3000 as Length]
+        width: 100,
+        thickness: 50,
+        availableLengths: [3000]
       })
 
       actions.addMaterial({

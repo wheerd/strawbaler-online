@@ -1,9 +1,9 @@
 import { render } from '@testing-library/react'
-import { vec3 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
 import type { ConstructionModel, HighlightedCuboid, HighlightedPolygon } from '@/construction/model'
-import { createVec2 } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { ConstructionPlan, TOP_VIEW, type ViewOption } from './ConstructionPlan'
 
@@ -14,7 +14,7 @@ describe('ConstructionPlan', () => {
       areaType: 'inner-perimeter',
       label: 'Test Polygon',
       polygon: {
-        points: [createVec2(0, 0), createVec2(100, 0), createVec2(100, 100), createVec2(0, 100)]
+        points: [vec2.fromValues(0, 0), vec2.fromValues(100, 0), vec2.fromValues(100, 100), vec2.fromValues(0, 100)]
       },
       plane: 'xy',
       renderPosition: 'bottom'
@@ -51,7 +51,7 @@ describe('ConstructionPlan', () => {
       type: 'polygon',
       areaType: 'inner-perimeter',
       polygon: {
-        points: [createVec2(0, 0), createVec2(50, 0), createVec2(50, 50)]
+        points: [vec2.fromValues(0, 0), vec2.fromValues(50, 0), vec2.fromValues(50, 50)]
       },
       plane: 'xy',
       renderPosition: 'top'

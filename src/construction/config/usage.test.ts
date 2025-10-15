@@ -10,7 +10,7 @@ import {
 } from '@/building/model/ids'
 import type { Perimeter, Storey } from '@/building/model/model'
 import { createStoreyLevel } from '@/building/model/model'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { getPerimeterConfigUsage, getRingBeamConfigUsage } from './usage'
 
@@ -20,7 +20,7 @@ describe('Config Usage Detection', () => {
     id: storeyId,
     name: 'Test Floor',
     level: createStoreyLevel(0),
-    height: createLength(3000),
+    height: 3000,
     slabConstructionConfigId: DEFAULT_SLAB_CONFIG_ID
   }
 
@@ -126,12 +126,12 @@ describe('Config Usage Detection', () => {
         walls: [
           {
             id: createPerimeterWallId(),
-            thickness: createLength(440),
+            thickness: 440,
             constructionMethodId: configId,
             openings: [],
-            insideLength: createLength(1000),
-            outsideLength: createLength(1000),
-            wallLength: createLength(1000),
+            insideLength: 1000,
+            outsideLength: 1000,
+            wallLength: 1000,
             insideLine: { start: [0, 0], end: [1000, 0] },
             outsideLine: { start: [0, 440], end: [1000, 440] },
             direction: [1, 0],
@@ -139,12 +139,12 @@ describe('Config Usage Detection', () => {
           },
           {
             id: createPerimeterWallId(),
-            thickness: createLength(440),
+            thickness: 440,
             constructionMethodId: createPerimeterConstructionMethodId(), // Different config
             openings: [],
-            insideLength: createLength(1000),
-            outsideLength: createLength(1000),
-            wallLength: createLength(1000),
+            insideLength: 1000,
+            outsideLength: 1000,
+            wallLength: 1000,
             insideLine: { start: [1000, 0], end: [1000, 1000] },
             outsideLine: { start: [1440, 0], end: [1440, 1000] },
             direction: [0, 1],
@@ -152,12 +152,12 @@ describe('Config Usage Detection', () => {
           },
           {
             id: createPerimeterWallId(),
-            thickness: createLength(440),
+            thickness: 440,
             constructionMethodId: configId, // Same config as first wall
             openings: [],
-            insideLength: createLength(1000),
-            outsideLength: createLength(1000),
-            wallLength: createLength(1000),
+            insideLength: 1000,
+            outsideLength: 1000,
+            wallLength: 1000,
             insideLine: { start: [1000, 1000], end: [0, 1000] },
             outsideLine: { start: [1000, 1440], end: [0, 1440] },
             direction: [-1, 0],

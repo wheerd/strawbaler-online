@@ -1,10 +1,11 @@
 import { Theme } from '@radix-ui/themes'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { vec2 } from 'gl-matrix'
 import { vi } from 'vitest'
 
 import { createPerimeterConstructionMethodId } from '@/building/model/ids'
 import { ConfigurationModalContext } from '@/construction/config/context/ConfigurationModalContext'
-import { createLength, createVec2 } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { PerimeterTool } from './PerimeterTool'
 import { PerimeterToolInspector } from './PerimeterToolInspector'
@@ -60,7 +61,7 @@ describe('PerimeterToolInspector', () => {
     // Reset tool state
     mockTool.state = {
       points: [],
-      pointer: createVec2(0, 0),
+      pointer: vec2.fromValues(0, 0),
       snapContext: {
         snapPoints: [],
         alignPoints: [],
@@ -69,7 +70,7 @@ describe('PerimeterToolInspector', () => {
       isCurrentLineValid: true,
       isClosingLineValid: true,
       constructionMethodId: createPerimeterConstructionMethodId(),
-      wallThickness: createLength(440),
+      wallThickness: 440,
       baseRingBeamMethodId: undefined,
       topRingBeamMethodId: undefined,
       lengthOverride: null
@@ -134,7 +135,7 @@ describe('PerimeterToolInspector', () => {
       fireEvent.change(input, { target: { value: '350' } })
       fireEvent.blur(input)
 
-      expect(mockSetWallThickness).toHaveBeenCalledWith(createLength(350))
+      expect(mockSetWallThickness).toHaveBeenCalledWith(350)
     })
 
     it('handles input validation with min/max values', () => {

@@ -1,20 +1,6 @@
-import { vec3 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 
-import {
-  type Bounds3D,
-  type Length,
-  type Plane3D,
-  type PolygonWithHoles2D,
-  type Vec2,
-  type Vec3,
-  boundsFromPoints
-} from '@/shared/geometry'
-
-const vec3Add = (a: Vec3, b: Vec3): Vec3 => {
-  const result = vec3.create()
-  vec3.add(result, a, b)
-  return result
-}
+import { type Bounds3D, type Length, type Plane3D, type PolygonWithHoles2D, boundsFromPoints } from '@/shared/geometry'
 
 export type Shape = Cuboid | CutCuboid | ExtrudedPolygon
 
@@ -24,8 +10,8 @@ interface ShapeBase {
 
 export interface Cuboid extends ShapeBase {
   type: 'cuboid'
-  offset: Vec3 // Local coordinate system
-  size: Vec3 // Non-negative with axis same as offset
+  offset: vec3 // Local coordinate system
+  size: vec3 // Non-negative with axis same as offset
 }
 
 /**
@@ -95,8 +81,8 @@ export interface Cut {
  */
 export interface CutCuboid extends ShapeBase {
   type: 'cut-cuboid'
-  offset: Vec3 // Local coordinate system
-  size: Vec3 // Non-negative size of the base cuboid with axis same as offset
+  offset: vec3 // Local coordinate system
+  size: vec3 // Non-negative size of the base cuboid with axis same as offset
 
   startCut?: Cut //  At a face at position
   endCut?: Cut //  At a face at position + size
@@ -109,17 +95,17 @@ export interface ExtrudedPolygon extends ShapeBase {
   thickness: Length
 }
 
-export const createCuboidShape = (offset: Vec3, size: Vec3): Cuboid => ({
+export const createCuboidShape = (offset: vec3, size: vec3): Cuboid => ({
   type: 'cuboid',
   offset,
   size,
   bounds: {
     min: offset,
-    max: vec3Add(offset, size)
+    max: vec3.add(vec3.create(), offset, size)
   }
 })
 
-export const createCutCuboidShape = (offset: Vec3, size: Vec3, startCut?: Cut, endCut?: Cut): CutCuboid => ({
+export const createCutCuboidShape = (offset: vec3, size: vec3, startCut?: Cut, endCut?: Cut): CutCuboid => ({
   type: 'cut-cuboid',
   offset,
   size,
@@ -127,7 +113,7 @@ export const createCutCuboidShape = (offset: Vec3, size: Vec3, startCut?: Cut, e
   endCut,
   bounds: {
     min: offset,
-    max: vec3Add(offset, size)
+    max: vec3.add(vec3.create(), offset, size)
   }
 })
 
@@ -161,11 +147,11 @@ export const createExtrudedPolygon = (
 }
 
 export interface Face3D {
-  outer: Vec3[]
-  holes: Vec3[][]
+  outer: vec3[]
+  holes: vec3[][]
 }
 
-function point2DTo3D(p: Vec2, plane: Plane3D, z: number) {
+function point2DTo3D(p: vec2, plane: Plane3D, z: number) {
   switch (plane) {
     case 'xy':
       return vec3.fromValues(p[0], p[1], z)

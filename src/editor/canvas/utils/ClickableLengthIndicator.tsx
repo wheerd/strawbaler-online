@@ -1,15 +1,16 @@
+import { vec2 } from 'gl-matrix'
 import type Konva from 'konva'
 import { useMemo, useRef, useState } from 'react'
 import { Group, Line, Text } from 'react-konva/lib/ReactKonvaCore'
 
-import { add, angle, distance, midpoint, normalize, perpendicularCCW, scale, subtract } from '@/shared/geometry'
-import type { Length, Vec2 } from '@/shared/geometry'
+import { angle, midpoint, perpendicularCCW } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { formatLength } from '@/shared/utils/formatLength'
 
 interface ClickableLengthIndicatorProps {
-  startPoint: Vec2
-  endPoint: Vec2
+  startPoint: vec2
+  endPoint: vec2
   label?: string
   offset?: number
   color?: string
@@ -33,9 +34,9 @@ export function ClickableLengthIndicator({
   const [isHovered, setIsHovered] = useState(false)
 
   // Calculate the measurement vector and length
-  const measurementVector = subtract(endPoint, startPoint)
-  const measurementLength = distance(startPoint, endPoint)
-  let dir = normalize(measurementVector)
+  const measurementVector = vec2.subtract(vec2.create(), endPoint, startPoint)
+  const measurementLength = vec2.distance(startPoint, endPoint)
+  let dir = vec2.normalize(vec2.create(), measurementVector)
 
   // Calculate text rotation angle
   const measurementAngle = measurementLength > 0 ? angle(startPoint, endPoint) : 0
@@ -44,12 +45,12 @@ export function ClickableLengthIndicator({
   // Keep text readable (between -90 and +90 degrees)
   if (angleDegrees > 90) {
     ;[endPoint, startPoint] = [startPoint, endPoint]
-    dir = scale(dir, -1)
+    dir = vec2.scale(vec2.create(), dir, -1)
     offset = -offset
     angleDegrees -= 180
   } else if (angleDegrees < -90) {
     ;[endPoint, startPoint] = [startPoint, endPoint]
-    dir = scale(dir, -1)
+    dir = vec2.scale(vec2.create(), dir, -1)
     offset = -offset
     angleDegrees += 180
   }
@@ -79,16 +80,16 @@ export function ClickableLengthIndicator({
   const perpendicular = measurementLength > 0 ? perpendicularCCW(dir) : [0, 0]
 
   // Calculate offset positions
-  const offsetStartPoint = add(startPoint, scale(perpendicular, offset))
-  const offsetEndPoint = add(endPoint, scale(perpendicular, offset))
+  const offsetStartPoint = vec2.add(vec2.create(), startPoint, vec2.scale(vec2.create(), perpendicular, offset))
+  const offsetEndPoint = vec2.add(vec2.create(), endPoint, vec2.scale(vec2.create(), perpendicular, offset))
 
   const lineMidpoint = midpoint(offsetStartPoint, offsetEndPoint)
 
   // Calculate end marker positions (perpendicular to measurement line)
-  const endMarkerDirection = scale(perpendicular, actualEndMarkerSize / 2)
+  const endMarkerDirection = vec2.scale(vec2.create(), perpendicular, actualEndMarkerSize / 2)
 
-  const leftEndpoint = add(lineMidpoint, scale(dir, -textSize.width * 0.6))
-  const rightEndpoint = add(lineMidpoint, scale(dir, textSize.width * 0.6))
+  const leftEndpoint = vec2.add(vec2.create(), lineMidpoint, vec2.scale(vec2.create(), dir, -textSize.width * 0.6))
+  const rightEndpoint = vec2.add(vec2.create(), lineMidpoint, vec2.scale(vec2.create(), dir, textSize.width * 0.6))
 
   // Visual feedback colors
   const actualColor = color ?? theme.textSecondary

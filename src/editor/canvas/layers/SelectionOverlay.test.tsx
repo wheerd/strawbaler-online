@@ -1,9 +1,10 @@
 import { render } from '@testing-library/react'
+import { vec2 } from 'gl-matrix'
 import { vi } from 'vitest'
 
 import type { Perimeter } from '@/building/model/model'
 import { usePerimeterById } from '@/building/store'
-import { createVec2 } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { SelectionOverlay } from './SelectionOverlay'
 
@@ -47,10 +48,10 @@ describe('SelectionOverlay', () => {
     const mockWall: Partial<Perimeter> = {
       id: wallId as any,
       corners: [
-        { outsidePoint: createVec2(0, 0) },
-        { outsidePoint: createVec2(100, 0) },
-        { outsidePoint: createVec2(100, 100) },
-        { outsidePoint: createVec2(0, 100) }
+        { outsidePoint: vec2.fromValues(0, 0) },
+        { outsidePoint: vec2.fromValues(100, 0) },
+        { outsidePoint: vec2.fromValues(100, 100) },
+        { outsidePoint: vec2.fromValues(0, 100) }
       ] as any
     }
 
@@ -72,8 +73,8 @@ describe('SelectionOverlay', () => {
       walls: [
         {
           id: wallId,
-          insideLine: { start: createVec2(0, 0), end: createVec2(100, 0) },
-          outsideLine: { start: createVec2(0, 50), end: createVec2(100, 50) }
+          insideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(100, 0) },
+          outsideLine: { start: vec2.fromValues(0, 50), end: vec2.fromValues(100, 50) }
         }
       ]
     }
@@ -97,9 +98,9 @@ describe('SelectionOverlay', () => {
       walls: [
         {
           id: wallId,
-          insideLine: { start: createVec2(0, 0), end: createVec2(100, 0) },
-          outsideLine: { start: createVec2(0, 50), end: createVec2(100, 50) },
-          direction: createVec2(1, 0),
+          insideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(100, 0) },
+          outsideLine: { start: vec2.fromValues(0, 50), end: vec2.fromValues(100, 50) },
+          direction: vec2.fromValues(1, 0),
           openings: [
             {
               id: openingId,

@@ -1,3 +1,4 @@
+import { vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createOpeningId } from '@/building/model/ids'
@@ -20,7 +21,6 @@ import {
 import type { InfillConstructionConfig } from '@/construction/walls/infill/infill'
 import { infillWallArea } from '@/construction/walls/infill/infill'
 import type { WallSegment3D } from '@/construction/walls/segmentation'
-import { type Length, type Vec3, vec3Add } from '@/shared/geometry'
 
 import { type OpeningConstructionConfig, constructOpeningFrame } from './openings'
 
@@ -50,65 +50,65 @@ const measurementHasTag = (measurement: RawMeasurement, tag: Tag): boolean => {
 const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
   id: createOpeningId(),
   type: 'window',
-  offsetFromStart: 1000 as Length,
-  width: 800 as Length,
-  height: 1200 as Length,
-  sillHeight: 900 as Length,
+  offsetFromStart: 1000,
+  width: 800,
+  height: 1200,
+  sillHeight: 900,
   ...overrides
 })
 
 const createTestConfig = (overrides: Partial<OpeningConstructionConfig> = {}): OpeningConstructionConfig => ({
-  padding: 15 as Length,
-  headerThickness: 60 as Length,
+  padding: 15,
+  headerThickness: 60,
   headerMaterial: createMaterialId(),
-  sillThickness: 60 as Length,
+  sillThickness: 60,
   sillMaterial: createMaterialId(),
   ...overrides
 })
 
 const createTestInfillConfig = (): InfillConstructionConfig => ({
   type: 'infill',
-  maxPostSpacing: 800 as Length,
-  minStrawSpace: 70 as Length,
+  maxPostSpacing: 800,
+  minStrawSpace: 70,
   posts: {
     type: 'full' as const,
-    width: 60 as Length,
+    width: 60,
     material: createMaterialId()
   },
   openings: {
-    padding: 15 as Length,
-    headerThickness: 60 as Length,
+    padding: 15,
+    headerThickness: 60,
     headerMaterial: createMaterialId(),
-    sillThickness: 60 as Length,
+    sillThickness: 60,
     sillMaterial: createMaterialId()
   },
   straw: {
-    baleLength: 800 as Length,
-    baleHeight: 500 as Length,
-    baleWidth: 360 as Length,
+    baleLength: 800,
+    baleHeight: 500,
+    baleWidth: 360,
     material: createMaterialId()
   }
 })
 
 const createTestOpeningSegment = (opening: Opening): WallSegment3D => ({
   type: 'opening',
-  position: [opening.offsetFromStart, 0, 0] as Vec3,
-  size: [opening.width, 360, 2500] as Vec3,
+  position: [opening.offsetFromStart, 0, 0] as vec3,
+  size: [opening.width, 360, 2500] as vec3,
   openings: [opening]
 })
 
 // Helper to create mock generator for infillWallArea
 const createMockInfillGenerator = function* (numElements = 2): Generator<ConstructionResult> {
   for (let i = 0; i < numElements; i++) {
-    const offset = [100 * i, 0, 0] as Vec3
-    const size = [100, 360, 500] as Vec3
+    const offset = [100 * i, 0, 0] as vec3
+    const size = [100, 360, 500] as vec3
     const element = createConstructionElement(createMaterialId(), {
       type: 'cuboid' as const,
       offset,
       size,
       bounds: {
         min: offset,
-        max: vec3Add(offset, size)
+        max: vec3.add(vec3.create(), offset, size)
       }
     })
     yield yieldElement(element)
@@ -124,8 +124,8 @@ describe('constructOpeningFrame', () => {
   describe('basic opening construction', () => {
     it('creates header and sill for window with sill height', () => {
       const opening = createTestOpening({
-        sillHeight: 900 as Length,
-        height: 1200 as Length
+        sillHeight: 900,
+        height: 1200
       })
       const openingSegment = createTestOpeningSegment(opening)
       const config = createTestConfig()
@@ -148,9 +148,9 @@ describe('constructOpeningFrame', () => {
 
     it('generates measurements', () => {
       const opening = createTestOpening({
-        sillHeight: 800 as Length,
-        height: 1200 as Length,
-        width: 1000 as Length
+        sillHeight: 800,
+        height: 1200,
+        width: 1000
       })
       const openingSegment = createTestOpeningSegment(opening)
       const config = createTestConfig()
@@ -182,9 +182,9 @@ describe('constructOpeningFrame', () => {
     it('generates only header and opening width measurements for door', () => {
       const opening = createTestOpening({
         type: 'door',
-        sillHeight: 0 as Length,
-        height: 2000 as Length,
-        width: 800 as Length
+        sillHeight: 0,
+        height: 2000,
+        width: 800
       })
       const openingSegment = createTestOpeningSegment(opening)
       const config = createTestConfig()
@@ -211,8 +211,8 @@ describe('constructOpeningFrame', () => {
     it('creates only header for door without sill height', () => {
       const opening = createTestOpening({
         type: 'door',
-        sillHeight: 0 as Length,
-        height: 2000 as Length
+        sillHeight: 0,
+        height: 2000
       })
       const openingSegment = createTestOpeningSegment(opening)
       const config = createTestConfig()
@@ -236,12 +236,12 @@ describe('constructOpeningFrame', () => {
   describe('error handling', () => {
     it('returns error when header does not fit', () => {
       const opening = createTestOpening({
-        sillHeight: 2360 as Length,
-        height: 100 as Length
+        sillHeight: 2360,
+        height: 100
       })
       const openingSegment = createTestOpeningSegment(opening)
       const config = createTestConfig({
-        headerThickness: 100 as Length
+        headerThickness: 100
       })
       const infillConfig = createTestInfillConfig()
 
@@ -254,12 +254,12 @@ describe('constructOpeningFrame', () => {
 
     it('returns error when sill does not fit', () => {
       const opening = createTestOpening({
-        sillHeight: 50 as Length,
-        height: 1200 as Length
+        sillHeight: 50,
+        height: 1200
       })
       const openingSegment = createTestOpeningSegment(opening)
       const config = createTestConfig({
-        sillThickness: 100 as Length
+        sillThickness: 100
       })
       const infillConfig = createTestInfillConfig()
 

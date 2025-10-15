@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react'
+import { vec2 } from 'gl-matrix'
 import { Layer, Stage } from 'react-konva/lib/ReactKonvaCore'
 import { describe, expect, it } from 'vitest'
 
@@ -10,7 +11,7 @@ import {
   createStoreyId
 } from '@/building/model/ids'
 import type { Perimeter } from '@/building/model/model'
-import { createLength, createVec2 } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { PerimeterCornerShape } from './PerimeterCornerShape'
 import { PerimeterShape } from './PerimeterShape'
@@ -22,110 +23,110 @@ describe('PerimeterShape', () => {
     walls: [
       {
         id: createPerimeterWallId(),
-        thickness: createLength(400),
+        thickness: 400,
         constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [],
-        insideLength: createLength(1000),
-        outsideLength: createLength(1000),
-        wallLength: createLength(1000),
+        insideLength: 1000,
+        outsideLength: 1000,
+        wallLength: 1000,
         insideLine: {
-          start: createVec2(0, 0),
-          end: createVec2(1000, 0)
+          start: vec2.fromValues(0, 0),
+          end: vec2.fromValues(1000, 0)
         },
         outsideLine: {
-          start: createVec2(0, -400),
-          end: createVec2(1000, -400)
+          start: vec2.fromValues(0, -400),
+          end: vec2.fromValues(1000, -400)
         },
-        direction: createVec2(1, 0),
-        outsideDirection: createVec2(0, -1)
+        direction: vec2.fromValues(1, 0),
+        outsideDirection: vec2.fromValues(0, -1)
       },
       {
         id: createPerimeterWallId(),
-        thickness: createLength(400),
+        thickness: 400,
         constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [],
-        insideLength: createLength(1000),
-        outsideLength: createLength(1000),
-        wallLength: createLength(1000),
+        insideLength: 1000,
+        outsideLength: 1000,
+        wallLength: 1000,
         insideLine: {
-          start: createVec2(1000, 0),
-          end: createVec2(1000, 1000)
+          start: vec2.fromValues(1000, 0),
+          end: vec2.fromValues(1000, 1000)
         },
         outsideLine: {
-          start: createVec2(1400, 0),
-          end: createVec2(1400, 1000)
+          start: vec2.fromValues(1400, 0),
+          end: vec2.fromValues(1400, 1000)
         },
-        direction: createVec2(0, 1),
-        outsideDirection: createVec2(1, 0)
+        direction: vec2.fromValues(0, 1),
+        outsideDirection: vec2.fromValues(1, 0)
       },
       {
         id: createPerimeterWallId(),
-        thickness: createLength(400),
+        thickness: 400,
         constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [],
-        insideLength: createLength(1000),
-        outsideLength: createLength(1000),
-        wallLength: createLength(1000),
+        insideLength: 1000,
+        outsideLength: 1000,
+        wallLength: 1000,
         insideLine: {
-          start: createVec2(1000, 1000),
-          end: createVec2(0, 1000)
+          start: vec2.fromValues(1000, 1000),
+          end: vec2.fromValues(0, 1000)
         },
         outsideLine: {
-          start: createVec2(1000, 1400),
-          end: createVec2(0, 1400)
+          start: vec2.fromValues(1000, 1400),
+          end: vec2.fromValues(0, 1400)
         },
-        direction: createVec2(-1, 0),
-        outsideDirection: createVec2(0, 1)
+        direction: vec2.fromValues(-1, 0),
+        outsideDirection: vec2.fromValues(0, 1)
       },
       {
         id: createPerimeterWallId(),
-        thickness: createLength(400),
+        thickness: 400,
         constructionMethodId: createPerimeterConstructionMethodId(),
         openings: [],
-        insideLength: createLength(1000),
-        outsideLength: createLength(1000),
-        wallLength: createLength(1000),
+        insideLength: 1000,
+        outsideLength: 1000,
+        wallLength: 1000,
         insideLine: {
-          start: createVec2(0, 1000),
-          end: createVec2(0, 0)
+          start: vec2.fromValues(0, 1000),
+          end: vec2.fromValues(0, 0)
         },
         outsideLine: {
-          start: createVec2(-400, 1000),
-          end: createVec2(-400, 0)
+          start: vec2.fromValues(-400, 1000),
+          end: vec2.fromValues(-400, 0)
         },
-        direction: createVec2(0, -1),
-        outsideDirection: createVec2(-1, 0)
+        direction: vec2.fromValues(0, -1),
+        outsideDirection: vec2.fromValues(-1, 0)
       }
     ],
     corners: [
       {
         id: createPerimeterCornerId(),
-        insidePoint: createVec2(0, 0),
-        outsidePoint: createVec2(1400, -400),
+        insidePoint: vec2.fromValues(0, 0),
+        outsidePoint: vec2.fromValues(1400, -400),
         constructedByWall: 'next',
         interiorAngle: 90,
         exteriorAngle: 270
       },
       {
         id: createPerimeterCornerId(),
-        insidePoint: createVec2(1000, 0),
-        outsidePoint: createVec2(1400, 1400),
+        insidePoint: vec2.fromValues(1000, 0),
+        outsidePoint: vec2.fromValues(1400, 1400),
         constructedByWall: 'previous',
         interiorAngle: 90,
         exteriorAngle: 270
       },
       {
         id: createPerimeterCornerId(),
-        insidePoint: createVec2(1000, 1000),
-        outsidePoint: createVec2(-400, 1400),
+        insidePoint: vec2.fromValues(1000, 1000),
+        outsidePoint: vec2.fromValues(-400, 1400),
         constructedByWall: 'next',
         interiorAngle: 90,
         exteriorAngle: 270
       },
       {
         id: createPerimeterCornerId(),
-        insidePoint: createVec2(0, 1000),
-        outsidePoint: createVec2(-400, -400),
+        insidePoint: vec2.fromValues(0, 1000),
+        outsidePoint: vec2.fromValues(-400, -400),
         constructedByWall: 'previous',
         interiorAngle: 90,
         exteriorAngle: 270

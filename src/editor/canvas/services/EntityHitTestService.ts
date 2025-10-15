@@ -1,7 +1,8 @@
+import { vec2 } from 'gl-matrix'
 import type Konva from 'konva'
 
 import type { EntityType, SelectableId } from '@/building/model/ids'
-import type { Vec2 } from '@/shared/geometry'
+import type {} from '@/shared/geometry'
 
 import { stageReference } from './StageReference'
 
@@ -10,7 +11,7 @@ export interface EntityHitResult {
   entityType: EntityType
   parentIds: SelectableId[] // Complete parent chain from root to immediate parent
   konvaNode: Konva.Node
-  stagePoint: Vec2
+  stagePoint: vec2
 }
 
 /**
@@ -49,7 +50,7 @@ export class EntityHitTestService {
   /**
    * Process the intersected node and walk up the tree to find entity attributes.
    */
-  private processIntersectedNode(intersectedNode: Konva.Node | null, point: Vec2): EntityHitResult | null {
+  private processIntersectedNode(intersectedNode: Konva.Node | null, point: vec2): EntityHitResult | null {
     if (!intersectedNode) {
       return null
     }

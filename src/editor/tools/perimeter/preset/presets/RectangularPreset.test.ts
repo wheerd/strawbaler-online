@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { RectangularPreset } from './RectangularPreset'
 import type { RectangularPresetConfig } from './types'
@@ -9,9 +9,9 @@ describe('RectangularPreset', () => {
   const preset = new RectangularPreset()
 
   const validConfig: RectangularPresetConfig = {
-    width: createLength(4000),
-    length: createLength(6000),
-    thickness: createLength(440),
+    width: 4000,
+    length: 6000,
+    thickness: 440,
     constructionMethodId: 'test-method' as any
   }
 
@@ -25,7 +25,7 @@ describe('RectangularPreset', () => {
       const halfWidth = validConfig.width / 2 // Inside width
       const halfLength = validConfig.length / 2 // Inside length
 
-      // Check coordinates using array access since Vec2 is Float32Array
+      // Check coordinates using array access since vec2 is Float32Array
       expect(points[0][0]).toBe(-halfWidth)
       expect(points[0][1]).toBe(-halfLength)
       expect(points[1][0]).toBe(halfWidth)
@@ -39,8 +39,8 @@ describe('RectangularPreset', () => {
     it('should handle different inside dimensions correctly', () => {
       const config: RectangularPresetConfig = {
         ...validConfig,
-        width: createLength(2000), // 2m inside width
-        length: createLength(3000) // 3m inside length
+        width: 2000, // 2m inside width
+        length: 3000 // 3m inside length
       }
 
       const points = preset.getPolygonPoints(config)
@@ -73,26 +73,26 @@ describe('RectangularPreset', () => {
     })
 
     it('should reject zero or negative width', () => {
-      const invalidConfig = { ...validConfig, width: createLength(0) }
+      const invalidConfig = { ...validConfig, width: 0 }
       expect(preset.validateConfig(invalidConfig)).toBe(false)
 
-      const negativeConfig = { ...validConfig, width: createLength(-100) }
+      const negativeConfig = { ...validConfig, width: -100 }
       expect(preset.validateConfig(negativeConfig)).toBe(false)
     })
 
     it('should reject zero or negative length', () => {
-      const invalidConfig = { ...validConfig, length: createLength(0) }
+      const invalidConfig = { ...validConfig, length: 0 }
       expect(preset.validateConfig(invalidConfig)).toBe(false)
 
-      const negativeConfig = { ...validConfig, length: createLength(-100) }
+      const negativeConfig = { ...validConfig, length: -100 }
       expect(preset.validateConfig(negativeConfig)).toBe(false)
     })
 
     it('should reject zero or negative thickness', () => {
-      const invalidConfig = { ...validConfig, thickness: createLength(0) }
+      const invalidConfig = { ...validConfig, thickness: 0 }
       expect(preset.validateConfig(invalidConfig)).toBe(false)
 
-      const negativeConfig = { ...validConfig, thickness: createLength(-10) }
+      const negativeConfig = { ...validConfig, thickness: -10 }
       expect(preset.validateConfig(negativeConfig)).toBe(false)
     })
 

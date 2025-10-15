@@ -1,3 +1,5 @@
+import { vec2 } from 'gl-matrix'
+
 import type {
   PerimeterConstructionMethodId,
   RingBeamConstructionMethodId,
@@ -14,7 +16,6 @@ import type {
 import type { Material, MaterialId } from '@/construction/materials/material'
 import { getMaterialsState, setMaterialsState } from '@/construction/materials/store'
 import type { Polygon2D } from '@/shared/geometry'
-import { createLength, createVec2 } from '@/shared/geometry'
 
 export interface ExportedStorey {
   name: string
@@ -190,22 +191,22 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           // Modify existing default ground floor
           targetStorey = defaultGroundFloor
           modelActions.updateStoreyName(targetStorey.id, exportedStorey.name)
-          modelActions.updateStoreyHeight(targetStorey.id, createLength(exportedStorey.height))
+          modelActions.updateStoreyHeight(targetStorey.id, exportedStorey.height)
           modelActions.updateStoreySlabConfig(targetStorey.id, slabConfigId)
         } else {
           // Add additional storeys with floor config
-          targetStorey = modelActions.addStorey(exportedStorey.name, createLength(exportedStorey.height), slabConfigId)
+          targetStorey = modelActions.addStorey(exportedStorey.name, exportedStorey.height, slabConfigId)
         }
 
         // 6. Recreate perimeters - let store auto-compute all geometry
         exportedStorey.perimeters.forEach(exportedPerimeter => {
           const boundary: Polygon2D = {
-            points: exportedPerimeter.corners.map(c => createVec2(c.insideX, c.insideY))
+            points: exportedPerimeter.corners.map(c => vec2.fromValues(c.insideX, c.insideY))
           }
 
           // Get construction method from first wall or use default
           const constructionMethodId = exportedPerimeter.walls[0]?.constructionMethodId as PerimeterConstructionMethodId
-          const thickness = createLength(exportedPerimeter.walls[0]?.thickness || 200)
+          const thickness = exportedPerimeter.walls[0]?.thickness || 200
 
           // Basic perimeter creation - auto-computes geometry, outsidePoints, etc.
           const perimeter = modelActions.addPerimeter(
@@ -222,7 +223,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
             const wallId = perimeter.walls[wallIndex].id
 
             // Basic wall updates - auto-computes all derived properties
-            modelActions.updatePerimeterWallThickness(perimeter.id, wallId, createLength(exportedWall.thickness))
+            modelActions.updatePerimeterWallThickness(perimeter.id, wallId, exportedWall.thickness)
             modelActions.updatePerimeterWallConstructionMethod(
               perimeter.id,
               wallId,
@@ -233,10 +234,10 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
             exportedWall.openings.forEach(exportedOpening => {
               modelActions.addPerimeterWallOpening(perimeter.id, wallId, {
                 type: exportedOpening.type,
-                offsetFromStart: createLength(exportedOpening.offsetFromStart),
-                width: createLength(exportedOpening.width),
-                height: createLength(exportedOpening.height),
-                sillHeight: exportedOpening.sillHeight ? createLength(exportedOpening.sillHeight) : undefined
+                offsetFromStart: exportedOpening.offsetFromStart,
+                width: exportedOpening.width,
+                height: exportedOpening.height,
+                sillHeight: exportedOpening.sillHeight ? exportedOpening.sillHeight : undefined
               })
             })
           })

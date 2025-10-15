@@ -1,8 +1,8 @@
+import { vec2 } from 'gl-matrix'
+
 import type { Perimeter, PerimeterCorner, PerimeterWall } from '@/building/model/model'
 import { getConfigActions } from '@/construction/config'
 import type { WallCornerInfo } from '@/construction/walls/construction'
-import type { Length } from '@/shared/geometry'
-import { distance } from '@/shared/geometry'
 
 export interface WallContext {
   startCorner: PerimeterCorner
@@ -41,36 +41,36 @@ export function calculateWallCornerInfo(wall: PerimeterWall, context: WallContex
   }
 
   const outerStartExtension =
-    distance(wall.outsideLine.start, startCorner.outsidePoint) - previousMethod.layers.outsideThickness
+    vec2.distance(wall.outsideLine.start, startCorner.outsidePoint) - previousMethod.layers.outsideThickness
   const innerStartExtension =
-    distance(wall.insideLine.start, startCorner.insidePoint) - previousMethod.layers.insideThickness
+    vec2.distance(wall.insideLine.start, startCorner.insidePoint) - previousMethod.layers.insideThickness
   const startExtended = startCorner.constructedByWall === 'next'
-  const startExtension =
-    startCorner.exteriorAngle === 180 ? (0 as Length) : (Math.max(outerStartExtension, innerStartExtension) as Length)
+  const startExtension = startCorner.exteriorAngle === 180 ? 0 : Math.max(outerStartExtension, innerStartExtension)
   const appliedStartExtension =
     startCorner.exteriorAngle === 180
-      ? (0 as Length)
+      ? 0
       : startExtended
         ? startExtension
         : startExtension === outerStartExtension
           ? previousMethod.layers.insideThickness
           : previousMethod.layers.outsideThickness
 
-  const outerEndExtension = distance(wall.outsideLine.end, endCorner.outsidePoint) - nextMethod.layers.outsideThickness
-  const innerEndExtension = distance(wall.insideLine.end, endCorner.insidePoint) - nextMethod.layers.insideThickness
+  const outerEndExtension =
+    vec2.distance(wall.outsideLine.end, endCorner.outsidePoint) - nextMethod.layers.outsideThickness
+  const innerEndExtension =
+    vec2.distance(wall.insideLine.end, endCorner.insidePoint) - nextMethod.layers.insideThickness
   const endExtended = endCorner.constructedByWall === 'previous'
-  const endExtension =
-    endCorner.exteriorAngle === 180 ? (0 as Length) : (Math.max(outerEndExtension, innerEndExtension) as Length)
+  const endExtension = endCorner.exteriorAngle === 180 ? 0 : Math.max(outerEndExtension, innerEndExtension)
   const appliedEndExtension =
     endCorner.exteriorAngle === 180
-      ? (0 as Length)
+      ? 0
       : endExtended
         ? endExtension
         : endExtension === outerEndExtension
           ? nextMethod.layers.insideThickness
           : nextMethod.layers.outsideThickness
 
-  const constructionLength = (wall.wallLength + appliedStartExtension + appliedEndExtension) as Length
+  const constructionLength = wall.wallLength + appliedStartExtension + appliedEndExtension
 
   return {
     startCorner: {

@@ -104,7 +104,7 @@ export function parseLength(input: string): ParseLengthResult {
   }
 
   // Round to nearest integer (millimeter precision)
-  const roundedValue = Math.round(valueInMm) as Length
+  const roundedValue = Math.round(valueInMm)
 
   return {
     success: true,

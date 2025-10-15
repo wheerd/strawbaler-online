@@ -1,3 +1,5 @@
+import { vec2 } from 'gl-matrix'
+
 import type { SelectableId } from '@/building/model/ids'
 import { isPerimeterCornerId, isPerimeterId } from '@/building/model/ids'
 import type { Perimeter, PerimeterCorner } from '@/building/model/model'
@@ -10,8 +12,8 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { PerimeterCornerMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterCornerMovementPreview'
-import type { LineSegment2D, Vec2 } from '@/shared/geometry'
-import { add, wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
+import type { LineSegment2D } from '@/shared/geometry'
+import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
 
 // Corner movement needs access to the wall to update the boundary
 export interface CornerEntityContext {
@@ -23,10 +25,10 @@ export interface CornerEntityContext {
 
 // Corner movement state
 export interface CornerMovementState extends MovementState {
-  position: Vec2
-  movementDelta: Vec2 // The 2D movement delta
+  position: vec2
+  movementDelta: vec2 // The 2D movement delta
   snapResult?: SnapResult
-  newBoundary: Vec2[]
+  newBoundary: vec2[]
 }
 
 export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerEntityContext, CornerMovementState> {
@@ -83,7 +85,7 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
     const { wall, cornerIndex, snapContext } = context.entity
 
     const originalPosition = wall.corners[cornerIndex].insidePoint
-    const newPosition = add(originalPosition, pointerState.delta)
+    const newPosition = vec2.add(vec2.create(), originalPosition, pointerState.delta)
 
     const snapResult = context.snappingService.findSnapResult(newPosition, snapContext)
     const finalPosition = snapResult?.position || newPosition
@@ -111,11 +113,11 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
     return context.store.updatePerimeterBoundary(context.entity.wall.id, movementState.newBoundary)
   }
 
-  applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<CornerEntityContext>): boolean {
+  applyRelativeMovement(deltaDifference: vec2, context: MovementContext<CornerEntityContext>): boolean {
     const { wall, cornerIndex } = context.entity
 
     const currentPosition = wall.corners[cornerIndex].insidePoint
-    const newPosition = add(currentPosition, deltaDifference)
+    const newPosition = vec2.add(vec2.create(), currentPosition, deltaDifference)
 
     // Create new boundary with updated corner position
     const newBoundary = wall.corners.map(c => c.insidePoint)

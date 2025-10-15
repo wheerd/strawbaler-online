@@ -1,9 +1,9 @@
+import type { vec3 } from 'gl-matrix'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { ConstructionElement } from '@/construction/elements'
 import { aggregateResults } from '@/construction/results'
 import type { Cuboid } from '@/construction/shapes'
-import type { Length, Vec3 } from '@/shared/geometry'
 
 import type { Material, MaterialId } from './material'
 import { DEFAULT_MATERIALS } from './material'
@@ -32,13 +32,13 @@ describe('constructPost', () => {
   describe('full post construction', () => {
     const fullPostConfig: FullPostConfig = {
       type: 'full',
-      width: 60 as Length,
+      width: 60,
       material: mockWoodMaterial
     }
 
     it('should create a single full post element without errors', () => {
-      const position: Vec3 = [100, 50, 25]
-      const size: Vec3 = [60, 360, 3000]
+      const position: vec3 = [100, 50, 25]
+      const size: vec3 = [60, 360, 3000]
 
       const results = [...constructPost(position, size, fullPostConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -58,8 +58,8 @@ describe('constructPost', () => {
     })
 
     it('should handle zero offset', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [60, 360, 3000]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [60, 360, 3000]
 
       const results = [...constructPost(position, size, fullPostConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -76,8 +76,8 @@ describe('constructPost', () => {
     })
 
     it('should handle different wall dimensions', () => {
-      const position: Vec3 = [200, 100, 0]
-      const size: Vec3 = [60, 180, 2500]
+      const position: vec3 = [200, 100, 0]
+      const size: vec3 = [60, 180, 2500]
 
       const results = [...constructPost(position, size, fullPostConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -110,7 +110,7 @@ describe('constructPost', () => {
     it('should use custom width from config', () => {
       const config: FullPostConfig = {
         ...fullPostConfig,
-        width: 80 as Length
+        width: 80
       }
 
       const results = [...constructPost([0, 0, 0], [80, 360, 3000], config)]
@@ -135,7 +135,7 @@ describe('constructPost', () => {
       const config: FullPostConfig = {
         ...fullPostConfig,
         material: dimensionalMaterialId,
-        width: 80 as Length // Doesn't match material dimensions
+        width: 80 // Doesn't match material dimensions
       }
 
       const results = [...constructPost([0, 0, 0], [80, 200, 3000], config)]
@@ -149,7 +149,7 @@ describe('constructPost', () => {
       const config: FullPostConfig = {
         ...fullPostConfig,
         material: dimensionalMaterialId,
-        width: 120 as Length // Matches material width
+        width: 120 // Matches material width
       }
 
       const results = [...constructPost([0, 0, 0], [120, 60, 3000], config)]
@@ -162,7 +162,7 @@ describe('constructPost', () => {
       const config: FullPostConfig = {
         ...fullPostConfig,
         material: dimensionalMaterialId,
-        width: 60 as Length // Swapped dimension match
+        width: 60 // Swapped dimension match
       }
 
       const results = [...constructPost([0, 0, 0], [60, 120, 3000], config)]
@@ -175,7 +175,7 @@ describe('constructPost', () => {
       const config: FullPostConfig = {
         ...fullPostConfig,
         material: dimensionalMaterialId,
-        width: 120 as Length // Original dimension match
+        width: 120 // Original dimension match
       }
 
       const results = [...constructPost([0, 0, 0], [120, 60, 3000], config)]
@@ -188,15 +188,15 @@ describe('constructPost', () => {
   describe('double post construction', () => {
     const doublePostConfig: DoublePostConfig = {
       type: 'double',
-      width: 60 as Length,
-      thickness: 120 as Length,
+      width: 60,
+      thickness: 120,
       material: mockWoodMaterial,
       infillMaterial: mockStrawMaterial
     }
 
     it('should create two posts and one infill element without errors', () => {
-      const position: Vec3 = [100, 50, 25]
-      const size: Vec3 = [60, 360, 3000]
+      const position: vec3 = [100, 50, 25]
+      const size: vec3 = [60, 360, 3000]
 
       const results = [...constructPost(position, size, doublePostConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -231,8 +231,8 @@ describe('constructPost', () => {
     })
 
     it('should handle zero offset', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [60, 360, 3000]
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [60, 360, 3000]
 
       const results = [...constructPost(position, size, doublePostConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -250,8 +250,8 @@ describe('constructPost', () => {
     })
 
     it('should handle different wall dimensions', () => {
-      const position: Vec3 = [200, 100, 0]
-      const size: Vec3 = [60, 400, 2500]
+      const position: vec3 = [200, 100, 0]
+      const size: vec3 = [60, 400, 2500]
 
       const results = [...constructPost(position, size, doublePostConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -271,8 +271,8 @@ describe('constructPost', () => {
     it('should use custom post dimensions', () => {
       const config: DoublePostConfig = {
         ...doublePostConfig,
-        width: 80 as Length,
-        thickness: 150 as Length
+        width: 80,
+        thickness: 150
       }
 
       const results = [...constructPost([0, 0, 0], [80, 400, 3000], config)]
@@ -313,8 +313,8 @@ describe('constructPost', () => {
     })
 
     it('should not create infill when wall thickness equals exactly 2 * post thickness', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [60, 240, 3000] // Exactly 2 * 120
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [60, 240, 3000] // Exactly 2 * 120
 
       const results = [...constructPost(position, size, doublePostConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -326,8 +326,8 @@ describe('constructPost', () => {
     })
 
     it('should generate error when wall is too narrow for double posts', () => {
-      const position: Vec3 = [0, 0, 0]
-      const size: Vec3 = [60, 200, 3000] // Less than 2 * 120
+      const position: vec3 = [0, 0, 0]
+      const size: vec3 = [60, 200, 3000] // Less than 2 * 120
 
       const results = [...constructPost(position, size, doublePostConfig)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -342,8 +342,8 @@ describe('constructPost', () => {
       const config: DoublePostConfig = {
         ...doublePostConfig,
         material: dimensionalMaterialId,
-        width: 80 as Length,
-        thickness: 100 as Length
+        width: 80,
+        thickness: 100
       }
 
       const results = [...constructPost([0, 0, 0], [80, 300, 3000], config)]
@@ -357,8 +357,8 @@ describe('constructPost', () => {
       const config: DoublePostConfig = {
         ...doublePostConfig,
         material: dimensionalMaterialId,
-        width: 60 as Length,
-        thickness: 120 as Length
+        width: 60,
+        thickness: 120
       }
 
       const results = [...constructPost([0, 0, 0], [60, 300, 3000], config)]
@@ -371,8 +371,8 @@ describe('constructPost', () => {
       const config: DoublePostConfig = {
         ...doublePostConfig,
         material: dimensionalMaterialId,
-        width: 120 as Length,
-        thickness: 60 as Length
+        width: 120,
+        thickness: 60
       }
 
       const results = [...constructPost([0, 0, 0], [120, 200, 3000], config)]
@@ -386,7 +386,7 @@ describe('constructPost', () => {
     it('should handle very small dimensions', () => {
       const config: FullPostConfig = {
         type: 'full',
-        width: 1 as Length,
+        width: 1,
         material: mockWoodMaterial
       }
 
@@ -401,7 +401,7 @@ describe('constructPost', () => {
     it('should handle large dimensions', () => {
       const config: FullPostConfig = {
         type: 'full',
-        width: 1000 as Length,
+        width: 1000,
         material: mockWoodMaterial
       }
 
@@ -426,7 +426,7 @@ describe('constructPost', () => {
     it('should maintain correct element structure for full post', () => {
       const config: FullPostConfig = {
         type: 'full',
-        width: 60 as Length,
+        width: 60,
         material: mockWoodMaterial
       }
 
@@ -445,8 +445,8 @@ describe('constructPost', () => {
     it('should maintain correct element structure for double post', () => {
       const config: DoublePostConfig = {
         type: 'double',
-        width: 60 as Length,
-        thickness: 120 as Length,
+        width: 60,
+        thickness: 120,
         material: mockWoodMaterial,
         infillMaterial: mockStrawMaterial
       }
@@ -467,11 +467,11 @@ describe('constructPost', () => {
 
   describe('coordinate system consistency', () => {
     it('should maintain consistent coordinate system for full post', () => {
-      const position: Vec3 = [100, 200, 300]
-      const size: Vec3 = [60, 180, 2400]
+      const position: vec3 = [100, 200, 300]
+      const size: vec3 = [60, 180, 2400]
       const config: FullPostConfig = {
         type: 'full',
-        width: 60 as Length,
+        width: 60,
         material: mockWoodMaterial
       }
 
@@ -491,12 +491,12 @@ describe('constructPost', () => {
     })
 
     it('should maintain consistent coordinate system for double post', () => {
-      const position: Vec3 = [100, 200, 300]
-      const size: Vec3 = [60, 360, 2400]
+      const position: vec3 = [100, 200, 300]
+      const size: vec3 = [60, 360, 2400]
       const config: DoublePostConfig = {
         type: 'double',
-        width: 60 as Length,
-        thickness: 120 as Length,
+        width: 60,
+        thickness: 120,
         material: mockWoodMaterial,
         infillMaterial: mockStrawMaterial
       }

@@ -1,92 +1,48 @@
-import { mat2d, vec2, vec3 } from 'gl-matrix'
-
-// Core types - simplified with gl-matrix
-export type Vec2 = vec2
-export type Vec3 = vec3
-export type Matrix2D = mat2d
+import { vec2, vec3 } from 'gl-matrix'
 
 // Branded numeric types for type safety
-export type Length = number & { __brand: 'Length' }
-export type Area = number & { __brand: 'Area' }
+export type Length = number
+export type Area = number
 
 // Helper functions to create branded types
-export const createLength = (value: number): Length => value as Length
-export const createArea = (value: number): Area => value as Area
-// Helper function to create Vec2
-export const createVec2 = (x: number, y: number): Vec2 => vec2.fromValues(x, y)
+export const millimeters = (value: number): Length => value
+export const meters = (value: number): Length => value / 1000
+export const centimeters = (value: number): Length => value / 100
+export const squareMeters = (value: number): Area => (value / (1000 * 1000)) as Area
 
 // Bounds interface
 export interface Bounds2D {
-  min: Vec2
-  max: Vec2
+  min: vec2
+  max: vec2
 }
 
-// Basic vector operations using gl-matrix
-export function distance(p1: Vec2, p2: Vec2): Length {
-  return createLength(vec2.distance(p1, p2))
+export function midpoint(p1: vec2, p2: vec2): vec2 {
+  return vec2.lerp(vec2.create(), p1, p2, 0.5)
 }
 
-export function distanceSquared(p1: Vec2, p2: Vec2): number {
-  return vec2.squaredDistance(p1, p2)
-}
-
-export function midpoint(p1: Vec2, p2: Vec2): Vec2 {
-  const result = vec2.create()
-  vec2.lerp(result, p1, p2, 0.5)
-  return result
-}
-
-export function angle(from: Vec2, to: Vec2): number {
+export function angle(from: vec2, to: vec2): number {
   const direction = vec2.create()
   vec2.subtract(direction, to, from)
   return Math.atan2(direction[1], direction[0])
 }
 
-export function add(a: Vec2, b: Vec2): Vec2 {
-  const result = vec2.create()
-  vec2.add(result, a, b)
-  return result
+export function direction(source: vec2, target: vec2): vec2 {
+  return vec2.normalize(vec2.create(), vec2.subtract(vec2.create(), target, source))
 }
 
-export function subtract(a: Vec2, b: Vec2): Vec2 {
-  const result = vec2.create()
-  vec2.subtract(result, a, b)
-  return result
-}
-
-export function scale(v: Vec2, scalar: number): Vec2 {
-  const result = vec2.create()
-  vec2.scale(result, v, scalar)
-  return result
-}
-
-export function normalize(v: Vec2): Vec2 {
-  const result = vec2.create()
-  vec2.normalize(result, v)
-  return result
-}
-
-export function dot(a: Vec2, b: Vec2): number {
-  return vec2.dot(a, b)
-}
-
-export function direction(source: Vec2, target: Vec2): Vec2 {
-  return normalize(subtract(target, source))
-}
-
-export function perpendicular(vector: Vec2): Vec2 {
+export function perpendicular(vector: vec2): vec2 {
   return perpendicularCCW(vector) // Default to counter-clockwise
 }
 
-export function perpendicularCCW(vector: Vec2): Vec2 {
-  return createVec2(-vector[1], vector[0]) // Rotate 90° counterclockwise
+export function perpendicularCCW(vector: vec2): vec2 {
+  return vec2.fromValues(-vector[1], vector[0]) // Rotate 90° counterclockwise
 }
 
-export function perpendicularCW(vector: Vec2): Vec2 {
-  return createVec2(vector[1], -vector[0]) // Rotate 90° clockwise
+export function perpendicularCW(vector: vec2): vec2 {
+  return vec2.fromValues(vector[1], -vector[0]) // Rotate 90° clockwise
 }
 
-export function boundsFromPoints(points: Vec2[]): Bounds2D {
+export function boundsFromPoints(points: vec2[]): Bounds2D {
   if (points.length === 0) {
     throw new Error('No points for boundary')
   }
@@ -104,8 +60,8 @@ export function boundsFromPoints(points: Vec2[]): Bounds2D {
   }
 
   return {
-    min: createVec2(minX, minY),
-    max: createVec2(maxX, maxY)
+    min: vec2.fromValues(minX, minY),
+    max: vec2.fromValues(maxX, maxY)
   }
 }
 
@@ -115,24 +71,18 @@ export type Axis3D = 'x' | 'y' | 'z'
 export const complementaryAxis = (plane: Plane3D): Axis3D => (plane === 'xy' ? 'z' : plane === 'xz' ? 'y' : 'x')
 
 export interface Bounds3D {
-  min: Vec3
-  max: Vec3
+  min: vec3
+  max: vec3
 }
 
-export const vec3Add = (a: Vec3, b: Vec3): Vec3 => {
-  const r = vec3.create()
-  vec3.add(r, a, b)
-  return r
-}
-
-export function boundsFromCuboid(position: Vec3, size: Vec3): Bounds3D {
+export function boundsFromCuboid(position: vec3, size: vec3): Bounds3D {
   return {
     min: position,
-    max: vec3Add(position, size)
+    max: vec3.add(vec2.create(), position, size)
   }
 }
 
-export function boundsFromPoints3D(points: Vec3[]): Bounds3D | null {
+export function boundsFromPoints3D(points: vec3[]): Bounds3D | null {
   if (points.length === 0) return null
 
   let minX = Infinity
@@ -182,24 +132,10 @@ export function mergeBounds(...bounds: Bounds3D[]): Bounds3D {
   }
 }
 
-// Cross product for 2D vectors (returns scalar z-component)
-export function cross2D(a: Vec2, b: Vec2): number {
-  return a[0] * b[1] - a[1] * b[0]
-}
-
-// Calculate the angle between two vectors in radians
-export function angleBetweenVectors(v1: Vec2, v2: Vec2): number {
-  const dotProduct = dot(v1, v2)
-  const crossProduct = cross2D(v1, v2)
-  return Math.atan2(crossProduct, dotProduct)
-}
-
-// Convert degrees to radians
 export function degreesToRadians(degrees: number): number {
   return (degrees * Math.PI) / 180
 }
 
-// Convert radians to degrees
 export function radiansToDegrees(radians: number): number {
   return (radians * 180) / Math.PI
 }

@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PerimeterId } from '@/building/model/ids'
@@ -22,8 +23,6 @@ vi.mock('@/shared/geometry', async () => {
 const simplifyPolygonMock = vi.mocked(geometry.simplifyPolygon)
 const offsetPolygonMock = vi.mocked(geometry.offsetPolygon)
 
-const { createLength, createVec2 } = geometry
-
 function createMockCorner(
   id: string,
   insidePoint: [number, number],
@@ -31,8 +30,8 @@ function createMockCorner(
 ): PerimeterCorner {
   return {
     id: id as any,
-    insidePoint: createVec2(insidePoint[0], insidePoint[1]),
-    outsidePoint: createVec2(insidePoint[0], insidePoint[1]),
+    insidePoint: vec2.fromValues(insidePoint[0], insidePoint[1]),
+    outsidePoint: vec2.fromValues(insidePoint[0], insidePoint[1]),
     constructedByWall,
     interiorAngle: 90,
     exteriorAngle: 270
@@ -52,16 +51,16 @@ const material: MaterialId = 'material-1' as MaterialId
 
 const defaultConfig: FullRingBeamConfig = {
   type: 'full',
-  height: createLength(60),
-  width: createLength(360),
-  offsetFromEdge: createLength(100),
+  height: 60,
+  width: 360,
+  offsetFromEdge: 100,
   material
 }
 
 beforeEach(() => {
   simplifyPolygonMock.mockImplementation((polygon: Polygon2D) => polygon)
   offsetPolygonMock.mockImplementation((polygon: Polygon2D, distance: number) => ({
-    points: polygon.points.map(point => createVec2(point[0] + distance, point[1] + distance))
+    points: polygon.points.map(point => vec2.fromValues(point[0] + distance, point[1] + distance))
   }))
 })
 
@@ -114,8 +113,8 @@ describe('constructFullRingBeam', () => {
 
     const config: FullRingBeamConfig = {
       ...defaultConfig,
-      offsetFromEdge: createLength(50),
-      width: createLength(240)
+      offsetFromEdge: 50,
+      width: 240
     }
 
     constructFullRingBeam(perimeter, config)
@@ -152,10 +151,10 @@ describe('constructRingBeam', () => {
 
     const result = constructRingBeam(perimeter, {
       type: 'double',
-      height: createLength(60),
-      thickness: createLength(120),
-      spacing: createLength(50),
-      offsetFromEdge: createLength(100),
+      height: 60,
+      thickness: 120,
+      spacing: 50,
+      offsetFromEdge: 100,
       material,
       infillMaterial: 'inf' as MaterialId
     })
@@ -170,7 +169,7 @@ describe('validateRingBeamConfig', () => {
     expect(() =>
       validateRingBeamConfig({
         ...defaultConfig,
-        width: createLength(0)
+        width: 0
       })
     ).toThrow('Ring beam width must be greater than 0')
   })
@@ -179,10 +178,10 @@ describe('validateRingBeamConfig', () => {
     expect(() =>
       validateRingBeamConfig({
         type: 'double',
-        height: createLength(60),
-        thickness: createLength(0),
-        spacing: createLength(50),
-        offsetFromEdge: createLength(10),
+        height: 60,
+        thickness: 0,
+        spacing: 50,
+        offsetFromEdge: 10,
         material,
         infillMaterial: material
       })

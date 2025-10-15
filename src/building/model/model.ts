@@ -1,3 +1,5 @@
+import { vec2 } from 'gl-matrix'
+
 import type {
   OpeningId,
   PerimeterConstructionMethodId,
@@ -8,7 +10,7 @@ import type {
   SlabConstructionConfigId,
   StoreyId
 } from '@/building/model/ids'
-import type { Length, LineSegment2D, Vec2 } from '@/shared/geometry'
+import type { Length, LineSegment2D } from '@/shared/geometry'
 
 // Storey level branded type
 export type StoreyLevel = number & { __brand: 'StoreyLevel' }
@@ -69,19 +71,19 @@ export interface PerimeterWall {
   wallLength: Length
   insideLine: LineSegment2D
   outsideLine: LineSegment2D
-  direction: Vec2 // Normalized from start -> end of wall
-  outsideDirection: Vec2 // Normal vector pointing outside
+  direction: vec2 // Normalized from start -> end of wall
+  outsideDirection: vec2 // Normal vector pointing outside
 }
 
 export interface PerimeterCorner {
   id: PerimeterCornerId
 
   // The inside point defines the inner boundary of the building
-  insidePoint: Vec2
+  insidePoint: vec2
 
   // The outside point defines the outer edge after applying wall thickness
   // Together with the inside points and adjacent wall edge points, these define the corner area
-  outsidePoint: Vec2
+  outsidePoint: vec2
 
   // Which wall "owns" this corner - this is relevant for construction
   constructedByWall: 'previous' | 'next'

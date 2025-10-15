@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { PerimeterId } from '@/building/model/ids'
@@ -8,7 +9,7 @@ import { LengthIndicator } from '@/editor/canvas/utils/LengthIndicator'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { activateLengthInput } from '@/editor/services/length-input'
-import { type Length, type Vec2, add, createLength, midpoint, scale } from '@/shared/geometry'
+import { type Length, midpoint } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 import { formatLength } from '@/shared/utils/formatLength'
@@ -19,10 +20,10 @@ interface OpeningShapeProps {
   perimeterId: PerimeterId
 
   // Corner reference points (same as wall wall)
-  insideStartCorner: Vec2
-  insideEndCorner: Vec2
-  outsideStartCorner: Vec2
-  outsideEndCorner: Vec2
+  insideStartCorner: vec2
+  insideEndCorner: vec2
+  outsideStartCorner: vec2
+  outsideEndCorner: vec2
 }
 
 export function OpeningShape({
@@ -45,16 +46,16 @@ export function OpeningShape({
   const wallVector = wall.direction
   const offsetDistance = opening.offsetFromStart
   const centerStart = midpoint(insideStart, outsideStart)
-  const offsetStart = scale(wallVector, offsetDistance)
-  const offsetEnd = add(offsetStart, scale(wallVector, opening.width))
-  const openingStart = add(centerStart, scale(wallVector, offsetDistance))
-  const openingEnd = add(openingStart, scale(wallVector, opening.width))
+  const offsetStart = vec2.scale(vec2.create(), wallVector, offsetDistance)
+  const offsetEnd = vec2.add(vec2.create(), offsetStart, vec2.scale(vec2.create(), wallVector, opening.width))
+  const openingStart = vec2.add(vec2.create(), centerStart, vec2.scale(vec2.create(), wallVector, offsetDistance))
+  const openingEnd = vec2.add(vec2.create(), openingStart, vec2.scale(vec2.create(), wallVector, opening.width))
 
   // Calculate opening polygon corners
-  const insideOpeningStart = add(insideStart, offsetStart)
-  const insideOpeningEnd = add(insideStart, offsetEnd)
-  const outsideOpeningStart = add(outsideStart, offsetStart)
-  const outsideOpeningEnd = add(outsideStart, offsetEnd)
+  const insideOpeningStart = vec2.add(vec2.create(), insideStart, offsetStart)
+  const insideOpeningEnd = vec2.add(vec2.create(), insideStart, offsetEnd)
+  const outsideOpeningStart = vec2.add(vec2.create(), outsideStart, offsetStart)
+  const outsideOpeningEnd = vec2.add(vec2.create(), outsideStart, offsetEnd)
 
   const openingPolygon = [insideOpeningStart, insideOpeningEnd, outsideOpeningEnd, outsideOpeningStart]
   const openingPolygonArray = openingPolygon.flatMap(point => [point[0], point[1]])
@@ -83,15 +84,31 @@ export function OpeningShape({
           ? midpoint(insideOpeningEnd, insideEndCorner)
           : measurementType === 'prevOpening' && previousOpening
             ? midpoint(
-                add(outsideStart, scale(wall.direction, previousOpening.offsetFromStart + previousOpening.width)),
-                add(outsideStart, scale(wall.direction, opening.offsetFromStart))
+                vec2.add(
+                  vec2.create(),
+                  outsideStart,
+                  vec2.scale(vec2.create(), wall.direction, previousOpening.offsetFromStart + previousOpening.width)
+                ),
+                vec2.add(
+                  vec2.create(),
+                  outsideStart,
+                  vec2.scale(vec2.create(), wall.direction, opening.offsetFromStart)
+                )
               )
             : nextOpening
               ? midpoint(
-                  add(outsideStart, scale(wall.direction, opening.offsetFromStart + opening.width)),
-                  add(outsideStart, scale(wall.direction, nextOpening.offsetFromStart))
+                  vec2.add(
+                    vec2.create(),
+                    outsideStart,
+                    vec2.scale(vec2.create(), wall.direction, opening.offsetFromStart + opening.width)
+                  ),
+                  vec2.add(
+                    vec2.create(),
+                    outsideStart,
+                    vec2.scale(vec2.create(), wall.direction, nextOpening.offsetFromStart)
+                  )
                 )
-              : ([0, 0] as Vec2)
+              : ([0, 0] as vec2)
 
     const stagePos = viewportActions.worldToStage(worldPosition)
     // Add small offset to position input near the indicator
@@ -108,13 +125,13 @@ export function OpeningShape({
         let actualDelta: Length
         if (measurementType === 'startCorner' || measurementType === 'prevOpening') {
           // For start corner and prev opening distances: positive delta moves opening away from start
-          actualDelta = createLength(rawDelta)
+          actualDelta = rawDelta
         } else {
           // For end corner and next opening distances: positive delta moves opening toward start (negative offset change)
-          actualDelta = createLength(-rawDelta)
+          actualDelta = -rawDelta
         }
 
-        const newOffsetFromStart = createLength(opening.offsetFromStart + actualDelta)
+        const newOffsetFromStart = opening.offsetFromStart + actualDelta
 
         // Validate the new position
         const isValid = modelActions.isPerimeterWallOpeningPlacementValid(
@@ -180,8 +197,16 @@ export function OpeningShape({
               {(() => {
                 const prevEndOffset = previousOpening.offsetFromStart + previousOpening.width
                 const currentStartOffset = opening.offsetFromStart
-                const prevEndPoint = add(outsideStart, scale(wallVector, prevEndOffset))
-                const currentStartPoint = add(outsideStart, scale(wallVector, currentStartOffset))
+                const prevEndPoint = vec2.add(
+                  vec2.create(),
+                  outsideStart,
+                  vec2.scale(vec2.create(), wallVector, prevEndOffset)
+                )
+                const currentStartPoint = vec2.add(
+                  vec2.create(),
+                  outsideStart,
+                  vec2.scale(vec2.create(), wallVector, currentStartOffset)
+                )
                 return (
                   <ClickableLengthIndicator
                     startPoint={prevEndPoint}
@@ -202,8 +227,16 @@ export function OpeningShape({
               {(() => {
                 const currentEndOffset = opening.offsetFromStart + opening.width
                 const nextStartOffset = nextOpening.offsetFromStart
-                const currentEndPoint = add(outsideStart, scale(wallVector, currentEndOffset))
-                const nextStartPoint = add(outsideStart, scale(wallVector, nextStartOffset))
+                const currentEndPoint = vec2.add(
+                  vec2.create(),
+                  outsideStart,
+                  vec2.scale(vec2.create(), wallVector, currentEndOffset)
+                )
+                const nextStartPoint = vec2.add(
+                  vec2.create(),
+                  outsideStart,
+                  vec2.scale(vec2.create(), wallVector, nextStartOffset)
+                )
                 return (
                   <ClickableLengthIndicator
                     startPoint={currentEndPoint}

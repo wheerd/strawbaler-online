@@ -1,14 +1,6 @@
 import { vec3 } from 'gl-matrix'
 
-import {
-  type Axis3D,
-  type Bounds3D,
-  type Length,
-  type Plane3D,
-  type Polygon2D,
-  mergeBounds,
-  vec3Add
-} from '@/shared/geometry'
+import { type Axis3D, type Bounds3D, type Length, type Plane3D, type Polygon2D, mergeBounds } from '@/shared/geometry'
 
 import { type ConstructionGroup, type GroupOrElement, createConstructionElementId } from './elements'
 import { type Transform, transform, transformBounds } from './geometry'
@@ -141,7 +133,7 @@ export function transformModel(model: ConstructionModel, t: Transform, tags?: Ta
       const startPoint = transform(m.startPoint, t)
       const endPoint = transform(m.endPoint, t)
       if ('size' in m) {
-        const sizeEnd = transform(vec3Add(m.startPoint, m.size), t)
+        const sizeEnd = transform(vec3.add(vec3.create(), m.startPoint, m.size), t)
         const transformedSize = vec3.subtract(vec3.create(), sizeEnd, startPoint)
         return { ...m, startPoint, endPoint, size: transformedSize }
       }

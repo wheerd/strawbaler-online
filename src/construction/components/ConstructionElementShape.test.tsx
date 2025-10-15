@@ -1,11 +1,11 @@
 import { render } from '@testing-library/react'
+import type { vec3 } from 'gl-matrix'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { ConstructionElement } from '@/construction/elements'
 import { createConstructionElement, createCuboidShape, createCutCuboidShape } from '@/construction/elements'
 import type { Projection, RotationProjection } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
-import type { Vec3 } from '@/shared/geometry'
 
 import { ConstructionElementShape } from './ConstructionElementShape'
 
@@ -22,8 +22,8 @@ describe('ConstructionElementShape', () => {
   const mockMaterialId = 'material_test' as MaterialId
 
   // Mock projection functions for testing
-  const mockProjection: Projection = vi.fn((p: Vec3): Vec3 => p)
-  const mockRotationProjection: RotationProjection = vi.fn((r: Vec3): number => (r[2] * 180) / Math.PI)
+  const mockProjection: Projection = vi.fn((p: vec3): vec3 => p)
+  const mockRotationProjection: RotationProjection = vi.fn((r: vec3): number => (r[2] * 180) / Math.PI)
 
   const mockCuboidElement: ConstructionElement = createConstructionElement(
     mockMaterialId,

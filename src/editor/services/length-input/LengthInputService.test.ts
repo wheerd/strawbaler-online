@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { LengthInputService } from './LengthInputService'
 import type { LengthInputConfig } from './types'
@@ -51,7 +51,7 @@ describe('LengthInputService', () => {
     it('should activate with initial value', () => {
       const configWithInitial = {
         ...mockConfig,
-        initialValue: createLength(500),
+        initialValue: 500,
         showImmediately: true
       }
 
@@ -287,7 +287,7 @@ describe('LengthInputService', () => {
     it('should format small values with units', () => {
       const config = {
         ...mockConfig,
-        initialValue: createLength(23),
+        initialValue: 23,
         showImmediately: true
       }
 
@@ -298,7 +298,7 @@ describe('LengthInputService', () => {
     it('should format centimeter values', () => {
       const config = {
         ...mockConfig,
-        initialValue: createLength(50), // 5cm
+        initialValue: 50, // 5cm
         showImmediately: true
       }
 
@@ -309,7 +309,7 @@ describe('LengthInputService', () => {
     it('should format meter values', () => {
       const config = {
         ...mockConfig,
-        initialValue: createLength(1500), // 1.5m
+        initialValue: 1500, // 1.5m
         showImmediately: true
       }
 
@@ -320,7 +320,7 @@ describe('LengthInputService', () => {
     it('should format zero value', () => {
       const config = {
         ...mockConfig,
-        initialValue: createLength(0),
+        initialValue: 0,
         showImmediately: true
       }
 

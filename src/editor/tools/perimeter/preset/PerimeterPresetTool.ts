@@ -1,8 +1,10 @@
+import { vec2 } from 'gl-matrix'
+
 import { getModelActions } from '@/building/store'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
-import type { Polygon2D, Vec2 } from '@/shared/geometry'
-import { add, polygonIsClockwise } from '@/shared/geometry'
+import type { Polygon2D } from '@/shared/geometry'
+import { polygonIsClockwise } from '@/shared/geometry'
 
 import { PerimeterPresetToolInspector } from './PerimeterPresetToolInspector'
 import { PerimeterPresetToolOverlay } from './PerimeterPresetToolOverlay'
@@ -12,7 +14,7 @@ import { LShapedPreset, RectangularPreset } from './presets'
 interface PerimeterPresetToolState {
   activePreset: PerimeterPreset | null
   presetConfig: BasePresetConfig | null
-  previewPosition: Vec2 | null
+  previewPosition: vec2 | null
   previewPolygon: Polygon2D | null
 }
 
@@ -74,7 +76,7 @@ export class PerimeterPresetTool extends BaseTool implements ToolImplementation 
       const points = this.state.activePreset.getPolygonPoints(this.state.presetConfig)
 
       // Translate points to preview position
-      const translatedPoints = points.map(point => add(point, previewPos))
+      const translatedPoints = points.map(point => vec2.add(vec2.create(), point, previewPos))
 
       this.state.previewPolygon = { points: translatedPoints }
     } catch (error) {
@@ -104,7 +106,7 @@ export class PerimeterPresetTool extends BaseTool implements ToolImplementation 
       const points = this.state.activePreset.getPolygonPoints(this.state.presetConfig)
 
       // Translate points to click position
-      const translatedPoints = points.map(point => add(point, event.stageCoordinates))
+      const translatedPoints = points.map(point => vec2.add(vec2.create(), point, event.stageCoordinates))
 
       // Create polygon and ensure clockwise order for perimeters
       let polygon: Polygon2D = { points: translatedPoints }

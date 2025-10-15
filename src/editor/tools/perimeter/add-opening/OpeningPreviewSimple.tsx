@@ -30,7 +30,7 @@ export function OpeningPreviewSimple({
   const sillHeight = opening.sillHeight || 0
 
   // Floor to top measurements (when sill exists)
-  const floorToTop = sillHeight > 0 ? ((sillHeight + openingHeight) as Length) : 0
+  const floorToTop = sillHeight > 0 ? sillHeight + openingHeight : 0
 
   // SVG viewport dimensions - aim for square preview area
   const svgSize = 200
@@ -171,7 +171,7 @@ export function OpeningPreviewSimple({
           <SvgMeasurementIndicator
             startPoint={[openingLeft, wallBottom]}
             endPoint={[openingLeft, openingBottom]}
-            label={formatLength(sillHeight as Length)}
+            label={formatLength(sillHeight)}
             offset={sideHasSpace ? -8 : 8}
             color={getMeasurementColor('sillHeight')}
             fontSize={7}
@@ -182,7 +182,7 @@ export function OpeningPreviewSimple({
           <SvgMeasurementIndicator
             startPoint={[openingLeft + openingWidthSvg, wallBottom]}
             endPoint={[openingLeft + openingWidthSvg, openingTop]}
-            label={formatLength(floorToTop as Length)}
+            label={formatLength(floorToTop)}
             offset={sideHasSpace ? 8 : -8}
             color={getMeasurementColor('topHeight')}
             fontSize={7}

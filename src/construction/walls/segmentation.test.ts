@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createOpeningId, createPerimeterConstructionMethodId, createPerimeterId } from '@/building/model/ids'
@@ -8,7 +9,7 @@ import { IDENTITY } from '@/construction/geometry'
 import { aggregateResults, yieldElement } from '@/construction/results'
 import { TAG_OPENING_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
-import { createLength, createVec2 } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
@@ -56,15 +57,15 @@ function createMockWall(id: string, wallLength: Length, thickness: Length, openi
     outsideLength: wallLength,
     openings,
     insideLine: {
-      start: createVec2(0, 0),
-      end: createVec2(wallLength, 0)
+      start: vec2.fromValues(0, 0),
+      end: vec2.fromValues(wallLength, 0)
     },
     outsideLine: {
-      start: createVec2(0, thickness),
-      end: createVec2(wallLength, thickness)
+      start: vec2.fromValues(0, thickness),
+      end: vec2.fromValues(wallLength, thickness)
     },
-    direction: createVec2(1, 0),
-    outsideDirection: createVec2(0, 1)
+    direction: vec2.fromValues(1, 0),
+    outsideDirection: vec2.fromValues(0, 1)
   }
 }
 
@@ -82,8 +83,8 @@ function createMockPerimeter(walls: PerimeterWall[]): Perimeter {
 function createMockOpening(
   offsetFromStart: Length,
   width: Length,
-  height: Length = createLength(1200),
-  sillHeight: Length = createLength(900)
+  height: Length = 1200,
+  sillHeight: Length = 900
 ): Opening {
   return {
     id: createOpeningId(),
@@ -96,9 +97,9 @@ function createMockOpening(
 }
 
 function createMockCornerInfo(
-  extensionStart: Length = createLength(0),
-  extensionEnd: Length = createLength(0),
-  constructionLength: Length = createLength(3000)
+  extensionStart: Length = 0,
+  extensionEnd: Length = 0,
+  constructionLength: Length = 3000
 ): WallCornerInfo {
   return {
     startCorner: {
@@ -119,16 +120,16 @@ function createMockCornerInfo(
 
 function createMockLayers(): WallLayersConfig {
   return {
-    insideThickness: createLength(30),
-    outsideThickness: createLength(50)
+    insideThickness: 30,
+    outsideThickness: 50
   }
 }
 
-function createMockStoreyContext(storeyHeight: Length = createLength(2500)): WallStoreyContext {
+function createMockStoreyContext(storeyHeight: Length = 2500): WallStoreyContext {
   return {
     storeyHeight,
-    floorTopOffset: 0 as Length,
-    ceilingBottomOffset: 0 as Length
+    floorTopOffset: 0,
+    ceilingBottomOffset: 0
   }
 }
 
@@ -144,16 +145,16 @@ describe('segmentedWallConstruction', () => {
     mockGetWallContext.mockReturnValue({
       startCorner: {
         id: 'start' as any,
-        insidePoint: createVec2(0, 0),
-        outsidePoint: createVec2(0, 300),
+        insidePoint: vec2.fromValues(0, 0),
+        outsidePoint: vec2.fromValues(0, 300),
         constructedByWall: 'next',
         interiorAngle: 90,
         exteriorAngle: 270
       },
       endCorner: {
         id: 'end' as any,
-        insidePoint: createVec2(3000, 0),
-        outsidePoint: createVec2(3000, 300),
+        insidePoint: vec2.fromValues(3000, 0),
+        outsidePoint: vec2.fromValues(3000, 300),
         constructedByWall: 'previous',
         interiorAngle: 90,
         exteriorAngle: 270
@@ -172,7 +173,7 @@ describe('segmentedWallConstruction', () => {
 
     // Mock ring beam methods
     mockGetRingBeamConstructionMethodById.mockReturnValue({
-      config: { height: createLength(60) }
+      config: { height: 60 }
     })
 
     // Mock construction functions
@@ -204,9 +205,9 @@ describe('segmentedWallConstruction', () => {
 
   describe('basic functionality', () => {
     it('should generate corner areas, measurements, and wall construction for wall with no openings', () => {
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300))
+      const wall = createMockWall('wall-1', 3000, 300)
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       const results = [
@@ -253,13 +254,13 @@ describe('segmentedWallConstruction', () => {
     })
 
     it('should handle extensions from corner info', () => {
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300))
+      const wall = createMockWall('wall-1', 3000, 300)
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       // Mock corner info with extensions
-      const cornerInfo = createMockCornerInfo(createLength(100), createLength(150), createLength(3250))
+      const cornerInfo = createMockCornerInfo(100, 150, 3250)
       mockCalculateWallCornerInfo.mockReturnValue(cornerInfo)
 
       const results = [
@@ -288,15 +289,15 @@ describe('segmentedWallConstruction', () => {
     })
 
     it('should calculate positions based on ring beam heights', () => {
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300))
+      const wall = createMockWall('wall-1', 3000, 300)
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       // Mock different ring beam heights
       mockGetRingBeamConstructionMethodById
-        .mockReturnValueOnce({ config: { height: createLength(80) } }) // base
-        .mockReturnValueOnce({ config: { height: createLength(100) } }) // top
+        .mockReturnValueOnce({ config: { height: 80 } }) // base
+        .mockReturnValueOnce({ config: { height: 100 } }) // top
 
       const results = [
         ...segmentedWallConstruction(
@@ -324,10 +325,10 @@ describe('segmentedWallConstruction', () => {
 
   describe('opening handling', () => {
     it('should create segments for wall with single opening in middle', () => {
-      const opening = createMockOpening(createLength(1000), createLength(800))
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300), [opening])
+      const opening = createMockOpening(1000, 800)
+      const wall = createMockWall('wall-1', 3000, 300, [opening])
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       const results = [
@@ -368,10 +369,10 @@ describe('segmentedWallConstruction', () => {
     })
 
     it('should handle opening at start of wall', () => {
-      const opening = createMockOpening(createLength(0), createLength(800))
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300), [opening])
+      const opening = createMockOpening(0, 800)
+      const wall = createMockWall('wall-1', 3000, 300, [opening])
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       const results = [
@@ -395,10 +396,10 @@ describe('segmentedWallConstruction', () => {
     })
 
     it('should handle opening at end of wall', () => {
-      const opening = createMockOpening(createLength(2200), createLength(800))
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300), [opening])
+      const opening = createMockOpening(2200, 800)
+      const wall = createMockWall('wall-1', 3000, 300, [opening])
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       const results = [
@@ -422,11 +423,11 @@ describe('segmentedWallConstruction', () => {
     })
 
     it('should merge adjacent openings with same sill and header heights', () => {
-      const opening1 = createMockOpening(createLength(1000), createLength(800), createLength(1200), createLength(900))
-      const opening2 = createMockOpening(createLength(1800), createLength(600), createLength(1200), createLength(900))
-      const wall = createMockWall('wall-1', createLength(4000), createLength(300), [opening1, opening2])
+      const opening1 = createMockOpening(1000, 800, 1200, 900)
+      const opening2 = createMockOpening(1800, 600, 1200, 900)
+      const wall = createMockWall('wall-1', 4000, 300, [opening1, opening2])
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       const results = [
@@ -452,11 +453,11 @@ describe('segmentedWallConstruction', () => {
     })
 
     it('should not merge adjacent openings with different sill heights', () => {
-      const opening1 = createMockOpening(createLength(1000), createLength(800), createLength(1200), createLength(900))
-      const opening2 = createMockOpening(createLength(1800), createLength(600), createLength(1200), createLength(1000)) // different sill
-      const wall = createMockWall('wall-1', createLength(4000), createLength(300), [opening1, opening2])
+      const opening1 = createMockOpening(1000, 800, 1200, 900)
+      const opening2 = createMockOpening(1800, 600, 1200, 1000) // different sill
+      const wall = createMockWall('wall-1', 4000, 300, [opening1, opening2])
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       const results = [
@@ -478,11 +479,11 @@ describe('segmentedWallConstruction', () => {
     })
 
     it('should not merge adjacent openings with different header heights', () => {
-      const opening1 = createMockOpening(createLength(1000), createLength(800), createLength(1200), createLength(900))
-      const opening2 = createMockOpening(createLength(1800), createLength(600), createLength(1300), createLength(900)) // different height
-      const wall = createMockWall('wall-1', createLength(4000), createLength(300), [opening1, opening2])
+      const opening1 = createMockOpening(1000, 800, 1200, 900)
+      const opening2 = createMockOpening(1800, 600, 1300, 900) // different height
+      const wall = createMockWall('wall-1', 4000, 300, [opening1, opening2])
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       const results = [
@@ -503,11 +504,11 @@ describe('segmentedWallConstruction', () => {
 
     it('should sort openings by position', () => {
       // Create openings in wrong order
-      const opening1 = createMockOpening(createLength(2000), createLength(600))
-      const opening2 = createMockOpening(createLength(500), createLength(800))
-      const wall = createMockWall('wall-1', createLength(4000), createLength(300), [opening1, opening2])
+      const opening1 = createMockOpening(2000, 600)
+      const opening2 = createMockOpening(500, 800)
+      const wall = createMockWall('wall-1', 4000, 300, [opening1, opening2])
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       const results = [
@@ -530,12 +531,12 @@ describe('segmentedWallConstruction', () => {
 
   describe('ring beam integration', () => {
     it('should handle missing ring beam methods gracefully', () => {
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300))
+      const wall = createMockWall('wall-1', 3000, 300)
       const perimeter = createMockPerimeter([wall])
       perimeter.baseRingBeamMethodId = undefined
       perimeter.topRingBeamMethodId = undefined
 
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       mockGetRingBeamConstructionMethodById.mockReturnValue(null)
@@ -564,12 +565,12 @@ describe('segmentedWallConstruction', () => {
     })
 
     it('should call getRingBeamConstructionMethodById with correct IDs', () => {
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300))
+      const wall = createMockWall('wall-1', 3000, 300)
       const perimeter = createMockPerimeter([wall])
       perimeter.baseRingBeamMethodId = 'base-method-id' as any
       perimeter.topRingBeamMethodId = 'top-method-id' as any
 
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
       const results = [
@@ -591,12 +592,12 @@ describe('segmentedWallConstruction', () => {
 
   describe('corner area generation', () => {
     it('should generate corner areas based on corner info', () => {
-      const wall = createMockWall('wall-1', createLength(3000), createLength(300))
+      const wall = createMockWall('wall-1', 3000, 300)
       const perimeter = createMockPerimeter([wall])
-      const wallHeight = createLength(2500)
+      const wallHeight = 2500
       const layers = createMockLayers()
 
-      const cornerInfo = createMockCornerInfo(createLength(100), createLength(150))
+      const cornerInfo = createMockCornerInfo(100, 150)
       mockCalculateWallCornerInfo.mockReturnValue(cornerInfo)
 
       const results = [

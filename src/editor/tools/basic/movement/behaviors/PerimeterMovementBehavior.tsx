@@ -1,3 +1,5 @@
+import { vec2 } from 'gl-matrix'
+
 import type { SelectableId } from '@/building/model/ids'
 import { isPerimeterId } from '@/building/model/ids'
 import type { Perimeter } from '@/building/model/model'
@@ -10,8 +12,7 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { PerimeterMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterMovementPreview'
-import type { Vec2 } from '@/shared/geometry'
-import { add, distanceSquared, subtract } from '@/shared/geometry'
+import type {} from '@/shared/geometry'
 import { arePolygonsIntersecting } from '@/shared/geometry/polygon'
 
 export interface PerimeterEntityContext {
@@ -20,7 +21,7 @@ export interface PerimeterEntityContext {
 }
 
 export interface PerimeterMovementState extends MovementState {
-  movementDelta: Vec2 // The 2D movement delta
+  movementDelta: vec2 // The 2D movement delta
   snapResult?: SnapResult
 }
 
@@ -70,18 +71,18 @@ export class PerimeterMovementBehavior implements MovementBehavior<PerimeterEnti
   ): PerimeterMovementState {
     const { perimeter, snapContext } = context.entity
 
-    const newBoundary = perimeter.corners.map(c => add(c.insidePoint, pointerState.delta))
+    const newBoundary = perimeter.corners.map(c => vec2.add(vec2.create(), c.insidePoint, pointerState.delta))
     let bestSnapResult: SnapResult | undefined
     let bestDist = Infinity
     let finalDelta = pointerState.delta
     for (let i = 0; i < newBoundary.length; i++) {
       const snapResult = context.snappingService.findSnapResult(newBoundary[i], snapContext) ?? undefined
       if (snapResult) {
-        const snapDist = distanceSquared(snapResult.position, newBoundary[i]) * (snapResult.lines ? 5 : 1)
+        const snapDist = vec2.squaredDistance(snapResult.position, newBoundary[i]) * (snapResult.lines ? 5 : 1)
         if (snapDist < bestDist) {
           bestSnapResult = snapResult
           bestDist = snapDist
-          finalDelta = subtract(snapResult.position, perimeter.corners[i].insidePoint)
+          finalDelta = vec2.subtract(vec2.create(), snapResult.position, perimeter.corners[i].insidePoint)
         }
       }
     }
@@ -95,7 +96,7 @@ export class PerimeterMovementBehavior implements MovementBehavior<PerimeterEnti
   validatePosition(movementState: PerimeterMovementState, context: MovementContext<PerimeterEntityContext>): boolean {
     // Check if the moved polygon would intersect with other wall polygons
     const previewBoundary = context.entity.perimeter.corners.map(corner =>
-      add(corner.insidePoint, movementState.movementDelta)
+      vec2.add(vec2.create(), corner.insidePoint, movementState.movementDelta)
     )
 
     // Get other walls on the same floor
@@ -118,9 +119,11 @@ export class PerimeterMovementBehavior implements MovementBehavior<PerimeterEnti
     return context.store.movePerimeter(wallId, movementState.movementDelta)
   }
 
-  applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<PerimeterEntityContext>): boolean {
+  applyRelativeMovement(deltaDifference: vec2, context: MovementContext<PerimeterEntityContext>): boolean {
     // Validate the movement by checking intersections
-    const previewBoundary = context.entity.perimeter.corners.map(corner => add(corner.insidePoint, deltaDifference))
+    const previewBoundary = context.entity.perimeter.corners.map(corner =>
+      vec2.add(vec2.create(), corner.insidePoint, deltaDifference)
+    )
 
     // Get other walls on the same floor
     const currentWall = context.entity.perimeter

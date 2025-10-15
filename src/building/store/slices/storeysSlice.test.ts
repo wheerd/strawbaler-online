@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { StoreyId } from '@/building/model/ids'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { type StoreysSlice, createStoreysSlice } from './storeysSlice'
 
@@ -62,7 +62,7 @@ describe('StoreysSlice', () => {
     })
 
     it('should add a storey with custom height', () => {
-      const height = createLength(4000)
+      const height = 4000
       const storey = store.actions.addStorey('First Floor', height)
 
       expect(Object.keys(store.storeys).length).toBe(1)
@@ -84,13 +84,11 @@ describe('StoreysSlice', () => {
     })
 
     it('should throw error for invalid storey height', () => {
-      expect(() => store.actions.addStorey('Floor', createLength(0))).toThrow('Storey height must be greater than 0')
+      expect(() => store.actions.addStorey('Floor', 0)).toThrow('Storey height must be greater than 0')
     })
 
     it('should throw error for negative storey height', () => {
-      expect(() => store.actions.addStorey('Floor', createLength(-1000))).toThrow(
-        'Storey height must be greater than 0'
-      )
+      expect(() => store.actions.addStorey('Floor', -1000)).toThrow('Storey height must be greater than 0')
     })
   })
 
@@ -210,7 +208,7 @@ describe('StoreysSlice', () => {
   describe('updateStoreyHeight', () => {
     it('should update storey height', () => {
       const storey = store.actions.addStorey('Test Floor')
-      const newHeight = createLength(3500)
+      const newHeight = 3500
 
       store.actions.updateStoreyHeight(storey.id, newHeight)
 
@@ -221,23 +219,19 @@ describe('StoreysSlice', () => {
     it('should throw error for invalid storey height', () => {
       const storey = store.actions.addStorey('Test Floor')
 
-      expect(() => store.actions.updateStoreyHeight(storey.id, createLength(0))).toThrow(
-        'Storey height must be greater than 0'
-      )
+      expect(() => store.actions.updateStoreyHeight(storey.id, 0)).toThrow('Storey height must be greater than 0')
     })
 
     it('should throw error for negative storey height', () => {
       const storey = store.actions.addStorey('Test Floor')
 
-      expect(() => store.actions.updateStoreyHeight(storey.id, createLength(-1000))).toThrow(
-        'Storey height must be greater than 0'
-      )
+      expect(() => store.actions.updateStoreyHeight(storey.id, -1000)).toThrow('Storey height must be greater than 0')
     })
 
     it('should do nothing if storey does not exist', () => {
       const initialStoreys = { ...store.storeys }
 
-      store.actions.updateStoreyHeight('non-existent' as StoreyId, createLength(3000))
+      store.actions.updateStoreyHeight('non-existent' as StoreyId, 3000)
 
       expect(store.storeys).toEqual(initialStoreys)
     })

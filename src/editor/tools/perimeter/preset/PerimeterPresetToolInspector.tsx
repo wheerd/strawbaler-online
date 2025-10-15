@@ -5,7 +5,7 @@ import { useCallback } from 'react'
 import { useDefaultPerimeterMethodId, usePerimeterConstructionMethods } from '@/construction/config/store'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import type { PerimeterPresetTool } from './PerimeterPresetTool'
@@ -68,9 +68,9 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
         <RectangularPresetDialog
           onConfirm={handleRectangularPresetConfirm}
           initialConfig={{
-            width: createLength(4000),
-            length: createLength(6000),
-            thickness: createLength(440),
+            width: 4000,
+            length: 6000,
+            thickness: 440,
             constructionMethodId: defaultPerimeterMethodId
           }}
           trigger={
@@ -85,12 +85,12 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
         <LShapedPresetDialog
           onConfirm={handleLShapedPresetConfirm}
           initialConfig={{
-            width1: createLength(8000),
-            length1: createLength(6000),
-            width2: createLength(4000),
-            length2: createLength(3000),
+            width1: 8000,
+            length1: 6000,
+            width2: 4000,
+            length2: 3000,
             rotation: 0,
-            thickness: createLength(440),
+            thickness: 440,
             constructionMethodId: defaultPerimeterMethodId
           }}
           trigger={

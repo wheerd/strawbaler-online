@@ -1,9 +1,11 @@
+import type { vec3 } from 'gl-matrix'
+
 import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
 import { type ConstructionResult, yieldElement, yieldMeasurement } from '@/construction/results'
 import { TAG_INFILL, TAG_MODULE_WIDTH } from '@/construction/tags'
-import type { Length, Vec3 } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
 
 export interface BaseModuleConfig {
   type: 'single' | 'double'
@@ -25,15 +27,15 @@ export interface DoubleFrameModuleConfig extends BaseModuleConfig {
 export type ModuleConfig = SingleFrameModuleConfig | DoubleFrameModuleConfig
 
 function* constructSingleFrameModule(
-  position: Vec3,
-  size: Vec3,
+  position: vec3,
+  size: vec3,
   config: SingleFrameModuleConfig
 ): Generator<ConstructionResult> {
   const { frameThickness, frameMaterial } = config
 
   // Calculate straw area (inset by frameThickness on all sides)
-  const strawPosition: Vec3 = [position[0] + frameThickness, position[1], position[2] + frameThickness]
-  const strawSize: Vec3 = [size[0] - 2 * frameThickness, size[1], size[2] - 2 * frameThickness]
+  const strawPosition: vec3 = [position[0] + frameThickness, position[1], position[2] + frameThickness]
+  const strawSize: vec3 = [size[0] - 2 * frameThickness, size[1], size[2] - 2 * frameThickness]
 
   // Top frame
   const topFrame: ConstructionElement = createConstructionElement(
@@ -86,15 +88,15 @@ function* constructSingleFrameModule(
 }
 
 function* constructDoubleFrameModule(
-  position: Vec3,
-  size: Vec3,
+  position: vec3,
+  size: vec3,
   config: DoubleFrameModuleConfig
 ): Generator<ConstructionResult> {
   const { frameThickness, frameWidth, frameMaterial } = config
 
   // Calculate straw area (inset by frameThickness on all sides)
-  const strawPosition: Vec3 = [position[0] + frameThickness, position[1], position[2] + frameThickness]
-  const strawSize: Vec3 = [size[0] - 2 * frameThickness, size[1], size[2] - 2 * frameThickness]
+  const strawPosition: vec3 = [position[0] + frameThickness, position[1], position[2] + frameThickness]
+  const strawSize: vec3 = [size[0] - 2 * frameThickness, size[1], size[2] - 2 * frameThickness]
 
   // Top frame - 2 beams
   const topFrame1: ConstructionElement = createConstructionElement(
@@ -182,7 +184,7 @@ function* constructDoubleFrameModule(
   })
 }
 
-export function constructModule(position: Vec3, size: Vec3, config: ModuleConfig): Generator<ConstructionResult> {
+export function constructModule(position: vec3, size: vec3, config: ModuleConfig): Generator<ConstructionResult> {
   if (config.type === 'single') {
     return constructSingleFrameModule(position, size, config)
   } else if (config.type === 'double') {

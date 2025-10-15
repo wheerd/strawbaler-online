@@ -1,7 +1,8 @@
 import Clipper2Z, { type MainModule as ClipperModule, type PathD, type PathsD, type PointD } from 'clipper2-wasm'
 import clipperWasmUrl from 'clipper2-wasm/dist/es/clipper2z.wasm?url'
+import { vec2 } from 'gl-matrix'
 
-import type { Vec2 } from '@/shared/geometry/basic'
+import type {} from '@/shared/geometry/basic'
 
 let clipperModuleInstance: ClipperModule | null = null
 let clipperModulePromise: Promise<ClipperModule> | null = null
@@ -46,11 +47,11 @@ export function getClipperModule(): ClipperModule {
   )
 }
 
-export function createPointD(point: Vec2): PointD {
+export function createPointD(point: vec2): PointD {
   return new (getClipperModule().PointD)(point[0], point[1], 0)
 }
 
-export function createPathD(points: Vec2[]): PathD {
+export function createPathD(points: vec2[]): PathD {
   const module = getClipperModule()
   const path = new module.PathD()
   for (const point of points) {
@@ -68,8 +69,8 @@ export function createPathsD(paths: PathD[]): PathsD {
   return pathsD
 }
 
-export function pathDToPoints(path: PathD): Vec2[] {
-  const result: Vec2[] = []
+export function pathDToPoints(path: PathD): vec2[] {
+  const result: vec2[] = []
   const size = path.size()
   for (let i = 0; i < size; i++) {
     const point = path.get(i)

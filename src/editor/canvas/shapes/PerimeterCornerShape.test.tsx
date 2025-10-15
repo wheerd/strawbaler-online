@@ -1,9 +1,10 @@
 import { render } from '@testing-library/react'
+import { vec2 } from 'gl-matrix'
 import { describe, expect, it, vi } from 'vitest'
 
 import { createPerimeterCornerId, createPerimeterWallId } from '@/building/model/ids'
 import type { PerimeterCorner, PerimeterWall } from '@/building/model/model'
-import { createLength, createVec2 } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { PerimeterCornerShape } from './PerimeterCornerShape'
 
@@ -23,22 +24,22 @@ vi.mock('@/construction/config/store', () => ({
 describe('PerimeterCornerShape', () => {
   const createMockWall = (direction: [number, number]): PerimeterWall => ({
     id: createPerimeterWallId(),
-    thickness: createLength(440),
+    thickness: 440,
     constructionMethodId: 'method1' as any,
     openings: [],
-    insideLength: createLength(1000),
-    outsideLength: createLength(1000),
-    wallLength: createLength(1000),
-    insideLine: { start: createVec2(0, 0), end: createVec2(direction[0], direction[1]) },
-    outsideLine: { start: createVec2(0, 0), end: createVec2(direction[0], direction[1]) },
-    direction: createVec2(direction[0], direction[1]),
-    outsideDirection: createVec2(-direction[1], direction[0])
+    insideLength: 1000,
+    outsideLength: 1000,
+    wallLength: 1000,
+    insideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(direction[0], direction[1]) },
+    outsideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(direction[0], direction[1]) },
+    direction: vec2.fromValues(direction[0], direction[1]),
+    outsideDirection: vec2.fromValues(-direction[1], direction[0])
   })
 
   const createMockCorner = (interiorAngleDegrees: number): PerimeterCorner => ({
     id: createPerimeterCornerId(),
-    insidePoint: createVec2(100, 100),
-    outsidePoint: createVec2(120, 120),
+    insidePoint: vec2.fromValues(100, 100),
+    outsidePoint: vec2.fromValues(120, 120),
     constructedByWall: 'next',
     interiorAngle: interiorAngleDegrees,
     exteriorAngle: 360 - interiorAngleDegrees

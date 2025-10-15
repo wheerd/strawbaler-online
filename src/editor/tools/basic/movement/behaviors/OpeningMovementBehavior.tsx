@@ -1,3 +1,5 @@
+import { vec2 } from 'gl-matrix'
+
 import type { SelectableId } from '@/building/model/ids'
 import { isOpeningId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
@@ -9,8 +11,7 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { OpeningMovementPreview } from '@/editor/tools/basic/movement/previews/OpeningMovementPreview'
-import type { Length, Vec2 } from '@/shared/geometry'
-import { add, createLength, dot, scale, subtract } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
 
 // Opening movement needs access to the wall, wall, and opening
 export interface OpeningEntityContext {
@@ -22,7 +23,7 @@ export interface OpeningEntityContext {
 // Opening movement state tracks offset changes along the wall
 export interface OpeningMovementState extends MovementState {
   newOffset: Length
-  movementDelta: Vec2 // [offsetChange, 0] format for simplicity
+  movementDelta: vec2 // [offsetChange, 0] format for simplicity
 }
 
 export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityContext, OpeningMovementState> {
@@ -65,22 +66,30 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
 
     // Constrain to wall direction only - project the pointer delta onto wall direction
     const wallDirection = wall.direction
-    const projectedDistance = dot(pointerState.delta, wallDirection)
+    const projectedDistance = vec2.dot(pointerState.delta, wallDirection)
 
     // Calculate new offset along wall (can be negative)
     const wallStart = wall.insideLine.start
-    const currentPosition = add(wallStart, scale(wall.direction, opening.offsetFromStart))
-    const newPosition = add(currentPosition, scale(wallDirection, projectedDistance))
+    const currentPosition = vec2.add(
+      vec2.create(),
+      wallStart,
+      vec2.scale(vec2.create(), wall.direction, opening.offsetFromStart)
+    )
+    const newPosition = vec2.add(
+      vec2.create(),
+      currentPosition,
+      vec2.scale(vec2.create(), wallDirection, projectedDistance)
+    )
 
     // Use proper signed distance calculation to handle negative offsets
-    const deltaFromStart = subtract(newPosition, wallStart)
-    const signedOffset = dot(deltaFromStart, wallDirection)
+    const deltaFromStart = vec2.subtract(vec2.create(), newPosition, wallStart)
+    const signedOffset = vec2.dot(deltaFromStart, wallDirection)
 
     // Try to snap to nearest valid position
     const snappedOffset = context.store.findNearestValidPerimeterWallOpeningPosition(
       perimeter.id,
       wall.id,
-      createLength(signedOffset),
+      signedOffset,
       opening.width,
       opening.id
     )
@@ -90,7 +99,7 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
     const finalOffset =
       snappedOffset !== null && Math.abs(snappedOffset - signedOffset) <= maxSnapDistance
         ? snappedOffset
-        : createLength(Math.max(0, signedOffset)) // Clamp to non-negative only if no snap
+        : Math.max(0, signedOffset) // Clamp to non-negative only if no snap
 
     return {
       newOffset: finalOffset,
@@ -120,11 +129,11 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
     return true
   }
 
-  applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<OpeningEntityContext>): boolean {
+  applyRelativeMovement(deltaDifference: vec2, context: MovementContext<OpeningEntityContext>): boolean {
     const { perimeter, wall, opening } = context.entity
 
     // Use deltaDifference[0] as the offset change (1D movement along wall)
-    const newOffset = createLength(opening.offsetFromStart + deltaDifference[0])
+    const newOffset = opening.offsetFromStart + deltaDifference[0]
 
     // Validate the new position
     if (

@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import React from 'react'
 import { Circle, Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
@@ -7,7 +8,6 @@ import type {
   PerimeterEntityContext,
   PerimeterMovementState
 } from '@/editor/tools/basic/movement/behaviors/PerimeterMovementBehavior'
-import { add } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 
 export function PerimeterMovementPreview({
@@ -17,7 +17,9 @@ export function PerimeterMovementPreview({
 }: MovementPreviewComponentProps<PerimeterEntityContext, PerimeterMovementState>): React.JSX.Element {
   const theme = useCanvasTheme()
   const perimeter = context.entity.perimeter
-  const previewBoundary = perimeter.corners.map(corner => add(corner.insidePoint, movementState.movementDelta))
+  const previewBoundary = perimeter.corners.map(corner =>
+    vec2.add(vec2.create(), corner.insidePoint, movementState.movementDelta)
+  )
 
   return (
     <Group>

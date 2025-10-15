@@ -1,3 +1,5 @@
+import { vec2 } from 'gl-matrix'
+
 import type { PerimeterConstructionMethodId, RingBeamConstructionMethodId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config/store'
@@ -8,16 +10,10 @@ import { SnappingService } from '@/editor/services/snapping'
 import type { SnapResult, SnappingContext } from '@/editor/services/snapping/types'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
-import type { Length, LineSegment2D, Polygon2D, Vec2 } from '@/shared/geometry'
+import type { Length, LineSegment2D, Polygon2D } from '@/shared/geometry'
 import {
-  add,
-  createLength,
-  createVec2,
-  distanceSquared,
-  normalize,
+  direction,
   polygonIsClockwise,
-  scale,
-  subtract,
   wouldClosingPolygonSelfIntersect,
   wouldPolygonSelfIntersect
 } from '@/shared/geometry'
@@ -26,8 +22,8 @@ import { PerimeterToolInspector } from './PerimeterToolInspector'
 import { PerimeterToolOverlay } from './PerimeterToolOverlay'
 
 interface PerimeterToolState {
-  points: Vec2[]
-  pointer: Vec2
+  points: vec2[]
+  pointer: vec2
   snapResult?: SnapResult
   snapContext: SnappingContext
   isCurrentLineValid: boolean
@@ -46,7 +42,7 @@ export class PerimeterTool extends BaseTool implements ToolImplementation {
 
   public state: PerimeterToolState = {
     points: [],
-    pointer: createVec2(0, 0),
+    pointer: vec2.fromValues(0, 0),
     snapContext: {
       snapPoints: [],
       alignPoints: [],
@@ -54,7 +50,7 @@ export class PerimeterTool extends BaseTool implements ToolImplementation {
     },
     isCurrentLineValid: true,
     isClosingLineValid: true,
-    wallThickness: createLength(440), // Default 44cm thickness,
+    wallThickness: 440, // Default 44cm thickness,
     constructionMethodId: '' as PerimeterConstructionMethodId, // Set on activation
     lengthOverride: null
   }
@@ -71,7 +67,7 @@ export class PerimeterTool extends BaseTool implements ToolImplementation {
     const firstPoint = this.state.points[0]
     const snapPos = this.state.snapResult.position
     // Use a small threshold (5mm) to detect if snapping to first point
-    return distanceSquared(firstPoint, snapPos) < 25 // 5mm squared
+    return vec2.squaredDistance(firstPoint, snapPos) < 25 // 5mm squared
   }
 
   public setConstructionMethod(methodId: PerimeterConstructionMethodId): void {
@@ -154,8 +150,8 @@ export class PerimeterTool extends BaseTool implements ToolImplementation {
       let pointToAdd = snapCoords
       if (this.state.lengthOverride && this.state.points.length > 0) {
         const lastPoint = this.state.points[this.state.points.length - 1]
-        const direction = normalize(subtract(snapCoords, lastPoint))
-        pointToAdd = add(lastPoint, scale(direction, this.state.lengthOverride))
+        const dir = direction(snapCoords, lastPoint)
+        pointToAdd = vec2.scaleAndAdd(vec2.create(), lastPoint, dir, this.state.lengthOverride)
       }
 
       this.state.points.push(pointToAdd)
@@ -214,7 +210,7 @@ export class PerimeterTool extends BaseTool implements ToolImplementation {
   /**
    * Get the preview position for the next point, considering length override
    */
-  public getPreviewPosition(): Vec2 {
+  public getPreviewPosition(): vec2 {
     const currentPos = this.state.snapResult?.position ?? this.state.pointer
 
     // If no length override or no points, return current position
@@ -224,8 +220,8 @@ export class PerimeterTool extends BaseTool implements ToolImplementation {
 
     // Calculate position at override distance in direction of cursor
     const lastPoint = this.state.points[this.state.points.length - 1]
-    const direction = normalize(subtract(currentPos, lastPoint))
-    return add(lastPoint, scale(direction, this.state.lengthOverride))
+    const dir = direction(currentPos, lastPoint)
+    return vec2.scaleAndAdd(vec2.create(), lastPoint, dir, this.state.lengthOverride)
   }
 
   onActivate(): void {

@@ -1,12 +1,12 @@
-import { mat4, vec3 } from 'gl-matrix'
+import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { GroupOrElement } from '@/construction/elements'
-import type { Axis3D, Bounds2D, Bounds3D, Plane3D, Vec2, Vec3 } from '@/shared/geometry'
-import { boundsFromPoints, boundsFromPoints3D, createVec2 } from '@/shared/geometry'
+import type { Axis3D, Bounds2D, Bounds3D, Plane3D } from '@/shared/geometry'
+import { boundsFromPoints, boundsFromPoints3D } from '@/shared/geometry'
 
 export interface Transform {
-  readonly position: Vec3
-  readonly rotation: Vec3 // Euler angles
+  readonly position: vec3
+  readonly rotation: vec3 // Euler angles
 }
 
 export const IDENTITY: Transform = {
@@ -14,7 +14,7 @@ export const IDENTITY: Transform = {
   rotation: [0, 0, 0]
 }
 
-export function transform(v: Vec3, t: Transform, origin?: Vec3): Vec3 {
+export function transform(v: vec3, t: Transform, origin?: vec3): vec3 {
   // Create transformation matrix
   const matrix = mat4.create()
 
@@ -46,7 +46,7 @@ export function transform(v: Vec3, t: Transform, origin?: Vec3): Vec3 {
 
 export function transformBounds(bounds: Bounds3D, t: Transform): Bounds3D {
   // Transform all 8 corner points of the bounding box
-  const corners: Vec3[] = [
+  const corners: vec3[] = [
     [bounds.min[0], bounds.min[1], bounds.min[2]], // min corner
     [bounds.max[0], bounds.min[1], bounds.min[2]],
     [bounds.min[0], bounds.max[1], bounds.min[2]],
@@ -95,7 +95,7 @@ export const createZOrder = (axis: Axis3D, viewOrder: 'ascending' | 'descending'
 
 export const bounds3Dto2D = (bounds: Bounds3D, projection: Projection): Bounds2D => {
   // Project all 8 corners and find 2D bounds
-  const corners: Vec3[] = [
+  const corners: vec3[] = [
     [bounds.min[0], bounds.min[1], bounds.min[2]],
     [bounds.max[0], bounds.min[1], bounds.min[2]],
     [bounds.min[0], bounds.max[1], bounds.min[2]],
@@ -109,25 +109,25 @@ export const bounds3Dto2D = (bounds: Bounds3D, projection: Projection): Bounds2D
   // Project all corners to 2D
   const projectedCorners = corners.map(corner => {
     const projected = projection(corner)
-    return createVec2(projected[0], projected[1])
+    return vec2.fromValues(projected[0], projected[1])
   })
 
   // Find 2D bounds from projected points
   return boundsFromPoints(projectedCorners)
 }
 
-export type Projection = (p: Vec3) => Vec3
-export type RotationProjection = (r: Vec3) => number
+export type Projection = (p: vec3) => vec3
+export type RotationProjection = (r: vec3) => number
 export type CutFunction = (element: { bounds: Bounds3D; transform?: Transform }) => boolean
 
 export const project = (plane: Plane3D): Projection => {
   switch (plane) {
     case 'xy':
-      return (p: Vec3): Vec3 => vec3.fromValues(p[0], p[1], p[2])
+      return (p: vec3): vec3 => vec3.fromValues(p[0], p[1], p[2])
     case 'xz':
-      return (p: Vec3): Vec3 => vec3.fromValues(p[0], p[2], p[1])
+      return (p: vec3): vec3 => vec3.fromValues(p[0], p[2], p[1])
     case 'yz':
-      return (p: Vec3): Vec3 => vec3.fromValues(p[1], p[2], p[0])
+      return (p: vec3): vec3 => vec3.fromValues(p[1], p[2], p[0])
     default:
       throw new Error(`Unknown plane: ${plane}`)
   }
@@ -136,11 +136,11 @@ export const project = (plane: Plane3D): Projection => {
 export const projectRotation = (plane: Plane3D): RotationProjection => {
   switch (plane) {
     case 'xy':
-      return (r: Vec3): number => (r[2] / Math.PI) * 180
+      return (r: vec3): number => (r[2] / Math.PI) * 180
     case 'xz':
-      return (r: Vec3): number => (r[1] / Math.PI) * 180
+      return (r: vec3): number => (r[1] / Math.PI) * 180
     case 'yz':
-      return (r: Vec3): number => (r[0] / Math.PI) * 180
+      return (r: vec3): number => (r[0] / Math.PI) * 180
     default:
       throw new Error(`Unknown plane: ${plane}`)
   }
@@ -168,7 +168,7 @@ export const createSvgTransform = (
 
 export const IDENTITY_PROJECTION: Projection = v => v
 
-export function* allPoints(element: GroupOrElement, projection: Projection): Generator<Vec2> {
+export function* allPoints(element: GroupOrElement, projection: Projection): Generator<vec2> {
   if ('shape' in element) {
     yield projection(transform(element.shape.bounds.min, element.transform))
     yield projection(transform([element.shape.bounds.min[0], element.bounds.max[1]], element.transform))

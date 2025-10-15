@@ -1,7 +1,7 @@
+import type { vec3 } from 'gl-matrix'
 import * as THREE from 'three'
 
 import type { CutCuboid, ExtrudedPolygon } from '@/construction/shapes'
-import type { Vec3 } from '@/shared/geometry'
 
 interface VerticesAndIndices {
   vertices: Float32Array
@@ -15,8 +15,8 @@ export function computeCutCuboidVertices(shape: CutCuboid): VerticesAndIndices {
   const startCut = shape.startCut
   const endCut = shape.endCut
 
-  let v0: Vec3, v1: Vec3, v2: Vec3, v3: Vec3
-  let v4: Vec3, v5: Vec3, v6: Vec3, v7: Vec3
+  let v0: vec3, v1: vec3, v2: vec3, v3: vec3
+  let v4: vec3, v5: vec3, v6: vec3, v7: vec3
 
   if (startCut?.plane === 'xy' && startCut?.axis === 'y') {
     const angleRad = (startCut.angle * Math.PI) / 180

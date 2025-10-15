@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_SLAB_CONFIG_ID, type StoreyId } from '@/building/model/ids'
 import { type Storey, createStoreyLevel } from '@/building/model/model'
 import { useActiveStoreyId, useModelActions, useStoreysOrderedByLevel } from '@/building/store'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { StoreySelector } from './StoreySelector'
 
@@ -33,14 +33,14 @@ describe('StoreySelector', () => {
       id: 'storey-1' as StoreyId,
       name: 'Ground Floor',
       level: createStoreyLevel(0),
-      height: createLength(3000),
+      height: 3000,
       slabConstructionConfigId: DEFAULT_SLAB_CONFIG_ID
     },
     {
       id: 'storey-2' as StoreyId,
       name: 'First Floor',
       level: createStoreyLevel(1),
-      height: createLength(3000),
+      height: 3000,
       slabConstructionConfigId: DEFAULT_SLAB_CONFIG_ID
     }
   ]

@@ -1,13 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-
-import { createVec2 } from '@/shared/geometry'
+import { vec2 } from 'gl-matrix'
 
 import { SVGViewport } from './SVGViewport'
 
 describe('SVGViewport', () => {
   const testContentBounds = {
-    min: createVec2(0, 0),
-    max: createVec2(100, 100)
+    min: vec2.fromValues(0, 0),
+    max: vec2.fromValues(100, 100)
   }
   const TestContent = () => <rect x="10" y="10" width="80" height="80" fill="blue" data-testid="test-rect" />
 

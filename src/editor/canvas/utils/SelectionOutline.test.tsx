@@ -1,7 +1,8 @@
 import { render } from '@testing-library/react'
+import { vec2 } from 'gl-matrix'
 import { vi } from 'vitest'
 
-import { createVec2, offsetPolygon } from '@/shared/geometry'
+import { offsetPolygon } from '@/shared/geometry'
 
 import { SelectionOutline } from './SelectionOutline'
 
@@ -27,7 +28,7 @@ describe('SelectionOutline', () => {
   })
 
   it('renders without crashing for valid polygon', () => {
-    const points = [createVec2(0, 0), createVec2(100, 0), createVec2(100, 100), createVec2(0, 100)]
+    const points = [vec2.fromValues(0, 0), vec2.fromValues(100, 0), vec2.fromValues(100, 100), vec2.fromValues(0, 100)]
 
     expect(() => {
       render(<SelectionOutline points={points} />)
@@ -37,7 +38,7 @@ describe('SelectionOutline', () => {
   it('uses zoom value for responsive styling', () => {
     mockUseZoom.mockReturnValue(2.0)
 
-    const points = [createVec2(0, 0), createVec2(100, 0), createVec2(100, 100), createVec2(0, 100)]
+    const points = [vec2.fromValues(0, 0), vec2.fromValues(100, 0), vec2.fromValues(100, 100), vec2.fromValues(0, 100)]
 
     expect(() => {
       render(<SelectionOutline points={points} />)
@@ -47,14 +48,14 @@ describe('SelectionOutline', () => {
   })
 
   it('returns null for invalid polygons', () => {
-    const invalidPoints = [createVec2(0, 0), createVec2(100, 0)]
+    const invalidPoints = [vec2.fromValues(0, 0), vec2.fromValues(100, 0)]
 
     const result = render(<SelectionOutline points={invalidPoints} />)
     expect(result.container.firstChild).toBeNull()
   })
 
   it('uses correct theme colors', () => {
-    const points = [createVec2(0, 0), createVec2(100, 0), createVec2(100, 100), createVec2(0, 100)]
+    const points = [vec2.fromValues(0, 0), vec2.fromValues(100, 0), vec2.fromValues(100, 100), vec2.fromValues(0, 100)]
 
     expect(() => {
       render(<SelectionOutline points={points} />)

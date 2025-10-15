@@ -7,7 +7,6 @@ import { useActiveStoreyId, useModelActions } from '@/building/store'
 import { defaultStoreyManagementService } from '@/building/store/services/StoreyManagementService'
 import { SlabConfigSelectWithEdit } from '@/construction/config/components/SlabConfigSelectWithEdit'
 import { LengthField } from '@/shared/components/LengthField'
-import { type Length } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 export function getLevelColor(level: number): 'grass' | 'indigo' | 'brown' {
@@ -152,11 +151,11 @@ export function StoreyListItem({
 
         {/* Height input */}
         <LengthField
-          min={1000 as Length}
-          max={10000 as Length}
+          min={1000}
+          max={10000}
           precision={3}
           unit="m"
-          step={100 as Length}
+          step={100}
           style={{ width: '6.5rem' }}
           value={storey.height}
           onCommit={value => updateStoreyHeight(storey.id, value)}

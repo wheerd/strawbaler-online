@@ -1,8 +1,9 @@
+import { vec2 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createPerimeterId, createPerimeterWallId } from '@/building/model/ids'
 import type { PerimeterWall } from '@/building/model/model'
-import { createLength, createVec2 } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { SplitWallTool } from './SplitWallTool'
 
@@ -60,22 +61,22 @@ describe('SplitWallTool', () => {
     // Mock wall with 1000mm length
     const mockWall: PerimeterWall = {
       id: wallId,
-      thickness: createLength(440),
+      thickness: 440,
       constructionMethodId: 'method1' as any,
       openings: [],
-      insideLength: createLength(1000),
-      outsideLength: createLength(1000),
-      wallLength: createLength(1000),
+      insideLength: 1000,
+      outsideLength: 1000,
+      wallLength: 1000,
       insideLine: {
-        start: createVec2(0, 0),
-        end: createVec2(1000, 0)
+        start: vec2.fromValues(0, 0),
+        end: vec2.fromValues(1000, 0)
       },
       outsideLine: {
-        start: createVec2(0, 440),
-        end: createVec2(1000, 440)
+        start: vec2.fromValues(0, 440),
+        end: vec2.fromValues(1000, 440)
       },
-      direction: createVec2(1, 0),
-      outsideDirection: createVec2(0, 1)
+      direction: vec2.fromValues(1, 0),
+      outsideDirection: vec2.fromValues(0, 1)
     }
 
     const mockPerimeter = {
@@ -89,7 +90,7 @@ describe('SplitWallTool', () => {
     tool.state.selectedWallId = wallId
     tool.state.wall = mockWall
     tool.state.perimeter = mockPerimeter as any
-    tool.updateTargetPosition(createLength(500))
+    tool.updateTargetPosition(500)
 
     expect(tool.state.selectedWallId).toBe(wallId)
     expect(tool.state.selectedPerimeterId).toBe(perimeterId)
@@ -103,31 +104,31 @@ describe('SplitWallTool', () => {
 
     const mockWall: PerimeterWall = {
       id: wallId,
-      thickness: createLength(440),
+      thickness: 440,
       constructionMethodId: 'method1' as any,
       openings: [
         {
           id: 'opening1' as any,
           type: 'door',
-          width: createLength(800),
-          height: createLength(2000),
-          offsetFromStart: createLength(200),
-          sillHeight: createLength(0)
+          width: 800,
+          height: 2000,
+          offsetFromStart: 200,
+          sillHeight: 0
         }
       ],
-      insideLength: createLength(2000),
-      outsideLength: createLength(2000),
-      wallLength: createLength(2000),
+      insideLength: 2000,
+      outsideLength: 2000,
+      wallLength: 2000,
       insideLine: {
-        start: createVec2(0, 0),
-        end: createVec2(2000, 0)
+        start: vec2.fromValues(0, 0),
+        end: vec2.fromValues(2000, 0)
       },
       outsideLine: {
-        start: createVec2(0, 440),
-        end: createVec2(2000, 440)
+        start: vec2.fromValues(0, 440),
+        end: vec2.fromValues(2000, 440)
       },
-      direction: createVec2(1, 0),
-      outsideDirection: createVec2(0, 1)
+      direction: vec2.fromValues(1, 0),
+      outsideDirection: vec2.fromValues(0, 1)
     }
 
     const mockPerimeter = {
@@ -143,26 +144,26 @@ describe('SplitWallTool', () => {
     tool.state.perimeter = mockPerimeter as any
 
     // Test valid position (before opening)
-    tool.updateTargetPosition(createLength(100))
+    tool.updateTargetPosition(100)
     expect(tool.state.isValidSplit).toBe(true)
     expect(tool.state.splitError).toBeNull()
 
     // Test invalid position (inside opening: 200-1000mm)
-    tool.updateTargetPosition(createLength(500))
+    tool.updateTargetPosition(500)
     expect(tool.state.isValidSplit).toBe(false)
     expect(tool.state.splitError).toContain('door opening')
 
     // Test valid position (after opening)
-    tool.updateTargetPosition(createLength(1500))
+    tool.updateTargetPosition(1500)
     expect(tool.state.isValidSplit).toBe(true)
     expect(tool.state.splitError).toBeNull()
 
     // Test invalid positions at boundaries
-    tool.updateTargetPosition(createLength(0))
+    tool.updateTargetPosition(0)
     expect(tool.state.isValidSplit).toBe(false)
     expect(tool.state.splitError).toContain('wall bounds')
 
-    tool.updateTargetPosition(createLength(2000))
+    tool.updateTargetPosition(2000)
     expect(tool.state.isValidSplit).toBe(false)
     expect(tool.state.splitError).toContain('wall bounds')
   })

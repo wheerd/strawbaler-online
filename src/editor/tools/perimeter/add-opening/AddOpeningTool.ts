@@ -1,3 +1,5 @@
+import { vec2 } from 'gl-matrix'
+
 import {
   type EntityType,
   type PerimeterId,
@@ -12,8 +14,8 @@ import { entityHitTestService } from '@/editor/canvas/services/EntityHitTestServ
 import { getSelectionActions } from '@/editor/hooks/useSelectionStore'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
-import type { Length, Vec2 } from '@/shared/geometry'
-import { createLength, createVec2, distance, lineFromSegment, projectPointOntoLine } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
+import { lineFromSegment, projectPointOntoLine } from '@/shared/geometry'
 
 import { AddOpeningToolInspector } from './AddOpeningToolInspector'
 // import { OpeningInspector } from '@/building/components/inspectors/OpeningInspector' // TODO: Fix interface compatibility
@@ -35,21 +37,21 @@ interface AddOpeningToolState {
   // Interactive state
   hoveredPerimeterWall?: PerimeterWallHit
   offset?: Length
-  previewPosition?: Vec2
+  previewPosition?: vec2
   canPlace: boolean
   snapDirection?: 'left' | 'right' // Direction the opening was snapped from user's preferred position
 }
 
 // Default opening configurations
 const DEFAULT_OPENING_CONFIG = {
-  door: { width: createLength(800), height: createLength(2100), type: 'door' as const },
+  door: { width: 800, height: 2100, type: 'door' as const },
   window: {
-    width: createLength(1200),
-    height: createLength(1200),
+    width: 1200,
+    height: 1200,
     type: 'window' as const,
-    sillHeight: createLength(800)
+    sillHeight: 800
   },
-  passage: { width: createLength(1000), height: createLength(2200), type: 'passage' as const }
+  passage: { width: 1000, height: 2200, type: 'passage' as const }
 }
 
 export class AddOpeningTool extends BaseTool implements ToolImplementation {
@@ -106,7 +108,7 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
   /**
    * Calculate center offset from pointer position projected onto wall
    */
-  private calculateCenterOffsetFromPointerPosition(pointerPos: Vec2, wall: PerimeterWall): Length {
+  private calculateCenterOffsetFromPointerPosition(pointerPos: vec2, wall: PerimeterWall): Length {
     // Convert LineWall2D to Line2D for projection
     const line = lineFromSegment(wall.insideLine)
     if (!line) {
@@ -118,23 +120,23 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
 
     // Calculate offset from wall start to CENTER of opening
     const startPoint = wall.insideLine.start
-    const centerOffset = createLength(distance(startPoint, projectedPoint))
+    const centerOffset = vec2.distance(startPoint, projectedPoint)
 
     // Rounded offset of opening start from the start of the wall wall
     const actualStartOffset = centerOffset - this.state.width / 2
     const roundedOffset = Math.round(actualStartOffset / 10) * 10
 
-    return roundedOffset as Length
+    return roundedOffset
   }
 
   /**
    * Convert offset to actual position on the wall
    */
-  private offsetToPosition(offset: Length, wall: PerimeterWall): Vec2 {
+  private offsetToPosition(offset: Length, wall: PerimeterWall): vec2 {
     const startPoint = wall.insideLine.start
     const direction = wall.direction
 
-    return createVec2(startPoint[0] + direction[0] * offset, startPoint[1] + direction[1] * offset)
+    return vec2.fromValues(startPoint[0] + direction[0] * offset, startPoint[1] + direction[1] * offset)
   }
 
   /**

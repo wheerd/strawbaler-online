@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { createPerimeterConstructionMethodId } from '@/building/model/ids'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { LShapedPreset } from './LShapedPreset'
 import type { LShapedPresetConfig } from './types'
@@ -14,12 +14,12 @@ describe('LShapedPreset', () => {
   })
 
   const createValidConfig = (overrides: Partial<LShapedPresetConfig> = {}): LShapedPresetConfig => ({
-    width1: createLength(8000),
-    length1: createLength(6000),
-    width2: createLength(4000),
-    length2: createLength(3000),
+    width1: 8000,
+    length1: 6000,
+    width2: 4000,
+    length2: 3000,
     rotation: 0,
-    thickness: createLength(440),
+    thickness: 440,
     constructionMethodId: createPerimeterConstructionMethodId(),
     ...overrides
   })
@@ -38,25 +38,25 @@ describe('LShapedPreset', () => {
     })
 
     it('should reject negative dimensions', () => {
-      expect(preset.validateConfig(createValidConfig({ width1: createLength(-1000) }))).toBe(false)
-      expect(preset.validateConfig(createValidConfig({ length1: createLength(-1000) }))).toBe(false)
-      expect(preset.validateConfig(createValidConfig({ width2: createLength(-1000) }))).toBe(false)
-      expect(preset.validateConfig(createValidConfig({ length2: createLength(-1000) }))).toBe(false)
+      expect(preset.validateConfig(createValidConfig({ width1: -1000 }))).toBe(false)
+      expect(preset.validateConfig(createValidConfig({ length1: -1000 }))).toBe(false)
+      expect(preset.validateConfig(createValidConfig({ width2: -1000 }))).toBe(false)
+      expect(preset.validateConfig(createValidConfig({ length2: -1000 }))).toBe(false)
     })
 
     it('should reject zero dimensions', () => {
-      expect(preset.validateConfig(createValidConfig({ width1: createLength(0) }))).toBe(false)
-      expect(preset.validateConfig(createValidConfig({ length1: createLength(0) }))).toBe(false)
-      expect(preset.validateConfig(createValidConfig({ width2: createLength(0) }))).toBe(false)
-      expect(preset.validateConfig(createValidConfig({ length2: createLength(0) }))).toBe(false)
+      expect(preset.validateConfig(createValidConfig({ width1: 0 }))).toBe(false)
+      expect(preset.validateConfig(createValidConfig({ length1: 0 }))).toBe(false)
+      expect(preset.validateConfig(createValidConfig({ width2: 0 }))).toBe(false)
+      expect(preset.validateConfig(createValidConfig({ length2: 0 }))).toBe(false)
     })
 
     it('should reject extension larger than main rectangle', () => {
       expect(
         preset.validateConfig(
           createValidConfig({
-            width1: createLength(4000),
-            width2: createLength(5000)
+            width1: 4000,
+            width2: 5000
           })
         )
       ).toBe(false)
@@ -64,8 +64,8 @@ describe('LShapedPreset', () => {
       expect(
         preset.validateConfig(
           createValidConfig({
-            length1: createLength(3000),
-            length2: createLength(4000)
+            length1: 3000,
+            length2: 4000
           })
         )
       ).toBe(false)
@@ -85,7 +85,7 @@ describe('LShapedPreset', () => {
     })
 
     it('should reject negative thickness', () => {
-      expect(preset.validateConfig(createValidConfig({ thickness: createLength(-100) }))).toBe(false)
+      expect(preset.validateConfig(createValidConfig({ thickness: -100 }))).toBe(false)
     })
 
     it('should reject empty construction method', () => {
@@ -107,10 +107,10 @@ describe('LShapedPreset', () => {
 
     it('should generate correct points for 0° rotation', () => {
       const config = createValidConfig({
-        width1: createLength(8000),
-        length1: createLength(6000),
-        width2: createLength(4000),
-        length2: createLength(3000),
+        width1: 8000,
+        length1: 6000,
+        width2: 4000,
+        length2: 3000,
         rotation: 0
       })
 
@@ -163,8 +163,8 @@ describe('LShapedPreset', () => {
 
     it('should throw error when extension is larger than main rectangle', () => {
       const config = createValidConfig({
-        width1: createLength(4000),
-        width2: createLength(5000) // Larger than width1
+        width1: 4000,
+        width2: 5000 // Larger than width1
       })
 
       expect(() => preset.getPolygonPoints(config)).toThrow(
@@ -176,10 +176,10 @@ describe('LShapedPreset', () => {
   describe('getBounds', () => {
     it('should return main rectangle dimensions as bounds', () => {
       const config = createValidConfig({
-        width1: createLength(8000),
-        length1: createLength(6000),
-        width2: createLength(4000),
-        length2: createLength(3000)
+        width1: 8000,
+        length1: 6000,
+        width2: 4000,
+        length2: 3000
       })
 
       const bounds = preset.getBounds(config)
@@ -212,10 +212,10 @@ describe('LShapedPreset', () => {
 
     it('should return correct side lengths for L-shape', () => {
       const config = createValidConfig({
-        width1: createLength(8000),
-        length1: createLength(6000),
-        width2: createLength(4000),
-        length2: createLength(3000)
+        width1: 8000,
+        length1: 6000,
+        width2: 4000,
+        length2: 3000
       })
 
       const sideLengths = preset.getSideLengths(config)
@@ -235,10 +235,10 @@ describe('LShapedPreset', () => {
 
     it('should handle edge case where extension equals main rectangle', () => {
       const config = createValidConfig({
-        width1: createLength(4000),
-        length1: createLength(3000),
-        width2: createLength(4000),
-        length2: createLength(3000)
+        width1: 4000,
+        length1: 3000,
+        width2: 4000,
+        length2: 3000
       })
 
       const sideLengths = preset.getSideLengths(config)

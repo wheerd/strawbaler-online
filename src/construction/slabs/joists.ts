@@ -1,6 +1,6 @@
 import type { JoistSlabConstructionConfig } from '@/construction/config/types'
 import { createUnsupportedModel } from '@/construction/model'
-import { type PolygonWithHoles2D, createLength } from '@/shared/geometry'
+import { type PolygonWithHoles2D } from '@/shared/geometry'
 
 import { BaseSlabConstructionMethod } from './base'
 
@@ -11,6 +11,6 @@ export class JoistConstructionMethod extends BaseSlabConstructionMethod<JoistSla
   }
 
   getTopOffset = (config: JoistSlabConstructionConfig) => config.subfloorThickness
-  getBottomOffset = (_config: JoistSlabConstructionConfig) => createLength(0)
+  getBottomOffset = (_config: JoistSlabConstructionConfig) => 0
   getConstructionThickness = (config: JoistSlabConstructionConfig) => config.joistHeight
 }

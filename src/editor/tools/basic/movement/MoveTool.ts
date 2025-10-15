@@ -1,3 +1,5 @@
+import { vec2 } from 'gl-matrix'
+
 import { getModelActions } from '@/building/store'
 import { entityHitTestService } from '@/editor/canvas/services/EntityHitTestService'
 import { activateLengthInput, deactivateLengthInput } from '@/editor/services/length-input'
@@ -5,8 +7,7 @@ import type { LengthInputConfig } from '@/editor/services/length-input'
 import { defaultSnappingService } from '@/editor/services/snapping/SnappingService'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CanvasEvent, ToolImplementation } from '@/editor/tools/system/types'
-import type { Length, Vec2 } from '@/shared/geometry'
-import { distanceSquared, normalize, scale, subtract } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
 
 import { MoveToolInspector } from './MoveToolInspector'
 import { MoveToolOverlay } from './MoveToolOverlay'
@@ -18,8 +19,8 @@ interface LastMovementRecord {
   behavior: MovementBehavior<any, any>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: MovementContext<any>
-  movementDelta: Vec2 // The actual movement delta applied
-  originalDirection: Vec2 // Normalized direction for negative distance handling
+  movementDelta: vec2 // The actual movement delta applied
+  originalDirection: vec2 // Normalized direction for negative distance handling
 }
 
 export class MoveTool extends BaseTool implements ToolImplementation {
@@ -31,7 +32,7 @@ export class MoveTool extends BaseTool implements ToolImplementation {
   private toolState: {
     // Phase 1: Pointer down, waiting to see if user will drag
     isWaitingForMovement: boolean
-    downPosition: Vec2 | null
+    downPosition: vec2 | null
 
     // Phase 2: Actually moving
     isMoving: boolean
@@ -102,7 +103,7 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     if (this.toolState.isWaitingForMovement) {
       // Check if we've moved beyond threshold
       const distance = this.toolState.downPosition
-        ? distanceSquared(event.stageCoordinates, this.toolState.downPosition)
+        ? vec2.squaredDistance(event.stageCoordinates, this.toolState.downPosition)
         : 0
 
       if (distance >= MoveTool.MOVEMENT_THRESHOLD ** 2) {
@@ -146,7 +147,7 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     const updatedPointerState = {
       ...pointerState,
       currentPosition: event.stageCoordinates,
-      delta: subtract(event.stageCoordinates, pointerState.startPosition)
+      delta: vec2.subtract(vec2.create(), event.stageCoordinates, pointerState.startPosition)
     }
 
     // Apply constraints and snapping to get new movement state
@@ -236,7 +237,7 @@ export class MoveTool extends BaseTool implements ToolImplementation {
       behavior,
       context: { ...context }, // Shallow copy
       movementDelta: delta,
-      originalDirection: normalize(delta) // Store original direction
+      originalDirection: vec2.normalize(vec2.create(), delta) // Store original direction
     }
   }
 
@@ -268,8 +269,8 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     const refreshedContext = this.refreshContextFromLast(lastMovement)
     if (!refreshedContext) return false
 
-    const newDelta = scale(lastMovement.originalDirection, distance)
-    const deltaDifference = subtract(newDelta, lastMovement.movementDelta)
+    const newDelta = vec2.scale(vec2.create(), lastMovement.originalDirection, distance)
+    const deltaDifference = vec2.subtract(vec2.create(), newDelta, lastMovement.movementDelta)
 
     const success = lastMovement.behavior.applyRelativeMovement(deltaDifference, refreshedContext)
 

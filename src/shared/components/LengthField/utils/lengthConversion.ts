@@ -64,7 +64,7 @@ export function displayValueToLength(displayValue: string, unit: LengthUnit): Le
       throw new Error(`Unsupported unit: ${unit}`)
   }
 
-  return Math.round(valueInMm) as Length
+  return Math.round(valueInMm)
 }
 
 /**
@@ -73,11 +73,11 @@ export function displayValueToLength(displayValue: string, unit: LengthUnit): Le
 export function getDefaultStepSize(unit: LengthUnit): Length {
   switch (unit) {
     case 'mm':
-      return 1 as Length // 1mm
+      return 1 // 1mm
     case 'cm':
-      return 10 as Length // 1cm = 10mm
+      return 10 // 1cm = 10mm
     case 'm':
-      return 100 as Length // 0.1m = 100mm
+      return 100 // 0.1m = 100mm
     default:
       throw new Error(`Unsupported unit: ${unit}`)
   }
@@ -104,7 +104,7 @@ export function getDefaultPrecision(unit: LengthUnit): number {
  */
 export function clampLength(value: Length, min?: Length, max?: Length): Length {
   let result = value
-  if (min !== undefined) result = Math.max(min, result) as Length
-  if (max !== undefined) result = Math.min(max, result) as Length
+  if (min !== undefined) result = Math.max(min, result)
+  if (max !== undefined) result = Math.min(max, result)
   return result
 }

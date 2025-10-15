@@ -3,7 +3,6 @@ import { Button, Flex, Text } from '@radix-ui/themes'
 import React from 'react'
 
 import { useGridActions, useGridSize, useShowGrid } from '@/editor/hooks/useGrid'
-import type { Length } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 export function GridSizeDisplay(): React.JSX.Element {
@@ -20,7 +19,7 @@ export function GridSizeDisplay(): React.JSX.Element {
       style={{ minWidth: '6em' }}
     >
       <Flex align="center" justify="end" gap="2">
-        <Text>{showGrid ? formatLength(gridSize as Length) : 'Off'}</Text>
+        <Text>{showGrid ? formatLength(gridSize) : 'Off'}</Text>
         <FrameIcon />
       </Flex>
     </Button>

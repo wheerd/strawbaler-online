@@ -71,9 +71,9 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
             name: 'New dimensional material',
             type: 'dimensional',
             color: '#808080',
-            width: 100 as Length,
-            thickness: 50 as Length,
-            availableLengths: [3000 as Length]
+            width: 100,
+            thickness: 50,
+            availableLengths: [3000]
           } as Omit<DimensionalMaterial, 'id'>)
           break
         case 'sheet':
@@ -81,9 +81,9 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
             name: 'New sheet material',
             type: 'sheet',
             color: '#808080',
-            width: 1000 as Length,
-            length: 2000 as Length,
-            thickness: 10 as Length
+            width: 1000,
+            length: 2000,
+            thickness: 10
           } as Omit<SheetMaterial, 'id'>)
           break
         case 'volume':
@@ -311,7 +311,7 @@ function DimensionalMaterialFields({
   material: DimensionalMaterial
   onUpdate: (updates: Partial<DimensionalMaterial>) => void
 }) {
-  const [newLengthInput, setNewLengthInput] = useState<Length>(3000 as Length)
+  const [newLengthInput, setNewLengthInput] = useState<Length>(3000)
 
   const handleAddLength = useCallback(() => {
     if (material.availableLengths.includes(newLengthInput)) {
@@ -319,8 +319,8 @@ function DimensionalMaterialFields({
     }
 
     const updated = [...material.availableLengths, newLengthInput].sort((a, b) => a - b)
-    onUpdate({ availableLengths: updated as Length[] })
-    setNewLengthInput(3000 as Length)
+    onUpdate({ availableLengths: updated })
+    setNewLengthInput(3000)
   }, [material.availableLengths, newLengthInput, onUpdate])
 
   const handleRemoveLength = useCallback(

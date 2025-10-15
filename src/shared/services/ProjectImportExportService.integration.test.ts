@@ -1,11 +1,10 @@
+import { vec2 } from 'gl-matrix'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import type { PerimeterConstructionMethodId, RingBeamConstructionMethodId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getConfigState, setConfigState } from '@/construction/config/store'
 import { getMaterialsState, setMaterialsState } from '@/construction/materials/store'
-import type { Length } from '@/shared/geometry'
-import { createLength, createVec2 } from '@/shared/geometry'
 
 import { ProjectImportExportService } from './ProjectImportExportService'
 
@@ -35,11 +34,11 @@ describe('ProjectImportExportService Integration', () => {
 
     // Update its properties
     modelActions.updateStoreyName(testStorey.id, 'Test Floor')
-    modelActions.updateStoreyHeight(testStorey.id, createLength(3000))
+    modelActions.updateStoreyHeight(testStorey.id, 3000)
 
     // Create a perimeter with custom boundary
     const boundary = {
-      points: [createVec2(0, 0), createVec2(8000, 0), createVec2(8000, 6000), createVec2(0, 6000)]
+      points: [vec2.fromValues(0, 0), vec2.fromValues(8000, 0), vec2.fromValues(8000, 6000), vec2.fromValues(0, 6000)]
     }
 
     const constructionMethodId = Object.keys(
@@ -53,7 +52,7 @@ describe('ProjectImportExportService Integration', () => {
       testStorey.id,
       boundary,
       constructionMethodId,
-      createLength(200),
+      200,
       ringBeamMethodId,
       ringBeamMethodId
     )
@@ -65,24 +64,24 @@ describe('ProjectImportExportService Integration', () => {
     // Add a door to the first wall
     modelActions.addPerimeterWallOpening(perimeter.id, wall1.id, {
       type: 'door',
-      offsetFromStart: createLength(1000),
-      width: createLength(900),
-      height: createLength(2100),
+      offsetFromStart: 1000,
+      width: 900,
+      height: 2100,
       sillHeight: undefined
     })
 
     // Add a window to the second wall
     modelActions.addPerimeterWallOpening(perimeter.id, wall2.id, {
       type: 'window',
-      offsetFromStart: createLength(2000),
-      width: createLength(1200),
-      height: createLength(1500),
-      sillHeight: createLength(800)
+      offsetFromStart: 2000,
+      width: 1200,
+      height: 1500,
+      sillHeight: 800
     })
 
     // Modify wall thickness on third wall
     const wall3 = perimeter.walls[2]
-    modelActions.updatePerimeterWallThickness(perimeter.id, wall3.id, createLength(300))
+    modelActions.updatePerimeterWallThickness(perimeter.id, wall3.id, 300)
 
     // Update corner construction
     const corner1 = perimeter.corners[0]
@@ -202,8 +201,8 @@ describe('ProjectImportExportService Integration', () => {
 
     // Create multiple storeys
     const ground = modelActions.getStoreysOrderedByLevel()[0] // Default ground floor
-    const firstFloor = modelActions.addStorey('First Floor', createLength(2800))
-    modelActions.addStorey('Second Floor', createLength(2600))
+    const firstFloor = modelActions.addStorey('First Floor', 2800)
+    modelActions.addStorey('Second Floor', 2600)
 
     // Add perimeters to each storey
     const constructionMethodId = Object.keys(
@@ -212,15 +211,20 @@ describe('ProjectImportExportService Integration', () => {
 
     // Different shaped perimeters for each floor
     const groundBoundary = {
-      points: [createVec2(0, 0), createVec2(10000, 0), createVec2(10000, 8000), createVec2(0, 8000)]
+      points: [vec2.fromValues(0, 0), vec2.fromValues(10000, 0), vec2.fromValues(10000, 8000), vec2.fromValues(0, 8000)]
     }
 
     const firstFloorBoundary = {
-      points: [createVec2(1000, 1000), createVec2(9000, 1000), createVec2(9000, 7000), createVec2(1000, 7000)]
+      points: [
+        vec2.fromValues(1000, 1000),
+        vec2.fromValues(9000, 1000),
+        vec2.fromValues(9000, 7000),
+        vec2.fromValues(1000, 7000)
+      ]
     }
 
-    modelActions.addPerimeter(ground.id, groundBoundary, constructionMethodId, createLength(200))
-    modelActions.addPerimeter(firstFloor.id, firstFloorBoundary, constructionMethodId, createLength(180))
+    modelActions.addPerimeter(ground.id, groundBoundary, constructionMethodId, 200)
+    modelActions.addPerimeter(firstFloor.id, firstFloorBoundary, constructionMethodId, 180)
 
     // Export and import
     const exportResult = await ProjectImportExportService.exportToString()
@@ -259,8 +263,8 @@ describe('ProjectImportExportService Integration', () => {
     const modelActions = getModelActions()
 
     // Create additional storeys above ground (keeping ground floor at level 0)
-    modelActions.addStorey('First Floor', createLength(2800))
-    modelActions.addStorey('Second Floor', createLength(2600))
+    modelActions.addStorey('First Floor', 2800)
+    modelActions.addStorey('Second Floor', 2600)
 
     const storeys = modelActions.getStoreysOrderedByLevel()
     expect(storeys[0].level).toBe(0) // ground floor
@@ -294,8 +298,8 @@ describe('ProjectImportExportService Integration', () => {
     const modelActions = getModelActions()
 
     // Create storeys and manually adjust levels to start at a higher base
-    modelActions.addStorey('First Floor', createLength(2800))
-    modelActions.addStorey('Second Floor', createLength(2600))
+    modelActions.addStorey('First Floor', 2800)
+    modelActions.addStorey('Second Floor', 2600)
 
     // Adjust all levels up by -1 (so we have levels -1, 0, 1)
     modelActions.adjustAllLevels(-1)
@@ -340,9 +344,9 @@ describe('ProjectImportExportService Integration', () => {
       type: 'dimensional',
       name: 'Custom Wood',
       color: '#ff5500',
-      width: 200 as Length,
-      thickness: 80 as Length,
-      availableLengths: [4000 as Length, 6000 as Length]
+      width: 200,
+      thickness: 80,
+      availableLengths: [4000, 6000]
     })
 
     // Export the project

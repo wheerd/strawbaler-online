@@ -132,14 +132,14 @@ vi.mock('react-konva/lib/ReactKonvaCore', async () => {
       React.createElement('div', { 'data-testid': 'konva-stage', ...propsAttrs(props) }, children),
     Layer: ({ children, ...props }: any) =>
       React.createElement('div', { 'data-testid': 'konva-layer', ...propsAttrs(props) }, children),
-    Line: ({ points, ...props }: any) =>
+    Line: ({ ...props }: any) =>
       React.createElement('div', {
         'data-testid': 'konva-line',
         ...propsAttrs(props)
       }),
     Group: ({ children, ...props }: any) =>
       React.createElement('div', { 'data-testid': 'konva-group', ...propsAttrs(props) }, children),
-    Arrow: ({ points, ...props }: any) =>
+    Arrow: ({ ...props }: any) =>
       React.createElement('div', {
         'data-testid': 'konva-arrow',
         ...propsAttrs(props)

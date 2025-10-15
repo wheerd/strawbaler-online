@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { LengthInputComponent } from './LengthInputComponent'
 import { lengthInputService } from './LengthInputService'
@@ -11,7 +11,7 @@ import type { LengthInputConfig } from './types'
 vi.mock('@radix-ui/themes', () => ({
   Box: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   TextField: {
-    Root: ({ children, ...props }: any) => <input {...props} />
+    Root: ({ _children, ...props }: any) => <input {...props} />
   }
 }))
 
@@ -87,7 +87,7 @@ describe('LengthInputComponent', () => {
     it('should display initial value when provided', () => {
       const config = {
         ...mockConfig,
-        initialValue: createLength(500),
+        initialValue: 500,
         showImmediately: true
       }
       lengthInputService.activate(config)
@@ -256,7 +256,7 @@ describe('LengthInputComponent', () => {
     it('should auto-focus and select text when shown', async () => {
       const config = {
         ...mockConfig,
-        initialValue: createLength(500),
+        initialValue: 500,
         showImmediately: true
       }
       lengthInputService.activate(config)

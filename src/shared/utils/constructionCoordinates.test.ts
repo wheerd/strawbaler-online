@@ -1,6 +1,5 @@
+import type { vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
-
-import type { Length, Vec3 } from '@/shared/geometry'
 
 import { convertConstructionToSvg, convertPointToSvg } from './constructionCoordinates'
 
@@ -10,8 +9,8 @@ describe('constructionCoordinates', () => {
 
   describe('convertConstructionToSvg', () => {
     it('converts construction element coordinates to SVG for outside view', () => {
-      const position: Vec3 = [100 as Length, 0 as Length, 200 as Length]
-      const size: Vec3 = [800 as Length, 100 as Length, 1200 as Length]
+      const position: vec3 = [100, 0, 200]
+      const size: vec3 = [800, 100, 1200]
 
       const result = convertConstructionToSvg(position, size, wallHeight, wallLength, 'outside')
 
@@ -26,8 +25,8 @@ describe('constructionCoordinates', () => {
     })
 
     it('converts construction element coordinates to SVG for inside view', () => {
-      const position: Vec3 = [100 as Length, 0 as Length, 200 as Length]
-      const size: Vec3 = [800 as Length, 100 as Length, 1200 as Length]
+      const position: vec3 = [100, 0, 200]
+      const size: vec3 = [800, 100, 1200]
 
       const result = convertConstructionToSvg(position, size, wallHeight, wallLength, 'inside')
 
@@ -74,8 +73,8 @@ describe('constructionCoordinates', () => {
 
   describe('coordinate consistency', () => {
     it('produces consistent results for element center vs point conversion', () => {
-      const position: Vec3 = [100 as Length, 0 as Length, 200 as Length]
-      const size: Vec3 = [800 as Length, 100 as Length, 1200 as Length]
+      const position: vec3 = [100, 0, 200]
+      const size: vec3 = [800, 100, 1200]
 
       // Convert element using convertConstructionToSvg
       const elementResult = convertConstructionToSvg(position, size, wallHeight, wallLength, 'outside')

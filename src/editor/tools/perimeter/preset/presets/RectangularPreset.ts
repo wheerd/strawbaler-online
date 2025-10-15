@@ -1,5 +1,4 @@
-import type { Vec2 } from '@/shared/geometry'
-import { createVec2 } from '@/shared/geometry'
+import { vec2 } from 'gl-matrix'
 
 import type { PerimeterPreset, RectangularPresetConfig } from './types'
 
@@ -16,16 +15,16 @@ export class RectangularPreset implements PerimeterPreset<RectangularPresetConfi
    * Uses inside dimensions - the polygon represents the interior space
    * Returns points in clockwise order for perimeter creation
    */
-  getPolygonPoints(config: RectangularPresetConfig): Vec2[] {
+  getPolygonPoints(config: RectangularPresetConfig): vec2[] {
     const halfWidth = config.width / 2
     const halfLength = config.length / 2
 
     // Create rectangle centered at origin using inside dimensions, clockwise order
     return [
-      createVec2(-halfWidth, -halfLength), // Bottom-left
-      createVec2(halfWidth, -halfLength), // Bottom-right
-      createVec2(halfWidth, halfLength), // Top-right
-      createVec2(-halfWidth, halfLength) // Top-left
+      vec2.fromValues(-halfWidth, -halfLength), // Bottom-left
+      vec2.fromValues(halfWidth, -halfLength), // Bottom-right
+      vec2.fromValues(halfWidth, halfLength), // Top-right
+      vec2.fromValues(-halfWidth, halfLength) // Top-left
     ]
   }
 

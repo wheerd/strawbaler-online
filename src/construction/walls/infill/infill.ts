@@ -18,7 +18,7 @@ import {
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { BaseConstructionConfig, PerimeterWallConstructionMethod } from '@/construction/walls/construction'
 import { type WallStoreyContext, segmentedWallConstruction } from '@/construction/walls/segmentation'
-import { type Length, type Vec3, boundsFromCuboid, mergeBounds } from '@/shared/geometry'
+import { type Length, boundsFromCuboid, mergeBounds } from '@/shared/geometry'
 
 export interface InfillConstructionConfig extends BaseConstructionConfig {
   type: 'infill'
@@ -28,8 +28,8 @@ export interface InfillConstructionConfig extends BaseConstructionConfig {
 }
 
 export function* infillWallArea(
-  position: Vec3,
-  size: Vec3,
+  position: vec3,
+  size: vec3,
   config: InfillConstructionConfig,
   startsWithStand = false,
   endsWithStand = false,
@@ -67,14 +67,14 @@ export function* infillWallArea(
 
   if (endsWithStand) {
     yield* yieldAndCollectElementIds(
-      constructPost([(position[0] + size[0] - postWidth) as Length, position[1], position[2]], size, config.posts),
+      constructPost([position[0] + size[0] - postWidth, position[1], position[2]], size, config.posts),
       allElementIds
     )
     width -= postWidth
   }
 
-  const inbetweenPosition: Vec3 = [left, position[1], position[2]]
-  const inbetweenSize: Vec3 = [width, size[1], size[2]]
+  const inbetweenPosition: vec3 = [left, position[1], position[2]]
+  const inbetweenSize: vec3 = [width, size[1], size[2]]
 
   yield* yieldAndCollectElementIds(
     constructInfillRecursive(inbetweenPosition, inbetweenSize, config, !startAtEnd),
@@ -92,15 +92,15 @@ export function* infillWallArea(
 }
 
 function* constructInfillRecursive(
-  position: Vec3,
-  size: Vec3,
+  position: vec3,
+  size: vec3,
   config: InfillConstructionConfig,
   atStart: boolean
 ): Generator<ConstructionResult> {
-  const baleWidth = getBaleWidth(size[0] as Length, config)
+  const baleWidth = getBaleWidth(size[0], config)
 
-  const strawPosition: Vec3 = [atStart ? position[0] : position[0] + size[0] - baleWidth, position[1], position[2]]
-  const strawSize: Vec3 = [baleWidth, size[1], size[2]]
+  const strawPosition: vec3 = [atStart ? position[0] : position[0] + size[0] - baleWidth, position[1], position[2]]
+  const strawSize: vec3 = [baleWidth, size[1], size[2]]
 
   if (baleWidth > 0) {
     const strawElementIds: ConstructionElementId[] = []
@@ -125,9 +125,7 @@ function* constructInfillRecursive(
 
   let postOffset: Length
   if (baleWidth + config.posts.width <= size[0]) {
-    postOffset = atStart
-      ? ((strawPosition[0] + strawSize[0]) as Length)
-      : ((strawPosition[0] - config.posts.width) as Length)
+    postOffset = atStart ? strawPosition[0] + strawSize[0] : strawPosition[0] - config.posts.width
 
     yield* constructPost([postOffset, position[1], position[2]], size, config.posts)
   } else {
@@ -156,13 +154,13 @@ function getBaleWidth(availableWidth: Length, config: InfillConstructionConfig):
   // Not enough space for full bale and a minimal spacer, but more than a single full bale + post
   // -> Shorten the bale so that a post and a minimal spacer fit
   if (availableWidth < fullBaleAndPost + minStrawSpace && availableWidth > fullBaleAndPost) {
-    return (availableWidth - minStrawSpace - postWidth) as Length
+    return availableWidth - minStrawSpace - postWidth
   }
 
   // More space than a full bale, but not enough for full bale and post
   // -> Shorten bale to fit a post
   if (availableWidth < fullBaleAndPost) {
-    return (availableWidth - postWidth) as Length
+    return availableWidth - postWidth
   }
 
   return maxPostSpacing
@@ -183,7 +181,7 @@ const _constructInfillWall = (
     (position, size, startsWithStand, endsWithStand, startAtEnd) =>
       infillWallArea(position, size, config, startsWithStand, endsWithStand, startAtEnd),
 
-    (position: Vec3, size: Vec3, zOffset: Length, openings: Opening[]) =>
+    (position: vec3, size: vec3, zOffset: Length, openings: Opening[]) =>
       constructOpeningFrame({ type: 'opening', position, size, zOffset, openings }, config.openings, config)
   )
 

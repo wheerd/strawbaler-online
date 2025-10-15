@@ -1,6 +1,7 @@
 import { InfoCircledIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import { Box, Callout, Flex, Grid, IconButton, Kbd, SegmentedControl, Separator, Text, Tooltip } from '@radix-ui/themes'
+import { vec2 } from 'gl-matrix'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { OpeningId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
@@ -12,7 +13,7 @@ import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { FitToViewIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
 import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/components/OpeningIcons'
-import { type Polygon2D, add, boundsFromPoints, createLength, offsetPolygon, scale } from '@/shared/geometry'
+import { type Polygon2D, boundsFromPoints, offsetPolygon } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import { OpeningPreview } from './OpeningPreview'
@@ -153,13 +154,13 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
     const insideStart = wall.insideLine.start
     const outsideStart = wall.outsideLine.start
     const wallVector = wall.direction
-    const offsetStart = scale(wallVector, opening.offsetFromStart)
-    const offsetEnd = add(offsetStart, scale(wallVector, opening.width))
+    const offsetStart = vec2.scale(vec2.create(), wallVector, opening.offsetFromStart)
+    const offsetEnd = vec2.add(vec2.create(), offsetStart, vec2.scale(vec2.create(), wallVector, opening.width))
 
-    const insideOpeningStart = add(insideStart, offsetStart)
-    const insideOpeningEnd = add(insideStart, offsetEnd)
-    const outsideOpeningStart = add(outsideStart, offsetStart)
-    const outsideOpeningEnd = add(outsideStart, offsetEnd)
+    const insideOpeningStart = vec2.add(vec2.create(), insideStart, offsetStart)
+    const insideOpeningEnd = vec2.add(vec2.create(), insideStart, offsetEnd)
+    const outsideOpeningStart = vec2.add(vec2.create(), outsideStart, offsetStart)
+    const outsideOpeningEnd = vec2.add(vec2.create(), outsideStart, offsetEnd)
 
     const openingPolygon: Polygon2D = {
       points: [insideOpeningStart, insideOpeningEnd, outsideOpeningEnd, outsideOpeningStart]
@@ -281,15 +282,15 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
 
           {/* Row 1, Column 2: Width Input */}
           <LengthField
-            value={createLength(getDisplayValue(opening?.width || 0, 'width'))}
+            value={getDisplayValue(opening?.width || 0, 'width')}
             onCommit={value => {
               const fittingValue = convertToFittingValue(value, 'width')
-              updateOpening(perimeterId, wallId, openingId, { width: createLength(fittingValue) })
+              updateOpening(perimeterId, wallId, openingId, { width: fittingValue })
             }}
             unit="cm"
-            min={createLength(dimensionInputMode === 'fitting' ? 100 : 50)}
-            max={createLength(5000)}
-            step={createLength(100)}
+            min={dimensionInputMode === 'fitting' ? 100 : 50}
+            max={5000}
+            step={100}
             size="1"
             style={{ width: '80px' }}
             onFocus={() => setFocusedField('width')}
@@ -305,15 +306,15 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
 
           {/* Row 1, Column 4: Height Input */}
           <LengthField
-            value={createLength(getDisplayValue(opening?.height || 0, 'height'))}
+            value={getDisplayValue(opening?.height || 0, 'height')}
             onCommit={value => {
               const fittingValue = convertToFittingValue(value, 'height')
-              updateOpening(perimeterId, wallId, openingId, { height: createLength(fittingValue) })
+              updateOpening(perimeterId, wallId, openingId, { height: fittingValue })
             }}
             unit="cm"
-            min={createLength(dimensionInputMode === 'fitting' ? 100 : 50)}
-            max={createLength(4000)}
-            step={createLength(100)}
+            min={dimensionInputMode === 'fitting' ? 100 : 50}
+            max={4000}
+            step={100}
             size="1"
             style={{ width: '80px' }}
             onFocus={() => setFocusedField('height')}
@@ -329,17 +330,17 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
 
           {/* Row 2, Column 2: Sill Height Input */}
           <LengthField
-            value={createLength(getDisplayValue(opening?.sillHeight || 0, 'sillHeight'))}
+            value={getDisplayValue(opening?.sillHeight || 0, 'sillHeight')}
             onCommit={value => {
               const fittingValue = convertToFittingValue(value, 'sillHeight')
               updateOpening(perimeterId, wallId, openingId, {
-                sillHeight: fittingValue === 0 ? undefined : createLength(fittingValue)
+                sillHeight: fittingValue === 0 ? undefined : fittingValue
               })
             }}
             unit="cm"
-            min={createLength(0)}
-            max={createLength(2000)}
-            step={createLength(100)}
+            min={0}
+            max={2000}
+            step={100}
             size="1"
             style={{ width: '80px' }}
             onFocus={() => setFocusedField('sillHeight')}
@@ -355,17 +356,17 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
 
           {/* Row 2, Column 4: Top Height Input */}
           <LengthField
-            value={createLength(getDisplayValue((opening?.sillHeight || 0) + (opening?.height || 0), 'topHeight'))}
+            value={getDisplayValue((opening?.sillHeight || 0) + (opening?.height || 0), 'topHeight')}
             onCommit={value => {
               const fittingTopHeight = convertToFittingValue(value, 'topHeight')
               const currentSillHeight = opening?.sillHeight || 0
               const newOpeningHeight = Math.max(100, fittingTopHeight - currentSillHeight)
-              updateOpening(perimeterId, wallId, openingId, { height: createLength(newOpeningHeight) })
+              updateOpening(perimeterId, wallId, openingId, { height: newOpeningHeight })
             }}
             unit="cm"
-            min={createLength(Math.max(opening?.sillHeight || 0, 100))}
-            max={createLength(5000)}
-            step={createLength(100)}
+            min={Math.max(opening?.sillHeight || 0, 100)}
+            max={5000}
+            step={100}
             size="1"
             style={{ width: '80px' }}
             onFocus={() => setFocusedField('topHeight')}

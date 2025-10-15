@@ -1,3 +1,5 @@
+import type { vec3 } from 'gl-matrix'
+
 import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model/model'
 import { getConfigActions } from '@/construction/config'
 import type { SlabConstructionConfig, WallLayersConfig } from '@/construction/config/types'
@@ -5,15 +7,15 @@ import { IDENTITY } from '@/construction/geometry'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
 import { SLAB_CONSTRUCTION_METHODS } from '@/construction/slabs'
 import { TAG_OPENING_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
-import type { Length, Vec3 } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
 
 export interface WallSegment3D {
   type: 'wall' | 'opening'
-  position: Vec3 // [offsetFromStart, 0, 0]
-  size: Vec3 // [width, wallThickness, wallHeight]
+  position: vec3 // [offsetFromStart, 0, 0]
+  size: vec3 // [width, wallThickness, wallHeight]
 
   // For opening segments - array supports merged adjacent openings
   openings?: Opening[]
@@ -63,16 +65,16 @@ function mergeAdjacentOpenings(sortedOpenings: Opening[]): Opening[][] {
 }
 
 type WallSegmentConstruction = (
-  position: Vec3,
-  size: Vec3,
+  position: vec3,
+  size: vec3,
   startsWithStand: boolean,
   endsWithStand: boolean,
   startAtEnd: boolean
 ) => Generator<ConstructionResult>
 
 type OpeningSegmentConstruction = (
-  position: Vec3,
-  size: Vec3,
+  position: vec3,
+  size: vec3,
   zOffset: Length,
   openings: Opening[]
 ) => Generator<ConstructionResult>
@@ -170,10 +172,9 @@ export function createWallStoreyContext(
 
   return {
     storeyHeight: currentStorey.height,
-    floorTopOffset: (currentSlabConfig.layers.topThickness +
-      currentFloorSlabMethod.getTopOffset(currentSlabConfig)) as Length,
-    ceilingBottomOffset: ((nextSlabConfig?.layers.bottomThickness ?? 0) +
-      (nextFloorSlabMethod?.getBottomOffset(nextSlabConfig) ?? 0)) as Length
+    floorTopOffset: currentSlabConfig.layers.topThickness + currentFloorSlabMethod.getTopOffset(currentSlabConfig),
+    ceilingBottomOffset:
+      (nextSlabConfig?.layers.bottomThickness ?? 0) + (nextFloorSlabMethod?.getBottomOffset(nextSlabConfig) ?? 0)
   }
 }
 
@@ -193,22 +194,21 @@ export function* segmentedWallConstruction(
   const bottomPlateMethod = perimeter.baseRingBeamMethodId
     ? getRingBeamConstructionMethodById(perimeter.baseRingBeamMethodId)
     : null
-  const bottomPlateHeight = bottomPlateMethod?.config?.height ?? (0 as Length)
+  const bottomPlateHeight = bottomPlateMethod?.config?.height ?? 0
   const topPlateMethod = perimeter.topRingBeamMethodId
     ? getRingBeamConstructionMethodById(perimeter.topRingBeamMethodId)
     : null
-  const topPlateHeight = topPlateMethod?.config?.height ?? (0 as Length)
+  const topPlateHeight = topPlateMethod?.config?.height ?? 0
 
-  const totalConstructionHeight = (storeyContext.storeyHeight +
-    storeyContext.floorTopOffset +
-    storeyContext.ceilingBottomOffset) as Length
+  const totalConstructionHeight =
+    storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
 
   yield* createCornerAreas(cornerInfo, wall.wallLength, totalConstructionHeight, wall.thickness)
 
   const y = layers.insideThickness
   const sizeY = wall.thickness - layers.insideThickness - layers.outsideThickness
   const z = bottomPlateHeight
-  const sizeZ = (totalConstructionHeight - bottomPlateHeight - topPlateHeight) as Length
+  const sizeZ = totalConstructionHeight - bottomPlateHeight - topPlateHeight
 
   yield* createPlateAreas(
     totalConstructionHeight,
@@ -257,17 +257,16 @@ export function* segmentedWallConstruction(
   // Group adjacent compatible openings
   const openingGroups = mergeAdjacentOpenings(sortedOpenings)
 
-  let currentPosition = -extensionStart as Length
+  let currentPosition = -extensionStart
 
   for (const openingGroup of openingGroups) {
     // Adjust opening positions by start extension to account for corner extension
-    const groupStart = openingGroup[0].offsetFromStart as Length
-    const groupEnd = (openingGroup[openingGroup.length - 1].offsetFromStart +
-      openingGroup[openingGroup.length - 1].width) as Length
+    const groupStart = openingGroup[0].offsetFromStart
+    const groupEnd = openingGroup[openingGroup.length - 1].offsetFromStart + openingGroup[openingGroup.length - 1].width
 
     // Create wall segment before opening group if there's space
     if (groupStart > currentPosition) {
-      const wallSegmentWidth = (groupStart - currentPosition) as Length
+      const wallSegmentWidth = groupStart - currentPosition
       yield* wallConstruction(
         [currentPosition, y, z],
         [wallSegmentWidth, sizeY, sizeZ],
@@ -285,7 +284,7 @@ export function* segmentedWallConstruction(
     }
 
     // Create opening segment for the group
-    const groupWidth = (groupEnd - groupStart) as Length
+    const groupWidth = groupEnd - groupStart
     yield* openingConstruction([groupStart, y, z], [groupWidth, sizeY, sizeZ], finishedFloorZLevel, openingGroup)
 
     currentPosition = groupEnd
@@ -293,7 +292,7 @@ export function* segmentedWallConstruction(
 
   // Create final wall segment if there's remaining space
   if (currentPosition < constructionLength - extensionStart) {
-    const remainingWidth = (constructionLength - currentPosition - extensionStart) as Length
+    const remainingWidth = constructionLength - currentPosition - extensionStart
     yield* wallConstruction(
       [currentPosition, y, z],
       [remainingWidth, sizeY, sizeZ],

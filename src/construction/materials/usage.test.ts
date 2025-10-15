@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { createPerimeterConstructionMethodId, createRingBeamConstructionMethodId } from '@/building/model/ids'
 import type { PerimeterConstructionMethod, RingBeamConstructionMethod } from '@/construction/config/types'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { straw, strawbale, wood360x60 } from './material'
 import { getMaterialUsage } from './usage'
@@ -25,9 +25,9 @@ describe('Material Usage Detection', () => {
         config: {
           type: 'full',
           material: wood360x60.id,
-          height: createLength(60),
-          width: createLength(360),
-          offsetFromEdge: createLength(30)
+          height: 60,
+          width: 360,
+          offsetFromEdge: 30
         }
       }
 
@@ -44,32 +44,32 @@ describe('Material Usage Detection', () => {
         name: 'Test Infill',
         config: {
           type: 'infill',
-          maxPostSpacing: createLength(800),
-          minStrawSpace: createLength(70),
+          maxPostSpacing: 800,
+          minStrawSpace: 70,
           posts: {
             type: 'double',
-            width: createLength(60),
-            thickness: createLength(120),
+            width: 60,
+            thickness: 120,
             material: wood360x60.id,
             infillMaterial: straw.id
           },
           openings: {
-            padding: createLength(15),
-            headerThickness: createLength(60),
+            padding: 15,
+            headerThickness: 60,
             headerMaterial: wood360x60.id,
-            sillThickness: createLength(60),
+            sillThickness: 60,
             sillMaterial: wood360x60.id
           },
           straw: {
-            baleLength: createLength(800),
-            baleHeight: createLength(500),
-            baleWidth: createLength(360),
+            baleLength: 800,
+            baleHeight: 500,
+            baleWidth: 360,
             material: strawbale.id
           }
         },
         layers: {
-          insideThickness: createLength(30),
-          outsideThickness: createLength(50)
+          insideThickness: 30,
+          outsideThickness: 50
         }
       }
 
@@ -87,52 +87,52 @@ describe('Material Usage Detection', () => {
         config: {
           type: 'strawhenge',
           module: {
-            width: createLength(920),
+            width: 920,
             type: 'single',
-            frameThickness: createLength(60),
+            frameThickness: 60,
             frameMaterial: wood360x60.id,
             strawMaterial: strawbale.id
           },
           infill: {
             type: 'infill',
-            maxPostSpacing: createLength(800),
-            minStrawSpace: createLength(70),
+            maxPostSpacing: 800,
+            minStrawSpace: 70,
             posts: {
               type: 'full',
-              width: createLength(60),
+              width: 60,
               material: wood360x60.id
             },
             openings: {
-              padding: createLength(15),
-              headerThickness: createLength(60),
+              padding: 15,
+              headerThickness: 60,
               headerMaterial: wood360x60.id,
-              sillThickness: createLength(60),
+              sillThickness: 60,
               sillMaterial: wood360x60.id
             },
             straw: {
-              baleLength: createLength(800),
-              baleHeight: createLength(500),
-              baleWidth: createLength(360),
+              baleLength: 800,
+              baleHeight: 500,
+              baleWidth: 360,
               material: strawbale.id
             }
           },
           openings: {
-            padding: createLength(15),
-            headerThickness: createLength(60),
+            padding: 15,
+            headerThickness: 60,
             headerMaterial: wood360x60.id,
-            sillThickness: createLength(60),
+            sillThickness: 60,
             sillMaterial: wood360x60.id
           },
           straw: {
-            baleLength: createLength(800),
-            baleHeight: createLength(500),
-            baleWidth: createLength(360),
+            baleLength: 800,
+            baleHeight: 500,
+            baleWidth: 360,
             material: strawbale.id
           }
         },
         layers: {
-          insideThickness: createLength(30),
-          outsideThickness: createLength(50)
+          insideThickness: 30,
+          outsideThickness: 50
         }
       }
 
@@ -153,9 +153,9 @@ describe('Material Usage Detection', () => {
         config: {
           type: 'full',
           material: wood360x60.id,
-          height: createLength(60),
-          width: createLength(360),
-          offsetFromEdge: createLength(30)
+          height: 60,
+          width: 360,
+          offsetFromEdge: 30
         }
       }
 
@@ -164,30 +164,30 @@ describe('Material Usage Detection', () => {
         name: 'Test Infill',
         config: {
           type: 'infill',
-          maxPostSpacing: createLength(800),
-          minStrawSpace: createLength(70),
+          maxPostSpacing: 800,
+          minStrawSpace: 70,
           posts: {
             type: 'full',
-            width: createLength(60),
+            width: 60,
             material: wood360x60.id
           },
           openings: {
-            padding: createLength(15),
-            headerThickness: createLength(60),
+            padding: 15,
+            headerThickness: 60,
             headerMaterial: straw.id, // Different material for headers
-            sillThickness: createLength(60),
+            sillThickness: 60,
             sillMaterial: straw.id
           },
           straw: {
-            baleLength: createLength(800),
-            baleHeight: createLength(500),
-            baleWidth: createLength(360),
+            baleLength: 800,
+            baleHeight: 500,
+            baleWidth: 360,
             material: strawbale.id
           }
         },
         layers: {
-          insideThickness: createLength(30),
-          outsideThickness: createLength(50)
+          insideThickness: 30,
+          outsideThickness: 50
         }
       }
 

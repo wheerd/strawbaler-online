@@ -7,7 +7,7 @@ import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { activateLengthInput } from '@/editor/services/length-input'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolOverlayComponentProps } from '@/editor/tools/system/types'
-import { type Length, distance, midpoint } from '@/shared/geometry'
+import { midpoint } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 
 import type { SplitWallTool } from './SplitWallTool'
@@ -26,14 +26,14 @@ export function SplitWallToolOverlay({ tool }: ToolOverlayComponentProps<SplitWa
   const handleMeasurementClick = (start: vec2, end: vec2, dir: 1 | -1) => () => {
     const worldPosition = midpoint(start, end)
     const stagePos = worldToStage(worldPosition)
-    const dist = distance(start, end)
+    const dist = vec2.distance(start, end)
     activateLengthInput({
       showImmediately: true,
       position: { x: stagePos.x + 20, y: stagePos.y - 30 },
       initialValue: dist,
       onCommit: enteredValue => {
         const rawDelta = enteredValue - dist
-        tool.moveDelta((rawDelta * dir) as Length)
+        tool.moveDelta(rawDelta * dir)
       },
       onCancel: () => {
         // Nothing to do on cancel

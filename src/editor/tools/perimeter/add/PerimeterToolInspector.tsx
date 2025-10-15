@@ -9,7 +9,6 @@ import { RingBeamMethodSelectWithEdit } from '@/construction/config/components/R
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import { LengthField } from '@/shared/components/LengthField'
-import type { Length } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import type { PerimeterTool } from './PerimeterTool'
@@ -70,9 +69,9 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             id="wall-thickness"
             value={state.wallThickness}
             onCommit={value => tool.setWallThickness(value)}
-            min={50 as Length}
-            max={1000 as Length}
-            step={10 as Length}
+            min={50}
+            max={1000}
+            step={10}
             size="1"
             unit="mm"
           />

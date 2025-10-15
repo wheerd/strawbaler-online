@@ -149,13 +149,13 @@ export function useLengthFieldState(
 
   // Step up function
   const stepUp = useCallback(() => {
-    const newValue = clampLength((value + step) as Length, min, max)
+    const newValue = clampLength(value + step, min, max)
     doCommit(newValue)
   }, [value, step, min, max, doCommit])
 
   // Step down function
   const stepDown = useCallback(() => {
-    const newValue = clampLength((value - step) as Length, min, max)
+    const newValue = clampLength(value - step, min, max)
     doCommit(newValue)
   }, [value, step, min, max, doCommit])
 
@@ -167,13 +167,13 @@ export function useLengthFieldState(
           e.preventDefault()
           if (e.shiftKey) {
             // Shift + Arrow: 10x step
-            const largeStep = (step * 10) as Length
-            const newValue = clampLength((value + largeStep) as Length, min, max)
+            const largeStep = step * 10
+            const newValue = clampLength(value + largeStep, min, max)
             doCommit(newValue)
           } else if (e.ctrlKey || e.metaKey) {
             // Ctrl + Arrow: 0.1x step (minimum 1mm)
-            const smallStep = Math.max(1, Math.round(step * 0.1)) as Length
-            const newValue = clampLength((value + smallStep) as Length, min, max)
+            const smallStep = Math.max(1, Math.round(step * 0.1))
+            const newValue = clampLength(value + smallStep, min, max)
             doCommit(newValue)
           } else {
             stepUp()
@@ -183,13 +183,13 @@ export function useLengthFieldState(
           e.preventDefault()
           if (e.shiftKey) {
             // Shift + Arrow: 10x step
-            const largeStep = (step * 10) as Length
-            const newValue = clampLength((value - largeStep) as Length, min, max)
+            const largeStep = step * 10
+            const newValue = clampLength(value - largeStep, min, max)
             doCommit(newValue)
           } else if (e.ctrlKey || e.metaKey) {
             // Ctrl + Arrow: 0.1x step (minimum 1mm)
-            const smallStep = Math.max(1, Math.round(step * 0.1)) as Length
-            const newValue = clampLength((value - smallStep) as Length, min, max)
+            const smallStep = Math.max(1, Math.round(step * 0.1))
+            const newValue = clampLength(value - smallStep, min, max)
             doCommit(newValue)
           } else {
             stepDown()

@@ -41,51 +41,51 @@ export interface GenericMaterial extends BaseMaterial {
 export const wood360x60: DimensionalMaterial = {
   id: 'material_wood360x60' as MaterialId,
   name: 'Wood 36cm x 6cm',
-  width: 360 as Length,
-  thickness: 60 as Length,
+  width: 360,
+  thickness: 60,
   type: 'dimensional',
   color: MATERIAL_COLORS.woodSupport,
-  availableLengths: [5000 as Length]
+  availableLengths: [5000]
 }
 
 export const wood240x60: DimensionalMaterial = {
   id: 'material_wood240x60' as MaterialId,
   name: 'Wood 24cm x 6cm',
-  width: 240 as Length,
-  thickness: 60 as Length,
+  width: 240,
+  thickness: 60,
   type: 'dimensional',
   color: MATERIAL_COLORS.woodSupport,
-  availableLengths: [5000 as Length]
+  availableLengths: [5000]
 }
 
 export const wood120x60: DimensionalMaterial = {
   id: 'material_wood120x60' as MaterialId,
   name: 'Wood 12cm x 6cm',
-  width: 120 as Length,
-  thickness: 60 as Length,
+  width: 120,
+  thickness: 60,
   type: 'dimensional',
   color: MATERIAL_COLORS.woodSupport,
-  availableLengths: [5000 as Length]
+  availableLengths: [5000]
 }
 
 export const wood140x140: DimensionalMaterial = {
   id: 'material_wood140x140' as MaterialId,
   name: 'Wood 14cm x 14cm',
-  width: 140 as Length,
-  thickness: 140 as Length,
+  width: 140,
+  thickness: 140,
   type: 'dimensional',
   color: MATERIAL_COLORS.woodSupport,
-  availableLengths: [5000 as Length]
+  availableLengths: [5000]
 }
 
 export const strawbale: DimensionalMaterial = {
   id: 'material_strawbale' as MaterialId,
   name: 'Strawbale',
-  width: 500 as Length,
-  thickness: 360 as Length,
+  width: 500,
+  thickness: 360,
   type: 'dimensional',
   color: MATERIAL_COLORS.strawbale,
-  availableLengths: [800 as Length]
+  availableLengths: [800]
 }
 
 export const straw: GenericMaterial = {
@@ -119,9 +119,9 @@ export const concrete: GenericMaterial = {
 export const clt180: SheetMaterial = {
   id: 'material_clt180' as MaterialId,
   name: 'CLT 18cm',
-  width: 2440 as Length,
-  length: 6000 as Length,
-  thickness: 180 as Length,
+  width: 2440,
+  length: 6000,
+  thickness: 180,
   type: 'sheet',
   color: MATERIAL_COLORS.woodSupport
 }

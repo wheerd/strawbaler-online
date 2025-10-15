@@ -1,9 +1,11 @@
+import type { vec3 } from 'gl-matrix'
+
 import type { NonStrawbaleConfig } from '@/construction/config/types'
 import { createConstructionElement, createCuboidShape } from '@/construction/elements'
 import type { MaterialId } from '@/construction/materials/material'
 import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
 import { constructModuleWall } from '@/construction/walls/strawhenge/all-modules'
-import { type Vec3, mergeBounds } from '@/shared/geometry'
+import { mergeBounds } from '@/shared/geometry'
 
 import type { ConstructionType, PerimeterWallConstructionMethod } from './construction'
 import { constructInfillWall } from './infill/infill'
@@ -17,8 +19,8 @@ export * from './infill/infill'
 export * from './strawhenge/strawhenge'
 
 function* infillNonStrawbaleWallArea(
-  position: Vec3,
-  size: Vec3,
+  position: vec3,
+  size: vec3,
   config: NonStrawbaleConfig
 ): Generator<ConstructionResult> {
   yield yieldElement(createConstructionElement(config.material, createCuboidShape(position, size)))
@@ -26,8 +28,8 @@ function* infillNonStrawbaleWallArea(
 
 function* constructNonStrawbaleOpeningFrame(
   material: MaterialId,
-  position: Vec3,
-  size: Vec3
+  position: vec3,
+  size: vec3
 ): Generator<ConstructionResult> {
   yield yieldElement(createConstructionElement(material, createCuboidShape(position, size)))
 }
@@ -46,7 +48,7 @@ export const constructNonStrawbaleWall: PerimeterWallConstructionMethod<NonStraw
       storeyContext,
       layers,
       (position, size) => infillNonStrawbaleWallArea(position, size, config),
-      (position: Vec3, size: Vec3) => constructNonStrawbaleOpeningFrame(config.material, position, size)
+      (position: vec3, size: vec3) => constructNonStrawbaleOpeningFrame(config.material, position, size)
     )
   )
   const aggRes = aggregateResults(allResults)

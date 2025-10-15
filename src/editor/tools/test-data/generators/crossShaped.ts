@@ -1,7 +1,9 @@
+import { vec2 } from 'gl-matrix'
+
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { boundsFromPoints, createLength, createVec2, polygonIsClockwise } from '@/shared/geometry'
+import { boundsFromPoints, polygonIsClockwise } from '@/shared/geometry'
 
 import { type DoorSpec, type WindowSpec, addDoors, addWindows } from './openings'
 
@@ -15,18 +17,18 @@ export function createCrossShapedPerimeter(): void {
 
   // Create a T-shaped perimeter (realistic building scale)
   let points = [
-    createVec2(2000, 12000), // Top-left of vertical bar
-    createVec2(8000, 12000), // Top-right of vertical bar
-    createVec2(8000, 8000), // Inner corner (right of horizontal bar)
-    createVec2(15000, 8000), // Top-right of horizontal bar
-    createVec2(15000, 3000), // Bottom-right of horizontal bar
-    createVec2(8000, 3000), // Inner corner (right of vertical bar)
-    createVec2(8000, 1000), // Bottom-right of vertical bar
-    createVec2(2000, 1000), // Bottom-left of vertical bar
-    createVec2(2000, 3000), // Inner corner (left of vertical bar)
-    createVec2(500, 3000), // Bottom-left of horizontal bar
-    createVec2(500, 8000), // Top-left of horizontal bar
-    createVec2(2000, 8000) // Inner corner (left of horizontal bar)
+    vec2.fromValues(2000, 12000), // Top-left of vertical bar
+    vec2.fromValues(8000, 12000), // Top-right of vertical bar
+    vec2.fromValues(8000, 8000), // Inner corner (right of horizontal bar)
+    vec2.fromValues(15000, 8000), // Top-right of horizontal bar
+    vec2.fromValues(15000, 3000), // Bottom-right of horizontal bar
+    vec2.fromValues(8000, 3000), // Inner corner (right of vertical bar)
+    vec2.fromValues(8000, 1000), // Bottom-right of vertical bar
+    vec2.fromValues(2000, 1000), // Bottom-left of vertical bar
+    vec2.fromValues(2000, 3000), // Inner corner (left of vertical bar)
+    vec2.fromValues(500, 3000), // Bottom-left of horizontal bar
+    vec2.fromValues(500, 8000), // Top-left of horizontal bar
+    vec2.fromValues(2000, 8000) // Inner corner (left of horizontal bar)
   ]
 
   // Ensure clockwise order for perimeter creation
@@ -53,7 +55,7 @@ export function createCrossShapedPerimeter(): void {
       activeStoreyId,
       boundary,
       defaultMethodId,
-      createLength(440),
+      440,
       defaultBaseId,
       defaultTopId
     )

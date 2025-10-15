@@ -1,10 +1,11 @@
+import { vec2 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { StoreyId } from '@/building/model/ids'
 import type { Perimeter } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { createVec2 } from '@/shared/geometry/basic'
+import '@/shared/geometry/basic'
 
 import { FitToViewTool } from './FitToViewTool'
 
@@ -55,23 +56,23 @@ describe('FitToViewTool', () => {
       {
         corners: [
           {
-            insidePoint: createVec2(-1000, -500),
-            outsidePoint: createVec2(-1100, -600),
+            insidePoint: vec2.fromValues(-1000, -500),
+            outsidePoint: vec2.fromValues(-1100, -600),
             constructedByWall: 'previous' as const
           },
           {
-            insidePoint: createVec2(1000, -500),
-            outsidePoint: createVec2(1100, -600),
+            insidePoint: vec2.fromValues(1000, -500),
+            outsidePoint: vec2.fromValues(1100, -600),
             constructedByWall: 'previous' as const
           },
           {
-            insidePoint: createVec2(1000, 500),
-            outsidePoint: createVec2(1100, 600),
+            insidePoint: vec2.fromValues(1000, 500),
+            outsidePoint: vec2.fromValues(1100, 600),
             constructedByWall: 'previous' as const
           },
           {
-            insidePoint: createVec2(-1000, 500),
-            outsidePoint: createVec2(-1100, 600),
+            insidePoint: vec2.fromValues(-1000, 500),
+            outsidePoint: vec2.fromValues(-1100, 600),
             constructedByWall: 'previous' as const
           }
         ]
@@ -107,23 +108,23 @@ describe('FitToViewTool', () => {
       {
         corners: [
           {
-            insidePoint: createVec2(0, 0),
-            outsidePoint: createVec2(-100, -100),
+            insidePoint: vec2.fromValues(0, 0),
+            outsidePoint: vec2.fromValues(-100, -100),
             constructedByWall: 'previous' as const
           },
           {
-            insidePoint: createVec2(2000, 0),
-            outsidePoint: createVec2(2100, -100),
+            insidePoint: vec2.fromValues(2000, 0),
+            outsidePoint: vec2.fromValues(2100, -100),
             constructedByWall: 'previous' as const
           },
           {
-            insidePoint: createVec2(2000, 1000),
-            outsidePoint: createVec2(2100, 1100),
+            insidePoint: vec2.fromValues(2000, 1000),
+            outsidePoint: vec2.fromValues(2100, 1100),
             constructedByWall: 'previous' as const
           },
           {
-            insidePoint: createVec2(0, 1000),
-            outsidePoint: createVec2(-100, 1100),
+            insidePoint: vec2.fromValues(0, 1000),
+            outsidePoint: vec2.fromValues(-100, 1100),
             constructedByWall: 'previous' as const
           }
         ]
@@ -149,23 +150,23 @@ describe('FitToViewTool', () => {
       {
         corners: [
           {
-            insidePoint: createVec2(100, 100),
-            outsidePoint: createVec2(95, 95),
+            insidePoint: vec2.fromValues(100, 100),
+            outsidePoint: vec2.fromValues(95, 95),
             constructedByWall: 'previous' as const
           },
           {
-            insidePoint: createVec2(110, 100),
-            outsidePoint: createVec2(115, 95),
+            insidePoint: vec2.fromValues(110, 100),
+            outsidePoint: vec2.fromValues(115, 95),
             constructedByWall: 'previous' as const
           },
           {
-            insidePoint: createVec2(110, 110),
-            outsidePoint: createVec2(115, 115),
+            insidePoint: vec2.fromValues(110, 110),
+            outsidePoint: vec2.fromValues(115, 115),
             constructedByWall: 'previous' as const
           },
           {
-            insidePoint: createVec2(100, 110),
-            outsidePoint: createVec2(95, 115),
+            insidePoint: vec2.fromValues(100, 110),
+            outsidePoint: vec2.fromValues(95, 115),
             constructedByWall: 'previous' as const
           }
         ]

@@ -1,15 +1,17 @@
-import type { Length, Line2D, LineSegment2D, Vec2 } from '@/shared/geometry'
+import { vec2 } from 'gl-matrix'
+
+import type { Length, Line2D, LineSegment2D } from '@/shared/geometry'
 
 export interface SnapResult {
-  position: Vec2
+  position: vec2
   lines?: Line2D[] // Array of 1 or 2 lines to render (1 for line snap, 2 for intersection)
 }
 
 // Context for snapping operations
 export interface SnappingContext {
-  snapPoints: Vec2[]
-  alignPoints?: Vec2[]
-  referencePoint?: Vec2
+  snapPoints: vec2[]
+  alignPoints?: vec2[]
+  referencePoint?: vec2
   referenceLineWalls?: LineSegment2D[]
 }
 
@@ -22,7 +24,7 @@ export interface SnapConfig {
 
 // Default snapping configuration
 export const DEFAULT_SNAP_CONFIG: SnapConfig = {
-  pointSnapDistance: 200 as Length, // 500mm
-  lineSnapDistance: 100 as Length, // 100mm
-  minDistance: 50 as Length // 50mm
+  pointSnapDistance: 200, // 500mm
+  lineSnapDistance: 100, // 100mm
+  minDistance: 50 // 50mm
 }

@@ -27,7 +27,6 @@ import { getRingBeamConfigUsage } from '@/construction/config/usage'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
-import type { Length } from '@/shared/geometry'
 
 import type { RingBeamConfig } from './../../ringBeams/ringBeams'
 import { getRingBeamTypeIcon } from './Icons'
@@ -80,20 +79,20 @@ export function RingBeamConfigContent({ initialSelectionId }: RingBeamConfigCont
       if (type === 'full') {
         config = {
           type: 'full',
-          height: 60 as Length,
+          height: 60,
           material: defaultMaterial,
-          width: 360 as Length,
-          offsetFromEdge: 0 as Length
+          width: 360,
+          offsetFromEdge: 0
         }
       } else {
         config = {
           type: 'double',
-          height: 60 as Length,
+          height: 60,
           material: defaultMaterial,
-          thickness: 120 as Length,
+          thickness: 120,
           infillMaterial: defaultMaterial,
-          offsetFromEdge: 0 as Length,
-          spacing: 100 as Length
+          offsetFromEdge: 0,
+          spacing: 100
         }
       }
 

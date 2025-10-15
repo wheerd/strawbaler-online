@@ -134,7 +134,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
         <DataList.Root size="1">
           <DataList.Item>
             <DataList.Label minWidth="88px">Total Inner Perimeter</DataList.Label>
-            <DataList.Value>{formatLength(totalInnerPerimeter as Length)}</DataList.Value>
+            <DataList.Value>{formatLength(totalInnerPerimeter)}</DataList.Value>
           </DataList.Item>
           <DataList.Item>
             <DataList.Label minWidth="88px">Total Inside Area</DataList.Label>
@@ -142,7 +142,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
           </DataList.Item>
           <DataList.Item>
             <DataList.Label minWidth="88px">Total Outer Perimeter</DataList.Label>
-            <DataList.Value>{formatLength(totalOuterPerimeter as Length)}</DataList.Value>
+            <DataList.Value>{formatLength(totalOuterPerimeter)}</DataList.Value>
           </DataList.Item>
           <DataList.Item>
             <DataList.Label minWidth="88px">Total Overbuilt Area</DataList.Label>
@@ -249,9 +249,9 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                 value={thicknessState.value as Length}
                 placeholder={thicknessState.isMixed ? 'Mixed' : undefined}
                 onCommit={value => updateAllPerimeterWallsThickness(selectedId, value)}
-                min={50 as Length}
-                max={1500 as Length}
-                step={10 as Length}
+                min={50}
+                max={1500}
+                step={10}
                 size="1"
                 unit="cm"
                 style={{ width: '5rem' }}

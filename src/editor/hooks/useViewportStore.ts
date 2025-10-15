@@ -1,6 +1,7 @@
+import { vec2 } from 'gl-matrix'
 import { create } from 'zustand'
 
-import { type Bounds2D, type Vec2, createVec2 } from '@/shared/geometry'
+import { type Bounds2D } from '@/shared/geometry'
 
 export interface ViewportState {
   zoom: number
@@ -18,8 +19,8 @@ interface ViewportActions {
   zoomBy: (factor: number) => number
   panBy: (deltaX: number, deltaY: number) => void
 
-  worldToStage: (worldPos: Vec2) => { x: number; y: number }
-  stageToWorld: (stagePos: { x: number; y: number }) => Vec2
+  worldToStage: (worldPos: vec2) => { x: number; y: number }
+  stageToWorld: (stagePos: { x: number; y: number }) => vec2
   fitToView: (bounds: Bounds2D) => void
 
   reset: () => void
@@ -77,7 +78,7 @@ const viewportStore = create<ViewportStore>()((set, get) => ({
       })
     },
 
-    worldToStage: (worldPos: Vec2): { x: number; y: number } => {
+    worldToStage: (worldPos: vec2): { x: number; y: number } => {
       const viewport = get()
       return {
         x: worldPos[0] * viewport.zoom + viewport.panX,
@@ -85,9 +86,12 @@ const viewportStore = create<ViewportStore>()((set, get) => ({
       }
     },
 
-    stageToWorld: (stagePos: { x: number; y: number }): Vec2 => {
+    stageToWorld: (stagePos: { x: number; y: number }): vec2 => {
       const viewport = get()
-      return createVec2((stagePos.x - viewport.panX) / viewport.zoom, -(stagePos.y - viewport.panY) / viewport.zoom)
+      return vec2.fromValues(
+        (stagePos.x - viewport.panX) / viewport.zoom,
+        -(stagePos.y - viewport.panY) / viewport.zoom
+      )
     },
 
     fitToView: (bounds: Bounds2D): void => {

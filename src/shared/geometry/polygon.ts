@@ -8,15 +8,14 @@ import {
   pathDToPoints
 } from '@/shared/geometry/clipperInstance'
 
-import type { Area, Vec2 } from './basic'
-import { createArea } from './basic'
+import type { Area } from './basic'
 import type { LineSegment2D } from './line'
 
 const COLINEAR_EPSILON = 1e-9
 const SIMPLIFY_TOLERANCE = 0.01
 
 export interface Polygon2D {
-  points: Vec2[]
+  points: vec2[]
 }
 
 export interface PolygonWithHoles2D {
@@ -27,7 +26,7 @@ export interface PolygonWithHoles2D {
 export function calculatePolygonArea(polygon: Polygon2D): Area {
   const path = createPathD(polygon.points)
   try {
-    return createArea(getClipperModule().AreaPathD(path))
+    return getClipperModule().AreaPathD(path)
   } finally {
     path.delete()
   }
@@ -42,7 +41,7 @@ export function polygonIsClockwise(polygon: Polygon2D): boolean {
   }
 }
 
-export function isPointInPolygon(point: Vec2, polygon: Polygon2D): boolean {
+export function isPointInPolygon(point: vec2, polygon: Polygon2D): boolean {
   const testPoint = createPointD(point)
   const path = createPathD(polygon.points)
   try {
@@ -55,7 +54,7 @@ export function isPointInPolygon(point: Vec2, polygon: Polygon2D): boolean {
   }
 }
 
-export function wouldPolygonSelfIntersect(existingPoints: Vec2[], newPoint: Vec2): boolean {
+export function wouldPolygonSelfIntersect(existingPoints: vec2[], newPoint: vec2): boolean {
   if (existingPoints.some(p => vec2.equals(p, newPoint))) {
     return true
   }
@@ -182,7 +181,7 @@ export function arePolygonsIntersecting(polygon1: Polygon2D, polygon2: Polygon2D
   }
 }
 
-function segmentsIntersect(p1: Vec2, q1: Vec2, p2: Vec2, q2: Vec2): boolean {
+function segmentsIntersect(p1: vec2, q1: vec2, p2: vec2, q2: vec2): boolean {
   const o1 = orientation(p1, q1, p2)
   const o2 = orientation(p1, q1, q2)
   const o3 = orientation(p2, q2, p1)
@@ -198,13 +197,13 @@ function segmentsIntersect(p1: Vec2, q1: Vec2, p2: Vec2, q2: Vec2): boolean {
   return false
 }
 
-function orientation(p: Vec2, q: Vec2, r: Vec2): number {
+function orientation(p: vec2, q: vec2, r: vec2): number {
   const val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1])
   if (Math.abs(val) < COLINEAR_EPSILON) return 0
   return val > 0 ? 1 : 2
 }
 
-function onSegment(p: Vec2, q: Vec2, r: Vec2): boolean {
+function onSegment(p: vec2, q: vec2, r: vec2): boolean {
   return (
     q[0] <= Math.max(p[0], r[0]) + COLINEAR_EPSILON &&
     q[0] + COLINEAR_EPSILON >= Math.min(p[0], r[0]) &&

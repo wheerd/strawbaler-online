@@ -8,8 +8,7 @@ import type { Perimeter } from '@/building/model/model'
 import { usePerimeterById } from '@/building/store'
 import { SelectionOutline } from '@/editor/canvas/utils/SelectionOutline'
 import { useCurrentSelection, useSelectionPath } from '@/editor/hooks/useSelectionStore'
-import type { Vec2 } from '@/shared/geometry'
-import { add, direction, perpendicular, scale } from '@/shared/geometry'
+import { direction, perpendicular } from '@/shared/geometry'
 
 /**
  * Selection Path Structure Documentation:
@@ -32,7 +31,7 @@ import { add, direction, perpendicular, scale } from '@/shared/geometry'
 function useSelectionOutlinePoints(
   selectionPath: SelectableId[],
   currentSelection: SelectableId | null
-): Vec2[] | null {
+): vec2[] | null {
   const rootEntityId = selectionPath[0]
 
   // Always call the hook unconditionally - follows Rules of Hooks
@@ -88,7 +87,7 @@ function getPerimeterEntityPoints(
   perimeter: Perimeter,
   selectionPath: SelectableId[],
   currentSelection: SelectableId
-): Vec2[] | null {
+): vec2[] | null {
   // Entity type determines the selection path structure and required points
   if (isPerimeterId(currentSelection)) {
     // Path: [wallId]
@@ -120,7 +119,7 @@ function getPerimeterEntityPoints(
  * Get selection outline points for an OuterWall
  * Uses the outer boundary polygon formed by corner outside points
  */
-function getPerimeterPoints(perimeter: Perimeter): Vec2[] {
+function getPerimeterPoints(perimeter: Perimeter): vec2[] {
   return perimeter.corners.map(corner => corner.outsidePoint)
 }
 
@@ -128,7 +127,7 @@ function getPerimeterPoints(perimeter: Perimeter): Vec2[] {
  * Get selection outline points for a PerimeterWall
  * Creates a rectangular polygon around the wall using inside/outside lines
  */
-function getPerimeterWallPoints(perimeter: Perimeter, wallId: PerimeterWallId): Vec2[] | null {
+function getPerimeterWallPoints(perimeter: Perimeter, wallId: PerimeterWallId): vec2[] | null {
   const wall = perimeter.walls.find(s => s.id === wallId)
 
   if (!wall) {
@@ -143,7 +142,7 @@ function getPerimeterWallPoints(perimeter: Perimeter, wallId: PerimeterWallId): 
  * Get selection outline points for an PerimeterCorner
  * Creates a complex polygon using the same logic as PerimeterCornerShape
  */
-function getPerimeterCornerPoints(wall: Perimeter, cornerId: PerimeterCornerId): Vec2[] | null {
+function getPerimeterCornerPoints(wall: Perimeter, cornerId: PerimeterCornerId): vec2[] | null {
   const cornerIndex = wall.corners.findIndex(c => c.id === cornerId)
 
   if (cornerIndex === -1) {
@@ -192,7 +191,7 @@ function getPerimeterCornerPoints(wall: Perimeter, cornerId: PerimeterCornerId):
  * Get selection outline points for an Opening
  * Creates a rectangular polygon around the opening using the same calculation as OpeningShape
  */
-function getOpeningPoints(perimeter: Perimeter, wallId: PerimeterWallId, openingId: OpeningId): Vec2[] | null {
+function getOpeningPoints(perimeter: Perimeter, wallId: PerimeterWallId, openingId: OpeningId): vec2[] | null {
   const wall = perimeter.walls.find(s => s.id === wallId)
 
   if (!wall) {
@@ -212,14 +211,14 @@ function getOpeningPoints(perimeter: Perimeter, wallId: PerimeterWallId, opening
   const outsideStart = wall.outsideLine.start
   const wallVector = wall.direction
   const offsetDistance = opening.offsetFromStart
-  const offsetStart = scale(wallVector, offsetDistance)
-  const offsetEnd = add(offsetStart, scale(wallVector, opening.width))
+  const offsetStart = vec2.scale(vec2.create(), wallVector, offsetDistance)
+  const offsetEnd = vec2.add(vec2.create(), offsetStart, vec2.scale(vec2.create(), wallVector, opening.width))
 
   // Calculate opening polygon corners
-  const insideOpeningStart = add(insideStart, offsetStart)
-  const insideOpeningEnd = add(insideStart, offsetEnd)
-  const outsideOpeningStart = add(outsideStart, offsetStart)
-  const outsideOpeningEnd = add(outsideStart, offsetEnd)
+  const insideOpeningStart = vec2.add(vec2.create(), insideStart, offsetStart)
+  const insideOpeningEnd = vec2.add(vec2.create(), insideStart, offsetEnd)
+  const outsideOpeningStart = vec2.add(vec2.create(), outsideStart, offsetStart)
+  const outsideOpeningEnd = vec2.add(vec2.create(), outsideStart, offsetEnd)
 
   return [insideOpeningStart, insideOpeningEnd, outsideOpeningEnd, outsideOpeningStart]
 }

@@ -8,6 +8,7 @@ exports[`PerimeterToolOverlay > closing polygon behavior > does not render closi
     <div
       data-line-cap="round"
       data-line-join="round"
+      data-points="[100,100,200,100,200,200]"
       data-stroke="var(--color-secondary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -15,6 +16,7 @@ exports[`PerimeterToolOverlay > closing polygon behavior > does not render closi
     />
     <div
       data-dash="[10,10]"
+      data-points="[200,200,300,300]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -72,6 +74,7 @@ exports[`PerimeterToolOverlay > closing polygon behavior > renders closing line 
     <div
       data-line-cap="round"
       data-line-join="round"
+      data-points="[100,100,200,100,200,200]"
       data-stroke="var(--color-secondary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -79,6 +82,7 @@ exports[`PerimeterToolOverlay > closing polygon behavior > renders closing line 
     />
     <div
       data-dash="[10,10]"
+      data-points="[200,200,100,100]"
       data-stroke="var(--color-danger)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -136,6 +140,7 @@ exports[`PerimeterToolOverlay > closing polygon behavior > renders closing line 
     <div
       data-line-cap="round"
       data-line-join="round"
+      data-points="[100,100,200,100,200,200]"
       data-stroke="var(--color-secondary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -143,6 +148,7 @@ exports[`PerimeterToolOverlay > closing polygon behavior > renders closing line 
     />
     <div
       data-dash="[10,10]"
+      data-points="[200,200,100,100]"
       data-stroke="var(--color-success)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -219,6 +225,7 @@ exports[`PerimeterToolOverlay > edge cases > handles exactly two points (minimum
     <div
       data-line-cap="round"
       data-line-join="round"
+      data-points="[0,0,100,100]"
       data-stroke="var(--color-secondary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -226,6 +233,7 @@ exports[`PerimeterToolOverlay > edge cases > handles exactly two points (minimum
     />
     <div
       data-dash="[10,10]"
+      data-points="[100,100,200,0]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -273,6 +281,7 @@ exports[`PerimeterToolOverlay > rendering with multiple points > differentiates 
     <div
       data-line-cap="round"
       data-line-join="round"
+      data-points="[0,0,100,0,100,100,0,100]"
       data-stroke="var(--color-secondary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -280,6 +289,7 @@ exports[`PerimeterToolOverlay > rendering with multiple points > differentiates 
     />
     <div
       data-dash="[10,10]"
+      data-points="[0,100,50,50]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -347,6 +357,7 @@ exports[`PerimeterToolOverlay > rendering with multiple points > renders polygon
     <div
       data-line-cap="round"
       data-line-join="round"
+      data-points="[100,100,200,100,200,200]"
       data-stroke="var(--color-secondary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -354,6 +365,7 @@ exports[`PerimeterToolOverlay > rendering with multiple points > renders polygon
     />
     <div
       data-dash="[10,10]"
+      data-points="[200,200,100,200]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -429,6 +441,7 @@ exports[`PerimeterToolOverlay > rendering with single point > renders first poin
   >
     <div
       data-dash="[10,10]"
+      data-points="[100,100,200,200]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -465,6 +478,7 @@ exports[`PerimeterToolOverlay > rendering with single point > renders line to po
   >
     <div
       data-dash="[10,10]"
+      data-points="[50,50,150,150]"
       data-stroke="var(--color-danger)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -501,6 +515,7 @@ exports[`PerimeterToolOverlay > rendering with single point > renders line to po
   >
     <div
       data-dash="[10,10]"
+      data-points="[50,50,150,150]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -540,6 +555,7 @@ exports[`PerimeterToolOverlay > snapping behavior > renders snap lines when snap
     >
       <div
         data-opacity="0.5"
+        data-points="[-1500,100,1700,100]"
         data-stroke="var(--color-grid-horizontal)"
         data-stroke-width="2"
         data-testid="konva-line"
@@ -547,6 +563,7 @@ exports[`PerimeterToolOverlay > snapping behavior > renders snap lines when snap
       />
       <div
         data-opacity="0.5"
+        data-points="[200,-1400,200,1800]"
         data-stroke="var(--color-grid-vertical)"
         data-stroke-width="2"
         data-testid="konva-line"
@@ -555,6 +572,7 @@ exports[`PerimeterToolOverlay > snapping behavior > renders snap lines when snap
     </div>
     <div
       data-dash="[10,10]"
+      data-points="[50,50,145,145]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -594,6 +612,7 @@ exports[`PerimeterToolOverlay > snapping behavior > renders snap lines when snap
     >
       <div
         data-opacity="0.5"
+        data-points="[-1500,100,1700,100]"
         data-stroke="var(--color-grid-horizontal)"
         data-stroke-width="2"
         data-testid="konva-line"
@@ -601,6 +620,7 @@ exports[`PerimeterToolOverlay > snapping behavior > renders snap lines when snap
       />
       <div
         data-opacity="0.5"
+        data-points="[200,-1400,200,1800]"
         data-stroke="var(--color-grid-vertical)"
         data-stroke-width="2"
         data-testid="konva-line"
@@ -609,6 +629,7 @@ exports[`PerimeterToolOverlay > snapping behavior > renders snap lines when snap
     </div>
     <div
       data-dash="[10,10]"
+      data-points="[50,50,145,145]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -645,6 +666,7 @@ exports[`PerimeterToolOverlay > snapping behavior > renders snap position when s
   >
     <div
       data-dash="[10,10]"
+      data-points="[100,100,120,120]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="2"
       data-testid="konva-line"
@@ -684,6 +706,7 @@ exports[`PerimeterToolOverlay > zoom responsiveness > adjusts line extension bas
     >
       <div
         data-opacity="0.5"
+        data-points="[-1500,100,1700,100]"
         data-stroke="var(--color-grid-horizontal)"
         data-stroke-width="1"
         data-testid="konva-line"
@@ -712,6 +735,7 @@ exports[`PerimeterToolOverlay > zoom responsiveness > scales elements appropriat
     <div
       data-line-cap="round"
       data-line-join="round"
+      data-points="[100,100,200,100]"
       data-stroke="var(--color-secondary)"
       data-stroke-width="1"
       data-testid="konva-line"
@@ -719,6 +743,7 @@ exports[`PerimeterToolOverlay > zoom responsiveness > scales elements appropriat
     />
     <div
       data-dash="[2.5,2.5]"
+      data-points="[200,100,200,200]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="1"
       data-testid="konva-line"
@@ -766,6 +791,7 @@ exports[`PerimeterToolOverlay > zoom responsiveness > scales elements appropriat
     <div
       data-line-cap="round"
       data-line-join="round"
+      data-points="[100,100,200,100]"
       data-stroke="var(--color-secondary)"
       data-stroke-width="8"
       data-testid="konva-line"
@@ -773,6 +799,7 @@ exports[`PerimeterToolOverlay > zoom responsiveness > scales elements appropriat
     />
     <div
       data-dash="[40,40]"
+      data-points="[200,100,200,200]"
       data-stroke="var(--color-text-tertiary)"
       data-stroke-width="8"
       data-testid="konva-line"

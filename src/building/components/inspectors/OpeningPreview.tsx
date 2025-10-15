@@ -31,14 +31,14 @@ export function OpeningPreview({
   // Calculate dimensions
   const fittingWidth = opening.width
   const fittingHeight = opening.height
-  const finishedWidthMm = (opening.width - 2 * padding) as Length
-  const finishedHeightMm = (opening.height - 2 * padding) as Length
+  const finishedWidthMm = opening.width - 2 * padding
+  const finishedHeightMm = opening.height - 2 * padding
   const fittingSillHeight = opening.sillHeight || 0
-  const finishedSillHeight = fittingSillHeight > 0 ? ((fittingSillHeight + padding) as Length) : 0
+  const finishedSillHeight = fittingSillHeight > 0 ? fittingSillHeight + padding : 0
 
   // Floor to top measurements (when sill exists)
-  const fittingFloorToTop = fittingSillHeight > 0 ? ((fittingSillHeight + fittingHeight) as Length) : 0
-  const finishedFloorToTop = fittingSillHeight > 0 ? ((finishedSillHeight + finishedHeightMm) as Length) : 0
+  const fittingFloorToTop = fittingSillHeight > 0 ? fittingSillHeight + fittingHeight : 0
+  const finishedFloorToTop = fittingSillHeight > 0 ? finishedSillHeight + finishedHeightMm : 0
 
   // SVG viewport dimensions - aim for square preview area
   const svgSize = 200
@@ -243,7 +243,7 @@ export function OpeningPreview({
           <SvgMeasurementIndicator
             startPoint={[openingLeft, wallBottom]}
             endPoint={[openingLeft, openingBottom]}
-            label={formatLength(fittingSillHeight as Length)}
+            label={formatLength(fittingSillHeight)}
             offset={sideHasSpace ? -16 : 16}
             color={getMeasurementColor('sillHeight', 'fitting')}
             fontSize={7}
@@ -252,7 +252,7 @@ export function OpeningPreview({
           <SvgMeasurementIndicator
             startPoint={[openingLeft, wallBottom]}
             endPoint={[openingLeft, openingBottom]}
-            label={formatLength(finishedSillHeight as Length)}
+            label={formatLength(finishedSillHeight)}
             offset={sideHasSpace ? -8 : 8}
             color={getMeasurementColor('sillHeight', 'finished')}
             fontSize={7}
@@ -263,7 +263,7 @@ export function OpeningPreview({
           <SvgMeasurementIndicator
             startPoint={[openingLeft + openingWidthSvg, wallBottom]}
             endPoint={[openingLeft + openingWidthSvg, openingTop]}
-            label={formatLength(fittingFloorToTop as Length)}
+            label={formatLength(fittingFloorToTop)}
             offset={sideHasSpace ? 16 : -16}
             color={getMeasurementColor('topHeight', 'fitting')}
             fontSize={7}
@@ -272,7 +272,7 @@ export function OpeningPreview({
           <SvgMeasurementIndicator
             startPoint={[openingLeft + openingWidthSvg, wallBottom]}
             endPoint={[openingLeft + openingWidthSvg, finishedTop]}
-            label={formatLength(finishedFloorToTop as Length)}
+            label={formatLength(finishedFloorToTop)}
             offset={sideHasSpace ? 8 : -8}
             color={getMeasurementColor('topHeight', 'finished')}
             fontSize={7}

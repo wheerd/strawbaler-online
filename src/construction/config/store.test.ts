@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { createMaterialId } from '@/construction/materials/material'
 import type { RingBeamConfig } from '@/construction/ringBeams/ringBeams'
-import { createLength } from '@/shared/geometry'
+import '@/shared/geometry'
 
 import { _clearAllMethods, getConfigActions } from './store'
 
@@ -37,10 +37,10 @@ describe('ConfigStore', () => {
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
-        height: createLength(60),
-        width: createLength(360),
+        height: 60,
+        width: 360,
         material,
-        offsetFromEdge: createLength(0)
+        offsetFromEdge: 0
       }
 
       const method = store.addRingBeamConstructionMethod('Standard Ring Beam', config)
@@ -59,12 +59,12 @@ describe('ConfigStore', () => {
       const infillMaterial = createMaterialId()
       const config: RingBeamConfig = {
         type: 'double',
-        height: createLength(60),
-        thickness: createLength(120),
+        height: 60,
+        thickness: 120,
         material,
         infillMaterial,
-        offsetFromEdge: createLength(50),
-        spacing: createLength(100)
+        offsetFromEdge: 50,
+        spacing: 100
       }
 
       const method = store.addRingBeamConstructionMethod('Double Ring Beam', config)
@@ -78,10 +78,10 @@ describe('ConfigStore', () => {
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
-        height: createLength(60),
-        width: createLength(360),
+        height: 60,
+        width: 360,
         material,
-        offsetFromEdge: createLength(0)
+        offsetFromEdge: 0
       }
 
       expect(() => {
@@ -94,10 +94,10 @@ describe('ConfigStore', () => {
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
-        height: createLength(0),
-        width: createLength(360),
+        height: 0,
+        width: 360,
         material,
-        offsetFromEdge: createLength(0)
+        offsetFromEdge: 0
       }
 
       expect(() => {
@@ -110,10 +110,10 @@ describe('ConfigStore', () => {
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
-        height: createLength(60),
-        width: createLength(360),
+        height: 60,
+        width: 360,
         material,
-        offsetFromEdge: createLength(0)
+        offsetFromEdge: 0
       }
 
       const method1 = store.addRingBeamConstructionMethod('Same Name', config)
@@ -130,10 +130,10 @@ describe('ConfigStore', () => {
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
-        height: createLength(60),
-        width: createLength(360),
+        height: 60,
+        width: 360,
         material,
-        offsetFromEdge: createLength(0)
+        offsetFromEdge: 0
       }
 
       const method = store.addRingBeamConstructionMethod('To Remove', config)
@@ -148,10 +148,10 @@ describe('ConfigStore', () => {
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
-        height: createLength(60),
-        width: createLength(360),
+        height: 60,
+        width: 360,
         material,
-        offsetFromEdge: createLength(0)
+        offsetFromEdge: 0
       }
 
       const method = store.addRingBeamConstructionMethod('Original', config)
@@ -168,10 +168,10 @@ describe('ConfigStore', () => {
       const material = createMaterialId()
       const originalConfig: RingBeamConfig = {
         type: 'full',
-        height: createLength(60),
-        width: createLength(360),
+        height: 60,
+        width: 360,
         material,
-        offsetFromEdge: createLength(0)
+        offsetFromEdge: 0
       }
 
       const method = store.addRingBeamConstructionMethod('Test Method', originalConfig)
@@ -179,10 +179,10 @@ describe('ConfigStore', () => {
       const newMaterial = createMaterialId()
       const newConfig: RingBeamConfig = {
         type: 'full',
-        height: createLength(80),
-        width: createLength(400),
+        height: 80,
+        width: 400,
         material: newMaterial,
-        offsetFromEdge: createLength(10)
+        offsetFromEdge: 10
       }
 
       store.updateRingBeamConstructionMethodConfig(method.id, newConfig)
@@ -197,10 +197,10 @@ describe('ConfigStore', () => {
       const material = createMaterialId()
       const invalidConfig: RingBeamConfig = {
         type: 'full',
-        height: createLength(0), // Invalid height
-        width: createLength(360),
+        height: 0, // Invalid height
+        width: 360,
         material,
-        offsetFromEdge: createLength(0)
+        offsetFromEdge: 0
       }
 
       expect(() => {
@@ -213,17 +213,17 @@ describe('ConfigStore', () => {
       const material = createMaterialId()
       const config: RingBeamConfig = {
         type: 'full',
-        height: createLength(60),
-        width: createLength(360),
+        height: 60,
+        width: 360,
         material,
-        offsetFromEdge: createLength(-50)
+        offsetFromEdge: -50
       }
 
       const method = store.addRingBeamConstructionMethod('Negative Offset Method', config)
 
       expect(method.config.type).toBe('full')
       if (method.config.type === 'full') {
-        expect(method.config.offsetFromEdge).toBe(createLength(-50))
+        expect(method.config.offsetFromEdge).toBe(-50)
         expect(Number(method.config.offsetFromEdge)).toBe(-50)
       }
     })

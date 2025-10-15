@@ -4,7 +4,7 @@ import { createConstructionElement, createCuboidShape } from '@/construction/ele
 import { IDENTITY } from '@/construction/geometry'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
 import { TAG_FULL_BALE, TAG_PARTIAL_BALE } from '@/construction/tags'
-import type { Length, Vec3 } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
 
 import type { MaterialId } from './material'
 
@@ -15,14 +15,13 @@ export interface StrawConfig {
   material: MaterialId
 }
 
-export function* constructStraw(position: Vec3, size: Vec3, config: StrawConfig): Generator<ConstructionResult> {
+export function* constructStraw(position: vec3, size: vec3, config: StrawConfig): Generator<ConstructionResult> {
   if (size[1] === config.baleWidth) {
-    const end = vec3.create()
-    vec3.add(end, position, size)
+    const end = vec3.add(vec3.create(), position, size)
 
     for (let z = position[2]; z < end[2]; z += config.baleHeight) {
       for (let x = position[0]; x < end[0]; x += config.baleLength) {
-        const balePosition: Vec3 = [x, position[1], z]
+        const balePosition: vec3 = [x, position[1], z]
         const baleSize = [
           Math.min(config.baleLength, end[0] - x),
           config.baleWidth,

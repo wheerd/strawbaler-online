@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import type { StateCreator } from 'zustand'
 
 import type {
@@ -16,20 +17,15 @@ import {
   createPerimeterWallId
 } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterCorner, PerimeterWall } from '@/building/model/model'
-import type { Length, Line2D, Polygon2D, Vec2 } from '@/shared/geometry'
+import type { Length, Line2D, Polygon2D } from '@/shared/geometry'
 import {
-  add,
-  createLength,
-  createVec2,
   direction,
-  distance,
   lineFromPoints,
   lineIntersection,
   midpoint,
   perpendicularCCW,
   projectPointOntoLine,
-  radiansToDegrees,
-  scale
+  radiansToDegrees
 } from '@/shared/geometry'
 import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
@@ -119,8 +115,8 @@ export interface PerimetersActions {
   getPerimetersByStorey: (storeyId: StoreyId) => Perimeter[]
 
   // Movement operations for MoveTool
-  movePerimeter: (perimeterId: PerimeterId, offset: Vec2) => boolean
-  updatePerimeterBoundary: (perimeterId: PerimeterId, newBoundary: Vec2[]) => boolean
+  movePerimeter: (perimeterId: PerimeterId, offset: vec2) => boolean
+  updatePerimeterBoundary: (perimeterId: PerimeterId, newBoundary: vec2[]) => boolean
 
   // Ring beam configuration
   setPerimeterBaseRingBeam: (perimeterId: PerimeterId, methodId: RingBeamConstructionMethodId) => void
@@ -132,7 +128,7 @@ export interface PerimetersActions {
 export type PerimetersSlice = PerimetersState & { actions: PerimetersActions }
 
 // Default wall thickness value
-const DEFAULT_PERIMETER_WALL_THICKNESS = createLength(440) // 44cm for strawbale walls
+const DEFAULT_PERIMETER_WALL_THICKNESS = 440 // 44cm for strawbale walls
 
 export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/immer', never]], [], PerimetersSlice> = (
   set,
@@ -167,7 +163,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         const corners: PerimeterCorner[] = boundary.points.map(point => ({
           id: createPerimeterCornerId(),
           insidePoint: point,
-          outsidePoint: createVec2(0, 0), // Will be calculated by updatePerimeterGeometry
+          outsidePoint: vec2.fromValues(0, 0), // Will be calculated by updatePerimeterGeometry
           constructedByWall: 'next',
           interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
           exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
@@ -180,13 +176,13 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           constructionMethodId,
           openings: [],
           // Geometry properties will be set by updatePerimeterGeometry
-          insideLength: createLength(0),
-          outsideLength: createLength(0),
-          wallLength: createLength(0),
-          insideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-          outsideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-          direction: createVec2(1, 0),
-          outsideDirection: createVec2(0, 1)
+          insideLength: 0,
+          outsideLength: 0,
+          wallLength: 0,
+          insideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+          outsideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+          direction: vec2.fromValues(1, 0),
+          outsideDirection: vec2.fromValues(0, 1)
         }))
 
         perimeter = {
@@ -212,7 +208,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
 
     removePerimeter: (perimeterId: PerimeterId) => {
       set(state => {
-        const { [perimeterId]: removed, ...remainingPerimeters } = state.perimeters
+        const { [perimeterId]: _removed, ...remainingPerimeters } = state.perimeters
         state.perimeters = remainingPerimeters
       })
     },
@@ -303,13 +299,13 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
 
         // Calculate split point in world coordinates
         const wallDirection = originalWall.direction
-        const splitPoint = add(originalWall.insideLine.start, scale(wallDirection, splitPosition))
+        const splitPoint = vec2.scaleAndAdd(vec2.create(), originalWall.insideLine.start, wallDirection, splitPosition)
 
         // Create new corner at split position
         const newCorner: PerimeterCorner = {
           id: createPerimeterCornerId(),
           insidePoint: splitPoint,
-          outsidePoint: createVec2(0, 0), // Will be calculated by updatePerimeterGeometry
+          outsidePoint: vec2.fromValues(0, 0), // Will be calculated by updatePerimeterGeometry
           constructedByWall: 'next',
           interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
           exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
@@ -324,7 +320,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           } else {
             secondWallOpenings.push({
               ...opening,
-              offsetFromStart: (opening.offsetFromStart - splitPosition) as Length
+              offsetFromStart: opening.offsetFromStart - splitPosition
             })
           }
         }
@@ -336,13 +332,13 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           constructionMethodId: originalWall.constructionMethodId,
           openings: firstWallOpenings,
           // Geometry will be set by updatePerimeterGeometry
-          insideLength: createLength(0),
-          outsideLength: createLength(0),
-          wallLength: createLength(0),
-          insideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-          outsideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-          direction: createVec2(1, 0),
-          outsideDirection: createVec2(0, 1)
+          insideLength: 0,
+          outsideLength: 0,
+          wallLength: 0,
+          insideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+          outsideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+          direction: vec2.fromValues(1, 0),
+          outsideDirection: vec2.fromValues(0, 1)
         }
 
         const secondWall: PerimeterWall = {
@@ -351,13 +347,13 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           constructionMethodId: originalWall.constructionMethodId,
           openings: secondWallOpenings,
           // Geometry will be set by updatePerimeterGeometry
-          insideLength: createLength(0),
-          outsideLength: createLength(0),
-          wallLength: createLength(0),
-          insideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-          outsideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-          direction: createVec2(1, 0),
-          outsideDirection: createVec2(0, 1)
+          insideLength: 0,
+          outsideLength: 0,
+          wallLength: 0,
+          insideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+          outsideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+          direction: vec2.fromValues(1, 0),
+          outsideDirection: vec2.fromValues(0, 1)
         }
 
         // Insert new corner at the correct position
@@ -625,7 +621,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         start = end - width
       }
 
-      if (wall.openings.length === 0) return start as Length
+      if (wall.openings.length === 0) return start
 
       // Sort existing openings by position
       const sortedOpenings = [...wall.openings]
@@ -646,7 +642,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const intersectsNext = nextOpening && end > nextOpening.offsetFromStart
 
       if (!intersectsPrevious && !intersectsNext) {
-        return start as Length
+        return start
       }
 
       // If we intersect with both, the gap is too small
@@ -660,7 +656,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
 
       // If we intersect with previous opening, try shifting right (after previous)
       if (intersectsPrevious && previousOpening) {
-        const shiftedOffset = createLength(previousOpening.offsetFromStart + previousOpening.width)
+        const shiftedOffset = previousOpening.offsetFromStart + previousOpening.width
         const shiftDistance = Math.abs(shiftedOffset - preferredStartOffset)
         const shiftedEnd = shiftedOffset + width
 
@@ -673,7 +669,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
 
       // If we intersect with next opening, try shifting left (before next)
       if (intersectsNext && nextOpening) {
-        const shiftedOffset = createLength(nextOpening.offsetFromStart - width)
+        const shiftedOffset = nextOpening.offsetFromStart - width
         const shiftDistance = Math.abs(shiftedOffset - preferredStartOffset)
 
         // Check if shift is within the wall and doesn't intersect with previous
@@ -692,30 +688,30 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
     },
 
     // Movement operations for MoveTool
-    movePerimeter: (perimeterId: PerimeterId, offset: Vec2) => {
+    movePerimeter: (perimeterId: PerimeterId, offset: vec2) => {
       set(state => {
         const perimeter = state.perimeters[perimeterId]
         if (!perimeter) return
 
         // Directly translate all corner points
         perimeter.corners.forEach((corner: PerimeterCorner) => {
-          corner.insidePoint = add(corner.insidePoint, offset)
-          corner.outsidePoint = add(corner.outsidePoint, offset)
+          corner.insidePoint = vec2.add(vec2.create(), corner.insidePoint, offset)
+          corner.outsidePoint = vec2.add(vec2.create(), corner.outsidePoint, offset)
         })
 
         // Directly translate all wall line endpoints
         perimeter.walls.forEach((wall: PerimeterWall) => {
-          wall.insideLine.start = add(wall.insideLine.start, offset)
-          wall.insideLine.end = add(wall.insideLine.end, offset)
-          wall.outsideLine.start = add(wall.outsideLine.start, offset)
-          wall.outsideLine.end = add(wall.outsideLine.end, offset)
+          wall.insideLine.start = vec2.add(vec2.create(), wall.insideLine.start, offset)
+          wall.insideLine.end = vec2.add(vec2.create(), wall.insideLine.end, offset)
+          wall.outsideLine.start = vec2.add(vec2.create(), wall.outsideLine.start, offset)
+          wall.outsideLine.end = vec2.add(vec2.create(), wall.outsideLine.end, offset)
         })
       })
 
       return true
     },
 
-    updatePerimeterBoundary: (perimeterId: PerimeterId, newBoundary: Vec2[]) => {
+    updatePerimeterBoundary: (perimeterId: PerimeterId, newBoundary: vec2[]) => {
       if (newBoundary.length < 3) {
         return false
       }
@@ -798,7 +794,7 @@ const createInfiniteLines = (boundary: Polygon2D, thicknesses: Length[]): { insi
 
     // Calculate outside direction and create outside line
     const outsideDirection = perpendicularCCW(insideLine.direction)
-    const outsidePoint = add(startPoint, scale(outsideDirection, wallThickness))
+    const outsidePoint = vec2.add(vec2.create(), startPoint, vec2.scale(vec2.create(), outsideDirection, wallThickness))
     const outsideLine = { point: outsidePoint, direction: insideLine.direction }
 
     infiniteLines.push({ inside: insideLine, outside: outsideLine })
@@ -826,7 +822,11 @@ const updateCornerOutsidePoint = (
 
     // Use the outside direction from either wall (they should be the same for colinear walls)
     const outsideDirection = perpendicularCCW(nextOutsideLine.direction)
-    corner.outsidePoint = add(corner.insidePoint, scale(outsideDirection, maxThickness))
+    corner.outsidePoint = vec2.add(
+      vec2.create(),
+      corner.insidePoint,
+      vec2.scale(vec2.create(), outsideDirection, maxThickness)
+    )
   }
 }
 // Step 2: Calculate corner points (both inside and outside) as intersections of adjacent lines
@@ -849,9 +849,9 @@ const updateAllCornerOutsidePoints = (
 
 // Calculate interior and exterior angles at a corner formed by three points (in degrees)
 const calculateCornerAngles = (
-  previousPoint: Vec2,
-  cornerPoint: Vec2,
-  nextPoint: Vec2
+  previousPoint: vec2,
+  cornerPoint: vec2,
+  nextPoint: vec2
 ): { interiorAngle: number; exteriorAngle: number } => {
   // Vectors from corner to adjacent points
   const toPrevious = direction(cornerPoint, previousPoint)
@@ -916,7 +916,7 @@ const updateWallGeometry = (wall: PerimeterWall, startCorner: PerimeterCorner, e
     direction: wallDirection
   }
   const outsideLine: Line2D = {
-    point: add(insideStart, scale(outsideDirection, wall.thickness)),
+    point: vec2.add(vec2.create(), insideStart, vec2.scale(vec2.create(), outsideDirection, wall.thickness)),
     direction: wallDirection
   }
 
@@ -929,10 +929,10 @@ const updateWallGeometry = (wall: PerimeterWall, startCorner: PerimeterCorner, e
   const cornerEndOnInside = projectPointOntoLine(endCornerOutside, insideLine)
 
   // Choose endpoints based on which projection is closer to wall midpoint
-  const startDistBoundary = distance(insideStart, wallMidpoint)
-  const startDistCorner = distance(cornerStartOnInside, wallMidpoint)
-  const endDistBoundary = distance(insideEnd, wallMidpoint)
-  const endDistCorner = distance(cornerEndOnInside, wallMidpoint)
+  const startDistBoundary = vec2.distance(insideStart, wallMidpoint)
+  const startDistCorner = vec2.distance(cornerStartOnInside, wallMidpoint)
+  const endDistBoundary = vec2.distance(insideEnd, wallMidpoint)
+  const endDistCorner = vec2.distance(cornerEndOnInside, wallMidpoint)
 
   const finalInsideStart = startDistBoundary <= startDistCorner ? insideStart : cornerStartOnInside
   const finalInsideEnd = endDistBoundary <= endDistCorner ? insideEnd : cornerEndOnInside
@@ -940,9 +940,9 @@ const updateWallGeometry = (wall: PerimeterWall, startCorner: PerimeterCorner, e
   const finalOutsideEnd = endDistBoundary <= endDistCorner ? boundaryEndOnOutside : endCornerOutside
 
   // Directly mutate wall properties
-  wall.insideLength = distance(insideStart, insideEnd)
-  wall.outsideLength = distance(startCornerOutside, endCornerOutside)
-  wall.wallLength = distance(finalInsideStart, finalInsideEnd)
+  wall.insideLength = vec2.distance(insideStart, insideEnd)
+  wall.outsideLength = vec2.distance(startCornerOutside, endCornerOutside)
+  wall.wallLength = vec2.distance(finalInsideStart, finalInsideEnd)
   wall.insideLine = { start: finalInsideStart, end: finalInsideEnd }
   wall.outsideLine = { start: finalOutsideStart, end: finalOutsideEnd }
   wall.direction = wallDirection
@@ -977,7 +977,7 @@ const mergeOpeningsForStraightCorner = (wall1: PerimeterWall, wall2: PerimeterWa
   // Adjust wall2 openings by adding wall1's wall length to their offsets
   const wall2Openings = wall2.openings.map(opening => ({
     ...opening,
-    offsetFromStart: (opening.offsetFromStart + wall1.wallLength) as Length
+    offsetFromStart: opening.offsetFromStart + wall1.wallLength
   }))
 
   return [...wall1Openings, ...wall2Openings]
@@ -991,7 +991,7 @@ const removeCornerAndMergeWalls = (perimeter: Perimeter, cornerIndex: number): v
   // Get wall properties for merging
   const wall1 = perimeter.walls[prevWallIndex]
   const wall2 = perimeter.walls[currentWallIndex]
-  const mergedThickness = createLength(Math.max(wall1.thickness, wall2.thickness))
+  const mergedThickness = Math.max(wall1.thickness, wall2.thickness)
 
   // Check if corner is exactly straight (180°) to preserve openings
   const corner = perimeter.corners[cornerIndex]
@@ -1005,13 +1005,13 @@ const removeCornerAndMergeWalls = (perimeter: Perimeter, cornerIndex: number): v
     constructionMethodId: wall1.constructionMethodId,
     openings: isExactlyStraight ? mergeOpeningsForStraightCorner(wall1, wall2) : [], // Keep current behavior for non-straight corners
     // Geometry properties will be set by updatePerimeterGeometry
-    insideLength: createLength(0),
-    outsideLength: createLength(0),
-    wallLength: createLength(0),
-    insideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-    outsideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-    direction: createVec2(1, 0),
-    outsideDirection: createVec2(0, 1)
+    insideLength: 0,
+    outsideLength: 0,
+    wallLength: 0,
+    insideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+    outsideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+    direction: vec2.fromValues(1, 0),
+    outsideDirection: vec2.fromValues(0, 1)
   }
 
   // Remove the two walls (remove higher index first to avoid shifting)
@@ -1036,7 +1036,7 @@ const removeWallAndMergeAdjacent = (perimeter: Perimeter, wallIndex: number): vo
   const prevWall = perimeter.walls[prevWallIndex]
   const targetWall = perimeter.walls[wallIndex]
   const nextWall = perimeter.walls[nextWallIndex]
-  const mergedThickness = createLength(Math.max(prevWall.thickness, targetWall.thickness, nextWall.thickness))
+  const mergedThickness = Math.max(prevWall.thickness, targetWall.thickness, nextWall.thickness)
 
   // Remove the two corner points that connected these walls
   const cornerIndex1 = wallIndex
@@ -1065,13 +1065,13 @@ const removeWallAndMergeAdjacent = (perimeter: Perimeter, wallIndex: number): vo
     constructionMethodId: prevWall.constructionMethodId,
     openings: [], // Openings are deleted
     // Geometry properties will be set by updatePerimeterGeometry
-    insideLength: createLength(0),
-    outsideLength: createLength(0),
-    wallLength: createLength(0),
-    insideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-    outsideLine: { start: createVec2(0, 0), end: createVec2(0, 0) },
-    direction: createVec2(1, 0),
-    outsideDirection: createVec2(0, 1)
+    insideLength: 0,
+    outsideLength: 0,
+    wallLength: 0,
+    insideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+    outsideLine: { start: vec2.fromValues(0, 0), end: vec2.fromValues(0, 0) },
+    direction: vec2.fromValues(1, 0),
+    outsideDirection: vec2.fromValues(0, 1)
   }
   perimeter.walls.splice(insertIndex, 0, mergedWall)
 
@@ -1092,7 +1092,7 @@ const validateOpeningOnWall = (
   }
 
   // Check bounds - wallLength and opening dimensions should be in same units
-  const openingEnd = createLength(offsetFromStart + width)
+  const openingEnd = offsetFromStart + width
   if (offsetFromStart < 0 || openingEnd > wall.wallLength) {
     return false
   }
@@ -1102,7 +1102,7 @@ const validateOpeningOnWall = (
     if (existing.id === excludedOpening) continue
 
     const existingStart = existing.offsetFromStart
-    const existingEnd = createLength(existing.offsetFromStart + existing.width)
+    const existingEnd = existing.offsetFromStart + existing.width
 
     if (!(openingEnd <= existingStart || offsetFromStart >= existingEnd)) {
       return false

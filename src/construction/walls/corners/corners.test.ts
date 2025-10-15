@@ -1,10 +1,11 @@
+import { vec2 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createPerimeterConstructionMethodId, createPerimeterId, createPerimeterWallId } from '@/building/model/ids'
 import type { Perimeter, PerimeterCorner, PerimeterWall } from '@/building/model/model'
 import { type ConfigActions, getConfigActions } from '@/construction/config'
 import type { PerimeterConstructionMethod, WallLayersConfig } from '@/construction/config/types'
-import { type Length, createLength, createVec2 } from '@/shared/geometry'
+import { type Length } from '@/shared/geometry'
 
 import { type WallContext, calculateWallCornerInfo, getWallContext } from './corners'
 
@@ -24,8 +25,8 @@ function createMockWall(
   thickness: Length,
   constructionMethodId?: string
 ): PerimeterWall {
-  const startPoint = createVec2(0, 0)
-  const endPoint = createVec2(wallLength, 0)
+  const startPoint = vec2.fromValues(0, 0)
+  const endPoint = vec2.fromValues(wallLength, 0)
 
   return {
     id: (id || createPerimeterWallId()) as any,
@@ -33,18 +34,18 @@ function createMockWall(
     thickness,
     wallLength,
     insideLength: wallLength,
-    outsideLength: (wallLength + thickness * 2) as Length,
+    outsideLength: wallLength + thickness * 2,
     openings: [],
     insideLine: {
       start: startPoint,
       end: endPoint
     },
     outsideLine: {
-      start: createVec2(0, thickness),
-      end: createVec2(wallLength, thickness)
+      start: vec2.fromValues(0, thickness),
+      end: vec2.fromValues(wallLength, thickness)
     },
-    direction: createVec2(1, 0),
-    outsideDirection: createVec2(0, 1)
+    direction: vec2.fromValues(1, 0),
+    outsideDirection: vec2.fromValues(0, 1)
   }
 }
 
@@ -56,8 +57,8 @@ function createMockCorner(
 ): PerimeterCorner {
   return {
     id: id as any,
-    insidePoint: createVec2(insidePoint[0], insidePoint[1]),
-    outsidePoint: createVec2(outsidePoint[0], outsidePoint[1]),
+    insidePoint: vec2.fromValues(insidePoint[0], insidePoint[1]),
+    outsidePoint: vec2.fromValues(outsidePoint[0], outsidePoint[1]),
     constructedByWall,
     interiorAngle: 90, // Default angle for testing
     exteriorAngle: 270 // Default angle for testing
@@ -79,24 +80,24 @@ function createMockConstructionMethod(id: string, name: string, layers: WallLaye
     name,
     config: {
       type: 'infill',
-      maxPostSpacing: createLength(800),
-      minStrawSpace: createLength(70),
+      maxPostSpacing: 800,
+      minStrawSpace: 70,
       posts: {
         type: 'full',
-        width: createLength(60),
+        width: 60,
         material: 'wood' as any
       },
       openings: {
-        padding: createLength(15),
-        headerThickness: createLength(60),
+        padding: 15,
+        headerThickness: 60,
         headerMaterial: 'wood' as any,
-        sillThickness: createLength(60),
+        sillThickness: 60,
         sillMaterial: 'wood' as any
       },
       straw: {
-        baleLength: createLength(800),
-        baleHeight: createLength(500),
-        baleWidth: createLength(360),
+        baleLength: 800,
+        baleHeight: 500,
+        baleWidth: 360,
         material: 'straw' as any
       }
     },
@@ -117,10 +118,10 @@ describe('Corner Calculations', () => {
 
   describe('getWallContext', () => {
     it('should return correct context for a wall in the middle of a perimeter', () => {
-      const wall0 = createMockWall('wall-0', createLength(3000), createLength(300))
-      const wall1 = createMockWall('wall-1', createLength(2000), createLength(300))
-      const wall2 = createMockWall('wall-2', createLength(3000), createLength(300))
-      const wall3 = createMockWall('wall-3', createLength(2000), createLength(300))
+      const wall0 = createMockWall('wall-0', 3000, 300)
+      const wall1 = createMockWall('wall-1', 2000, 300)
+      const wall2 = createMockWall('wall-2', 3000, 300)
+      const wall3 = createMockWall('wall-3', 2000, 300)
 
       const corner0 = createMockCorner('corner-0', [0, 0], [-150, 450], 'next')
       const corner1 = createMockCorner('corner-1', [3000, 0], [3150, 450], 'previous')
@@ -140,9 +141,9 @@ describe('Corner Calculations', () => {
     })
 
     it('should handle wraparound for the first wall', () => {
-      const wall0 = createMockWall('wall-0', createLength(3000), createLength(300))
-      const wall1 = createMockWall('wall-1', createLength(2000), createLength(300))
-      const wall2 = createMockWall('wall-2', createLength(3000), createLength(300))
+      const wall0 = createMockWall('wall-0', 3000, 300)
+      const wall1 = createMockWall('wall-1', 2000, 300)
+      const wall2 = createMockWall('wall-2', 3000, 300)
 
       const corner0 = createMockCorner('corner-0', [0, 0], [-150, 450], 'next')
       const corner1 = createMockCorner('corner-1', [3000, 0], [3150, 450], 'previous')
@@ -161,9 +162,9 @@ describe('Corner Calculations', () => {
     })
 
     it('should handle wraparound for the last wall', () => {
-      const wall0 = createMockWall('wall-0', createLength(3000), createLength(300))
-      const wall1 = createMockWall('wall-1', createLength(2000), createLength(300))
-      const wall2 = createMockWall('wall-2', createLength(3000), createLength(300))
+      const wall0 = createMockWall('wall-0', 3000, 300)
+      const wall1 = createMockWall('wall-1', 2000, 300)
+      const wall2 = createMockWall('wall-2', 3000, 300)
 
       const corner0 = createMockCorner('corner-0', [0, 0], [-150, 450], 'next')
       const corner1 = createMockCorner('corner-1', [3000, 0], [3150, 450], 'previous')
@@ -182,8 +183,8 @@ describe('Corner Calculations', () => {
     })
 
     it('should throw error when wall is not found in perimeter', () => {
-      const wall = createMockWall('missing-wall', createLength(3000), createLength(300))
-      const walls = [createMockWall('wall-0', createLength(3000), createLength(300))]
+      const wall = createMockWall('missing-wall', 3000, 300)
+      const walls = [createMockWall('wall-0', 3000, 300)]
       const corners = [createMockCorner('corner-0', [0, 0], [-150, 450], 'next')]
       const perimeter = createMockPerimeter(walls, corners)
 
@@ -196,8 +197,8 @@ describe('Corner Calculations', () => {
 
     beforeEach(() => {
       const layers: WallLayersConfig = {
-        insideThickness: createLength(30),
-        outsideThickness: createLength(50)
+        insideThickness: 30,
+        outsideThickness: 50
       }
 
       const previousMethod = createMockConstructionMethod('method-1', 'Previous Method', layers)
@@ -206,8 +207,8 @@ describe('Corner Calculations', () => {
       mockGetPerimeterConstructionMethodById.mockReturnValueOnce(previousMethod).mockReturnValueOnce(nextMethod)
       const startCorner = createMockCorner('start-corner', [0, 0], [-200, 500], 'next')
       const endCorner = createMockCorner('end-corner', [3000, 0], [3300, 500], 'previous')
-      const previousWall = createMockWall('prev-wall', createLength(2000), createLength(300), 'method-1')
-      const nextWall = createMockWall('next-wall', createLength(2500), createLength(300), 'method-2')
+      const previousWall = createMockWall('prev-wall', 2000, 300, 'method-1')
+      const nextWall = createMockWall('next-wall', 2500, 300, 'method-2')
 
       mockContext = {
         startCorner,
@@ -220,7 +221,7 @@ describe('Corner Calculations', () => {
     it('should calculate corner info when both corners are constructed by this wall', () => {
       // Create a wall with specific geometry: wall starts at (0,0) ends at (3000,0)
       // Inside line: (0,0) to (3000,0), Outside line: (0,300) to (3000,300)
-      const wall = createMockWall('test-wall', createLength(3000), createLength(300))
+      const wall = createMockWall('test-wall', 3000, 300)
 
       // Create corners with known positions that will create extensions
       // Start corner: inside at (-200, 0), outside at (-200, 300) - 200mm extension to the left
@@ -247,7 +248,7 @@ describe('Corner Calculations', () => {
     })
 
     it('should calculate corner info when corners are not constructed by this wall', () => {
-      const wall = createMockWall('test-wall', createLength(3000), createLength(300))
+      const wall = createMockWall('test-wall', 3000, 300)
 
       // Create corners that are not constructed by this wall with extensions
       const startCorner = createMockCorner('start-corner', [-200, 0], [-200, 300], 'previous')
@@ -272,7 +273,7 @@ describe('Corner Calculations', () => {
     })
 
     it('should use outside thickness when inner extension is larger', () => {
-      const wall = createMockWall('test-wall', createLength(3000), createLength(300))
+      const wall = createMockWall('test-wall', 3000, 300)
 
       // Create corners where inner extension is larger than outer extension
       // Start corner: inside at (-250, 0), outside at (-100, 300)
@@ -301,13 +302,13 @@ describe('Corner Calculations', () => {
       mockGetPerimeterConstructionMethodById.mockReset()
       mockGetPerimeterConstructionMethodById.mockReturnValue(null)
 
-      const wall = createMockWall('test-wall', createLength(3000), createLength(300))
+      const wall = createMockWall('test-wall', 3000, 300)
 
       expect(() => calculateWallCornerInfo(wall, mockContext)).toThrow('Invalid wall construction method')
     })
 
     it('should handle zero extension distances', () => {
-      const wall = createMockWall('test-wall', createLength(3000), createLength(300))
+      const wall = createMockWall('test-wall', 3000, 300)
 
       // Create corners positioned exactly at layer thicknesses to result in zero extension
       // Start corner: inside at (-30, 0), outside at (-50, 300) - exactly at layer thickness
@@ -331,7 +332,7 @@ describe('Corner Calculations', () => {
     })
 
     it('should preserve corner IDs in the result', () => {
-      const wall = createMockWall('test-wall', createLength(3000), createLength(300))
+      const wall = createMockWall('test-wall', 3000, 300)
 
       // Create simple corners for ID testing
       const startCorner = createMockCorner('start-corner', [-100, 0], [-100, 300], 'next')
@@ -353,8 +354,8 @@ describe('Corner Calculations', () => {
   describe('integration tests', () => {
     it('should work with getWallContext and calculateWallCornerInfo together', () => {
       const layers: WallLayersConfig = {
-        insideThickness: createLength(30),
-        outsideThickness: createLength(50)
+        insideThickness: 30,
+        outsideThickness: 50
       }
 
       const method1 = createMockConstructionMethod('method-1', 'Method 1', layers)
@@ -362,9 +363,9 @@ describe('Corner Calculations', () => {
 
       mockGetPerimeterConstructionMethodById.mockReturnValueOnce(method1).mockReturnValueOnce(method2)
 
-      const wall0 = createMockWall('wall-0', createLength(3000), createLength(300), 'method-1')
-      const wall1 = createMockWall('wall-1', createLength(2000), createLength(300), 'method-1')
-      const wall2 = createMockWall('wall-2', createLength(3000), createLength(300), 'method-2')
+      const wall0 = createMockWall('wall-0', 3000, 300, 'method-1')
+      const wall1 = createMockWall('wall-1', 2000, 300, 'method-1')
+      const wall2 = createMockWall('wall-2', 3000, 300, 'method-2')
 
       const corner0 = createMockCorner('corner-0', [0, 0], [-150, 450], 'next')
       const corner1 = createMockCorner('corner-1', [3000, 0], [3150, 450], 'previous')

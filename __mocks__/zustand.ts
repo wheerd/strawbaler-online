@@ -1,6 +1,7 @@
 import { act } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
 import type * as ZustandExportedTypes from 'zustand'
+
 export * from 'zustand'
 
 const { create: actualCreate, createStore: actualCreateStore } =

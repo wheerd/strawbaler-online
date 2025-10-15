@@ -1,7 +1,9 @@
+import type { vec3 } from 'gl-matrix'
+
 import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
 import { TAG_POST } from '@/construction/tags'
-import { type Length, type Vec3, mergeBounds } from '@/shared/geometry'
+import { type Length, mergeBounds } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import type { Material, MaterialId } from './material'
@@ -48,7 +50,7 @@ const dimensionsMatch = (
   return false
 }
 
-function* constructFullPost(position: Vec3, size: Vec3, config: FullPostConfig): Generator<ConstructionResult> {
+function* constructFullPost(position: vec3, size: vec3, config: FullPostConfig): Generator<ConstructionResult> {
   const postElement: ConstructionElement = createConstructionElement(
     config.material,
     createCuboidShape(position, [config.width, size[1], size[2]])
@@ -60,12 +62,12 @@ function* constructFullPost(position: Vec3, size: Vec3, config: FullPostConfig):
   const material = getMaterialById(config.material)
   if (material && material.type === 'dimensional') {
     const dimensionalMaterial = material as Material & { type: 'dimensional' }
-    const postDimensions = { width: config.width, thickness: size[1] as Length }
+    const postDimensions = { width: config.width, thickness: size[1] }
     const materialDimensions = { width: dimensionalMaterial.width, thickness: dimensionalMaterial.thickness }
 
     if (!dimensionsMatch(postDimensions, materialDimensions)) {
       yield yieldWarning({
-        description: `Post dimensions (${formatLength(config.width)}x${formatLength(size[1] as Length)}) don't match material dimensions (${formatLength(dimensionalMaterial.width)}x${formatLength(dimensionalMaterial.thickness)})`,
+        description: `Post dimensions (${formatLength(config.width)}x${formatLength(size[1])}) don't match material dimensions (${formatLength(dimensionalMaterial.width)}x${formatLength(dimensionalMaterial.thickness)})`,
         elements: [postElement.id],
         bounds: postElement.bounds
       })
@@ -73,7 +75,7 @@ function* constructFullPost(position: Vec3, size: Vec3, config: FullPostConfig):
   }
 }
 
-function* constructDoublePost(position: Vec3, size: Vec3, config: DoublePostConfig): Generator<ConstructionResult> {
+function* constructDoublePost(position: vec3, size: vec3, config: DoublePostConfig): Generator<ConstructionResult> {
   // Check if wall is wide enough for two posts
   const minimumWallThickness = 2 * config.thickness
   if (size[1] < minimumWallThickness) {
@@ -84,7 +86,7 @@ function* constructDoublePost(position: Vec3, size: Vec3, config: DoublePostConf
 
     yield yieldElement(errorElement)
     yield yieldError({
-      description: `Wall thickness (${formatLength(size[1] as Length)}) is not wide enough for double posts requiring ${formatLength(minimumWallThickness as Length)} minimum`,
+      description: `Wall thickness (${formatLength(size[1])}) is not wide enough for double posts requiring ${formatLength(minimumWallThickness)} minimum`,
       elements: [errorElement.id],
       bounds: errorElement.bounds
     })
@@ -138,7 +140,7 @@ function* constructDoublePost(position: Vec3, size: Vec3, config: DoublePostConf
   }
 }
 
-export function constructPost(position: Vec3, size: Vec3, config: PostConfig): Generator<ConstructionResult> {
+export function constructPost(position: vec3, size: vec3, config: PostConfig): Generator<ConstructionResult> {
   if (config.type === 'full') {
     return constructFullPost(position, size, config)
   } else if (config.type === 'double') {

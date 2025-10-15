@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -11,13 +12,7 @@ import {
   createPerimeterWallId,
   createStoreyId
 } from '@/building/model/ids'
-import {
-  type Length,
-  type Polygon2D,
-  createLength,
-  createVec2,
-  wouldClosingPolygonSelfIntersect
-} from '@/shared/geometry'
+import { type Length, type Polygon2D, wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
 
 import { type PerimetersSlice, createPerimetersSlice } from './perimeterSlice'
 
@@ -69,23 +64,23 @@ describe('perimeterSlice', () => {
 
   // Helper function to create a simple rectangular polygon (in millimeters)
   const createRectangularBoundary = (): Polygon2D => ({
-    points: [createVec2(0, 0), createVec2(10000, 0), createVec2(10000, 5000), createVec2(0, 5000)]
+    points: [vec2.fromValues(0, 0), vec2.fromValues(10000, 0), vec2.fromValues(10000, 5000), vec2.fromValues(0, 5000)]
   })
 
   // Helper function to create a triangular polygon
   const createTriangularBoundary = (): Polygon2D => ({
-    points: [createVec2(0, 0), createVec2(5, 0), createVec2(2.5, 4)]
+    points: [vec2.fromValues(0, 0), vec2.fromValues(5, 0), vec2.fromValues(2.5, 4)]
   })
 
   // Helper function to create a shape with reflex angles (like a "C" or "L" shape)
   const createReflexAngleBoundary = (): Polygon2D => ({
     points: [
-      createVec2(0, 0), // Start
-      createVec2(10, 0), // Move right
-      createVec2(10, 5), // Move up
-      createVec2(5, 5), // Move left (creates reflex angle)
-      createVec2(5, 10), // Move up (creates reflex angle)
-      createVec2(0, 10) // Move left
+      vec2.fromValues(0, 0), // Start
+      vec2.fromValues(10, 0), // Move right
+      vec2.fromValues(10, 5), // Move up
+      vec2.fromValues(5, 5), // Move left (creates reflex angle)
+      vec2.fromValues(5, 10), // Move up (creates reflex angle)
+      vec2.fromValues(0, 10) // Move left
       // Back to start
     ]
   })
@@ -108,7 +103,7 @@ describe('perimeterSlice', () => {
       // Check walls have correct properties
       perimeter.walls.forEach(wall => {
         expect(wall.constructionMethodId).toBe(constructionMethodId)
-        expect(wall.thickness).toBe(createLength(440)) // Default perimeter thickness
+        expect(wall.thickness).toBe(440) // Default perimeter thickness
         expect(wall.openings).toEqual([])
         expect(perimeter.id).toBeTruthy()
       })
@@ -124,7 +119,7 @@ describe('perimeterSlice', () => {
     it('should add perimeter polygon with custom thickness', () => {
       const boundary = createRectangularBoundary()
       const constructionMethodId = createPerimeterConstructionMethodId()
-      const customThickness = createLength(200)
+      const customThickness = 200
 
       store.actions.addPerimeter(testStoreyId, boundary, constructionMethodId, customThickness)
 
@@ -161,7 +156,7 @@ describe('perimeterSlice', () => {
 
     it('should throw error for insufficient boundary points', () => {
       const invalidBoundary: Polygon2D = {
-        points: [createVec2(0, 0), createVec2(1, 0)] // Only 2 points
+        points: [vec2.fromValues(0, 0), vec2.fromValues(1, 0)] // Only 2 points
       }
 
       expect(() =>
@@ -173,7 +168,7 @@ describe('perimeterSlice', () => {
       const boundary = createRectangularBoundary()
 
       expect(() =>
-        store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), createLength(0))
+        store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), 0)
       ).toThrow('Wall thickness must be greater than 0')
     })
 
@@ -181,7 +176,7 @@ describe('perimeterSlice', () => {
       const boundary = createRectangularBoundary()
 
       expect(() =>
-        store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), createLength(-100))
+        store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), -100)
       ).toThrow('Wall thickness must be greater than 0')
     })
 
@@ -192,15 +187,15 @@ describe('perimeterSlice', () => {
       const perimeter = Object.values(store.perimeters)[0]
       const wall = perimeter.walls[0] // First wall from (0,0) to (10,0)
 
-      expect(wall.insideLine.start).toEqual(createVec2(440, 0))
-      expect(wall.insideLine.end).toEqual(createVec2(9560, 0))
+      expect(wall.insideLine.start).toEqual(vec2.fromValues(440, 0))
+      expect(wall.insideLine.end).toEqual(vec2.fromValues(9560, 0))
       expect(wall.insideLength).toBe(10000)
 
       // Check that outside line is offset correctly
       expect(wall.outsideLine.start[0]).toBe(440)
-      expect(wall.outsideLine.start[1]).toBe(createLength(440)) // Offset by wall thickness
+      expect(wall.outsideLine.start[1]).toBe(440) // Offset by wall thickness
       expect(wall.outsideLine.end[0]).toBe(9560)
-      expect(wall.outsideLine.end[1]).toBe(createLength(440))
+      expect(wall.outsideLine.end[1]).toBe(440)
     })
 
     it('should calculate different length values correctly', () => {
@@ -319,7 +314,7 @@ describe('perimeterSlice', () => {
       expect(updatedWall.constructionMethodId).toBe(newMethodId)
 
       // Other properties should remain unchanged
-      expect(updatedWall.thickness).toBe(createLength(440))
+      expect(updatedWall.thickness).toBe(440)
       expect(updatedWall.openings).toEqual([])
     })
 
@@ -345,7 +340,7 @@ describe('perimeterSlice', () => {
 
       const perimeter = Object.values(store.perimeters)[0]
       const wallId = perimeter.walls[0].id
-      const newThickness = createLength(300)
+      const newThickness = 300
 
       store.actions.updatePerimeterWallThickness(perimeter.id, wallId, newThickness)
 
@@ -367,7 +362,7 @@ describe('perimeterSlice', () => {
       const originalCornerIds = perimeter.corners.map((c: any) => c.id)
       const wallId = perimeter.walls[0].id
 
-      store.actions.updatePerimeterWallThickness(perimeter.id, wallId, createLength(300))
+      store.actions.updatePerimeterWallThickness(perimeter.id, wallId, 300)
 
       const updatedPerimeter = store.perimeters[perimeter.id]!
       const newCornerPoints = updatedPerimeter.corners.map((c: any) => c.outsidePoint)
@@ -391,7 +386,7 @@ describe('perimeterSlice', () => {
 
       // Update thickness
       const wallId = perimeter.walls[0].id
-      store.actions.updatePerimeterWallThickness(perimeter.id, wallId, createLength(300))
+      store.actions.updatePerimeterWallThickness(perimeter.id, wallId, 300)
 
       const updatedPerimeter = store.perimeters[perimeter.id]!
       // Corner IDs should be preserved when thickness changes
@@ -407,11 +402,11 @@ describe('perimeterSlice', () => {
       const perimeter = Object.values(store.perimeters)[0]
       const wallId = perimeter.walls[0].id
 
-      expect(() => store.actions.updatePerimeterWallThickness(perimeter.id, wallId, createLength(0))).toThrow(
+      expect(() => store.actions.updatePerimeterWallThickness(perimeter.id, wallId, 0)).toThrow(
         'Wall thickness must be greater than 0'
       )
 
-      expect(() => store.actions.updatePerimeterWallThickness(perimeter.id, wallId, createLength(-100))).toThrow(
+      expect(() => store.actions.updatePerimeterWallThickness(perimeter.id, wallId, -100)).toThrow(
         'Wall thickness must be greater than 0'
       )
     })
@@ -421,7 +416,7 @@ describe('perimeterSlice', () => {
       const fakeWallId = createPerimeterWallId()
       const initialState = Object.fromEntries(Object.entries(store.perimeters))
 
-      store.actions.updatePerimeterWallThickness(fakePerimeterId, fakeWallId, createLength(300))
+      store.actions.updatePerimeterWallThickness(fakePerimeterId, fakeWallId, 300)
 
       expect(store.perimeters).toEqual(initialState)
     })
@@ -434,7 +429,7 @@ describe('perimeterSlice', () => {
       const fakeWallId = createPerimeterWallId()
       const originalPerimeter = { ...perimeter }
 
-      store.actions.updatePerimeterWallThickness(perimeter.id, fakeWallId, createLength(300))
+      store.actions.updatePerimeterWallThickness(perimeter.id, fakeWallId, 300)
 
       const unchangedPerimeter = store.perimeters[perimeter.id]!
       expect(unchangedPerimeter.walls).toEqual(originalPerimeter.walls)
@@ -508,9 +503,9 @@ describe('perimeterSlice', () => {
 
         const openingId = store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'door',
-          offsetFromStart: createLength(1000),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 1000,
+          width: 800,
+          height: 2100
         })
 
         expect(openingId).toBeTruthy()
@@ -523,9 +518,9 @@ describe('perimeterSlice', () => {
         const opening = updatedWall.openings[0]
         expect(opening.id).toBe(openingId)
         expect(opening.type).toBe('door')
-        expect(opening.offsetFromStart).toBe(createLength(1000))
-        expect(opening.width).toBe(createLength(800))
-        expect(opening.height).toBe(createLength(2100))
+        expect(opening.offsetFromStart).toBe(1000)
+        expect(opening.width).toBe(800)
+        expect(opening.height).toBe(2100)
         expect(opening.sillHeight).toBeUndefined()
       })
 
@@ -538,10 +533,10 @@ describe('perimeterSlice', () => {
 
         store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'window',
-          offsetFromStart: createLength(2000),
-          width: createLength(1200),
-          height: createLength(1000),
-          sillHeight: createLength(900)
+          offsetFromStart: 2000,
+          width: 1200,
+          height: 1000,
+          sillHeight: 900
         })
 
         const updatedPerimeter = store.perimeters[perimeter.id]!
@@ -549,7 +544,7 @@ describe('perimeterSlice', () => {
         const opening = updatedWall.openings[0]
 
         expect(opening.type).toBe('window')
-        expect(opening.sillHeight).toBe(createLength(900))
+        expect(opening.sillHeight).toBe(900)
       })
 
       it('should add multiple openings to same wall', () => {
@@ -561,17 +556,17 @@ describe('perimeterSlice', () => {
 
         store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'door',
-          offsetFromStart: createLength(1000),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 1000,
+          width: 800,
+          height: 2100
         })
 
         store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'window',
-          offsetFromStart: createLength(5000),
-          width: createLength(1200),
-          height: createLength(1000),
-          sillHeight: createLength(900)
+          offsetFromStart: 5000,
+          width: 1200,
+          height: 1000,
+          sillHeight: 900
         })
 
         const updatedPerimeter = store.perimeters[perimeter.id]!
@@ -592,9 +587,9 @@ describe('perimeterSlice', () => {
         expect(() =>
           store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
             type: 'door',
-            offsetFromStart: createLength(-100),
-            width: createLength(800),
-            height: createLength(2100)
+            offsetFromStart: -100,
+            width: 800,
+            height: 2100
           })
         ).toThrow('Opening offset from start must be non-negative')
       })
@@ -609,9 +604,9 @@ describe('perimeterSlice', () => {
         expect(() =>
           store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
             type: 'door',
-            offsetFromStart: createLength(1000),
-            width: createLength(0),
-            height: createLength(2100)
+            offsetFromStart: 1000,
+            width: 0,
+            height: 2100
           })
         ).toThrow('Opening width must be greater than 0')
       })
@@ -626,9 +621,9 @@ describe('perimeterSlice', () => {
         expect(() =>
           store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
             type: 'door',
-            offsetFromStart: createLength(1000),
-            width: createLength(800),
-            height: createLength(0)
+            offsetFromStart: 1000,
+            width: 800,
+            height: 0
           })
         ).toThrow('Opening height must be greater than 0')
       })
@@ -643,10 +638,10 @@ describe('perimeterSlice', () => {
         expect(() =>
           store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
             type: 'window',
-            offsetFromStart: createLength(1000),
-            width: createLength(1200),
-            height: createLength(1000),
-            sillHeight: createLength(-100)
+            offsetFromStart: 1000,
+            width: 1200,
+            height: 1000,
+            sillHeight: -100
           })
         ).toThrow('Window sill height must be non-negative')
       })
@@ -658,9 +653,9 @@ describe('perimeterSlice', () => {
         expect(() =>
           store.actions.addPerimeterWallOpening(fakePerimeterId, fakeWallId, {
             type: 'door',
-            offsetFromStart: createLength(1000),
-            width: createLength(800),
-            height: createLength(2100)
+            offsetFromStart: 1000,
+            width: 800,
+            height: 2100
           })
         ).toThrow('Wall does not exist')
       })
@@ -675,9 +670,9 @@ describe('perimeterSlice', () => {
         expect(() =>
           store.actions.addPerimeterWallOpening(perimeter.id, fakeWallId, {
             type: 'door',
-            offsetFromStart: createLength(1000),
-            width: createLength(800),
-            height: createLength(2100)
+            offsetFromStart: 1000,
+            width: 800,
+            height: 2100
           })
         ).toThrow('Wall does not exist')
       })
@@ -688,7 +683,7 @@ describe('perimeterSlice', () => {
 
         const perimeter = Object.values(store.perimeters)[0]
         const wallId = perimeter.walls[2].id // Pick a wall that creates reflex angle
-        const newThickness = createLength(600) // Thicker than default
+        const newThickness = 600 // Thicker than default
 
         store.actions.updatePerimeterWallThickness(perimeter.id, wallId, newThickness)
 
@@ -737,9 +732,9 @@ describe('perimeterSlice', () => {
 
         const openingId = store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'door',
-          offsetFromStart: createLength(1000),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 1000,
+          width: 800,
+          height: 2100
         })
 
         expect(store.perimeters[perimeter.id]!.walls[0].openings).toHaveLength(1)
@@ -760,17 +755,17 @@ describe('perimeterSlice', () => {
 
         const doorId = store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'door',
-          offsetFromStart: createLength(1000),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 1000,
+          width: 800,
+          height: 2100
         })
 
         const windowId = store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'window',
-          offsetFromStart: createLength(5000),
-          width: createLength(1200),
-          height: createLength(1000),
-          sillHeight: createLength(900)
+          offsetFromStart: 5000,
+          width: 1200,
+          height: 1000,
+          sillHeight: 900
         })
 
         store.actions.removePerimeterWallOpening(perimeter.id, wallId, doorId)
@@ -818,9 +813,9 @@ describe('perimeterSlice', () => {
 
         store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'door',
-          offsetFromStart: createLength(1000),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 1000,
+          width: 800,
+          height: 2100
         })
 
         const originalPerimeter = store.perimeters[perimeter.id]!.walls[0]
@@ -842,24 +837,24 @@ describe('perimeterSlice', () => {
 
         const openingId = store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'door',
-          offsetFromStart: createLength(1000),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 1000,
+          width: 800,
+          height: 2100
         })
 
         store.actions.updatePerimeterWallOpening(perimeter.id, wallId, openingId, {
-          width: createLength(900),
-          height: createLength(2200)
+          width: 900,
+          height: 2200
         })
 
         const updatedPerimeter = store.perimeters[perimeter.id]!
         const updatedWall = updatedPerimeter.walls.find((s: any) => s.id === wallId)!
         const updatedOpening = updatedWall.openings[0]
 
-        expect(updatedOpening.width).toBe(createLength(900))
-        expect(updatedOpening.height).toBe(createLength(2200))
+        expect(updatedOpening.width).toBe(900)
+        expect(updatedOpening.height).toBe(2200)
         expect(updatedOpening.type).toBe('door') // Unchanged
-        expect(updatedOpening.offsetFromStart).toBe(createLength(1000)) // Unchanged
+        expect(updatedOpening.offsetFromStart).toBe(1000) // Unchanged
       })
 
       it('should update window sill height', () => {
@@ -871,21 +866,21 @@ describe('perimeterSlice', () => {
 
         const openingId = store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'window',
-          offsetFromStart: createLength(1000),
-          width: createLength(1200),
-          height: createLength(1000),
-          sillHeight: createLength(900)
+          offsetFromStart: 1000,
+          width: 1200,
+          height: 1000,
+          sillHeight: 900
         })
 
         store.actions.updatePerimeterWallOpening(perimeter.id, wallId, openingId, {
-          sillHeight: createLength(1000)
+          sillHeight: 1000
         })
 
         const updatedPerimeter = store.perimeters[perimeter.id]!
         const updatedWall = updatedPerimeter.walls.find((s: any) => s.id === wallId)!
         const updatedOpening = updatedWall.openings[0]
 
-        expect(updatedOpening.sillHeight).toBe(createLength(1000))
+        expect(updatedOpening.sillHeight).toBe(1000)
       })
 
       it('should do nothing if wall does not exist', () => {
@@ -895,7 +890,7 @@ describe('perimeterSlice', () => {
         const initialState = Object.fromEntries(Object.entries(store.perimeters))
 
         store.actions.updatePerimeterWallOpening(fakePerimeterId, fakeWallId, fakeOpeningId, {
-          width: createLength(1000)
+          width: 1000
         })
 
         expect(store.perimeters).toEqual(initialState)
@@ -910,7 +905,7 @@ describe('perimeterSlice', () => {
         const fakeOpeningId = createOpeningId()
         const originalPerimeter = { ...perimeter }
 
-        store.actions.updatePerimeterWallOpening(perimeter.id, fakeWallId, fakeOpeningId, { width: createLength(1000) })
+        store.actions.updatePerimeterWallOpening(perimeter.id, fakeWallId, fakeOpeningId, { width: 1000 })
 
         const unchangedPerimeter = store.perimeters[perimeter.id]!
         expect(unchangedPerimeter.walls).toEqual(originalPerimeter.walls)
@@ -926,14 +921,14 @@ describe('perimeterSlice', () => {
 
         store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'door',
-          offsetFromStart: createLength(1000),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 1000,
+          width: 800,
+          height: 2100
         })
 
         const originalPerimeter = store.perimeters[perimeter.id]!.walls[0]
 
-        store.actions.updatePerimeterWallOpening(perimeter.id, wallId, fakeOpeningId, { width: createLength(1000) })
+        store.actions.updatePerimeterWallOpening(perimeter.id, wallId, fakeOpeningId, { width: 1000 })
 
         const unchangedPerimeter = store.perimeters[perimeter.id]!.walls[0]
         expect(unchangedPerimeter.openings).toEqual(originalPerimeter.openings)
@@ -1036,9 +1031,9 @@ describe('perimeterSlice', () => {
 
         const openingId = store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
           type: 'door',
-          offsetFromStart: createLength(1000),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 1000,
+          width: 800,
+          height: 2100
         })
 
         const result = store.actions.getPerimeterWallOpeningById(perimeter.id, wallId, openingId)
@@ -1129,17 +1124,17 @@ describe('perimeterSlice', () => {
       // Add openings
       const doorId = store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
         type: 'door',
-        offsetFromStart: createLength(1000),
-        width: createLength(800),
-        height: createLength(2100)
+        offsetFromStart: 1000,
+        width: 800,
+        height: 2100
       })
 
       const windowId = store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
         type: 'window',
-        offsetFromStart: createLength(5000),
-        width: createLength(1200),
-        height: createLength(1000),
-        sillHeight: createLength(900)
+        offsetFromStart: 5000,
+        width: 1200,
+        height: 1000,
+        sillHeight: 900
       })
 
       const newMethodId = createPerimeterConstructionMethodId()
@@ -1159,12 +1154,12 @@ describe('perimeterSlice', () => {
 
       // Update opening
       store.actions.updatePerimeterWallOpening(perimeter.id, wallId, doorId, {
-        width: createLength(900)
+        width: 900
       })
 
       const finalPerimeter = store.perimeters[perimeter.id]!.walls.find((s: any) => s.id === wallId)!
       const updatedDoor = finalPerimeter.openings.find((o: any) => o.id === doorId)!
-      expect(updatedDoor.width).toBe(createLength(900))
+      expect(updatedDoor.width).toBe(900)
 
       // Remove opening
       store.actions.removePerimeterWallOpening(perimeter.id, wallId, windowId)
@@ -1175,7 +1170,7 @@ describe('perimeterSlice', () => {
 
     it('should maintain data consistency after multiple operations', () => {
       const boundary = createRectangularBoundary()
-      store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), createLength(500))
+      store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), 500)
 
       const perimeter = Object.values(store.perimeters)[0]
       const wallId = perimeter.walls[0].id
@@ -1184,13 +1179,13 @@ describe('perimeterSlice', () => {
       // Add opening
       store.actions.addPerimeterWallOpening(perimeter.id, wallId, {
         type: 'door',
-        offsetFromStart: createLength(1000),
-        width: createLength(800),
-        height: createLength(2100)
+        offsetFromStart: 1000,
+        width: 800,
+        height: 2100
       })
 
       // Update thickness - this should recalculate geometry
-      const newThickness = createLength(300)
+      const newThickness = 300
       store.actions.updatePerimeterWallThickness(perimeter.id, wallId, newThickness)
 
       const finalPerimeter = store.perimeters[perimeter.id]!
@@ -1210,18 +1205,13 @@ describe('perimeterSlice', () => {
       // Create a shape with acute angles (< 90 degrees)
       const acuteAngleBoundary: Polygon2D = {
         points: [
-          createVec2(0, 0),
-          createVec2(10, 0),
-          createVec2(5, 2) // Creates acute angle
+          vec2.fromValues(0, 0),
+          vec2.fromValues(10, 0),
+          vec2.fromValues(5, 2) // Creates acute angle
         ]
       }
 
-      store.actions.addPerimeter(
-        testStoreyId,
-        acuteAngleBoundary,
-        createPerimeterConstructionMethodId(),
-        createLength(100)
-      )
+      store.actions.addPerimeter(testStoreyId, acuteAngleBoundary, createPerimeterConstructionMethodId(), 100)
 
       const perimeter = Object.values(store.perimeters)[0]
 
@@ -1248,7 +1238,7 @@ describe('perimeterSlice', () => {
 
     it('should handle L-shaped boundaries with reflex angles correctly', () => {
       const lShapeBoundary = createReflexAngleBoundary()
-      store.actions.addPerimeter(testStoreyId, lShapeBoundary, createPerimeterConstructionMethodId(), createLength(200))
+      store.actions.addPerimeter(testStoreyId, lShapeBoundary, createPerimeterConstructionMethodId(), 200)
 
       const perimeter = Object.values(store.perimeters)[0]
 
@@ -1271,14 +1261,14 @@ describe('perimeterSlice', () => {
 
     it('should handle mixed thickness values with reflex angles', () => {
       const boundary = createReflexAngleBoundary()
-      store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), createLength(200))
+      store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), 200)
 
       const perimeter = Object.values(store.perimeters)[0]
 
       // Update different walls to different thicknesses
       const wallIds = perimeter.walls.map((s: any) => s.id)
-      store.actions.updatePerimeterWallThickness(perimeter.id, wallIds[1], createLength(400))
-      store.actions.updatePerimeterWallThickness(perimeter.id, wallIds[3], createLength(600))
+      store.actions.updatePerimeterWallThickness(perimeter.id, wallIds[1], 400)
+      store.actions.updatePerimeterWallThickness(perimeter.id, wallIds[3], 600)
 
       const updatedPerimeter = store.perimeters[perimeter.id]!
 
@@ -1311,7 +1301,7 @@ describe('perimeterSlice', () => {
 
     it('should preserve wall and corner relationships after thickness updates', () => {
       const boundary = createReflexAngleBoundary()
-      store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), createLength(300))
+      store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), 300)
 
       const originalPerimeter = Object.values(store.perimeters)[0]
       const originalWallIds = originalPerimeter.walls.map((s: any) => s.id)
@@ -1320,7 +1310,7 @@ describe('perimeterSlice', () => {
 
       // Update thickness of a wall that creates reflex angle
       const targetWallId = originalWallIds[2]
-      store.actions.updatePerimeterWallThickness(originalPerimeter.id, targetWallId, createLength(800))
+      store.actions.updatePerimeterWallThickness(originalPerimeter.id, targetWallId, 800)
 
       const updatedPerimeter = store.perimeters[originalPerimeter.id]!
 
@@ -1340,7 +1330,13 @@ describe('perimeterSlice', () => {
       it('should remove corner and merge adjacent walls', () => {
         // Create a pentagon (5 corners) so we can safely remove one
         const boundary: Polygon2D = {
-          points: [createVec2(0, 0), createVec2(10, 0), createVec2(15, 5), createVec2(5, 10), createVec2(-5, 5)]
+          points: [
+            vec2.fromValues(0, 0),
+            vec2.fromValues(10, 0),
+            vec2.fromValues(15, 5),
+            vec2.fromValues(5, 10),
+            vec2.fromValues(-5, 5)
+          ]
         }
         store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId())
 
@@ -1373,11 +1369,11 @@ describe('perimeterSlice', () => {
       it('should delete openings from merged walls', () => {
         const boundary: Polygon2D = {
           points: [
-            createVec2(0, 0),
-            createVec2(2000, 0),
-            createVec2(2000, 1000),
-            createVec2(1000, 1000),
-            createVec2(0, 1000)
+            vec2.fromValues(0, 0),
+            vec2.fromValues(2000, 0),
+            vec2.fromValues(2000, 1000),
+            vec2.fromValues(1000, 1000),
+            vec2.fromValues(0, 1000)
           ]
         }
         const perimeter = store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId())
@@ -1390,17 +1386,17 @@ describe('perimeterSlice', () => {
 
         store.actions.addPerimeterWallOpening(perimeter.id, wall1.id, {
           type: 'door',
-          offsetFromStart: createLength(0),
-          width: createLength(100),
-          height: createLength(2100)
+          offsetFromStart: 0,
+          width: 100,
+          height: 2100
         })
 
         store.actions.addPerimeterWallOpening(perimeter.id, wall2.id, {
           type: 'window',
-          offsetFromStart: createLength(0),
-          width: createLength(100),
-          height: createLength(1000),
-          sillHeight: createLength(900)
+          offsetFromStart: 0,
+          width: 100,
+          height: 1000,
+          sillHeight: 900
         })
 
         const success = store.actions.removePerimeterCorner(perimeter.id, cornerToRemove.id)
@@ -1456,11 +1452,11 @@ describe('perimeterSlice', () => {
         // Create a concave shape where removing a specific corner would cause self-intersection
         const boundary: Polygon2D = {
           points: [
-            createVec2(0, 0),
-            createVec2(10, 0),
-            createVec2(10, 10),
-            createVec2(5, 5), // This creates a concave shape
-            createVec2(0, 10)
+            vec2.fromValues(0, 0),
+            vec2.fromValues(10, 0),
+            vec2.fromValues(10, 10),
+            vec2.fromValues(5, 5), // This creates a concave shape
+            vec2.fromValues(0, 10)
           ]
         }
         store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId())
@@ -1492,7 +1488,13 @@ describe('perimeterSlice', () => {
       it('should remove wall and its adjacent corners', () => {
         // Create a pentagon so we can safely remove a wall
         const boundary: Polygon2D = {
-          points: [createVec2(0, 0), createVec2(10, 0), createVec2(15, 5), createVec2(5, 10), createVec2(-5, 5)]
+          points: [
+            vec2.fromValues(0, 0),
+            vec2.fromValues(10, 0),
+            vec2.fromValues(15, 5),
+            vec2.fromValues(5, 10),
+            vec2.fromValues(-5, 5)
+          ]
         }
         store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId())
 
@@ -1565,11 +1567,11 @@ describe('perimeterSlice', () => {
         // Create a shape where removing a specific wall would cause self-intersection
         const boundary: Polygon2D = {
           points: [
-            createVec2(0, 0),
-            createVec2(20, 0),
-            createVec2(20, 10),
-            createVec2(10, 5), // Creates a potential problem if we remove the wrong wall
-            createVec2(0, 10)
+            vec2.fromValues(0, 0),
+            vec2.fromValues(20, 0),
+            vec2.fromValues(20, 10),
+            vec2.fromValues(10, 5), // Creates a potential problem if we remove the wrong wall
+            vec2.fromValues(0, 10)
           ]
         }
         store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId())
@@ -1596,15 +1598,15 @@ describe('perimeterSlice', () => {
       it('should preserve geometry integrity after wall removal', () => {
         const boundary: Polygon2D = {
           points: [
-            createVec2(0, 0),
-            createVec2(20, 0),
-            createVec2(20, 20),
-            createVec2(10, 20),
-            createVec2(10, 10),
-            createVec2(0, 10)
+            vec2.fromValues(0, 0),
+            vec2.fromValues(20, 0),
+            vec2.fromValues(20, 20),
+            vec2.fromValues(10, 20),
+            vec2.fromValues(10, 10),
+            vec2.fromValues(0, 10)
           ]
         }
-        store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), createLength(200))
+        store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), 200)
 
         const perimeter = Object.values(store.perimeters)[0]
         const wallToRemove = perimeter.walls[3] // Wall from (10,20) to (10,10)
@@ -1642,13 +1644,13 @@ describe('perimeterSlice', () => {
         // Create a complex shape where certain deletions would be problematic
         const complexBoundary: Polygon2D = {
           points: [
-            createVec2(0, 0),
-            createVec2(10, 0),
-            createVec2(10, 10),
-            createVec2(8, 8),
-            createVec2(6, 10),
-            createVec2(2, 8),
-            createVec2(0, 10)
+            vec2.fromValues(0, 0),
+            vec2.fromValues(10, 0),
+            vec2.fromValues(10, 10),
+            vec2.fromValues(8, 8),
+            vec2.fromValues(6, 10),
+            vec2.fromValues(2, 8),
+            vec2.fromValues(0, 10)
           ]
         }
         store.actions.addPerimeter(testStoreyId, complexBoundary, createPerimeterConstructionMethodId())
@@ -1713,78 +1715,48 @@ describe('perimeterSlice', () => {
         it('should throw error for non-existent wall', () => {
           const nonExistentWallId = createPerimeterId()
           expect(() => {
-            store.actions.isPerimeterWallOpeningPlacementValid(
-              nonExistentWallId,
-              wallId,
-              createLength(0),
-              createLength(800)
-            )
+            store.actions.isPerimeterWallOpeningPlacementValid(nonExistentWallId, wallId, 0, 800)
           }).toThrow(/Wall wall not found/)
         })
 
         it('should throw error for non-existent wall', () => {
           const nonExistentWallId = createPerimeterWallId()
           expect(() => {
-            store.actions.isPerimeterWallOpeningPlacementValid(
-              perimeterId,
-              nonExistentWallId,
-              createLength(0),
-              createLength(800)
-            )
+            store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, nonExistentWallId, 0, 800)
           }).toThrow(/Wall wall not found/)
         })
 
         it('should throw error for zero width', () => {
           expect(() => {
-            store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, wallId, createLength(0), createLength(0))
+            store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, wallId, 0, 0)
           }).toThrow(/Opening width must be greater than 0/)
         })
 
         it('should throw error for negative width', () => {
           expect(() => {
-            store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, wallId, createLength(0), createLength(-100))
+            store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, wallId, 0, -100)
           }).toThrow(/Opening width must be greater than 0/)
         })
 
         it('should return false for negative offset', () => {
-          const result = store.actions.isPerimeterWallOpeningPlacementValid(
-            perimeterId,
-            wallId,
-            createLength(-100),
-            createLength(800)
-          )
+          const result = store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, wallId, -100, 800)
           expect(result).toBe(false)
         })
       })
 
       describe('boundary validation', () => {
         it('should return true for opening that fits within wall', () => {
-          const result = store.actions.isPerimeterWallOpeningPlacementValid(
-            perimeterId,
-            wallId,
-            createLength(0),
-            wallLength
-          )
+          const result = store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, wallId, 0, wallLength)
           expect(result).toBe(true)
         })
 
         it('should return false for opening wider than wall', () => {
-          const result = store.actions.isPerimeterWallOpeningPlacementValid(
-            perimeterId,
-            wallId,
-            createLength(0),
-            createLength(wallLength + 1)
-          )
+          const result = store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, wallId, 0, wallLength + 1)
           expect(result).toBe(false)
         })
 
         it('should return false for opening that extends beyond wall end', () => {
-          const result = store.actions.isPerimeterWallOpeningPlacementValid(
-            perimeterId,
-            wallId,
-            createLength(wallLength - 400),
-            createLength(800)
-          )
+          const result = store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, wallId, wallLength - 400, 800)
           expect(result).toBe(false)
         })
       })
@@ -1794,9 +1766,9 @@ describe('perimeterSlice', () => {
           // Add an existing door at offset 1000mm, width 800mm (occupies 1000-1800)
           store.actions.addPerimeterWallOpening(perimeterId, wallId, {
             type: 'door',
-            offsetFromStart: createLength(1000),
-            width: createLength(800),
-            height: createLength(2100)
+            offsetFromStart: 1000,
+            width: 800,
+            height: 2100
           })
         })
 
@@ -1804,8 +1776,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.isPerimeterWallOpeningPlacementValid(
             perimeterId,
             wallId,
-            createLength(800), // starts at 800, ends at 1600 (overlaps 1000-1600)
-            createLength(800)
+            800, // starts at 800, ends at 1600 (overlaps 1000-1600)
+            800
           )
           expect(result).toBe(false)
         })
@@ -1814,19 +1786,14 @@ describe('perimeterSlice', () => {
           const result = store.actions.isPerimeterWallOpeningPlacementValid(
             perimeterId,
             wallId,
-            createLength(1200), // starts at 1200, ends at 2000 (overlaps 1200-1800)
-            createLength(800)
+            1200, // starts at 1200, ends at 2000 (overlaps 1200-1800)
+            800
           )
           expect(result).toBe(false)
         })
 
         it('should return false for opening at same position', () => {
-          const result = store.actions.isPerimeterWallOpeningPlacementValid(
-            perimeterId,
-            wallId,
-            createLength(1000),
-            createLength(800)
-          )
+          const result = store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, wallId, 1000, 800)
           expect(result).toBe(false)
         })
 
@@ -1834,8 +1801,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.isPerimeterWallOpeningPlacementValid(
             perimeterId,
             wallId,
-            createLength(200), // starts at 200, ends at 1000 (touches at 1000)
-            createLength(800)
+            200, // starts at 200, ends at 1000 (touches at 1000)
+            800
           )
           expect(result).toBe(true)
         })
@@ -1844,8 +1811,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.isPerimeterWallOpeningPlacementValid(
             perimeterId,
             wallId,
-            createLength(1800), // starts at 1800, ends at 2600 (touches at 1800)
-            createLength(800)
+            1800, // starts at 1800, ends at 2600 (touches at 1800)
+            800
           )
           expect(result).toBe(true)
         })
@@ -1854,8 +1821,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.isPerimeterWallOpeningPlacementValid(
             perimeterId,
             wallId,
-            createLength(0), // starts at 0, ends at 800 (gap from 800-1000)
-            createLength(800)
+            0, // starts at 0, ends at 800 (gap from 800-1000)
+            800
           )
           expect(result).toBe(true)
         })
@@ -1880,24 +1847,14 @@ describe('perimeterSlice', () => {
         it('should throw error for non-existent wall', () => {
           const nonExistentWallId = createPerimeterId()
           expect(() => {
-            store.actions.isPerimeterWallOpeningPlacementValid(
-              nonExistentWallId,
-              wallId,
-              createLength(0),
-              createLength(800)
-            )
+            store.actions.isPerimeterWallOpeningPlacementValid(nonExistentWallId, wallId, 0, 800)
           }).toThrow(/Wall wall not found/)
         })
 
         it('should throw error for non-existent wall', () => {
           const nonExistentWallId = createPerimeterWallId()
           expect(() => {
-            store.actions.isPerimeterWallOpeningPlacementValid(
-              perimeterId,
-              nonExistentWallId,
-              createLength(0),
-              createLength(800)
-            )
+            store.actions.isPerimeterWallOpeningPlacementValid(perimeterId, nonExistentWallId, 0, 800)
           }).toThrow(/Wall wall not found/)
         })
 
@@ -1906,8 +1863,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             nonExistentWallId,
-            createLength(1000),
-            createLength(800)
+            1000,
+            800
           )
           expect(result).toBeNull()
         })
@@ -1916,8 +1873,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(1000),
-            createLength(wallLength + 100)
+            1000,
+            wallLength + 100
           )
           expect(result).toBeNull()
         })
@@ -1925,22 +1882,12 @@ describe('perimeterSlice', () => {
 
       describe('empty wall behavior', () => {
         it('should return preferred position when valid', () => {
-          const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
-            perimeterId,
-            wallId,
-            createLength(1000),
-            createLength(800)
-          )
+          const result = store.actions.findNearestValidPerimeterWallOpeningPosition(perimeterId, wallId, 1000, 800)
           expect(result).toBe(1000)
         })
 
         it('should adjust negative offset to 0', () => {
-          const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
-            perimeterId,
-            wallId,
-            createLength(-500),
-            createLength(800)
-          )
+          const result = store.actions.findNearestValidPerimeterWallOpeningPosition(perimeterId, wallId, -500, 800)
           expect(result).toBe(0)
         })
 
@@ -1948,8 +1895,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(wallLength - 400), // would extend beyond by 400
-            createLength(800)
+            wallLength - 400, // would extend beyond by 400
+            800
           )
           expect(result).toBe(wallLength - 800) // adjusted to fit exactly
         })
@@ -1960,9 +1907,9 @@ describe('perimeterSlice', () => {
           // Add an existing door at 2000-2800 (offset 2000, width 800)
           store.actions.addPerimeterWallOpening(perimeterId, wallId, {
             type: 'door',
-            offsetFromStart: createLength(2000),
-            width: createLength(800),
-            height: createLength(2100)
+            offsetFromStart: 2000,
+            width: 800,
+            height: 2100
           })
         })
 
@@ -1970,8 +1917,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(500), // no conflict with existing at 2000-2800
-            createLength(800)
+            500, // no conflict with existing at 2000-2800
+            800
           )
           expect(result).toBe(500)
         })
@@ -1980,8 +1927,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(1800), // would be 1800-2600, overlaps with 2000-2800
-            createLength(800)
+            1800, // would be 1800-2600, overlaps with 2000-2800
+            800
           )
           // Can shift left to 1200 (distance 600) or right to 2800 (distance 1000)
           expect(result).toBe(1200) // left shift is closer
@@ -1991,8 +1938,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(2400), // would be 2400-3200, overlaps with 2000-2800
-            createLength(800)
+            2400, // would be 2400-3200, overlaps with 2000-2800
+            800
           )
           // Can shift left to 1200 (distance 1200) or right to 2800 (distance 400)
           expect(result).toBe(2800) // right shift is closer
@@ -2002,8 +1949,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(2100), // overlaps, closer to right shift (2800) than left (1200)
-            createLength(800)
+            2100, // overlaps, closer to right shift (2800) than left (1200)
+            800
           )
           expect(result).toBe(2800) // right shift is closer: distance 700 vs 900
         })
@@ -2012,8 +1959,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(2000), // exact overlap with existing
-            createLength(800)
+            2000, // exact overlap with existing
+            800
           )
           // Should return one of the valid adjacent positions
           expect([1200, 2800]).toContain(result)
@@ -2025,15 +1972,15 @@ describe('perimeterSlice', () => {
           // Add two doors: 1000-1800 and 3000-3800
           store.actions.addPerimeterWallOpening(perimeterId, wallId, {
             type: 'door',
-            offsetFromStart: createLength(1000),
-            width: createLength(800),
-            height: createLength(2100)
+            offsetFromStart: 1000,
+            width: 800,
+            height: 2100
           })
           store.actions.addPerimeterWallOpening(perimeterId, wallId, {
             type: 'door',
-            offsetFromStart: createLength(3000),
-            width: createLength(800),
-            height: createLength(2100)
+            offsetFromStart: 3000,
+            width: 800,
+            height: 2100
           })
         })
 
@@ -2041,8 +1988,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(2000), // fits in gap 1800-3000
-            createLength(800)
+            2000, // fits in gap 1800-3000
+            800
           )
           expect(result).toBe(2000)
         })
@@ -2051,8 +1998,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(1200), // overlaps with first opening 1000-1800
-            createLength(600)
+            1200, // overlaps with first opening 1000-1800
+            600
           )
           expect(result).toBe(1800) // shift right after first opening
         })
@@ -2061,8 +2008,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(3200), // overlaps with second opening 3000-3800
-            createLength(600)
+            3200, // overlaps with second opening 3000-3800
+            600
           )
           // Can shift left to 2400 (distance 800) or right to 3800 (distance 600)
           expect(result).toBe(3800) // right shift is closer
@@ -2072,8 +2019,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(2500), // overlaps with both
-            createLength(600)
+            2500, // overlaps with both
+            600
           )
           // Should find closest valid position (before second opening)
           expect(result).toBe(2400)
@@ -2083,8 +2030,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(1900), // close to gap center
-            createLength(1200) // exactly fills gap 1800-3000
+            1900, // close to gap center
+            1200 // exactly fills gap 1800-3000
           )
           expect(result).toBe(1800) // exactly at gap start
         })
@@ -2096,12 +2043,7 @@ describe('perimeterSlice', () => {
           const wall = perimeter.walls[0]
           const wallLength = wall.wallLength
 
-          const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
-            perimeterId,
-            wallId,
-            createLength(0),
-            createLength(wallLength)
-          )
+          const result = store.actions.findNearestValidPerimeterWallOpeningPosition(perimeterId, wallId, 0, wallLength)
           expect(result).toBe(0)
         })
 
@@ -2109,8 +2051,8 @@ describe('perimeterSlice', () => {
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(1000),
-            createLength(1) // 1mm wide opening
+            1000,
+            1 // 1mm wide opening
           )
           expect(result).toBe(1000)
         })
@@ -2123,16 +2065,16 @@ describe('perimeterSlice', () => {
           // Fill most of the wall with a large opening, leaving < 800 units space
           store.actions.addPerimeterWallOpening(perimeterId, wallId, {
             type: 'passage',
-            offsetFromStart: createLength(100),
-            width: createLength(wallLength - 500), // leaves only 400 units space
-            height: createLength(2100)
+            offsetFromStart: 100,
+            width: wallLength - 500, // leaves only 400 units space
+            height: 2100
           })
 
           const result = store.actions.findNearestValidPerimeterWallOpeningPosition(
             perimeterId,
             wallId,
-            createLength(500),
-            createLength(800) // won't fit in remaining 400 units
+            500,
+            800 // won't fit in remaining 400 units
           )
           expect(result).toBeNull()
         })
@@ -2158,24 +2100,24 @@ describe('perimeterSlice', () => {
         // Add openings to the first wall
         store.actions.addPerimeterWallOpening(perimeter.id, perimeter.walls[0].id, {
           type: 'door',
-          offsetFromStart: createLength(500),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 500,
+          width: 800,
+          height: 2100
         })
 
         store.actions.addPerimeterWallOpening(perimeter.id, perimeter.walls[0].id, {
           type: 'window',
-          offsetFromStart: createLength(1500),
-          width: createLength(600),
-          height: createLength(1200)
+          offsetFromStart: 1500,
+          width: 600,
+          height: 1200
         })
 
         // Add openings to the second wall
         store.actions.addPerimeterWallOpening(perimeter.id, perimeter.walls[1].id, {
           type: 'window',
-          offsetFromStart: createLength(300),
-          width: createLength(400),
-          height: createLength(1200)
+          offsetFromStart: 300,
+          width: 400,
+          height: 1200
         })
 
         // Manually set the corner to be exactly straight (180°)
@@ -2237,16 +2179,16 @@ describe('perimeterSlice', () => {
         // Add openings to walls
         store.actions.addPerimeterWallOpening(perimeter.id, perimeter.walls[0].id, {
           type: 'door',
-          offsetFromStart: createLength(500),
-          width: createLength(800),
-          height: createLength(2100)
+          offsetFromStart: 500,
+          width: 800,
+          height: 2100
         })
 
         store.actions.addPerimeterWallOpening(perimeter.id, perimeter.walls[1].id, {
           type: 'window',
-          offsetFromStart: createLength(300),
-          width: createLength(400),
-          height: createLength(1200)
+          offsetFromStart: 300,
+          width: 400,
+          height: 1200
         })
 
         // Keep the corner at 90° (non-straight)
@@ -2270,14 +2212,9 @@ describe('perimeterSlice', () => {
     it('should update construction method for all walls in perimeter', () => {
       // Add perimeter with multiple walls
       const boundary: Polygon2D = {
-        points: [createVec2(0, 0), createVec2(5000, 0), createVec2(5000, 3000), createVec2(0, 3000)]
+        points: [vec2.fromValues(0, 0), vec2.fromValues(5000, 0), vec2.fromValues(5000, 3000), vec2.fromValues(0, 3000)]
       }
-      const perimeter = store.actions.addPerimeter(
-        testStoreyId,
-        boundary,
-        createPerimeterConstructionMethodId(),
-        createLength(360)
-      )
+      const perimeter = store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), 360)
 
       // Verify we have multiple walls
       expect(perimeter.walls.length).toBeGreaterThan(1)
@@ -2299,20 +2236,15 @@ describe('perimeterSlice', () => {
     it('should update thickness for all walls in perimeter', () => {
       // Add perimeter with multiple walls
       const boundary: Polygon2D = {
-        points: [createVec2(0, 0), createVec2(5000, 0), createVec2(5000, 3000), createVec2(0, 3000)]
+        points: [vec2.fromValues(0, 0), vec2.fromValues(5000, 0), vec2.fromValues(5000, 3000), vec2.fromValues(0, 3000)]
       }
-      const perimeter = store.actions.addPerimeter(
-        testStoreyId,
-        boundary,
-        createPerimeterConstructionMethodId(),
-        createLength(360)
-      )
+      const perimeter = store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), 360)
 
       // Verify we have multiple walls
       expect(perimeter.walls.length).toBeGreaterThan(1)
 
       // Update all walls to new thickness
-      const newThickness = createLength(400)
+      const newThickness = 400
       store.actions.updateAllPerimeterWallsThickness(perimeter.id, newThickness)
 
       // Verify all walls now have new thickness
@@ -2324,30 +2256,25 @@ describe('perimeterSlice', () => {
     it('should throw error for invalid thickness in bulk update', () => {
       // Add perimeter
       const boundary: Polygon2D = {
-        points: [createVec2(0, 0), createVec2(5000, 0), createVec2(5000, 3000), createVec2(0, 3000)]
+        points: [vec2.fromValues(0, 0), vec2.fromValues(5000, 0), vec2.fromValues(5000, 3000), vec2.fromValues(0, 3000)]
       }
-      const perimeter = store.actions.addPerimeter(
-        testStoreyId,
-        boundary,
-        createPerimeterConstructionMethodId(),
-        createLength(360)
-      )
+      const perimeter = store.actions.addPerimeter(testStoreyId, boundary, createPerimeterConstructionMethodId(), 360)
 
       // Should throw error for zero thickness
       expect(() => {
-        store.actions.updateAllPerimeterWallsThickness(perimeter.id, createLength(0))
+        store.actions.updateAllPerimeterWallsThickness(perimeter.id, 0)
       }).toThrow('Wall thickness must be greater than 0')
 
       // Should throw error for negative thickness
       expect(() => {
-        store.actions.updateAllPerimeterWallsThickness(perimeter.id, createLength(-100))
+        store.actions.updateAllPerimeterWallsThickness(perimeter.id, -100)
       }).toThrow('Wall thickness must be greater than 0')
     })
 
     it('should handle non-existent perimeter gracefully in bulk updates', () => {
       const fakePerimeterId = createPerimeterId()
       const newMethodId = createPerimeterConstructionMethodId()
-      const newThickness = createLength(400)
+      const newThickness = 400
 
       // Should not throw error for non-existent perimeter
       expect(() => {

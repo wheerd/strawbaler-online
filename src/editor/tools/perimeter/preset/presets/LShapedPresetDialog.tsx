@@ -1,5 +1,6 @@
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { Button, Dialog, Flex, Grid, Heading, IconButton, SegmentedControl, Text } from '@radix-ui/themes'
+import { vec2 } from 'gl-matrix'
 import { useCallback, useEffect, useState } from 'react'
 
 import type { PerimeterConstructionMethodId } from '@/building/model/ids'
@@ -7,8 +8,7 @@ import { PerimeterMethodSelectWithEdit } from '@/construction/config/components/
 import { RingBeamMethodSelectWithEdit } from '@/construction/config/components/RingBeamMethodSelectWithEdit'
 import { useConfigActions } from '@/construction/config/store'
 import { LengthField } from '@/shared/components/LengthField'
-import { createLength, offsetPolygon } from '@/shared/geometry'
-import type { Vec2 } from '@/shared/geometry'
+import { offsetPolygon } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
 
 import { LShape0Icon, LShape90Icon, LShape180Icon, LShape270Icon } from './Icons'
@@ -58,7 +58,7 @@ function LShapedPreview({ config }: { config: LShapedPresetConfig }) {
   const centerY = 100
 
   // Transform points to screen coordinates (flip Y to match canvas)
-  const transformPoint = (point: Vec2) => ({
+  const transformPoint = (point: vec2) => ({
     x: (point[0] - (minX + maxX) / 2) * scale + centerX,
     y: -(point[1] - (minY + maxY) / 2) * scale + centerY // Flip Y axis
   })
@@ -136,7 +136,7 @@ function LShapedPreview({ config }: { config: LShapedPresetConfig }) {
               filter: 'drop-shadow(1px 1px 2px var(--gray-1))'
             }}
           >
-            {formatLength(createLength(label.length))}
+            {formatLength(label.length)}
           </text>
         ))}
       </svg>
@@ -152,12 +152,12 @@ function LShapedPresetDialogContent({
 
   // Form state with defaults from config store
   const [config, setConfig] = useState<LShapedPresetConfig>(() => ({
-    width1: createLength(8000), // 8m main width
-    length1: createLength(6000), // 6m main length
-    width2: createLength(4000), // 4m extension width
-    length2: createLength(3000), // 3m extension length
+    width1: 8000, // 8m main width
+    length1: 6000, // 6m main length
+    width2: 4000, // 4m extension width
+    length2: 3000, // 3m extension length
     rotation: 0,
-    thickness: createLength(440), // 44cm default
+    thickness: 440, // 44cm default
     constructionMethodId: configStore.getDefaultPerimeterMethodId(),
     baseRingBeamMethodId: configStore.getDefaultBaseRingBeamMethodId(),
     topRingBeamMethodId: configStore.getDefaultTopRingBeamMethodId(),
@@ -222,9 +222,9 @@ function LShapedPresetDialogContent({
                   <LengthField
                     value={config.width1}
                     onChange={value => setConfig(prev => ({ ...prev, width1: value }))}
-                    min={createLength(2000)}
-                    max={createLength(20000)}
-                    step={createLength(100)}
+                    min={2000}
+                    max={20000}
+                    step={100}
                     unit="m"
                     precision={3}
                     size="1"
@@ -239,9 +239,9 @@ function LShapedPresetDialogContent({
                   <LengthField
                     value={config.length1}
                     onChange={value => setConfig(prev => ({ ...prev, length1: value }))}
-                    min={createLength(2000)}
-                    max={createLength(20000)}
-                    step={createLength(100)}
+                    min={2000}
+                    max={20000}
+                    step={100}
                     unit="m"
                     precision={3}
                     size="1"
@@ -265,9 +265,9 @@ function LShapedPresetDialogContent({
                   <LengthField
                     value={config.width2}
                     onChange={value => setConfig(prev => ({ ...prev, width2: value }))}
-                    min={createLength(2000)}
-                    max={createLength(20000)}
-                    step={createLength(100)}
+                    min={2000}
+                    max={20000}
+                    step={100}
                     unit="m"
                     precision={3}
                     size="1"
@@ -283,9 +283,9 @@ function LShapedPresetDialogContent({
                   <LengthField
                     value={config.length2}
                     onChange={value => setConfig(prev => ({ ...prev, length2: value }))}
-                    min={createLength(2000)}
-                    max={createLength(20000)}
-                    step={createLength(100)}
+                    min={2000}
+                    max={20000}
+                    step={100}
                     unit="m"
                     precision={3}
                     size="1"
@@ -332,9 +332,9 @@ function LShapedPresetDialogContent({
                 <LengthField
                   value={config.thickness}
                   onChange={value => setConfig(prev => ({ ...prev, thickness: value }))}
-                  min={createLength(50)}
-                  max={createLength(1500)}
-                  step={createLength(10)}
+                  min={50}
+                  max={1500}
+                  step={10}
                   unit="cm"
                   size="1"
                   style={{ width: '100%' }}
