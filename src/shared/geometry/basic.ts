@@ -78,7 +78,7 @@ export interface Bounds3D {
 export function boundsFromCuboid(position: vec3, size: vec3): Bounds3D {
   return {
     min: position,
-    max: vec3.add(vec2.create(), position, size)
+    max: vec3.add(vec3.create(), position, size)
   }
 }
 
