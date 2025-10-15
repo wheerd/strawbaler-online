@@ -3,6 +3,51 @@ import { cleanup } from '@testing-library/react'
 import { afterEach, beforeAll, vi } from 'vitest'
 import 'vitest-canvas-mock'
 
+vi.mock('@/shared/geometry/clipperInstance', () => {
+  const mockModule = {
+    PointInPolygonResult: {
+      IsOutside: { value: 0 },
+      IsInside: { value: 1 },
+      IsOn: { value: 2 }
+    },
+    FillRule: {
+      EvenOdd: { value: 0 },
+      NonZero: { value: 1 },
+      Positive: { value: 2 },
+      Negative: { value: 3 }
+    },
+    JoinType: {
+      Square: { value: 0 },
+      Round: { value: 2 },
+      Miter: { value: 3 }
+    },
+    EndType: {
+      Polygon: { value: 0 },
+      Joined: { value: 1 },
+      Butt: { value: 2 },
+      Square: { value: 3 },
+      Round: { value: 4 }
+    },
+    PointInPolygonD: vi.fn(),
+    AreaPathD: vi.fn(),
+    IsPositiveD: vi.fn(),
+    SimplifyPathD: vi.fn(),
+    UnionSelfD: vi.fn(),
+    IntersectD: vi.fn(),
+    InflatePathsD: vi.fn()
+  }
+
+  return {
+    getClipperModule: vi.fn(() => mockModule),
+    ensureClipperModule: vi.fn(),
+    loadClipperModule: vi.fn(async () => mockModule),
+    createPathD: vi.fn(),
+    createPathsD: vi.fn(),
+    createPointD: vi.fn(),
+    pathDToPoints: vi.fn()
+  }
+})
+
 // Mock Zustand for consistent testing
 vi.mock('zustand')
 
