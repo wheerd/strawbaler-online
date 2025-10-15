@@ -1,7 +1,7 @@
 import type { SelectableId } from '@/building/model/ids'
 import { isOpeningId, isPerimeterCornerId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
 import { getCanRedo, getCanUndo, getModelActions, getRedoFunction, getUndoFunction } from '@/building/store'
-import { clearSelection, getCurrentSelection, getSelectionPath, popSelection } from '@/editor/hooks/useSelectionStore'
+import { getCurrentSelection, getSelectionPath, popSelection } from '@/editor/hooks/useSelectionStore'
 import { getActiveTool, popTool, replaceTool } from '@/editor/tools/system/store'
 
 import { TOOL_METADATA } from './metadata'
@@ -138,7 +138,6 @@ export class KeyboardShortcutManager {
         key: 'Escape',
         label: 'Cancel/Clear Selection',
         action: () => {
-          clearSelection()
           // Return to select tool if not already active
           const activeTool = getActiveTool()
           if (activeTool?.id !== 'basic.select') {
