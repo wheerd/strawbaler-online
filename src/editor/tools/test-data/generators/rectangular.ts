@@ -2,6 +2,7 @@ import { vec2 } from 'gl-matrix'
 
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config/store'
+import { getSelectionActions } from '@/editor/hooks/useSelectionStore'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
 import { boundsFromPoints, polygonIsClockwise } from '@/shared/geometry'
 
@@ -158,6 +159,7 @@ export function createRectangularPerimeter(): void {
       // Focus the view on the newly created test data
       const wallPoints = newPerimeter.corners.map(c => c.outsidePoint)
       const bounds = boundsFromPoints(wallPoints)
+      getSelectionActions().replaceSelection([newPerimeter.id])
       viewportActions().fitToView(bounds)
     }
   } catch (error) {

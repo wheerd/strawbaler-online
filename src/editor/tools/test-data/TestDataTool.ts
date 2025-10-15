@@ -1,4 +1,5 @@
 import { clearPersistence, getModelActions } from '@/building/store'
+import { popTool } from '@/editor/tools/system'
 import type { ToolImplementation } from '@/editor/tools/system/types'
 
 import { TestDataToolInspector } from './TestDataToolInspector'
@@ -19,6 +20,7 @@ export class TestDataTool implements ToolImplementation {
    */
   public createCrossShapedTestData(): void {
     createCrossShapedPerimeter()
+    popTool()
   }
 
   /**
@@ -26,6 +28,7 @@ export class TestDataTool implements ToolImplementation {
    */
   public createHexagonalTestData(): void {
     createHexagonalPerimeter()
+    popTool()
   }
 
   /**
@@ -33,6 +36,7 @@ export class TestDataTool implements ToolImplementation {
    */
   public createRectangularTestData(): void {
     createRectangularPerimeter()
+    popTool()
   }
 
   /**
