@@ -794,7 +794,7 @@ const createInfiniteLines = (boundary: Polygon2D, thicknesses: Length[]): { insi
 
     // Calculate outside direction and create outside line
     const outsideDirection = perpendicularCCW(insideLine.direction)
-    const outsidePoint = vec2.add(vec2.create(), startPoint, vec2.scale(vec2.create(), outsideDirection, wallThickness))
+    const outsidePoint = vec2.scaleAndAdd(vec2.create(), startPoint, outsideDirection, wallThickness)
     const outsideLine = { point: outsidePoint, direction: insideLine.direction }
 
     infiniteLines.push({ inside: insideLine, outside: outsideLine })
@@ -822,11 +822,7 @@ const updateCornerOutsidePoint = (
 
     // Use the outside direction from either wall (they should be the same for colinear walls)
     const outsideDirection = perpendicularCCW(nextOutsideLine.direction)
-    corner.outsidePoint = vec2.add(
-      vec2.create(),
-      corner.insidePoint,
-      vec2.scale(vec2.create(), outsideDirection, maxThickness)
-    )
+    corner.outsidePoint = vec2.scaleAndAdd(vec2.create(), corner.insidePoint, outsideDirection, maxThickness)
   }
 }
 // Step 2: Calculate corner points (both inside and outside) as intersections of adjacent lines
@@ -916,7 +912,7 @@ const updateWallGeometry = (wall: PerimeterWall, startCorner: PerimeterCorner, e
     direction: wallDirection
   }
   const outsideLine: Line2D = {
-    point: vec2.add(vec2.create(), insideStart, vec2.scale(vec2.create(), outsideDirection, wall.thickness)),
+    point: vec2.scaleAndAdd(vec2.create(), insideStart, outsideDirection, wall.thickness),
     direction: wallDirection
   }
 

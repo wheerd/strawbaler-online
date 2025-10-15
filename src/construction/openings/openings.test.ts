@@ -92,16 +92,16 @@ const createTestInfillConfig = (): InfillConstructionConfig => ({
 
 const createTestOpeningSegment = (opening: Opening): WallSegment3D => ({
   type: 'opening',
-  position: [opening.offsetFromStart, 0, 0] as vec3,
-  size: [opening.width, 360, 2500] as vec3,
+  position: vec3.fromValues(opening.offsetFromStart, 0, 0),
+  size: vec3.fromValues(opening.width, 360, 2500),
   openings: [opening]
 })
 
 // Helper to create mock generator for infillWallArea
 const createMockInfillGenerator = function* (numElements = 2): Generator<ConstructionResult> {
   for (let i = 0; i < numElements; i++) {
-    const offset = [100 * i, 0, 0] as vec3
-    const size = [100, 360, 500] as vec3
+    const offset = vec3.fromValues(100 * i, 0, 0)
+    const size = vec3.fromValues(100, 360, 500)
     const element = createConstructionElement(createMaterialId(), {
       type: 'cuboid' as const,
       offset,

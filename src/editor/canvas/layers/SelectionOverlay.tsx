@@ -212,7 +212,7 @@ function getOpeningPoints(perimeter: Perimeter, wallId: PerimeterWallId, opening
   const wallVector = wall.direction
   const offsetDistance = opening.offsetFromStart
   const offsetStart = vec2.scale(vec2.create(), wallVector, offsetDistance)
-  const offsetEnd = vec2.add(vec2.create(), offsetStart, vec2.scale(vec2.create(), wallVector, opening.width))
+  const offsetEnd = vec2.scaleAndAdd(vec2.create(), offsetStart, wallVector, opening.width)
 
   // Calculate opening polygon corners
   const insideOpeningStart = vec2.add(vec2.create(), insideStart, offsetStart)

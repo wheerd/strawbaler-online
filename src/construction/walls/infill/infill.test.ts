@@ -577,8 +577,8 @@ describe('constructInfillWall', () => {
       const layers = createMockLayers()
 
       const mockMeasurement = {
-        startPoint: [0, 0, 0] as vec3,
-        endPoint: [800, 0, 0] as vec3,
+        startPoint: vec3.fromValues(0, 0, 0),
+        endPoint: vec3.fromValues(800, 0, 0),
         label: '800mm',
         tags: [TAG_POST_SPACING],
         groupKey: 'post-spacing',

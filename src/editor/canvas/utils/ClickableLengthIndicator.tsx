@@ -77,19 +77,19 @@ export function ClickableLengthIndicator({
   const actualEndMarkerSize = textSize.height
 
   // Get the perpendicular vector for offset
-  const perpendicular = measurementLength > 0 ? perpendicularCCW(dir) : [0, 0]
+  const perpendicular = measurementLength > 0 ? perpendicularCCW(dir) : vec2.fromValues(0, 0)
 
   // Calculate offset positions
-  const offsetStartPoint = vec2.add(vec2.create(), startPoint, vec2.scale(vec2.create(), perpendicular, offset))
-  const offsetEndPoint = vec2.add(vec2.create(), endPoint, vec2.scale(vec2.create(), perpendicular, offset))
+  const offsetStartPoint = vec2.scaleAndAdd(vec2.create(), startPoint, perpendicular, offset)
+  const offsetEndPoint = vec2.scaleAndAdd(vec2.create(), endPoint, perpendicular, offset)
 
   const lineMidpoint = midpoint(offsetStartPoint, offsetEndPoint)
 
   // Calculate end marker positions (perpendicular to measurement line)
   const endMarkerDirection = vec2.scale(vec2.create(), perpendicular, actualEndMarkerSize / 2)
 
-  const leftEndpoint = vec2.add(vec2.create(), lineMidpoint, vec2.scale(vec2.create(), dir, -textSize.width * 0.6))
-  const rightEndpoint = vec2.add(vec2.create(), lineMidpoint, vec2.scale(vec2.create(), dir, textSize.width * 0.6))
+  const leftEndpoint = vec2.scaleAndAdd(vec2.create(), lineMidpoint, dir, -textSize.width * 0.6)
+  const rightEndpoint = vec2.scaleAndAdd(vec2.create(), lineMidpoint, dir, textSize.width * 0.6)
 
   // Visual feedback colors
   const actualColor = color ?? theme.textSecondary

@@ -22,7 +22,7 @@ export function OpeningMovementPreview({
   const outsideDirection = wall.outsideDirection
 
   const openingStart = vec2.scaleAndAdd(vec2.create(), wallStart, wall.direction, movementState.newOffset)
-  const openingEnd = vec2.add(vec2.create(), openingStart, vec2.scale(vec2.create(), wall.direction, opening.width))
+  const openingEnd = vec2.scaleAndAdd(vec2.create(), openingStart, wall.direction, opening.width)
 
   // Create opening rectangle
   const insideStart = openingStart

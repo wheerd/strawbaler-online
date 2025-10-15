@@ -38,7 +38,7 @@ export function PerimeterCornerShape({
   const arrowDir =
     corner.constructedByWall === 'previous' ? previousWall.direction : vec2.scale(vec2.create(), nextWall.direction, -1)
   const arrowEnd = midpoint(corner.insidePoint, corner.outsidePoint)
-  const arrowStart = vec2.add(vec2.create(), arrowEnd, vec2.scale(vec2.create(), arrowDir, -180))
+  const arrowStart = vec2.scaleAndAdd(vec2.create(), arrowEnd, arrowDir, -180)
 
   const constructingWall = corner.constructedByWall === 'previous' ? previousWall : nextWall
   const constructionMethod = usePerimeterConstructionMethodById(constructingWall.constructionMethodId)

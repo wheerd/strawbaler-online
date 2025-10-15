@@ -16,7 +16,7 @@ import type { Tag } from '@/construction/tags'
 
 describe('measurements', () => {
   // Simple orthographic projection (x, y, z) -> (x, y)
-  const mockProjection: Projection = (point: vec3): vec2 => [point[0], point[1]]
+  const mockProjection: Projection = (point: vec3): vec2 => vec2.fromValues(point[0], point[1])
 
   const createMockTag = (id: string): Tag => ({
     id: `measurement_${id}` as const,
@@ -398,25 +398,25 @@ describe('measurements', () => {
   describe('interface compatibility', () => {
     it('should create valid ProjectedMeasurement', () => {
       const projected: ProjectedMeasurement = {
-        startPointMin: [0, 0] as vec2,
-        endPointMin: [100, 0] as vec2,
-        startPointMax: [0, 25] as vec2,
-        endPointMax: [100, 25] as vec2,
+        startPointMin: vec2.fromValues(0, 0),
+        endPointMin: vec2.fromValues(100, 0),
+        startPointMax: vec2.fromValues(0, 25),
+        endPointMax: vec2.fromValues(100, 25),
         perpendicularRange: 25,
         length: 100,
         tags: [createMockTag('test')]
       }
 
-      expect(projected.startPointMin).toEqual([0, 0])
+      expect(projected.startPointMin).toEqual(vec2.fromValues(0, 0))
       expect(projected.perpendicularRange).toBe(25)
     })
 
     it('should create valid IntervalMeasurement', () => {
       const interval: IntervalMeasurement = {
-        startPointMin: [0, 0] as vec2,
-        endPointMin: [100, 0] as vec2,
-        startPointMax: [0, 25] as vec2,
-        endPointMax: [100, 25] as vec2,
+        startPointMin: vec2.fromValues(0, 0),
+        endPointMin: vec2.fromValues(100, 0),
+        startPointMax: vec2.fromValues(0, 25),
+        endPointMax: vec2.fromValues(100, 25),
         perpendicularRange: 25,
         length: 100,
         t1: 0,
@@ -432,38 +432,38 @@ describe('measurements', () => {
 
     it('should create valid LineMeasurement', () => {
       const line: LineMeasurement = {
-        startPoint: [0, 0] as vec2,
-        endPoint: [100, 0] as vec2,
-        startOnLine: [0, 0] as vec2,
-        endOnLine: [100, 0] as vec2,
+        startPoint: vec2.fromValues(0, 0),
+        endPoint: vec2.fromValues(100, 0),
+        startOnLine: vec2.fromValues(0, 0),
+        endOnLine: vec2.fromValues(100, 0),
         length: 100,
         tags: []
       }
 
-      expect(line.startPoint).toEqual([0, 0])
+      expect(line.startPoint).toEqual(vec2.fromValues(0, 0))
       expect(line.length).toBe(100)
     })
 
     it('should create valid MeasurementGroup', () => {
       const group: MeasurementGroup = {
-        direction: [1, 0] as vec2,
-        startLeft: [-50, 0] as vec2,
-        startRight: [50, 0] as vec2,
+        direction: vec2.fromValues(1, 0),
+        startLeft: vec2.fromValues(-50, 0),
+        startRight: vec2.fromValues(50, 0),
         measurements: []
       }
 
-      expect(group.direction).toEqual([1, 0])
+      expect(group.direction).toEqual(vec2.fromValues(1, 0))
       expect(group.measurements).toHaveLength(0)
     })
 
     it('should create valid MeasurementLines', () => {
       const lines: MeasurementLines = {
-        direction: [1, 0] as vec2,
-        start: [0, 0] as vec2,
+        direction: vec2.fromValues(1, 0),
+        start: vec2.fromValues(0, 0),
         lines: []
       }
 
-      expect(lines.direction).toEqual([1, 0])
+      expect(lines.direction).toEqual(vec2.fromValues(1, 0))
       expect(lines.lines).toHaveLength(0)
     })
   })

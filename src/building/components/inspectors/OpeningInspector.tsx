@@ -155,7 +155,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
     const outsideStart = wall.outsideLine.start
     const wallVector = wall.direction
     const offsetStart = vec2.scale(vec2.create(), wallVector, opening.offsetFromStart)
-    const offsetEnd = vec2.add(vec2.create(), offsetStart, vec2.scale(vec2.create(), wallVector, opening.width))
+    const offsetEnd = vec2.scaleAndAdd(vec2.create(), offsetStart, wallVector, opening.width)
 
     const insideOpeningStart = vec2.add(vec2.create(), insideStart, offsetStart)
     const insideOpeningEnd = vec2.add(vec2.create(), insideStart, offsetEnd)

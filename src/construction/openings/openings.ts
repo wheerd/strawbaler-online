@@ -117,8 +117,8 @@ export function* constructOpeningFrame(
     const sillElement = createConstructionElement(
       config.sillMaterial,
       createCuboidShape(
-        [openingLeft, wallFront, sillBottom] as vec3,
-        [openingWidth, wallThickness, config.sillThickness] as vec3
+        vec3.fromValues(openingLeft, wallFront, sillBottom),
+        vec3.fromValues(openingWidth, wallThickness, config.sillThickness)
       ),
       IDENTITY,
       [TAG_SILL]

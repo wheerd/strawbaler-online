@@ -47,9 +47,9 @@ export function OpeningShape({
   const offsetDistance = opening.offsetFromStart
   const centerStart = midpoint(insideStart, outsideStart)
   const offsetStart = vec2.scale(vec2.create(), wallVector, offsetDistance)
-  const offsetEnd = vec2.add(vec2.create(), offsetStart, vec2.scale(vec2.create(), wallVector, opening.width))
-  const openingStart = vec2.add(vec2.create(), centerStart, vec2.scale(vec2.create(), wallVector, offsetDistance))
-  const openingEnd = vec2.add(vec2.create(), openingStart, vec2.scale(vec2.create(), wallVector, opening.width))
+  const offsetEnd = vec2.scaleAndAdd(vec2.create(), offsetStart, wallVector, opening.width)
+  const openingStart = vec2.scaleAndAdd(vec2.create(), centerStart, wallVector, offsetDistance)
+  const openingEnd = vec2.scaleAndAdd(vec2.create(), openingStart, wallVector, opening.width)
 
   // Calculate opening polygon corners
   const insideOpeningStart = vec2.add(vec2.create(), insideStart, offsetStart)
@@ -84,31 +84,25 @@ export function OpeningShape({
           ? midpoint(insideOpeningEnd, insideEndCorner)
           : measurementType === 'prevOpening' && previousOpening
             ? midpoint(
-                vec2.add(
+                vec2.scaleAndAdd(
                   vec2.create(),
                   outsideStart,
-                  vec2.scale(vec2.create(), wall.direction, previousOpening.offsetFromStart + previousOpening.width)
+                  wall.direction,
+                  previousOpening.offsetFromStart + previousOpening.width
                 ),
-                vec2.add(
-                  vec2.create(),
-                  outsideStart,
-                  vec2.scale(vec2.create(), wall.direction, opening.offsetFromStart)
-                )
+                vec2.scaleAndAdd(vec2.create(), outsideStart, wall.direction, opening.offsetFromStart)
               )
             : nextOpening
               ? midpoint(
-                  vec2.add(
+                  vec2.scaleAndAdd(
                     vec2.create(),
                     outsideStart,
-                    vec2.scale(vec2.create(), wall.direction, opening.offsetFromStart + opening.width)
+                    wall.direction,
+                    opening.offsetFromStart + opening.width
                   ),
-                  vec2.add(
-                    vec2.create(),
-                    outsideStart,
-                    vec2.scale(vec2.create(), wall.direction, nextOpening.offsetFromStart)
-                  )
+                  vec2.scaleAndAdd(vec2.create(), outsideStart, wall.direction, nextOpening.offsetFromStart)
                 )
-              : ([0, 0] as vec2)
+              : vec2.fromValues(0, 0)
 
     const stagePos = viewportActions.worldToStage(worldPosition)
     // Add small offset to position input near the indicator
@@ -197,16 +191,8 @@ export function OpeningShape({
               {(() => {
                 const prevEndOffset = previousOpening.offsetFromStart + previousOpening.width
                 const currentStartOffset = opening.offsetFromStart
-                const prevEndPoint = vec2.add(
-                  vec2.create(),
-                  outsideStart,
-                  vec2.scale(vec2.create(), wallVector, prevEndOffset)
-                )
-                const currentStartPoint = vec2.add(
-                  vec2.create(),
-                  outsideStart,
-                  vec2.scale(vec2.create(), wallVector, currentStartOffset)
-                )
+                const prevEndPoint = vec2.scaleAndAdd(vec2.create(), outsideStart, wallVector, prevEndOffset)
+                const currentStartPoint = vec2.scaleAndAdd(vec2.create(), outsideStart, wallVector, currentStartOffset)
                 return (
                   <ClickableLengthIndicator
                     startPoint={prevEndPoint}
@@ -227,16 +213,8 @@ export function OpeningShape({
               {(() => {
                 const currentEndOffset = opening.offsetFromStart + opening.width
                 const nextStartOffset = nextOpening.offsetFromStart
-                const currentEndPoint = vec2.add(
-                  vec2.create(),
-                  outsideStart,
-                  vec2.scale(vec2.create(), wallVector, currentEndOffset)
-                )
-                const nextStartPoint = vec2.add(
-                  vec2.create(),
-                  outsideStart,
-                  vec2.scale(vec2.create(), wallVector, nextStartOffset)
-                )
+                const currentEndPoint = vec2.scaleAndAdd(vec2.create(), outsideStart, wallVector, currentEndOffset)
+                const nextStartPoint = vec2.scaleAndAdd(vec2.create(), outsideStart, wallVector, nextStartOffset)
                 return (
                   <ClickableLengthIndicator
                     startPoint={currentEndPoint}
