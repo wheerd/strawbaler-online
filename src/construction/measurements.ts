@@ -193,7 +193,10 @@ function assignSides(group: MeasurementGroup): {
   const rightMeasurements: IntervalMeasurement[] = []
 
   for (const measurement of group.measurements) {
-    if (measurement.distanceLeft <= measurement.distanceRight) {
+    if (Math.abs(measurement.distanceLeft - measurement.distanceRight) < 1) {
+      leftMeasurements.push(measurement)
+      rightMeasurements.push(measurement)
+    } else if (measurement.distanceLeft < measurement.distanceRight) {
       leftMeasurements.push(measurement)
     } else {
       rightMeasurements.push(measurement)

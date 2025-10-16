@@ -1,9 +1,9 @@
-import { vec2 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 import { useMemo } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { getTagClasses } from '@/construction/components/cssHelpers'
-import { type Projection, allPoints } from '@/construction/geometry'
+import { type Projection, allPoints, bounds3Dto2D, transformBounds } from '@/construction/geometry'
 import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
 import { formatLength } from '@/shared/utils/formatLength'
@@ -14,10 +14,39 @@ export interface MeasurementsProps {
 }
 
 export function Measurements({ model, projection }: MeasurementsProps): React.JSX.Element {
-  const planPoints = useMemo(
-    () => model.elements.flatMap(e => Array.from(allPoints(e, projection))),
-    [model.elements, projection]
-  )
+  const planPoints = useMemo(() => {
+    const elementPoints = model.elements.flatMap(e => Array.from(allPoints(e, projection)))
+
+    const areaPoints = model.areas
+      .filter(area => area.type !== 'cut')
+      .flatMap(area => {
+        if (area.type === 'cuboid') {
+          const transformedBounds = transformBounds(area.bounds, area.transform)
+          const bounds2D = bounds3Dto2D(transformedBounds, projection)
+          return [
+            vec2.fromValues(bounds2D.min[0], bounds2D.min[1]),
+            vec2.fromValues(bounds2D.max[0], bounds2D.min[1]),
+            vec2.fromValues(bounds2D.max[0], bounds2D.max[1]),
+            vec2.fromValues(bounds2D.min[0], bounds2D.max[1])
+          ]
+        } else if (area.type === 'polygon') {
+          return area.polygon.points.map(p => {
+            let p3d: vec3
+            if (area.plane === 'xy') {
+              p3d = vec3.fromValues(p[0], p[1], 0)
+            } else if (area.plane === 'xz') {
+              p3d = vec3.fromValues(p[0], 0, p[1])
+            } else {
+              p3d = vec3.fromValues(0, p[0], p[1])
+            }
+            return projection(p3d)
+          })
+        }
+        return []
+      })
+
+    return [...elementPoints, ...areaPoints]
+  }, [model.elements, model.areas, projection])
 
   // Filter only AutoMeasurement from model.measurements
   const autoMeasurements = model.measurements.filter((m): m is AutoMeasurement => 'size' in m)
