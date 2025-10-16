@@ -8,7 +8,6 @@ import type { PerimeterWall } from '@/building/model/model'
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { TOP_VIEW } from '@/construction/components/ConstructionPlan'
 import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
-import { RingBeamConstructionPlanModal } from '@/construction/components/RingBeamConstructionPlan'
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { constructPerimeter } from '@/construction/perimeter'
@@ -319,20 +318,6 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                 allowNone
               />
             </Flex>
-
-            {/* Ring Beam View Construction Button */}
-            {(perimeter.topRingBeamAssemblyId || perimeter.baseRingBeamAssemblyId) && (
-              <Flex justify="center">
-                <RingBeamConstructionPlanModal
-                  perimeterId={selectedId}
-                  trigger={
-                    <IconButton title="View Ring Beam Construction" size="2">
-                      <ConstructionPlanIcon width={20} height={20} />
-                    </IconButton>
-                  }
-                />
-              </Flex>
-            )}
           </Flex>
         </Box>
 
