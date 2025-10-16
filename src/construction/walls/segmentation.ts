@@ -4,7 +4,6 @@ import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model
 import { getConfigActions } from '@/construction/config'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
-import { IDENTITY } from '@/construction/geometry'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
 import { TAG_OPENING_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
 import type { WallLayersConfig } from '@/construction/walls'
@@ -83,33 +82,40 @@ type OpeningSegmentConstruction = (
 function* createCornerAreas(
   cornerInfo: WallCornerInfo,
   wallLength: Length,
-  wallHeight: Length,
-  wallThickness: Length
+  wallHeight: Length
 ): Generator<ConstructionResult> {
   if (cornerInfo.startCorner) {
     yield yieldArea({
-      type: 'cuboid',
+      type: 'polygon',
       areaType: 'corner',
       renderPosition: 'top',
       label: 'Corner',
-      bounds: {
-        min: vec3.fromValues(-cornerInfo.startCorner.extensionDistance, 0, 0),
-        max: vec3.fromValues(0, wallThickness, wallHeight)
-      },
-      transform: IDENTITY
+      plane: 'xz',
+      polygon: {
+        points: [
+          vec2.fromValues(-cornerInfo.startCorner.extensionDistance, 0),
+          vec2.fromValues(-cornerInfo.startCorner.extensionDistance, wallHeight),
+          vec2.fromValues(0, wallHeight),
+          vec2.fromValues(0, 0)
+        ]
+      }
     })
   }
   if (cornerInfo.endCorner) {
     yield yieldArea({
-      type: 'cuboid',
+      type: 'polygon',
       areaType: 'corner',
       renderPosition: 'top',
       label: 'Corner',
-      bounds: {
-        min: vec3.fromValues(wallLength, 0, 0),
-        max: vec3.fromValues(wallLength + cornerInfo.endCorner.extensionDistance, wallThickness, wallHeight)
-      },
-      transform: IDENTITY
+      plane: 'xz',
+      polygon: {
+        points: [
+          vec2.fromValues(wallLength, 0),
+          vec2.fromValues(wallLength, wallHeight),
+          vec2.fromValues(wallLength + cornerInfo.endCorner.extensionDistance, wallHeight),
+          vec2.fromValues(wallLength + cornerInfo.endCorner.extensionDistance, 0)
+        ]
+      }
     })
   }
 }
@@ -206,7 +212,7 @@ export function* segmentedWallConstruction(
   const totalConstructionHeight =
     storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
 
-  yield* createCornerAreas(cornerInfo, wall.wallLength, totalConstructionHeight, wall.thickness)
+  yield* createCornerAreas(cornerInfo, wall.wallLength, totalConstructionHeight)
 
   const y = layers.insideThickness
   const sizeY = wall.thickness - layers.insideThickness - layers.outsideThickness

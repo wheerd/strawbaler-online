@@ -10,7 +10,7 @@
   stroke: var(--gray-10);
 }
 
-.area-cuboid-corner rect {
+.area-polygon-corner path {
   fill: none;
   stroke: var(--gray-12);
   stroke-width: 20;

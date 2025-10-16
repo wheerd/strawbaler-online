@@ -679,28 +679,36 @@ describe('segmentedWallConstruction', () => {
 
       // Start corner area
       expect(areas[0]).toEqual({
-        type: 'cuboid',
+        type: 'polygon',
         areaType: 'corner',
         renderPosition: 'top',
         label: 'Corner',
-        bounds: {
-          min: vec3.fromValues(-100, 0, 0), // -extensionDistance
-          max: vec3.fromValues(0, 300, 2500) // wallThickness, wallHeight
-        },
-        transform: IDENTITY
+        plane: 'xz',
+        polygon: {
+          points: [
+            vec2.fromValues(-100, 0),
+            vec2.fromValues(-100, 2500),
+            vec2.fromValues(0, 2500),
+            vec2.fromValues(0, 0)
+          ]
+        }
       })
 
       // End corner area
       expect(areas[1]).toEqual({
-        type: 'cuboid',
+        type: 'polygon',
         areaType: 'corner',
         renderPosition: 'top',
         label: 'Corner',
-        bounds: {
-          min: vec3.fromValues(3000, 0, 0), // wallLength
-          max: vec3.fromValues(3150, 300, 2500) // wallLength + extensionDistance
-        },
-        transform: IDENTITY
+        plane: 'xz',
+        polygon: {
+          points: [
+            vec2.fromValues(3000, 0),
+            vec2.fromValues(3000, 2500),
+            vec2.fromValues(3150, 2500),
+            vec2.fromValues(3150, 0)
+          ]
+        }
       })
     })
   })
