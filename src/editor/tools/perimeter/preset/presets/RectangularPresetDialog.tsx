@@ -1,11 +1,11 @@
-import { Cross2Icon } from '@radix-ui/react-icons'
-import { Button, Dialog, Flex, Grid, Heading, IconButton, Text } from '@radix-ui/themes'
+import { Button, Dialog, Flex, Grid, Heading, Text } from '@radix-ui/themes'
 import { useCallback, useEffect, useState } from 'react'
 
 import type { WallAssemblyId } from '@/building/model/ids'
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { useConfigActions } from '@/construction/config/store'
+import { BaseModal } from '@/shared/components/BaseModal'
 import { LengthField } from '@/shared/components/LengthField'
 import '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
@@ -100,10 +100,11 @@ function RectangularPreview({ config }: { config: RectangularPresetConfig }) {
   )
 }
 
-function RectangularPresetDialogContent({
+export function RectangularPresetDialog({
   onConfirm,
-  initialConfig
-}: Omit<RectangularPresetDialogProps, 'isOpen' | 'trigger'>): React.JSX.Element {
+  initialConfig,
+  trigger
+}: RectangularPresetDialogProps): React.JSX.Element {
   const configStore = useConfigActions()
 
   // Form state with defaults from config store
@@ -133,26 +134,8 @@ function RectangularPresetDialogContent({
   const isValid = config.width > 0 && config.length > 0 && config.thickness > 0 && config.wallAssemblyId
 
   return (
-    <Dialog.Content
-      aria-describedby={undefined}
-      size="3"
-      maxWidth="600px"
-      onEscapeKeyDown={e => {
-        e.stopPropagation()
-      }}
-    >
+    <BaseModal title="Rectangular Perimeter" trigger={trigger} size="3" maxWidth="600px">
       <Flex direction="column" gap="4">
-        <Dialog.Title>
-          <Flex justify="between" align="center">
-            Rectangular Perimeter
-            <Dialog.Close>
-              <IconButton variant="ghost" size="1">
-                <Cross2Icon />
-              </IconButton>
-            </Dialog.Close>
-          </Flex>
-        </Dialog.Title>
-
         <Grid columns="2" gap="4">
           {/* Left Column - Properties in 2x3 Grid */}
           <Flex direction="column" gap="3">
@@ -286,19 +269,6 @@ function RectangularPresetDialogContent({
           </Dialog.Close>
         </Flex>
       </Flex>
-    </Dialog.Content>
-  )
-}
-
-export function RectangularPresetDialog({
-  onConfirm,
-  initialConfig,
-  trigger
-}: RectangularPresetDialogProps): React.JSX.Element {
-  return (
-    <Dialog.Root>
-      <Dialog.Trigger>{trigger}</Dialog.Trigger>
-      <RectangularPresetDialogContent onConfirm={onConfirm} initialConfig={initialConfig} />
-    </Dialog.Root>
+    </BaseModal>
   )
 }

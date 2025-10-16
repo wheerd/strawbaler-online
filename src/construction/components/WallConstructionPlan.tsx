@@ -1,5 +1,5 @@
-import { CheckCircledIcon, Cross2Icon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import { Box, Callout, Dialog, Flex, IconButton, Text } from '@radix-ui/themes'
+import { CheckCircledIcon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
+import { Box, Callout, Flex, Grid, Text } from '@radix-ui/themes'
 import React, { useMemo } from 'react'
 
 import type { PerimeterId, PerimeterWallId } from '@/building/model/ids'
@@ -7,6 +7,7 @@ import { useModelActions, usePerimeterById } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import type { ConstructionIssue } from '@/construction/results'
 import { WALL_ASSEMBLIES, createWallStoreyContext } from '@/construction/walls'
+import { BaseModal } from '@/shared/components/BaseModal'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
 import { BACK_VIEW, ConstructionPlan, FRONT_VIEW, type ViewOption } from './ConstructionPlan'
@@ -132,55 +133,36 @@ export function WallConstructionPlanModal({
   }
 
   return (
-    <Dialog.Root>
-      <Dialog.Trigger>{children}</Dialog.Trigger>
-      <Dialog.Content
-        aria-describedby={undefined}
-        size="2"
-        width="95%"
-        maxWidth="95%"
-        maxHeight="90vh"
-        className="flex flex-col overflow-hidden"
-        onEscapeKeyDown={e => {
-          e.stopPropagation()
-        }}
-      >
-        <Flex direction="column" gap="3" height="100%" className="overflow-hidden">
-          <Dialog.Title>
-            <Flex justify="between" align="center">
-              Wall Construction Plan
-              <Dialog.Close>
-                <IconButton variant="ghost" size="1">
-                  <Cross2Icon />
-                </IconButton>
-              </Dialog.Close>
+    <BaseModal
+      title="Wall Construction Plan"
+      trigger={children}
+      size="2"
+      width="95%"
+      maxWidth="95%"
+      height="90vh"
+      maxHeight="90vh"
+      className="flex flex-col overflow-hidden"
+    >
+      <Grid rows="1fr auto" gap="3" height="100%" className="overflow-hidden">
+        <div ref={containerRef} className="relative flex-1 full-h min-h-[300px] border border-gray-6 rounded-2">
+          {constructionModel ? (
+            <ConstructionPlan model={constructionModel} views={views} containerSize={containerSize} />
+          ) : (
+            <Flex align="center" justify="center" style={{ height: '100%' }}>
+              <Text align="center" color="gray">
+                <Text size="6">⚠</Text>
+                <br />
+                <Text size="2">Failed to generate construction plan</Text>
+              </Text>
             </Flex>
-          </Dialog.Title>
-
-          <div
-            ref={containerRef}
-            className="relative flex-1 min-h-[300px] max-h-[calc(100vh-400px)] overflow-hidden border border-gray-6 rounded-2"
-          >
-            {constructionModel ? (
-              <ConstructionPlan model={constructionModel} views={views} containerSize={containerSize} />
-            ) : (
-              <Flex align="center" justify="center" style={{ height: '100%' }}>
-                <Text align="center" color="gray">
-                  <Text size="6">⚠</Text>
-                  <br />
-                  <Text size="2">Failed to generate construction plan</Text>
-                </Text>
-              </Flex>
-            )}
-          </div>
-
-          {constructionModel && (
-            <Box flexShrink="0">
-              <IssueDescriptionPanel errors={constructionModel.errors} warnings={constructionModel.warnings} />
-            </Box>
           )}
-        </Flex>
-      </Dialog.Content>
-    </Dialog.Root>
+        </div>
+        {constructionModel && (
+          <Box flexShrink="0">
+            <IssueDescriptionPanel errors={constructionModel.errors} warnings={constructionModel.warnings} />
+          </Box>
+        )}
+      </Grid>
+    </BaseModal>
   )
 }

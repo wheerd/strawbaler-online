@@ -1,11 +1,12 @@
-import { CheckCircledIcon, Cross2Icon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import { Box, Callout, Card, Dialog, Flex, Heading, IconButton, SegmentedControl, Text } from '@radix-ui/themes'
+import { CheckCircledIcon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
+import { Box, Callout, Card, Flex, Heading, SegmentedControl, Text } from '@radix-ui/themes'
 import React, { useMemo, useState } from 'react'
 
 import type { PerimeterId } from '@/building/model/ids'
 import { usePerimeterById } from '@/building/store'
 import { useConfigActions } from '@/construction/config'
 import { RING_BEAM_ASSEMBLIES } from '@/construction/ringBeams'
+import { BaseModal } from '@/shared/components/BaseModal'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
 import { ConstructionPlan, TOP_VIEW } from './ConstructionPlan'
@@ -123,103 +124,79 @@ export function RingBeamConstructionPlanModal({
   }
 
   return (
-    <Dialog.Root>
-      <Dialog.Trigger>{trigger}</Dialog.Trigger>
-      <Dialog.Content
-        aria-describedby={undefined}
-        size="2"
-        width="95%"
-        maxWidth="95%"
-        maxHeight="90vh"
-        className="flex flex-col overflow-hidden"
-        onEscapeKeyDown={e => {
-          e.stopPropagation()
-        }}
-      >
-        <Flex direction="column" gap="3" height="100%" className="overflow-hidden">
-          <Dialog.Title>
-            <Flex justify="between" align="center">
-              Ring Beam Construction
-              <Dialog.Close>
-                <IconButton variant="ghost" size="1">
-                  <Cross2Icon />
-                </IconButton>
-              </Dialog.Close>
+    <BaseModal
+      title="Ring Beam Construction"
+      trigger={trigger}
+      size="2"
+      width="95%"
+      maxWidth="95%"
+      maxHeight="90vh"
+      className="flex flex-col overflow-hidden"
+    >
+      <div ref={containerRef} className="relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2">
+        {currentAssembly ? (
+          constructionModel ? (
+            <ConstructionPlan
+              model={constructionModel}
+              views={[{ view: TOP_VIEW, label: 'Top' }]}
+              containerSize={containerSize}
+            />
+          ) : (
+            <Flex align="center" justify="center" style={{ height: '100%' }}>
+              <Text align="center" color="gray">
+                <Text size="6">⚠</Text>
+                <br />
+                <Text size="2">Failed to generate construction plan</Text>
+              </Text>
             </Flex>
-          </Dialog.Title>
-
-          <div
-            ref={containerRef}
-            className="relative grow min-h-[300px] overflow-hidden border border-gray-6 rounded-2"
-          >
-            {currentAssembly ? (
-              constructionModel ? (
-                <ConstructionPlan
-                  model={constructionModel}
-                  views={[{ view: TOP_VIEW, label: 'Top' }]}
-                  containerSize={containerSize}
-                />
-              ) : (
-                <Flex align="center" justify="center" style={{ height: '100%' }}>
-                  <Text align="center" color="gray">
-                    <Text size="6">⚠</Text>
-                    <br />
-                    <Text size="2">Failed to generate construction plan</Text>
-                  </Text>
-                </Flex>
-              )
-            ) : (
-              <Flex align="center" justify="center" style={{ height: '100%' }}>
-                <Text align="center" color="gray">
-                  <Text size="6">📋</Text>
-                  <br />
-                  <Text size="2">No {currentPosition} ring beam assembly selected</Text>
-                </Text>
-              </Flex>
-            )}
-
-            {/* Overlay SegmentedControl in top-left corner */}
-            <Box position="absolute" top="3" left="3" p="0S" className="z-10 shadow-md bg-panel rounded-2">
-              <SegmentedControl.Root
-                value={currentPosition}
-                onValueChange={value => setCurrentPosition(value as 'base' | 'top')}
-                size="1"
-              >
-                <SegmentedControl.Item value="base">Base Plate</SegmentedControl.Item>
-                <SegmentedControl.Item value="top">Top Plate</SegmentedControl.Item>
-              </SegmentedControl.Root>
-            </Box>
-          </div>
-
-          <Flex direction="row" gap="3" flexShrink="0">
-            {/* Assembly Info Panel */}
-            <Box flexGrow="1">
-              {currentAssembly && (
-                <Card variant="surface" size="1">
-                  <Heading size="2" mb="1">
-                    {currentAssembly.name}
-                  </Heading>
-                  <Flex direction="column" gap="1">
-                    <Text size="1">Type: {currentAssembly.type}</Text>
-                    <Text size="1">Height: {currentAssembly.height}mm</Text>
-                    {currentAssembly.type === 'full' && <Text size="1">Width: {currentAssembly.width}mm</Text>}
-                    {currentAssembly.type === 'double' && (
-                      <Text size="1">Thickness: {currentAssembly.thickness}mm</Text>
-                    )}
-                  </Flex>
-                </Card>
-              )}
-            </Box>
-
-            {/* Issues Panel */}
-            {constructionModel && (
-              <Box flexGrow="1">
-                <IssueDescriptionPanel errors={constructionModel.errors} warnings={constructionModel.warnings} />
-              </Box>
-            )}
+          )
+        ) : (
+          <Flex align="center" justify="center" style={{ height: '100%' }}>
+            <Text align="center" color="gray">
+              <Text size="6">📋</Text>
+              <br />
+              <Text size="2">No {currentPosition} ring beam assembly selected</Text>
+            </Text>
           </Flex>
-        </Flex>
-      </Dialog.Content>
-    </Dialog.Root>
+        )}
+
+        {/* Overlay SegmentedControl in top-left corner */}
+        <Box position="absolute" top="3" left="3" p="0S" className="z-10 shadow-md bg-panel rounded-2">
+          <SegmentedControl.Root
+            value={currentPosition}
+            onValueChange={value => setCurrentPosition(value as 'base' | 'top')}
+            size="1"
+          >
+            <SegmentedControl.Item value="base">Base Plate</SegmentedControl.Item>
+            <SegmentedControl.Item value="top">Top Plate</SegmentedControl.Item>
+          </SegmentedControl.Root>
+        </Box>
+      </div>
+      <Flex direction="row" gap="3" flexShrink="0">
+        {/* Assembly Info Panel */}
+        <Box flexGrow="1">
+          {currentAssembly && (
+            <Card variant="surface" size="1">
+              <Heading size="2" mb="1">
+                {currentAssembly.name}
+              </Heading>
+              <Flex direction="column" gap="1">
+                <Text size="1">Type: {currentAssembly.type}</Text>
+                <Text size="1">Height: {currentAssembly.height}mm</Text>
+                {currentAssembly.type === 'full' && <Text size="1">Width: {currentAssembly.width}mm</Text>}
+                {currentAssembly.type === 'double' && <Text size="1">Thickness: {currentAssembly.thickness}mm</Text>}
+              </Flex>
+            </Card>
+          )}
+        </Box>
+
+        {/* Issues Panel */}
+        {constructionModel && (
+          <Box flexGrow="1">
+            <IssueDescriptionPanel errors={constructionModel.errors} warnings={constructionModel.warnings} />
+          </Box>
+        )}
+      </Flex>
+    </BaseModal>
   )
 }

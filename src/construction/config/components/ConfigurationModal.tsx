@@ -34,7 +34,7 @@ export function ConfigurationModal({
       open={open}
       onOpenChange={onOpenChange}
       titleIcon={<GearIcon />}
-      title={'Configuration'}
+      title="Configuration"
       size="4"
       width="95%"
       maxWidth="95%"

@@ -1,5 +1,4 @@
-import { Cross2Icon } from '@radix-ui/react-icons'
-import { Button, Dialog, Flex, Grid, Heading, IconButton, SegmentedControl, Text } from '@radix-ui/themes'
+import { Button, Dialog, Flex, Grid, Heading, SegmentedControl, Text } from '@radix-ui/themes'
 import { vec2 } from 'gl-matrix'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -7,6 +6,7 @@ import type { WallAssemblyId } from '@/building/model/ids'
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { useConfigActions } from '@/construction/config/store'
+import { BaseModal } from '@/shared/components/BaseModal'
 import { LengthField } from '@/shared/components/LengthField'
 import { offsetPolygon } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
@@ -144,20 +144,21 @@ function LShapedPreview({ config }: { config: LShapedPresetConfig }) {
   )
 }
 
-function LShapedPresetDialogContent({
+export function LShapedPresetDialog({
   onConfirm,
-  initialConfig
-}: Omit<LShapedPresetDialogProps, 'isOpen' | 'trigger'>): React.JSX.Element {
+  initialConfig,
+  trigger
+}: LShapedPresetDialogProps): React.JSX.Element {
   const configStore = useConfigActions()
 
   // Form state with defaults from config store
   const [config, setConfig] = useState<LShapedPresetConfig>(() => ({
-    width1: 8000, // 8m main width
-    length1: 6000, // 6m main length
-    width2: 4000, // 4m extension width
-    length2: 3000, // 3m extension length
-    rotation: 0,
-    thickness: 440, // 44cm default
+    width1: 10000, // 10m main rectangle width
+    length1: 7000, // 7m main rectangle length
+    width2: 5000, // 5m extension width
+    length2: 4000, // 4m extension length
+    rotation: 0, // 0° rotation
+    thickness: 440, // 44cm wall thickness
     wallAssemblyId: configStore.getDefaultWallAssemblyId(),
     baseRingBeamAssemblyId: configStore.getDefaultBaseRingBeamAssemblyId(),
     topRingBeamAssemblyId: configStore.getDefaultTopRingBeamAssemblyId(),
@@ -182,26 +183,8 @@ function LShapedPresetDialogContent({
   const isValid = preset.validateConfig(config)
 
   return (
-    <Dialog.Content
-      aria-describedby={undefined}
-      size="4"
-      maxWidth="800px"
-      onEscapeKeyDown={e => {
-        e.stopPropagation()
-      }}
-    >
+    <BaseModal title="L-Shaped Perimeter" trigger={trigger} size="4" maxWidth="800px">
       <Flex direction="column" gap="4">
-        <Dialog.Title>
-          <Flex justify="between" align="center">
-            L-Shaped Perimeter
-            <Dialog.Close>
-              <IconButton variant="ghost" size="1">
-                <Cross2Icon />
-              </IconButton>
-            </Dialog.Close>
-          </Flex>
-        </Dialog.Title>
-
         <Grid columns="2" gap="4">
           {/* Left Column - Configuration */}
           <Flex direction="column" gap="3">
@@ -421,19 +404,6 @@ function LShapedPresetDialogContent({
           </Dialog.Close>
         </Flex>
       </Flex>
-    </Dialog.Content>
-  )
-}
-
-export function LShapedPresetDialog({
-  onConfirm,
-  initialConfig,
-  trigger
-}: LShapedPresetDialogProps): React.JSX.Element {
-  return (
-    <Dialog.Root>
-      <Dialog.Trigger>{trigger}</Dialog.Trigger>
-      <LShapedPresetDialogContent onConfirm={onConfirm} initialConfig={initialConfig} />
-    </Dialog.Root>
+    </BaseModal>
   )
 }
