@@ -6,9 +6,11 @@ import { useCallback, useMemo } from 'react'
 
 import type { PerimeterId, PerimeterWallId, WallAssemblyId } from '@/building/model/ids'
 import { useModelActions, usePerimeterById } from '@/building/store'
-import { WallConstructionPlanModal } from '@/construction/components/WallConstructionPlan'
+import { BACK_VIEW, FRONT_VIEW, TOP_VIEW } from '@/construction/components/ConstructionPlan'
+import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { useWallAssemblyById } from '@/construction/config/store'
+import { constructWall } from '@/construction/walls'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { pushTool } from '@/editor/tools/system/store'
@@ -227,11 +229,21 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
       {/* Actions */}
       <Flex direction="column" gap="2">
         <Flex gap="2" justify="end">
-          <WallConstructionPlanModal perimeterId={perimeterId} wallId={wallId}>
-            <IconButton title="View Construction Plan" size="2">
-              <ConstructionPlanIcon width={20} height={20} />
-            </IconButton>
-          </WallConstructionPlanModal>
+          <ConstructionPlanModal
+            title="Wall Construction Plan"
+            constructionModelFactory={async () => constructWall(perimeterId, wallId)}
+            views={[
+              { view: FRONT_VIEW, label: 'Outside' },
+              { view: BACK_VIEW, label: 'Inside' },
+              { view: TOP_VIEW, label: 'Top' }
+            ]}
+            refreshKey={[perimeterId, wallId]}
+            trigger={
+              <IconButton title="View Construction Plan" size="2">
+                <ConstructionPlanIcon width={20} height={20} />
+              </IconButton>
+            }
+          />
 
           <IconButton size="2" title="Split Wall" onClick={() => pushTool('perimeter.split-wall')}>
             <SplitWallIcon width={20} height={20} />
