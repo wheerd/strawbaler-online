@@ -26,7 +26,7 @@ export interface PolygonWithHoles2D {
 export function calculatePolygonArea(polygon: Polygon2D): Area {
   const path = createPathD(polygon.points)
   try {
-    return getClipperModule().AreaPathD(path)
+    return Math.abs(getClipperModule().AreaPathD(path))
   } finally {
     path.delete()
   }
