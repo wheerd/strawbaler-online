@@ -3,6 +3,18 @@ import { cleanup } from '@testing-library/react'
 import { afterEach, beforeAll, vi } from 'vitest'
 import 'vitest-canvas-mock'
 
+vi.mock('@/shared/utils/version', () => ({
+  VERSION_INFO: {
+    version: 'test',
+    commit: 'test',
+    commitFull: 'test',
+    buildTime: '-',
+    branch: '-',
+    tag: 'test',
+    commitsSinceTag: 0
+  }
+}))
+
 vi.mock('@/shared/geometry/clipperInstance', () => {
   const mockModule = {
     PointInPolygonResult: {
