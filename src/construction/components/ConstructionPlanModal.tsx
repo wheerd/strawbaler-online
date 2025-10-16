@@ -7,7 +7,7 @@ import type { ConstructionModel } from '@/construction/model'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
-import { ConstructionPlan, type ViewOption } from './ConstructionPlan'
+import { ConstructionPlan, type ViewOption, type VisibilityToggleConfig } from './ConstructionPlan'
 
 export interface ConstructionModalProps {
   title: string
@@ -15,6 +15,7 @@ export interface ConstructionModalProps {
   views: ViewOption[]
   trigger: React.ReactNode
   refreshKey?: unknown
+  visibilityToggles?: VisibilityToggleConfig[]
 }
 
 export function ConstructionPlanModal({
@@ -22,7 +23,8 @@ export function ConstructionPlanModal({
   constructionModelFactory,
   views,
   trigger,
-  refreshKey
+  refreshKey,
+  visibilityToggles
 }: ConstructionModalProps): React.JSX.Element {
   const [modelPromise, setModelPromise] = useState<Promise<ConstructionModel | null> | null>(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -96,7 +98,12 @@ export function ConstructionPlanModal({
                 </div>
               }
             >
-              <ConstructionPlanModalContent modelPromise={modelPromise} views={views} containerSize={containerSize} />
+              <ConstructionPlanModalContent
+                modelPromise={modelPromise}
+                views={views}
+                containerSize={containerSize}
+                visibilityToggles={visibilityToggles}
+              />
             </Suspense>
           ) : null}
         </div>
@@ -150,11 +157,13 @@ export function ConstructionPlanModal({
 function ConstructionPlanModalContent({
   modelPromise,
   views,
-  containerSize
+  containerSize,
+  visibilityToggles
 }: {
   modelPromise: Promise<ConstructionModel | null>
   views: ViewOption[]
   containerSize: { width: number; height: number }
+  visibilityToggles?: VisibilityToggleConfig[]
 }) {
   const constructionModel = use(modelPromise)
 
@@ -171,5 +180,13 @@ function ConstructionPlanModalContent({
     )
   }
 
-  return <ConstructionPlan model={constructionModel} views={views} containerSize={containerSize} midCutActiveDefault />
+  return (
+    <ConstructionPlan
+      model={constructionModel}
+      views={views}
+      containerSize={containerSize}
+      midCutActiveDefault
+      visibilityToggles={visibilityToggles}
+    />
+  )
 }

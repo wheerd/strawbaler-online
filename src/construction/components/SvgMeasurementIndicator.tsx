@@ -84,7 +84,7 @@ export function SvgMeasurementIndicator({
   const rightEndpointY = textY + gapHalfWidth * dirY
 
   return (
-    <g className={className}>
+    <g className={`measurement ${className}`}>
       {/* Connection lines from measurement points to dimension line */}
 
       <line

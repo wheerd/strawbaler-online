@@ -1,10 +1,14 @@
-import { Box, Button, Card, Flex, SegmentedControl } from '@radix-ui/themes'
+import { ExclamationTriangleIcon, GroupIcon, RulerHorizontalIcon } from '@radix-ui/react-icons'
+import type { IconProps } from '@radix-ui/react-icons/dist/types'
+import { Box, Card, Flex, Grid, IconButton, SegmentedControl } from '@radix-ui/themes'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { CutAreaShape } from '@/construction/components/CutAreaShape'
 import { Measurements } from '@/construction/components/Measurements'
 import { type CutFunction, bounds3Dto2D, createZOrder, project, projectRotation } from '@/construction/geometry'
 import type { ConstructionModel, HighlightedCuboid, HighlightedCut, HighlightedPolygon } from '@/construction/model'
+import type { TagCategoryId, TagId } from '@/construction/tags'
+import { MidCutXIcon, MidCutYIcon } from '@/shared/components/Icons'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
 import { type Plane3D, complementaryAxis } from '@/shared/geometry'
 
@@ -28,23 +32,38 @@ export interface ViewOption {
 export const TOP_VIEW: View = { plane: 'xy', xDirection: -1, zOrder: 'descending' }
 export const FRONT_VIEW: View = { plane: 'xz', xDirection: 1, zOrder: 'descending' }
 export const BACK_VIEW: View = { plane: 'xz', xDirection: -1, zOrder: 'ascending' }
+export const LEFT_VIEW: View = { plane: 'yz', xDirection: -1, zOrder: 'ascending' }
+
+type TagOrCategory = TagId | TagCategoryId
+
+export interface VisibilityToggleConfig {
+  icon: React.ComponentType<IconProps>
+  title: string
+  tags: TagOrCategory[]
+}
 
 interface ConstructionPlanProps {
   model: ConstructionModel
   views: ViewOption[]
   containerSize: { width: number; height: number }
   midCutActiveDefault?: boolean
+  visibilityToggles?: VisibilityToggleConfig[]
 }
 
 export function ConstructionPlan({
   model,
   views,
   containerSize,
-  midCutActiveDefault = false
+  midCutActiveDefault = false,
+  visibilityToggles = []
 }: ConstructionPlanProps): React.JSX.Element {
   const viewportRef = useRef<SVGViewportRef>(null)
   const [currentViewIndex, setCurrentViewIndex] = useState(0)
   const [midCutEnabled, setMidCutEnabled] = useState(midCutActiveDefault)
+  const [hiddenTagIds, setHiddenTagIds] = useState<Set<TagOrCategory>>(new Set())
+  const [hideAreas, setHideAreas] = useState(false)
+  const [hideIssues, setHideIssues] = useState(false)
+  const [hideMeasurements, setHideMeasurements] = useState(false)
 
   const currentView = views[currentViewIndex]?.view || views[0]?.view
 
@@ -83,6 +102,31 @@ export function ConstructionPlan({
   const cuboidAreas = model.areas.filter(a => a.type === 'cuboid') as HighlightedCuboid[]
   const cutAreas = model.areas.filter(a => a.type === 'cut') as HighlightedCut[]
 
+  const getCssClassForTag = (tagId: TagOrCategory): string =>
+    tagId.includes('_') ? `tag__${tagId}` : `tag-cat__${tagId}`
+
+  const toggleTagVisibility = (...tags: TagOrCategory[]) => {
+    setHiddenTagIds(prev => {
+      const next = new Set(prev)
+      for (const tag of tags) {
+        if (next.has(tag)) {
+          next.delete(tag)
+        } else {
+          next.add(tag)
+        }
+      }
+      return next
+    })
+  }
+
+  const visibilityStyles = Array.from(hiddenTagIds)
+    .map(tagId => getCssClassForTag(tagId))
+    .concat(hideAreas ? ['area-polygon', 'area-cuboid', 'area-cut'] : [])
+    .concat(hideIssues ? ['construction-warning', 'construction-error'] : [])
+    .concat(hideMeasurements ? ['measurement'] : [])
+    .map(cssClass => `.${cssClass} { display: none; }`)
+    .join('\n')
+
   return (
     <div className="relative w-full h-full">
       <SVGViewport
@@ -96,6 +140,13 @@ export function ConstructionPlan({
       >
         {/* Material styles for proper SVG rendering */}
         <SVGMaterialStyles />
+
+        {/* Dynamic visibility styles */}
+        {visibilityStyles && (
+          <defs>
+            <style>{visibilityStyles}</style>
+          </defs>
+        )}
 
         {/* Cut Areas - Bottom */}
         {cutAreas
@@ -156,6 +207,7 @@ export function ConstructionPlan({
             const bounds2D = bounds3Dto2D(warning.bounds, projection)
             return (
               <rect
+                className="construction-warning"
                 key={`warning-${index}`}
                 x={bounds2D.min[0]}
                 y={bounds2D.min[1]}
@@ -177,6 +229,7 @@ export function ConstructionPlan({
             const bounds2D = bounds3Dto2D(error.bounds, projection)
             return (
               <rect
+                className="construction-error"
                 key={`error-${index}`}
                 x={bounds2D.min[0]}
                 y={bounds2D.min[1]}
@@ -242,14 +295,64 @@ export function ConstructionPlan({
               </SegmentedControl.Root>
             )}
 
-            {/* Mid-cut toggle */}
-            <Button
-              variant={midCutEnabled ? 'solid' : 'outline'}
-              size="1"
-              onClick={() => setMidCutEnabled(!midCutEnabled)}
-            >
-              Mid Cut
-            </Button>
+            <Grid columns="4" gap="1">
+              {/* Mid-cut toggle */}
+              <IconButton
+                variant={midCutEnabled ? 'solid' : 'outline'}
+                size="1"
+                title="Mid Cut"
+                onClick={() => setMidCutEnabled(!midCutEnabled)}
+              >
+                {currentView.plane === 'xy' ? <MidCutYIcon /> : <MidCutXIcon />}
+              </IconButton>
+
+              {/* Area toggle */}
+              <IconButton
+                variant={hideAreas ? 'outline' : 'solid'}
+                size="1"
+                title="Hide Areas"
+                onClick={() => setHideAreas(!hideAreas)}
+              >
+                <GroupIcon />
+              </IconButton>
+
+              {/* Issues toggle */}
+              <IconButton
+                variant={hideIssues ? 'outline' : 'solid'}
+                size="1"
+                title="Hide Issues"
+                onClick={() => setHideIssues(!hideIssues)}
+              >
+                <ExclamationTriangleIcon />
+              </IconButton>
+
+              {/* Measurements toggle */}
+              <IconButton
+                variant={hideMeasurements ? 'outline' : 'solid'}
+                size="1"
+                title="Hide Measurements"
+                onClick={() => setHideMeasurements(!hideMeasurements)}
+              >
+                <RulerHorizontalIcon />
+              </IconButton>
+
+              {/* Visibility toggles */}
+              {visibilityToggles.map((toggle, index) => {
+                const Icon = toggle.icon
+                const isVisible = !hiddenTagIds.has(toggle.tags[0])
+                return (
+                  <IconButton
+                    key={index}
+                    variant={isVisible ? 'solid' : 'outline'}
+                    size="1"
+                    title={toggle.title}
+                    onClick={() => toggleTagVisibility(...toggle.tags)}
+                  >
+                    <Icon />
+                  </IconButton>
+                )
+              })}
+            </Grid>
           </Flex>
         </Card>
       </Box>

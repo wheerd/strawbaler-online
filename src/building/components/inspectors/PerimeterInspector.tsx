@@ -12,10 +12,18 @@ import { RingBeamConstructionPlanModal } from '@/construction/components/RingBea
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { constructPerimeter } from '@/construction/perimeter'
+import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
-import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon } from '@/shared/components/Icons'
+import {
+  BottomPlateIcon,
+  ConstructionPlanIcon,
+  FitToViewIcon,
+  Model3DIcon,
+  TopPlateIcon,
+  WallToggleIcon
+} from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
 import { type Length, boundsFromPoints, calculatePolygonArea } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
@@ -172,6 +180,11 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
             title="Perimeter Construction Plan"
             constructionModelFactory={async () => constructPerimeter(perimeter)}
             views={[{ view: TOP_VIEW, label: 'Top' }]}
+            visibilityToggles={[
+              { icon: TopPlateIcon, title: 'Top Plate', tags: [TAG_TOP_PLATE.id] },
+              { icon: BottomPlateIcon, title: 'Base Plate', tags: [TAG_BASE_PLATE.id] },
+              { icon: WallToggleIcon, title: 'Wall', tags: [TAG_WALLS.id] }
+            ]}
             refreshKey={perimeter}
             trigger={
               <IconButton title="View Construction Plan" size="3">

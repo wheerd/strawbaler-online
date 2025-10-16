@@ -167,3 +167,49 @@ export function SaveIcon({ width = 15, height = 15, ...props }: IconProps): Reac
     </svg>
   )
 }
+
+export function MidCutYIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
+  return (
+    <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M1 7.5 H 14 V 14 H 1Z" stroke="currentColor" strokeWidth="1" />
+      <path d="M1 1 H 14 V 7.5 H 1Z" stroke="currentColor" strokeWidth="1" strokeDasharray="1 1" />
+    </svg>
+  )
+}
+
+export function MidCutXIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
+  return (
+    <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M1 1 H 7.5 V 14 H 1Z" stroke="currentColor" strokeWidth="1" />
+      <path d="M7.5 1 H 14 V 14 H 7.5Z" stroke="currentColor" strokeWidth="1" strokeDasharray="1 1" />
+    </svg>
+  )
+}
+
+export function TopPlateIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
+  return (
+    <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M4 1 H 10 V 3 H 4Z" fill="currentColor" />
+      <path d="M4 3 H 10 V 14 H 4Z" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 1" />
+    </svg>
+  )
+}
+
+export function BottomPlateIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
+  return (
+    <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M4 1 H 10 V 12 H 4Z" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 1" />
+      <path d="M4 12 H 10 V 14 H 4Z" fill="currentColor" />
+    </svg>
+  )
+}
+
+export function WallToggleIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
+  return (
+    <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M4 1 H 10 V 3 H 4Z" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 1" />
+      <path d="M4 3 H 10 V 12 H 4Z" fill="currentColor" />
+      <path d="M4 12 H 10 V 14 H 4Z" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 1" />
+    </svg>
+  )
+}

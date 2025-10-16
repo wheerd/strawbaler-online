@@ -10,7 +10,7 @@ import { WALL_ASSEMBLIES, createWallStoreyContext } from '@/construction/walls'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
-import { BACK_VIEW, ConstructionPlan, FRONT_VIEW, type ViewOption } from './ConstructionPlan'
+import { BACK_VIEW, ConstructionPlan, FRONT_VIEW, TOP_VIEW, type ViewOption } from './ConstructionPlan'
 
 interface IssueDescriptionPanelProps {
   errors: ConstructionIssue[]
@@ -122,10 +122,10 @@ export function WallConstructionPlanModal({
     return wallAssembly.construct(wall, perimeter, storeyContext, assembly)
   }, [perimeter, wallId, getStoreyById, getStoreysOrderedByLevel, getWallAssemblyById, getFloorAssemblyById])
 
-  // Define views for wall construction
   const views: ViewOption[] = [
     { view: FRONT_VIEW, label: 'Outside' },
-    { view: BACK_VIEW, label: 'Inside' }
+    { view: BACK_VIEW, label: 'Inside' },
+    { view: TOP_VIEW, label: 'Top' }
   ]
 
   if (!perimeter) {

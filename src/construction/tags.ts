@@ -4,7 +4,7 @@ export interface Tag {
   readonly category: TagCategoryId
 }
 
-type TagId = `${TagCategoryId}_${string}`
+export type TagId = `${TagCategoryId}_${string}`
 
 export type TagCategoryId = keyof typeof ALL_CATEGORIES
 
