@@ -2,6 +2,8 @@ import { Cross2Icon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { Button, Callout, Dialog, Flex, Grid, Heading, IconButton, Text } from '@radix-ui/themes'
 import React from 'react'
 
+import { VERSION_INFO } from '@/shared/utils/version'
+
 import { Logo } from './Logo'
 
 export type OpenMode = 'first-visit' | 'manual'
@@ -133,6 +135,9 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                   You can review this information anytime via the info icon in the toolbar
                 </Text>
               )}
+              <Text size="1" color="gray" align="center" style={{ marginTop: 'var(--space-2)' }}>
+                Version {VERSION_INFO.version}
+              </Text>
             </Flex>
           </Flex>
         </Flex>

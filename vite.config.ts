@@ -2,38 +2,15 @@
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
-import type { PluginOption, ResolvedConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-function nonBlockingStylesPlugin(): PluginOption {
-  let resolvedConfig: ResolvedConfig | null = null
-
-  return {
-    name: 'non-blocking-styles',
-    enforce: 'post',
-    configResolved(config) {
-      resolvedConfig = config
-    },
-    transformIndexHtml(html: string) {
-      if (resolvedConfig?.command !== 'build') {
-        return html
-      }
-
-      return html.replace(/<link rel="stylesheet" crossorigin href="([^"]+)">/g, (_match, href: string) =>
-        [
-          `<link rel="preload" href="${href}" as="style" crossorigin>`,
-          `<link rel="stylesheet" href="${href}" media="print" onload="this.media='all'">`,
-          `<noscript><link rel="stylesheet" href="${href}" crossorigin></noscript>`
-        ].join('')
-      )
-    }
-  }
-}
+import { nonBlockingStylesPlugin, versionInfoPlugin } from './vite/plugins'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    versionInfoPlugin(),
     nonBlockingStylesPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
