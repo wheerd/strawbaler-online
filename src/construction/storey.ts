@@ -4,7 +4,7 @@ import type { StoreyId } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
-import { constructPerimeter } from '@/construction/perimeter'
+import { computeFloorConstructionPolygon, constructPerimeter } from '@/construction/perimeter'
 import { TAG_STOREY } from '@/construction/tags'
 import { subtractPolygons } from '@/shared/geometry'
 
@@ -24,10 +24,7 @@ export function constructStoreyFloor(storeyId: StoreyId): ConstructionModel[] {
   }
 
   const perimeters = getPerimetersByStorey(storeyId)
-  const perimeterPolygons = perimeters.map(p => ({
-    // TODO: Properly determine the construction polygon based on offsets
-    points: p.corners.map(c => c.outsidePoint)
-  }))
+  const perimeterPolygons = perimeters.map(computeFloorConstructionPolygon)
   const floorAreas = getFloorAreasByStorey(storeyId).map(a => a.area)
   const openings = getFloorOpeningsByStorey(storeyId).map(o => o.area)
   const floorPolygons = subtractPolygons([...perimeterPolygons, ...floorAreas], openings)

@@ -1,16 +1,53 @@
-import { vec3 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 
 import type { Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
 import { IDENTITY } from '@/construction/geometry'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
-import { angle, arePolygonsIntersecting, offsetPolygon, unionPolygons } from '@/shared/geometry'
+import { type Polygon2D, angle, arePolygonsIntersecting, lineIntersection, unionPolygons } from '@/shared/geometry'
 
 import { getConfigActions } from './config'
 import { type ConstructionModel, mergeModels, transformModel } from './model'
 import { RING_BEAM_ASSEMBLIES } from './ringBeams'
 import { WALL_ASSEMBLIES, createWallStoreyContext } from './walls'
+
+export function computeFloorConstructionPolygon(perimeter: Perimeter): Polygon2D {
+  const { getWallAssemblyById } = getConfigActions()
+
+  const offsets = perimeter.walls.map(wall => {
+    const assembly = getWallAssemblyById(wall.wallAssemblyId)
+    const outsideLayerThickness = Math.max(assembly?.layers.outsideThickness ?? 0, 0)
+    const distanceFromInside = Math.max(wall.thickness - outsideLayerThickness, 0)
+    return distanceFromInside
+  })
+
+  const offsetLines = perimeter.walls.map((wall, index) => {
+    const offsetDistance = offsets[index]
+    const offsetPoint = vec2.scaleAndAdd(vec2.create(), wall.insideLine.start, wall.outsideDirection, offsetDistance)
+    return { point: offsetPoint, direction: wall.direction }
+  })
+
+  const points = offsetLines.map((line, index) => {
+    const prevIndex = (index - 1 + offsetLines.length) % offsetLines.length
+    const prevLine = offsetLines[prevIndex]
+    const intersection = lineIntersection(prevLine, line)
+    if (intersection) {
+      return intersection
+    }
+
+    const fallbackDistance = Math.max(offsets[prevIndex], offsets[index])
+    // For colinear walls fall back to moving the inside corner along the outward normal.
+    return vec2.scaleAndAdd(
+      vec2.create(),
+      perimeter.corners[index].insidePoint,
+      perimeter.walls[index].outsideDirection,
+      fallbackDistance
+    )
+  })
+
+  return { points }
+}
 
 export function constructPerimeter(perimeter: Perimeter, includeFloor = true): ConstructionModel {
   const { getStoreyById, getStoreysOrderedByLevel, getFloorOpeningsByStorey } = getModelActions()
@@ -61,16 +98,12 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
     }
   }
 
-  let minOffset = Infinity
   for (const wall of perimeter.walls) {
     const assembly = getWallAssemblyById(wall.wallAssemblyId)
     let wallModel: ConstructionModel | null = null
 
     if (assembly?.type) {
       const wallAssembly = WALL_ASSEMBLIES[assembly.type]
-      if (assembly.layers.outsideThickness < minOffset) {
-        minOffset = assembly.layers.outsideThickness
-      }
       wallModel = wallAssembly.construct(wall, perimeter, storeyContext, assembly)
     }
 
@@ -89,14 +122,12 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
   }
 
   if (includeFloor) {
-    const outerPolygon = { points: perimeter.corners.map(c => c.outsidePoint) }
+    const floorPolygon = computeFloorConstructionPolygon(perimeter)
     const holes = getFloorOpeningsByStorey(storey.id).map(opening => opening.area)
-    // TODO: Properly determine the construction polygon based on offsets
-    const constructionPolygon = isFinite(minOffset) ? offsetPolygon(outerPolygon, -minOffset) : outerPolygon
-    const relevantHoles = holes.filter(hole => arePolygonsIntersecting(constructionPolygon, hole))
+    const relevantHoles = holes.filter(hole => arePolygonsIntersecting(floorPolygon, hole))
     const mergedHoles = unionPolygons(relevantHoles)
     const floorAssembly = FLOOR_ASSEMBLIES[currentFloorAssembly.type]
-    const floorModel = floorAssembly.construct({ outer: constructionPolygon, holes: mergedHoles }, currentFloorAssembly)
+    const floorModel = floorAssembly.construct({ outer: floorPolygon, holes: mergedHoles }, currentFloorAssembly)
     allModels.push(floorModel)
   }
 
