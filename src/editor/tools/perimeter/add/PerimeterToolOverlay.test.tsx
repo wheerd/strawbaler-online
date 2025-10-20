@@ -33,16 +33,19 @@ describe('PerimeterToolOverlay', () => {
     mockTool.state = {
       points: [],
       pointer: vec2.fromValues(0, 0),
+      snapResult: undefined,
       snapContext: {
         snapPoints: [],
         alignPoints: [],
-        referenceLineWalls: []
+        referenceLineSegments: []
       },
-      isCurrentLineValid: true,
-      isClosingLineValid: true,
+      isCurrentSegmentValid: true,
+      isClosingSegmentValid: true,
       wallAssemblyId: createWallAssemblyId(),
       wallThickness: 440,
-      lengthOverride: null
+      lengthOverride: null,
+      baseRingBeamAssemblyId: undefined,
+      topRingBeamAssemblyId: undefined
     }
 
     // Mock the getPreviewPosition method to return pointer position by default
@@ -72,7 +75,7 @@ describe('PerimeterToolOverlay', () => {
     it('renders line to pointer position with valid styling', () => {
       mockTool.state.points = [vec2.fromValues(50, 50)]
       mockTool.state.pointer = vec2.fromValues(150, 150)
-      mockTool.state.isCurrentLineValid = true
+      mockTool.state.isCurrentSegmentValid = true
 
       const { container } = render(<PerimeterToolOverlay tool={mockTool} />)
 
@@ -82,7 +85,7 @@ describe('PerimeterToolOverlay', () => {
     it('renders line to pointer position with invalid styling', () => {
       mockTool.state.points = [vec2.fromValues(50, 50)]
       mockTool.state.pointer = vec2.fromValues(150, 150)
-      mockTool.state.isCurrentLineValid = false
+      mockTool.state.isCurrentSegmentValid = false
 
       const { container } = render(<PerimeterToolOverlay tool={mockTool} />)
 
@@ -122,7 +125,7 @@ describe('PerimeterToolOverlay', () => {
 
     it('renders closing line when snapping to first point with valid closure', () => {
       vi.spyOn(mockTool, 'isSnappingToFirstPoint').mockReturnValue(true)
-      mockTool.state.isClosingLineValid = true
+      mockTool.state.isClosingSegmentValid = true
 
       const { container } = render(<PerimeterToolOverlay tool={mockTool} />)
 
@@ -131,7 +134,7 @@ describe('PerimeterToolOverlay', () => {
 
     it('renders closing line when snapping to first point with invalid closure', () => {
       vi.spyOn(mockTool, 'isSnappingToFirstPoint').mockReturnValue(true)
-      mockTool.state.isClosingLineValid = false
+      mockTool.state.isClosingSegmentValid = false
 
       const { container } = render(<PerimeterToolOverlay tool={mockTool} />)
 

@@ -59,6 +59,27 @@ export function PerimeterPresetsIcon({ width = 15, height = 15, ...props }: Icon
   )
 }
 
+export function FloorAreaIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
+  return (
+    <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <rect x="1.5" y="1.5" width="12" height="12" stroke="currentColor" strokeWidth="1" fill="none" />
+      <path d="M4.5 1.5 V 13.5" stroke="currentColor" strokeWidth="0.8" strokeDasharray="1.5 1.5" />
+      <path d="M1.5 5.5 H 13.5" stroke="currentColor" strokeWidth="0.8" strokeDasharray="1.5 1.5" />
+    </svg>
+  )
+}
+
+export function FloorOpeningIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
+  return (
+    <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <rect x="2" y="2" width="11" height="11" stroke="currentColor" strokeWidth="1" fill="none" />
+      <rect x="5" y="5" width="5" height="5" stroke="currentColor" strokeWidth="0.8" fill="none" />
+      <line x1="7.5" y1="2" x2="7.5" y2="5" stroke="currentColor" strokeWidth="0.8" />
+      <line x1="7.5" y1="10" x2="7.5" y2="13" stroke="currentColor" strokeWidth="0.8" />
+    </svg>
+  )
+}
+
 export function OpeningsIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
   return (
     <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>

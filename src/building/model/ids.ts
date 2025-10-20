@@ -22,8 +22,15 @@ export type PerimeterWallId = `${typeof PERIMETER_WALL_ID_PREFIX}${string}`
 export type PerimeterCornerId = `${typeof PERIMETER_CORNER_ID_PREFIX}${string}`
 export type OpeningId = `${typeof OPENING_ID_PREFIX}${string}`
 
-export type EntityId = StoreyId | PerimeterId
-export type SelectableId = StoreyId | PerimeterId | PerimeterWallId | PerimeterCornerId | OpeningId
+export type EntityId = StoreyId | PerimeterId | FloorAreaId | FloorOpeningId
+export type SelectableId =
+  | StoreyId
+  | PerimeterId
+  | FloorAreaId
+  | FloorOpeningId
+  | PerimeterWallId
+  | PerimeterCornerId
+  | OpeningId
 
 // Config ids
 export type RingBeamAssemblyId = `${typeof RING_BEAM_ID_PREFIX}${string}`
@@ -66,4 +73,11 @@ export const isWallAssemblyId = (id: string): id is WallAssemblyId => id.startsW
 export const isFloorAssemblyId = (id: string): id is FloorAssemblyId => id.startsWith(FLOOR_ASSEMBLY_ID_PREFIX)
 
 // Entity type definitions for hit testing
-export type EntityType = 'storey' | 'perimeter' | 'perimeter-wall' | 'perimeter-corner' | 'opening'
+export type EntityType =
+  | 'storey'
+  | 'perimeter'
+  | 'perimeter-wall'
+  | 'perimeter-corner'
+  | 'opening'
+  | 'floor-area'
+  | 'floor-opening'
