@@ -62,9 +62,11 @@ export function PerimeterPresetsIcon({ width = 15, height = 15, ...props }: Icon
 export function FloorAreaIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
   return (
     <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <rect x="1.5" y="1.5" width="12" height="12" stroke="currentColor" strokeWidth="1" fill="none" />
-      <path d="M4.5 1.5 V 13.5" stroke="currentColor" strokeWidth="0.8" strokeDasharray="1.5 1.5" />
-      <path d="M1.5 5.5 H 13.5" stroke="currentColor" strokeWidth="0.8" strokeDasharray="1.5 1.5" />
+      <path d="M3 3 H 12 L 14 14 H 1 Z" stroke="currentColor" strokeWidth="1" />
+      <path d="M6 3 L 5.33 14" stroke="currentColor" strokeWidth="0.7" />
+      <path d="M9 3 L 9.66 14" stroke="currentColor" strokeWidth="0.7" />
+      <path d="M2.33 6.66 h 3.44" stroke="currentColor" strokeWidth="0.7" />
+      <path d="M9.66 10.33 h 3.88" stroke="currentColor" strokeWidth="0.7" />
     </svg>
   )
 }
@@ -72,10 +74,9 @@ export function FloorAreaIcon({ width = 15, height = 15, ...props }: IconProps):
 export function FloorOpeningIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
   return (
     <svg width={width} height={height} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <rect x="2" y="2" width="11" height="11" stroke="currentColor" strokeWidth="1" fill="none" />
-      <rect x="5" y="5" width="5" height="5" stroke="currentColor" strokeWidth="0.8" fill="none" />
-      <line x1="7.5" y1="2" x2="7.5" y2="5" stroke="currentColor" strokeWidth="0.8" />
-      <line x1="7.5" y1="10" x2="7.5" y2="13" stroke="currentColor" strokeWidth="0.8" />
+      <path d="M3 3 H 12 L 14 14 H 1 Z" stroke="currentColor" strokeWidth="1" />
+      <path d="M5.3 5.3 H 9.1 L 9.8 11 H 4.8 Z" stroke="currentColor" strokeWidth="0.8" />
+      <path d="M5.3 5.3 v 1.5 H 9.1 v -1.5" stroke="currentColor" strokeWidth="0.5" />
     </svg>
   )
 }
