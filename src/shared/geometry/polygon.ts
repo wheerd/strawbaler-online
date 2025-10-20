@@ -1,3 +1,4 @@
+import type { PolyPathD } from 'clipper2-wasm'
 import { vec2 } from 'gl-matrix'
 
 import {
@@ -220,56 +221,45 @@ export function unionPolygons(polygons: Polygon2D[]): Polygon2D[] {
   }
 }
 
-const clonePolygon = (polygon: Polygon2D): Polygon2D => ({
-  points: polygon.points.map(point => vec2.fromValues(point[0], point[1]))
-})
-
-const polygonSignedArea = (polygon: Polygon2D): number => {
-  let sum = 0
-  for (let i = 0; i < polygon.points.length; i += 1) {
-    const current = polygon.points[i]
-    const next = polygon.points[(i + 1) % polygon.points.length]
-    sum += current[0] * next[1] - next[0] * current[1]
-  }
-  return sum / 2
+const pathDToPolygon = (path: ReturnType<typeof createPathD>): Polygon2D => {
+  const points = pathDToPoints(path)
+  path.delete()
+  return { points }
 }
 
-const pathsDToPolygons = (paths: ReturnType<typeof createPathsD>): Polygon2D[] => {
-  const result: Polygon2D[] = []
-  const size = paths.size()
-  for (let i = 0; i < size; i += 1) {
-    const path = paths.get(i)
-    result.push({ points: pathDToPoints(path) })
+const collectPolygonsWithHolesFromPolyTree = (root: PolyPathD): PolygonWithHoles2D[] => {
+  const result: PolygonWithHoles2D[] = []
+
+  const processNode = (node: PolyPathD, depth: number, currentOuter: PolygonWithHoles2D | null) => {
+    const polygon = pathDToPolygon(node.polygon())
+    if (depth % 2 === 1) {
+      const outer = normaliseOrientation(polygon, true)
+      const entry: PolygonWithHoles2D = { outer, holes: [] }
+      result.push(entry)
+      const childCount = node.count()
+      for (let i = 0; i < childCount; i += 1) {
+        processNode(node.child(i), depth + 1, entry)
+      }
+      return
+    }
+
+    if (currentOuter) {
+      const hole = normaliseOrientation(polygon, false)
+      currentOuter.holes.push(hole)
+    }
+
+    const childCount = node.count()
+    for (let i = 0; i < childCount; i += 1) {
+      processNode(node.child(i), depth + 1, null)
+    }
   }
+
+  processNode(root, 0, null)
+
   return result
 }
 
-const unionPolygonSet = (polygons: Polygon2D[]): Polygon2D[] => {
-  if (polygons.length === 0) {
-    return []
-  }
-
-  const module = getClipperModule()
-  const subjectPaths = polygons.map(polygon => createPathD(polygon.points))
-  const subjectPathsD = createPathsD(subjectPaths)
-
-  try {
-    const unionPaths = module.UnionSelfD(subjectPathsD, module.FillRule.NonZero, 2)
-    try {
-      return pathsDToPolygons(unionPaths)
-    } finally {
-      unionPaths.delete()
-    }
-  } finally {
-    subjectPathsD.delete()
-    subjectPaths.forEach(path => path.delete())
-  }
-}
-
-const subtractPolygonsClipper = (subject: Polygon2D[], clips: Polygon2D[]): Polygon2D[] => {
-  if (clips.length === 0) {
-    return subject
-  }
+export function subtractPolygons(subject: Polygon2D[], clips: Polygon2D[]): PolygonWithHoles2D[] {
   if (subject.length === 0) {
     return []
   }
@@ -279,15 +269,17 @@ const subtractPolygonsClipper = (subject: Polygon2D[], clips: Polygon2D[]): Poly
   const clipPaths = clips.map(polygon => createPathD(polygon.points))
   const subjectPathsD = createPathsD(subjectPaths)
   const clipPathsD = createPathsD(clipPaths)
+  const clipper = new module.ClipperD()
+  const polyTree = new module.PolyPathD()
 
   try {
-    const resultPaths = module.DifferenceD(subjectPathsD, clipPathsD, module.FillRule.NonZero, 2)
-    try {
-      return pathsDToPolygons(resultPaths)
-    } finally {
-      resultPaths.delete()
-    }
+    clipper.AddSubject(subjectPathsD)
+    clipper.AddClip(clipPathsD)
+    clipper.ExecutePoly(module.ClipType.Difference, module.FillRule.NonZero, polyTree)
+    return collectPolygonsWithHolesFromPolyTree(polyTree)
   } finally {
+    clipper.delete()
+    polyTree.delete()
     subjectPathsD.delete()
     clipPathsD.delete()
     subjectPaths.forEach(path => path.delete())
@@ -303,55 +295,6 @@ const normaliseOrientation = (polygon: Polygon2D, clockwise: boolean): Polygon2D
   return {
     points: [...polygon.points].reverse()
   }
-}
-
-const buildPolygonsWithHoles = (polygons: Polygon2D[]): PolygonWithHoles2D[] => {
-  if (polygons.length === 0) {
-    return []
-  }
-
-  const outers: { polygon: Polygon2D; area: number }[] = []
-  const holes: Polygon2D[] = []
-
-  polygons.forEach(polygon => {
-    const area = polygonSignedArea(polygon)
-    if (area >= 0) {
-      outers.push({ polygon: normaliseOrientation(polygon, true), area })
-    } else {
-      holes.push(normaliseOrientation(polygon, false))
-    }
-  })
-
-  outers.sort((a, b) => Math.abs(b.area) - Math.abs(a.area))
-
-  const result = outers.map(entry => ({ outer: entry.polygon, holes: [] as Polygon2D[] }))
-
-  for (const hole of holes) {
-    const referencePoint = hole.points[0]
-    const container = result.find(entry => isPointInPolygon(referencePoint, entry.outer))
-    if (container) {
-      container.holes.push(hole)
-    } else {
-      result.push({ outer: hole, holes: [] })
-    }
-  }
-
-  return result
-}
-
-export function createFloorMassPolygons(
-  perimeterPolygons: Polygon2D[],
-  floorAreaPolygons: Polygon2D[],
-  openingPolygons: Polygon2D[]
-): PolygonWithHoles2D[] {
-  const basePolygons = [...perimeterPolygons, ...floorAreaPolygons].map(clonePolygon)
-  if (basePolygons.length === 0) {
-    return []
-  }
-
-  const unioned = unionPolygonSet(basePolygons)
-  const withoutOpenings = subtractPolygonsClipper(unioned, openingPolygons.map(clonePolygon))
-  return buildPolygonsWithHoles(withoutOpenings)
 }
 
 function segmentsIntersect(p1: vec2, q1: vec2, p2: vec2, q2: vec2): boolean {

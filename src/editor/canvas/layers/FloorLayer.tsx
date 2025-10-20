@@ -10,7 +10,7 @@ import {
 import { FloorAreaShape } from '@/editor/canvas/shapes/FloorAreaShape'
 import { FloorOpeningShape } from '@/editor/canvas/shapes/FloorOpeningShape'
 import { useViewMode } from '@/editor/hooks/useViewMode'
-import { createFloorMassPolygons } from '@/shared/geometry'
+import { subtractPolygons } from '@/shared/geometry'
 import type { PolygonWithHoles2D } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 
@@ -44,7 +44,8 @@ export function FloorLayer(): React.JSX.Element | null {
     }))
     const areaPolygons = floorAreas.map(area => area.area)
     const openingPolygons = floorOpenings.map(opening => opening.area)
-    return createFloorMassPolygons(perimeterPolygons, areaPolygons, openingPolygons)
+
+    return subtractPolygons([...perimeterPolygons, ...areaPolygons], openingPolygons)
   }, [mode, perimeters, floorAreas, floorOpenings])
 
   if (mode === 'walls') {
