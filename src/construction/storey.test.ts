@@ -25,6 +25,13 @@ function createRectangularPerimeter(width: number, height: number, wallThickness
     vec2.fromValues(width, 0)
   ]
 
+  const outsideCorners = [
+    vec2.fromValues(-wallThickness, -wallThickness),
+    vec2.fromValues(-wallThickness, height + wallThickness),
+    vec2.fromValues(width + wallThickness, height + wallThickness),
+    vec2.fromValues(width + wallThickness, -wallThickness)
+  ]
+
   const walls: PerimeterWall[] = insideCorners.map((start, index) => {
     const end = insideCorners[(index + 1) % insideCorners.length]
     const dir = direction(start, end)
@@ -52,7 +59,7 @@ function createRectangularPerimeter(width: number, height: number, wallThickness
   const corners: PerimeterCorner[] = insideCorners.map((point, index) => ({
     id: `corner-${index}` as PerimeterCornerId,
     insidePoint: point,
-    outsidePoint: point,
+    outsidePoint: outsideCorners[index],
     constructedByWall: 'next',
     interiorAngle: 90,
     exteriorAngle: 270
@@ -90,10 +97,10 @@ describe('applyWallFaceOffsets', () => {
     const adjusted = applyWallFaceOffsets(area, faces)
 
     const expected = [
-      vec2.fromValues(insideThickness, insideThickness),
-      vec2.fromValues(insideThickness, 3000 - insideThickness),
-      vec2.fromValues(4000 - insideThickness, 3000 - insideThickness),
-      vec2.fromValues(4000 - insideThickness, insideThickness)
+      vec2.fromValues(-insideThickness, -insideThickness),
+      vec2.fromValues(-insideThickness, 3000 + insideThickness),
+      vec2.fromValues(4000 + insideThickness, 3000 + insideThickness),
+      vec2.fromValues(4000 + insideThickness, -insideThickness)
     ]
 
     expect(adjusted.points).toHaveLength(expected.length)
@@ -114,16 +121,38 @@ describe('applyWallFaceOffsets', () => {
     const adjusted = applyWallFaceOffsets(opening, faces)
 
     const expected = [
-      vec2.fromValues(insideThickness, insideThickness),
-      vec2.fromValues(500, insideThickness),
+      vec2.fromValues(-insideThickness, -insideThickness),
+      vec2.fromValues(500, -insideThickness),
       vec2.fromValues(500, 500),
-      vec2.fromValues(insideThickness, 500)
+      vec2.fromValues(-insideThickness, 500)
     ]
 
     expect(adjusted.points).toHaveLength(expected.length)
     adjusted.points.forEach((point, index) => {
       expect(point[0]).toBeCloseTo(expected[index][0], 6)
       expect(point[1]).toBeCloseTo(expected[index][1], 6)
+    })
+  })
+
+  it('does not offset edges that are colinear but not touching the wall face', () => {
+    const perimeter = createRectangularPerimeter(4000, 3000, 400)
+    const faces = createWallFaceOffsets([perimeter])
+
+    const area = {
+      points: [
+        vec2.fromValues(0, 3100),
+        vec2.fromValues(0, 3500),
+        vec2.fromValues(400, 3500),
+        vec2.fromValues(400, 3100)
+      ]
+    }
+
+    const adjusted = applyWallFaceOffsets(area, faces)
+
+    expect(adjusted.points).toHaveLength(area.points.length)
+    adjusted.points.forEach((point, index) => {
+      expect(point[0]).toBeCloseTo(area.points[index][0], 6)
+      expect(point[1]).toBeCloseTo(area.points[index][1], 6)
     })
   })
 })

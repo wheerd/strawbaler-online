@@ -5,6 +5,7 @@ import { getModelActions } from '@/building/store'
 import {
   type Length,
   type Line2D,
+  type LineSegment2D,
   type Polygon2D,
   direction,
   distanceToInfiniteLine,
@@ -81,8 +82,10 @@ export function constructModel(): ConstructionModel | null {
 
 interface WallFaceOffset {
   line: Line2D
+  segment: LineSegment2D
   normal: vec2
   distance: Length
+  length: Length
 }
 
 const PARALLEL_EPSILON = 1e-6
@@ -93,7 +96,8 @@ export function createWallFaceOffsets(perimeters: Perimeter[]): WallFaceOffset[]
   const faces: WallFaceOffset[] = []
 
   for (const perimeter of perimeters) {
-    for (const wall of perimeter.walls) {
+    for (let wallIndex = 0; wallIndex < perimeter.walls.length; wallIndex++) {
+      const wall = perimeter.walls[wallIndex]
       const assembly = getWallAssemblyById(wall.wallAssemblyId)
       if (!assembly) {
         continue
@@ -103,25 +107,37 @@ export function createWallFaceOffsets(perimeters: Perimeter[]): WallFaceOffset[]
 
       const insideThickness = Math.max(assembly.layers.insideThickness ?? 0, 0)
       if (insideThickness > 0) {
+        const segment: LineSegment2D = {
+          start: vec2.clone(perimeter.corners[wallIndex].insidePoint),
+          end: vec2.clone(perimeter.corners[(wallIndex + 1) % perimeter.corners.length].insidePoint)
+        }
         faces.push({
           line: {
-            point: wall.insideLine.start,
+            point: segment.start,
             direction: wall.direction
           },
           normal: vec2.clone(wall.outsideDirection),
-          distance: insideThickness
+          segment,
+          distance: insideThickness,
+          length: vec2.distance(segment.start, segment.end)
         })
       }
 
       const outsideThickness = Math.max(assembly.layers.outsideThickness ?? 0, 0)
       if (outsideThickness > 0) {
+        const segment: LineSegment2D = {
+          start: vec2.clone(perimeter.corners[wallIndex].outsidePoint),
+          end: vec2.clone(perimeter.corners[(wallIndex + 1) % perimeter.corners.length].outsidePoint)
+        }
         faces.push({
           line: {
-            point: wall.outsideLine.start,
+            point: segment.start,
             direction: wall.direction
           },
           normal: vec2.clone(inwardNormal),
-          distance: outsideThickness
+          segment,
+          distance: outsideThickness,
+          length: vec2.distance(segment.start, segment.end)
         })
       }
     }
@@ -152,6 +168,10 @@ export function applyWallFaceOffsets(polygon: Polygon2D, faces: WallFaceOffset[]
     let selectedOffset = 0
 
     for (const face of faces) {
+      if (face.length <= DISTANCE_EPSILON) {
+        continue
+      }
+
       const cross = edgeDirection[0] * face.line.direction[1] - edgeDirection[1] * face.line.direction[0]
       if (Math.abs(cross) > PARALLEL_EPSILON) {
         continue
@@ -160,6 +180,10 @@ export function applyWallFaceOffsets(polygon: Polygon2D, faces: WallFaceOffset[]
       const distanceStart = distanceToInfiniteLine(start, face.line)
       const distanceEnd = distanceToInfiniteLine(end, face.line)
       if (distanceStart > DISTANCE_EPSILON || distanceEnd > DISTANCE_EPSILON) {
+        continue
+      }
+
+      if (!segmentsOverlap(start, end, face)) {
         continue
       }
 
@@ -185,4 +209,27 @@ export function applyWallFaceOffsets(polygon: Polygon2D, faces: WallFaceOffset[]
   }
 
   return polygonEdgeOffset(polygon, edgeOffsets)
+}
+
+function segmentsOverlap(edgeStart: vec2, edgeEnd: vec2, face: WallFaceOffset): boolean {
+  const toStart = vec2.subtract(vec2.create(), edgeStart, face.line.point)
+  const toEnd = vec2.subtract(vec2.create(), edgeEnd, face.line.point)
+
+  const edgeProjStart = vec2.dot(toStart, face.line.direction)
+  const edgeProjEnd = vec2.dot(toEnd, face.line.direction)
+
+  const edgeMin = Math.min(edgeProjStart, edgeProjEnd)
+  const edgeMax = Math.max(edgeProjStart, edgeProjEnd)
+
+  const faceMin = -DISTANCE_EPSILON
+  const faceMax = face.length + DISTANCE_EPSILON
+
+  if (edgeMax < faceMin || edgeMin > faceMax) {
+    return false
+  }
+
+  const overlapStart = Math.max(edgeMin, 0)
+  const overlapEnd = Math.min(edgeMax, face.length)
+
+  return overlapEnd >= overlapStart - DISTANCE_EPSILON
 }
