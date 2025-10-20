@@ -28,8 +28,12 @@ export abstract class BaseFloorPolygonTool<TState extends PolygonToolStateBase> 
     const floorAreas = getFloorAreasByStorey(activeStoreyId)
     const floorOpenings = getFloorOpeningsByStorey(activeStoreyId)
 
-    const perimeterPoints = perimeters.flatMap(perimeter => perimeter.corners.map(corner => corner.insidePoint))
-    const perimeterSegments = perimeters.flatMap(perimeter => perimeter.walls.map(wall => wall.insideLine))
+    const perimeterPoints = perimeters.flatMap(perimeter =>
+      perimeter.corners.flatMap(corner => [corner.insidePoint, corner.outsidePoint])
+    )
+    const perimeterSegments = perimeters.flatMap(perimeter =>
+      perimeter.walls.map(wall => wall.insideLine).concat(perimeter.walls.map(wall => wall.outsideLine))
+    )
 
     const areaPoints = floorAreas.flatMap(area => area.area.points)
     const areaSegments = floorAreas.flatMap(area => createPolygonSegments(area.area.points))
