@@ -13,15 +13,7 @@ export function FloorAreaShape({ area }: FloorAreaShapeProps): React.JSX.Element
 
   return (
     <Group name={`floor-area-${area.id}`} entityId={area.id} entityType="floor-area" parentIds={[]} listening>
-      <Line
-        points={points}
-        closed
-        fill={theme.primaryLight}
-        opacity={0.25}
-        stroke={theme.primary}
-        strokeWidth={1}
-        listening
-      />
+      <Line points={points} closed fill={theme.bgSubtle} stroke={theme.primary} strokeWidth={10} listening />
     </Group>
   )
 }

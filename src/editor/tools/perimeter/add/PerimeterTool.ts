@@ -3,6 +3,7 @@ import { vec2 } from 'gl-matrix'
 import type { RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config/store'
+import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import { PolygonToolOverlay } from '@/editor/tools/shared/polygon/PolygonToolOverlay'
 import type { ToolImplementation } from '@/editor/tools/system/types'
@@ -62,6 +63,7 @@ export class PerimeterTool extends BasePolygonTool<PerimeterToolState> implement
   }
 
   protected onToolActivated(): void {
+    getViewModeActions().ensureMode('walls')
     const configStore = getConfigActions()
     this.state.baseRingBeamAssemblyId = configStore.getDefaultBaseRingBeamAssemblyId()
     this.state.topRingBeamAssemblyId = configStore.getDefaultTopRingBeamAssemblyId()

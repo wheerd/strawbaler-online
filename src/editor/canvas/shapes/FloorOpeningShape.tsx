@@ -24,8 +24,8 @@ export function FloorOpeningShape({ opening }: FloorOpeningShapeProps): React.JS
         closed
         fill={theme.bgCanvas}
         stroke={theme.warning}
-        dash={[8, 4]}
-        strokeWidth={1}
+        dash={[80, 40]}
+        strokeWidth={10}
         listening
       />
     </Group>

@@ -1,6 +1,7 @@
 import { vec2 } from 'gl-matrix'
 
 import { getModelActions } from '@/building/store'
+import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import type { SnappingContext } from '@/editor/services/snapping/types'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import type { LineSegment2D } from '@/shared/geometry'
@@ -47,5 +48,9 @@ export abstract class BaseFloorPolygonTool<TState extends PolygonToolStateBase> 
         ...openingSegments
       ]
     }
+  }
+
+  protected onToolActivated(): void {
+    getViewModeActions().ensureMode('floors')
   }
 }

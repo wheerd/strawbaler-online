@@ -69,12 +69,12 @@ export const TOOL_GROUPS: ToolGroup[] = [
     tools: ['basic.select', 'basic.move', 'basic.fit-to-view'] as const
   },
   {
-    name: 'Floors',
-    tools: ['floors.add-area', 'floors.add-opening'] as const
-  },
-  {
     name: 'Perimeter',
     tools: ['perimeter.add', 'perimeter.preset', 'perimeter.add-opening', 'perimeter.split-wall'] as const
+  },
+  {
+    name: 'Floors',
+    tools: ['floors.add-area', 'floors.add-opening'] as const
   },
   {
     name: 'Test Data',
