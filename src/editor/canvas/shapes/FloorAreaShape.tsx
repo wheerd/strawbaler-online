@@ -12,13 +12,7 @@ export function FloorAreaShape({ area }: FloorAreaShapeProps): React.JSX.Element
   const points = area.area.points.flatMap(point => [point[0], point[1]])
 
   return (
-    <Group
-      name={`floor-area-${area.id}`}
-      entityId={area.id}
-      entityType="floor-area"
-      parentIds={[area.storeyId]}
-      listening
-    >
+    <Group name={`floor-area-${area.id}`} entityId={area.id} entityType="floor-area" parentIds={[]} listening>
       <Line
         points={points}
         closed

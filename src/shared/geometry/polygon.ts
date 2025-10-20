@@ -41,6 +41,17 @@ export function polygonIsClockwise(polygon: Polygon2D): boolean {
   }
 }
 
+export function polygonPerimeter(polygon: Polygon2D): number {
+  if (polygon.points.length < 2) return 0
+  let total = 0
+  for (let i = 0; i < polygon.points.length; i++) {
+    const current = polygon.points[i]
+    const next = polygon.points[(i + 1) % polygon.points.length]
+    total += vec2.distance(current, next)
+  }
+  return total
+}
+
 export function isPointInPolygon(point: vec2, polygon: Polygon2D): boolean {
   const testPoint = createPointD(point)
   const path = createPathD(polygon.points)

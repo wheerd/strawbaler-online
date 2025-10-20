@@ -16,7 +16,7 @@ export function FloorOpeningShape({ opening }: FloorOpeningShapeProps): React.JS
       name={`floor-opening-${opening.id}`}
       entityId={opening.id}
       entityType="floor-opening"
-      parentIds={[opening.storeyId]}
+      parentIds={[]}
       listening
     >
       <Line
