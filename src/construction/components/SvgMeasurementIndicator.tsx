@@ -150,6 +150,15 @@ export function SvgMeasurementIndicator({
       <line
         x1={rightEndpointX}
         y1={rightEndpointY}
+        x2={leftEndpointX}
+        y2={leftEndpointY}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        opacity={0.2}
+      />
+      <line
+        x1={rightEndpointX}
+        y1={rightEndpointY}
         x2={offsetEndX}
         y2={offsetEndY}
         stroke={color}

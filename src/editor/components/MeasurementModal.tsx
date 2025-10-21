@@ -59,8 +59,8 @@ e | y +--------------+ s | Floor top layers                 }
   const wallWidth = 360
   const wallRight = wallLeft + wallWidth
   const inside = wallRight + insideThickness
-  const floorWidth = 800
-  const floorMeasurementX = inside + floorWidth / 2
+  const floorWidth = 1100
+  const floorMeasurementX = inside + floorWidth / 2 - 100
 
   const storeyHeight = 3000
   const floorConstructionThickness = 100
@@ -82,7 +82,6 @@ e | y +--------------+ s | Floor top layers                 }
 
   const marginRightX = totalWidth - marginRight
   const interiorExtentX = wallRight + insideThickness
-  const storeyCenterY = marginTop + storeyHeight / 2
   const roomHeightStartY = marginTop + totalFloorThickness
 
   const floorTopY = marginTop
@@ -111,6 +110,21 @@ e | y +--------------+ s | Floor top layers                 }
 
   const wallCenterX = wallLeft + wallWidth / 2
   const outsideLayerX = wallLeft - outsideThickness
+  const outsideLayerLabelX = outsideLayerX + outsideThickness / 2
+  const insideLayerLabelX = wallRight + insideThickness / 2
+  const outsideLayerLabelY = wallCenterY
+  const insideLayerLabelY = wallCenterY
+
+  const floorTopLayersLabelY = (floorTopY + topFloorConstructionTopY) / 2
+  const floorConstructionLabelY = (topFloorConstructionTopY + topFloorConstructionBottomY) / 2
+  const floorBottomLayersLabelY = (topFloorBottomLayersTopY + topFloorBottomLayersBottomY) / 2
+  const bottomFloorTopLayersLabelY = (bottomFloorTopY + bottomFloorConstructionTopY) / 2
+  const bottomFloorConstructionLabelY = (bottomFloorConstructionTopY + bottomFloorConstructionBottomY) / 2
+  const bottomFloorBottomLayersLabelY = (bottomFloorBottomLayersTopY + bottomFloorBottomLayersBottomY) / 2
+
+  const upperBottomPlateLabelY = topFloorConstructionTopY + floorConstructionTopOverlap - bottomPlateThickness / 2
+  const lowerTopPlateLabelY =
+    bottomFloorConstructionTopY + floorConstructionThickness + floorConstructionTopOverlap + topPlateThickness / 2
 
   const floorShapes = (
     <g key="floor-shapes">
@@ -206,7 +220,7 @@ e | y +--------------+ s | Floor top layers                 }
         x={wallRight}
         y={-wallVerticalExtension}
         width={insideThickness}
-        height={topFloorConstructionTopY + floorConstructionTopOverlap + wallVerticalExtension}
+        height={topFloorConstructionTopY + wallVerticalExtension}
         fill="var(--gray-5)"
         stroke="var(--gray-12)"
         strokeWidth="5"
@@ -284,7 +298,7 @@ e | y +--------------+ s | Floor top layers                 }
       <rect
         key="inside-layer-bottom"
         x={wallRight}
-        y={bottomFloorConstructionTopY + floorConstructionThickness + floorConstructionTopOverlap}
+        y={bottomFloorConstructionTopY + floorTotalConstructionThickness}
         width={insideThickness}
         height={wallHeight}
         fill="var(--gray-5)"
@@ -324,6 +338,26 @@ e | y +--------------+ s | Floor top layers                 }
 
       {floorShapes}
       {wallShapes}
+
+      <line
+        key="finished-ceiling"
+        x1={inside}
+        y1={topFloorBottomLayersBottomY}
+        x2={totalWidth}
+        y2={topFloorBottomLayersBottomY}
+        stroke="var(--teal-10)"
+        strokeWidth={20}
+      />
+
+      <line
+        key="finished-floor"
+        x1={inside}
+        y1={bottomFloorTopY}
+        x2={totalWidth}
+        y2={bottomFloorTopY}
+        stroke="var(--teal-10)"
+        strokeWidth={20}
+      />
 
       <rect key="margin-top" x={-50} y={-5} width={totalWidth + 100} height={marginTop + 5} fill="url(#marginTop)" />
       <rect
@@ -367,8 +401,8 @@ e | y +--------------+ s | Floor top layers                 }
         startPoint={[wallRight, topFloorConstructionTopY]}
         endPoint={[wallRight, topFloorConstructionTopY + floorConstructionTopOverlap]}
         label={'Construction Top Offset'}
-        fontSize={40}
-        offset={-350}
+        fontSize={50}
+        offset={wallRight - floorMeasurementX}
         strokeWidth={10}
         color="var(--accent-10)"
         labelOrientation="perpendicular"
@@ -378,32 +412,66 @@ e | y +--------------+ s | Floor top layers                 }
         startPoint={[wallRight, topFloorConstructionBottomY - floorConstructionBottomOverlap]}
         endPoint={[wallRight, topFloorConstructionBottomY]}
         label={'Construction Bottom Offset'}
-        fontSize={40}
-        offset={-350}
+        fontSize={50}
+        offset={wallRight - floorMeasurementX}
         strokeWidth={10}
         color="var(--accent-10)"
         labelOrientation="perpendicular"
       />
 
-      <SvgMeasurementIndicator
-        startPoint={[floorMeasurementX, floorTopY]}
-        endPoint={[floorMeasurementX, topFloorConstructionTopY]}
-        label={'Floor Top Layers'}
-        fontSize={40}
-        strokeWidth={10}
-        color="var(--accent-10)"
-        labelOrientation="perpendicular"
-      />
+      <text x={floorMeasurementX} y={floorTopLayersLabelY} fontSize={50} text-anchor="middle" dominantBaseline="middle">
+        Floor Top Layers
+      </text>
 
-      <SvgMeasurementIndicator
-        startPoint={[floorMeasurementX, topFloorBottomLayersTopY]}
-        endPoint={[floorMeasurementX, topFloorBottomLayersBottomY]}
-        label={'Floor Bottom Layers'}
-        fontSize={40}
-        strokeWidth={10}
-        color="var(--accent-10)"
-        labelOrientation="perpendicular"
-      />
+      <text
+        x={floorMeasurementX}
+        y={floorConstructionLabelY}
+        fontSize={50}
+        text-anchor="middle"
+        dominantBaseline="middle"
+      >
+        Floor Construction
+      </text>
+
+      <text
+        x={floorMeasurementX}
+        y={floorBottomLayersLabelY}
+        fontSize={50}
+        text-anchor="middle"
+        dominantBaseline="middle"
+      >
+        Floor Bottom Layers
+      </text>
+
+      <text
+        x={floorMeasurementX}
+        y={bottomFloorTopLayersLabelY}
+        fontSize={50}
+        text-anchor="middle"
+        dominantBaseline="middle"
+      >
+        Floor Top Layers
+      </text>
+
+      <text
+        x={floorMeasurementX}
+        y={bottomFloorConstructionLabelY}
+        fontSize={50}
+        text-anchor="middle"
+        dominantBaseline="middle"
+      >
+        Floor Construction
+      </text>
+
+      <text
+        x={floorMeasurementX}
+        y={bottomFloorBottomLayersLabelY}
+        fontSize={50}
+        text-anchor="middle"
+        dominantBaseline="middle"
+      >
+        Floor Bottom Layers
+      </text>
 
       <text
         fontSize={60}
@@ -411,7 +479,7 @@ e | y +--------------+ s | Floor top layers                 }
         dominantBaseline="text-after-edge"
         transform={`translate(${outsidePadding} ${totalHeight / 2}) rotate(-90)`}
       >
-        Outside
+        Finished Outside
       </text>
       <text
         fontSize={60}
@@ -419,7 +487,42 @@ e | y +--------------+ s | Floor top layers                 }
         dominantBaseline="text-after-edge"
         transform={`translate(${inside} ${totalHeight / 2}) rotate(90)`}
       >
-        Inside
+        Finished Inside
+      </text>
+
+      <text
+        x={floorMeasurementX}
+        y={topFloorBottomLayersBottomY}
+        fontSize={60}
+        text-anchor="middle"
+        dominantBaseline="text-before-edge"
+        fill="var(--teal-10)"
+      >
+        Finished Ceiling
+      </text>
+      <text
+        x={floorMeasurementX}
+        y={bottomFloorTopY}
+        fontSize={60}
+        text-anchor="middle"
+        dominantBaseline="text-after-edge"
+        fill="var(--teal-10)"
+      >
+        Finished Floor
+      </text>
+
+      <text x={wallCenterX} y={upperBottomPlateLabelY} fontSize={48} text-anchor="middle" dominantBaseline="middle">
+        Bottom Plate
+      </text>
+
+      <text
+        x={wallCenterX}
+        y={topFloorConstructionBottomY - floorConstructionBottomOverlap + topPlateThickness / 2}
+        fontSize={50}
+        text-anchor="middle"
+        dominantBaseline="middle"
+      >
+        Top Plate
       </text>
 
       <text
@@ -432,14 +535,30 @@ e | y +--------------+ s | Floor top layers                 }
         Bottom Plate
       </text>
 
+      <text x={wallCenterX} y={lowerTopPlateLabelY} fontSize={48} text-anchor="middle" dominantBaseline="middle">
+        Top Plate
+      </text>
+
       <text
-        x={wallCenterX}
-        y={topFloorConstructionBottomY - floorConstructionBottomOverlap + topPlateThickness / 2}
+        x={outsideLayerLabelX}
+        y={outsideLayerLabelY}
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
+        transform={`rotate(-90 ${outsideLayerLabelX} ${outsideLayerLabelY})`}
       >
-        Top Plate
+        Outside Layers
+      </text>
+
+      <text
+        x={insideLayerLabelX}
+        y={insideLayerLabelY}
+        fontSize={50}
+        text-anchor="middle"
+        dominantBaseline="middle"
+        transform={`rotate(90 ${insideLayerLabelX} ${insideLayerLabelY})`}
+      >
+        Inside Layers
       </text>
 
       <SvgMeasurementIndicator
@@ -463,20 +582,21 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <SvgMeasurementIndicator
-        startPoint={[floorMeasurementX, bottomFloorTopY]}
-        endPoint={[floorMeasurementX, bottomFloorBottomLayersBottomY]}
-        label={'Total Floor Thickness'}
+        startPoint={[marginRightX, bottomFloorTopY]}
+        endPoint={[marginRightX, bottomFloorBottomLayersBottomY]}
+        label={'Total\nFloor\nThickness'}
         labelOrientation="perpendicular"
+        offset={80}
         fontSize={60}
         strokeWidth={10}
         color="var(--accent-10)"
       />
 
       <SvgMeasurementIndicator
-        startPoint={[outsideLayerX, storeyCenterY]}
-        endPoint={[interiorExtentX, storeyCenterY]}
+        startPoint={[outsideLayerX, wallCoreTopY]}
+        endPoint={[interiorExtentX, wallCoreTopY]}
         label={'Total\nWall\nThickness'}
-        offset={-100}
+        offset={200}
         fontSize={60}
         strokeWidth={10}
         color="var(--accent-10)"
