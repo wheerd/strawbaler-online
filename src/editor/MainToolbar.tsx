@@ -16,6 +16,7 @@ import { useConfigurationModal } from '@/construction/config/context/Configurati
 import { constructModel, constructStorey } from '@/construction/storey'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
+import { MeasurementModal } from '@/editor/components/MeasurementModal'
 import { TOOL_GROUPS, getToolInfoById } from '@/editor/tools/system/metadata'
 import { replaceTool, useActiveToolId } from '@/editor/tools/system/store'
 import type { ToolId } from '@/editor/tools/system/types'
@@ -123,6 +124,13 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
         <IconButton title="About" variant="ghost" size="2" onClick={onInfoClick}>
           <InfoCircledIcon />
         </IconButton>
+        <MeasurementModal
+          trigger={
+            <IconButton title="Measurements" variant="ghost" size="2">
+              <InfoCircledIcon />
+            </IconButton>
+          }
+        />
       </Flex>
     </Flex>
   )
