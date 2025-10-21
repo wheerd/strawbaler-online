@@ -73,6 +73,7 @@ e | y +--------------+ s | Floor top layers                 }
   const inside = wallRight + insideThickness
   const floorWidth = 1100
   const floorMeasurementX = inside + floorWidth / 2 - 100
+  const textFill = 'var(--gray-12)'
 
   const storeyHeight = 3000
   const floorConstructionThickness = 100
@@ -386,7 +387,7 @@ e | y +--------------+ s | Floor top layers                 }
   )
 
   return (
-    <svg height={500} viewBox={`0 0 ${totalWidth} ${totalHeight}`}>
+    <svg height={500} viewBox={`0 0 ${totalWidth} ${totalHeight}`} style={{ background: 'var(--color-background)' }}>
       <defs>
         <linearGradient id={marginTopGradientId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="10%" stop-color="var(--color-background)" stop-opacity="1" />
@@ -533,7 +534,14 @@ e | y +--------------+ s | Floor top layers                 }
         labelOrientation="perpendicular"
       />
 
-      <text x={floorMeasurementX} y={floorTopLayersLabelY} fontSize={50} text-anchor="middle" dominantBaseline="middle">
+      <text
+        x={floorMeasurementX}
+        y={floorTopLayersLabelY}
+        fontSize={50}
+        text-anchor="middle"
+        dominantBaseline="middle"
+        fill={textFill}
+      >
         Floor Top Layers
       </text>
 
@@ -543,6 +551,7 @@ e | y +--------------+ s | Floor top layers                 }
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
+        fill={textFill}
       >
         Floor Construction
       </text>
@@ -553,6 +562,7 @@ e | y +--------------+ s | Floor top layers                 }
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
+        fill={textFill}
       >
         Floor Bottom Layers
       </text>
@@ -563,6 +573,7 @@ e | y +--------------+ s | Floor top layers                 }
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
+        fill={textFill}
       >
         Floor Top Layers
       </text>
@@ -573,6 +584,7 @@ e | y +--------------+ s | Floor top layers                 }
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
+        fill={textFill}
       >
         Floor Construction
       </text>
@@ -583,6 +595,7 @@ e | y +--------------+ s | Floor top layers                 }
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
+        fill={textFill}
       >
         Floor Bottom Layers
       </text>
@@ -592,6 +605,7 @@ e | y +--------------+ s | Floor top layers                 }
         text-anchor="middle"
         dominantBaseline="text-after-edge"
         transform={`translate(${outsidePadding} ${totalHeight / 2}) rotate(-90)`}
+        fill={textFill}
       >
         Finished Outside
       </text>
@@ -600,6 +614,7 @@ e | y +--------------+ s | Floor top layers                 }
         text-anchor="middle"
         dominantBaseline="text-after-edge"
         transform={`translate(${inside} ${totalHeight / 2}) rotate(90)`}
+        fill={textFill}
       >
         Finished Inside
       </text>
@@ -625,7 +640,14 @@ e | y +--------------+ s | Floor top layers                 }
         Finished Floor
       </text>
 
-      <text x={wallCenterX} y={upperBottomPlateLabelY} fontSize={48} text-anchor="middle" dominantBaseline="middle">
+      <text
+        x={wallCenterX}
+        y={upperBottomPlateLabelY}
+        fontSize={48}
+        text-anchor="middle"
+        dominantBaseline="middle"
+        fill={textFill}
+      >
         Bottom Plate
       </text>
 
@@ -635,6 +657,7 @@ e | y +--------------+ s | Floor top layers                 }
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
+        fill={textFill}
       >
         Top Plate
       </text>
@@ -645,11 +668,19 @@ e | y +--------------+ s | Floor top layers                 }
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
+        fill={textFill}
       >
         Bottom Plate
       </text>
 
-      <text x={wallCenterX} y={lowerTopPlateLabelY} fontSize={48} text-anchor="middle" dominantBaseline="middle">
+      <text
+        x={wallCenterX}
+        y={lowerTopPlateLabelY}
+        fontSize={48}
+        text-anchor="middle"
+        dominantBaseline="middle"
+        fill={textFill}
+      >
         Top Plate
       </text>
 
@@ -660,6 +691,7 @@ e | y +--------------+ s | Floor top layers                 }
         text-anchor="middle"
         dominantBaseline="middle"
         transform={`rotate(-90 ${outsideLayerLabelX} ${outsideLayerLabelY})`}
+        fill={textFill}
       >
         Outside Layers
       </text>
@@ -671,6 +703,7 @@ e | y +--------------+ s | Floor top layers                 }
         text-anchor="middle"
         dominantBaseline="middle"
         transform={`rotate(90 ${insideLayerLabelX} ${insideLayerLabelY})`}
+        fill={textFill}
       >
         Inside Layers
       </text>
@@ -717,7 +750,7 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <g transform={`translate(${wallCenterX} ${wallCenterY})`}>
-        <text x={0} y={0} fontSize={50} color="var(--accent-10)" text-anchor="middle" dominantBaseline="middle">
+        <text x={0} y={0} fontSize={50} fill={textFill} text-anchor="middle" dominantBaseline="middle">
           <tspan x={0}>Wall</tspan>
           <tspan x={0} dy="1.2em">
             Construction
