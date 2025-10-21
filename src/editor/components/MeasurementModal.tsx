@@ -50,6 +50,8 @@ e | y +--------------+ s | Floor top layers                 }
   const marginTop = 100
   const marginBottom = 100
   const marginRight = 100
+  const wallVerticalExtension = 100
+  const floorProjection = 100
   const outsidePadding = 300
   const outsideThickness = 100
   const insideThickness = 100
@@ -57,6 +59,9 @@ e | y +--------------+ s | Floor top layers                 }
   const wallWidth = 360
   const wallRight = wallLeft + wallWidth
   const inside = wallRight + insideThickness
+  const floorWidth = 800
+  const floorMeasurementX = inside + floorWidth / 2
+
   const storeyHeight = 3000
   const floorConstructionThickness = 100
   const floorConstructionTopOverlap = 100
@@ -67,13 +72,237 @@ e | y +--------------+ s | Floor top layers                 }
   const floorTopThickness = 150
   const floorBottomThickness = 100
   const totalFloorThickness = floorTotalConstructionThickness + floorTopThickness + floorBottomThickness
+
   const wallHeight = storeyHeight - floorConstructionThickness
   const topPlateThickness = 150
   const bottomPlateThickness = 150
-  const floorWidth = 800
 
   const totalHeight = marginTop + storeyHeight + totalFloorThickness + marginBottom
   const totalWidth = outsidePadding + outsideThickness + wallWidth + insideThickness + floorWidth
+
+  const marginRightX = totalWidth - marginRight
+  const interiorExtentX = wallRight + insideThickness
+  const storeyCenterY = marginTop + storeyHeight / 2
+  const roomHeightStartY = marginTop + totalFloorThickness
+
+  const floorTopY = marginTop
+  const topFloorConstructionTopY = floorTopY + floorTopThickness
+  const topFloorConstructionBottomY = topFloorConstructionTopY + floorTotalConstructionThickness
+  const topFloorBottomLayersTopY = topFloorConstructionBottomY
+  const topFloorBottomLayersBottomY = topFloorBottomLayersTopY + floorBottomThickness
+
+  const bottomFloorTopY = marginTop + storeyHeight
+  const bottomFloorConstructionTopY = bottomFloorTopY + floorTopThickness
+  const bottomFloorConstructionBottomY = bottomFloorConstructionTopY + floorTotalConstructionThickness
+  const bottomFloorBottomLayersTopY = bottomFloorConstructionBottomY
+  const bottomFloorBottomLayersBottomY = bottomFloorBottomLayersTopY + floorBottomThickness
+
+  const wallAssemblyTopY = topFloorConstructionTopY + floorConstructionThickness + floorConstructionTopOverlap
+  const wallAssemblyBottomY = wallAssemblyTopY + wallHeight
+  const wallCoreTopY = wallAssemblyTopY + topPlateThickness
+  const wallCoreHeight = wallHeight - topPlateThickness - bottomPlateThickness
+  const wallCenterY = wallCoreTopY + wallCoreHeight / 2
+  const wallCoreBottomY = wallAssemblyBottomY - bottomPlateThickness
+  const bottomPlateTopY = wallAssemblyBottomY - bottomPlateThickness
+  const bottomWallTopY =
+    bottomFloorConstructionTopY + floorConstructionThickness + floorConstructionTopOverlap + bottomPlateThickness
+
+  const insideLayerMiddleHeight = wallHeight - floorConstructionTopOverlap - floorConstructionBottomOverlap
+
+  const wallCenterX = wallLeft + wallWidth / 2
+  const outsideLayerX = wallLeft - outsideThickness
+
+  const floorShapes = (
+    <g key="floor-shapes">
+      <g key="top-floor-group">
+        <rect
+          key="top-floor"
+          x={inside}
+          y={floorTopY}
+          width={floorWidth + floorProjection}
+          height={floorTopThickness}
+          fill="var(--gray-6)"
+          stroke="var(--gray-12)"
+          strokeWidth="5"
+        />
+        <path
+          key="top-floor-construction"
+          d={`M ${wallLeft} ${topFloorConstructionTopY + floorConstructionTopOverlap}
+              h ${wallWidth}
+              v -${floorConstructionTopOverlap}
+              H ${totalWidth + floorProjection}
+              v ${floorTotalConstructionThickness}
+              H ${wallRight}
+              v -${floorConstructionBottomOverlap}
+              H ${wallLeft} Z`}
+          fill="var(--gray-7)"
+          stroke="var(--gray-12)"
+          strokeWidth="5"
+        />
+        <rect
+          key="top-floor-bottom"
+          x={inside}
+          y={topFloorBottomLayersTopY}
+          width={floorWidth + floorProjection}
+          height={floorBottomThickness}
+          fill="var(--gray-6)"
+          stroke="var(--gray-12)"
+          strokeWidth="5"
+        />
+      </g>
+      <g key="bottom-floor-group">
+        <rect
+          key="bottom-floor"
+          x={inside}
+          y={bottomFloorTopY}
+          width={floorWidth + floorProjection}
+          height={floorTopThickness}
+          fill="var(--gray-6)"
+          stroke="var(--gray-12)"
+          strokeWidth="5"
+        />
+        <path
+          key="bottom-floor-construction"
+          d={`M ${wallLeft} ${bottomFloorConstructionTopY + floorConstructionTopOverlap}
+              h ${wallWidth}
+              v -${floorConstructionTopOverlap}
+              H ${totalWidth + floorProjection}
+              v ${floorTotalConstructionThickness}
+              H ${wallRight}
+              v -${floorConstructionBottomOverlap}
+              H ${wallLeft} Z`}
+          fill="var(--gray-7)"
+          stroke="var(--gray-12)"
+          strokeWidth="5"
+        />
+        <rect
+          key="bottom-floor-bottom"
+          x={inside}
+          y={bottomFloorBottomLayersTopY}
+          width={floorWidth + floorProjection}
+          height={floorBottomThickness}
+          fill="var(--gray-6)"
+          stroke="var(--gray-12)"
+          strokeWidth="5"
+        />
+      </g>
+    </g>
+  )
+
+  const wallShapes = (
+    <g key="wall-shapes">
+      <rect
+        key="top-wall"
+        x={wallLeft}
+        y={-wallVerticalExtension}
+        width={wallWidth}
+        height={topFloorConstructionTopY + floorConstructionTopOverlap - bottomPlateThickness + wallVerticalExtension}
+        fill="var(--gray-7)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="inside-layer-top"
+        x={wallRight}
+        y={-wallVerticalExtension}
+        width={insideThickness}
+        height={topFloorConstructionTopY + floorConstructionTopOverlap + wallVerticalExtension}
+        fill="var(--gray-5)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="bottom-plate-top"
+        x={wallLeft}
+        y={topFloorConstructionTopY + floorConstructionTopOverlap - bottomPlateThickness}
+        width={wallWidth}
+        height={bottomPlateThickness}
+        fill="var(--gray-8)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="top-plate"
+        x={wallLeft}
+        y={wallAssemblyTopY}
+        width={wallWidth}
+        height={topPlateThickness}
+        fill="var(--gray-8)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="wall"
+        x={wallLeft}
+        y={wallCoreTopY}
+        width={wallWidth}
+        height={wallCoreHeight}
+        fill="var(--gray-7)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="bottom-plate"
+        x={wallLeft}
+        y={bottomPlateTopY}
+        width={wallWidth}
+        height={bottomPlateThickness}
+        fill="var(--gray-8)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="inside-layer-middle"
+        x={wallRight}
+        y={topFloorBottomLayersTopY}
+        width={insideThickness}
+        height={insideLayerMiddleHeight}
+        fill="var(--gray-5)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="top-plate-bottom"
+        x={wallLeft}
+        y={bottomFloorConstructionTopY + floorConstructionThickness + floorConstructionTopOverlap}
+        width={wallWidth}
+        height={topPlateThickness}
+        fill="var(--gray-8)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="bottom-wall"
+        x={wallLeft}
+        y={bottomWallTopY}
+        width={wallWidth}
+        height={wallHeight}
+        fill="var(--gray-7)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="inside-layer-bottom"
+        x={wallRight}
+        y={bottomFloorConstructionTopY + floorConstructionThickness + floorConstructionTopOverlap}
+        width={insideThickness}
+        height={wallHeight}
+        fill="var(--gray-5)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+      <rect
+        key="outside-layer"
+        x={outsideLayerX}
+        y={-1}
+        width={outsideThickness}
+        height={totalHeight + 1}
+        fill="var(--gray-5)"
+        stroke="var(--gray-12)"
+        strokeWidth="5"
+      />
+    </g>
+  )
 
   return (
     <svg height={500} viewBox={`0 0 ${totalWidth} ${totalHeight}`}>
@@ -92,238 +321,31 @@ e | y +--------------+ s | Floor top layers                 }
         </linearGradient>
         <style dangerouslySetInnerHTML={{ __html: 'text { font-family: monospace; }' }}></style>
       </defs>
-      <rect
-        key="top-wall"
-        x={wallLeft}
-        y={-100}
-        width={wallWidth}
-        height={marginTop + floorTopThickness + floorConstructionTopOverlap - bottomPlateThickness + 100}
-        fill="var(--gray-7)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
 
-      <rect
-        key="inside-layer-top"
-        x={wallRight}
-        y={-100}
-        width={insideThickness}
-        height={marginTop + floorTopThickness + floorConstructionTopOverlap + 100}
-        fill="var(--gray-5)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
+      {floorShapes}
+      {wallShapes}
 
-      <rect
-        key="bottom-plate-top"
-        x={wallLeft}
-        y={
-          marginTop +
-          floorTopThickness +
-          floorConstructionThickness +
-          floorConstructionTopOverlap +
-          wallHeight -
-          bottomPlateThickness -
-          storeyHeight
-        }
-        width={wallWidth}
-        height={bottomPlateThickness}
-        fill="var(--gray-8)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-
-      <rect
-        key="top-floor"
-        x={inside}
-        y={marginTop}
-        width={floorWidth + 100}
-        height={floorTopThickness}
-        fill="var(--gray-6)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-      <path
-        key="top-floor-construction"
-        d={`M ${wallLeft} ${marginTop + floorTopThickness + floorConstructionTopOverlap}
-            h ${wallWidth}
-            v -${floorConstructionTopOverlap}
-            H ${totalWidth + 100}
-            v ${floorTotalConstructionThickness}
-            H ${wallRight}
-            v -${floorConstructionBottomOverlap}
-            H ${wallLeft} Z`}
-        fill="var(--gray-7)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-      <rect
-        key="top-floor-bottom"
-        x={inside}
-        y={marginTop + floorTopThickness + floorTotalConstructionThickness}
-        width={floorWidth + 100}
-        height={floorBottomThickness}
-        fill="var(--gray-6)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-
-      <rect
-        key="top-plate"
-        x={wallLeft}
-        y={marginTop + floorTopThickness + floorConstructionThickness + floorConstructionTopOverlap}
-        width={wallWidth}
-        height={topPlateThickness}
-        fill="var(--gray-8)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-      <rect
-        key="wall"
-        x={wallLeft}
-        y={marginTop + floorTopThickness + floorConstructionThickness + floorConstructionTopOverlap + topPlateThickness}
-        width={wallWidth}
-        height={wallHeight - topPlateThickness - bottomPlateThickness}
-        fill="var(--gray-7)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-      <rect
-        key="bottom-plate"
-        x={wallLeft}
-        y={
-          marginTop +
-          floorTopThickness +
-          floorConstructionThickness +
-          floorConstructionTopOverlap +
-          wallHeight -
-          bottomPlateThickness
-        }
-        width={wallWidth}
-        height={bottomPlateThickness}
-        fill="var(--gray-8)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-
-      <rect
-        key="inside-layer-middle"
-        x={wallRight}
-        y={marginTop + floorTopThickness + floorTotalConstructionThickness}
-        width={insideThickness}
-        height={wallHeight - floorConstructionTopOverlap - floorConstructionBottomOverlap}
-        fill="var(--gray-5)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-
-      <rect
-        key="bottom-floor"
-        x={inside}
-        y={marginTop + storeyHeight}
-        width={floorWidth + 100}
-        height={floorTopThickness}
-        fill="var(--gray-6)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-      <path
-        key="bottom-floor-construction"
-        d={`M ${wallLeft} ${marginTop + storeyHeight + floorTopThickness + floorConstructionTopOverlap}
-            h ${wallWidth}
-            v -${floorConstructionTopOverlap}
-            H ${totalWidth + 100}
-            v ${floorTotalConstructionThickness}
-            H ${wallRight}
-            v -${floorConstructionBottomOverlap}
-            H ${wallLeft} Z`}
-        fill="var(--gray-7)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-      <rect
-        key="bottom-floor-bottom"
-        x={inside}
-        y={marginTop + storeyHeight + floorTopThickness + floorTotalConstructionThickness}
-        width={floorWidth + 100}
-        height={floorBottomThickness}
-        fill="var(--gray-6)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-
-      <rect
-        key="top-plate-bottom"
-        x={wallLeft}
-        y={marginTop + storeyHeight + floorTopThickness + floorConstructionThickness + floorConstructionTopOverlap}
-        width={wallWidth}
-        height={topPlateThickness}
-        fill="var(--gray-8)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-
-      <rect
-        key="bottom-wall"
-        x={wallLeft}
-        y={
-          marginTop +
-          storeyHeight +
-          floorTopThickness +
-          floorConstructionThickness +
-          floorConstructionTopOverlap +
-          bottomPlateThickness
-        }
-        width={wallWidth}
-        height={wallHeight}
-        fill="var(--gray-7)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-
-      <rect
-        key="inside-layer-bottom"
-        x={wallRight}
-        y={marginTop + storeyHeight + floorTopThickness + floorConstructionThickness + floorConstructionTopOverlap}
-        width={insideThickness}
-        height={wallHeight}
-        fill="var(--gray-5)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-
-      <rect
-        key="outside-layer"
-        x={wallLeft - outsideThickness}
-        y={-1}
-        width={outsideThickness}
-        height={totalHeight + 1}
-        fill="var(--gray-5)"
-        stroke="var(--gray-12)"
-        strokeWidth="5"
-      />
-
-      <rect key="margin-top" x={0} y={0} width={2000} height={marginTop} fill="url(#marginTop)" />
+      <rect key="margin-top" x={-50} y={-5} width={totalWidth + 100} height={marginTop + 5} fill="url(#marginTop)" />
       <rect
         key="margin-bottom"
-        x={0}
+        x={-50}
         y={totalHeight - marginBottom}
-        width={2000}
-        height={marginBottom + 1}
+        width={totalWidth + 100}
+        height={marginBottom + 5}
         fill="url(#marginBottom)"
       />
       <rect
         key="margin-right"
-        x={totalWidth - marginRight}
-        y={0}
-        width={marginRight + 1}
-        height={totalHeight}
+        x={marginRightX}
+        y={-50}
+        width={marginRight + 5}
+        height={totalHeight + 100}
         fill="url(#marginRight)"
       />
 
       <SvgMeasurementIndicator
-        startPoint={[totalWidth - marginRight, marginTop]}
-        endPoint={[totalWidth - marginRight, marginTop + storeyHeight]}
+        startPoint={[marginRightX, marginTop]}
+        endPoint={[marginRightX, marginTop + storeyHeight]}
         label={'Storey Height'}
         fontSize={60}
         offset={40}
@@ -332,8 +354,8 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <SvgMeasurementIndicator
-        startPoint={[totalWidth - marginRight, marginTop + totalFloorThickness]}
-        endPoint={[totalWidth - marginRight, marginTop + storeyHeight]}
+        startPoint={[marginRightX, roomHeightStartY]}
+        endPoint={[marginRightX, marginTop + storeyHeight]}
         label={'Room Height'}
         fontSize={60}
         offset={120}
@@ -342,8 +364,8 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <SvgMeasurementIndicator
-        startPoint={[wallRight, marginTop + floorTopThickness]}
-        endPoint={[wallRight, marginTop + floorTopThickness + floorConstructionTopOverlap]}
+        startPoint={[wallRight, topFloorConstructionTopY]}
+        endPoint={[wallRight, topFloorConstructionTopY + floorConstructionTopOverlap]}
         label={'Construction Top Offset'}
         fontSize={40}
         offset={-350}
@@ -353,11 +375,8 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <SvgMeasurementIndicator
-        startPoint={[
-          wallRight,
-          marginTop + floorTopThickness + floorTotalConstructionThickness - floorConstructionBottomOverlap
-        ]}
-        endPoint={[wallRight, marginTop + floorTopThickness + floorTotalConstructionThickness]}
+        startPoint={[wallRight, topFloorConstructionBottomY - floorConstructionBottomOverlap]}
+        endPoint={[wallRight, topFloorConstructionBottomY]}
         label={'Construction Bottom Offset'}
         fontSize={40}
         offset={-350}
@@ -367,8 +386,8 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <SvgMeasurementIndicator
-        startPoint={[inside + floorWidth / 2, marginTop]}
-        endPoint={[inside + floorWidth / 2, marginTop + floorTopThickness]}
+        startPoint={[floorMeasurementX, floorTopY]}
+        endPoint={[floorMeasurementX, topFloorConstructionTopY]}
         label={'Floor Top Layers'}
         fontSize={40}
         strokeWidth={10}
@@ -377,11 +396,8 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <SvgMeasurementIndicator
-        startPoint={[inside + floorWidth / 2, marginTop + floorTopThickness + floorTotalConstructionThickness]}
-        endPoint={[
-          inside + floorWidth / 2,
-          marginTop + floorTopThickness + floorTotalConstructionThickness + floorBottomThickness
-        ]}
+        startPoint={[floorMeasurementX, topFloorBottomLayersTopY]}
+        endPoint={[floorMeasurementX, topFloorBottomLayersBottomY]}
         label={'Floor Bottom Layers'}
         fontSize={40}
         strokeWidth={10}
@@ -407,15 +423,8 @@ e | y +--------------+ s | Floor top layers                 }
       </text>
 
       <text
-        x={wallLeft + wallWidth / 2}
-        y={
-          marginTop +
-          floorTopThickness +
-          floorConstructionThickness +
-          floorConstructionTopOverlap +
-          wallHeight -
-          bottomPlateThickness / 2
-        }
+        x={wallCenterX}
+        y={wallAssemblyBottomY - bottomPlateThickness / 2}
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
@@ -424,14 +433,8 @@ e | y +--------------+ s | Floor top layers                 }
       </text>
 
       <text
-        x={wallLeft + wallWidth / 2}
-        y={
-          marginTop +
-          floorTopThickness +
-          floorTotalConstructionThickness -
-          floorConstructionBottomOverlap +
-          topPlateThickness / 2
-        }
+        x={wallCenterX}
+        y={topFloorConstructionBottomY - floorConstructionBottomOverlap + topPlateThickness / 2}
         fontSize={50}
         text-anchor="middle"
         dominantBaseline="middle"
@@ -440,15 +443,9 @@ e | y +--------------+ s | Floor top layers                 }
       </text>
 
       <SvgMeasurementIndicator
-        startPoint={[
-          wallLeft,
-          marginTop + floorTopThickness + floorConstructionThickness + floorConstructionTopOverlap
-        ]}
-        endPoint={[
-          wallLeft,
-          marginTop + floorTopThickness + floorConstructionThickness + floorConstructionTopOverlap + wallHeight
-        ]}
-        label={'Wall Assembly Height'}
+        startPoint={[wallLeft, wallAssemblyTopY]}
+        endPoint={[wallLeft, wallAssemblyBottomY]}
+        label="Wall Assembly Height"
         fontSize={60}
         offset={outsideThickness + 160}
         strokeWidth={10}
@@ -456,20 +453,9 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <SvgMeasurementIndicator
-        startPoint={[
-          wallLeft,
-          marginTop + floorTopThickness + floorConstructionThickness + floorConstructionTopOverlap + topPlateThickness
-        ]}
-        endPoint={[
-          wallLeft,
-          marginTop +
-            floorTopThickness +
-            floorConstructionThickness +
-            floorConstructionTopOverlap +
-            wallHeight -
-            bottomPlateThickness
-        ]}
-        label={'Wall Construction Height'}
+        startPoint={[wallLeft, wallCoreTopY]}
+        endPoint={[wallLeft, wallCoreBottomY]}
+        label="Wall Construction Height"
         fontSize={60}
         offset={outsideThickness + 100}
         strokeWidth={10}
@@ -477,8 +463,8 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <SvgMeasurementIndicator
-        startPoint={[inside + floorWidth / 2, marginTop + storeyHeight]}
-        endPoint={[inside + floorWidth / 2, marginTop + storeyHeight + totalFloorThickness]}
+        startPoint={[floorMeasurementX, bottomFloorTopY]}
+        endPoint={[floorMeasurementX, bottomFloorBottomLayersBottomY]}
         label={'Total Floor Thickness'}
         labelOrientation="perpendicular"
         fontSize={60}
@@ -487,13 +473,23 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <SvgMeasurementIndicator
-        startPoint={[wallLeft - outsideThickness, marginTop + storeyHeight / 2]}
-        endPoint={[wallRight + insideThickness, marginTop + storeyHeight / 2]}
+        startPoint={[outsideLayerX, storeyCenterY]}
+        endPoint={[interiorExtentX, storeyCenterY]}
         label={'Total\nWall\nThickness'}
+        offset={-100}
         fontSize={60}
         strokeWidth={10}
         color="var(--accent-10)"
       />
+
+      <g transform={`translate(${wallCenterX} ${wallCenterY})`}>
+        <text x={0} y={0} fontSize={50} color="var(--accent-10)" text-anchor="middle" dominantBaseline="middle">
+          <tspan x={0}>Wall</tspan>
+          <tspan x={0} dy="1.2em">
+            Construction
+          </tspan>
+        </text>
+      </g>
     </svg>
   )
 }
