@@ -1,10 +1,48 @@
 import { HoverCard, Inset } from '@radix-ui/themes'
-import { useId } from 'react'
+import { type JSX, useId } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { BaseModal } from '@/shared/components/BaseModal'
 
-function ConstructionSchematic() {
+export type Measurement =
+  | 'storeyHeight'
+  | 'roomHeight'
+  | 'constructionTopOffset'
+  | 'constructionBottomOffset'
+  | 'totalFloorThickness'
+  | 'wallAssemblyHeight'
+  | 'wallConstructionHeight'
+  | 'totalWallThickness'
+
+export type Assembly = 'floorAssembly' | 'wallAssembly'
+
+export type ConstructionPart =
+  | 'floorTopLayers'
+  | 'floorConstruction'
+  | 'floorBottomLayers'
+  | 'insideLayer'
+  | 'outsideLayer'
+  | 'topPlate'
+  | 'wallConstruction'
+  | 'bottomPlate'
+
+export interface MeasurementDisplayConfig {
+  showPartLabels?: boolean
+  showMeasurements?: boolean
+  showAssemblyOutlines?: boolean
+  highlightedMeasurement?: Measurement
+  highlightedAssembly?: Assembly
+  highlightedPart?: ConstructionPart
+}
+
+function ConstructionSchematic({
+  highlightedAssembly,
+  highlightedMeasurement,
+  highlightedPart,
+  showPartLabels = true,
+  showMeasurements = true,
+  showAssemblyOutlines = true
+}: MeasurementDisplayConfig = {}): JSX.Element {
   /*
   |   |       Slab Construction                           
   |   +--------------+ . . . . . . . . . . . . . . . . . .  
@@ -655,7 +693,7 @@ e | y +--------------+ s | Floor top layers                 }
       />
 
       <g transform={`translate(${wallCenterX} ${wallCenterY})`}>
-        <text x={0} y={0} fontSize={50} fill="var(--accent-10)" text-anchor="middle" dominantBaseline="middle">
+        <text x={0} y={0} fontSize={50} fill={textFill} text-anchor="middle" dominantBaseline="middle">
           <tspan x={0}>Wall</tspan>
           <tspan x={0} dy="1.2em">
             Construction
