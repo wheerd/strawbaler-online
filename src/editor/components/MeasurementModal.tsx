@@ -1,7 +1,9 @@
+import { useId } from 'react'
+
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { BaseModal } from '@/shared/components/BaseModal'
 
-function Schematic() {
+function ConstructionSchematic() {
   /*
   |   |       Slab Construction                           
   |   +--------------+ . . . . . . . . . . . . . . . . . .  
@@ -46,6 +48,16 @@ e | y +--------------+ s | Floor top layers                 }
   |   |              | d |                 .
   |   |              | e |                 .
 */
+
+  const marginTopGradientId = useId()
+  const marginBottomGradientId = useId()
+  const marginRightGradientId = useId()
+  const upperFloorPathId = useId()
+  const upperFloorClipId = useId()
+  const lowerFloorPathId = useId()
+  const lowerFloorClipId = useId()
+  const wallAssemblyPathId = useId()
+  const wallAssemblyClipId = useId()
 
   const marginTop = 100
   const marginBottom = 100
@@ -115,6 +127,11 @@ e | y +--------------+ s | Floor top layers                 }
   const outsideLayerLabelY = wallCenterY
   const insideLayerLabelY = wallCenterY
 
+  const wallAssemblyLeftX = outsideLayerX
+  const wallAssemblyRightX = wallRight + insideThickness
+  const upperFloorAssemblyRightX = totalWidth + floorProjection
+  const lowerFloorAssemblyRightX = totalWidth + floorProjection
+
   const floorTopLayersLabelY = (floorTopY + topFloorConstructionTopY) / 2
   const floorConstructionLabelY = (topFloorConstructionTopY + topFloorConstructionBottomY) / 2
   const floorBottomLayersLabelY = (topFloorBottomLayersTopY + topFloorBottomLayersBottomY) / 2
@@ -125,6 +142,56 @@ e | y +--------------+ s | Floor top layers                 }
   const upperBottomPlateLabelY = topFloorConstructionTopY + floorConstructionTopOverlap - bottomPlateThickness / 2
   const lowerTopPlateLabelY =
     bottomFloorConstructionTopY + floorConstructionThickness + floorConstructionTopOverlap + topPlateThickness / 2
+
+  const upperFloorConstructionStepBottomY =
+    topFloorConstructionTopY + floorConstructionThickness + floorConstructionTopOverlap
+  const lowerFloorConstructionStepBottomY =
+    bottomFloorConstructionTopY + floorConstructionThickness + floorConstructionTopOverlap
+  const insideLayerMiddleBottomY = topFloorConstructionBottomY + insideLayerMiddleHeight
+
+  const upperFloorOutlinePath = [
+    `M ${wallLeft} ${topFloorConstructionTopY + floorConstructionTopOverlap}`,
+    `H ${wallRight}`,
+    `V ${topFloorConstructionTopY}`,
+    `H ${inside}`,
+    `V ${floorTopY}`,
+    `H ${upperFloorAssemblyRightX}`,
+    `V ${topFloorBottomLayersBottomY}`,
+    `H ${inside}`,
+    `V ${topFloorConstructionBottomY}`,
+    `H ${wallRight}`,
+    `V ${upperFloorConstructionStepBottomY}`,
+    `H ${wallLeft}`,
+    'Z'
+  ].join(' ')
+
+  const lowerFloorOutlinePath = [
+    `M ${wallLeft} ${bottomFloorConstructionTopY + floorConstructionTopOverlap}`,
+    `H ${wallRight}`,
+    `V ${bottomFloorConstructionTopY}`,
+    `H ${inside}`,
+    `V ${bottomFloorTopY}`,
+    `H ${lowerFloorAssemblyRightX}`,
+    `V ${bottomFloorBottomLayersBottomY}`,
+    `H ${inside}`,
+    `V ${bottomFloorConstructionBottomY}`,
+    `H ${wallRight}`,
+    `V ${lowerFloorConstructionStepBottomY}`,
+    `H ${wallLeft}`,
+    'Z'
+  ].join(' ')
+
+  const wallAssemblyOutlinePath = [
+    `M ${wallAssemblyLeftX} ${wallAssemblyTopY}`,
+    `H ${wallRight}`,
+    `V ${topFloorConstructionBottomY}`,
+    `H ${wallAssemblyRightX}`,
+    `V ${insideLayerMiddleBottomY}`,
+    `H ${wallRight}`,
+    `V ${wallAssemblyBottomY}`,
+    `H ${wallAssemblyLeftX}`,
+    'Z'
+  ].join(' ')
 
   const floorShapes = (
     <g key="floor-shapes">
@@ -321,23 +388,63 @@ e | y +--------------+ s | Floor top layers                 }
   return (
     <svg height={500} viewBox={`0 0 ${totalWidth} ${totalHeight}`}>
       <defs>
-        <linearGradient id="marginTop" x1="0" x2="0" y1="0" y2="1">
+        <linearGradient id={marginTopGradientId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="10%" stop-color="var(--color-background)" stop-opacity="1" />
           <stop offset="100%" stop-color="var(--color-background)" stop-opacity="0" />
         </linearGradient>
-        <linearGradient id="marginBottom" x1="0" x2="0" y1="0" y2="1">
+        <linearGradient id={marginBottomGradientId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stop-color="var(--color-background)" stop-opacity="0" />
           <stop offset="90%" stop-color="var(--color-background)" stop-opacity="1" />
         </linearGradient>
-        <linearGradient id="marginRight" x1="0" x2="1" y1="0" y2="0">
+        <linearGradient id={marginRightGradientId} x1="0" x2="1" y1="0" y2="0">
           <stop offset="0%" stop-color="var(--color-background)" stop-opacity="0" />
           <stop offset="90%" stop-color="var(--color-background)" stop-opacity="1" />
         </linearGradient>
+        <path id={upperFloorPathId} d={upperFloorOutlinePath} />
+        <clipPath id={upperFloorClipId} clipPathUnits="userSpaceOnUse">
+          <use href={`#${upperFloorPathId}`} />
+        </clipPath>
+        <path id={lowerFloorPathId} d={lowerFloorOutlinePath} />
+        <clipPath id={lowerFloorClipId} clipPathUnits="userSpaceOnUse">
+          <use href={`#${lowerFloorPathId}`} />
+        </clipPath>
+        <path id={wallAssemblyPathId} d={wallAssemblyOutlinePath} />
+        <clipPath id={wallAssemblyClipId} clipPathUnits="userSpaceOnUse">
+          <use href={`#${wallAssemblyPathId}`} />
+        </clipPath>
         <style dangerouslySetInnerHTML={{ __html: 'text { font-family: monospace; }' }}></style>
       </defs>
 
       {floorShapes}
       {wallShapes}
+
+      <use
+        href={`#${upperFloorPathId}`}
+        clipPath={`url(#${upperFloorClipId})`}
+        fill="none"
+        stroke="var(--amber-10)"
+        strokeWidth={40}
+        strokeLinejoin="round"
+        opacity={0.4}
+      />
+      <use
+        href={`#${lowerFloorPathId}`}
+        clipPath={`url(#${lowerFloorClipId})`}
+        fill="none"
+        stroke="var(--amber-10)"
+        strokeWidth={40}
+        strokeLinejoin="round"
+        opacity={0.4}
+      />
+      <use
+        href={`#${wallAssemblyPathId}`}
+        clipPath={`url(#${wallAssemblyClipId})`}
+        fill="none"
+        stroke="var(--ruby-10)"
+        strokeWidth={40}
+        strokeLinejoin="round"
+        opacity={0.4}
+      />
 
       <line
         key="finished-ceiling"
@@ -359,14 +466,21 @@ e | y +--------------+ s | Floor top layers                 }
         strokeWidth={20}
       />
 
-      <rect key="margin-top" x={-50} y={-5} width={totalWidth + 100} height={marginTop + 5} fill="url(#marginTop)" />
+      <rect
+        key="margin-top"
+        x={-50}
+        y={-5}
+        width={totalWidth + 100}
+        height={marginTop + 5}
+        fill={`url(#${marginTopGradientId})`}
+      />
       <rect
         key="margin-bottom"
         x={-50}
         y={totalHeight - marginBottom}
         width={totalWidth + 100}
         height={marginBottom + 5}
-        fill="url(#marginBottom)"
+        fill={`url(#${marginBottomGradientId})`}
       />
       <rect
         key="margin-right"
@@ -374,7 +488,7 @@ e | y +--------------+ s | Floor top layers                 }
         y={-50}
         width={marginRight + 5}
         height={totalHeight + 100}
-        fill="url(#marginRight)"
+        fill={`url(#${marginRightGradientId})`}
       />
 
       <SvgMeasurementIndicator
@@ -620,7 +734,7 @@ export interface MeasurementModalProps {
 export function MeasurementModal({ trigger }: MeasurementModalProps): React.JSX.Element {
   return (
     <BaseModal title="Measurements" trigger={trigger}>
-      <Schematic />
+      <ConstructionSchematic />
     </BaseModal>
   )
 }
