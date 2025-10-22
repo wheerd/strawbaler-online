@@ -88,10 +88,10 @@ export function ConstructionPlanModal({
       <Tabs.Root
         value={activeTab}
         onValueChange={value => setActiveTab(value as 'plan' | 'parts')}
-        style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
+        style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
       >
-        <div className="pb-[2px]">
-          <Tabs.List size="1">
+        <div className="pb-[2px] mr-6">
+          <Tabs.List justify="end">
             <Tabs.Trigger value="plan">Plan & Issues</Tabs.Trigger>
             <Tabs.Trigger value="parts">Parts List</Tabs.Trigger>
           </Tabs.List>

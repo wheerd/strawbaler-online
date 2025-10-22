@@ -1,5 +1,6 @@
 .plan-modal .rt-TabsRoot {
-  margin-top: calc(-1 * var(--space-2));
+  margin-top: calc(-1 * var(--space-7));
+  height: calc(100% + var(--space-7));
 }
 
 .plan-modal .rt-TabsContent[data-state='active'] {
