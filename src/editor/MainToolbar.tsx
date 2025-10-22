@@ -1,4 +1,4 @@
-import { GearIcon, InfoCircledIcon } from '@radix-ui/react-icons'
+import { FileTextIcon, GearIcon, InfoCircledIcon } from '@radix-ui/react-icons'
 import * as Toolbar from '@radix-ui/react-toolbar'
 import { Flex, IconButton, Kbd, Separator, Text, Tooltip } from '@radix-ui/themes'
 import React, { useCallback } from 'react'
@@ -12,6 +12,7 @@ import {
 } from '@/building/store'
 import { TOP_VIEW } from '@/construction/components/ConstructionPlan'
 import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
+import { ConstructionPartsListModal } from '@/construction/components/ConstructionPartsListModal'
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 import { constructModel, constructStorey } from '@/construction/storey'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
@@ -105,6 +106,16 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
           trigger={
             <IconButton title="View Construction Plan" size="2" variant="solid">
               <ConstructionPlanIcon width={20} height={20} />
+            </IconButton>
+          }
+        />
+        <ConstructionPartsListModal
+          title="Parts List for Entire Model"
+          constructionModelFactory={async () => constructModel()}
+          refreshKey={[storeys, perimeters]}
+          trigger={
+            <IconButton title="View Parts List" size="2" variant="solid">
+              <FileTextIcon width={20} height={20} />
             </IconButton>
           }
         />
