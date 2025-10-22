@@ -1,11 +1,7 @@
 import { vec3 } from 'gl-matrix'
 
-import {
-  type ConstructionElement,
-  createConstructionElement,
-  createCuboidShape,
-  dimensionalPartId
-} from '@/construction/elements'
+import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
+import { dimensionalPartId } from '@/construction/parts'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
 import { TAG_POST } from '@/construction/tags'
 import { type Length, mergeBounds } from '@/shared/geometry'

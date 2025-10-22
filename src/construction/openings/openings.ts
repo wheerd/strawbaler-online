@@ -1,14 +1,10 @@
 import { vec3 } from 'gl-matrix'
 
 import type { Opening } from '@/building/model/model'
-import {
-  type ConstructionElement,
-  createConstructionElement,
-  createCuboidShape,
-  dimensionalPartId
-} from '@/construction/elements'
+import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
+import { dimensionalPartId } from '@/construction/parts'
 import { type ConstructionResult, yieldArea, yieldElement, yieldError, yieldMeasurement } from '@/construction/results'
 import {
   TAG_HEADER,
