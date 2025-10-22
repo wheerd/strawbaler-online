@@ -33,6 +33,6 @@ export interface PartInfo {
 
 export type PartsList = Record<MaterialId, MaterialParts>
 
-export const generatePartsList = (model: ConstructionModel): PartsList => {
+export const generatePartsList = (_model: ConstructionModel): PartsList => {
   throw new Error('Not implemented yet')
 }

@@ -1,8 +1,9 @@
 import { vec3 } from 'gl-matrix'
 
-import { createConstructionElement, createCuboidShape } from '@/construction/elements'
+import { createConstructionElement } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
+import { createCuboidShape } from '@/construction/shapes'
 import { TAG_FULL_BALE, TAG_PARTIAL_BALE } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
 

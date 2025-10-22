@@ -4,11 +4,8 @@ import type { Bounds3D } from '@/shared/geometry'
 import { createId } from '@/shared/utils/ids'
 
 import { IDENTITY, type Transform, transformBounds } from './geometry'
-import { type Shape, createCuboidShape, createCutCuboidShape } from './shapes'
+import { type Shape } from './shapes'
 import type { Tag } from './tags'
-
-// Re-export shape creation functions for backward compatibility
-export { createCuboidShape, createCutCuboidShape }
 
 const CONSTRUCTION_ELEMENT_ID_PREFIX = 'ce_'
 

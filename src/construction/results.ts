@@ -1,4 +1,5 @@
 import { IDENTITY, type Transform } from '@/construction/geometry'
+import type { PartId } from '@/construction/parts'
 import type { Tag } from '@/construction/tags'
 import { type Bounds3D, mergeBounds } from '@/shared/geometry'
 
@@ -6,7 +7,6 @@ import {
   type ConstructionElement,
   type ConstructionElementId,
   type GroupOrElement,
-  type PartId,
   createConstructionElementId
 } from './elements'
 import type { RawMeasurement } from './measurements'
