@@ -1,6 +1,6 @@
 import { InfoCircledIcon } from '@radix-ui/react-icons'
 import { HoverCard, IconButton, Inset } from '@radix-ui/themes'
-import { type ComponentProps, type JSX, type ReactNode, useId } from 'react'
+import { type ComponentProps, type JSX, useId } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 
@@ -953,10 +953,6 @@ e | y +--------------+ s | Floor top layers                 }
   )
 }
 
-export interface MeasurementInfoProps {
-  trigger: ReactNode
-  config?: MeasurementDisplayConfig
-}
 export function MeasurementInfo(config: MeasurementDisplayConfig): React.JSX.Element {
   return (
     <HoverCard.Root>
