@@ -1,5 +1,6 @@
 import { vec3 } from 'gl-matrix'
 
+import type { ConstructionElementId } from '@/construction/elements'
 import type { MaterialId } from '@/construction/materials/material'
 import { getMaterialById } from '@/construction/materials/store'
 import type { ConstructionModel } from '@/construction/model'
@@ -37,6 +38,7 @@ export interface PartItem {
   label: string // A, B, C, ...
   material: MaterialId
   size: vec3
+  elements: ConstructionElementId[]
   totalVolume: Volume
   length?: Length
   totalLength?: Length
@@ -131,7 +133,7 @@ export const generatePartsList = (model: ConstructionModel): PartsList => {
       return
     }
 
-    const { material, partInfo } = element
+    const { material, partInfo, id } = element
 
     if (!partInfo) return
 
@@ -145,6 +147,7 @@ export const generatePartsList = (model: ConstructionModel): PartsList => {
     if (existingPart) {
       existingPart.quantity += 1
       existingPart.totalVolume += volume
+      existingPart.elements.push(id)
       materialEntry.totalQuantity += 1
       materialEntry.totalVolume += volume
 
@@ -182,6 +185,7 @@ export const generatePartsList = (model: ConstructionModel): PartsList => {
       label,
       material,
       size: vec3.clone(size),
+      elements: [id],
       totalVolume: volume,
       quantity: 1,
       issue

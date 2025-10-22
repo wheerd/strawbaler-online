@@ -55,17 +55,23 @@ describe('generatePartsList', () => {
     expect(part.totalLength).toBe(5000 + 5000)
     expect(part.label).toBe('A')
     expect(part.issue).toBeUndefined()
+    expect(part.elements).toEqual([elementA.id, elementB.id])
   })
 
   it('assigns sequential labels per material when parts differ', () => {
     const partA = dimensionalPartInfo('post', vec3.fromValues(5000, 360, 60))
     const partB = dimensionalPartInfo('post', vec3.fromValues(3000, 360, 60))
 
-    const model = createModel([createElement(wood360x60.id, partA), createElement(wood360x60.id, partB)])
+    const elementA = createElement(wood360x60.id, partA)
+    const elementB = createElement(wood360x60.id, partB)
+
+    const model = createModel([elementA, elementB])
     const { parts, totalQuantity } = generatePartsList(model)[wood360x60.id]
     expect(totalQuantity).toBe(2)
     expect(parts[partA.partId].label).toBe('A')
     expect(parts[partB.partId].label).toBe('B')
+    expect(parts[partA.partId].elements).toEqual([elementA.id])
+    expect(parts[partB.partId].elements).toEqual([elementB.id])
   })
 
   it('omits length metrics for non-dimensional materials', () => {
@@ -75,13 +81,15 @@ describe('generatePartsList', () => {
       size: vec3.fromValues(1200, 1200, 120)
     }
 
-    const model = createModel([createElement(windowMaterial.id, partInfo)])
+    const element = createElement(windowMaterial.id, partInfo)
+    const model = createModel([element])
     const materialParts = generatePartsList(model)[windowMaterial.id]
     const part = materialParts.parts[partInfo.partId]
 
     expect(materialParts.totalLength).toBeUndefined()
     expect(part.length).toBeUndefined()
     expect(part.totalLength).toBeUndefined()
+    expect(part.elements).toEqual([element.id])
   })
 
   it('records an issue when the cross section does not match the material', () => {
@@ -110,10 +118,12 @@ describe('generatePartsList', () => {
 
     const model = createModel([group])
     const materialParts = generatePartsList(model)[wood360x60.id]
+    const part = materialParts.parts[partInfo.partId]
 
     expect(materialParts.totalQuantity).toBe(1)
     expect(materialParts.totalVolume).toBe(5000 * 360 * 60)
     expect(materialParts.totalLength).toBe(5000)
+    expect(part.elements).toEqual([element.id])
   })
 
   it('ignores elements without part info', () => {
