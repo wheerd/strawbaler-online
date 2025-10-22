@@ -9,7 +9,7 @@ import {
   pathDToPoints
 } from '@/shared/geometry/clipperInstance'
 
-import { type Area, type Length, direction, perpendicular } from './basic'
+import { type Area, type Length, boundsFromPoints, direction, perpendicular } from './basic'
 import { type LineSegment2D, lineIntersection } from './line'
 
 const COLINEAR_EPSILON = 1e-9
@@ -451,4 +451,63 @@ function convexHullOfSimplePolygon(points: vec2[]): vec2[] {
 export function convexHullOfPolygonWithHoles(polygon: PolygonWithHoles2D): Polygon2D {
   const hullPoints = convexHullOfSimplePolygon(polygon.outer.points)
   return { points: hullPoints }
+}
+
+// Minimum bounding box
+
+export interface MinimumBoundingBox {
+  size: vec2
+  angle: number
+}
+
+function minimumAreaBoundingBoxFromPoints(points: vec2[]): MinimumBoundingBox {
+  if (points.length < 3) throw new Error('Polygon requires at least 3 points')
+  const hull = convexHullOfSimplePolygon(points)
+  if (points.length < 3) throw new Error('Convex hull of polygon requires at least 3 points')
+
+  let bestArea = Infinity
+  let bestSize = vec2.fromValues(0, 0)
+  let bestAngle = 0
+
+  const rotatePoint = (point: vec2, sinAngle: number, cosAngle: number) => {
+    const x = point[0] * cosAngle - point[1] * sinAngle
+    const y = point[0] * sinAngle + point[1] * cosAngle
+    return vec2.fromValues(x, y)
+  }
+
+  for (let i = 0; i < hull.length; i++) {
+    const current = hull[i]
+    const next = hull[(i + 1) % hull.length]
+    const edgeX = next[0] - current[0]
+    const edgeY = next[1] - current[1]
+    if (Math.abs(edgeX) < CONVEX_HULL_EPSILON && Math.abs(edgeY) < CONVEX_HULL_EPSILON) {
+      continue
+    }
+
+    const angle = Math.atan2(edgeY, edgeX)
+    const sinAngle = Math.sin(-angle)
+    const cosAngle = Math.cos(-angle)
+
+    const rotatedHull = hull.map(p => rotatePoint(p, sinAngle, cosAngle))
+    const bounds = boundsFromPoints(rotatedHull)
+
+    const size = vec2.subtract(vec2.create(), bounds.max, bounds.min)
+    const area = size[0] * size[1]
+
+    if (area < bestArea) {
+      bestArea = area
+      bestSize = size
+      bestAngle = angle
+    }
+  }
+
+  return { size: bestSize, angle: bestAngle }
+}
+
+export function minimumAreaBoundingBox(polygon: Polygon2D): MinimumBoundingBox {
+  return minimumAreaBoundingBoxFromPoints(polygon.points)
+}
+
+export function minimumAreaBoundingBoxOfPolygonWithHoles(polygon: PolygonWithHoles2D): MinimumBoundingBox {
+  return minimumAreaBoundingBoxFromPoints(polygon.outer.points)
 }

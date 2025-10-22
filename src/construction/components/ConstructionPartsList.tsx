@@ -13,7 +13,7 @@ interface ConstructionPartsListProps {
   partsList: PartsList
 }
 
-type RowMetrics = {
+interface RowMetrics {
   totalQuantity: number
   totalVolume: number
   totalLength?: number

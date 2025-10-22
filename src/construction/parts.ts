@@ -89,8 +89,7 @@ const computeDimensionalDetails = (size: vec3, availableLengths: Length[], width
     issue = 'CrossSectionMismatch'
   }
 
-  let length: Length | undefined
-  length = dimensions[indices.length === 1 ? indices[0] : 2]
+  const length = dimensions[indices.length === 1 ? indices[0] : 2]
 
   if (!issue && availableLengths.length > 0) {
     const maxAvailableLength = Math.round(Math.max(...availableLengths))

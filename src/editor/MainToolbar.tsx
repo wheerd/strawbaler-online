@@ -10,9 +10,9 @@ import {
   usePerimetersOfActiveStorey,
   useStoreysOrderedByLevel
 } from '@/building/store'
+import { ConstructionPartsListModal } from '@/construction/components/ConstructionPartsListModal'
 import { TOP_VIEW } from '@/construction/components/ConstructionPlan'
 import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
-import { ConstructionPartsListModal } from '@/construction/components/ConstructionPartsListModal'
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 import { constructModel, constructStorey } from '@/construction/storey'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
