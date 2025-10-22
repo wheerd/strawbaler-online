@@ -352,3 +352,103 @@ function onSegment(p: vec2, q: vec2, r: vec2): boolean {
     q[1] + COLINEAR_EPSILON >= Math.min(p[1], r[1])
   )
 }
+
+// Convex hull
+
+const CONVEX_HULL_EPSILON = 1e-9
+
+const vectorCross = (origin: vec2, a: vec2, b: vec2) => {
+  return (a[0] - origin[0]) * (b[1] - origin[1]) - (a[1] - origin[1]) * (b[0] - origin[0])
+}
+
+const pointsEqual = (a: vec2, b: vec2) =>
+  Math.abs(a[0] - b[0]) < CONVEX_HULL_EPSILON && Math.abs(a[1] - b[1]) < CONVEX_HULL_EPSILON
+
+const ensureCounterClockwiseOrder = (points: vec2[]): vec2[] => {
+  if (points.length <= 2) return [...points]
+  const polygon = { points }
+  if (polygonIsClockwise(polygon)) {
+    return [...points].reverse()
+  }
+  return [...points]
+}
+
+const advanceIndex = (index: number, n: number) => (index + 1) % n
+const retreatIndex = (index: number, n: number) => (index - 1 + n) % n
+
+const buildChain = (chainPoints: vec2[], keepRightTurns: boolean) => {
+  const chain: vec2[] = []
+  for (const point of chainPoints) {
+    while (chain.length >= 2) {
+      const cross = vectorCross(chain[chain.length - 2], chain[chain.length - 1], point)
+      if (keepRightTurns ? cross > -CONVEX_HULL_EPSILON : cross < CONVEX_HULL_EPSILON) {
+        chain.pop()
+      } else {
+        break
+      }
+    }
+    if (chain.length === 0 || !pointsEqual(chain[chain.length - 1], point)) {
+      chain.push(point)
+    }
+  }
+  return chain
+}
+
+// Linear-time convex hull for simple polygons (Yao & Graham, 1982)
+function convexHullOfSimplePolygon(points: vec2[]): vec2[] {
+  const n = points.length
+  if (n <= 3) {
+    return ensureCounterClockwiseOrder(points)
+  }
+
+  const orderedPoints = ensureCounterClockwiseOrder(points)
+
+  let leftIndex = 0
+  let rightIndex = 0
+  for (let i = 1; i < orderedPoints.length; i++) {
+    const current = orderedPoints[i]
+    const left = orderedPoints[leftIndex]
+    const right = orderedPoints[rightIndex]
+    if (current[0] < left[0] || (Math.abs(current[0] - left[0]) < CONVEX_HULL_EPSILON && current[1] < left[1])) {
+      leftIndex = i
+    }
+    if (current[0] > right[0] || (Math.abs(current[0] - right[0]) < CONVEX_HULL_EPSILON && current[1] > right[1])) {
+      rightIndex = i
+    }
+  }
+
+  if (pointsEqual(orderedPoints[leftIndex], orderedPoints[rightIndex])) {
+    return [orderedPoints[leftIndex]]
+  }
+
+  const upperChainPoints: vec2[] = []
+  let index = leftIndex
+  while (true) {
+    upperChainPoints.push(orderedPoints[index])
+    if (index === rightIndex) break
+    index = advanceIndex(index, orderedPoints.length)
+  }
+
+  const lowerChainPoints: vec2[] = []
+  index = leftIndex
+  while (true) {
+    lowerChainPoints.push(orderedPoints[index])
+    if (index === rightIndex) break
+    index = retreatIndex(index, orderedPoints.length)
+  }
+
+  const upperHull = buildChain(upperChainPoints, true)
+  const lowerHull = buildChain(lowerChainPoints, false)
+
+  const combined = [...upperHull]
+  for (let i = 1; i < lowerHull.length - 1; i++) {
+    combined.push(lowerHull[i])
+  }
+
+  return combined
+}
+
+export function convexHullOfPolygonWithHoles(polygon: PolygonWithHoles2D): Polygon2D {
+  const hullPoints = convexHullOfSimplePolygon(polygon.outer.points)
+  return { points: hullPoints }
+}
