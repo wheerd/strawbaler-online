@@ -13,6 +13,7 @@ import {
   type Polygon2D,
   arePolygonsIntersecting,
   calculatePolygonArea,
+  convexHullOfPolygonWithHoles,
   isPointInPolygon,
   offsetPolygon,
   polygonEdgeOffset,
@@ -30,6 +31,54 @@ vi.mock('@/shared/geometry/clipperInstance', () => {
     pathDToPoints: vi.fn(),
     getClipperModule: vi.fn()
   }
+})
+
+describe('convexHullOfPolygonWithHoles', () => {
+  const sortPoints = (points: vec2[]) =>
+    points.map(point => Array.from(point)).sort(([ax, ay], [bx, by]) => (ax === bx ? ay - by : ax - bx))
+
+  it('returns the rectangle corners for a convex polygon', () => {
+    const rectangle = {
+      outer: {
+        points: [vec2.fromValues(0, 0), vec2.fromValues(1000, 0), vec2.fromValues(1000, 500), vec2.fromValues(0, 500)]
+      },
+      holes: []
+    }
+
+    const hull = convexHullOfPolygonWithHoles(rectangle)
+
+    expect(sortPoints(hull.points)).toEqual([
+      [0, 0],
+      [0, 500],
+      [1000, 0],
+      [1000, 500]
+    ])
+  })
+
+  it('removes concave interior points while maintaining hull order', () => {
+    const concave = {
+      outer: {
+        points: [
+          vec2.fromValues(0, 0),
+          vec2.fromValues(2000, 0),
+          vec2.fromValues(2000, 500),
+          vec2.fromValues(1000, 250),
+          vec2.fromValues(2000, 1500),
+          vec2.fromValues(0, 1500)
+        ]
+      },
+      holes: []
+    }
+
+    const hull = convexHullOfPolygonWithHoles(concave)
+
+    expect(sortPoints(hull.points)).toEqual([
+      [0, 0],
+      [0, 1500],
+      [2000, 0],
+      [2000, 1500]
+    ])
+  })
 })
 
 const createPointDMock = vi.mocked(createPointD)

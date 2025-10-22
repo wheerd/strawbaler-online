@@ -154,13 +154,19 @@ describe('polygonPartInfo', () => {
     }
 
     const info = polygonPartInfo('ring-beam segment', polygon, 'xy', 200)
-    console.log(info)
 
     expect(info.type).toBe('ring-beam segment')
     expect(info.partId).toBe('200x500x1000')
-    expect(Array.from(info.size)).toEqual([200, 500, 1000])
-    expect(info.polygonPlane).toBe('xy')
-    expect(info.polygon?.points).toEqual(polygon.outer.points)
+    expect(Array.from(info.size)).toEqual([200, 500, 1000]) // Order of dimensions: z y x
+    expect(info.polygonPlane).toBe('yz') // Hence xy -> yz
+
+    // Flipped xy
+    expect(info.polygon?.points).toEqual([
+      vec2.fromValues(0, 0),
+      vec2.fromValues(0, 1000),
+      vec2.fromValues(500, 1000),
+      vec2.fromValues(500, 0)
+    ])
   })
 
   it('handles negative thickness values', () => {

@@ -392,7 +392,13 @@ const buildChain = (chainPoints: vec2[], keepRightTurns: boolean) => {
   for (const point of chainPoints) {
     while (chain.length >= 2) {
       const cross = vectorCross(chain[chain.length - 2], chain[chain.length - 1], point)
-      if (keepRightTurns ? cross > -CONVEX_HULL_EPSILON : cross < CONVEX_HULL_EPSILON) {
+      const shouldRemove =
+        keepRightTurns && cross < -CONVEX_HULL_EPSILON
+          ? true
+          : !keepRightTurns && cross > CONVEX_HULL_EPSILON
+            ? true
+            : Math.abs(cross) <= CONVEX_HULL_EPSILON
+      if (shouldRemove) {
         chain.pop()
       } else {
         break
@@ -474,7 +480,7 @@ export interface MinimumBoundingBox {
 function minimumAreaBoundingBoxFromPoints(points: vec2[]): MinimumBoundingBox {
   if (points.length < 3) throw new Error('Polygon requires at least 3 points')
   const hull = convexHullOfSimplePolygon(points)
-  if (points.length < 3) throw new Error('Convex hull of polygon requires at least 3 points')
+  if (hull.length < 3) throw new Error('Convex hull of polygon requires at least 3 points')
 
   let bestArea = Infinity
   let bestSize = vec2.fromValues(0, 0)
