@@ -90,26 +90,19 @@ export function ConstructionPlanModal({
         onValueChange={value => setActiveTab(value as 'plan' | 'parts')}
         style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
       >
-        <Tabs.List size="1">
-          <Tabs.Trigger value="plan">Plan & Issues</Tabs.Trigger>
-          <Tabs.Trigger value="parts">Parts List</Tabs.Trigger>
-        </Tabs.List>
+        <div className="pb-[2px]">
+          <Tabs.List size="1">
+            <Tabs.Trigger value="plan">Plan & Issues</Tabs.Trigger>
+            <Tabs.Trigger value="parts">Parts List</Tabs.Trigger>
+          </Tabs.List>
+        </div>
 
-        <Tabs.Content
-          value="plan"
-          style={{
-            flex: '1 1 100%',
-            minHeight: 0,
-            padding: 'var(--space-1)',
-            flexDirection: 'column',
-            gap: 'var(--space-1)'
-          }}
-        >
+        <Tabs.Content value="plan">
           <Flex direction="column" gap="3" style={{ flex: 1, minHeight: 0 }} className="overflow-hidden">
             <div
               ref={containerRef}
               className="overflow-hidden border border-gray-6 rounded-2"
-              style={{ flex: 1, minHeight: 0, height: '100%' }}
+              style={{ flex: '1 1 100%', minHeight: 0, height: '100%' }}
             >
               {modelPromise ? (
                 <Suspense fallback={<PlanSkeleton />}>
@@ -133,15 +126,7 @@ export function ConstructionPlanModal({
           </Flex>
         </Tabs.Content>
 
-        <Tabs.Content
-          value="parts"
-          style={{
-            flex: '1 1 100%',
-            minHeight: 0,
-            padding: 'var(--space-3)',
-            overflow: 'hidden'
-          }}
-        >
+        <Tabs.Content value="parts">
           <Box width="100%" height="100%" style={{ overflow: 'auto' }}>
             {partsListPromise ? (
               <Suspense fallback={<PartsSkeleton />}>

@@ -1,11 +1,11 @@
 import { Badge, Card, Flex, Heading, Table, Text, Tooltip } from '@radix-ui/themes'
-import { vec3 } from 'gl-matrix'
 import React, { useMemo } from 'react'
 
+import { getMaterialTypeIcon, getMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
 import type { Material } from '@/construction/materials/material'
 import { useMaterialsMap } from '@/construction/materials/store'
 import type { PartItem, PartsList } from '@/construction/parts'
-import { formatLength } from '@/shared/utils/formatLength'
+import type { Length } from '@/shared/geometry'
 
 interface ConstructionPartsListProps {
   partsList: PartsList
@@ -17,14 +17,44 @@ type RowMetrics = {
   totalLength?: number
 }
 
+const formatLengthInMeters = (length: Length): string => {
+  return `${(length / 1000).toFixed(3)}m`
+}
+
 const formatVolume = (volume: number): string => {
   if (volume === 0) return '0m³'
   const cubicMeters = volume / 1_000_000_000
   return `${cubicMeters.toFixed(2)}m³`
 }
 
-const formatSize = (size: vec3): string =>
-  `${formatLength(size[0])} × ${formatLength(size[1])} × ${formatLength(size[2])}`
+function MaterialTypeIndicator({ material, size = 18 }: { material: Material; size?: number }) {
+  const Icon = getMaterialTypeIcon(material.type)
+  if (!Icon) return null
+  const iconSize = Math.max(size - 6, 8)
+  return (
+    <div
+      title={getMaterialTypeName(material.type)}
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        backgroundColor: material.color,
+        borderRadius: '4px',
+        border: '1px solid var(--gray-7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0
+      }}
+      aria-hidden
+    >
+      <Icon
+        width={String(iconSize)}
+        height={String(iconSize)}
+        style={{ color: 'white', filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }}
+      />
+    </div>
+  )
+}
 
 function PartIssue({ issue }: { issue?: string }) {
   if (!issue) return null
@@ -46,66 +76,89 @@ function MaterialSummaryRow({
 }) {
   return (
     <Table.Row>
-      <Table.Cell>
-        <Flex align="center" gap="2">
-          <Badge color="gray" variant="soft" style={{ backgroundColor: material.color }}>
-            &nbsp;
-          </Badge>
-          <Text weight="medium">{material.name}</Text>
+      <Table.RowHeaderCell width="48px" justify="center">
+        <Flex justify="center">
+          <MaterialTypeIndicator material={material} />
         </Flex>
+      </Table.RowHeaderCell>
+      <Table.RowHeaderCell>
+        <Text weight="medium">{material.name}</Text>
+      </Table.RowHeaderCell>
+      <Table.Cell width="10em" justify="center">
+        {metrics.totalQuantity}
       </Table.Cell>
-      <Table.Cell>{metrics.totalQuantity}</Table.Cell>
-      <Table.Cell>{metrics.partCount}</Table.Cell>
-      <Table.Cell>{metrics.totalLength !== undefined ? formatLength(metrics.totalLength) : '—'}</Table.Cell>
-      <Table.Cell>{formatVolume(metrics.totalVolume)}</Table.Cell>
+      <Table.Cell width="10em" justify="center">
+        {metrics.partCount}
+      </Table.Cell>
+      <Table.Cell width="10em" justify="end">
+        {metrics.totalLength !== undefined ? formatLengthInMeters(metrics.totalLength) : '—'}
+      </Table.Cell>
+      <Table.Cell width="10em" justify="end">
+        {formatVolume(metrics.totalVolume)}
+      </Table.Cell>
     </Table.Row>
   )
 }
 
 function PartsTable({ material, parts }: { material: Material; parts: PartItem[] }) {
+  const crossSection =
+    material.type === 'dimensional'
+      ? `${formatLengthInMeters(material.width)} × ${formatLengthInMeters(material.thickness)}`
+      : null
+
   return (
     <Card variant="surface" size="2">
       <Flex direction="column" gap="3">
-        <Flex align="center" justify="between">
+        <Flex align="center" gap="3">
+          <MaterialTypeIndicator material={material} size={24} />
           <Heading size="4">{material.name}</Heading>
-          <Flex align="center" gap="2">
-            <Badge variant="soft" style={{ backgroundColor: material.color }}>
-              &nbsp;
+          {crossSection ? (
+            <Badge variant="soft" color="gray">
+              {crossSection}
             </Badge>
-            <Text size="2" color="gray">
-              {parts.length} part{parts.length === 1 ? '' : 's'}
-            </Text>
-          </Flex>
+          ) : null}
         </Flex>
 
         <Table.Root variant="surface" size="2" className="min-w-full">
           <Table.Header>
             <Table.Row>
-              <Table.ColumnHeaderCell>Label</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell width="5em" justify="center">
+                Label
+              </Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Type</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Dimensions</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Length</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Quantity</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Total Length</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Total Volume</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Elements</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell width="5em" justify="center">
+                Quantity
+              </Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell width="5em" justify="end">
+                Length
+              </Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell width="8em" justify="end">
+                Total Length
+              </Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell width="9em" justify="end">
+                Total Volume
+              </Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell width="5em" justify="center">
+                Status
+              </Table.ColumnHeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
             {parts.map(part => (
               <Table.Row key={part.partId}>
-                <Table.Cell>
+                <Table.RowHeaderCell justify="center">
                   <Text weight="medium">{part.label}</Text>
-                </Table.Cell>
+                </Table.RowHeaderCell>
                 <Table.Cell>{part.type}</Table.Cell>
-                <Table.Cell>{formatSize(part.size)}</Table.Cell>
-                <Table.Cell>{part.length !== undefined ? formatLength(part.length) : '—'}</Table.Cell>
-                <Table.Cell>{part.quantity}</Table.Cell>
-                <Table.Cell>{part.totalLength !== undefined ? formatLength(part.totalLength) : '—'}</Table.Cell>
-                <Table.Cell>{formatVolume(part.totalVolume)}</Table.Cell>
-                <Table.Cell>{part.elements.length}</Table.Cell>
-                <Table.Cell>
+                <Table.Cell justify="center">{part.quantity}</Table.Cell>
+                <Table.Cell justify="end">
+                  {part.length !== undefined ? formatLengthInMeters(part.length) : '—'}
+                </Table.Cell>
+                <Table.Cell justify="end">
+                  {part.totalLength !== undefined ? formatLengthInMeters(part.totalLength) : '—'}
+                </Table.Cell>
+                <Table.Cell justify="end">{formatVolume(part.totalVolume)}</Table.Cell>
+                <Table.Cell justify="center">
                   <PartIssue issue={part.issue} />
                 </Table.Cell>
               </Table.Row>
@@ -156,11 +209,12 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
           <Table.Root variant="surface" size="2" className="min-w-full">
             <Table.Header>
               <Table.Row>
+                <Table.ColumnHeaderCell justify="center">Type</Table.ColumnHeaderCell>
                 <Table.ColumnHeaderCell>Material</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Total Quantity</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Different Parts</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Total Length</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Total Volume</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell justify="center">Total Quantity</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell justify="center">Different Parts</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell justify="end">Total Length</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell justify="end">Total Volume</Table.ColumnHeaderCell>
               </Table.Row>
             </Table.Header>
             <Table.Body>
