@@ -22,6 +22,7 @@ export interface BaseModalProps {
   'aria-describedby'?: string
   resetKeys?: unknown[]
   className?: string
+  style?: React.CSSProperties
 }
 
 export function BaseModal({
@@ -40,7 +41,8 @@ export function BaseModal({
   onEscapeKeyDown,
   'aria-describedby': ariaDescribedBy,
   resetKeys = [],
-  className
+  className,
+  style
 }: BaseModalProps): React.JSX.Element {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -59,6 +61,7 @@ export function BaseModal({
           }
           e.stopPropagation()
         }}
+        style={style}
       >
         <Dialog.Title>
           <Flex justify="between" align="center">

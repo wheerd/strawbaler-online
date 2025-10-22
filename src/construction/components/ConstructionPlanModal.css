@@ -1,0 +1,3 @@
+.plan-modal .rt-TabsContent[data-state='active'] {
+  display: flex;
+}

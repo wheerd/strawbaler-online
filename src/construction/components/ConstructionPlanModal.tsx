@@ -1,5 +1,5 @@
 import { CrossCircledIcon } from '@radix-ui/react-icons'
-import { Box, Callout, Flex, Grid, Skeleton, Spinner, Tabs } from '@radix-ui/themes'
+import { Box, Callout, Flex, Skeleton, Spinner, Tabs } from '@radix-ui/themes'
 import React, { Suspense, use, useEffect, useState } from 'react'
 
 import { ConstructionPartsList } from '@/construction/components/ConstructionPartsList'
@@ -11,6 +11,7 @@ import { BaseModal } from '@/shared/components/BaseModal'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
 import { ConstructionPlan, type ViewOption, type VisibilityToggleConfig } from './ConstructionPlan'
+import './ConstructionPlanModal.css'
 
 export interface ConstructionModalProps {
   title: string
@@ -81,22 +82,34 @@ export function ConstructionPlanModal({
       height="calc(100vh - 2 * var(--space-6))"
       maxHeight="calc(100vh - 2 * var(--space-6))"
       resetKeys={[refreshKey]}
+      style={{ overflow: 'hidden' }}
+      className="plan-modal"
     >
       <Tabs.Root
-        style={{ height: '100%' }}
         value={activeTab}
         onValueChange={value => setActiveTab(value as 'plan' | 'parts')}
+        style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
       >
         <Tabs.List size="1">
           <Tabs.Trigger value="plan">Plan & Issues</Tabs.Trigger>
           <Tabs.Trigger value="parts">Parts List</Tabs.Trigger>
         </Tabs.List>
 
-        <Tabs.Content value="plan">
-          <Grid rows="1fr auto" gap="3" height="100%" className="overflow-hidden">
+        <Tabs.Content
+          value="plan"
+          style={{
+            flex: '1 1 100%',
+            minHeight: 0,
+            padding: 'var(--space-1)',
+            flexDirection: 'column',
+            gap: 'var(--space-1)'
+          }}
+        >
+          <Flex direction="column" gap="3" style={{ flex: 1, minHeight: 0 }} className="overflow-hidden">
             <div
               ref={containerRef}
-              className="relative flex-1 min-h-[300px] overflow-hidden border border-gray-6 rounded-2"
+              className="overflow-hidden border border-gray-6 rounded-2"
+              style={{ flex: 1, minHeight: 0, height: '100%' }}
             >
               {modelPromise ? (
                 <Suspense fallback={<PlanSkeleton />}>
@@ -110,18 +123,26 @@ export function ConstructionPlanModal({
               ) : null}
             </div>
 
-            <Box flexShrink="0">
+            <Box flexShrink="0" style={{ minHeight: 0 }}>
               {modelPromise ? (
                 <Suspense fallback={<PlanSkeleton />}>
                   <IssueDescriptionPanel modelPromise={modelPromise} />
                 </Suspense>
               ) : null}
             </Box>
-          </Grid>
+          </Flex>
         </Tabs.Content>
 
-        <Tabs.Content value="parts" style={{ flex: 1, minHeight: 0 }}>
-          <Box height="100%" className="overflow-hidden">
+        <Tabs.Content
+          value="parts"
+          style={{
+            flex: '1 1 100%',
+            minHeight: 0,
+            padding: 'var(--space-3)',
+            overflow: 'hidden'
+          }}
+        >
+          <Box width="100%" height="100%" style={{ overflow: 'auto' }}>
             {partsListPromise ? (
               <Suspense fallback={<PartsSkeleton />}>
                 <PartsTabContent partsListPromise={partsListPromise} />
@@ -178,7 +199,7 @@ function PartsTabContent({ partsListPromise }: { partsListPromise: Promise<Parts
 
   if (partsList == null) {
     return (
-      <Flex align="center" justify="center" height="100%">
+      <Flex>
         <Callout.Root color="red" size="2">
           <Callout.Icon>
             <CrossCircledIcon />
