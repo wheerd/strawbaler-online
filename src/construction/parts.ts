@@ -1,18 +1,20 @@
-import { vec3 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 
 import type { ConstructionElementId } from '@/construction/elements'
 import type { MaterialId } from '@/construction/materials/material'
 import { getMaterialById } from '@/construction/materials/store'
 import type { ConstructionModel } from '@/construction/model'
-import type { Length, Polygon2D, Volume } from '@/shared/geometry'
+import type { Length, Plane3D, Polygon2D, PolygonWithHoles2D, Volume } from '@/shared/geometry'
+import { minimumAreaBoundingBoxOfPolygonWithHoles } from '@/shared/geometry'
 
 export type PartId = string & { readonly brand: unique symbol }
 
 export interface PartInfo {
   partId: PartId
   type: string
-  size: vec3 // Thickness, width, length sorted from smallest to largest
+  size: vec3 // Dimensions in millimeters, sorted from smallest to largest
   polygon?: Polygon2D // Normalized within the bounding box defined by width and length
+  polygonPlane?: Plane3D // The plane of the polygon relative to the sorted size
 }
 
 export const dimensionalPartInfo = (type: string, size: vec3): PartInfo => {
@@ -21,6 +23,51 @@ export const dimensionalPartInfo = (type: string, size: vec3): PartInfo => {
     .sort((a, b) => a - b)
   const partId = sortedDimensions.join('x') as PartId
   return { partId, type, size: vec3.fromValues(sortedDimensions[0], sortedDimensions[1], sortedDimensions[2]) }
+}
+
+export const polygonPartInfo = (
+  type: string,
+  polygon: PolygonWithHoles2D,
+  plane: Plane3D,
+  thickness: Length
+): PartInfo => {
+  const { size } = minimumAreaBoundingBoxOfPolygonWithHoles(polygon)
+  const width = Math.max(size[0], 0)
+  const height = Math.max(size[1], 0)
+  const absoluteThickness = Math.abs(thickness)
+
+  const dimensions =
+    plane === 'xy'
+      ? [width, height, absoluteThickness]
+      : plane === 'xz'
+        ? [width, absoluteThickness, height]
+        : [absoluteThickness, width, height]
+  const dimTypes = plane === 'xy' ? 'xyz' : plane === 'xz' ? 'xzy' : 'zxy'
+  const combined: [number, string][] = [
+    [dimensions[0], dimTypes[0]],
+    [dimensions[1], dimTypes[1]],
+    [dimensions[2], dimTypes[2]]
+  ]
+
+  const sorted = combined.sort((a, b) => a[0] - b[0])
+  const dimOrdered = sorted.map(s => s[1])
+  const xIndex = dimOrdered.indexOf('x')
+  const yIndex = dimOrdered.indexOf('y')
+  const flipXY = yIndex < xIndex
+  const newPlane = `${'xyz'[Math.min(xIndex, yIndex)]}${'xyz'[Math.max(xIndex, yIndex)]}` as Plane3D
+  const normalizedPolygon: Polygon2D = {
+    points: polygon.outer.points.map(p => (flipXY ? vec2.fromValues(p[1], p[0]) : vec2.fromValues(p[0], p[1])))
+  }
+
+  const partId = sorted.map(([value, _]) => Math.round(value)).join('x') as PartId
+
+  return {
+    partId,
+    type,
+    size: vec3.fromValues(sorted[0][0], sorted[1][0], sorted[2][0]),
+    polygon: normalizedPolygon,
+    polygonPlane: newPlane
+  }
 }
 
 export interface MaterialParts {

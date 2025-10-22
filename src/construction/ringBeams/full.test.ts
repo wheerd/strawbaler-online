@@ -6,6 +6,7 @@ import type { Perimeter, PerimeterCorner } from '@/building/model/model'
 import { type ConstructionElement, type GroupOrElement } from '@/construction/elements'
 import type { MaterialId } from '@/construction/materials/material'
 import type { HighlightedPolygon } from '@/construction/model'
+import { polygonPartInfo } from '@/construction/parts'
 import type { ExtrudedPolygon } from '@/construction/shapes'
 import { TAG_PERIMETER_INSIDE, TAG_PERIMETER_OUTSIDE } from '@/construction/tags'
 import * as geometry from '@/shared/geometry'
@@ -130,6 +131,17 @@ describe('FullRingBeamAssembly', () => {
         expect(shape.polygon.outer.points).toHaveLength(4)
         expect(shape.plane).toBe('xy')
         expect(shape.thickness).toBe(defaultConfig.height)
+      })
+    })
+
+    it('attaches polygon part info to each element', () => {
+      const model = assembly.construct(perimeter, defaultConfig)
+
+      model.elements.forEach(element => {
+        assertConstructionElement(element)
+        const shape = element.shape as ExtrudedPolygon
+        const expectedPartInfo = polygonPartInfo('ring-beam', shape.polygon, shape.plane, shape.thickness)
+        expect(element.partInfo).toEqual(expectedPartInfo)
       })
     })
 

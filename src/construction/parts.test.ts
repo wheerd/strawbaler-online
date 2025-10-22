@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { createConstructionElement } from '@/construction/elements'
@@ -6,7 +6,13 @@ import { IDENTITY } from '@/construction/geometry'
 import { DEFAULT_MATERIALS, window as windowMaterial, wood360x60 } from '@/construction/materials/material'
 import { setMaterialsState } from '@/construction/materials/store'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
-import { type PartId, type PartInfo, dimensionalPartInfo, generatePartsList } from '@/construction/parts'
+import {
+  type PartId,
+  type PartInfo,
+  dimensionalPartInfo,
+  generatePartsList,
+  polygonPartInfo
+} from '@/construction/parts'
 import { createCuboidShape } from '@/construction/shapes'
 
 const createModel = (elements: ConstructionModel['elements']): ConstructionModel => {
@@ -135,5 +141,39 @@ describe('generatePartsList', () => {
     const partsList = generatePartsList(model)
 
     expect(Object.values(partsList)).toHaveLength(0)
+  })
+})
+
+describe('polygonPartInfo', () => {
+  it('derives part info from an axis-aligned polygon', () => {
+    const polygon = {
+      outer: {
+        points: [vec2.fromValues(0, 0), vec2.fromValues(1000, 0), vec2.fromValues(1000, 500), vec2.fromValues(0, 500)]
+      },
+      holes: []
+    }
+
+    const info = polygonPartInfo('ring-beam segment', polygon, 'xy', 200)
+    console.log(info)
+
+    expect(info.type).toBe('ring-beam segment')
+    expect(info.partId).toBe('200x500x1000')
+    expect(Array.from(info.size)).toEqual([200, 500, 1000])
+    expect(info.polygonPlane).toBe('xy')
+    expect(info.polygon?.points).toEqual(polygon.outer.points)
+  })
+
+  it('handles negative thickness values', () => {
+    const polygon = {
+      outer: {
+        points: [vec2.fromValues(0, 0), vec2.fromValues(2000, 0), vec2.fromValues(2000, 1000), vec2.fromValues(0, 1000)]
+      },
+      holes: []
+    }
+
+    const info = polygonPartInfo('ring-beam segment', polygon, 'xy', -150)
+
+    expect(info.partId).toBe('150x1000x2000')
+    expect(Array.from(info.size)).toEqual([150, 1000, 2000])
   })
 })

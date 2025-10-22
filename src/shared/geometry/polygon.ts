@@ -364,10 +364,21 @@ const vectorCross = (origin: vec2, a: vec2, b: vec2) => {
 const pointsEqual = (a: vec2, b: vec2) =>
   Math.abs(a[0] - b[0]) < CONVEX_HULL_EPSILON && Math.abs(a[1] - b[1]) < CONVEX_HULL_EPSILON
 
+const signedArea = (points: vec2[]): number => {
+  if (points.length < 3) return 0
+  let sum = 0
+  for (let i = 0; i < points.length; i++) {
+    const current = points[i]
+    const next = points[(i + 1) % points.length]
+    sum += current[0] * next[1] - next[0] * current[1]
+  }
+  return sum * 0.5
+}
+
 const ensureCounterClockwiseOrder = (points: vec2[]): vec2[] => {
   if (points.length <= 2) return [...points]
-  const polygon = { points }
-  if (polygonIsClockwise(polygon)) {
+  const area = signedArea(points)
+  if (area < 0) {
     return [...points].reverse()
   }
   return [...points]
