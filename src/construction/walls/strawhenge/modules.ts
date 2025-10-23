@@ -3,10 +3,10 @@ import { vec3 } from 'gl-matrix'
 import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
-import { dimensionalPartInfo } from '@/construction/parts'
-import { type ConstructionResult, yieldElement, yieldMeasurement } from '@/construction/results'
+import { type PartId, type PartInfo, dimensionalPartInfo } from '@/construction/parts'
+import { type ConstructionResult, yieldAsGroup, yieldElement, yieldMeasurement } from '@/construction/results'
 import { createCuboidShape } from '@/construction/shapes'
-import { TAG_INFILL, TAG_MODULE_WIDTH } from '@/construction/tags'
+import { TAG_INFILL, TAG_MODULE, TAG_MODULE_WIDTH } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
 
 export interface BaseModuleConfig {
@@ -330,11 +330,18 @@ function* constructDoubleFrameModule(
   })
 }
 
-export function constructModule(position: vec3, size: vec3, config: ModuleConfig): Generator<ConstructionResult> {
+export function* constructModule(position: vec3, size: vec3, config: ModuleConfig): Generator<ConstructionResult> {
+  const configStr = JSON.stringify(config, Object.keys(config).sort())
+  const sizeStr = Array.from(size).map(Math.round).join('x')
+  const partInfo: PartInfo = {
+    partId: `module_${configStr}_${sizeStr}` as PartId,
+    type: `module-${config.type}`,
+    size
+  }
   if (config.type === 'single') {
-    return constructSingleFrameModule(position, size, config)
+    yield* yieldAsGroup(constructSingleFrameModule(position, size, config), [TAG_MODULE], undefined, partInfo)
   } else if (config.type === 'double') {
-    return constructDoubleFrameModule(position, size, config)
+    yield* yieldAsGroup(constructDoubleFrameModule(position, size, config), [TAG_MODULE], undefined, partInfo)
   } else {
     throw new Error('Invalid module type')
   }

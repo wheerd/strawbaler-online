@@ -559,11 +559,11 @@ export function canonicalPolygonKey(points: vec2[]): string {
   // Turn angles alpha_i between e_i and e_{i+1}
   const A: number[] = new Array(n)
   for (let i = 0; i < n; i++) {
-    const a = e[i],
-      b = e[(i + 1) % n]
+    const a = e[i]
+    const b = e[(i + 1) % n]
     const cross = a[0] * b[1] - a[1] * b[0]
     const dot = a[0] * b[0] + a[1] * b[1]
-    let angle = Math.atan2(cross, dot) // in (-pi, pi]
+    const angle = Math.atan2(cross, dot) // in (-pi, pi]
     A[i] = radiansToDegrees(angle)
   }
 
@@ -608,7 +608,10 @@ export function canonicalPolygonKey(points: vec2[]): string {
 }
 
 /** Pair of (edge length, turn angle). */
-type Pair = { l: number; a: number }
+interface Pair {
+  l: number
+  a: number
+}
 
 /** Lexicographic comparator for Pair. */
 function cmpPair(x: Pair, y: Pair): number {
@@ -628,9 +631,9 @@ function minimalRotationPairs(arr: Pair[]): Pair[] {
   const n = arr.length
   if (n === 0) return []
   // Compare arr[i+k] vs arr[j+k] cyclically
-  let i = 0,
-    j = 1,
-    k = 0
+  let i = 0
+  let j = 1
+  let k = 0
   while (i < n && j < n && k < n) {
     const ai = arr[(i + k) % n]
     const aj = arr[(j + k) % n]

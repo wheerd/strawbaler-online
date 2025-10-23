@@ -102,26 +102,30 @@ export interface MaterialParts {
   totalQuantity: number
   totalVolume: Volume
   totalLength?: Length
-  parts: Record<PartId, PartItem>
+  parts: Record<PartId, MaterialPartItem>
 }
 
 export interface PartItem {
   partId: PartId
   type: string
   label: string // A, B, C, ...
-  material: MaterialId
   size: vec3
   elements: ConstructionElementId[]
+  quantity: number
+}
+
+export interface MaterialPartItem extends PartItem {
+  material: MaterialId
   totalVolume: Volume
   length?: Length
   totalLength?: Length
-  quantity: number
   issue?: PartIssue
   polygon?: Polygon2D
   polygonPlane?: Plane3D
 }
 
-export type PartsList = Record<MaterialId, MaterialParts>
+export type MaterialPartsList = Record<MaterialId, MaterialParts>
+export type VirtualPartsList = Record<PartId, PartItem>
 
 const indexToLabel = (index: number): string => {
   const alphabetLength = 26
@@ -177,8 +181,8 @@ const computeDimensionalDetails = (size: vec3, availableLengths: Length[], width
   return { length, issue }
 }
 
-export const generatePartsList = (model: ConstructionModel): PartsList => {
-  const partsList: PartsList = {}
+export const generateMaterialPartsList = (model: ConstructionModel): MaterialPartsList => {
+  const partsList: MaterialPartsList = {}
   const labelCounters = new Map<MaterialId, number>()
 
   const ensureMaterialEntry = (materialId: MaterialId): MaterialParts => {
@@ -249,7 +253,7 @@ export const generatePartsList = (model: ConstructionModel): PartsList => {
     const label = indexToLabel(labelIndex)
     labelCounters.set(material, labelIndex + 1)
 
-    const partItem: PartItem = {
+    const partItem: MaterialPartItem = {
       partId,
       type: partInfo.type,
       label,
@@ -272,6 +276,51 @@ export const generatePartsList = (model: ConstructionModel): PartsList => {
     materialEntry.parts[partId] = partItem
     materialEntry.totalQuantity += 1
     materialEntry.totalVolume += volume
+  }
+
+  for (const element of model.elements) {
+    processElement(element)
+  }
+
+  return partsList
+}
+
+export const generateVirtualPartsList = (model: ConstructionModel): VirtualPartsList => {
+  const partsList: VirtualPartsList = {}
+  let labelCounter = 0
+
+  const processElement = (element: ConstructionModel['elements'][number]) => {
+    if (!('children' in element)) return
+
+    for (const child of element.children) {
+      processElement(child)
+    }
+
+    const { partInfo, id } = element
+
+    if (!partInfo) return
+
+    const partId = partInfo.partId
+    const existingPart = partsList[partId]
+
+    if (existingPart) {
+      existingPart.quantity += 1
+      existingPart.elements.push(id)
+      return
+    }
+
+    const label = indexToLabel(labelCounter++)
+
+    const partItem: PartItem = {
+      partId,
+      type: partInfo.type,
+      label,
+      size: vec3.clone(partInfo.size),
+      elements: [id],
+      quantity: 1
+    }
+
+    partsList[partId] = partItem
   }
 
   for (const element of model.elements) {

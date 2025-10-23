@@ -4,8 +4,7 @@ import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
 import type { ConstructionModel } from '@/construction/model'
 import { constructOpeningFrame } from '@/construction/openings/openings'
 import type { ConstructionResult } from '@/construction/results'
-import { aggregateResults, yieldAsGroup } from '@/construction/results'
-import { TAG_MODULE } from '@/construction/tags'
+import { aggregateResults } from '@/construction/results'
 import type { ModulesWallConfig, WallAssembly } from '@/construction/walls'
 import { infillWallArea } from '@/construction/walls/infill/infill'
 import { type WallStoreyContext, segmentedWallConstruction } from '@/construction/walls/segmentation'
@@ -34,7 +33,7 @@ export function* moduleWallArea(
   const end = position[0] + size[0] - (startAtEnd ? 0 : remainingWidth)
   for (let x = start; x < end; x += module.width) {
     const modulePosition = vec3.fromValues(x, position[1], position[2])
-    yield* yieldAsGroup(constructModule(modulePosition, moduleSize, module), [TAG_MODULE])
+    yield* constructModule(modulePosition, moduleSize, module)
   }
   if (remainingWidth > 0) {
     const remainingPosition = vec3.fromValues(startAtEnd ? position[0] : end, position[1], position[2])

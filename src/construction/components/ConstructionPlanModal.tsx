@@ -5,8 +5,8 @@ import React, { Suspense, use, useEffect, useState } from 'react'
 import { ConstructionPartsList } from '@/construction/components/ConstructionPartsList'
 import { IssueDescriptionPanel } from '@/construction/components/IssueDescriptionPanel'
 import type { ConstructionModel } from '@/construction/model'
-import type { PartsList } from '@/construction/parts'
-import { generatePartsList } from '@/construction/parts'
+import type { MaterialPartsList } from '@/construction/parts'
+import { generateMaterialPartsList } from '@/construction/parts'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
@@ -33,7 +33,7 @@ export function ConstructionPlanModal({
   const [modelPromise, setModelPromise] = useState<Promise<ConstructionModel | null> | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'plan' | 'parts'>('plan')
-  const [partsListPromise, setPartsListPromise] = useState<Promise<PartsList | null> | null>(null)
+  const [partsListPromise, setPartsListPromise] = useState<Promise<MaterialPartsList | null> | null>(null)
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open)
@@ -64,7 +64,7 @@ export function ConstructionPlanModal({
     if (!modelPromise) return
     setPartsListPromise(prev => {
       if (prev) return prev
-      return modelPromise.then(model => (model ? generatePartsList(model) : null))
+      return modelPromise.then(model => (model ? generateMaterialPartsList(model) : null))
     })
   }, [activeTab, isOpen, modelPromise])
 
@@ -179,7 +179,7 @@ function ConstructionPlanModalContent({
   )
 }
 
-function PartsTabContent({ partsListPromise }: { partsListPromise: Promise<PartsList | null> }) {
+function PartsTabContent({ partsListPromise }: { partsListPromise: Promise<MaterialPartsList | null> }) {
   const partsList = use(partsListPromise)
 
   if (partsList == null) {

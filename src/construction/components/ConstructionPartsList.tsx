@@ -6,12 +6,12 @@ import React, { useCallback, useMemo, useRef } from 'react'
 import { getMaterialTypeIcon, getMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
 import type { Material } from '@/construction/materials/material'
 import { useMaterialsMap } from '@/construction/materials/store'
-import type { PartItem, PartsList } from '@/construction/parts'
+import type { MaterialPartItem, MaterialPartsList } from '@/construction/parts'
 import { boundsFromPoints } from '@/shared/geometry'
 import type { Length, Polygon2D } from '@/shared/geometry'
 
 interface ConstructionPartsListProps {
-  partsList: PartsList
+  partsList: MaterialPartsList
 }
 
 interface RowMetrics {
@@ -168,9 +168,9 @@ function MaterialSummaryRow({
   )
 }
 
-type PartsTableProps = {
+interface PartsTableProps {
   material: Material
-  parts: PartItem[]
+  parts: MaterialPartItem[]
   onBackToTop: () => void
 }
 

@@ -4,8 +4,8 @@ import React, { Suspense, use, useCallback, useEffect, useState } from 'react'
 
 import { ConstructionPartsList } from '@/construction/components/ConstructionPartsList'
 import type { ConstructionModel } from '@/construction/model'
-import type { PartsList } from '@/construction/parts'
-import { generatePartsList } from '@/construction/parts'
+import type { MaterialPartsList } from '@/construction/parts'
+import { generateMaterialPartsList } from '@/construction/parts'
 import { BaseModal } from '@/shared/components/BaseModal'
 
 export interface ConstructionPartsListModalProps {
@@ -22,13 +22,13 @@ export function ConstructionPartsListModal({
   refreshKey
 }: ConstructionPartsListModalProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false)
-  const [partsListPromise, setPartsListPromise] = useState<Promise<PartsList | null> | null>(null)
+  const [partsListPromise, setPartsListPromise] = useState<Promise<MaterialPartsList | null> | null>(null)
 
   const loadPartsList = useCallback(
     () =>
       constructionModelFactory().then(model => {
         if (!model) return null
-        return generatePartsList(model)
+        return generateMaterialPartsList(model)
       }),
     [constructionModelFactory]
   )
@@ -77,7 +77,7 @@ export function ConstructionPartsListModal({
   )
 }
 
-function PartsListContent({ partsListPromise }: { partsListPromise: Promise<PartsList | null> }) {
+function PartsListContent({ partsListPromise }: { partsListPromise: Promise<MaterialPartsList | null> }) {
   const partsList = use(partsListPromise)
 
   if (!partsList) {

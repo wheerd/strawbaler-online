@@ -1,7 +1,7 @@
 import { vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
-import type { ConstructionElement } from '@/construction/elements'
+import type { ConstructionElement, ConstructionGroup } from '@/construction/elements'
 import { aggregateResults } from '@/construction/results'
 
 import { type DoubleFrameModuleConfig, type SingleFrameModuleConfig, constructModule } from './modules'
@@ -24,17 +24,17 @@ describe('Module Construction', () => {
       const size = vec3.fromValues(920, 360, 2000)
 
       const results = Array.from(constructModule(position, size, config))
-      const aggregated = aggregateResults(results)
+      const group = aggregateResults(results).elements[0] as ConstructionGroup
 
       // Should have multiple elements
-      expect(aggregated.elements.length).toBeGreaterThan(0)
+      expect(group.children.length).toBeGreaterThan(0)
 
       // Check that we have four frame elements
-      const frameElements = aggregated.elements.filter(isConstructionElement).filter(el => el.material === 'wood')
+      const frameElements = group.children.filter(isConstructionElement).filter(el => el.material === 'wood')
       expect(frameElements).toHaveLength(4)
 
       // Check that we have one straw element
-      const strawElements = aggregated.elements.filter(isConstructionElement).filter(el => el.material === 'straw')
+      const strawElements = group.children.filter(isConstructionElement).filter(el => el.material === 'straw')
       expect(strawElements).toHaveLength(1)
     })
 
@@ -43,9 +43,9 @@ describe('Module Construction', () => {
       const size = vec3.fromValues(920, 360, 2000)
 
       const results = Array.from(constructModule(position, size, config))
-      const aggregated = aggregateResults(results)
+      const group = aggregateResults(results).elements[0] as ConstructionGroup
 
-      const frameElements = aggregated.elements.filter(isConstructionElement).filter(el => el.material === 'wood')
+      const frameElements = group.children.filter(isConstructionElement).filter(el => el.material === 'wood')
 
       // Should have frame elements at the expected positions
       const hasTopFrame = frameElements.some(el => el.bounds.min[2] >= 1900) // Near top
@@ -79,24 +79,22 @@ describe('Module Construction', () => {
       const size = vec3.fromValues(920, 360, 2000)
 
       const results = Array.from(constructModule(position, size, config))
-      const aggregated = aggregateResults(results)
+      const group = aggregateResults(results).elements[0] as ConstructionGroup
 
       // Check that we have eight frame elements
-      const frameElements = aggregated.elements.filter(isConstructionElement).filter(el => el.material === 'wood')
+      const frameElements = group.children.filter(isConstructionElement).filter(el => el.material === 'wood')
       expect(frameElements).toHaveLength(8)
 
       // Check that we have one straw element
-      const strawElements = aggregated.elements.filter(isConstructionElement).filter(el => el.material === 'straw')
+      const strawElements = group.children.filter(isConstructionElement).filter(el => el.material === 'straw')
       expect(strawElements).toHaveLength(1)
 
       // Check spacers count
-      const spacerElements = aggregated.elements
-        .filter(isConstructionElement)
-        .filter(el => el.material === 'spacer-wood')
+      const spacerElements = group.children.filter(isConstructionElement).filter(el => el.material === 'spacer-wood')
       expect(spacerElements).toHaveLength(2 * config.spacerCount)
 
       // Check infill segments count
-      const infillElements = aggregated.elements.filter(isConstructionElement).filter(el => el.material === 'infill')
+      const infillElements = group.children.filter(isConstructionElement).filter(el => el.material === 'infill')
       expect(infillElements).toHaveLength(2 * config.spacerCount)
     })
 
@@ -105,9 +103,9 @@ describe('Module Construction', () => {
       const size = vec3.fromValues(920, 360, 2000)
 
       const results = Array.from(constructModule(position, size, config))
-      const aggregated = aggregateResults(results)
+      const group = aggregateResults(results).elements[0] as ConstructionGroup
 
-      const spacers = aggregated.elements
+      const spacers = group.children
         .filter(isConstructionElement)
         .filter(el => el.material === 'spacer-wood')
         .sort((a, b) => a.bounds.min[2] - b.bounds.min[2])
