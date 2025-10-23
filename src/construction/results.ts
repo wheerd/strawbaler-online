@@ -1,4 +1,5 @@
 import { IDENTITY, type Transform } from '@/construction/geometry'
+import type { PartInfo } from '@/construction/parts'
 import type { Tag } from '@/construction/tags'
 import { type Bounds3D, mergeBounds } from '@/shared/geometry'
 
@@ -6,7 +7,6 @@ import {
   type ConstructionElement,
   type ConstructionElementId,
   type GroupOrElement,
-  type PartId,
   createConstructionElementId
 } from './elements'
 import type { RawMeasurement } from './measurements'
@@ -88,7 +88,7 @@ export function* yieldAsGroup(
   generator: Generator<ConstructionResult>,
   tags?: Tag[],
   transform: Transform = IDENTITY,
-  partId?: PartId
+  partInfo?: PartInfo
 ): Generator<ConstructionResult> {
   const children: GroupOrElement[] = []
   for (const result of generator) {
@@ -105,7 +105,7 @@ export function* yieldAsGroup(
       bounds: mergeBounds(...children.map(c => c.bounds)),
       transform,
       tags,
-      partId,
+      partInfo,
       children
     }
   }

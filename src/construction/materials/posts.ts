@@ -1,7 +1,9 @@
 import { vec3 } from 'gl-matrix'
 
-import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
+import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
+import { dimensionalPartInfo } from '@/construction/parts'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
+import { createCuboidShape } from '@/construction/shapes'
 import { TAG_POST } from '@/construction/tags'
 import { type Length, mergeBounds } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatLength'
@@ -51,9 +53,13 @@ const dimensionsMatch = (
 }
 
 function* constructFullPost(position: vec3, size: vec3, config: FullPostConfig): Generator<ConstructionResult> {
+  const postSize = vec3.fromValues(config.width, size[1], size[2])
   const postElement: ConstructionElement = createConstructionElement(
     config.material,
-    createCuboidShape(position, vec3.fromValues(config.width, size[1], size[2]))
+    createCuboidShape(position, postSize),
+    undefined,
+    [TAG_POST],
+    dimensionalPartInfo('post', postSize)
   )
 
   yield yieldElement(postElement)
@@ -93,20 +99,23 @@ function* constructDoublePost(position: vec3, size: vec3, config: DoublePostConf
     return
   }
 
+  const postSize = vec3.fromValues(config.width, config.thickness, size[2])
+  const partInfo = dimensionalPartInfo('post', postSize)
   const post1: ConstructionElement = createConstructionElement(
     config.material,
-    createCuboidShape(position, vec3.fromValues(config.width, config.thickness, size[2])),
+    createCuboidShape(position, postSize),
     undefined,
-    [TAG_POST]
+    [TAG_POST],
+    partInfo
   )
   yield yieldElement(post1)
 
   const post2: ConstructionElement = createConstructionElement(
     config.material,
-    createCuboidShape(
-      vec3.fromValues(position[0], position[1] + size[1] - config.thickness, position[2]),
-      vec3.fromValues(config.width, config.thickness, size[2])
-    )
+    createCuboidShape(vec3.fromValues(position[0], position[1] + size[1] - config.thickness, position[2]), postSize),
+    undefined,
+    [TAG_POST],
+    partInfo
   )
   yield yieldElement(post2)
 

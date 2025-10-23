@@ -5,7 +5,6 @@ import ExtrudedPolygon3D from '@/construction/viewer3d/components/ExtrudedPolygo
 import { useOpacityControl } from '@/construction/viewer3d/context/OpacityControlContext'
 
 import Cuboid3D from './Cuboid3D'
-import CutCuboid3D from './CutCuboid3D'
 
 interface ConstructionElement3DProps {
   element: ConstructionElement
@@ -58,8 +57,6 @@ function ConstructionElement3D({ element }: ConstructionElement3DProps): React.J
     <group position={threePosition} rotation={threeRotation}>
       {element.shape.type === 'cuboid' ? (
         <Cuboid3D shape={element.shape} color={color} opacity={opacity} />
-      ) : element.shape.type === 'cut-cuboid' ? (
-        <CutCuboid3D shape={element.shape} color={color} opacity={opacity} />
       ) : element.shape.type === 'polygon' ? (
         <ExtrudedPolygon3D shape={element.shape} color={color} opacity={opacity} />
       ) : null}

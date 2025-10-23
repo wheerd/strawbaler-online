@@ -1,9 +1,10 @@
 import { vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createConstructionElement, createCuboidShape } from '@/construction/elements'
+import { createConstructionElement } from '@/construction/elements'
 import { constructStraw } from '@/construction/materials/straw'
 import { aggregateResults, yieldElement } from '@/construction/results'
+import { createCuboidShape } from '@/construction/shapes'
 import type { StrawhengeWallConfig } from '@/construction/walls'
 import { infillWallArea } from '@/construction/walls/infill/infill'
 

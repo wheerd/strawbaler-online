@@ -1,10 +1,12 @@
 import { vec3 } from 'gl-matrix'
 
 import type { Opening } from '@/building/model/model'
-import { type ConstructionElement, createConstructionElement, createCuboidShape } from '@/construction/elements'
+import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
+import { dimensionalPartInfo } from '@/construction/parts'
 import { type ConstructionResult, yieldArea, yieldElement, yieldError, yieldMeasurement } from '@/construction/results'
+import { createCuboidShape } from '@/construction/shapes'
 import {
   TAG_HEADER,
   TAG_HEADER_HEIGHT,
@@ -72,11 +74,13 @@ export function* constructOpeningFrame(
     const headerTop = headerBottom + config.headerThickness
 
     // Create single header spanning entire segment width
+    const headerSize = vec3.fromValues(openingWidth, wallThickness, config.headerThickness)
     const headerElement: ConstructionElement = createConstructionElement(
       config.headerMaterial,
-      createCuboidShape([openingLeft, wallFront, headerBottom], [openingWidth, wallThickness, config.headerThickness]),
+      createCuboidShape([openingLeft, wallFront, headerBottom], headerSize),
       IDENTITY,
-      [TAG_HEADER]
+      [TAG_HEADER],
+      dimensionalPartInfo('header', headerSize)
     )
 
     yield yieldElement(headerElement)
@@ -113,14 +117,13 @@ export function* constructOpeningFrame(
     const sillBottom = sillTop - config.sillThickness
 
     // Create single sill spanning entire segment width
+    const sillSize = vec3.fromValues(openingWidth, wallThickness, config.sillThickness)
     const sillElement = createConstructionElement(
       config.sillMaterial,
-      createCuboidShape(
-        vec3.fromValues(openingLeft, wallFront, sillBottom),
-        vec3.fromValues(openingWidth, wallThickness, config.sillThickness)
-      ),
+      createCuboidShape(vec3.fromValues(openingLeft, wallFront, sillBottom), sillSize),
       IDENTITY,
-      [TAG_SILL]
+      [TAG_SILL],
+      dimensionalPartInfo('sill', sillSize)
     )
 
     yield yieldElement(sillElement)

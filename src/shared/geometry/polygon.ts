@@ -9,7 +9,7 @@ import {
   pathDToPoints
 } from '@/shared/geometry/clipperInstance'
 
-import { type Area, type Length, direction, perpendicular } from './basic'
+import { type Area, type Length, boundsFromPoints, direction, perpendicular, radiansToDegrees } from './basic'
 import { type LineSegment2D, lineIntersection } from './line'
 
 const COLINEAR_EPSILON = 1e-9
@@ -351,4 +351,316 @@ function onSegment(p: vec2, q: vec2, r: vec2): boolean {
     q[1] <= Math.max(p[1], r[1]) + COLINEAR_EPSILON &&
     q[1] + COLINEAR_EPSILON >= Math.min(p[1], r[1])
   )
+}
+
+// Convex hull
+
+const CONVEX_HULL_EPSILON = 1e-9
+
+const vectorCross = (origin: vec2, a: vec2, b: vec2) => {
+  return (a[0] - origin[0]) * (b[1] - origin[1]) - (a[1] - origin[1]) * (b[0] - origin[0])
+}
+
+const pointsEqual = (a: vec2, b: vec2) =>
+  Math.abs(a[0] - b[0]) < CONVEX_HULL_EPSILON && Math.abs(a[1] - b[1]) < CONVEX_HULL_EPSILON
+
+const signedArea = (points: vec2[]): number => {
+  if (points.length < 3) return 0
+  let sum = 0
+  for (let i = 0; i < points.length; i++) {
+    const current = points[i]
+    const next = points[(i + 1) % points.length]
+    sum += current[0] * next[1] - next[0] * current[1]
+  }
+  return sum * 0.5
+}
+
+const ensureCounterClockwiseOrder = (points: vec2[]): vec2[] => {
+  if (points.length <= 2) return [...points]
+  const area = signedArea(points)
+  if (area < 0) {
+    return [...points].reverse()
+  }
+  return [...points]
+}
+
+const advanceIndex = (index: number, n: number) => (index + 1) % n
+const retreatIndex = (index: number, n: number) => (index - 1 + n) % n
+
+const buildChain = (chainPoints: vec2[], keepRightTurns: boolean) => {
+  const chain: vec2[] = []
+  for (const point of chainPoints) {
+    while (chain.length >= 2) {
+      const cross = vectorCross(chain[chain.length - 2], chain[chain.length - 1], point)
+      const shouldRemove =
+        keepRightTurns && cross < -CONVEX_HULL_EPSILON
+          ? true
+          : !keepRightTurns && cross > CONVEX_HULL_EPSILON
+            ? true
+            : Math.abs(cross) <= CONVEX_HULL_EPSILON
+      if (shouldRemove) {
+        chain.pop()
+      } else {
+        break
+      }
+    }
+    if (chain.length === 0 || !pointsEqual(chain[chain.length - 1], point)) {
+      chain.push(point)
+    }
+  }
+  return chain
+}
+
+// Linear-time convex hull for simple polygons (Yao & Graham, 1982)
+function convexHullOfSimplePolygon(points: vec2[]): vec2[] {
+  const n = points.length
+  if (n <= 3) {
+    return ensureCounterClockwiseOrder(points)
+  }
+
+  const orderedPoints = ensureCounterClockwiseOrder(points)
+
+  let leftIndex = 0
+  let rightIndex = 0
+  for (let i = 1; i < orderedPoints.length; i++) {
+    const current = orderedPoints[i]
+    const left = orderedPoints[leftIndex]
+    const right = orderedPoints[rightIndex]
+    if (current[0] < left[0] || (Math.abs(current[0] - left[0]) < CONVEX_HULL_EPSILON && current[1] < left[1])) {
+      leftIndex = i
+    }
+    if (current[0] > right[0] || (Math.abs(current[0] - right[0]) < CONVEX_HULL_EPSILON && current[1] > right[1])) {
+      rightIndex = i
+    }
+  }
+
+  if (pointsEqual(orderedPoints[leftIndex], orderedPoints[rightIndex])) {
+    return [orderedPoints[leftIndex]]
+  }
+
+  const upperChainPoints: vec2[] = []
+  let index = leftIndex
+  while (true) {
+    upperChainPoints.push(orderedPoints[index])
+    if (index === rightIndex) break
+    index = advanceIndex(index, orderedPoints.length)
+  }
+
+  const lowerChainPoints: vec2[] = []
+  index = leftIndex
+  while (true) {
+    lowerChainPoints.push(orderedPoints[index])
+    if (index === rightIndex) break
+    index = retreatIndex(index, orderedPoints.length)
+  }
+
+  const upperHull = buildChain(upperChainPoints, true)
+  const lowerHull = buildChain(lowerChainPoints, false)
+
+  const combined = [...upperHull]
+  for (let i = 1; i < lowerHull.length - 1; i++) {
+    combined.push(lowerHull[i])
+  }
+
+  return combined
+}
+
+export function convexHullOfPolygonWithHoles(polygon: PolygonWithHoles2D): Polygon2D {
+  const hullPoints = convexHullOfSimplePolygon(polygon.outer.points)
+  return { points: hullPoints }
+}
+
+// Minimum bounding box
+
+export interface MinimumBoundingBox {
+  size: vec2
+  angle: number
+}
+
+function minimumAreaBoundingBoxFromPoints(points: vec2[]): MinimumBoundingBox {
+  if (points.length < 3) throw new Error('Polygon requires at least 3 points')
+  const hull = convexHullOfSimplePolygon(points)
+  if (hull.length < 3) throw new Error('Convex hull of polygon requires at least 3 points')
+
+  let bestArea = Infinity
+  let bestSize = vec2.fromValues(0, 0)
+  let bestAngle = 0
+
+  const rotatePoint = (point: vec2, sinAngle: number, cosAngle: number) => {
+    const x = point[0] * cosAngle - point[1] * sinAngle
+    const y = point[0] * sinAngle + point[1] * cosAngle
+    return vec2.fromValues(x, y)
+  }
+
+  for (let i = 0; i < hull.length; i++) {
+    const current = hull[i]
+    const next = hull[(i + 1) % hull.length]
+    const edgeX = next[0] - current[0]
+    const edgeY = next[1] - current[1]
+    if (Math.abs(edgeX) < CONVEX_HULL_EPSILON && Math.abs(edgeY) < CONVEX_HULL_EPSILON) {
+      continue
+    }
+
+    const angle = Math.atan2(edgeY, edgeX)
+    const sinAngle = Math.sin(-angle)
+    const cosAngle = Math.cos(-angle)
+
+    const rotatedHull = hull.map(p => rotatePoint(p, sinAngle, cosAngle))
+    const bounds = boundsFromPoints(rotatedHull)
+
+    const size = vec2.subtract(vec2.create(), bounds.max, bounds.min)
+    const area = size[0] * size[1]
+
+    if (area < bestArea) {
+      bestArea = area
+      bestSize = size
+      bestAngle = angle
+    }
+  }
+
+  return { size: bestSize, angle: bestAngle }
+}
+
+export function minimumAreaBoundingBox(polygon: Polygon2D): MinimumBoundingBox {
+  return minimumAreaBoundingBoxFromPoints(polygon.points)
+}
+
+export function minimumAreaBoundingBoxOfPolygonWithHoles(polygon: PolygonWithHoles2D): MinimumBoundingBox {
+  return minimumAreaBoundingBoxFromPoints(polygon.outer.points)
+}
+
+/**
+ * Compute a canonical (rotation/translation/start-index/mirror) invariant key
+ * for a simple polygon whose vertices are given in boundary order.
+ *
+ * @param points Boundary-ordered polygon vertices; last vertex is NOT repeated.
+ * @throws Error if polygon has <3 unique points or an edge is (near-)degenerate.
+ */
+export function canonicalPolygonKey(points: vec2[]): string {
+  const minEdge = 1e-12
+  const n = points.length
+
+  if (n < 3) throw new Error('Need at least 3 vertices.')
+  // Build edge vectors and lengths
+  const e: vec2[] = new Array(n)
+  const L: number[] = new Array(n)
+
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n
+    const ev = vec2.sub(vec2.create(), points[j], points[i])
+    const len = vec2.len(ev)
+    if (!(len > minEdge)) {
+      throw new Error(`Degenerate or near-zero length edge at index ${i}.`)
+    }
+    e[i] = ev
+    L[i] = len
+  }
+
+  // Turn angles alpha_i between e_i and e_{i+1}
+  const A: number[] = new Array(n)
+  for (let i = 0; i < n; i++) {
+    const a = e[i]
+    const b = e[(i + 1) % n]
+    const cross = a[0] * b[1] - a[1] * b[0]
+    const dot = a[0] * b[0] + a[1] * b[1]
+    const angle = Math.atan2(cross, dot) // in (-pi, pi]
+    A[i] = radiansToDegrees(angle)
+  }
+
+  // Build paired sequence S = [(L0, A0), ..., (L_{n-1}, A_{n-1})]
+  const S: Pair[] = new Array(n)
+  for (let i = 0; i < n; i++) {
+    S[i] = {
+      l: Math.round(L[i]),
+      a: Math.round(A[i])
+    }
+  }
+
+  // Reversed-orientation sequence: rev(S) = [(L_{n-1}, -A_{n-1}), ..., (L_0, -A_0)]
+  const R: Pair[] = new Array(n)
+  for (let i = 0; i < n; i++) {
+    const k = n - 1 - i
+    R[i] = {
+      l: Math.round(L[k]),
+      a: Math.round(-A[k])
+    }
+  }
+
+  // Mirrored sequence M = [(L0, -A0), ..., (L_{n-1}, -A_{n-1})]
+  const M: Pair[] = new Array(n)
+  for (let i = 0; i < n; i++) {
+    M[i] = {
+      l: Math.round(L[i]),
+      a: Math.round(-A[i])
+    }
+  }
+
+  // Canonicalize each by minimal cyclic rotation (Booth)
+  const Sstar = minimalRotationPairs(S)
+  const Rstar = minimalRotationPairs(R)
+  const Mstar = minimalRotationPairs(M)
+
+  // Serialize all; choose lexicographically smallest
+  const s1 = Sstar.map(p => `${p.l},${p.a}`).join(';')
+  const s2 = Rstar.map(p => `${p.l},${p.a}`).join(';')
+  const s3 = Mstar.map(p => `${p.l},${p.a}`).join(';')
+  return [s1, s2, s3].sort()[0]
+}
+
+/** Pair of (edge length, turn angle). */
+interface Pair {
+  l: number
+  a: number
+}
+
+/** Lexicographic comparator for Pair. */
+function cmpPair(x: Pair, y: Pair): number {
+  if (x.l < y.l) return -1
+  if (x.l > y.l) return 1
+  if (x.a < y.a) return -1
+  if (x.a > y.a) return 1
+  return 0
+}
+
+/**
+ * Booth's algorithm for minimal rotation over an array of Pair.
+ * Returns a rotated copy that is lexicographically minimal among all rotations.
+ * Runs in O(n).
+ */
+function minimalRotationPairs(arr: Pair[]): Pair[] {
+  const n = arr.length
+  if (n === 0) return []
+  // Compare arr[i+k] vs arr[j+k] cyclically
+  let i = 0
+  let j = 1
+  let k = 0
+  while (i < n && j < n && k < n) {
+    const ai = arr[(i + k) % n]
+    const aj = arr[(j + k) % n]
+    const c = cmpPair(ai, aj)
+    if (c === 0) {
+      k++
+    } else if (c < 0) {
+      // rotation at i is better; skip conflicting block after j
+      j = j + k + 1
+      if (j === i) j++
+      k = 0
+    } else {
+      // rotation at j is better
+      i = i + k + 1
+      if (i === j) i++
+      k = 0
+    }
+  }
+  const start = Math.min(i, j)
+  return rotatePairs(arr, start)
+}
+
+function rotatePairs(arr: Pair[], start: number): Pair[] {
+  const n = arr.length
+  const out = new Array<Pair>(n)
+  for (let t = 0; t < n; t++) {
+    out[t] = arr[(start + t) % n]
+  }
+  return out
 }

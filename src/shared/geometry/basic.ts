@@ -1,14 +1,15 @@
 import { vec2, vec3 } from 'gl-matrix'
 
-// Branded numeric types for type safety
 export type Length = number
 export type Area = number
+export type Volume = number
 
 // Helper functions to create branded types
 export const millimeters = (value: number): Length => value
-export const meters = (value: number): Length => value / 1000
-export const centimeters = (value: number): Length => value / 100
-export const squareMeters = (value: number): Area => (value / (1000 * 1000)) as Area
+export const meters = (value: number): Length => value * 1000
+export const centimeters = (value: number): Length => value * 100
+export const squareMeters = (value: number): Area => value * 1000 * 1000
+export const cubicMeters = (value: number): Volume => value * 1000 * 1000 * 1000
 
 // Bounds interface
 export interface Bounds2D {

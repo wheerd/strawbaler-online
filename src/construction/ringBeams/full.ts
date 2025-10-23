@@ -3,6 +3,7 @@ import { vec2, vec3 } from 'gl-matrix'
 import type { Perimeter, PerimeterCorner } from '@/building/model/model'
 import { createConstructionElement } from '@/construction/elements'
 import type { ConstructionModel } from '@/construction/model'
+import { polygonPartInfo } from '@/construction/parts'
 import {
   type ConstructionResult,
   aggregateResults,
@@ -85,16 +86,11 @@ export class FullRingBeamAssembly implements RingBeamAssembly<FullRingBeamConfig
         throw new Error('Failed to calculate beam segment corner intersections')
       }
 
-      yield yieldElement(
-        createConstructionElement(
-          config.material,
-          createExtrudedPolygon(
-            { outer: { points: [startInside, endInside, endOutside, startOutside] }, holes: [] },
-            'xy',
-            config.height
-          )
-        )
-      )
+      const polygon = { outer: { points: [startInside, endInside, endOutside, startOutside] }, holes: [] }
+      const shape = createExtrudedPolygon(polygon, 'xy', config.height)
+      const partInfo = polygonPartInfo('ring-beam', polygon.outer, 'xy', config.height)
+
+      yield yieldElement(createConstructionElement(config.material, shape, undefined, undefined, partInfo))
 
       yield yieldMeasurement({
         startPoint: [...startInside, 0],

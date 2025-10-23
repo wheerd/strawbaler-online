@@ -13,7 +13,10 @@ import {
   type Polygon2D,
   arePolygonsIntersecting,
   calculatePolygonArea,
+  canonicalPolygonKey,
+  convexHullOfPolygonWithHoles,
   isPointInPolygon,
+  minimumAreaBoundingBox,
   offsetPolygon,
   polygonEdgeOffset,
   polygonIsClockwise,
@@ -30,6 +33,206 @@ vi.mock('@/shared/geometry/clipperInstance', () => {
     pathDToPoints: vi.fn(),
     getClipperModule: vi.fn()
   }
+})
+
+describe('convexHullOfPolygonWithHoles', () => {
+  const sortPoints = (points: vec2[]) =>
+    points.map(point => Array.from(point)).sort(([ax, ay], [bx, by]) => (ax === bx ? ay - by : ax - bx))
+
+  it('returns the rectangle corners for a convex polygon', () => {
+    const rectangle = {
+      outer: {
+        points: [vec2.fromValues(0, 0), vec2.fromValues(1000, 0), vec2.fromValues(1000, 500), vec2.fromValues(0, 500)]
+      },
+      holes: []
+    }
+
+    const hull = convexHullOfPolygonWithHoles(rectangle)
+
+    expect(sortPoints(hull.points)).toEqual([
+      [0, 0],
+      [0, 500],
+      [1000, 0],
+      [1000, 500]
+    ])
+  })
+
+  it('removes concave interior points while maintaining hull order', () => {
+    const concave = {
+      outer: {
+        points: [
+          vec2.fromValues(0, 0),
+          vec2.fromValues(2000, 0),
+          vec2.fromValues(2000, 500),
+          vec2.fromValues(1000, 250),
+          vec2.fromValues(2000, 1500),
+          vec2.fromValues(0, 1500)
+        ]
+      },
+      holes: []
+    }
+
+    const hull = convexHullOfPolygonWithHoles(concave)
+
+    expect(sortPoints(hull.points)).toEqual([
+      [0, 0],
+      [0, 1500],
+      [2000, 0],
+      [2000, 1500]
+    ])
+  })
+})
+
+describe('canonicalPolygonKey', () => {
+  const translate = (points: vec2[], dx: number, dy: number): vec2[] =>
+    points.map(point => vec2.fromValues(point[0] + dx, point[1] + dy))
+  const rotate90 = (points: vec2[]): vec2[] => points.map(point => vec2.fromValues(-point[1], point[0]))
+  const mirrorYAxis = (points: vec2[]): vec2[] => points.map(point => vec2.fromValues(-point[0], point[1]))
+  const changeStartingVertex = (points: vec2[], offset: number): vec2[] => {
+    const count = points.length
+    return Array.from({ length: count }, (_, index) => vec2.clone(points[(index + offset) % count]))
+  }
+  const reverseOrder = (points: vec2[]): vec2[] =>
+    points
+      .slice()
+      .reverse()
+      .map(point => vec2.clone(point))
+
+  const basePoints: vec2[] = [
+    vec2.fromValues(0, 0),
+    vec2.fromValues(400, 0),
+    vec2.fromValues(500, 300),
+    vec2.fromValues(200, 500),
+    vec2.fromValues(-100, 300)
+  ]
+
+  const baseKey = canonicalPolygonKey(basePoints)
+
+  it('is translation invariant', () => {
+    const translated = translate(basePoints, 10, -7)
+    expect(canonicalPolygonKey(translated)).toBe(baseKey)
+  })
+
+  it('is rotation invariant', () => {
+    const rotated = rotate90(basePoints)
+    expect(canonicalPolygonKey(rotated)).toBe(baseKey)
+  })
+
+  it('is mirror invariant', () => {
+    const mirrored = mirrorYAxis(basePoints)
+    expect(canonicalPolygonKey(mirrored)).toBe(baseKey)
+  })
+
+  it('is invariant to reversed winding order', () => {
+    const reversed = reverseOrder(basePoints)
+    expect(canonicalPolygonKey(reversed)).toBe(baseKey)
+  })
+
+  it('is invariant to the starting vertex', () => {
+    const rotatedStart = changeStartingVertex(basePoints, 2)
+    expect(canonicalPolygonKey(rotatedStart)).toBe(baseKey)
+  })
+
+  it('returns different keys for different polygons', () => {
+    const changedPolygon = [vec2.fromValues(10, 10), ...basePoints.slice(1)]
+    expect(canonicalPolygonKey(changedPolygon)).not.toBe(baseKey)
+  })
+})
+
+describe('minimumAreaBoundingBox', () => {
+  const rotatePoint = (point: vec2, angle: number) => {
+    const sinAngle = Math.sin(angle)
+    const cosAngle = Math.cos(angle)
+    return vec2.fromValues(point[0] * cosAngle - point[1] * sinAngle, point[0] * sinAngle + point[1] * cosAngle)
+  }
+
+  const createRectangle = (width: number, height: number, angle = 0): vec2[] => {
+    const halfWidth = width / 2
+    const halfHeight = height / 2
+    const corners = [
+      vec2.fromValues(-halfWidth, -halfHeight),
+      vec2.fromValues(halfWidth, -halfHeight),
+      vec2.fromValues(halfWidth, halfHeight),
+      vec2.fromValues(-halfWidth, halfHeight)
+    ]
+
+    if (angle === 0) {
+      return corners
+    }
+
+    return corners.map(corner => rotatePoint(corner, angle))
+  }
+
+  const sortedAbsComponents = (vector: vec2) => [Math.abs(vector[0]), Math.abs(vector[1])].sort((a, b) => a - b)
+  const angleDifference = (a: number, b: number) => {
+    const twoPi = Math.PI * 2
+    let diff = (a - b) % twoPi
+    if (diff < -Math.PI) diff += twoPi
+    if (diff > Math.PI) diff -= twoPi
+    return Math.abs(diff)
+  }
+
+  it('returns expected size and angle for an axis-aligned rectangle', () => {
+    const rectangle = createRectangle(6, 2, 0)
+    const { size, angle } = minimumAreaBoundingBox({ points: rectangle })
+
+    const components = sortedAbsComponents(size)
+    expect(components[0]).toBeCloseTo(2, 2)
+    expect(components[1]).toBeCloseTo(6, 2)
+    expect(
+      Math.min(angleDifference(angle, 0), angleDifference(angle, Math.PI / 2), angleDifference(angle, -Math.PI / 2))
+    ).toBeLessThan(1e-6)
+  })
+
+  it('finds the minimum box for a rotated rectangle', () => {
+    const rotation = Math.PI / 6
+    const rectangle = createRectangle(8, 3, rotation).map(point => vec2.fromValues(point[0] + 10, point[1] - 5))
+    const { size, angle } = minimumAreaBoundingBox({ points: rectangle })
+
+    const components = sortedAbsComponents(size)
+    expect(components[0]).toBeCloseTo(3, 2)
+    expect(components[1]).toBeCloseTo(8, 2)
+    expect(
+      Math.min(
+        angleDifference(angle, rotation),
+        angleDifference(angle, rotation + Math.PI / 2),
+        angleDifference(angle, rotation - Math.PI / 2)
+      )
+    ).toBeLessThan(1e-6)
+  })
+
+  it('finds the minimum box for a rotated trapezoid with axis-aligned legs', () => {
+    const trapezoid = {
+      points: [vec2.fromValues(0, 0), vec2.fromValues(4, 4), vec2.fromValues(4, 6), vec2.fromValues(-2, 0)]
+    }
+
+    const { size, angle } = minimumAreaBoundingBox(trapezoid)
+
+    const components = sortedAbsComponents(size)
+    expect(components[0]).toBeCloseTo(Math.sqrt(2), 2)
+    expect(components[1]).toBeCloseTo(6 * Math.SQRT2, 2)
+
+    const target = Math.PI / 4
+    expect(
+      Math.min(
+        angleDifference(angle, target),
+        angleDifference(angle, target + Math.PI / 2),
+        angleDifference(angle, target - Math.PI / 2)
+      )
+    ).toBeLessThan(1e-6)
+  })
+
+  it('throws when the polygon has fewer than three points', () => {
+    const polygon = { points: [vec2.fromValues(0, 0), vec2.fromValues(1, 1)] }
+    expect(() => minimumAreaBoundingBox(polygon)).toThrowError('Polygon requires at least 3 points')
+  })
+
+  it('throws when the polygon is degenerate after computing the hull', () => {
+    const polygon = {
+      points: [vec2.fromValues(0, 0), vec2.fromValues(2, 2), vec2.fromValues(4, 4), vec2.fromValues(6, 6)]
+    }
+    expect(() => minimumAreaBoundingBox(polygon)).toThrowError('Convex hull of polygon requires at least 3 points')
+  })
 })
 
 const createPointDMock = vi.mocked(createPointD)

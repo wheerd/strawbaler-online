@@ -4,7 +4,6 @@ import type { CutFunction, Projection, RotationProjection } from '@/construction
 import { createSvgTransform } from '@/construction/geometry'
 
 import { CuboidShape } from './CuboidShape'
-import { CutCuboidShape } from './CutCuboidShape'
 import { getConstructionElementClasses } from './cssHelpers'
 
 export interface ConstructionElementShapeProps {
@@ -36,15 +35,6 @@ export function ConstructionElementShape({
           transform={createSvgTransform(element.transform, projection, rotationProjection)}
         >
           <CuboidShape shape={element.shape} projection={projection} showDebugMarkers={showDebugMarkers} />
-        </g>
-      )
-    case 'cut-cuboid':
-      return (
-        <g
-          className={combinedClassName}
-          transform={createSvgTransform(element.transform, projection, rotationProjection)}
-        >
-          <CutCuboidShape shape={element.shape} projection={projection} showDebugMarkers={showDebugMarkers} />
         </g>
       )
     case 'polygon':

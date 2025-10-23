@@ -3,19 +3,16 @@ import { vec3 } from 'gl-matrix'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { ConstructionElement } from '@/construction/elements'
-import { createConstructionElement, createCuboidShape, createCutCuboidShape } from '@/construction/elements'
+import { createConstructionElement } from '@/construction/elements'
 import type { Projection, RotationProjection } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
+import { createCuboidShape } from '@/construction/shapes'
 
 import { ConstructionElementShape } from './ConstructionElementShape'
 
 // Mock the shape components
 vi.mock('./CuboidShape', () => ({
   CuboidShape: () => <rect data-testid="cuboid-shape" />
-}))
-
-vi.mock('./CutCuboidShape', () => ({
-  CutCuboidShape: () => <polygon data-testid="cut-cuboid-shape" />
 }))
 
 describe('ConstructionElementShape', () => {
@@ -28,16 +25,6 @@ describe('ConstructionElementShape', () => {
   const mockCuboidElement: ConstructionElement = createConstructionElement(
     mockMaterialId,
     createCuboidShape(vec3.fromValues(0, 0, 0), vec3.fromValues(100, 50, 25)),
-    { position: vec3.fromValues(0, 0, 0), rotation: vec3.fromValues(0, 0, 0) }
-  )
-
-  const mockCutCuboidElement: ConstructionElement = createConstructionElement(
-    mockMaterialId,
-    createCutCuboidShape(vec3.fromValues(0, 0, 0), vec3.fromValues(100, 50, 25), {
-      plane: 'xy',
-      axis: 'y',
-      angle: 45
-    }),
     { position: vec3.fromValues(0, 0, 0), rotation: vec3.fromValues(0, 0, 0) }
   )
 
@@ -60,26 +47,6 @@ describe('ConstructionElementShape', () => {
     expect(cuboidShape).toBeInTheDocument()
 
     // Check that the parent group has the correct CSS classes including material class
-    const group = container.querySelector('g')
-    expect(group).toHaveClass('construction-element')
-    expect(group).toHaveClass(mockMaterialId)
-  })
-
-  it('renders cut-cuboid shapes correctly', () => {
-    const { getByTestId, container } = render(
-      <svg>
-        <ConstructionElementShape
-          element={mockCutCuboidElement}
-          projection={mockProjection}
-          rotationProjection={mockRotationProjection}
-        />
-      </svg>
-    )
-
-    const cutCuboidShape = getByTestId('cut-cuboid-shape')
-    expect(cutCuboidShape).toBeInTheDocument()
-
-    // Check CSS classes instead of inline styling
     const group = container.querySelector('g')
     expect(group).toHaveClass('construction-element')
     expect(group).toHaveClass(mockMaterialId)
