@@ -13,6 +13,7 @@ import {
   type Polygon2D,
   arePolygonsIntersecting,
   calculatePolygonArea,
+  canonicalPolygonKey,
   convexHullOfPolygonWithHoles,
   isPointInPolygon,
   offsetPolygon,
@@ -78,6 +79,62 @@ describe('convexHullOfPolygonWithHoles', () => {
       [2000, 0],
       [2000, 1500]
     ])
+  })
+})
+
+describe('canonicalPolygonKey', () => {
+  const translate = (points: vec2[], dx: number, dy: number): vec2[] =>
+    points.map(point => vec2.fromValues(point[0] + dx, point[1] + dy))
+  const rotate90 = (points: vec2[]): vec2[] => points.map(point => vec2.fromValues(-point[1], point[0]))
+  const mirrorYAxis = (points: vec2[]): vec2[] => points.map(point => vec2.fromValues(-point[0], point[1]))
+  const changeStartingVertex = (points: vec2[], offset: number): vec2[] => {
+    const count = points.length
+    return Array.from({ length: count }, (_, index) => vec2.clone(points[(index + offset) % count]))
+  }
+  const reverseOrder = (points: vec2[]): vec2[] =>
+    points
+      .slice()
+      .reverse()
+      .map(point => vec2.clone(point))
+
+  const basePoints: vec2[] = [
+    vec2.fromValues(0, 0),
+    vec2.fromValues(400, 0),
+    vec2.fromValues(500, 300),
+    vec2.fromValues(200, 500),
+    vec2.fromValues(-100, 300)
+  ]
+
+  const baseKey = canonicalPolygonKey(basePoints)
+
+  it('is translation invariant', () => {
+    const translated = translate(basePoints, 10, -7)
+    expect(canonicalPolygonKey(translated)).toBe(baseKey)
+  })
+
+  it('is rotation invariant', () => {
+    const rotated = rotate90(basePoints)
+    expect(canonicalPolygonKey(rotated)).toBe(baseKey)
+  })
+
+  it('is mirror invariant', () => {
+    const mirrored = mirrorYAxis(basePoints)
+    expect(canonicalPolygonKey(mirrored)).toBe(baseKey)
+  })
+
+  it('is invariant to reversed winding order', () => {
+    const reversed = reverseOrder(basePoints)
+    expect(canonicalPolygonKey(reversed)).toBe(baseKey)
+  })
+
+  it('is invariant to the starting vertex', () => {
+    const rotatedStart = changeStartingVertex(basePoints, 2)
+    expect(canonicalPolygonKey(rotatedStart)).toBe(baseKey)
+  })
+
+  it('returns different keys for different polygons', () => {
+    const changedPolygon = [vec2.fromValues(10, 10), ...basePoints.slice(1)]
+    expect(canonicalPolygonKey(changedPolygon)).not.toBe(baseKey)
   })
 })
 
