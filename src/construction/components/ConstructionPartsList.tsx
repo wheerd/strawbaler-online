@@ -1,7 +1,7 @@
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import { Badge, Card, Flex, Heading, Table, Text, Tooltip } from '@radix-ui/themes'
+import { ExclamationTriangleIcon, PinBottomIcon, PinTopIcon } from '@radix-ui/react-icons'
+import { Badge, Card, Flex, Heading, IconButton, Table, Text, Tooltip } from '@radix-ui/themes'
 import type { vec3 } from 'gl-matrix'
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 
 import { getMaterialTypeIcon, getMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
 import type { Material } from '@/construction/materials/material'
@@ -132,20 +132,25 @@ function SpecialCutTooltip({ polygon }: { polygon: Polygon2D }): React.JSX.Eleme
 
 function MaterialSummaryRow({
   material,
-  metrics
+  metrics,
+  onNavigate
 }: {
   material: Material
   metrics: RowMetrics & { partCount: number }
+  onNavigate: () => void
 }) {
   return (
     <Table.Row>
-      <Table.RowHeaderCell width="48px" justify="center">
-        <Flex justify="center">
-          <MaterialTypeIndicator material={material} />
-        </Flex>
+      <Table.RowHeaderCell width="6em" justify="center">
+        <MaterialTypeIndicator material={material} />
       </Table.RowHeaderCell>
       <Table.RowHeaderCell>
-        <Text weight="medium">{material.name}</Text>
+        <Flex align="center" gap="2" justify="between">
+          <Text weight="medium">{material.name}</Text>
+          <IconButton title="Jump to details" size="1" variant="ghost" onClick={onNavigate}>
+            <PinBottomIcon />
+          </IconButton>
+        </Flex>
       </Table.RowHeaderCell>
       <Table.Cell width="10em" justify="center">
         {metrics.totalQuantity}
@@ -163,23 +168,37 @@ function MaterialSummaryRow({
   )
 }
 
-function PartsTable({ material, parts }: { material: Material; parts: PartItem[] }) {
+type PartsTableProps = {
+  material: Material
+  parts: PartItem[]
+  onBackToTop: () => void
+}
+
+const PartsTable = React.forwardRef<HTMLDivElement, PartsTableProps>(function PartsTable(
+  { material, parts, onBackToTop },
+  ref
+) {
   const crossSection =
     material.type === 'dimensional'
       ? `${formatLengthInMeters(material.width)} × ${formatLengthInMeters(material.thickness)}`
       : null
 
   return (
-    <Card variant="surface" size="2">
+    <Card ref={ref} variant="surface" size="2">
       <Flex direction="column" gap="3">
-        <Flex align="center" gap="3">
-          <MaterialTypeIndicator material={material} size={24} />
-          <Heading size="4">{material.name}</Heading>
-          {crossSection ? (
-            <Badge variant="soft" color="gray">
-              {crossSection}
-            </Badge>
-          ) : null}
+        <Flex align="center" justify="between" gap="3">
+          <Flex align="center" gap="3">
+            <MaterialTypeIndicator material={material} size={24} />
+            <Heading size="4">{material.name}</Heading>
+            {crossSection ? (
+              <Badge variant="soft" color="gray">
+                {crossSection}
+              </Badge>
+            ) : null}
+          </Flex>
+          <IconButton title="Back to summary" size="1" variant="ghost" onClick={onBackToTop}>
+            <PinTopIcon />
+          </IconButton>
         </Flex>
 
         <Table.Root variant="surface" size="2" className="min-w-full">
@@ -257,10 +276,29 @@ function PartsTable({ material, parts }: { material: Material; parts: PartItem[]
       </Flex>
     </Card>
   )
-}
+})
 
 export function ConstructionPartsList({ partsList }: ConstructionPartsListProps): React.JSX.Element {
   const materialsMap = useMaterialsMap()
+  const topRef = useRef<HTMLDivElement | null>(null)
+  const detailRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const setDetailRef = useCallback((materialId: Material['id']) => {
+    return (element: HTMLDivElement | null) => {
+      detailRefs.current[materialId] = element
+    }
+  }, [])
+
+  const scrollToDetail = useCallback((materialId: Material['id']) => {
+    const target = detailRefs.current[materialId]
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
+
+  const scrollToTop = useCallback(() => {
+    if (topRef.current) {
+      topRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [])
 
   const materialIds = useMemo(() => Object.keys(partsList) as Material['id'][], [partsList])
 
@@ -292,7 +330,7 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
 
   return (
     <Flex direction="column" gap="4">
-      <Card variant="surface" size="2">
+      <Card ref={topRef} variant="surface" size="2">
         <Flex direction="column" gap="3">
           <Heading size="4">Summary</Heading>
           <Table.Root variant="surface" size="2" className="min-w-full">
@@ -308,7 +346,12 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
             </Table.Header>
             <Table.Body>
               {summaryRows.map(row => (
-                <MaterialSummaryRow key={row.material.id} material={row.material} metrics={row.metrics} />
+                <MaterialSummaryRow
+                  key={row.material.id}
+                  material={row.material}
+                  metrics={row.metrics}
+                  onNavigate={() => scrollToDetail(row.material.id)}
+                />
               ))}
             </Table.Body>
           </Table.Root>
@@ -321,7 +364,15 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
           const materialParts = partsList[materialId]
           if (!material || !materialParts) return null
           const parts = Object.values(materialParts.parts)
-          return <PartsTable key={materialId} material={material} parts={parts} />
+          return (
+            <PartsTable
+              key={materialId}
+              ref={setDetailRef(materialId)}
+              material={material}
+              parts={parts}
+              onBackToTop={scrollToTop}
+            />
+          )
         })}
       </Flex>
     </Flex>
