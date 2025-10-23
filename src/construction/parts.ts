@@ -25,6 +25,19 @@ export const dimensionalPartInfo = (type: string, size: vec3): PartInfo => {
   return { partId, type, size: vec3.fromValues(sortedDimensions[0], sortedDimensions[1], sortedDimensions[2]) }
 }
 
+const isAxisAlignedRect = (polygon: Polygon2D) => {
+  if (polygon.points.length !== 4) return false
+  for (let i = 0; i < 4; i++) {
+    const prev = polygon.points[(i - 1 + 4) % 4]
+    const current = polygon.points[i]
+    const next = polygon.points[(i + 1) % 4]
+    if ((prev[0] !== current[0]) === (current[0] !== next[0])) return false
+    if ((prev[1] !== current[1]) === (current[1] !== next[1])) return false
+    if (prev[0] !== current[0] && prev[1] !== current[1]) return false
+  }
+  return true
+}
+
 export const polygonPartInfo = (type: string, polygon: Polygon2D, plane: Plane3D, thickness: Length): PartInfo => {
   const { size, angle } = minimumAreaBoundingBox(polygon)
   const width = Math.max(Math.round(size[0]), 0)
@@ -45,13 +58,14 @@ export const polygonPartInfo = (type: string, polygon: Polygon2D, plane: Plane3D
   ]
 
   const sorted = combined.sort((a, b) => a[0] - b[0])
-  const sortedSize = sorted.map(([value, _]) => Math.round(value))
-  const dimOrdered = sorted.map(s => s[1])
-  const xIndex = dimOrdered.indexOf('x')
-  const yIndex = dimOrdered.indexOf('y')
-  const flipXY = yIndex < xIndex
-
+  const sortedSize = sorted.map(s => s[0])
+  const sortedDim = sorted.map(s => s[1])
+  const xIndex = sortedDim.indexOf('x')
+  const yIndex = sortedDim.indexOf('y')
+  // This plane is relative to the sorted dimensions
   const newPlane = `${'xyz'[Math.min(xIndex, yIndex)]}${'xyz'[Math.max(xIndex, yIndex)]}` as Plane3D
+  // If the axes are swapped in the new plane, we need to swap them in the polygon also
+  const flipXY = yIndex < xIndex
 
   const sinAngle = Math.sin(-angle)
   const cosAngle = Math.cos(-angle)
@@ -71,19 +85,15 @@ export const polygonPartInfo = (type: string, polygon: Polygon2D, plane: Plane3D
   }
 
   const dimStr = sortedSize.join('x')
-  const polygonStr = canonicalPolygonKey(normalizedPolygon.points)
-  const minSize = Math.min(width, height)
-  const maxSize = Math.max(width, height)
-  const rectStr = `${minSize},-90;${maxSize},-90;${minSize},-90;${maxSize},-90`
-  const isCuboid = rectStr === polygonStr
-  const partId = (isCuboid ? dimStr : `${dimStr}:${polygonStr}`) as PartId
+  const isRect = isAxisAlignedRect(normalizedPolygon)
+  const partId = (isRect ? dimStr : `${dimStr}:${canonicalPolygonKey(normalizedPolygon.points)}`) as PartId
 
   return {
     partId,
     type,
     size: vec3.fromValues(sortedSize[0], sortedSize[1], sortedSize[2]),
-    polygon: isCuboid ? undefined : normalizedPolygon,
-    polygonPlane: isCuboid ? undefined : newPlane
+    polygon: isRect ? undefined : normalizedPolygon,
+    polygonPlane: isRect ? undefined : newPlane
   }
 }
 

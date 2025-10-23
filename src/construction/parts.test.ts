@@ -1,5 +1,5 @@
 import { vec2, vec3 } from 'gl-matrix'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createConstructionElement } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
@@ -14,6 +14,16 @@ import {
   polygonPartInfo
 } from '@/construction/parts'
 import { createCuboidShape } from '@/construction/shapes'
+import { boundsFromPoints, canonicalPolygonKey, minimumAreaBoundingBox } from '@/shared/geometry'
+
+vi.mock('@/shared/geometry', async importActual => ({
+  ...(await importActual()),
+  canonicalPolygonKey: vi.fn(),
+  minimumAreaBoundingBox: vi.fn()
+}))
+
+const canonicalPolygonKeyMock = vi.mocked(canonicalPolygonKey)
+const minimumAreaBoundingBoxMock = vi.mocked(minimumAreaBoundingBox)
 
 const createModel = (elements: ConstructionModel['elements']): ConstructionModel => {
   const origin = vec3.fromValues(0, 0, 0)
@@ -35,6 +45,11 @@ const createElement = (materialId: typeof wood360x60.id | typeof windowMaterial.
     undefined,
     partInfo
   )
+
+beforeEach(() => {
+  canonicalPolygonKeyMock.mockClear()
+  minimumAreaBoundingBoxMock.mockClear()
+})
 
 describe('generatePartsList', () => {
   beforeEach(() => {
@@ -145,6 +160,11 @@ describe('generatePartsList', () => {
 })
 
 describe('polygonPartInfo', () => {
+  beforeEach(() => {
+    canonicalPolygonKeyMock.mockReturnValue('polygon-key')
+    minimumAreaBoundingBoxMock.mockImplementation(polygon => ({ size: boundsFromPoints(polygon.points).max, angle: 0 }))
+  })
+
   it('derives part info from an axis-aligned polygon', () => {
     const polygon = {
       points: [vec2.fromValues(0, 0), vec2.fromValues(1000, 0), vec2.fromValues(1000, 500), vec2.fromValues(0, 500)]
@@ -157,6 +177,8 @@ describe('polygonPartInfo', () => {
     expect(Array.from(info.size)).toEqual([200, 500, 1000]) // Order of dimensions: z y x
     expect(info.polygon).toBeUndefined() // Because this is a cuboid, we don't get a polygon
     expect(info.polygonPlane).toBeUndefined()
+    expect(minimumAreaBoundingBoxMock).toHaveBeenCalledWith(polygon)
+    expect(canonicalPolygonKeyMock).not.toHaveBeenCalled()
   })
 
   it('derives part info from a wide trapezoid', () => {
@@ -167,17 +189,19 @@ describe('polygonPartInfo', () => {
     const info = polygonPartInfo('ring-beam segment', polygon, 'xy', 200)
 
     expect(info.type).toBe('ring-beam segment')
-    expect(info.partId).toBe('200x700x1000:300,-79;1020,-101;700,-101;1020,-79')
+    expect(info.partId).toBe('200x700x1000:polygon-key')
     expect(Array.from(info.size)).toEqual([200, 700, 1000]) // Order of dimensions: z y x
     expect(info.polygonPlane).toBe('yz') // Hence xy -> yz
 
-    // Flipped xy
+    // Flipped x and y and reverse order
     expect(info.polygon?.points).toEqual([
-      vec2.fromValues(0, 1000),
-      vec2.fromValues(200, 0),
-      vec2.fromValues(500, 0),
-      vec2.fromValues(700, 1000)
+      vec2.fromValues(700, 0),
+      vec2.fromValues(500, 1000),
+      vec2.fromValues(200, 1000),
+      vec2.fromValues(0, 0)
     ])
+    expect(minimumAreaBoundingBoxMock).toHaveBeenCalledWith(polygon)
+    expect(canonicalPolygonKeyMock).toHaveBeenCalledWith(info.polygon?.points)
   })
 
   it('derives part info from a high trapezoid', () => {
@@ -185,20 +209,15 @@ describe('polygonPartInfo', () => {
       points: [vec2.fromValues(0, 0), vec2.fromValues(200, 1000), vec2.fromValues(500, 1000), vec2.fromValues(700, 0)]
     }
 
-    const info = polygonPartInfo('ring-beam segment', polygon, 'xy', 200)
+    const info = polygonPartInfo('ring-beam segment', polygon, 'xy', 900)
 
     expect(info.type).toBe('ring-beam segment')
-    expect(info.partId).toBe('200x700x1000:300,-79;1020,-101;700,-101;1020,-79')
-    expect(Array.from(info.size)).toEqual([200, 700, 1000]) // Order of dimensions: z x y
-    expect(info.polygonPlane).toBe('yz') // Hence xy -> yz
-
-    // Flipped xy
-    expect(info.polygon?.points).toEqual([
-      vec2.fromValues(0, 0),
-      vec2.fromValues(200, 1000),
-      vec2.fromValues(500, 1000),
-      vec2.fromValues(700, 0)
-    ])
+    expect(info.partId).toBe('700x900x1000:polygon-key')
+    expect(Array.from(info.size)).toEqual([700, 900, 1000]) // Order of dimensions: x z y
+    expect(info.polygonPlane).toBe('xz') // Hence xy -> xz
+    expect(info.polygon?.points).toEqual(polygon.points)
+    expect(minimumAreaBoundingBoxMock).toHaveBeenCalledWith(polygon)
+    expect(canonicalPolygonKeyMock).toHaveBeenCalledWith(info.polygon?.points)
   })
 
   it('handles negative thickness values', () => {
@@ -210,5 +229,7 @@ describe('polygonPartInfo', () => {
 
     expect(info.partId).toBe('150x1000x2000')
     expect(Array.from(info.size)).toEqual([150, 1000, 2000])
+    expect(minimumAreaBoundingBoxMock).toHaveBeenCalledWith(polygon)
+    expect(canonicalPolygonKeyMock).not.toHaveBeenCalled()
   })
 })
