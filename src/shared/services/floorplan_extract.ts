@@ -118,26 +118,67 @@ interface NormalizedParseOptions {
   preferDimensionsForScale: boolean
 }
 
+export interface ExtractionDebugData {
+  wallSegments: LineSegment2D[]
+  hatchPolygons: Polygon2D[]
+  ribbonCandidateBands: Polygon2D[]
+  ribbonPolygons: Polygon2D[]
+  exteriorPolygon?: Polygon2D
+  interiorPolygon?: Polygon2D
+}
+
+interface ExtractionOutcome {
+  storeys: StoreyOut[]
+  debug?: ExtractionDebugData
+}
+
 export async function extractFromDxf(
   dxfContent: string | ArrayBuffer,
   deps: ExtractorDeps,
   opts: ParseOptions = {}
 ): Promise<StoreyOut[]> {
+  const result = await runExtraction(dxfContent, deps, opts, false)
+  return result.storeys
+}
+
+export async function extractFromDxfWithDebug(
+  dxfContent: string | ArrayBuffer,
+  deps: ExtractorDeps,
+  opts: ParseOptions = {}
+): Promise<ExtractionOutcome> {
+  return runExtraction(dxfContent, deps, opts, true)
+}
+
+async function runExtraction(
+  dxfContent: string | ArrayBuffer,
+  deps: ExtractorDeps,
+  opts: ParseOptions,
+  collectDebug: boolean
+): Promise<ExtractionOutcome> {
   const options = withDefaults(opts)
+  const debug = collectDebug ? createEmptyDebugData() : undefined
+
   const dxf = await parseDxf(dxfContent)
   const entities = dxf.entities ?? []
 
   const { wallCurves, hatchPolys, inserts, dimensions, texts, leaders } = collectEntities(entities, options)
 
+  if (debug) {
+    debug.hatchPolygons = hatchPolys.map(clonePolygon)
+  }
+
   // 1) Scale (drawing units → mm)
   const scale = inferGlobalScale(dxf, dimensions, options) // units per mm (e.g., 1 if drawing already mm)
 
   // 2) Build exterior wall ribbon & perimeter faces
-  const ribbon = buildWallRibbon(wallCurves, hatchPolys)
+  const ribbon = buildWallRibbon(wallCurves, hatchPolys, debug)
   if (!ribbon || ribbon.length === 0) {
     throw new Error('Could not derive wall ribbon / perimeter')
   }
   const outer = pickLargestPolygon(ribbon) // outside face
+  if (debug) {
+    debug.exteriorPolygon = clonePolygon(outer)
+  }
   // Estimate thickness per façade run later; for inside face, we’ll use an inward offset using local thickness
 
   // 3) Segment the outer polygon into façade runs
@@ -149,6 +190,9 @@ export async function extractFromDxf(
 
   // 5) Construct interior polygon by inward offset of outer by per-run thickness
   const inside = offsetPolygonPiecewise(outer, facadeRuns, thicknessByRun)
+  if (debug) {
+    debug.interiorPolygon = clonePolygon(inside)
+  }
 
   // 6) Detect openings on the outer wall
   const openingsByRun = detectOpeningsOnPerimeter(facadeRuns, inserts, dimensions, leaders, texts, deps, scale, options)
@@ -170,7 +214,7 @@ export async function extractFromDxf(
     perimeters: [perimeter]
   }
 
-  return [storey]
+  return { storeys: [storey], debug }
 }
 
 // ---------- DXF parsing (browser) ----------
@@ -466,19 +510,31 @@ function inferGlobalScale(dxf: DxfLike, dims: DimensionEntity[], opts: Normalize
 
 // ---------- Wall ribbon & perimeter ----------
 
-function buildWallRibbon(curves: CurveEntity[], hatches: Polygon2D[]): Polygon2D[] {
+function buildWallRibbon(curves: CurveEntity[], hatches: Polygon2D[], debug?: ExtractionDebugData): Polygon2D[] {
+  const segments = curves.flatMap(curveToSegments)
+  console.error(curves.length, segments.length)
+  if (debug) {
+    debug.wallSegments = segments.map(cloneSegment)
+  }
+
   // Preferred: if hatches exist, union them → that’s the built wall mass
   if (hatches.length) {
     const U = unionPolygons(hatches)
+    if (debug) {
+      debug.ribbonCandidateBands = hatches.map(clonePolygon)
+      debug.ribbonPolygons = U.map(clonePolygon)
+    }
     return U
   }
 
-  console.log(curves, hatches)
-
-  const ribbonFromPairs = buildRibbonFromParallelSegments(curves)
-  console.log(ribbonFromPairs)
+  const ribbonFromPairs = buildRibbonFromParallelSegments(segments)
   if (ribbonFromPairs.length) {
-    return unionPolygons(ribbonFromPairs)
+    const union = unionPolygons(ribbonFromPairs)
+    if (debug) {
+      debug.ribbonCandidateBands = ribbonFromPairs.map(clonePolygon)
+      debug.ribbonPolygons = union.map(clonePolygon)
+    }
+    return union
   }
 
   // Fallback: thicken candidate wall centerlines a little and union (starter heuristic)
@@ -493,10 +549,15 @@ function buildWallRibbon(curves: CurveEntity[], hatches: Polygon2D[]): Polygon2D
       }
     }
   }
-  return unionPolygons(bands)
+  const union = unionPolygons(bands)
+  if (debug) {
+    debug.ribbonCandidateBands = bands.map(clonePolygon)
+    debug.ribbonPolygons = union.map(clonePolygon)
+  }
+  return union
 }
 
-const MIN_SEGMENT_LENGTH = 200
+const MIN_SEGMENT_LENGTH = 50
 const MIN_WALL_THICKNESS = 80
 const MAX_WALL_THICKNESS = 1200
 const ANGLE_TOLERANCE_RAD = (5 * Math.PI) / 180
@@ -504,8 +565,7 @@ const COS_PARALLEL_THRESHOLD = Math.cos(ANGLE_TOLERANCE_RAD)
 const MAX_OFFSET_VARIATION_RATIO = 0.25
 const MIN_OVERLAP_RATIO = 0.35
 
-function buildRibbonFromParallelSegments(curves: CurveEntity[]): Polygon2D[] {
-  const segments = curves.flatMap(curveToSegments)
+function buildRibbonFromParallelSegments(segments: LineSegment2D[]): Polygon2D[] {
   if (segments.length < 2) return []
 
   const polygons: Polygon2D[] = []
@@ -721,6 +781,28 @@ function inferStoreyHeightFromText(texts: TextEntity[]): number | null {
 }
 
 // ---------- Utilities ----------
+
+function createEmptyDebugData(): ExtractionDebugData {
+  return {
+    wallSegments: [],
+    hatchPolygons: [],
+    ribbonCandidateBands: [],
+    ribbonPolygons: []
+  }
+}
+
+function cloneSegment(segment: LineSegment2D): LineSegment2D {
+  return {
+    start: vec2.clone(segment.start),
+    end: vec2.clone(segment.end)
+  }
+}
+
+function clonePolygon(polygon: Polygon2D): Polygon2D {
+  return {
+    points: polygon.points.map(point => vec2.clone(point))
+  }
+}
 
 function withDefaults(opts: ParseOptions): NormalizedParseOptions {
   return {
