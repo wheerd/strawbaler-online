@@ -48,15 +48,18 @@ export function* constructStraw(position: vec3, size: vec3): Generator<Construct
     const end = vec3.add(vec3.create(), position, size)
 
     for (let z = position[2]; z < end[2]; z += config.baleHeight) {
-      for (let x = position[0]; x < end[0]; x += config.baleMinLength) {
+      for (let x = position[0]; x < end[0]; x += config.baleMaxLength) {
         const balePosition = vec3.fromValues(x, position[1], z)
         const baleSize = vec3.fromValues(
-          Math.min(config.baleMinLength, end[0] - x),
+          Math.min(config.baleMaxLength, end[0] - x),
           config.baleWidth,
           Math.min(config.baleHeight, end[2] - z)
         )
 
-        const isFullBale = baleSize[0] === config.baleMinLength && baleSize[2] === config.baleHeight
+        const isFullBale =
+          baleSize[0] >= config.baleMinLength &&
+          baleSize[0] <= config.baleMaxLength &&
+          baleSize[2] === config.baleHeight
         const bale = createConstructionElement(
           config.material,
           createCuboidShape(balePosition, baleSize),
