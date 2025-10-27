@@ -619,14 +619,27 @@ class IfcExporter {
   }
 
   private createFloorSolid(polygon: PolygonWithHoles2D, thickness: number): Handle<IFC4.IfcExtrudedAreaSolid> {
-    const outer = this.createPolyline(polygon.outer)
-    const profile = this.writeEntity(new IFC4.IfcArbitraryClosedProfileDef(IFC4.IfcProfileTypeEnum.AREA, null, outer))
+    const outerPolyline = this.createPolyline(this.ensureCounterClockwise(polygon.outer))
+
+    const profile =
+      polygon.holes.length > 0
+        ? this.writeEntity(
+            new IFC4.IfcArbitraryProfileDefWithVoids(
+              IFC4.IfcProfileTypeEnum.AREA,
+              null,
+              outerPolyline,
+              polygon.holes.map(hole => this.createPolyline(this.ensureClockwise(hole)))
+            )
+          )
+        : this.writeEntity(new IFC4.IfcArbitraryClosedProfileDef(IFC4.IfcProfileTypeEnum.AREA, null, outerPolyline))
+
+    const downwardDirection = this.createDirection([0, 0, -1])
 
     return this.writeEntity(
       new IFC4.IfcExtrudedAreaSolid(
         profile,
         this.createAxisPlacement([0, 0, 0]),
-        this.zAxis,
+        downwardDirection,
         this.positiveLengthMeasure(thickness)
       )
     )
@@ -665,13 +678,20 @@ class IfcExporter {
   }
 
   private createRectanglePolyline(points: vec2[]): Handle<IFC4.IfcArbitraryClosedProfileDef> {
-    const polyline = this.createPolyline({ points: [...points, vec2.clone(points[0])] })
+    const polyline = this.createPolyline({ points })
     return this.writeEntity(new IFC4.IfcArbitraryClosedProfileDef(IFC4.IfcProfileTypeEnum.AREA, null, polyline))
   }
 
   private createPolyline(polygon: Polygon2D): Handle<IFC4.IfcPolyline> {
-    const pointIds = polygon.points.map(point => this.createCartesianPoint([point[0], point[1]]))
-    return this.writeEntity(new IFC4.IfcPolyline(pointIds.map(id => id)))
+    const points = this.normalizePolygonPoints(polygon.points)
+    if (points.length === 0) {
+      throw new Error('Cannot create polyline without points')
+    }
+
+    const pointIds = points.map(point => this.createCartesianPoint([point[0], point[1]]))
+    const vertices = [...pointIds, pointIds[0]]
+
+    return this.writeEntity(new IFC4.IfcPolyline(vertices))
   }
 
   private createAxisPlacement(location: [number, number, number]): Handle<IFC4.IfcAxis2Placement3D> {
@@ -798,5 +818,55 @@ class IfcExporter {
     const x = vec2.dot(delta, direction)
     const y = vec2.dot(delta, normal)
     return vec2.fromValues(x, y)
+  }
+
+  private normalizePolygonPoints(points: vec2[]): vec2[] {
+    if (points.length <= 1) {
+      return points
+    }
+
+    const first = points[0]
+    const last = points[points.length - 1]
+
+    if (vec2.distance(first, last) < 1e-6) {
+      return points.slice(0, points.length - 1)
+    }
+
+    return points
+  }
+
+  private ensureCounterClockwise(polygon: Polygon2D): Polygon2D {
+    const points = this.normalizePolygonPoints(polygon.points)
+    if (this.isClockwise(points)) {
+      return { points: [...points].reverse() }
+    }
+    return { points }
+  }
+
+  private ensureClockwise(polygon: Polygon2D): Polygon2D {
+    const points = this.normalizePolygonPoints(polygon.points)
+    if (this.isClockwise(points)) {
+      return { points }
+    }
+    return { points: [...points].reverse() }
+  }
+
+  private isClockwise(points: vec2[]): boolean {
+    return this.polygonSignedArea(this.normalizePolygonPoints(points)) < 0
+  }
+
+  private polygonSignedArea(points: vec2[]): number {
+    if (points.length < 3) {
+      return 0
+    }
+
+    let area = 0
+    for (let index = 0; index < points.length; index++) {
+      const current = points[index]
+      const next = points[(index + 1) % points.length]
+      area += current[0] * next[1] - next[0] * current[1]
+    }
+
+    return area / 2
   }
 }
