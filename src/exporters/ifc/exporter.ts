@@ -1,55 +1,5 @@
 import { vec2 } from 'gl-matrix'
-import {
-  Handle,
-  IFC4,
-  IFCAPPLICATION,
-  IFCARBITRARYCLOSEDPROFILEDEF,
-  IFCAXIS2PLACEMENT3D,
-  IFCBUILDING,
-  IFCBUILDINGSTOREY,
-  IFCCARTESIANPOINT,
-  IFCDIMENSIONALEXPONENTS,
-  IFCDIRECTION,
-  IFCEXTRUDEDAREASOLID,
-  IFCGEOMETRICREPRESENTATIONCONTEXT,
-  IFCIDENTIFIER,
-  IFCINTEGER,
-  IFCLABEL,
-  IFCLENGTHMEASURE,
-  IFCLOCALPLACEMENT,
-  IFCMATERIAL,
-  IFCMATERIALLAYER,
-  IFCMATERIALLAYERSET,
-  IFCMATERIALLAYERSETUSAGE,
-  IFCNONNEGATIVELENGTHMEASURE,
-  IFCOPENINGELEMENT,
-  IFCORGANIZATION,
-  IFCOWNERHISTORY,
-  IFCPERSON,
-  IFCPERSONANDORGANIZATION,
-  IFCPOLYLINE,
-  IFCPOSITIVELENGTHMEASURE,
-  IFCPOSTALADDRESS,
-  IFCPRODUCTDEFINITIONSHAPE,
-  IFCPROJECT,
-  IFCPROPERTYSET,
-  IFCPROPERTYSINGLEVALUE,
-  IFCREAL,
-  IFCRELAGGREGATES,
-  IFCRELASSOCIATESMATERIAL,
-  IFCRELCONTAINEDINSPATIALSTRUCTURE,
-  IFCRELDEFINESBYPROPERTIES,
-  IFCRELVOIDSELEMENT,
-  IFCSHAPEREPRESENTATION,
-  IFCSITE,
-  IFCSIUNIT,
-  IFCSLAB,
-  IFCTEXT,
-  IFCTIMESTAMP,
-  IFCUNITASSIGNMENT,
-  IFCWALLSTANDARDCASE,
-  IfcAPI
-} from 'web-ifc'
+import { Handle, IFC4, IfcAPI, type IfcLineObject } from 'web-ifc'
 import wasmUrl from 'web-ifc/web-ifc.wasm?url'
 
 import type { Perimeter, PerimeterCorner, PerimeterWall, Storey } from '@/building/model'
@@ -87,19 +37,19 @@ class IfcExporter {
   private readonly api = new IfcAPI()
   private modelID!: number
 
-  private ownerHistory!: number
-  private modelContext!: number
-  private unitAssignment!: number
-  private worldPlacement!: number
-  private zAxis!: number
-  private xAxis!: number
+  private ownerHistory!: Handle<IFC4.IfcOwnerHistory>
+  private modelContext!: Handle<IFC4.IfcContext>
+  private unitAssignment!: Handle<IFC4.IfcUnitAssignment>
+  private worldPlacement!: Handle<IFC4.IfcPlacement>
+  private zAxis!: Handle<IFC4.IfcDirection>
+  private xAxis!: Handle<IFC4.IfcDirection>
 
   private readonly now = Math.floor(Date.now() / 1000)
-  private projectId!: number
-  private siteId!: number
-  private buildingId!: number
-  private readonly storeyIds = new Map<string, number>()
-  private readonly storeyPlacements = new Map<string, number>()
+  private projectId!: Handle<IFC4.IfcProject>
+  private siteId!: Handle<IFC4.IfcSite>
+  private buildingId!: Handle<IFC4.IfcBuilding>
+  private readonly storeyIds = new Map<string, Handle<IFC4.IfcBuildingStorey>>()
+  private readonly storeyPlacements = new Map<string, Handle<IFC4.IfcPlacement>>()
 
   async export(): Promise<Uint8Array> {
     await this.api.Init((path, prefix) => {
@@ -132,14 +82,14 @@ class IfcExporter {
 
     this.createSpatialStructure(storeyInfos)
 
-    const wallMaterialCache = new Map<string, number>()
+    const wallMaterialCache = new Map<string, Handle<IFC4.IfcMaterialLayerSetUsage>>()
 
     for (const info of storeyInfos) {
       const storeyPlacement = this.storeyPlacements.get(info.storey.id)
       if (storeyPlacement == null) continue
 
       const perimeters = getPerimetersByStorey(info.storey.id)
-      const elements: number[] = []
+      const elements: Handle<IFC4.IfcElement>[] = []
 
       for (const perimeter of perimeters) {
         elements.push(
@@ -155,14 +105,15 @@ class IfcExporter {
       if (elements.length > 0) {
         const storeyId = this.storeyIds.get(info.storey.id)
         if (storeyId != null) {
-          this.createEntity(
-            IFCRELCONTAINEDINSPATIALSTRUCTURE,
-            this.globalId(),
-            this.ownerHistory,
-            null,
-            null,
-            elements.map(id => new Handle(id)),
-            new Handle(storeyId)
+          this.writeEntity(
+            new IFC4.IfcRelContainedInSpatialStructure(
+              this.globalId(),
+              this.ownerHistory,
+              null,
+              null,
+              elements,
+              storeyId
+            )
           )
         }
       }
@@ -186,64 +137,49 @@ class IfcExporter {
     this.createGeometricContext()
   }
 
-  private createOwnerHistory(): number {
-    const familyName = this.label('Strawbaler')
-    const givenName = this.label('User')
-    const person = this.createEntity(IFCPERSON, null, familyName, givenName, null, null, null, null, null)
-
-    const organisation = this.createEntity(IFCORGANIZATION, null, this.label('Strawbaler'), null, null, null)
-
-    const personOrg = this.createEntity(IFCPERSONANDORGANIZATION, new Handle(person), new Handle(organisation), null)
-
-    const version = this.label(getVersionString())
-    const application = this.createEntity(
-      IFCAPPLICATION,
-      new Handle(organisation),
-      version,
-      this.label('Strawbaler Online'),
-      this.identifier('Strawbaler-Online')
+  private createOwnerHistory(): Handle<IFC4.IfcOwnerHistory> {
+    const person = this.writeEntity(
+      new IFC4.IfcPerson(null, this.label('Strawbaler'), this.label('User'), null, null, null, null, null)
     )
 
-    const timestamp = this.api.CreateIfcType(this.modelID, IFCTIMESTAMP, this.now)
+    const organisation = this.writeEntity(new IFC4.IfcOrganization(null, this.label('Strawbaler'), null, null, null))
 
-    return this.createEntity(
-      IFCOWNERHISTORY,
-      new Handle(personOrg),
-      new Handle(application),
-      null,
-      null,
-      null,
-      null,
-      null,
-      timestamp
+    const personOrg = this.writeEntity(new IFC4.IfcPersonAndOrganization(person, organisation, null))
+
+    const application = this.writeEntity(
+      new IFC4.IfcApplication(
+        organisation,
+        this.label(getVersionString()),
+        this.label('Strawbaler Online'),
+        this.identifier('Strawbaler-Online')
+      )
+    )
+
+    return this.writeEntity(
+      new IFC4.IfcOwnerHistory(personOrg, application, null, null, null, null, null, this.timestampValue(this.now))
     )
   }
 
   private setupUnits(): void {
-    const lengthUnit = this.createEntity(
-      IFCSIUNIT,
+    const lengthUnitEntity = new IFC4.IfcSIUnit(
       IFC4.IfcUnitEnum.LENGTHUNIT,
       IFC4.IfcSIPrefix.MILLI,
       IFC4.IfcSIUnitName.METRE
     )
+    const lengthUnit = this.writeEntity(lengthUnitEntity)
 
-    const areaUnit = this.createEntity(IFCSIUNIT, IFC4.IfcUnitEnum.AREAUNIT, null, IFC4.IfcSIUnitName.SQUARE_METRE)
+    const areaUnitEntity = new IFC4.IfcSIUnit(IFC4.IfcUnitEnum.AREAUNIT, null, IFC4.IfcSIUnitName.SQUARE_METRE)
+    const areaUnit = this.writeEntity(areaUnitEntity)
 
-    const volumeUnit = this.createEntity(IFCSIUNIT, IFC4.IfcUnitEnum.VOLUMEUNIT, null, IFC4.IfcSIUnitName.CUBIC_METRE)
+    const volumeUnitEntity = new IFC4.IfcSIUnit(IFC4.IfcUnitEnum.VOLUMEUNIT, null, IFC4.IfcSIUnitName.CUBIC_METRE)
+    const volumeUnit = this.writeEntity(volumeUnitEntity)
 
-    const planeAngleUnit = this.createEntity(
-      IFCSIUNIT,
-      IFC4.IfcUnitEnum.PLANEANGLEUNIT,
-      null,
-      IFC4.IfcSIUnitName.RADIAN
+    const planeAngleUnitEntity = new IFC4.IfcSIUnit(IFC4.IfcUnitEnum.PLANEANGLEUNIT, null, IFC4.IfcSIUnitName.RADIAN)
+    const planeAngleUnit = this.writeEntity(planeAngleUnitEntity)
+
+    this.unitAssignment = this.writeEntity(
+      new IFC4.IfcUnitAssignment([lengthUnit, areaUnit, volumeUnit, planeAngleUnit])
     )
-
-    this.unitAssignment = this.createEntity(IFCUNITASSIGNMENT, [
-      new Handle(lengthUnit),
-      new Handle(areaUnit),
-      new Handle(volumeUnit),
-      new Handle(planeAngleUnit)
-    ])
   }
 
   private createGeometricContext(): void {
@@ -251,128 +187,127 @@ class IfcExporter {
     this.zAxis = this.createDirection([0, 0, 1])
     this.xAxis = this.createDirection([1, 0, 0])
 
-    this.worldPlacement = this.createEntity(
-      IFCAXIS2PLACEMENT3D,
-      new Handle(origin),
-      new Handle(this.zAxis),
-      new Handle(this.xAxis)
-    )
+    this.worldPlacement = this.writeEntity(new IFC4.IfcAxis2Placement3D(origin, this.zAxis, this.xAxis))
 
-    this.modelContext = this.createEntity(
-      IFCGEOMETRICREPRESENTATIONCONTEXT,
-      null,
-      this.label('Model'),
-      this.api.CreateIfcType(this.modelID, IFCINTEGER, 3),
-      this.api.CreateIfcType(this.modelID, IFCREAL, 0.01),
-      new Handle(this.worldPlacement),
-      null
+    this.modelContext = this.writeEntity(
+      new IFC4.IfcGeometricRepresentationContext(
+        null,
+        this.label('Model'),
+        new IFC4.IfcDimensionCount(3),
+        this.real(0.01),
+        this.worldPlacement,
+        null
+      )
     )
   }
 
   private createSpatialStructure(storeyInfos: StoreyRuntimeInfo[]): void {
-    this.projectId = this.createEntity(
-      IFCPROJECT,
-      this.globalId(),
-      this.ownerHistory,
-      this.label('Strawbaler Project'),
-      null,
-      null,
-      null,
-      [new Handle(this.modelContext)],
-      new Handle(this.unitAssignment)
+    this.projectId = this.writeEntity(
+      new IFC4.IfcProject(
+        this.globalId(),
+        this.ownerHistory,
+        this.label('Strawbaler Project'),
+        null,
+        null,
+        null,
+        null,
+        [this.modelContext],
+        this.unitAssignment
+      )
     )
 
-    const sitePlacement = this.createEntity(IFCLOCALPLACEMENT, null, new Handle(this.worldPlacement))
+    const sitePlacement = this.writeEntity(new IFC4.IfcLocalPlacement(null, this.worldPlacement))
 
-    this.siteId = this.createEntity(
-      IFCSITE,
-      this.globalId(),
-      this.ownerHistory,
-      this.label('Site'),
-      null,
-      null,
-      new Handle(sitePlacement),
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null
+    this.siteId = this.writeEntity(
+      new IFC4.IfcSite(
+        this.globalId(),
+        this.ownerHistory,
+        this.label('Site'),
+        null,
+        null,
+        sitePlacement,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      )
     )
 
-    const buildingPlacement = this.createEntity(
-      IFCLOCALPLACEMENT,
-      new Handle(sitePlacement),
-      new Handle(this.worldPlacement)
-    )
+    const buildingPlacement = this.writeEntity(new IFC4.IfcLocalPlacement(sitePlacement, this.worldPlacement))
 
     const address = this.createDefaultPostalAddress()
 
-    this.buildingId = this.createEntity(
-      IFCBUILDING,
-      this.globalId(),
-      this.ownerHistory,
-      this.label('Building'),
-      null,
-      null,
-      new Handle(buildingPlacement),
-      null,
-      null,
-      this.real(0),
-      null,
-      new Handle(address)
+    this.buildingId = this.writeEntity(
+      new IFC4.IfcBuilding(
+        this.globalId(),
+        this.ownerHistory,
+        this.label('Building'),
+        null,
+        null,
+        buildingPlacement,
+        null,
+        null,
+        IFC4.IfcElementCompositionEnum.ELEMENT,
+        this.lengthMeasure(0),
+        null,
+        address
+      )
     )
 
-    this.createEntity(IFCRELAGGREGATES, this.globalId(), this.ownerHistory, null, null, new Handle(this.projectId), [
-      new Handle(this.siteId)
-    ])
+    this.writeEntity(
+      new IFC4.IfcRelAggregates(this.globalId(), this.ownerHistory, null, null, this.projectId, [this.siteId])
+    )
 
-    this.createEntity(IFCRELAGGREGATES, this.globalId(), this.ownerHistory, null, null, new Handle(this.siteId), [
-      new Handle(this.buildingId)
-    ])
+    this.writeEntity(
+      new IFC4.IfcRelAggregates(this.globalId(), this.ownerHistory, null, null, this.siteId, [this.buildingId])
+    )
 
     for (const info of storeyInfos) {
-      const placement = this.createEntity(
-        IFCLOCALPLACEMENT,
-        new Handle(buildingPlacement),
-        new Handle(this.createAxisPlacement([0, 0, info.elevation]))
+      const placement = this.writeEntity(
+        new IFC4.IfcLocalPlacement(buildingPlacement, this.createAxisPlacement([0, 0, info.elevation]))
       )
       this.storeyPlacements.set(info.storey.id, placement)
 
-      const storeyId = this.createEntity(
-        IFCBUILDINGSTOREY,
-        this.globalId(),
-        this.ownerHistory,
-        this.label(info.storey.name),
-        null,
-        null,
-        new Handle(placement),
-        null,
-        this.real(info.storey.level),
-        this.real(info.elevation)
+      const storeyId = this.writeEntity(
+        new IFC4.IfcBuildingStorey(
+          this.globalId(),
+          this.ownerHistory,
+          this.label(info.storey.name),
+          null,
+          null,
+          placement,
+          null,
+          null,
+          IFC4.IfcElementCompositionEnum.ELEMENT,
+          this.lengthMeasure(info.elevation)
+        )
       )
       this.storeyIds.set(info.storey.id, storeyId)
 
-      this.createEntity(IFCRELAGGREGATES, this.globalId(), this.ownerHistory, null, null, new Handle(this.buildingId), [
-        new Handle(storeyId)
-      ])
+      this.writeEntity(
+        new IFC4.IfcRelAggregates(this.globalId(), this.ownerHistory, null, null, this.buildingId, [storeyId])
+      )
     }
   }
 
-  private createDefaultPostalAddress(): number {
-    return this.createEntity(
-      IFCPOSTALADDRESS,
-      IFC4.IfcAddressTypeEnum.OFFICE,
-      null,
-      null,
-      null,
-      [this.label('Main Office')],
-      null,
-      this.label('Strawbaler Town'),
-      null,
-      null,
-      this.label('Unknown Country')
+  private createDefaultPostalAddress(): Handle<IFC4.IfcPostalAddress> {
+    return this.writeEntity(
+      new IFC4.IfcPostalAddress(
+        IFC4.IfcAddressTypeEnum.OFFICE,
+        null,
+        null,
+        null,
+        [this.label('Main Office')],
+        null,
+        this.label('Strawbaler Town'),
+        null,
+        null,
+        this.label('Unknown Country')
+      )
     )
   }
 
@@ -460,11 +395,11 @@ class IfcExporter {
   private createWallsForPerimeter(
     perimeter: Perimeter,
     info: StoreyRuntimeInfo,
-    storeyPlacement: number,
+    storeyPlacement: Handle<IFC4.IfcPlacement>,
     getWallAssemblyById: (id: PerimeterWall['wallAssemblyId']) => { type: string } | null,
-    materialUsageCache: Map<string, number>
-  ): number[] {
-    const elements: number[] = []
+    materialUsageCache: Map<string, Handle<IFC4.IfcMaterialLayerSetUsage>>
+  ): Handle<IFC4.IfcWallStandardCase>[] {
+    const elements: Handle<IFC4.IfcWallStandardCase>[] = []
 
     for (let index = 0; index < perimeter.walls.length; index++) {
       const wall = perimeter.walls[index]
@@ -486,91 +421,70 @@ class IfcExporter {
     startCorner: PerimeterCorner,
     endCorner: PerimeterCorner,
     info: StoreyRuntimeInfo,
-    storeyPlacement: number,
-    materialUsageCache: Map<string, number>
-  ): number {
+    storeyPlacement: Handle<IFC4.IfcPlacement>,
+    materialUsageCache: Map<string, Handle<IFC4.IfcMaterialLayerSetUsage>>
+  ): Handle<IFC4.IfcWallStandardCase> {
     const profile = this.createWallProfile(wall, startCorner, endCorner)
     const placement = this.createWallPlacement(wall, startCorner, storeyPlacement)
 
-    const solid = this.createEntity(
-      IFCEXTRUDEDAREASOLID,
-      new Handle(profile),
-      new Handle(this.createAxisPlacement([0, 0, 0])),
-      new Handle(this.zAxis),
-      this.api.CreateIfcType(this.modelID, IFCREAL, info.wallHeight)
+    const profilePlacement = this.createAxisPlacement([0, 0, 0])
+    const solid = this.writeEntity(
+      new IFC4.IfcExtrudedAreaSolid(profile, profilePlacement, this.zAxis, this.positiveLengthMeasure(info.wallHeight))
     )
 
-    const representation = this.createEntity(
-      IFCSHAPEREPRESENTATION,
-      new Handle(this.modelContext),
-      this.label('Body'),
-      this.label('SweptSolid'),
-      [new Handle(solid)]
+    const representation = this.writeEntity(
+      new IFC4.IfcShapeRepresentation(this.modelContext, this.label('Body'), this.label('SweptSolid'), [solid])
     )
 
-    const productDefinition = this.createEntity(IFCPRODUCTDEFINITIONSHAPE, null, null, [new Handle(representation)])
+    const productDefinition = this.writeEntity(new IFC4.IfcProductDefinitionShape(null, null, [representation]))
 
-    const wallId = this.createEntity(
-      IFCWALLSTANDARDCASE,
-      this.globalId(),
-      this.ownerHistory,
-      this.label(wall.id),
-      null,
-      null,
-      new Handle(placement),
-      new Handle(productDefinition),
-      null,
-      null
+    const wallId = this.writeEntity(
+      new IFC4.IfcWallStandardCase(
+        this.globalId(),
+        this.ownerHistory,
+        this.label(wall.id),
+        null,
+        null,
+        placement,
+        productDefinition,
+        null,
+        null
+      )
     )
 
     const materialUsageId = this.ensureWallMaterialUsage(wall.wallAssemblyId, wall.thickness, materialUsageCache)
 
-    this.createEntity(
-      IFCRELASSOCIATESMATERIAL,
-      this.globalId(),
-      this.ownerHistory,
-      null,
-      null,
-      [new Handle(wallId)],
-      new Handle(materialUsageId)
+    this.writeEntity(
+      new IFC4.IfcRelAssociatesMaterial(this.globalId(), this.ownerHistory, null, null, [wallId], materialUsageId)
     )
 
-    const propertySet = this.createEntity(
-      IFCPROPERTYSET,
-      this.globalId(),
-      this.ownerHistory,
-      this.label('Pset_StrawbalerWall'),
-      null,
-      [
-        new Handle(
-          this.createEntity(
-            IFCPROPERTYSINGLEVALUE,
-            this.label('Thickness'),
-            null,
-            this.api.CreateIfcType(this.modelID, IFCPOSITIVELENGTHMEASURE, wall.thickness),
-            null
-          )
-        ),
-        new Handle(
-          this.createEntity(
-            IFCPROPERTYSINGLEVALUE,
-            this.label('AssemblyId'),
-            null,
-            this.label(wall.wallAssemblyId ?? 'unknown'),
-            null
-          )
-        )
-      ]
+    const thicknessProperty = this.writeEntity(
+      new IFC4.IfcPropertySingleValue(
+        this.identifier('Thickness'),
+        null,
+        this.positiveLengthMeasure(wall.thickness),
+        null
+      )
     )
 
-    this.createEntity(
-      IFCRELDEFINESBYPROPERTIES,
-      this.globalId(),
-      this.ownerHistory,
-      null,
-      null,
-      [new Handle(wallId)],
-      new Handle(propertySet)
+    const assemblyProperty = this.writeEntity(
+      new IFC4.IfcPropertySingleValue(
+        this.identifier('AssemblyId'),
+        null,
+        this.label(wall.wallAssemblyId ?? 'unknown'),
+        null
+      )
+    )
+
+    const propertySet = this.writeEntity(
+      new IFC4.IfcPropertySet(this.globalId(), this.ownerHistory, this.label('Pset_StrawbalerWall'), null, [
+        thicknessProperty,
+        assemblyProperty
+      ])
+    )
+
+    this.writeEntity(
+      new IFC4.IfcRelDefinesByProperties(this.globalId(), this.ownerHistory, null, null, [wallId], propertySet)
     )
 
     for (const opening of wall.openings) {
@@ -583,198 +497,146 @@ class IfcExporter {
   private createOpeningElement(
     opening: PerimeterWall['openings'][number],
     wall: PerimeterWall,
-    wallId: number,
-    wallPlacement: number
+    wallId: Handle<IFC4.IfcElement>,
+    wallPlacement: Handle<IFC4.IfcPlacement>
   ): void {
-    const placement = this.createEntity(
-      IFCLOCALPLACEMENT,
-      new Handle(wallPlacement),
-      new Handle(this.createAxisPlacement([opening.offsetFromStart, 0, opening.sillHeight ?? 0]))
-    )
+    const axisPlacement = this.createAxisPlacement([opening.offsetFromStart, 0, opening.sillHeight ?? 0])
+    const placement = this.writeEntity(new IFC4.IfcLocalPlacement(wallPlacement, axisPlacement))
 
     const profile = this.createRectangleProfile(opening.width, wall.thickness)
-
-    const solid = this.createEntity(
-      IFCEXTRUDEDAREASOLID,
-      new Handle(profile),
-      new Handle(this.createAxisPlacement([0, 0, 0])),
-      new Handle(this.zAxis),
-      this.api.CreateIfcType(this.modelID, IFCREAL, opening.height)
+    const solidPlacement = this.createAxisPlacement([0, 0, 0])
+    const solid = this.writeEntity(
+      new IFC4.IfcExtrudedAreaSolid(profile, solidPlacement, this.zAxis, this.positiveLengthMeasure(opening.height))
     )
 
-    const representation = this.createEntity(
-      IFCSHAPEREPRESENTATION,
-      new Handle(this.modelContext),
-      this.label('Body'),
-      this.label('SweptSolid'),
-      [new Handle(solid)]
+    const representation = this.writeEntity(
+      new IFC4.IfcShapeRepresentation(this.modelContext, this.label('Body'), this.label('SweptSolid'), [solid])
     )
 
-    const productDefinition = this.createEntity(IFCPRODUCTDEFINITIONSHAPE, null, null, [new Handle(representation)])
+    const productDefinition = this.writeEntity(new IFC4.IfcProductDefinitionShape(null, null, [representation]))
 
-    const openingId = this.createEntity(
-      IFCOPENINGELEMENT,
-      this.globalId(),
-      this.ownerHistory,
-      this.label(`${opening.type}-${opening.id}`),
-      null,
-      null,
-      new Handle(placement),
-      new Handle(productDefinition),
-      null,
-      null
+    const openingId = this.writeEntity(
+      new IFC4.IfcOpeningElement(
+        this.globalId(),
+        this.ownerHistory,
+        this.label(`${opening.type}-${opening.id}`),
+        null,
+        null,
+        placement,
+        productDefinition,
+        null,
+        null
+      )
     )
 
-    this.createEntity(
-      IFCRELVOIDSELEMENT,
-      this.globalId(),
-      this.ownerHistory,
-      null,
-      null,
-      new Handle(wallId),
-      new Handle(openingId)
+    this.writeEntity(new IFC4.IfcRelVoidsElement(this.globalId(), this.ownerHistory, null, null, wallId, openingId))
+
+    const widthProp = this.writeEntity(
+      new IFC4.IfcPropertySingleValue(this.identifier('Width'), null, this.positiveLengthMeasure(opening.width), null)
     )
 
-    const propertySet = this.createEntity(
-      IFCPROPERTYSET,
-      this.globalId(),
-      this.ownerHistory,
-      this.label('Pset_StrawbalerOpening'),
-      null,
-      [
-        new Handle(
-          this.createEntity(
-            IFCPROPERTYSINGLEVALUE,
-            this.label('Width'),
-            null,
-            this.api.CreateIfcType(this.modelID, IFCPOSITIVELENGTHMEASURE, opening.width),
-            null
-          )
-        ),
-        new Handle(
-          this.createEntity(
-            IFCPROPERTYSINGLEVALUE,
-            this.label('Height'),
-            null,
-            this.api.CreateIfcType(this.modelID, IFCPOSITIVELENGTHMEASURE, opening.height),
-            null
-          )
-        ),
-        new Handle(
-          this.createEntity(
-            IFCPROPERTYSINGLEVALUE,
-            this.label('SillHeight'),
-            null,
-            this.api.CreateIfcType(this.modelID, IFCNONNEGATIVELENGTHMEASURE, opening.sillHeight ?? 0),
-            null
-          )
-        ),
-        new Handle(
-          this.createEntity(
-            IFCPROPERTYSINGLEVALUE,
-            this.label('Type'),
-            null,
-            this.label(opening.type.toUpperCase()),
-            null
-          )
-        )
-      ]
+    const heightProp = this.writeEntity(
+      new IFC4.IfcPropertySingleValue(this.identifier('Height'), null, this.positiveLengthMeasure(opening.height), null)
     )
 
-    this.createEntity(
-      IFCRELDEFINESBYPROPERTIES,
-      this.globalId(),
-      this.ownerHistory,
-      null,
-      null,
-      [new Handle(openingId)],
-      new Handle(propertySet)
+    const sillProp = this.writeEntity(
+      new IFC4.IfcPropertySingleValue(
+        this.identifier('SillHeight'),
+        null,
+        this.nonNegativeLengthMeasure(opening.sillHeight ?? 0),
+        null
+      )
+    )
+
+    const typeProp = this.writeEntity(
+      new IFC4.IfcPropertySingleValue(this.identifier('Type'), null, this.label(opening.type.toUpperCase()), null)
+    )
+
+    const propertySet = this.writeEntity(
+      new IFC4.IfcPropertySet(this.globalId(), this.ownerHistory, this.label('Pset_StrawbalerOpening'), null, [
+        widthProp,
+        heightProp,
+        sillProp,
+        typeProp
+      ])
+    )
+
+    this.writeEntity(
+      new IFC4.IfcRelDefinesByProperties(this.globalId(), this.ownerHistory, null, null, [openingId], propertySet)
     )
   }
 
-  private createFloorSlab(floor: FloorGeometry, storeyPlacement: number): number {
+  private createFloorSlab(floor: FloorGeometry, storeyPlacement: Handle<IFC4.IfcPlacement>): Handle<IFC4.IfcSlab> {
     const profileSolids = floor.polygons.map(polygon => this.createFloorSolid(polygon, floor.thickness))
 
-    const representation = this.createEntity(
-      IFCSHAPEREPRESENTATION,
-      new Handle(this.modelContext),
-      this.label('Body'),
-      this.label('SweptSolid'),
-      profileSolids.map(id => new Handle(id))
+    const representation = this.writeEntity(
+      new IFC4.IfcShapeRepresentation(
+        this.modelContext,
+        this.label('Body'),
+        this.label('SweptSolid'),
+        profileSolids.map(id => id)
+      )
     )
 
-    const productDefinition = this.createEntity(IFCPRODUCTDEFINITIONSHAPE, null, null, [new Handle(representation)])
+    const productDefinition = this.writeEntity(new IFC4.IfcProductDefinitionShape(null, null, [representation]))
 
-    const slabPlacement = this.createEntity(
-      IFCLOCALPLACEMENT,
-      new Handle(storeyPlacement),
-      new Handle(this.createAxisPlacement([0, 0, 0]))
+    const placement = this.writeEntity(new IFC4.IfcLocalPlacement(storeyPlacement, this.createAxisPlacement([0, 0, 0])))
+
+    const slabId = this.writeEntity(
+      new IFC4.IfcSlab(
+        this.globalId(),
+        this.ownerHistory,
+        this.label('Floor'),
+        null,
+        null,
+        placement,
+        productDefinition,
+        null,
+        IFC4.IfcSlabTypeEnum.FLOOR
+      )
     )
 
-    const slabId = this.createEntity(
-      IFCSLAB,
-      this.globalId(),
-      this.ownerHistory,
-      this.label('Floor'),
-      null,
-      null,
-      new Handle(slabPlacement),
-      new Handle(productDefinition),
-      null,
-      IFC4.IfcSlabTypeEnum.FLOOR
+    const thicknessProperty = this.writeEntity(
+      new IFC4.IfcPropertySingleValue(
+        this.identifier('Thickness'),
+        null,
+        this.positiveLengthMeasure(floor.thickness),
+        null
+      )
     )
 
-    const propertySet = this.createEntity(
-      IFCPROPERTYSET,
-      this.globalId(),
-      this.ownerHistory,
-      this.label('Pset_StrawbalerFloor'),
-      null,
-      [
-        new Handle(
-          this.createEntity(
-            IFCPROPERTYSINGLEVALUE,
-            this.label('Thickness'),
-            null,
-            this.api.CreateIfcType(this.modelID, IFCPOSITIVELENGTHMEASURE, floor.thickness),
-            null
-          )
-        )
-      ]
+    const propertySet = this.writeEntity(
+      new IFC4.IfcPropertySet(this.globalId(), this.ownerHistory, this.label('Pset_StrawbalerFloor'), null, [
+        thicknessProperty
+      ])
     )
 
-    this.createEntity(
-      IFCRELDEFINESBYPROPERTIES,
-      this.globalId(),
-      this.ownerHistory,
-      null,
-      null,
-      [new Handle(slabId)],
-      new Handle(propertySet)
+    this.writeEntity(
+      new IFC4.IfcRelDefinesByProperties(this.globalId(), this.ownerHistory, null, null, [slabId], propertySet)
     )
 
     return slabId
   }
 
-  private createFloorSolid(polygon: PolygonWithHoles2D, thickness: number): number {
+  private createFloorSolid(polygon: PolygonWithHoles2D, thickness: number): Handle<IFC4.IfcExtrudedAreaSolid> {
     const outer = this.createPolyline(polygon.outer)
-    const profile = this.createEntity(
-      IFCARBITRARYCLOSEDPROFILEDEF,
-      IFC4.IfcProfileTypeEnum.AREA,
-      null,
-      new Handle(outer)
-    )
+    const profile = this.writeEntity(new IFC4.IfcArbitraryClosedProfileDef(IFC4.IfcProfileTypeEnum.AREA, null, outer))
 
-    return this.createEntity(
-      IFCEXTRUDEDAREASOLID,
-      new Handle(profile),
-      new Handle(this.createAxisPlacement([0, 0, 0])),
-      new Handle(this.zAxis),
-      this.api.CreateIfcType(this.modelID, IFCREAL, thickness)
+    return this.writeEntity(
+      new IFC4.IfcExtrudedAreaSolid(
+        profile,
+        this.createAxisPlacement([0, 0, 0]),
+        this.zAxis,
+        this.positiveLengthMeasure(thickness)
+      )
     )
   }
 
-  private createWallProfile(wall: PerimeterWall, startCorner: PerimeterCorner, endCorner: PerimeterCorner): number {
+  private createWallProfile(
+    wall: PerimeterWall,
+    startCorner: PerimeterCorner,
+    endCorner: PerimeterCorner
+  ): Handle<IFC4.IfcArbitraryClosedProfileDef> {
     const origin = startCorner.insidePoint
     const direction = wall.direction
     const normal = wall.outsideDirection
@@ -791,7 +653,7 @@ class IfcExporter {
     return this.createRectanglePolyline(localPoints)
   }
 
-  private createRectangleProfile(width: number, depth: number): number {
+  private createRectangleProfile(width: number, depth: number): Handle<IFC4.IfcArbitraryClosedProfileDef> {
     const points: vec2[] = [
       vec2.fromValues(0, 0),
       vec2.fromValues(width, 0),
@@ -802,70 +664,66 @@ class IfcExporter {
     return this.createRectanglePolyline(points)
   }
 
-  private createRectanglePolyline(points: vec2[]): number {
+  private createRectanglePolyline(points: vec2[]): Handle<IFC4.IfcArbitraryClosedProfileDef> {
     const polyline = this.createPolyline({ points: [...points, vec2.clone(points[0])] })
-    return this.createEntity(IFCARBITRARYCLOSEDPROFILEDEF, IFC4.IfcProfileTypeEnum.AREA, null, new Handle(polyline))
+    return this.writeEntity(new IFC4.IfcArbitraryClosedProfileDef(IFC4.IfcProfileTypeEnum.AREA, null, polyline))
   }
 
-  private createPolyline(polygon: Polygon2D): number {
-    const points = polygon.points
-    const pointIds = points.map(point => this.createCartesianPoint([point[0], point[1], 0]))
-
-    return this.createEntity(
-      IFCPOLYLINE,
-      pointIds.map(id => new Handle(id))
-    )
+  private createPolyline(polygon: Polygon2D): Handle<IFC4.IfcPolyline> {
+    const pointIds = polygon.points.map(point => this.createCartesianPoint([point[0], point[1]]))
+    return this.writeEntity(new IFC4.IfcPolyline(pointIds.map(id => id)))
   }
 
-  private createAxisPlacement(location: [number, number, number]): number {
+  private createAxisPlacement(location: [number, number, number]): Handle<IFC4.IfcAxis2Placement3D> {
     const point = this.createCartesianPoint(location)
-    return this.createEntity(IFCAXIS2PLACEMENT3D, new Handle(point), new Handle(this.zAxis), new Handle(this.xAxis))
+    return this.writeEntity(new IFC4.IfcAxis2Placement3D(point, this.zAxis, this.xAxis))
   }
 
-  private createWallPlacement(wall: PerimeterWall, startCorner: PerimeterCorner, storeyPlacement: number): number {
+  private createWallPlacement(
+    wall: PerimeterWall,
+    startCorner: PerimeterCorner,
+    storeyPlacement: Handle<IFC4.IfcPlacement>
+  ): Handle<IFC4.IfcLocalPlacement> {
     const location = this.createCartesianPoint([startCorner.insidePoint[0], startCorner.insidePoint[1], 0])
     const wallDirection = this.createDirection([wall.direction[0], wall.direction[1], 0])
-    const placement = this.createEntity(
-      IFCAXIS2PLACEMENT3D,
-      new Handle(location),
-      new Handle(this.zAxis),
-      new Handle(wallDirection)
-    )
-    return this.createEntity(IFCLOCALPLACEMENT, new Handle(storeyPlacement), new Handle(placement))
+    const axisPlacement = this.writeEntity(new IFC4.IfcAxis2Placement3D(location, this.zAxis, wallDirection))
+    return this.writeEntity(new IFC4.IfcLocalPlacement(storeyPlacement, axisPlacement))
   }
 
-  private ensureWallMaterialUsage(assemblyId: string, thickness: number, cache: Map<string, number>): number {
+  private ensureWallMaterialUsage(
+    assemblyId: string,
+    thickness: number,
+    cache: Map<string, Handle<IFC4.IfcMaterialLayerSetUsage>>
+  ): Handle<IFC4.IfcMaterialLayerSetUsage> {
     const key = `${assemblyId}:${thickness}`
     const cached = cache.get(key)
     if (cached) return cached
 
-    const materialId = this.createEntity(IFCMATERIAL, this.label(`Wall ${assemblyId}`), null, null)
-    const layerId = this.createEntity(
-      IFCMATERIALLAYER,
-      new Handle(materialId),
-      this.api.CreateIfcType(this.modelID, IFCPOSITIVELENGTHMEASURE, thickness),
+    const material = new IFC4.IfcMaterial(this.label(`Wall ${assemblyId}`), null, null)
+    this.writeEntity(material)
+
+    const layer = new IFC4.IfcMaterialLayer(
+      material,
+      this.positiveLengthMeasure(thickness),
       null,
       null,
       null,
       null,
       null
     )
+    this.writeEntity(layer)
 
-    const layerSetId = this.createEntity(
-      IFCMATERIALLAYERSET,
-      [new Handle(layerId)],
-      this.label(`Wall ${assemblyId}`),
-      null
-    )
+    const layerSet = new IFC4.IfcMaterialLayerSet([layer], this.label(`Wall ${assemblyId}`), null)
+    this.writeEntity(layerSet)
 
-    const usageId = this.createEntity(
-      IFCMATERIALLAYERSETUSAGE,
-      new Handle(layerSetId),
+    const layerUsage = new IFC4.IfcMaterialLayerSetUsage(
+      layerSet,
       IFC4.IfcLayerSetDirectionEnum.AXIS2,
       IFC4.IfcDirectionSenseEnum.POSITIVE,
-      this.api.CreateIfcType(this.modelID, IFCLENGTHMEASURE, 0),
+      this.lengthMeasure(0),
       null
     )
+    const usageId = this.writeEntity(layerUsage)
 
     cache.set(key, usageId)
     return usageId
@@ -873,19 +731,22 @@ class IfcExporter {
 
   // --- helpers ---
 
-  private createEntity(type: number, ...args: unknown[]): number {
-    const entity = this.api.CreateIfcEntity(this.modelID, type, ...args)
+  private writeEntity<T extends IfcLineObject>(entity: T): Handle<T> {
     this.api.WriteLine(this.modelID, entity)
-    return entity.expressID
+    return new Handle(entity.expressID)
   }
 
-  private createCartesianPoint(coordinates: [number, number, number]): number {
-    return this.createEntity(IFCCARTESIANPOINT, coordinates)
+  private createCartesianPoint(
+    coordinates: [number, number] | [number, number, number]
+  ): Handle<IFC4.IfcCartesianPoint> {
+    const measures = coordinates.map(value => this.lengthMeasure(value))
+    return this.writeEntity(new IFC4.IfcCartesianPoint(measures))
   }
 
-  private createDirection(components: [number, number, number] | [number, number]): number {
+  private createDirection(components: [number, number, number] | [number, number]): Handle<IFC4.IfcDirection> {
     const normalized = this.normalizeVector(components)
-    return this.createEntity(IFCDIRECTION, normalized)
+    const ratios = normalized.map(value => this.real(value))
+    return this.writeEntity(new IFC4.IfcDirection(ratios))
   }
 
   private normalizeVector(components: [number, number, number] | [number, number]): number[] {
@@ -900,27 +761,35 @@ class IfcExporter {
     return vector.map(component => component / length)
   }
 
-  private label(value: string): unknown {
-    return this.api.CreateIfcType(this.modelID, IFCLABEL, value)
+  private label(value: string): IFC4.IfcLabel {
+    return new IFC4.IfcLabel(value)
   }
 
-  private text(value: string): unknown {
-    return this.api.CreateIfcType(this.modelID, IFCTEXT, value)
+  private identifier(value: string): IFC4.IfcIdentifier {
+    return new IFC4.IfcIdentifier(value)
   }
 
-  private identifier(value: string): unknown {
-    return this.api.CreateIfcType(this.modelID, IFCIDENTIFIER, value)
+  private real(value: number): IFC4.IfcReal {
+    return new IFC4.IfcReal(value)
   }
 
-  private real(value: number): unknown {
-    return this.api.CreateIfcType(this.modelID, IFCREAL, value)
+  private lengthMeasure(value: number): IFC4.IfcLengthMeasure {
+    return new IFC4.IfcLengthMeasure(value)
   }
 
-  private integer(value: number): unknown {
-    return this.api.CreateIfcType(this.modelID, IFCINTEGER, value)
+  private positiveLengthMeasure(value: number): IFC4.IfcPositiveLengthMeasure {
+    return new IFC4.IfcPositiveLengthMeasure(Math.max(value, 1e-6))
   }
 
-  private globalId(): unknown {
+  private nonNegativeLengthMeasure(value: number): IFC4.IfcNonNegativeLengthMeasure {
+    return new IFC4.IfcNonNegativeLengthMeasure(Math.max(value, 0))
+  }
+
+  private timestampValue(value: number): IFC4.IfcTimeStamp {
+    return new IFC4.IfcTimeStamp(value)
+  }
+
+  private globalId(): IFC4.IfcGloballyUniqueId {
     return this.api.CreateIFCGloballyUniqueId(this.modelID)
   }
 
