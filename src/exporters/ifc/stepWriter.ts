@@ -8,7 +8,7 @@ interface StepEnum {
   readonly value: string
 }
 
-interface StepRaw {
+export interface StepRaw {
   readonly kind: 'raw'
   readonly value: string
 }
@@ -96,10 +96,12 @@ END-ISO-10303-21;
 `
   }
 
-  private buildHeader(options: Required<Omit<StepHeaderOptions, 'description' | 'schema'>> & {
-    description: string[]
-    schema: string
-  }): string {
+  private buildHeader(
+    options: Required<Omit<StepHeaderOptions, 'description' | 'schema'>> & {
+      description: string[]
+      schema: string
+    }
+  ): string {
     const description = `FILE_DESCRIPTION((${options.description.map(s => `'${escapeString(s)}'`).join(',')}),'2;1');`
     const fileName = `FILE_NAME('${escapeString(options.name)}','${options.timestamp}',('${escapeString(options.author)}'),('${escapeString(options.organization)}'),'','${escapeString(options.application)}','${escapeString(options.application)}');`
     const schema = `FILE_SCHEMA(('${escapeString(options.schema)}'));`
@@ -142,7 +144,7 @@ function escapeString(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "''")
 }
 
-function formatNumber(value: number): string {
+export function formatNumber(value: number): string {
   const fixed = value.toFixed(6).replace(/0+$/, '')
   if (fixed.includes('.')) {
     return fixed.endsWith('.') ? `${fixed}0` : fixed

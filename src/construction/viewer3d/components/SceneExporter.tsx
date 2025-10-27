@@ -22,7 +22,7 @@ function SceneExporter({ onExportReady }: SceneExporterProps): null {
       const timestamp = new Date().toISOString().split('T')[0]
 
       if (format === 'ifc') {
-        void exportCurrentModelToIfc().catch(error => {
+        exportCurrentModelToIfc().catch(error => {
           console.error('Error exporting IFC:', error)
         })
       } else if (format === 'gltf') {

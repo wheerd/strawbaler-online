@@ -50,7 +50,7 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
   const handleExport = (format: ExportFormat): void => {
     const fn = exportFnRef.current
     if (fn) {
-      void fn(format)
+      fn(format)
     }
   }
 

@@ -11,7 +11,7 @@ import { arePolygonsIntersecting, polygonIsClockwise, subtractPolygons, unionPol
 import { downloadFile } from '@/shared/utils/downloadFile'
 import { getVersionString } from '@/shared/utils/version'
 
-import { StepWriter, stepEnum, stepRaw, stepRef } from './stepWriter'
+import { type StepRaw, StepWriter, formatNumber, stepEnum, stepRaw, stepRef } from './stepWriter'
 
 interface StoreyRuntimeInfo {
   readonly storey: Storey
@@ -126,7 +126,7 @@ export async function exportCurrentModelToIfc(): Promise<void> {
 
   const allStoreyIds: number[] = []
   const wallMaterialCache = new Map<string, number>()
-  const storeyDistribution: Array<{ storeyId: number; elements: number[] }> = []
+  const storeyDistribution: { storeyId: number; elements: number[] }[] = []
 
   for (const info of storeyInfos) {
     const storeyPlacement = createLocalPlacementForStorey(writer, buildingPlacement, info.elevation, ifcContext)
@@ -374,12 +374,7 @@ function createWallsForPerimeter(
       null,
       [
         stepRef(
-          writer.addEntity('IFCPROPERTYSINGLEVALUE', [
-            'Thickness',
-            null,
-            stepRaw(`IFCLENGTHMEASURE(${formatNumber(wall.thickness)})`),
-            null
-          ])
+          writer.addEntity('IFCPROPERTYSINGLEVALUE', ['Thickness', null, createLengthMeasure(wall.thickness), null])
         ),
         stepRef(writer.addEntity('IFCPROPERTYSINGLEVALUE', ['AssemblyId', null, wall.wallAssemblyId ?? '', null]))
       ]
@@ -467,7 +462,7 @@ function ensureWallMaterialUsage(
   const materialId = writer.addEntity('IFCMATERIAL', [materialName])
   const materialLayerId = writer.addEntity('IFCMATERIALLAYER', [
     stepRef(materialId),
-    Number(thickness),
+    createLengthMeasure(thickness, 'non-negative'),
     null,
     null,
     null,
@@ -550,27 +545,13 @@ function createOpeningElement(
     'Pset_StrawbalerOpening',
     null,
     [
-      stepRef(
-        writer.addEntity('IFCPROPERTYSINGLEVALUE', [
-          'Width',
-          null,
-          stepRaw(`IFCLENGTHMEASURE(${formatNumber(opening.width)})`),
-          null
-        ])
-      ),
-      stepRef(
-        writer.addEntity('IFCPROPERTYSINGLEVALUE', [
-          'Height',
-          null,
-          stepRaw(`IFCLENGTHMEASURE(${formatNumber(opening.height)})`),
-          null
-        ])
-      ),
+      stepRef(writer.addEntity('IFCPROPERTYSINGLEVALUE', ['Width', null, createLengthMeasure(opening.width), null])),
+      stepRef(writer.addEntity('IFCPROPERTYSINGLEVALUE', ['Height', null, createLengthMeasure(opening.height), null])),
       stepRef(
         writer.addEntity('IFCPROPERTYSINGLEVALUE', [
           'SillHeight',
           null,
-          stepRaw(`IFCLENGTHMEASURE(${formatNumber(opening.sillHeight ?? 0)})`),
+          createLengthMeasure(opening.sillHeight ?? 0),
           null
         ])
       ),
@@ -633,12 +614,7 @@ function createFloorSlab(
     null,
     [
       stepRef(
-        writer.addEntity('IFCPROPERTYSINGLEVALUE', [
-          'Thickness',
-          null,
-          stepRaw(`IFCLENGTHMEASURE(${formatNumber(floor.thickness)})`),
-          null
-        ])
+        writer.addEntity('IFCPROPERTYSINGLEVALUE', ['Thickness', null, createLengthMeasure(floor.thickness), null])
       )
     ]
   ])
@@ -892,6 +868,12 @@ function generateFilename(ext: string): string {
   return `strawbaler-${timestamp}.${ext}`
 }
 
-function formatNumber(value: number): string {
-  return Number.isInteger(value) ? value.toString() : value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')
+function createLengthMeasure(value: number, type: 'any' | 'positive' | 'non-negative' = 'any'): StepRaw {
+  const measureType =
+    type === 'positive'
+      ? 'IFCPOSITIVELENGTHMEASURE'
+      : type === 'non-negative'
+        ? 'IFCNONNEGATIVELENGTHMEASURE'
+        : 'IFCLENGTHMEASURE'
+  return stepRaw(`${measureType}(${formatNumber(value)})`)
 }
