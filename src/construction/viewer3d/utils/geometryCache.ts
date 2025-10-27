@@ -35,7 +35,10 @@ function getCuboidCacheKey(shape: Cuboid, partId?: string): string {
   return `cuboid|${sanitizePartId(partId)}|${sizeKey}`
 }
 
-function buildExtrudedPolygonGeometry(shape: ExtrudedPolygon): { geometry: THREE.ExtrudeGeometry; matrix: THREE.Matrix4 } {
+function buildExtrudedPolygonGeometry(shape: ExtrudedPolygon): {
+  geometry: THREE.ExtrudeGeometry
+  matrix: THREE.Matrix4
+} {
   const outerPoints = shape.polygon.outer.points.map(point => new THREE.Vector2(point[0], point[1]))
   const threeShape = new THREE.Shape(outerPoints)
 
@@ -76,13 +79,16 @@ function buildExtrudedPolygonGeometry(shape: ExtrudedPolygon): { geometry: THREE
 }
 
 function getExtrudedPolygonCacheKey(shape: ExtrudedPolygon, partId?: string): string {
-  const outerKey = shape.polygon.outer.points.map(point => `${formatNumber(point[0])}:${formatNumber(point[1])}`).join(';')
+  const outerKey = shape.polygon.outer.points
+    .map(point => `${formatNumber(point[0])}:${formatNumber(point[1])}`)
+    .join(';')
   const holesKey =
     shape.polygon.holes.length === 0
       ? 'no-holes'
       : shape.polygon.holes
           .map(
-            hole => hole.points.map(point => `${formatNumber(point[0])}:${formatNumber(point[1])}`).join(';') || 'empty-hole'
+            hole =>
+              hole.points.map(point => `${formatNumber(point[0])}:${formatNumber(point[1])}`).join(';') || 'empty-hole'
           )
           .join('|')
   const planeKey = `${shape.plane}:${formatNumber(shape.thickness)}`

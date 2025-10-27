@@ -21,7 +21,11 @@ function Cuboid3D({ shape, color, opacity = 1.0, partId }: Cuboid3DProps): React
   const { geometry, edgesGeometry, cacheKey } = getCuboidGeometry(shape, partId)
 
   return (
-    <mesh geometry={geometry} position={[centerThreeX, centerThreeY, centerThreeZ]} userData={{ partId, geometryKey: cacheKey }}>
+    <mesh
+      geometry={geometry}
+      position={[centerThreeX, centerThreeY, centerThreeZ]}
+      userData={{ partId, geometryKey: cacheKey }}
+    >
       <meshStandardMaterial color={color} opacity={opacity} transparent depthWrite={opacity === 1.0} />
       <lineSegments geometry={edgesGeometry}>
         <lineBasicMaterial color="#000000" opacity={0.4} transparent linewidth={1} />

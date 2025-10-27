@@ -11,7 +11,7 @@ import {
   Points
 } from 'three'
 
-type SupportedMaterial = {
+interface SupportedMaterial {
   uuid: string
   color?: Color
   opacity?: number
@@ -23,6 +23,13 @@ interface ColladaMaterialEntry {
   effectId: string
   materialXml: string
   effectXml: string
+}
+
+interface MaterialSignature {
+  key: string
+  color: Color
+  opacity: number
+  transparent: boolean
 }
 
 interface GeometryData {
@@ -110,23 +117,18 @@ function sanitizeName(name: string, fallback: string): string {
     return fallback
   }
 
-  return trimmed.replace(/[^A-Za-z0-9_\-]+/g, '_')
+  return trimmed.replace(/[^A-Za-z0-9_-]+/g, '_')
 }
 
-function createMaterialEntry(material: SupportedMaterial | SupportedMaterial[] | null | undefined, counter: number): ColladaMaterialEntry {
-  const baseMaterial = Array.isArray(material) ? material[0] : material
-  const color = baseMaterial?.color ? baseMaterial.color.clone() : new Color(0xdddddd)
-  const opacity = baseMaterial?.opacity ?? 1
-  const isTransparent = baseMaterial?.transparent === true && opacity < 1
-
+function createMaterialEntry(signature: MaterialSignature, counter: number): ColladaMaterialEntry {
   const materialId = `material-${counter}`
   const effectId = `effect-${counter}`
 
-  const diffuseColor = `${formatFloat(color.r)} ${formatFloat(color.g)} ${formatFloat(color.b)} ${formatFloat(opacity)}`
+  const diffuseColor = `${formatFloat(signature.color.r)} ${formatFloat(signature.color.g)} ${formatFloat(signature.color.b)} ${formatFloat(signature.opacity)}`
   const transparencyBlock =
-    isTransparent
-      ? `<transparent><float>${formatFloat(opacity)}</float></transparent><transparency><float>${formatFloat(
-          opacity
+    signature.transparent && signature.opacity < 1
+      ? `<transparent><color>${diffuseColor}</color></transparent><transparency><float>${formatFloat(
+          signature.opacity
         )}</float></transparency>`
       : ''
 
@@ -136,11 +138,21 @@ function createMaterialEntry(material: SupportedMaterial | SupportedMaterial[] |
   return { id: materialId, effectId, materialXml, effectXml }
 }
 
-function createGeometryXml(
-  mesh: Mesh,
-  geometryId: string,
-  geometryData: GeometryData
-): string {
+function getMaterialSignature(material: SupportedMaterial | SupportedMaterial[] | null | undefined): MaterialSignature {
+  const baseMaterial = Array.isArray(material) ? material[0] : material
+  const color = baseMaterial?.color ? baseMaterial.color.clone() : new Color(0xdddddd)
+  const opacity = baseMaterial?.opacity ?? 1
+  const transparent = baseMaterial?.transparent === true || opacity < 1
+
+  const colorKey = `${formatFloat(color.r)}:${formatFloat(color.g)}:${formatFloat(color.b)}`
+  const opacityKey = formatFloat(opacity)
+  const transparentKey = transparent ? 'T' : 'F'
+  const key = `color:${colorKey}|opacity:${opacityKey}|transparent:${transparentKey}`
+
+  return { key, color, opacity, transparent }
+}
+
+function createGeometryXml(mesh: Mesh, geometryId: string, geometryData: GeometryData): string {
   const { positionValues, normalValues, vertexCount } = geometryData
   const floatCount = positionValues.length
   const triangleCount = vertexCount / 3
@@ -153,18 +165,13 @@ function createGeometryXml(
   const materialSymbol = 'material'
 
   return `<geometry id="${geometryId}" name="${nodeName}"><mesh><source id="${positionsSourceId}"><float_array id="${positionsSourceId}-array" count="${floatCount}">${numberArrayToString(
-      positionValues
-    )}</float_array><technique_common><accessor source="#${positionsSourceId}-array" count="${vertexCount}" stride="3"><param name="X" type="float" /><param name="Y" type="float" /><param name="Z" type="float" /></accessor></technique_common></source><source id="${normalsSourceId}"><float_array id="${normalsSourceId}-array" count="${normalValues.length}">${numberArrayToString(
-      normalValues
-    )}</float_array><technique_common><accessor source="#${normalsSourceId}-array" count="${vertexCount}" stride="3"><param name="X" type="float" /><param name="Y" type="float" /><param name="Z" type="float" /></accessor></technique_common></source><vertices id="${verticesId}"><input semantic="POSITION" source="#${positionsSourceId}" /></vertices><triangles material="${materialSymbol}" count="${triangleCount}"><input semantic="VERTEX" source="#${verticesId}" offset="0" /><input semantic="NORMAL" source="#${normalsSourceId}" offset="1" /><p>${indicesString}</p></triangles></mesh></geometry>`
+    positionValues
+  )}</float_array><technique_common><accessor source="#${positionsSourceId}-array" count="${vertexCount}" stride="3"><param name="X" type="float" /><param name="Y" type="float" /><param name="Z" type="float" /></accessor></technique_common></source><source id="${normalsSourceId}"><float_array id="${normalsSourceId}-array" count="${normalValues.length}">${numberArrayToString(
+    normalValues
+  )}</float_array><technique_common><accessor source="#${normalsSourceId}-array" count="${vertexCount}" stride="3"><param name="X" type="float" /><param name="Y" type="float" /><param name="Z" type="float" /></accessor></technique_common></source><vertices id="${verticesId}"><input semantic="POSITION" source="#${positionsSourceId}" /></vertices><triangles material="${materialSymbol}" count="${triangleCount}"><input semantic="VERTEX" source="#${verticesId}" offset="0" /><input semantic="NORMAL" source="#${normalsSourceId}" offset="1" /><p>${indicesString}</p></triangles></mesh></geometry>`
 }
 
-function createNodeXml(
-  mesh: Mesh,
-  nodeId: string,
-  geometryId: string,
-  materialId: string
-): string {
+function createNodeXml(mesh: Mesh, nodeId: string, geometryId: string, materialId: string): string {
   matrixHelper.copy(mesh.matrixWorld)
   matrixHelper.transpose()
 
@@ -248,17 +255,12 @@ export function generateCollada(objects: Object3D[]): string | null {
       return
     }
 
-    const materialKey = Array.isArray(mesh.material)
-      ? mesh.material.map(item => item?.uuid ?? 'material').join(',')
-      : mesh.material?.uuid ?? 'material'
+    const materialSignature = getMaterialSignature(mesh.material as SupportedMaterial | SupportedMaterial[] | undefined)
 
-    let materialEntry = materialKeyMap.get(materialKey)
+    let materialEntry = materialKeyMap.get(materialSignature.key)
     if (!materialEntry) {
-      materialEntry = createMaterialEntry(
-        mesh.material as SupportedMaterial | SupportedMaterial[] | undefined,
-        materials.length + 1
-      )
-      materialKeyMap.set(materialKey, materialEntry)
+      materialEntry = createMaterialEntry(materialSignature, materials.length + 1)
+      materialKeyMap.set(materialSignature.key, materialEntry)
       materials.push(materialEntry)
     }
 
@@ -275,7 +277,9 @@ export function generateCollada(objects: Object3D[]): string | null {
 
   const effectsXml = materials.map(material => material.effectXml).join('')
   const materialsXml = materials.map(material => material.materialXml).join('')
-  const geometriesXml = Array.from(geometryMap.values()).map(entry => entry.xml).join('')
+  const geometriesXml = Array.from(geometryMap.values())
+    .map(entry => entry.xml)
+    .join('')
   const nodesXml = nodes.join('')
 
   return `<?xml version="1.0" encoding="UTF-8" standalone="no" ?><COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1"><asset><contributor><authoring_tool>Strawbaler Online Collada Exporter</authoring_tool></contributor><created>${now}</created><modified>${now}</modified><up_axis>Y_UP</up_axis></asset><library_effects>${effectsXml}</library_effects><library_materials>${materialsXml}</library_materials><library_geometries>${geometriesXml}</library_geometries><library_visual_scenes><visual_scene id="Scene" name="Scene">${nodesXml}</visual_scene></library_visual_scenes><scene><instance_visual_scene url="#Scene" /></scene></COLLADA>`

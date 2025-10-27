@@ -4,8 +4,8 @@ import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js'
 import { STLExporter } from 'three/examples/jsm/exporters/STLExporter.js'
 
-import { downloadFile } from '@/shared/utils/downloadFile'
 import { generateCollada } from '@/construction/viewer3d/utils/exportCollada'
+import { downloadFile } from '@/shared/utils/downloadFile'
 
 import type { ExportFormat } from './ExportButton'
 

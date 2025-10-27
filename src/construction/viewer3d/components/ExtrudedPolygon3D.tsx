@@ -14,12 +14,7 @@ function ExtrudedPolygon3D({ shape, color, opacity = 1.0, partId }: ExtrudedPoly
   const { geometry, edgesGeometry, matrix, cacheKey } = getExtrudedPolygonGeometry(shape, partId)
 
   return (
-    <mesh
-      geometry={geometry}
-      matrix={matrix}
-      matrixAutoUpdate={false}
-      userData={{ partId, geometryKey: cacheKey }}
-    >
+    <mesh geometry={geometry} matrix={matrix} matrixAutoUpdate={false} userData={{ partId, geometryKey: cacheKey }}>
       <meshStandardMaterial color={color} opacity={opacity} transparent depthWrite={opacity === 1.0} />
       <lineSegments geometry={edgesGeometry}>
         <lineBasicMaterial color="#000000" opacity={0.4} transparent linewidth={1} />
