@@ -102,8 +102,10 @@ export async function exportCurrentModelToIfc(): Promise<void> {
     stepRef(buildingPlacement),
     null,
     null,
+    stepEnum('ELEMENT'),
     null,
-    null
+    null,
+    stepRef(createDefaultPostalAddress(writer))
   ])
 
   writer.addEntity('IFCRELAGGREGATES', [
@@ -376,7 +378,14 @@ function createWallsForPerimeter(
         stepRef(
           writer.addEntity('IFCPROPERTYSINGLEVALUE', ['Thickness', null, createLengthMeasure(wall.thickness), null])
         ),
-        stepRef(writer.addEntity('IFCPROPERTYSINGLEVALUE', ['AssemblyId', null, wall.wallAssemblyId ?? '', null]))
+        stepRef(
+          writer.addEntity('IFCPROPERTYSINGLEVALUE', [
+            'AssemblyId',
+            null,
+            stepRaw(`IFCIDENTIFIER(${wall.wallAssemblyId ?? ''})`),
+            null
+          ])
+        )
       ]
     ])
 
@@ -462,7 +471,7 @@ function ensureWallMaterialUsage(
   const materialId = writer.addEntity('IFCMATERIAL', [materialName, null, null])
   const materialLayerId = writer.addEntity('IFCMATERIALLAYER', [
     stepRef(materialId),
-    createLengthMeasure(thickness, 'positive-length'),
+    createLengthMeasure(thickness, 'non-negative-length'),
     null,
     null,
     null,
@@ -568,7 +577,14 @@ function createOpeningElement(
           null
         ])
       ),
-      stepRef(writer.addEntity('IFCPROPERTYSINGLEVALUE', ['Type', null, opening.type, null]))
+      stepRef(
+        writer.addEntity('IFCPROPERTYSINGLEVALUE', [
+          'Type',
+          null,
+          stepRaw(`IFCLABEL('${opening.type.toUpperCase()}')`),
+          null
+        ])
+      )
     ]
   ])
 
@@ -896,4 +912,21 @@ function createLengthMeasure(value: number, type: LengthMeasureType = 'length'):
         ? 'IFCNONNEGATIVELENGTHMEASURE'
         : 'IFCLENGTHMEASURE'
   return stepRaw(`${measureType}(${formatNumber(value)})`)
+}
+
+function createDefaultPostalAddress(writer: StepWriter): number {
+  return writer.addEntity('IFCPOSTALADDRESS', [
+    stepEnum('SITE'),
+    null,
+    null,
+    stepRaw(`IFCLABEL(Unknown)`),
+    null,
+    [],
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ])
 }
