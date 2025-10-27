@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix'
-import { Handle, IFC4, IFCPOSITIVELENGTHMEASURE, IFCPROPERTYSINGLEVALUE, IfcAPI, type IfcLineObject } from 'web-ifc'
+import { Handle, IFC4, IfcAPI, type IfcLineObject } from 'web-ifc'
 import wasmUrl from 'web-ifc/web-ifc.wasm?url'
 
 import type { Perimeter, PerimeterCorner, PerimeterWall, Storey } from '@/building/model'
@@ -404,8 +404,8 @@ class IfcExporter {
     storeyPlacement: Handle<IFC4.IfcPlacement>,
     getWallAssemblyById: (id: PerimeterWall['wallAssemblyId']) => { type: string } | null,
     materialUsageCache: Map<string, Handle<IFC4.IfcMaterialLayerSetUsage>>
-  ): Handle<IFC4.IfcWallStandardCase>[] {
-    const elements: Handle<IFC4.IfcWallStandardCase>[] = []
+  ): Handle<IFC4.IfcWall>[] {
+    const elements: Handle<IFC4.IfcWall>[] = []
 
     for (let index = 0; index < perimeter.walls.length; index++) {
       const wall = perimeter.walls[index]
@@ -429,7 +429,7 @@ class IfcExporter {
     info: StoreyRuntimeInfo,
     storeyPlacement: Handle<IFC4.IfcPlacement>,
     materialUsageCache: Map<string, Handle<IFC4.IfcMaterialLayerSetUsage>>
-  ): Handle<IFC4.IfcWallStandardCase> {
+  ): Handle<IFC4.IfcWall> {
     const profile = this.createWallProfile(wall, startCorner, endCorner)
     const placement = this.createWallPlacement(wall, startCorner, storeyPlacement)
 
@@ -445,7 +445,7 @@ class IfcExporter {
     const productDefinition = this.writeEntity(new IFC4.IfcProductDefinitionShape(null, null, [representation]))
 
     const wallId = this.writeEntity(
-      new IFC4.IfcWallStandardCase(
+      new IFC4.IfcWall(
         this.globalId(),
         this.ownerHistory,
         this.label(wall.id),
@@ -468,7 +468,7 @@ class IfcExporter {
       new IFC4.IfcPropertySingleValue(
         this.identifier('Thickness'),
         null,
-        this.positiveLengthMeasure(wall.thickness),
+        this.positiveLengthMeasure(wall.thickness, true),
         null
       )
     )
@@ -477,7 +477,7 @@ class IfcExporter {
       new IFC4.IfcPropertySingleValue(
         this.identifier('AssemblyId'),
         null,
-        this.label(wall.wallAssemblyId ?? 'unknown'),
+        this.identifier(wall.wallAssemblyId ?? 'unknown'),
         null
       )
     )
@@ -537,25 +537,29 @@ class IfcExporter {
 
     this.writeEntity(new IFC4.IfcRelVoidsElement(this.globalId(), this.ownerHistory, null, null, wallId, openingId))
 
-    const widthProp = this.api.CreateIfcEntity(
-      this.modelID,
-      IFCPROPERTYSINGLEVALUE,
-      'Width',
-      null,
-      this.api.CreateIfcType(this.modelID, IFCPOSITIVELENGTHMEASURE, opening.width),
-      null
+    const widthProp = this.writeEntity(
+      new IFC4.IfcPropertySingleValue(
+        this.identifier('Width'),
+        null,
+        this.positiveLengthMeasure(opening.sillHeight ?? 0, true),
+        null
+      )
     )
-    this.api.WriteLine(this.modelID, widthProp)
 
     const heightProp = this.writeEntity(
-      new IFC4.IfcPropertySingleValue(this.identifier('Height'), null, this.positiveLengthMeasure(opening.height), null)
+      new IFC4.IfcPropertySingleValue(
+        this.identifier('Height'),
+        null,
+        this.positiveLengthMeasure(opening.height, true),
+        null
+      )
     )
 
     const sillProp = this.writeEntity(
       new IFC4.IfcPropertySingleValue(
         this.identifier('SillHeight'),
         null,
-        this.nonNegativeLengthMeasure(opening.sillHeight ?? 0),
+        this.nonNegativeLengthMeasure(opening.sillHeight ?? 0, true),
         null
       )
     )
@@ -566,7 +570,7 @@ class IfcExporter {
 
     const propertySet = this.writeEntity(
       new IFC4.IfcPropertySet(this.globalId(), this.ownerHistory, this.label('StrawbalerOpening'), null, [
-        new Handle(widthProp.expressID),
+        widthProp,
         heightProp,
         sillProp,
         typeProp
@@ -612,7 +616,7 @@ class IfcExporter {
       new IFC4.IfcPropertySingleValue(
         this.identifier('Thickness'),
         null,
-        this.positiveLengthMeasure(floor.thickness),
+        this.positiveLengthMeasure(floor.thickness, true),
         null
       )
     )
@@ -809,11 +813,17 @@ class IfcExporter {
     return new IFC4.IfcLengthMeasure(value)
   }
 
-  private positiveLengthMeasure(value: number): IFC4.IfcPositiveLengthMeasure {
+  private positiveLengthMeasure(value: number, force: boolean = false): IFC4.IfcPositiveLengthMeasure {
+    if (force) {
+      return { type: 2, label: 'IFCPOSITIVELENGTHMEASURE', valueType: 4, internalValue: Math.max(value, 0.01) } as any
+    }
     return new IFC4.IfcPositiveLengthMeasure(Math.max(value, 1e-6))
   }
 
-  private nonNegativeLengthMeasure(value: number): IFC4.IfcNonNegativeLengthMeasure {
+  private nonNegativeLengthMeasure(value: number, force: boolean = false): IFC4.IfcNonNegativeLengthMeasure {
+    if (force) {
+      return { type: 2, label: 'IFCNONNEGATIVELENGTHMEASURE', valueType: 4, internalValue: Math.max(value, 0) } as any
+    }
     return new IFC4.IfcNonNegativeLengthMeasure(Math.max(value, 0))
   }
 
