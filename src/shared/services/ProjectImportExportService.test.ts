@@ -76,13 +76,52 @@ vi.mock('@/building/store', () => ({
 
 vi.mock('@/construction/config/store', () => ({
   getConfigState: vi.fn(() => ({
-    ringBeamAssemblies: {
-      beam_1: { id: 'beam_1', name: 'Test Beam', config: {} }
+    straw: {
+      baleMinLength: 800,
+      baleMaxLength: 900,
+      baleHeight: 500,
+      baleWidth: 360,
+      material: 'material_straw'
     },
-    wallAssemblies: {
-      assembly_1: { id: 'assembly_1', name: 'Test Assembly', config: {} }
+    ringBeamAssemblyConfigs: {
+      beam_1: {
+        id: 'beam_1',
+        name: 'Test Beam',
+        type: 'full',
+        material: 'material_wood',
+        height: 60,
+        width: 360,
+        offsetFromEdge: 30
+      }
     },
-    defaultWallAssemblyId: 'assembly_1'
+    wallAssemblyConfigs: {
+      assembly_1: {
+        id: 'assembly_1',
+        name: 'Test Assembly',
+        type: 'non-strawbale',
+        thickness: 200,
+        material: 'material_wall',
+        layers: {
+          insideThickness: 30,
+          outsideThickness: 30
+        }
+      }
+    },
+    floorAssemblyConfigs: {
+      fa_1: {
+        id: 'fa_1',
+        name: 'Test Floor',
+        type: 'monolithic',
+        thickness: 200,
+        material: 'material_floor',
+        layers: {
+          topThickness: 60,
+          bottomThickness: 0
+        }
+      }
+    },
+    defaultWallAssemblyId: 'assembly_1',
+    defaultFloorAssemblyId: 'fa_1'
   })),
   setConfigState: vi.fn()
 }))
@@ -107,6 +146,8 @@ describe('ProjectImportExportService', () => {
         expect(parsed.modelStore.storeys).toBeDefined()
         expect(parsed.modelStore.minLevel).toBeDefined()
         expect(parsed.configStore).toBeDefined()
+        expect(parsed.configStore.straw).toBeDefined()
+        expect(parsed.configStore.straw.material).toBe('material_straw')
       }
     })
 
@@ -130,7 +171,7 @@ describe('ProjectImportExportService', () => {
     it('calls the correct store assemblies on import', async () => {
       // Create simple valid import data
       const validImportData = {
-        version: '1.4.0',
+        version: '1.5.0',
         timestamp: new Date().toISOString(),
         modelStore: {
           storeys: [
@@ -164,6 +205,13 @@ describe('ProjectImportExportService', () => {
           minLevel: 0
         },
         configStore: {
+          straw: {
+            baleMinLength: 750,
+            baleMaxLength: 950,
+            baleHeight: 500,
+            baleWidth: 360,
+            material: 'material_straw'
+          },
           ringBeamAssemblyConfigs: { beam_1: { id: 'beam_1', name: 'Test Beam' } },
           wallAssemblyConfigs: { assembly_1: { id: 'assembly_1', name: 'Test Assembly' } },
           floorAssemblyConfigs: { fa_1: { id: 'fa_1', name: 'Test Floor' } },
@@ -191,6 +239,41 @@ describe('ProjectImportExportService', () => {
       expect(mockActions.updateStoreyFloorAssembly).toHaveBeenCalled()
       expect(mockActions.addFloorArea).toHaveBeenCalled()
       expect(mockActions.addFloorOpening).toHaveBeenCalled()
+    })
+
+    it('supports legacy imports without straw config', async () => {
+      const legacyImportData = {
+        version: '1.4.0',
+        timestamp: new Date().toISOString(),
+        modelStore: {
+          storeys: [],
+          minLevel: 0
+        },
+        configStore: {
+          ringBeamAssemblyConfigs: { beam_legacy: { id: 'beam_legacy', name: 'Legacy Beam' } },
+          wallAssemblyConfigs: {
+            assembly_1: {
+              id: 'assembly_1',
+              name: 'Legacy Assembly',
+              type: 'non-strawbale',
+              thickness: 200,
+              material: 'material_wall',
+              layers: {
+                insideThickness: 0,
+                outsideThickness: 0
+              }
+            }
+          },
+          defaultWallAssemblyId: 'assembly_1'
+        },
+        materialsStore: {
+          materials: {}
+        }
+      }
+
+      const result = await ProjectImportExportService.importFromString(JSON.stringify(legacyImportData))
+
+      expect(result.success).toBe(true)
     })
 
     it('handles invalid JSON gracefully', async () => {
