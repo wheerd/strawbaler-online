@@ -5,13 +5,17 @@ import React from 'react'
 import type { Material, MaterialId } from '@/construction/materials/material'
 import { useMaterials } from '@/construction/materials/store'
 
+const NONE_VALUE = '__material_none__'
+
 export interface MaterialSelectProps {
   value: MaterialId | null | undefined
-  onValueChange: (materialId: MaterialId) => void
+  onValueChange: (materialId: MaterialId | null) => void
   placeholder?: string
   size?: '1' | '2' | '3'
   disabled?: boolean
   materials?: Material[]
+  allowEmpty?: boolean
+  emptyLabel?: string
 }
 
 export function getMaterialTypeIcon(type: Material['type']) {
@@ -46,20 +50,28 @@ export function MaterialSelect({
   placeholder = 'Select material...',
   size = '2',
   disabled = false,
-  materials: materialsProp
+  materials: materialsProp,
+  allowEmpty = false,
+  emptyLabel = 'None'
 }: MaterialSelectProps): React.JSX.Element {
   const materialsFromStore = useMaterials()
   const materials = materialsProp ?? materialsFromStore
+  const normalizedValue = value ?? (allowEmpty ? NONE_VALUE : '')
 
   return (
     <Select.Root
-      value={value ?? ''}
-      onValueChange={val => onValueChange(val as MaterialId)}
+      value={normalizedValue}
+      onValueChange={val => onValueChange(val === NONE_VALUE ? null : (val as MaterialId))}
       disabled={disabled}
       size={size}
     >
       <Select.Trigger placeholder={placeholder} />
       <Select.Content>
+        {allowEmpty && (
+          <Select.Item value={NONE_VALUE}>
+            <Text color="gray">{emptyLabel}</Text>
+          </Select.Item>
+        )}
         {materials.length === 0 ? (
           <Select.Item value="" disabled>
             <Text color="gray">No materials available</Text>

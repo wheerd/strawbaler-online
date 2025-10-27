@@ -57,7 +57,7 @@ describe('constructStraw', () => {
 
     it('should create multiple bales in a horizontal row', () => {
       const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1600, 360, 500) // 2 bales wide
+      const size = vec3.fromValues(1800, 360, 500) // 2 bales wide
 
       const results = [...constructStraw(position, size)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -67,10 +67,10 @@ describe('constructStraw', () => {
       expect(elements).toHaveLength(2)
 
       expect(((elements[0] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(0, 0, 0))
-      expect(((elements[0] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(800, 360, 500))
+      expect(((elements[0] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(900, 360, 500))
 
-      expect(((elements[1] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(800, 0, 0))
-      expect(((elements[1] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(800, 360, 500))
+      expect(((elements[1] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(900, 0, 0))
+      expect(((elements[1] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(900, 360, 500))
     })
 
     it('should create multiple bales in a vertical stack', () => {
@@ -93,7 +93,7 @@ describe('constructStraw', () => {
 
     it('should create a 2x2 grid of bales', () => {
       const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1600, 360, 1000) // 2x2 bales
+      const size = vec3.fromValues(1800, 360, 1000) // 2x2 bales
 
       const results = [...constructStraw(position, size)]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -104,13 +104,13 @@ describe('constructStraw', () => {
 
       // Bottom row
       expect(((elements[0] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(0, 0, 0))
-      expect(((elements[1] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(800, 0, 0))
+      expect(((elements[1] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(900, 0, 0))
       // Top row
       expect(((elements[2] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(0, 0, 500))
-      expect(((elements[3] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(800, 0, 500))
+      expect(((elements[3] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(900, 0, 500))
 
       elements.forEach(bale => {
-        expect(((bale as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(800, 360, 500))
+        expect(((bale as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(900, 360, 500))
       })
     })
   })
@@ -161,11 +161,11 @@ describe('constructStraw', () => {
 
       // First bale should be full
       expect(((elements[0] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(0, 0, 0))
-      expect(((elements[0] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(800, 360, 500))
+      expect(((elements[0] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(900, 360, 500))
 
       // Second bale should be partial
-      expect(((elements[1] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(800, 0, 0))
-      expect(((elements[1] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(400, 360, 500))
+      expect(((elements[1] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(900, 0, 0))
+      expect(((elements[1] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(300, 360, 500))
     })
 
     it('should handle complex mixed arrangement', () => {
@@ -181,17 +181,17 @@ describe('constructStraw', () => {
 
       // Bottom row
       expect(((elements[0] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(100, 0, 50))
-      expect(((elements[0] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(800, 360, 500))
+      expect(((elements[0] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(900, 360, 500))
 
-      expect(((elements[1] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(900, 0, 50))
-      expect(((elements[1] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(400, 360, 500))
+      expect(((elements[1] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(1000, 0, 50))
+      expect(((elements[1] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(300, 360, 500))
 
       // Top row
       expect(((elements[2] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(100, 0, 550))
-      expect(((elements[2] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(800, 360, 250))
+      expect(((elements[2] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(900, 360, 250))
 
-      expect(((elements[3] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(900, 0, 550))
-      expect(((elements[3] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(400, 360, 250))
+      expect(((elements[3] as ConstructionElement).shape as Cuboid).offset).toEqual(vec3.fromValues(1000, 0, 550))
+      expect(((elements[3] as ConstructionElement).shape as Cuboid).size).toEqual(vec3.fromValues(300, 360, 250))
     })
   })
 

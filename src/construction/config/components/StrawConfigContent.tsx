@@ -72,7 +72,10 @@ export function StrawConfigContent(): React.JSX.Element {
         </Label.Root>
         <MaterialSelectWithEdit
           value={strawConfig.material}
-          onValueChange={material => updateStrawConfig({ material })}
+          onValueChange={material => {
+            if (!material) return
+            updateStrawConfig({ material })
+          }}
           size="2"
         />
       </Grid>

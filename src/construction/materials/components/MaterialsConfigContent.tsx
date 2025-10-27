@@ -45,9 +45,9 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
   const wallAssemblies = useWallAssemblies()
   const strawConfig = useStrawConfig()
 
-  const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(() => {
+  const [selectedMaterialId, setSelectedMaterialId] = useState<MaterialId | null>(() => {
     if (initialSelectionId && materials.some(m => m.id === initialSelectionId)) {
-      return initialSelectionId
+      return initialSelectionId as MaterialId
     }
     return materials.length > 0 ? materials[0].id : null
   })
@@ -146,8 +146,8 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
       <Flex gap="2" align="center" width="100%">
         <Flex direction="column" flexGrow="1">
           <MaterialSelect
-            value={(selectedMaterialId ?? undefined) as MaterialId | undefined}
-            onValueChange={setSelectedMaterialId}
+            value={selectedMaterialId ?? null}
+            onValueChange={materialId => setSelectedMaterialId(materialId ?? null)}
             placeholder="Select material..."
           />
         </Flex>
