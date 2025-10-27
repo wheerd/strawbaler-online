@@ -6,7 +6,7 @@ import { IDENTITY } from '@/construction/geometry'
 import { dimensionalPartInfo } from '@/construction/parts'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
 import { createCuboidShape } from '@/construction/shapes'
-import { TAG_FULL_BALE, TAG_PARTIAL_BALE } from '@/construction/tags'
+import { TAG_FULL_BALE, TAG_PARTIAL_BALE, TAG_STRAW_FLAKES, TAG_STRAW_STUFFED, type Tag } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
 
 import type { MaterialId } from './material'
@@ -17,6 +17,10 @@ export interface StrawConfig {
   baleHeight: Length // Default: 500mm
   baleWidth: Length // Default: 360mm
   material: MaterialId
+
+  tolerance: Length // Default 2mm
+  topCutoffLimit: Length // Default: 50mm
+  flakeSize: Length // Default: 70mm
 }
 
 export function validateStrawConfig(config: StrawConfig): void {
@@ -41,13 +45,72 @@ export function validateStrawConfig(config: StrawConfig): void {
   }
 }
 
+function getStrawTags(size: vec3, config: StrawConfig): Tag[] {
+  if (Math.abs(size[1] - config.baleWidth) > config.tolerance) {
+    return [TAG_STRAW_STUFFED]
+  }
+
+  let height: number, length: number
+  if (Math.abs(size[0] - config.baleHeight) <= config.tolerance) {
+    // Vertical
+    height = size[0]
+    length = size[2]
+  } else {
+    // Horizontal
+    height = size[2]
+    length = size[0]
+  }
+
+  const isFullHeight = Math.abs(height - config.baleHeight) <= config.tolerance
+  const isFullLength = length >= config.baleMinLength && length <= config.baleMaxLength
+  if (isFullHeight && isFullLength) {
+    return [TAG_FULL_BALE]
+  }
+  if (isFullHeight) {
+    if (length > config.baleMinLength / 2) {
+      return [TAG_PARTIAL_BALE]
+    }
+    if (length > config.flakeSize) {
+      return [TAG_STRAW_FLAKES]
+    }
+    return [TAG_STRAW_STUFFED]
+  }
+  if (isFullLength) {
+    const canCutOffTop = height > config.baleHeight - config.topCutoffLimit
+    return [canCutOffTop ? TAG_PARTIAL_BALE : TAG_STRAW_STUFFED]
+  }
+  return [TAG_STRAW_STUFFED]
+}
+
 export function* constructStraw(position: vec3, size: vec3): Generator<ConstructionResult> {
   const config = getConfigActions().getStrawConfig()
 
   if (size[1] === config.baleWidth) {
     const end = vec3.add(vec3.create(), position, size)
 
-    for (let z = position[2]; z < end[2]; z += config.baleHeight) {
+    // Vertical bales
+    if (Math.abs(size[0] - config.baleHeight) <= config.tolerance) {
+      for (let z = position[2]; z < end[2]; z += config.baleMaxLength) {
+        const balePosition = vec3.fromValues(position[0], position[1], z)
+        const baleSize = vec3.fromValues(size[0], config.baleWidth, Math.min(config.baleMaxLength, end[2] - z))
+
+        const bale = createConstructionElement(
+          config.material,
+          createCuboidShape(balePosition, baleSize),
+          IDENTITY,
+          getStrawTags(baleSize, config),
+          dimensionalPartInfo('strawbale', baleSize)
+        )
+        yield yieldElement(bale)
+      }
+      return
+    }
+
+    // Horizontal bales
+    let remainderHeight = size[2] % config.baleHeight
+    if (config.baleHeight - remainderHeight < config.topCutoffLimit) remainderHeight = 0
+    const fullEndZ = end[2] - remainderHeight
+    for (let z = position[2]; z < fullEndZ; z += config.baleHeight) {
       for (let x = position[0]; x < end[0]; x += config.baleMaxLength) {
         const balePosition = vec3.fromValues(x, position[1], z)
         const baleSize = vec3.fromValues(
@@ -56,18 +119,46 @@ export function* constructStraw(position: vec3, size: vec3): Generator<Construct
           Math.min(config.baleHeight, end[2] - z)
         )
 
-        const isFullBale =
-          baleSize[0] >= config.baleMinLength &&
-          baleSize[0] <= config.baleMaxLength &&
-          baleSize[2] === config.baleHeight
         const bale = createConstructionElement(
           config.material,
           createCuboidShape(balePosition, baleSize),
           IDENTITY,
-          [isFullBale ? TAG_FULL_BALE : TAG_PARTIAL_BALE],
+          getStrawTags(baleSize, config),
           dimensionalPartInfo('strawbale', baleSize)
         )
         yield yieldElement(bale)
+      }
+    }
+
+    // Vertical flakes on top
+    if (remainderHeight > 0) {
+      if (remainderHeight > config.flakeSize) {
+        for (let x = position[0]; x < end[0]; x += config.baleHeight) {
+          const balePosition = vec3.fromValues(x, position[1], fullEndZ)
+          const baleSize = vec3.fromValues(Math.min(config.baleHeight, end[0] - x), config.baleWidth, remainderHeight)
+
+          const bale = createConstructionElement(
+            config.material,
+            createCuboidShape(balePosition, baleSize),
+            IDENTITY,
+            getStrawTags(baleSize, config),
+            dimensionalPartInfo('strawbale', baleSize)
+          )
+          yield yieldElement(bale)
+        }
+      } else {
+        const balePosition = vec3.fromValues(position[0], position[1], fullEndZ)
+        const baleSize = vec3.fromValues(size[0], config.baleWidth, remainderHeight)
+
+        yield yieldElement(
+          createConstructionElement(
+            config.material,
+            createCuboidShape(balePosition, baleSize),
+            IDENTITY,
+            getStrawTags(baleSize, config),
+            dimensionalPartInfo('strawbale', baleSize)
+          )
+        )
       }
     }
   } else if (size[1] > config.baleWidth) {
