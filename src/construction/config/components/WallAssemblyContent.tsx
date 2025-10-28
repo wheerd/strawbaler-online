@@ -160,7 +160,10 @@ function PostsConfigSection({ posts, onUpdate }: PostsConfigSectionProps): React
         </Label.Root>
         <MaterialSelectWithEdit
           value={'material' in posts ? posts.material : undefined}
-          onValueChange={material => onUpdate({ ...posts, material })}
+          onValueChange={material => {
+            if (!material) return
+            onUpdate({ ...posts, material })
+          }}
           size="1"
         />
 
@@ -173,7 +176,10 @@ function PostsConfigSection({ posts, onUpdate }: PostsConfigSectionProps): React
             </Label.Root>
             <MaterialSelectWithEdit
               value={posts.infillMaterial}
-              onValueChange={infillMaterial => onUpdate({ ...posts, infillMaterial })}
+              onValueChange={infillMaterial => {
+                if (!infillMaterial) return
+                onUpdate({ ...posts, infillMaterial })
+              }}
               size="1"
             />
           </>
@@ -314,7 +320,10 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
           </Label.Root>
           <MaterialSelectWithEdit
             value={module.frameMaterial}
-            onValueChange={frameMaterial => onUpdate({ ...module, frameMaterial })}
+            onValueChange={frameMaterial => {
+              if (!frameMaterial) return
+              onUpdate({ ...module, frameMaterial })
+            }}
             size="1"
           />
         </Flex>
@@ -322,12 +331,14 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              Straw Material
+              Straw Material (Override)
             </Text>
           </Label.Root>
           <MaterialSelectWithEdit
             value={module.strawMaterial}
-            onValueChange={strawMaterial => onUpdate({ ...module, strawMaterial })}
+            allowEmpty
+            emptyLabel="Use global straw settings"
+            onValueChange={strawMaterial => onUpdate({ ...module, strawMaterial: strawMaterial ?? undefined })}
             size="1"
           />
         </Flex>
@@ -342,7 +353,10 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
               </Label.Root>
               <MaterialSelectWithEdit
                 value={module.spacerMaterial}
-                onValueChange={spacerMaterial => onUpdate({ ...module, spacerMaterial })}
+                onValueChange={spacerMaterial => {
+                  if (!spacerMaterial) return
+                  onUpdate({ ...module, spacerMaterial })
+                }}
                 size="1"
               />
             </Flex>
@@ -355,7 +369,10 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
               </Label.Root>
               <MaterialSelectWithEdit
                 value={module.infillMaterial}
-                onValueChange={infillMaterial => onUpdate({ ...module, infillMaterial })}
+                onValueChange={infillMaterial => {
+                  if (!infillMaterial) return
+                  onUpdate({ ...module, infillMaterial })
+                }}
                 size="1"
               />
             </Flex>
@@ -421,7 +438,10 @@ function NonStrawbaleConfigForm({ config, onUpdate }: NonStrawbaleConfigFormProp
           </Label.Root>
           <MaterialSelectWithEdit
             value={config.material}
-            onValueChange={material => onUpdate({ ...config, material })}
+            onValueChange={material => {
+              if (!material) return
+              onUpdate({ ...config, material })
+            }}
             size="1"
           />
         </Flex>
@@ -501,11 +521,12 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           </Label.Root>
           <MaterialSelectWithEdit
             value={config.openings.headerMaterial}
-            onValueChange={headerMaterial =>
+            onValueChange={headerMaterial => {
+              if (!headerMaterial) return
               updateWallAssemblyConfig(assemblyId, {
                 openings: { ...config.openings, headerMaterial }
               })
-            }
+            }}
             size="1"
           />
         </Flex>
@@ -536,86 +557,16 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           </Label.Root>
           <MaterialSelectWithEdit
             value={config.openings.sillMaterial}
-            onValueChange={sillMaterial =>
+            onValueChange={sillMaterial => {
+              if (!sillMaterial) return
               updateWallAssemblyConfig(assemblyId, {
                 openings: { ...config.openings, sillMaterial }
               })
-            }
+            }}
             size="1"
           />
         </Flex>
       </Grid>
-
-      <Separator size="4" />
-
-      {/* Straw Configuration */}
-      <Heading size="2">Straw</Heading>
-      <Grid columns="5em 1fr 5em 1fr" gap="2" gapX="3">
-        <Label.Root>
-          <Text size="1" weight="medium" color="gray">
-            Bale Length
-          </Text>
-        </Label.Root>
-        <LengthField
-          value={config.straw.baleLength}
-          onChange={baleLength =>
-            updateWallAssemblyConfig(assemblyId, {
-              straw: { ...config.straw, baleLength }
-            })
-          }
-          unit="mm"
-          size="1"
-        />
-
-        <Label.Root>
-          <Text size="1" weight="medium" color="gray">
-            Bale Height
-          </Text>
-        </Label.Root>
-        <LengthField
-          value={config.straw.baleHeight}
-          onChange={baleHeight =>
-            updateWallAssemblyConfig(assemblyId, {
-              straw: { ...config.straw, baleHeight }
-            })
-          }
-          unit="mm"
-          size="1"
-        />
-
-        <Label.Root>
-          <Text size="1" weight="medium" color="gray">
-            Bale Width
-          </Text>
-        </Label.Root>
-        <LengthField
-          value={config.straw.baleWidth}
-          onChange={baleWidth =>
-            updateWallAssemblyConfig(assemblyId, {
-              straw: { ...config.straw, baleWidth }
-            })
-          }
-          unit="mm"
-          size="1"
-        />
-
-        <Label.Root>
-          <Text size="1" weight="medium" color="gray">
-            Material
-          </Text>
-        </Label.Root>
-        <MaterialSelectWithEdit
-          value={config.straw.material}
-          onValueChange={material =>
-            updateWallAssemblyConfig(assemblyId, {
-              straw: { ...config.straw, material }
-            })
-          }
-          size="1"
-        />
-      </Grid>
-
-      <Separator size="4" />
 
       {/* Layers Configuration */}
       <Heading size="2">Layers</Heading>
@@ -768,12 +719,6 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
       const defaultMaterial = '' as MaterialId
 
       let config: WallConfig
-      const baseStrawConfig = {
-        baleLength: 800,
-        baleHeight: 500,
-        baleWidth: 360,
-        material: defaultMaterial
-      }
       const baseOpeningsConfig = {
         padding: 15,
         headerThickness: 60,
@@ -800,7 +745,6 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
               material: defaultMaterial
             },
             openings: baseOpeningsConfig,
-            straw: baseStrawConfig,
             layers
           }
           break
@@ -824,7 +768,6 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
               }
             },
             openings: baseOpeningsConfig,
-            straw: baseStrawConfig,
             layers
           }
           break
@@ -848,7 +791,6 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
               }
             },
             openings: baseOpeningsConfig,
-            straw: baseStrawConfig,
             layers
           }
           break
@@ -858,7 +800,6 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
             material: defaultMaterial,
             thickness: 200,
             openings: baseOpeningsConfig,
-            straw: baseStrawConfig,
             layers
           }
           break

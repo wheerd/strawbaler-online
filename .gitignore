@@ -26,3 +26,4 @@ dist-ssr
 .crush
 
 coverage
+*.actual.svg

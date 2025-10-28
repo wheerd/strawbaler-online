@@ -340,7 +340,10 @@ function FullRingBeamFields({
         </Label.Root>
         <MaterialSelectWithEdit
           value={config.material}
-          onValueChange={material => onUpdate({ material })}
+          onValueChange={material => {
+            if (!material) return
+            onUpdate({ material })
+          }}
           placeholder="Select material..."
           size="2"
         />
@@ -401,7 +404,10 @@ function DoubleRingBeamFields({
         </Label.Root>
         <MaterialSelectWithEdit
           value={config.material}
-          onValueChange={material => onUpdate({ material })}
+          onValueChange={material => {
+            if (!material) return
+            onUpdate({ material })
+          }}
           placeholder="Select material..."
           size="2"
         />
@@ -413,7 +419,10 @@ function DoubleRingBeamFields({
         </Label.Root>
         <MaterialSelectWithEdit
           value={config.infillMaterial}
-          onValueChange={infillMaterial => onUpdate({ infillMaterial })}
+          onValueChange={infillMaterial => {
+            if (!infillMaterial) return
+            onUpdate({ infillMaterial })
+          }}
           placeholder="Select infill material..."
           size="2"
         />

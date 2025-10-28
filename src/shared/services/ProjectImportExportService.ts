@@ -8,6 +8,7 @@ import { getConfigState, setConfigState } from '@/construction/config/store'
 import type { FloorAssemblyConfig, RingBeamAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
 import type { Material, MaterialId } from '@/construction/materials/material'
 import { getMaterialsState, setMaterialsState } from '@/construction/materials/store'
+import type { StrawConfig } from '@/construction/materials/straw'
 import type { Polygon2D } from '@/shared/geometry'
 
 export interface ExportedStorey {
@@ -58,6 +59,7 @@ export interface ExportData {
     minLevel: number
   }
   configStore: {
+    straw?: StrawConfig
     ringBeamAssemblyConfigs: Record<RingBeamAssemblyId, RingBeamAssemblyConfig>
     wallAssemblyConfigs: Record<WallAssemblyId, WallAssemblyConfig>
     floorAssemblyConfigs?: Record<FloorAssemblyId, FloorAssemblyConfig>
@@ -97,7 +99,8 @@ export interface IProjectImportExportService {
   importFromString(content: string): Promise<ImportResult | ImportError>
 }
 
-const CURRENT_VERSION = '1.4.0'
+const CURRENT_VERSION = '1.5.0'
+const SUPPORTED_VERSIONS = ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '1.5.0'] as const
 
 const polygonToExport = (polygon: Polygon2D): ExportedFloorPolygon => ({
   points: polygon.points.map(point => ({ x: point[0], y: point[1] }))
@@ -410,6 +413,10 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
       return false
     }
 
+    if (configStore.straw !== undefined && !this.isValidStrawConfig(configStore.straw)) {
+      return false
+    }
+
     // Materials store is optional for backwards compatibility
     if (obj.materialsStore !== undefined) {
       if (typeof obj.materialsStore !== 'object' || obj.materialsStore === null) {
@@ -436,11 +443,10 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
       }
 
       // Support backwards compatibility
-      const supportedVersions = ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0']
-      if (!supportedVersions.includes(parsed.version)) {
+      if (!(SUPPORTED_VERSIONS as readonly string[]).includes(parsed.version)) {
         return {
           success: false,
-          error: `Unsupported file version ${parsed.version}. Supported versions: ${supportedVersions.join(', ')}.`
+          error: `Unsupported file version ${parsed.version}. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}.`
         }
       }
 
@@ -454,6 +460,30 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
         error: error instanceof Error ? error.message : 'Failed to parse file'
       }
     }
+  }
+
+  private isValidStrawConfig(value: unknown): value is StrawConfig {
+    if (typeof value !== 'object' || value === null) {
+      return false
+    }
+
+    const straw = value as Record<string, unknown>
+
+    const requiredNumberFields: (keyof StrawConfig)[] = ['baleMinLength', 'baleMaxLength', 'baleHeight', 'baleWidth']
+    const optionalNumberFields: (keyof StrawConfig)[] = ['tolerance', 'topCutoffLimit', 'flakeSize']
+
+    const hasValidRequiredNumbers = requiredNumberFields.every(field => {
+      const fieldValue = straw[field]
+      return typeof fieldValue === 'number' && Number.isFinite(fieldValue)
+    })
+
+    const hasValidOptionalNumbers = optionalNumberFields.every(field => {
+      const fieldValue = straw[field]
+      return fieldValue === undefined || (typeof fieldValue === 'number' && Number.isFinite(fieldValue))
+    })
+    const hasValidMaterial = typeof straw.material === 'string'
+
+    return hasValidRequiredNumbers && hasValidOptionalNumbers && hasValidMaterial
   }
 }
 

@@ -37,9 +37,21 @@ export const TAG_PARTIAL_BALE: Tag = {
   category: 'straw'
 }
 
-export const TAG_INFILL: Tag = {
+export const TAG_STRAW_FLAKES: Tag = {
+  id: 'straw_flakes',
+  label: 'Straw Flakes',
+  category: 'straw'
+}
+
+export const TAG_STRAW_INFILL: Tag = {
+  id: 'straw_infill',
+  label: 'Generic Straw Infill',
+  category: 'straw'
+}
+
+export const TAG_STRAW_STUFFED: Tag = {
   id: 'straw_stuffed',
-  label: 'Stuffed Straw Infill',
+  label: 'Stuffed Straw',
   category: 'straw'
 }
 

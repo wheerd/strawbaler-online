@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { wood120x60, woodwool } from '@/construction/materials/material'
+import { strawbale, wood120x60, woodwool } from '@/construction/materials/material'
 
 import { applyMigrations } from './migrations'
 
@@ -53,5 +53,59 @@ describe('config migrations', () => {
     expect(module.spacerCount).toBe(4)
     expect(module.spacerMaterial).toBe('custom-spacer')
     expect(module.infillMaterial).toBe('custom-infill')
+  })
+
+  it('migrates straw configuration to top level and removes duplicates', () => {
+    const migrated = applyMigrations({
+      wallAssemblyConfigs: {
+        sample: {
+          straw: {
+            baleMinLength: 850,
+            baleMaxLength: 950,
+            baleHeight: 480,
+            baleWidth: 340,
+            material: strawbale.id
+          }
+        }
+      }
+    }) as { straw: Record<string, unknown>; wallAssemblyConfigs: Record<string, Record<string, unknown>> }
+
+    expect(migrated.straw).toMatchObject({
+      baleMinLength: 850,
+      baleMaxLength: 950,
+      baleHeight: 480,
+      baleWidth: 340,
+      material: strawbale.id,
+      tolerance: 2,
+      topCutoffLimit: 50,
+      flakeSize: 70
+    })
+    expect('straw' in migrated.wallAssemblyConfigs.sample).toBe(false)
+  })
+
+  it('adds defaults for new straw configuration properties when missing or invalid', () => {
+    const migrated = applyMigrations({
+      straw: {
+        baleMinLength: 820,
+        baleMaxLength: 930,
+        baleHeight: 500,
+        baleWidth: 360,
+        material: strawbale.id,
+        tolerance: -5,
+        topCutoffLimit: 'invalid',
+        flakeSize: 0
+      }
+    }) as { straw: Record<string, unknown> }
+
+    expect(migrated.straw).toMatchObject({
+      baleMinLength: 820,
+      baleMaxLength: 930,
+      baleHeight: 500,
+      baleWidth: 360,
+      material: strawbale.id,
+      tolerance: 2,
+      topCutoffLimit: 50,
+      flakeSize: 70
+    })
   })
 })

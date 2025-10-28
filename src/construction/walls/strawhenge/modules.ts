@@ -1,12 +1,12 @@
 import { vec3 } from 'gl-matrix'
 
 import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
-import { IDENTITY } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
+import { constructStraw } from '@/construction/materials/straw'
 import { type PartId, type PartInfo, dimensionalPartInfo } from '@/construction/parts'
 import { type ConstructionResult, yieldAsGroup, yieldElement, yieldMeasurement } from '@/construction/results'
 import { createCuboidShape } from '@/construction/shapes'
-import { TAG_INFILL, TAG_MODULE, TAG_MODULE_WIDTH } from '@/construction/tags'
+import { TAG_MODULE, TAG_MODULE_WIDTH, TAG_STRAW_INFILL } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
 
 export interface BaseModuleConfig {
@@ -14,7 +14,7 @@ export interface BaseModuleConfig {
   width: Length // Default: 920mm
   frameThickness: Length // Default: 60mm
   frameMaterial: MaterialId
-  strawMaterial: MaterialId
+  strawMaterial?: MaterialId
 }
 
 export interface SingleFrameModuleConfig extends BaseModuleConfig {
@@ -98,9 +98,15 @@ function* constructSingleFrameModule(
   yield yieldElement(endFrame)
 
   // Straw filling
-  yield yieldElement(
-    createConstructionElement(config.strawMaterial, createCuboidShape(strawPosition, strawSize), IDENTITY, [TAG_INFILL])
-  )
+  if (config.strawMaterial) {
+    yield yieldElement(
+      createConstructionElement(config.strawMaterial, createCuboidShape(strawPosition, strawSize), undefined, [
+        TAG_STRAW_INFILL
+      ])
+    )
+  } else {
+    yield* constructStraw(strawPosition, strawSize)
+  }
 
   yield yieldMeasurement({
     startPoint: position,
@@ -119,7 +125,6 @@ function* constructDoubleFrameModule(
     frameThickness,
     frameWidth,
     frameMaterial,
-    strawMaterial,
     spacerSize: spacerHeight,
     spacerCount,
     spacerMaterial,
@@ -233,9 +238,15 @@ function* constructDoubleFrameModule(
   yield yieldElement(endFrame2)
 
   // Straw filling
-  yield yieldElement(
-    createConstructionElement(strawMaterial, createCuboidShape(strawPosition, strawSize), IDENTITY, [TAG_INFILL])
-  )
+  if (config.strawMaterial) {
+    yield yieldElement(
+      createConstructionElement(config.strawMaterial, createCuboidShape(strawPosition, strawSize), undefined, [
+        TAG_STRAW_INFILL
+      ])
+    )
+  } else {
+    yield* constructStraw(strawPosition, strawSize)
+  }
 
   const gapWidth = size[1] - 2 * frameWidth
   if (gapWidth > 0) {
