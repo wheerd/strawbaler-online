@@ -33,6 +33,12 @@ export function calculatePolygonArea(polygon: Polygon2D): Area {
   }
 }
 
+export const calculatePolygonWithHolesArea = (polygon: PolygonWithHoles2D): Area => {
+  const outerArea = calculatePolygonArea(polygon.outer)
+  const holesArea = polygon.holes.reduce((sum, hole) => sum + calculatePolygonArea(hole), 0)
+  return outerArea - holesArea
+}
+
 export function polygonIsClockwise(polygon: Polygon2D): boolean {
   const path = createPathD(polygon.points)
   try {

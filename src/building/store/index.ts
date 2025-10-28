@@ -128,13 +128,21 @@ export const useCanRedo = (): boolean => useModelStore.temporal.getState().futur
 
 // Entity selector hooks
 export const useActiveStoreyId = (): StoreyId => useModelStore(state => state.activeStoreyId)
-export const usePerimeters = (): Record<PerimeterId, Perimeter> => useModelStore(state => state.perimeters)
+export const useStoreyById = (id: StoreyId): Storey | null => {
+  const storeys = useModelStore(state => state.storeys)
+  const getStoreyById = useModelStore(state => state.actions.getStoreyById)
+  return useMemo(() => getStoreyById(id), [storeys, id])
+}
 export const useStoreysOrderedByLevel = (): Storey[] => {
   const storeys = useModelStore(state => state.storeys)
   const getStoreysOrderedByLevel = useModelStore(state => state.actions.getStoreysOrderedByLevel)
   return useMemo(() => getStoreysOrderedByLevel(), [storeys])
 }
 
+export const usePerimeters = (): Perimeter[] => {
+  const perimeters = useModelStore(state => state.perimeters)
+  return useMemo(() => Object.values(perimeters), [perimeters])
+}
 export const usePerimeterById = (id: PerimeterId): Perimeter | null => {
   const perimeters = useModelStore(state => state.perimeters)
   const getPerimeterById = useModelStore(state => state.actions.getPerimeterById)

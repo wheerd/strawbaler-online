@@ -709,7 +709,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
   const usage = useMemo(
     () =>
       selectedAssembly
-        ? getWallAssemblyUsage(selectedAssembly.id, Object.values(perimeters), storeys)
+        ? getWallAssemblyUsage(selectedAssembly.id, perimeters, storeys)
         : { isUsed: false, usedByWalls: [] },
     [selectedAssembly, perimeters, storeys]
   )

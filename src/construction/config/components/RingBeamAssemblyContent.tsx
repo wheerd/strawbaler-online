@@ -67,7 +67,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
   const usage = useMemo(
     () =>
       selectedAssembly
-        ? getRingBeamAssemblyUsage(selectedAssembly.id, Object.values(perimeters), Object.values(storeys))
+        ? getRingBeamAssemblyUsage(selectedAssembly.id, perimeters, Object.values(storeys))
         : { isUsed: false, usedByPerimeters: [] },
     [selectedAssembly, perimeters, storeys]
   )

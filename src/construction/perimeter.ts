@@ -6,7 +6,20 @@ import { FLOOR_ASSEMBLIES } from '@/construction/floors'
 import { IDENTITY } from '@/construction/geometry'
 import { applyWallFaceOffsets, createWallFaceOffsets } from '@/construction/storey'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
-import { type Polygon2D, angle, arePolygonsIntersecting, lineIntersection, unionPolygons } from '@/shared/geometry'
+import {
+  type Area,
+  type Length,
+  type Polygon2D,
+  type Volume,
+  angle,
+  arePolygonsIntersecting,
+  calculatePolygonArea,
+  calculatePolygonWithHolesArea,
+  lineIntersection,
+  polygonPerimeter,
+  subtractPolygons,
+  unionPolygons
+} from '@/shared/geometry'
 
 import { getConfigActions } from './config'
 import { type ConstructionModel, mergeModels, transformModel } from './model'
@@ -135,4 +148,103 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
   }
 
   return mergeModels(...allModels)
+}
+
+export interface PerimeterStats {
+  footprint: Area
+  totalFloorArea: Area
+
+  totalConstructionWallArea: Area
+  totalFinishedWallArea: Area
+  totalExteriorWallArea: Area
+  totalWindowArea: Area
+  totalDoorArea: Area
+
+  totalVolume: Volume
+
+  storeyHeight: Length
+  ceilingHeight: Length
+}
+
+export function getPerimeterStats(perimeter: Perimeter): PerimeterStats {
+  const { getStoreyById, getStoreysOrderedByLevel, getFloorOpeningsByStorey } = getModelActions()
+  const storey = getStoreyById(perimeter.storeyId)
+  if (!storey) {
+    throw new Error('Invalid storey on perimeter')
+  }
+
+  const { getFloorAssemblyById } = getConfigActions()
+  const floorAssemblyConfig = getFloorAssemblyById(storey.floorAssemblyId)
+  if (!floorAssemblyConfig) {
+    throw new Error(`Floor assembly ${storey.floorAssemblyId} not found for storey ${storey.id}`)
+  }
+
+  const allStoreys = getStoreysOrderedByLevel()
+  const currentIndex = allStoreys.findIndex(s => s.id === storey.id)
+  const nextStorey = currentIndex >= 0 && currentIndex < allStoreys.length - 1 ? allStoreys[currentIndex + 1] : null
+  const nextFloorAssemblyConfig = nextStorey ? getFloorAssemblyById(nextStorey.floorAssemblyId) : null
+
+  const floorAssembly = FLOOR_ASSEMBLIES[floorAssemblyConfig.type]
+  const nextFloorAssembly = nextFloorAssemblyConfig ? FLOOR_ASSEMBLIES[nextFloorAssemblyConfig.type] : null
+
+  const storeyContext = createWallStoreyContext(storey, floorAssemblyConfig, nextFloorAssemblyConfig)
+  const storeyHeight =
+    storeyContext.storeyHeight +
+    storeyContext.floorTopOffset +
+    storeyContext.ceilingBottomOffset +
+    floorAssembly.getConstructionThickness(floorAssemblyConfig)
+  const constructionHeight =
+    storeyContext.storeyHeight +
+    floorAssembly.getTopOffset(floorAssemblyConfig) +
+    (nextFloorAssembly?.getBottomOffset(nextFloorAssemblyConfig) ?? 0)
+  const finishedHeight = storeyContext.storeyHeight
+
+  const footprintPolygon: Polygon2D = { points: perimeter.corners.map(corner => corner.outsidePoint) }
+  const footprint = calculatePolygonArea(footprintPolygon)
+
+  const innerFloorPolygon: Polygon2D = { points: perimeter.corners.map(corner => corner.insidePoint) }
+  const innerArea = calculatePolygonArea(innerFloorPolygon)
+  const floorHoles = getFloorOpeningsByStorey(perimeter.storeyId).map(a => a.area)
+  const floorPolygons = subtractPolygons([innerFloorPolygon], floorHoles)
+  const totalFloorArea = floorPolygons.map(calculatePolygonWithHolesArea).reduce((a, b) => a + b, 0)
+
+  let totalConstructionLength = 0
+  const totalInsideLength = polygonPerimeter(innerFloorPolygon)
+  const totalOutsideLength = polygonPerimeter(footprintPolygon)
+  let totalOpeningArea = 0
+  let totalWindowArea = 0
+  let totalDoorArea = 0
+
+  for (const wall of perimeter.walls) {
+    totalConstructionLength += wall.wallLength
+
+    for (const opening of wall.openings) {
+      const openingArea = opening.width * opening.height
+      totalOpeningArea += openingArea
+      if (opening.type === 'window') {
+        totalWindowArea += openingArea
+      } else if (opening.type === 'door' || opening.type === 'passage') {
+        totalDoorArea += openingArea
+      }
+    }
+  }
+
+  const totalConstructionWallArea = Math.max(totalConstructionLength * constructionHeight - totalOpeningArea, 0)
+  const totalFinishedWallArea = Math.max(totalInsideLength * finishedHeight - totalOpeningArea, 0)
+  const totalExteriorWallArea = Math.max(totalOutsideLength * storeyHeight - totalOpeningArea, 0)
+
+  const totalVolume = innerArea * finishedHeight
+
+  return {
+    footprint,
+    totalFloorArea,
+    totalConstructionWallArea,
+    totalFinishedWallArea,
+    totalExteriorWallArea,
+    totalWindowArea,
+    totalDoorArea,
+    totalVolume,
+    storeyHeight: storeyHeight,
+    ceilingHeight: finishedHeight
+  }
 }
