@@ -1,4 +1,5 @@
 import { mat4, vec2, vec3 } from 'gl-matrix'
+import path from 'node:path'
 import {
   IFC4,
   IFCARBITRARYCLOSEDPROFILEDEF,
@@ -26,6 +27,7 @@ import {
   type IfcLineObject,
   type Vector
 } from 'web-ifc'
+import wasmNodeUrl from 'web-ifc/web-ifc-node.wasm?url'
 import wasmUrl from 'web-ifc/web-ifc.wasm?url'
 
 import type {
@@ -75,9 +77,13 @@ export class IfcImporter {
   private async ensureInitialised(): Promise<void> {
     if (this.initialised) return
 
+    const isNode = this.isNodeEnvironment()
+
     await this.api.Init((path: string, prefix: string) => {
       if (path.endsWith('.wasm')) {
-        return wasmUrl
+        const asset = isNode ? wasmNodeUrl : wasmUrl
+        const resolved = this.resolveWasmAssetPath(asset, isNode)
+        return resolved
       }
       return prefix + path
     })
@@ -477,13 +483,43 @@ export class IfcImporter {
     return points
   }
 
+  private resolveWasmAssetPath(assetUrl: string, isNode: boolean): string {
+    if (!isNode) {
+      return assetUrl
+    }
+
+    if (assetUrl.startsWith('http://') || assetUrl.startsWith('https://')) {
+      return assetUrl
+    }
+
+    if (assetUrl.startsWith('file://')) {
+      return decodeURIComponent(new URL(assetUrl).pathname)
+    }
+
+    if (assetUrl.startsWith('/')) {
+      return path.join(process.cwd(), assetUrl.slice(1))
+    }
+
+    try {
+      const resolved = new URL(assetUrl, import.meta.url)
+      return decodeURIComponent(resolved.pathname)
+    } catch {
+      return assetUrl
+    }
+  }
+
+  private isNodeEnvironment(): boolean {
+    const proc = globalThis.process as NodeJS.Process | undefined
+    return typeof proc === 'object' && proc?.release?.name === 'node'
+  }
+
   private extractStoreys(context: CachedModelContext): RawIfcStorey[] {
     const ids = this.api.GetLineIDsWithType(context.modelID, IFCBUILDINGSTOREY) as DisposableVector<number>
     const storeys: RawIfcStorey[] = []
 
     for (let i = 0; i < ids.size(); i++) {
       const expressId = ids.get(i)
-      const storey = this.api.GetLine(context.modelID, expressId) as IFC4.IfcBuildingStorey
+      const storey = this.api.GetLine(context.modelID, expressId, false, true) as IFC4.IfcBuildingStorey
 
       const guid = this.getStringValue(storey.GlobalId)
       const name = this.getStringValue(storey.Name)
@@ -771,7 +807,7 @@ export class IfcImporter {
 
     const expressId = this.getExpressId(reference)
     if (expressId != null) {
-      return this.api.GetLine(context.modelID, expressId) as IfcLineObject
+      return this.api.GetLine(context.modelID, expressId, false, true) as IfcLineObject
     }
 
     return null

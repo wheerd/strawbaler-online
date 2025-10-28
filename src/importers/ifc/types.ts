@@ -1,6 +1,5 @@
-import { IFC4 } from 'web-ifc'
-
 import { mat4, vec3 } from 'gl-matrix'
+import { IFC4 } from 'web-ifc'
 
 import type { Polygon2D, PolygonWithHoles2D } from '@/shared/geometry'
 
