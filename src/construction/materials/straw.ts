@@ -82,14 +82,13 @@ function getStrawTags(size: vec3, config: StrawConfig): Tag[] {
     if (length > config.baleMinLength / 2) {
       return [TAG_PARTIAL_BALE]
     }
-    if (length > config.flakeSize) {
+    if (length >= config.flakeSize) {
       return [TAG_STRAW_FLAKES]
     }
     return [TAG_STRAW_STUFFED]
   }
-  if (isFullLength) {
-    const canCutOffTop = height > config.baleHeight - config.topCutoffLimit
-    return [canCutOffTop ? TAG_PARTIAL_BALE : TAG_STRAW_STUFFED]
+  if (height > config.baleHeight - config.topCutoffLimit) {
+    return [isFullLength ? TAG_PARTIAL_BALE : TAG_STRAW_FLAKES]
   }
   return [TAG_STRAW_STUFFED]
 }
@@ -99,6 +98,20 @@ export function* constructStraw(position: vec3, size: vec3): Generator<Construct
 
   if (size[1] === config.baleWidth) {
     const end = vec3.add(vec3.create(), position, size)
+
+    // Gap smaller than a flake: Make it one stuffed fill
+    if (size[0] < config.flakeSize || size[2] < config.flakeSize) {
+      yield yieldElement(
+        createConstructionElement(
+          config.material,
+          createCuboidShape(position, size),
+          IDENTITY,
+          [TAG_STRAW_STUFFED],
+          dimensionalPartInfo('strawbale', size)
+        )
+      )
+      return
+    }
 
     // Vertical bales
     if (Math.abs(size[0] - config.baleHeight) <= config.tolerance) {

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -800 1699 800" width="1699" height="800">
+<rect x="0" y="-500" width="900" height="500" fill="green" stroke="#333333" stroke-width="5" /> <g transform="translate(450 -250)"> <text x="0" y="0" style="text-anchor: middle; dominant-baseline: middle; font-size: 20"> 900x500 </text></g>
+<rect x="0" y="-800" width="500" height="300" fill="orange" stroke="#333333" stroke-width="5" /> <g transform="translate(250 -650)"> <text x="0" y="0" style="text-anchor: middle; dominant-baseline: middle; font-size: 20"> 500x300 </text></g>
+<rect x="500" y="-800" width="500" height="300" fill="orange" stroke="#333333" stroke-width="5" /> <g transform="translate(750 -650)"> <text x="0" y="0" style="text-anchor: middle; dominant-baseline: middle; font-size: 20"> 500x300 </text></g>
+<rect x="900" y="-500" width="799" height="500" fill="blue" stroke="#333333" stroke-width="5" /> <g transform="translate(1299.5 -250)"> <text x="0" y="0" style="text-anchor: middle; dominant-baseline: middle; font-size: 20"> 799x500 </text></g>
+<rect x="1000" y="-800" width="500" height="300" fill="orange" stroke="#333333" stroke-width="5" /> <g transform="translate(1250 -650)"> <text x="0" y="0" style="text-anchor: middle; dominant-baseline: middle; font-size: 20"> 500x300 </text></g>
+<rect x="1500" y="-800" width="199" height="300" fill="red" stroke="#333333" stroke-width="5" /> <g transform="translate(1599.5 -650)"> <text x="0" y="0" style="text-anchor: middle; dominant-baseline: middle; font-size: 20"> 199x300 </text></g>
+</svg>

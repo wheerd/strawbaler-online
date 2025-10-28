@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -900 799 900" width="799" height="900">
+<rect x="0" y="-500" width="799" height="500" fill="blue" stroke="#333333" stroke-width="5" /> <g transform="translate(399.5 -250)"> <text x="0" y="0" style="text-anchor: middle; dominant-baseline: middle; font-size: 20"> 799x500 </text></g>
+<rect x="0" y="-900" width="500" height="400" fill="orange" stroke="#333333" stroke-width="5" /> <g transform="translate(250 -700)"> <text x="0" y="0" style="text-anchor: middle; dominant-baseline: middle; font-size: 20"> 500x400 </text></g>
+<rect x="500" y="-900" width="299" height="400" fill="red" stroke="#333333" stroke-width="5" /> <g transform="translate(649.5 -700)"> <text x="0" y="0" style="text-anchor: middle; dominant-baseline: middle; font-size: 20"> 299x400 </text></g>
+</svg>
