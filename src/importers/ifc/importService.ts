@@ -1,0 +1,161 @@
+import { vec2 } from 'gl-matrix'
+
+import type { StoreyId } from '@/building/model/ids'
+import { clearPersistence, getModelActions } from '@/building/store'
+import { getConfigActions } from '@/construction/config'
+import { IfcImporter } from '@/importers/ifc/importer'
+import type { ImportedPerimeterCandidate, ImportedStorey, ParsedIfcModel } from '@/importers/ifc/types'
+import type { Polygon2D } from '@/shared/geometry'
+
+export interface IfcImportResult {
+  success: boolean
+  error?: string
+}
+
+const DEFAULT_STOREY_HEIGHT = 2400
+
+export async function importIfcIntoModel(input: ArrayBuffer | Uint8Array): Promise<IfcImportResult> {
+  try {
+    const importer = new IfcImporter()
+    const buffer = normalizeArrayBuffer(input)
+    const model = await importer.importFromArrayBuffer(buffer)
+    applyImportedModel(model)
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to import IFC', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to import IFC model'
+    }
+  }
+}
+
+function applyImportedModel(model: ParsedIfcModel): void {
+  const actions = getModelActions()
+  const configActions = getConfigActions()
+
+  clearPersistence()
+  actions.reset()
+
+  const defaultWallAssemblyId = configActions.getDefaultWallAssemblyId()
+  const defaultFloorAssemblyId = configActions.getDefaultFloorAssemblyId()
+
+  const baseStorey = actions.getStoreysOrderedByLevel()[0]
+  const importedStoreys = [...model.storeys].sort((a, b) => a.elevation - b.elevation)
+
+  if (importedStoreys.length === 0) {
+    // Ensure the default storey has a sensible name after reset
+    actions.updateStoreyName(baseStorey.id, 'Ground Floor')
+    actions.updateStoreyFloorAssembly(baseStorey.id, defaultFloorAssemblyId)
+    return
+  }
+
+  let previousHeight = baseStorey.height ?? DEFAULT_STOREY_HEIGHT
+
+  const storeyIdMap = new Map<ImportedStorey, StoreyId>()
+
+  importedStoreys.forEach((importedStorey, index) => {
+    const storeyName = importedStorey.name?.trim() || `Storey ${index + 1}`
+    const resolvedHeight = resolveStoreyHeight(importedStorey, importedStoreys[index + 1], previousHeight)
+    previousHeight = resolvedHeight
+
+    let targetStoreyId: StoreyId
+
+    if (index === 0 && baseStorey) {
+      targetStoreyId = baseStorey.id
+      actions.updateStoreyName(targetStoreyId, storeyName)
+      actions.updateStoreyHeight(targetStoreyId, resolvedHeight)
+      actions.updateStoreyFloorAssembly(targetStoreyId, defaultFloorAssemblyId)
+    } else {
+      const newStorey = actions.addStorey(storeyName, resolvedHeight, defaultFloorAssemblyId)
+      targetStoreyId = newStorey.id
+    }
+
+    storeyIdMap.set(importedStorey, targetStoreyId)
+
+    const perimeterCandidates = selectPerimeterCandidates(importedStorey)
+    if (perimeterCandidates.length === 0) {
+      return
+    }
+
+    const wallThickness = estimateWallThickness(importedStorey)
+
+    for (const candidate of perimeterCandidates) {
+      if (candidate.boundary.outer.points.length < 3) {
+        continue
+      }
+
+      const perimeterPolygon = clonePolygon(candidate.boundary.outer)
+      const perimThickness = wallThickness ?? undefined
+
+      actions.addPerimeter(targetStoreyId, perimeterPolygon, defaultWallAssemblyId, perimThickness)
+
+      const floorAreaPolygon = clonePolygon(candidate.boundary.outer)
+      actions.addFloorArea(targetStoreyId, floorAreaPolygon)
+
+      for (const hole of candidate.boundary.holes) {
+        if (hole.points.length >= 3) {
+          actions.addFloorOpening(targetStoreyId, clonePolygon(hole))
+        }
+      }
+    }
+  })
+
+  const firstStorey = importedStoreys[0]
+  const firstStoreyId = firstStorey ? storeyIdMap.get(firstStorey) : undefined
+  if (firstStoreyId) {
+    actions.setActiveStoreyId(firstStoreyId)
+  }
+}
+
+function normalizeArrayBuffer(input: ArrayBuffer | Uint8Array): ArrayBuffer {
+  if (input instanceof ArrayBuffer) {
+    return input.slice(0)
+  }
+
+  const copy = new Uint8Array(input.length)
+  copy.set(input)
+  return copy.buffer
+}
+
+function resolveStoreyHeight(current: ImportedStorey, next: ImportedStorey | undefined, fallback: number): number {
+  if (current.height != null && current.height > 0) {
+    return current.height
+  }
+
+  if (next) {
+    const diff = next.elevation - current.elevation
+    if (diff > 0) {
+      return diff
+    }
+  }
+
+  return fallback > 0 ? fallback : DEFAULT_STOREY_HEIGHT
+}
+
+function selectPerimeterCandidates(storey: ImportedStorey): ImportedPerimeterCandidate[] {
+  const slabPerimeters = storey.perimeterCandidates.filter(candidate => candidate.source === 'slab')
+  if (slabPerimeters.length > 0) {
+    return slabPerimeters
+  }
+  return storey.perimeterCandidates
+}
+
+function estimateWallThickness(storey: ImportedStorey): number | null {
+  const thicknessValues = storey.walls
+    .map(wall => wall.thickness)
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && value > 0)
+
+  if (thicknessValues.length === 0) {
+    return null
+  }
+
+  const sum = thicknessValues.reduce((acc, value) => acc + value, 0)
+  return sum / thicknessValues.length
+}
+
+function clonePolygon(polygon: Polygon2D): Polygon2D {
+  return {
+    points: polygon.points.map(point => vec2.clone(point))
+  }
+}

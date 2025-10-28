@@ -48,6 +48,20 @@ export function polygonIsClockwise(polygon: Polygon2D): boolean {
   }
 }
 
+export function ensurePolygonIsClockwise(polygon: Polygon2D): Polygon2D {
+  if (!polygonIsClockwise(polygon)) {
+    return { points: [...polygon.points].reverse() }
+  }
+  return polygon
+}
+
+export function ensurePolygonIsCounterClockwise(polygon: Polygon2D): Polygon2D {
+  if (polygonIsClockwise(polygon)) {
+    return { points: [...polygon.points].reverse() }
+  }
+  return polygon
+}
+
 export function polygonPerimeter(polygon: Polygon2D): number {
   if (polygon.points.length < 2) return 0
   let total = 0

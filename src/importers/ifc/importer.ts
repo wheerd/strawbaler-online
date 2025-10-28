@@ -102,7 +102,7 @@ export class IfcImporter {
     const walls = this.extractWalls(context, raw.line)
     const slabs = this.extractSlabs(context, raw.line)
     const height = this.estimateStoreyHeight(raw, nextStorey)
-    const perimeterCandidates = this.generatePerimeterCandidates(context, walls, slabs)
+    const perimeterCandidates = this.generatePerimeterCandidates(walls, slabs)
 
     return {
       expressId: raw.expressId,
@@ -126,11 +126,7 @@ export class IfcImporter {
     return delta > 0 ? delta : null
   }
 
-  private generatePerimeterCandidates(
-    context: CachedModelContext,
-    walls: ImportedWall[],
-    slabs: ImportedSlab[]
-  ): ImportedPerimeterCandidate[] {
+  private generatePerimeterCandidates(walls: ImportedWall[], slabs: ImportedSlab[]): ImportedPerimeterCandidate[] {
     const slabCandidates = this.buildSlabPerimeterCandidates(slabs)
     if (slabCandidates.length > 0) {
       return slabCandidates
@@ -213,9 +209,7 @@ export class IfcImporter {
   }
 
   private serialisePolygon(polygon: Polygon2D): string {
-    return polygon.points
-      .map(point => `${Math.round(point[0])}:${Math.round(point[1])}`)
-      .join('|')
+    return polygon.points.map(point => `${Math.round(point[0])}:${Math.round(point[1])}`).join('|')
   }
 
   private extractWalls(context: CachedModelContext, storey: IFC4.IfcBuildingStorey): ImportedWall[] {
