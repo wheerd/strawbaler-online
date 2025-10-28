@@ -4,8 +4,14 @@ import type { StoreyId } from '@/building/model/ids'
 import { clearPersistence, getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import { IfcImporter } from '@/importers/ifc/importer'
-import type { ImportedPerimeterCandidate, ImportedStorey, ParsedIfcModel } from '@/importers/ifc/types'
+import type {
+  ImportedPerimeterCandidate,
+  ImportedPerimeterSegment,
+  ImportedStorey,
+  ParsedIfcModel
+} from '@/importers/ifc/types'
 import type { Polygon2D } from '@/shared/geometry'
+import { ensureClipperModule } from '@/shared/geometry/clipperInstance'
 
 export interface IfcImportResult {
   success: boolean
@@ -16,6 +22,7 @@ const DEFAULT_STOREY_HEIGHT = 2400
 
 export async function importIfcIntoModel(input: ArrayBuffer | Uint8Array): Promise<IfcImportResult> {
   try {
+    await ensureClipperModule()
     const importer = new IfcImporter()
     const buffer = normalizeArrayBuffer(input)
     const model = await importer.importFromArrayBuffer(buffer)
@@ -86,9 +93,34 @@ function applyImportedModel(model: ParsedIfcModel): void {
       }
 
       const perimeterPolygon = clonePolygon(candidate.boundary.outer)
-      const perimThickness = wallThickness ?? undefined
+      const defaultThicknessFromSegments = averageSegmentThickness(candidate.segments) ?? wallThickness ?? undefined
 
-      actions.addPerimeter(targetStoreyId, perimeterPolygon, defaultWallAssemblyId, perimThickness)
+      const perimeter = actions.addPerimeter(targetStoreyId, perimeterPolygon, defaultWallAssemblyId, defaultThicknessFromSegments)
+      const perimeterRecord = actions.getPerimeterById(perimeter.id) ?? perimeter
+
+      candidate.segments.forEach((segment, index) => {
+        const wall = perimeterRecord.walls[index]
+        if (!wall) return
+
+        if (segment.thickness && Number.isFinite(segment.thickness)) {
+          actions.updatePerimeterWallThickness(perimeter.id, wall.id, segment.thickness)
+        }
+
+        for (const opening of segment.openings) {
+          const width = Math.max(0, opening.width)
+          if (width <= 1) continue
+
+          const offset = Math.max(0, opening.offset)
+
+          actions.addPerimeterWallOpening(perimeter.id, wall.id, {
+            type: opening.type === 'void' ? 'passage' : opening.type,
+            offsetFromStart: offset,
+            width,
+            height: opening.height,
+            sillHeight: opening.sill
+          })
+        }
+      })
 
       const floorAreaPolygon = clonePolygon(candidate.boundary.outer)
       actions.addFloorArea(targetStoreyId, floorAreaPolygon)
@@ -106,6 +138,13 @@ function applyImportedModel(model: ParsedIfcModel): void {
   if (firstStoreyId) {
     actions.setActiveStoreyId(firstStoreyId)
   }
+}
+
+function averageSegmentThickness(segments: ImportedPerimeterSegment[]): number | null {
+  const values = segments
+    .map(segment => segment.thickness)
+    .filter((value): value is number => value != null && Number.isFinite(value) && value > 0)
+  return average(values)
 }
 
 function normalizeArrayBuffer(input: ArrayBuffer | Uint8Array): ArrayBuffer {
@@ -158,4 +197,10 @@ function clonePolygon(polygon: Polygon2D): Polygon2D {
   return {
     points: polygon.points.map(point => vec2.clone(point))
   }
+}
+
+function average(numbers: number[]): number | null {
+  if (numbers.length === 0) return null
+  const sum = numbers.reduce((acc, value) => acc + value, 0)
+  return sum / numbers.length
 }

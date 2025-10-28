@@ -1,24 +1,31 @@
-import { readFile } from 'node:fs/promises'
+import { vec2 } from 'gl-matrix'
+import fs from 'node:fs/promises'
 import path from 'node:path'
-import { describe, expect, test } from 'vitest'
+import { beforeAll, describe, expect, test, vi } from 'vitest'
 
 import { IfcImporter } from '@/importers/ifc'
 import type {
   ExtrudedProfile,
   ImportedOpening,
+  ImportedPerimeterOpening,
   ImportedSlab,
   ImportedStorey,
   ImportedWall
 } from '@/importers/ifc/types'
 import type { Polygon2D, PolygonWithHoles2D } from '@/shared/geometry'
+import { ensureClipperModule } from '@/shared/geometry/clipperInstance'
 
 const ROUNDING_PRECISION = 4
 
+vi.unmock('@/shared/geometry/clipperInstance')
+
 describe('IFC importer integration', () => {
+  beforeAll(async () => await ensureClipperModule())
+
   test('parses strawbaler export sample', async () => {
     const importer = new IfcImporter()
     const filePath = path.resolve(process.cwd(), 'src', 'test', 'strawbaler-export.ifc')
-    const file = await readFile(filePath)
+    const file = await fs.readFile(filePath)
 
     let model
     try {
@@ -27,6 +34,8 @@ describe('IFC importer integration', () => {
       console.error('IFC import failed', error)
       throw error
     }
+
+    await generateDebugSvgs(model)
 
     const summary = summarizeModel(model)
 
@@ -109,4 +118,149 @@ function summarizePolygonWithHoles(polygon: PolygonWithHoles2D): unknown {
 function round(value: number): number {
   const factor = 10 ** ROUNDING_PRECISION
   return Math.round(value * factor) / factor
+}
+
+async function generateDebugSvgs(model: { storeys: ImportedStorey[] }): Promise<void> {
+  if (model.storeys.length === 0) return
+
+  const outputDir = path.resolve(process.cwd(), 'src', 'importers', 'ifc', '__fixtures__', 'debug')
+  await fs.mkdir(outputDir, { recursive: true })
+
+  await Promise.all(
+    model.storeys.map(async (storey, index) => {
+      const svg = renderStoreyDebugSvg(storey)
+      const slug = sanitizeFileComponent(storey.name ?? `storey-${index}`)
+      const filename = path.join(outputDir, `${String(index).padStart(2, '0')}-${slug}.svg`)
+      await fs.writeFile(filename, svg, 'utf-8')
+    })
+  )
+}
+
+function renderStoreyDebugSvg(storey: ImportedStorey): string {
+  const polygons: { type: 'wall' | 'slab' | 'perimeter' | 'hole'; polygon: Polygon2D }[] = []
+  const openingLines: { start: vec2; end: vec2; opening: ImportedPerimeterOpening }[] = []
+
+  for (const wall of storey.walls) {
+    const footprint = wall.profile?.footprint.outer
+    if (footprint && footprint.points.length >= 3) {
+      polygons.push({ type: 'wall', polygon: footprint })
+    }
+  }
+
+  for (const slab of storey.slabs) {
+    const profile = slab.profile?.footprint
+    if (!profile) continue
+    if (profile.outer.points.length >= 3) {
+      polygons.push({ type: 'slab', polygon: profile.outer })
+    }
+    for (const hole of profile.holes) {
+      if (hole.points.length >= 3) {
+        polygons.push({ type: 'hole', polygon: hole })
+      }
+    }
+  }
+
+  for (const candidate of storey.perimeterCandidates) {
+    if (candidate.boundary.outer.points.length >= 3) {
+      polygons.push({ type: 'perimeter', polygon: candidate.boundary.outer })
+    }
+    for (const hole of candidate.boundary.holes) {
+      if (hole.points.length >= 3) {
+        polygons.push({ type: 'hole', polygon: hole })
+      }
+    }
+
+    for (const segment of candidate.segments) {
+      const start = vec2.fromValues(segment.start[0], segment.start[1])
+      const end = vec2.fromValues(segment.end[0], segment.end[1])
+      const segmentVector = vec2.subtract(vec2.create(), end, start)
+      const length = vec2.length(segmentVector)
+      if (length < 1e-3) continue
+      const dir = vec2.scale(vec2.create(), segmentVector, 1 / length)
+
+      for (const opening of segment.openings) {
+        if (opening.width <= 0) continue
+        const openingStart = vec2.scaleAndAdd(vec2.create(), start, dir, opening.offset)
+        const openingEnd = vec2.scaleAndAdd(vec2.create(), openingStart, dir, opening.width)
+        openingLines.push({ start: openingStart, end: openingEnd, opening })
+      }
+    }
+  }
+
+  const allPoints: vec2[] = []
+  polygons.forEach(entry => entry.polygon.points.forEach(point => allPoints.push(point)))
+  openingLines.forEach(line => {
+    allPoints.push(line.start)
+    allPoints.push(line.end)
+  })
+
+  if (allPoints.length === 0) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" />'
+  }
+
+  const xs = allPoints.map(point => point[0])
+  const ys = allPoints.map(point => point[1])
+  const minX = Math.min(...xs)
+  const maxX = Math.max(...xs)
+  const minY = Math.min(...ys)
+  const maxY = Math.max(...ys)
+
+  const padding = 500
+  const width = maxX - minX + padding * 2
+  const height = maxY - minY + padding * 2
+
+  const transformPoint = (point: vec2): { x: number; y: number } => {
+    const x = point[0] - minX + padding
+    const y = maxY - point[1] + padding
+    return { x, y }
+  }
+
+  const polygonElements = polygons.map(entry => {
+    const pointsAttr = entry.polygon.points
+      .map(point => {
+        const { x, y } = transformPoint(point)
+        return `${formatNumber(x)},${formatNumber(y)}`
+      })
+      .join(' ')
+
+    const stroke = entry.type === 'perimeter' ? '#ff1744' : entry.type === 'hole' ? '#ff9100' : '#2979ff'
+    const fill = entry.type === 'slab' ? 'rgba(0,200,83,0.18)' : entry.type === 'hole' ? 'rgba(255,193,7,0.25)' : 'none'
+    const strokeWidth = entry.type === 'perimeter' ? 40 : 20
+
+    return `<polygon points="${pointsAttr}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`
+  })
+
+  const openingElements = openingLines.map(({ start, end, opening }) => {
+    const startPoint = transformPoint(start)
+    const endPoint = transformPoint(end)
+    const stroke = opening.type === 'door' ? '#d84315' : opening.type === 'window' ? '#00b0ff' : '#8e24aa'
+    return `<line x1="${formatNumber(startPoint.x)}" y1="${formatNumber(startPoint.y)}" x2="${formatNumber(endPoint.x)}" y2="${formatNumber(endPoint.y)}" stroke="${stroke}" stroke-width="40" stroke-linecap="round" />`
+  })
+
+  const label = `<text x="${formatNumber(padding)}" y="${formatNumber(padding)}" fill="#222" font-size="200" font-family="monospace">${escapeHtml(storey.name ?? 'Storey')}</text>`
+
+  return [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${formatNumber(width)}" height="${formatNumber(height)}" viewBox="0 0 ${formatNumber(width)} ${formatNumber(height)}">`,
+    label,
+    ...polygonElements,
+    ...openingElements,
+    '</svg>'
+  ].join('\n')
+}
+
+function sanitizeFileComponent(value: string): string {
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'storey'
+  )
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function formatNumber(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, '')
 }

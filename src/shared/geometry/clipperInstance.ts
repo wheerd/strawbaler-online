@@ -1,6 +1,8 @@
 import Clipper2Z, { type MainModule as ClipperModule, type PathD, type PathsD, type PointD } from 'clipper2-wasm'
 import clipperWasmUrl from 'clipper2-wasm/dist/es/clipper2z.wasm?url'
 import { vec2 } from 'gl-matrix'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 import type {} from '@/shared/geometry/basic'
 
@@ -15,18 +17,40 @@ export function loadClipperModule(): Promise<ClipperModule> {
   let modulePromise: Promise<ClipperModule>
 
   if (!clipperModulePromise) {
-    modulePromise = Clipper2Z({
-      locateFile: (file: string) => {
-        if (file.endsWith('.wasm')) {
+    const isNode = typeof process !== 'undefined' && process?.release?.name === 'node'
+
+    clipperModulePromise = (async () => {
+      const locateFile = (file: string): string => {
+        if (!file.endsWith('.wasm')) {
+          return file
+        }
+
+        if (!isNode) {
           return clipperWasmUrl
         }
-        return file
+
+        const resolvedPath = resolveClipperWasmPath(clipperWasmUrl)
+        return pathToFileURL(resolvedPath).toString()
       }
-    }).then((instance: ClipperModule) => {
+
+      let wasmBinary: Uint8Array | undefined
+      if (isNode) {
+        const resolvedPath = resolveClipperWasmPath(clipperWasmUrl)
+        const { promises: fsPromises } = await import('node:fs')
+        const file = await fsPromises.readFile(resolvedPath)
+        wasmBinary = file instanceof Uint8Array ? file : new Uint8Array(file)
+      }
+
+      const instance = await Clipper2Z({
+        locateFile,
+        wasmBinary
+      })
+
       clipperModuleInstance = instance
-      return clipperModuleInstance
-    })
-    clipperModulePromise = modulePromise
+      return instance
+    })()
+
+    modulePromise = clipperModulePromise
   } else {
     modulePromise = clipperModulePromise
   }
@@ -77,4 +101,38 @@ export function pathDToPoints(path: PathD): vec2[] {
     result.push([point.x, point.y])
   }
   return result
+}
+
+function resolveClipperWasmPath(assetUrl: string): string {
+  const proc = globalThis.process as NodeJS.Process | undefined
+  const isNode = typeof proc === 'object' && proc?.release?.name === 'node'
+
+  if (!isNode) {
+    return assetUrl
+  }
+
+  if (assetUrl.startsWith('http://') || assetUrl.startsWith('https://')) {
+    return assetUrl
+  }
+
+  if (assetUrl.startsWith('file://')) {
+    return decodeURIComponent(new URL(assetUrl).pathname)
+  }
+
+  let resolvedPath: string
+  if (assetUrl.startsWith('/')) {
+    resolvedPath = path.resolve(assetUrl.slice(1))
+  } else {
+    try {
+      const resolved = new URL(assetUrl, import.meta.url)
+      if (resolved.protocol === 'file:') {
+        return decodeURIComponent(resolved.pathname)
+      }
+      resolvedPath = decodeURIComponent(resolved.pathname)
+    } catch {
+      resolvedPath = path.resolve(process.cwd(), assetUrl)
+    }
+  }
+
+  return resolvedPath
 }

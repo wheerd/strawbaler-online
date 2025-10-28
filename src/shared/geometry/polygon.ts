@@ -247,7 +247,7 @@ const pathDToPolygon = (path: ReturnType<typeof createPathD>): Polygon2D => {
   return { points }
 }
 
-const collectPolygonsWithHolesFromPolyTree = (root: PolyPathD): PolygonWithHoles2D[] => {
+export const collectPolygonsWithHolesFromPolyTree = (root: PolyPathD): PolygonWithHoles2D[] => {
   const result: PolygonWithHoles2D[] = []
 
   const processNode = (node: PolyPathD, depth: number, currentOuter: PolygonWithHoles2D | null) => {
@@ -304,6 +304,29 @@ export function subtractPolygons(subject: Polygon2D[], clips: Polygon2D[]): Poly
     clipPathsD.delete()
     subjectPaths.forEach(path => path.delete())
     clipPaths.forEach(path => path.delete())
+  }
+}
+
+export function unionPolygonsWithHoles(polygons: Polygon2D[]): PolygonWithHoles2D[] {
+  if (polygons.length === 0) {
+    return []
+  }
+
+  const module = getClipperModule()
+  const paths = polygons.map(polygon => createPathD(polygon.points))
+  const pathsD = createPathsD(paths)
+  const clipper = new module.ClipperD()
+  const polyTree = new module.PolyPathD()
+
+  try {
+    clipper.AddSubject(pathsD)
+    clipper.ExecutePoly(module.ClipType.Union, module.FillRule.NonZero, polyTree)
+    return collectPolygonsWithHolesFromPolyTree(polyTree)
+  } finally {
+    clipper.delete()
+    polyTree.delete()
+    pathsD.delete()
+    paths.forEach(path => path.delete())
   }
 }
 

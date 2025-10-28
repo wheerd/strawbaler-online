@@ -35,6 +35,7 @@ import type {
   ImportedOpening,
   ImportedOpeningType,
   ImportedPerimeterCandidate,
+  ImportedPerimeterSegment,
   ImportedSlab,
   ImportedStorey,
   ImportedWall,
@@ -43,7 +44,11 @@ import type {
 } from '@/importers/ifc/types'
 import { createIdentityMatrix } from '@/importers/ifc/utils'
 import type { Polygon2D, PolygonWithHoles2D } from '@/shared/geometry'
-import { offsetPolygon, unionPolygons } from '@/shared/geometry/polygon'
+import {
+  isPointInPolygon,
+  polygonEdgeOffset,
+  unionPolygons
+} from '@/shared/geometry/polygon'
 
 interface CachedModelContext {
   readonly modelID: number
@@ -51,6 +56,33 @@ interface CachedModelContext {
 }
 
 type DisposableVector<T> = Vector<T> & { delete?: () => void }
+
+interface OpeningProjection {
+  readonly type: ImportedOpeningType
+  readonly polygon: Polygon2D
+  readonly center: vec2
+  readonly height: number
+  readonly sill?: number
+}
+
+interface WallEdgeInfo {
+  readonly start: vec2
+  readonly end: vec2
+  readonly direction: vec2
+  readonly length: number
+  readonly thickness: number
+}
+
+const EDGE_ALIGNMENT_DOT_THRESHOLD = 0.98
+const EDGE_DISTANCE_TOLERANCE = 10
+const EDGE_PROJECTION_TOLERANCE = 10
+const OPENING_ASSIGNMENT_TOLERANCE = 600
+const MINIMUM_THICKNESS = 50
+const DEFAULT_WALL_THICKNESS = 300
+const DEFAULT_DOOR_HEIGHT = 2100
+const DEFAULT_WINDOW_HEIGHT = 1200
+const DEFAULT_VOID_HEIGHT = 2100
+const DEFAULT_WINDOW_SILL = 900
 
 export class IfcImporter {
   private readonly api = new IfcAPI()
@@ -127,85 +159,510 @@ export class IfcImporter {
   }
 
   private generatePerimeterCandidates(walls: ImportedWall[], slabs: ImportedSlab[]): ImportedPerimeterCandidate[] {
-    const slabCandidates = this.buildSlabPerimeterCandidates(slabs)
-    if (slabCandidates.length > 0) {
-      return slabCandidates
+    const slabHoles = this.collectSlabOpenings(slabs)
+    const wallOpenings = this.collectWallOpenings(walls)
+
+    const wallCandidates = this.buildWallPerimeterCandidates(walls, slabHoles, wallOpenings)
+    if (wallCandidates.length > 0) {
+      return wallCandidates
     }
 
-    return this.buildWallPerimeterCandidates(walls)
+    return this.buildSlabPerimeterCandidates(slabs, walls, slabHoles, wallOpenings)
   }
 
-  private buildSlabPerimeterCandidates(slabs: ImportedSlab[]): ImportedPerimeterCandidate[] {
+  private buildWallPerimeterCandidates(
+    walls: ImportedWall[],
+    slabHoles: Polygon2D[],
+    wallOpenings: OpeningProjection[]
+  ): ImportedPerimeterCandidate[] {
+    const wallFootprints = walls
+      .map(wall => wall.profile?.footprint.outer)
+      .filter((polygon): polygon is Polygon2D => polygon != null && polygon.points.length >= 3)
+
+    if (wallFootprints.length === 0) {
+      return []
+    }
+
+    const unionShells = unionPolygons(wallFootprints).filter(polygon => polygon.points.length >= 3)
+
+    if (unionShells.length === 0) {
+      return []
+    }
+
+    const shells = unionShells.filter((polygon, index) => {
+      const centroid = this.calculatePolygonCentroid(polygon)
+      if (!centroid) return false
+      for (let i = 0; i < unionShells.length; i++) {
+        if (i === index) continue
+        if (isPointInPolygon(centroid, unionShells[i])) {
+          return false
+        }
+      }
+      return true
+    })
+
+    if (shells.length === 0) {
+      return []
+    }
+
+    const remainingSlabHoles = [...slabHoles]
+    const candidates: ImportedPerimeterCandidate[] = []
+
+    const wallEdges = this.collectWallEdges(walls)
+    const averageThickness = this.computeAverageWallThickness(walls)
+
+    for (const shell of shells) {
+      const edgeThicknesses = this.deriveEdgeThicknesses(shell, wallEdges, averageThickness)
+      const innerPolygon = this.offsetPolygonWithThickness(shell, edgeThicknesses)
+      if (!innerPolygon) {
+        continue
+      }
+
+      const segments = this.createPerimeterSegments(innerPolygon, edgeThicknesses)
+      this.assignOpeningsToSegments(shell, segments, wallOpenings)
+
+      const holes = this.extractHolesForShell(shell, remainingSlabHoles)
+
+      candidates.push({
+        source: 'walls',
+        boundary: {
+          outer: clonePolygon2D(innerPolygon),
+          holes: holes.map(clonePolygon2D)
+        },
+        segments
+      })
+    }
+
+    return candidates
+  }
+
+  private buildSlabPerimeterCandidates(
+    slabs: ImportedSlab[],
+    walls: ImportedWall[],
+    slabHoles: Polygon2D[],
+    wallOpenings: OpeningProjection[]
+  ): ImportedPerimeterCandidate[] {
     const candidates: ImportedPerimeterCandidate[] = []
     const seen = new Set<string>()
 
+    const averageThickness = this.computeAverageWallThickness(walls)
+
     for (const slab of slabs) {
       const footprint = slab.profile?.footprint
-      if (!footprint) continue
-      if (footprint.outer.points.length < 3) continue
+      if (!footprint || footprint.outer.points.length < 3) continue
 
       const key = this.serialisePolygon(footprint.outer)
       if (seen.has(key)) continue
       seen.add(key)
 
+      const segments = this.createPerimeterSegments(
+        footprint.outer,
+        footprint.outer.points.map(() => averageThickness)
+      )
+      this.assignOpeningsToSegments(footprint.outer, segments, wallOpenings)
+
       candidates.push({
         source: 'slab',
-        boundary: footprint
+        boundary: {
+          outer: clonePolygon2D(footprint.outer),
+          holes: footprint.holes.map(clonePolygon2D)
+        },
+        segments
       })
+    }
+
+    if (candidates.length === 0 && slabHoles.length > 0) {
+      const allSlabOuter = slabs
+        .map(slab => slab.profile?.footprint.outer)
+        .filter((polygon): polygon is Polygon2D => polygon != null && polygon.points.length >= 3)
+      if (allSlabOuter.length > 0) {
+        const mergedOuter = unionPolygons(allSlabOuter)
+        for (const outer of mergedOuter) {
+          if (outer.points.length < 3) continue
+          const segments = this.createPerimeterSegments(
+            outer,
+            outer.points.map(() => averageThickness)
+          )
+          this.assignOpeningsToSegments(outer, segments, wallOpenings)
+          candidates.push({
+            source: 'slab',
+            boundary: {
+              outer: clonePolygon2D(outer),
+              holes: slabHoles.map(clonePolygon2D)
+            },
+            segments
+          })
+        }
+      }
     }
 
     return candidates
   }
 
-  private buildWallPerimeterCandidates(walls: ImportedWall[]): ImportedPerimeterCandidate[] {
-    const wallProfiles = walls
-      .map(wall => wall.profile?.footprint.outer)
-      .filter((polygon): polygon is Polygon2D => polygon != null)
+  private collectSlabOpenings(slabs: ImportedSlab[]): Polygon2D[] {
+    const holes: Polygon2D[] = []
+    for (const slab of slabs) {
+      const profile = slab.profile
+      if (!profile) continue
+      for (const hole of profile.footprint.holes) {
+        if (hole.points.length >= 3) {
+          holes.push(clonePolygon2D(hole))
+        }
+      }
+    }
+    return holes
+  }
 
-    if (wallProfiles.length === 0) {
-      return []
+  private collectWallOpenings(walls: ImportedWall[]): OpeningProjection[] {
+    const openings: OpeningProjection[] = []
+
+    for (const wall of walls) {
+      const wallHeight = wall.height ?? DEFAULT_DOOR_HEIGHT
+      for (const opening of wall.openings) {
+        if (!opening.profile) continue
+        const polygon = opening.profile.footprint.outer
+        if (polygon.points.length < 3) continue
+        const center = this.calculatePolygonCentroid(polygon)
+        if (!center) continue
+
+        openings.push({
+          type: opening.type,
+          polygon: clonePolygon2D(polygon),
+          center,
+          height: this.deriveOpeningHeight(opening.type, wallHeight),
+          sill: this.deriveOpeningSill(opening.type)
+        })
+      }
     }
 
-    const union = unionPolygons(wallProfiles)
-    if (union.length === 0) {
-      return []
+    return openings
+  }
+
+  private collectWallEdges(walls: ImportedWall[]): WallEdgeInfo[] {
+    const edges: WallEdgeInfo[] = []
+
+    for (const wall of walls) {
+      const footprint = wall.profile?.footprint.outer
+      if (!footprint || footprint.points.length < 2) continue
+
+      const points = footprint.points
+      const thickness = wall.thickness ?? this.estimatePolygonThickness(footprint) ?? DEFAULT_WALL_THICKNESS
+
+      for (let i = 0; i < points.length; i++) {
+        const start = points[i]
+        const end = points[(i + 1) % points.length]
+        const length = vec2.distance(start, end)
+        if (length < 1e-3) continue
+        const direction = vec2.normalize(vec2.create(), vec2.subtract(vec2.create(), end, start))
+        edges.push({
+          start: vec2.clone(start),
+          end: vec2.clone(end),
+          direction,
+          length,
+          thickness: Math.max(thickness, MINIMUM_THICKNESS)
+        })
+      }
     }
 
-    const thicknessValues = walls
-      .map(wall => wall.thickness)
-      .filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && value > 0)
+    return edges
+  }
 
-    const averageThickness =
-      thicknessValues.length > 0 ? thicknessValues.reduce((sum, value) => sum + value, 0) / thicknessValues.length : 0
+  private computeAverageWallThickness(walls: ImportedWall[]): number {
+    const values: number[] = []
+    for (const wall of walls) {
+      if (wall.thickness && Number.isFinite(wall.thickness)) {
+        values.push(wall.thickness)
+      } else {
+        const footprint = wall.profile?.footprint.outer
+        const estimate = footprint ? this.estimatePolygonThickness(footprint) : null
+        if (estimate && Number.isFinite(estimate)) {
+          values.push(estimate)
+        }
+      }
+    }
 
-    const candidates: ImportedPerimeterCandidate[] = []
-    for (const polygon of union) {
-      let boundary: Polygon2D | null = null
-      if (averageThickness > 0) {
-        const offset = offsetPolygon(polygon, -averageThickness)
-        if (offset.points.length >= 3) {
-          boundary = offset
+    if (values.length === 0) {
+      return DEFAULT_WALL_THICKNESS
+    }
+
+    const sum = values.reduce((acc, value) => acc + value, 0)
+    return Math.max(sum / values.length, MINIMUM_THICKNESS)
+  }
+
+  private deriveEdgeThicknesses(shell: Polygon2D, wallEdges: WallEdgeInfo[], fallback: number): number[] {
+    const thicknesses: number[] = []
+
+    for (let i = 0; i < shell.points.length; i++) {
+      const start = shell.points[i]
+      const end = shell.points[(i + 1) % shell.points.length]
+      const segmentLength = vec2.distance(start, end)
+      if (segmentLength < 1e-3) {
+        thicknesses.push(fallback)
+        continue
+      }
+
+      const dir = vec2.normalize(vec2.create(), vec2.subtract(vec2.create(), end, start))
+      let bestThickness = fallback
+      let bestDistance = Number.POSITIVE_INFINITY
+
+      for (const edge of wallEdges) {
+        const alignment = Math.abs(vec2.dot(dir, edge.direction))
+        if (alignment < EDGE_ALIGNMENT_DOT_THRESHOLD) {
+          continue
+        }
+
+        if (!this.segmentsOverlap(start, end, edge)) {
+          continue
+        }
+
+        const distStart = this.distancePointToSegment(start, edge.start, edge.end)
+        const distEnd = this.distancePointToSegment(end, edge.start, edge.end)
+        const distance = Math.max(distStart, distEnd)
+        if (distance < bestDistance) {
+          bestDistance = distance
+          bestThickness = edge.thickness
         }
       }
 
-      if (!boundary && polygon.points.length >= 3) {
-        boundary = polygon
-      }
+      thicknesses.push(Math.max(bestThickness, MINIMUM_THICKNESS))
+    }
 
-      if (!boundary) continue
+    return thicknesses
+  }
 
-      const boundaryWithHoles: PolygonWithHoles2D = {
-        outer: boundary,
-        holes: []
-      }
+  private offsetPolygonWithThickness(shell: Polygon2D, thicknesses: number[]): Polygon2D | null {
+    if (thicknesses.length !== shell.points.length) {
+      return null
+    }
 
-      candidates.push({
-        source: 'walls',
-        boundary: boundaryWithHoles
+    const offsets = thicknesses.map(value => -Math.max(value, MINIMUM_THICKNESS))
+    const inner = polygonEdgeOffset(shell, offsets)
+    if (inner.points.length !== shell.points.length) {
+      return null
+    }
+    return inner
+  }
+
+  private createPerimeterSegments(polygon: Polygon2D, thicknesses: number[]): ImportedPerimeterSegment[] {
+    const segments: ImportedPerimeterSegment[] = []
+    const pointCount = polygon.points.length
+
+    for (let i = 0; i < pointCount; i++) {
+      const start = polygon.points[i]
+      const end = polygon.points[(i + 1) % pointCount]
+      const thickness = thicknesses[i]
+
+      segments.push({
+        start: vec2.clone(start),
+        end: vec2.clone(end),
+        thickness: Number.isFinite(thickness) ? Math.max(thickness, MINIMUM_THICKNESS) : undefined,
+        openings: []
       })
     }
 
-    return candidates
+    return segments
+  }
+
+  private assignOpeningsToSegments(
+    outer: Polygon2D,
+    segments: ImportedPerimeterSegment[],
+    openings: OpeningProjection[]
+  ): void {
+    for (const opening of openings) {
+      if (!isPointInPolygon(opening.center, outer)) {
+        continue
+      }
+
+      let bestSegmentIndex = -1
+      let bestDistance = Number.POSITIVE_INFINITY
+      let bestOffset = 0
+      let bestWidth = 0
+
+      for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i]
+        const segmentVector = vec2.subtract(vec2.create(), segment.end, segment.start)
+        const segmentLength = vec2.length(segmentVector)
+        if (segmentLength < 1e-3) continue
+        const segmentDir = vec2.scale(vec2.create(), segmentVector, 1 / segmentLength)
+
+        const toCenter = vec2.subtract(vec2.create(), opening.center, segment.start)
+        const projection = vec2.dot(toCenter, segmentDir)
+        const clampedProjection = Math.min(Math.max(projection, 0), segmentLength)
+        const closestPoint = vec2.scaleAndAdd(vec2.create(), segment.start, segmentDir, clampedProjection)
+
+        const distance = vec2.distance(closestPoint, opening.center)
+        if (distance > OPENING_ASSIGNMENT_TOLERANCE) {
+          continue
+        }
+
+        let minProjection = Number.POSITIVE_INFINITY
+        let maxProjection = Number.NEGATIVE_INFINITY
+        for (const point of opening.polygon.points) {
+          const toPoint = vec2.subtract(vec2.create(), point, segment.start)
+          const value = vec2.dot(toPoint, segmentDir)
+          minProjection = Math.min(minProjection, value)
+          maxProjection = Math.max(maxProjection, value)
+        }
+
+        const openingStart = Math.min(segmentLength, Math.max(0, minProjection))
+        const openingEnd = Math.max(0, Math.min(segmentLength, maxProjection))
+        const width = Math.max(0, openingEnd - openingStart)
+
+        if (width <= 1) {
+          continue
+        }
+
+        if (distance < bestDistance) {
+          bestDistance = distance
+          bestSegmentIndex = i
+          bestOffset = openingStart
+          bestWidth = width
+        }
+      }
+
+      if (bestSegmentIndex !== -1) {
+        const segment = segments[bestSegmentIndex]
+        segment.openings.push({
+          type: opening.type,
+          offset: bestOffset,
+          width: bestWidth,
+          height: opening.height,
+          sill: opening.sill
+        })
+      }
+    }
+  }
+
+  private extractHolesForShell(shell: Polygon2D, holes: Polygon2D[]): Polygon2D[] {
+    const matched: Polygon2D[] = []
+
+    for (let i = holes.length - 1; i >= 0; i--) {
+      const hole = holes[i]
+      const centroid = this.calculatePolygonCentroid(hole)
+      if (!centroid) continue
+      if (isPointInPolygon(centroid, shell)) {
+        matched.push(clonePolygon2D(hole))
+        holes.splice(i, 1)
+      }
+    }
+
+    return matched
+  }
+
+  private calculatePolygonCentroid(polygon: Polygon2D): vec2 | null {
+    const points = polygon.points
+    if (points.length < 3) {
+      return null
+    }
+
+    let areaSum = 0
+    let cx = 0
+    let cy = 0
+
+    for (let i = 0; i < points.length; i++) {
+      const [x1, y1] = points[i]
+      const [x2, y2] = points[(i + 1) % points.length]
+      const cross = x1 * y2 - x2 * y1
+      areaSum += cross
+      cx += (x1 + x2) * cross
+      cy += (y1 + y2) * cross
+    }
+
+    const area = areaSum / 2
+    if (Math.abs(area) < 1e-6) {
+      const avg = points.reduce(
+        (acc, point) => {
+          acc[0] += point[0]
+          acc[1] += point[1]
+          return acc
+        },
+        vec2.fromValues(0, 0)
+      )
+      vec2.scale(avg, avg, 1 / points.length)
+      return avg
+    }
+
+    return vec2.fromValues(cx / (6 * area), cy / (6 * area))
+  }
+
+  private deriveOpeningHeight(type: ImportedOpeningType, wallHeight: number | null): number {
+    const baseHeight = wallHeight ?? DEFAULT_DOOR_HEIGHT
+    switch (type) {
+      case 'door':
+        return Math.min(baseHeight, DEFAULT_DOOR_HEIGHT)
+      case 'window':
+        return Math.min(baseHeight, DEFAULT_WINDOW_HEIGHT)
+      default:
+        return Math.min(baseHeight, DEFAULT_VOID_HEIGHT)
+    }
+  }
+
+  private deriveOpeningSill(type: ImportedOpeningType): number | undefined {
+    if (type === 'window') {
+      return DEFAULT_WINDOW_SILL
+    }
+    return undefined
+  }
+
+  private estimatePolygonThickness(polygon: Polygon2D): number | null {
+    if (polygon.points.length < 2) {
+      return null
+    }
+
+    let minLength = Number.POSITIVE_INFINITY
+    for (let i = 0; i < polygon.points.length; i++) {
+      const start = polygon.points[i]
+      const end = polygon.points[(i + 1) % polygon.points.length]
+      const length = vec2.distance(start, end)
+      if (length > 1e-3) {
+        minLength = Math.min(minLength, length)
+      }
+    }
+
+    if (!Number.isFinite(minLength) || minLength === Number.POSITIVE_INFINITY) {
+      return null
+    }
+
+    return minLength
+  }
+
+  private distancePointToSegment(point: vec2, segmentStart: vec2, segmentEnd: vec2): number {
+    const segmentVector = vec2.subtract(vec2.create(), segmentEnd, segmentStart)
+    const lengthSquared = vec2.squaredLength(segmentVector)
+    if (lengthSquared === 0) {
+      return vec2.distance(point, segmentStart)
+    }
+
+    const t = Math.max(
+      0,
+      Math.min(1, vec2.dot(vec2.subtract(vec2.create(), point, segmentStart), segmentVector) / lengthSquared)
+    )
+    const projection = vec2.scaleAndAdd(vec2.create(), segmentStart, segmentVector, t)
+    return vec2.distance(point, projection)
+  }
+
+  private segmentsOverlap(segmentStart: vec2, segmentEnd: vec2, edge: WallEdgeInfo): boolean {
+    const edgeDir = edge.direction
+    const edgeLength = edge.length
+
+    const projectPoint = (point: vec2): number => {
+      return vec2.dot(vec2.subtract(vec2.create(), point, edge.start), edgeDir)
+    }
+
+    const startProjection = projectPoint(segmentStart)
+    const endProjection = projectPoint(segmentEnd)
+
+    const minProjection = Math.min(startProjection, endProjection)
+    const maxProjection = Math.max(startProjection, endProjection)
+
+    if (maxProjection < -EDGE_PROJECTION_TOLERANCE || minProjection > edgeLength + EDGE_PROJECTION_TOLERANCE) {
+      return false
+    }
+
+    const distStart = this.distancePointToSegment(segmentStart, edge.start, edge.end)
+    const distEnd = this.distancePointToSegment(segmentEnd, edge.start, edge.end)
+
+    return distStart < EDGE_DISTANCE_TOLERANCE && distEnd < EDGE_DISTANCE_TOLERANCE
   }
 
   private serialisePolygon(polygon: Polygon2D): string {
@@ -977,5 +1434,11 @@ export class IfcImporter {
 
   private isSiUnit(value: IfcLineObject | null): value is IFC4.IfcSIUnit {
     return value != null && value.type === IFCSIUNIT
+  }
+}
+
+function clonePolygon2D(polygon: Polygon2D): Polygon2D {
+  return {
+    points: polygon.points.map(point => vec2.clone(point))
   }
 }

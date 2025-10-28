@@ -1,4 +1,4 @@
-import { mat4, vec3 } from 'gl-matrix'
+import { mat4, vec2, vec3 } from 'gl-matrix'
 import { IFC4 } from 'web-ifc'
 
 import type { Polygon2D, PolygonWithHoles2D } from '@/shared/geometry'
@@ -47,8 +47,24 @@ export interface ImportedSlab {
 }
 
 export interface ImportedPerimeterCandidate {
-  readonly source: 'slab' | 'walls'
+  readonly source: 'walls' | 'slab'
   readonly boundary: PolygonWithHoles2D
+  readonly segments: ImportedPerimeterSegment[]
+}
+
+export interface ImportedPerimeterSegment {
+  readonly start: vec2
+  readonly end: vec2
+  readonly thickness?: number
+  readonly openings: ImportedPerimeterOpening[]
+}
+
+export interface ImportedPerimeterOpening {
+  readonly type: ImportedOpeningType
+  readonly offset: number
+  readonly width: number
+  readonly height: number
+  readonly sill?: number
 }
 
 export interface ExtrudedProfile {
