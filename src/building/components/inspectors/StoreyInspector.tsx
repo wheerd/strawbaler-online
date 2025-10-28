@@ -5,18 +5,11 @@ import type { StoreyId } from '@/building/model/ids'
 import { usePerimeters, useStoreyById } from '@/building/store'
 import { getPerimeterStats } from '@/construction/perimeter'
 import { getLevelColor } from '@/editor/status-bar/StoreySelector'
-import type { Area, Volume } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatArea, formatLength, formatVolume } from '@/shared/utils/formatting'
 
 interface StoreyInspectorProps {
   selectedId: StoreyId
 }
-
-const MM2_PER_M2 = 1_000_000
-const MM3_PER_M3 = 1_000_000_000
-
-const formatArea = (area: Area) => `${(area / MM2_PER_M2).toFixed(2)} m²`
-const formatVolume = (volume: Volume) => `${(volume / MM3_PER_M3).toFixed(2)} m³`
 
 export function StoreyInspector({ selectedId }: StoreyInspectorProps): React.JSX.Element {
   // Get storey data from model store

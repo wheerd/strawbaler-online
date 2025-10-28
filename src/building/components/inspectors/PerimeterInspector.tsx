@@ -26,7 +26,7 @@ import {
 } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
 import { type Length, boundsFromPoints, calculatePolygonArea } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatArea, formatLength } from '@/shared/utils/formatting'
 
 interface PerimeterInspectorProps {
   selectedId: PerimeterId
@@ -139,7 +139,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
           </DataList.Item>
           <DataList.Item>
             <DataList.Label minWidth="88px">Total Inside Area</DataList.Label>
-            <DataList.Value>{(totalInnerArea / (1000 * 1000)).toFixed(2)} m²</DataList.Value>
+            <DataList.Value>{formatArea(totalInnerArea)}</DataList.Value>
           </DataList.Item>
           <DataList.Item>
             <DataList.Label minWidth="88px">Total Outer Perimeter</DataList.Label>
@@ -147,7 +147,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
           </DataList.Item>
           <DataList.Item>
             <DataList.Label minWidth="88px">Total Overbuilt Area</DataList.Label>
-            <DataList.Value>{(totalOuterArea / (1000 * 1000)).toFixed(2)} m²</DataList.Value>
+            <DataList.Value>{formatArea(totalOuterArea)}</DataList.Value>
           </DataList.Item>
         </DataList.Root>
 

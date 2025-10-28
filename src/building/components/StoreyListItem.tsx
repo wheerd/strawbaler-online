@@ -8,7 +8,7 @@ import { defaultStoreyManagementService } from '@/building/store/services/Storey
 import { FloorAssemblySelectWithEdit } from '@/construction/config/components/FloorAssemblySelectWithEdit'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 export function getLevelColor(level: number): 'grass' | 'indigo' | 'brown' {
   if (level === 0) {

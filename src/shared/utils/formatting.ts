@@ -1,4 +1,4 @@
-import type { Length } from '@/shared/geometry'
+import type { Area, Length, Volume } from '@/shared/geometry'
 
 /**
  * Formats a length value (in mm) to the most appropriate unit with optimal readability.
@@ -69,3 +69,11 @@ export function formatLength(lengthInMm: Length): string {
     return `${meters.toFixed(3)}m` // e.g., "1.234m"
   }
 }
+
+export const formatLengthInMeters = (length: number): string => `${(length / 1000).toFixed(3)}m`
+
+const MM2_PER_M2 = 1_000_000
+const MM3_PER_M3 = 1_000_000_000
+
+export const formatArea = (area: Area) => `${(area / MM2_PER_M2).toFixed(2)}m²`
+export const formatVolume = (volume: Volume) => `${(volume / MM3_PER_M3).toFixed(2)}m³`

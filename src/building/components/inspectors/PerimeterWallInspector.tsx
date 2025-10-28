@@ -19,7 +19,7 @@ import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon } from '@/shared/com
 import { LengthField } from '@/shared/components/LengthField'
 import { type Polygon2D, boundsFromPoints } from '@/shared/geometry'
 import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 interface PerimeterWallInspectorProps {
   perimeterId: PerimeterId

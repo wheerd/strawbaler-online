@@ -6,7 +6,7 @@ import { Group, Line, Text } from 'react-konva/lib/ReactKonvaCore'
 import { angle, midpoint, perpendicularCCW } from '@/shared/geometry'
 import type {} from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 interface LengthIndicatorProps {
   startPoint: vec2

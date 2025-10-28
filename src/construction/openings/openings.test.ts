@@ -30,7 +30,7 @@ vi.mock('@/construction/walls/infill/infill', () => ({
 }))
 
 // Mock the formatLength utility
-vi.mock('@/shared/utils/formatLength', () => ({
+vi.mock('@/shared/utils/formatting', () => ({
   formatLength: vi.fn((length: number) => `${length}mm`) // Mock to return simple format for tests
 }))
 

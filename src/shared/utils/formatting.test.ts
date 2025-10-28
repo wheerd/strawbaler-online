@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatLength } from './formatLength'
+import { formatLength } from './formatting'
 
 describe('formatLength', () => {
   describe('mm format (< 100mm and not divisible by 10)', () => {

@@ -4,7 +4,7 @@ import React from 'react'
 
 import { usePointerWorldPosition } from '@/editor/hooks/usePointerPosition'
 import '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 export function PointerPositionDisplay(): React.JSX.Element {
   const pointer = usePointerWorldPosition()

@@ -12,7 +12,7 @@ import { activateLengthInput } from '@/editor/services/length-input'
 import { type Length, midpoint } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 interface OpeningShapeProps {
   opening: Opening

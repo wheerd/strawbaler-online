@@ -10,7 +10,7 @@ import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import { LengthField } from '@/shared/components/LengthField'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 import type { PerimeterTool } from './PerimeterTool'
 

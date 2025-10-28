@@ -6,7 +6,7 @@ import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from 
 import { createCuboidShape } from '@/construction/shapes'
 import { TAG_POST } from '@/construction/tags'
 import { type Length, mergeBounds } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 import type { Material, MaterialId } from './material'
 import { getMaterialById } from './store'

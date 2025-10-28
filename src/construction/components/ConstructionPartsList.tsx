@@ -8,7 +8,8 @@ import type { Material } from '@/construction/materials/material'
 import { useMaterialsMap } from '@/construction/materials/store'
 import type { MaterialPartItem, MaterialPartsList } from '@/construction/parts'
 import { boundsFromPoints } from '@/shared/geometry'
-import type { Length, Polygon2D } from '@/shared/geometry'
+import type { Polygon2D } from '@/shared/geometry'
+import { formatLengthInMeters, formatVolume } from '@/shared/utils/formatting'
 
 interface ConstructionPartsListProps {
   partsList: MaterialPartsList
@@ -18,16 +19,6 @@ interface RowMetrics {
   totalQuantity: number
   totalVolume: number
   totalLength?: number
-}
-
-const formatLengthInMeters = (length: Length): string => {
-  return `${(length / 1000).toFixed(3)}m`
-}
-
-const formatVolume = (volume: number): string => {
-  if (volume === 0) return '0m³'
-  const cubicMeters = volume / 1_000_000_000
-  return `${cubicMeters.toFixed(2)}m³`
 }
 
 const formatCrossSection = ([first, second]: [number, number]) =>

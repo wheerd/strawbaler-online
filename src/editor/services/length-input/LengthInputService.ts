@@ -1,5 +1,5 @@
 import type { Length } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 import { parseLength } from './parseLength'
 import type { LengthInputConfig, LengthInputPosition, LengthInputState } from './types'

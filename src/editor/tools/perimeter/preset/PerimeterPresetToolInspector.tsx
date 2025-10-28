@@ -7,7 +7,7 @@ import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 import type { PerimeterPresetTool } from './PerimeterPresetTool'
 import { LShape0Icon, RectIcon } from './presets/Icons'

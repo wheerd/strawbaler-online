@@ -6,7 +6,7 @@ import { getTagClasses } from '@/construction/components/cssHelpers'
 import { type Projection, allPoints, bounds3Dto2D, transformBounds } from '@/construction/geometry'
 import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 export interface MeasurementsProps {
   model: ConstructionModel

@@ -20,7 +20,7 @@ import {
 import type { InfillMethod } from '@/construction/walls'
 import type { WallSegment3D } from '@/construction/walls/segmentation'
 import { type Length } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 export interface OpeningConstructionConfig {
   padding: Length // Default: 15mm

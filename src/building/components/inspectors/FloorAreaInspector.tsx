@@ -8,7 +8,7 @@ import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { FitToViewIcon } from '@/shared/components/Icons'
 import { boundsFromPoints, calculatePolygonArea, polygonPerimeter } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatArea, formatLength } from '@/shared/utils/formatting'
 
 interface FloorAreaInspectorProps {
   floorAreaId: FloorAreaId
@@ -24,9 +24,9 @@ export function FloorAreaInspector({ floorAreaId }: FloorAreaInspectorProps): Re
     return polygonPerimeter(floorArea.area)
   }, [floorArea])
 
-  const areaSquareMeters = useMemo(() => {
+  const area = useMemo(() => {
     if (!floorArea) return 0
-    return calculatePolygonArea(floorArea.area) / 1_000_000
+    return calculatePolygonArea(floorArea.area)
   }, [floorArea])
 
   const handleFitToView = useCallback(() => {
@@ -55,7 +55,7 @@ export function FloorAreaInspector({ floorAreaId }: FloorAreaInspectorProps): Re
           </DataList.Item>
           <DataList.Item>
             <DataList.Label>Area</DataList.Label>
-            <DataList.Value>{areaSquareMeters.toFixed(2)} m²</DataList.Value>
+            <DataList.Value>{formatArea(area)}</DataList.Value>
           </DataList.Item>
         </DataList.Root>
 

@@ -9,7 +9,7 @@ import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { LengthField } from '@/shared/components/LengthField'
 import '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 import type { RectangularPresetConfig } from './types'
 

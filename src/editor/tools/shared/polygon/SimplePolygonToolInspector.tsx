@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolImplementation, ToolInspectorProps } from '@/editor/tools/system/types'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 import type { BasePolygonTool, PolygonToolStateBase } from './BasePolygonTool'
 

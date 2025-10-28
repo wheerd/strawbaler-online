@@ -3,8 +3,7 @@ import type { vec3 } from 'gl-matrix'
 import React, { useMemo } from 'react'
 
 import type { VirtualPartsList } from '@/construction/parts'
-
-const formatLengthInMeters = (length: number): string => `${(length / 1000).toFixed(3)}m`
+import { formatLengthInMeters } from '@/shared/utils/formatting'
 
 const formatDimensions = (size: vec3): string =>
   `${formatLengthInMeters(size[0])} × ${formatLengthInMeters(size[1])} × ${formatLengthInMeters(size[2])}`

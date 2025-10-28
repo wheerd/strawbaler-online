@@ -3,7 +3,7 @@ import { useId } from 'react'
 import type { OpeningType } from '@/building/model/model'
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import type { Length } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatArea, formatLength } from '@/shared/utils/formatting'
 
 export interface OpeningPreviewSimpleProps {
   opening: {
@@ -60,7 +60,7 @@ export function OpeningPreviewSimple({
   const bottomHasSpace = (opening.sillHeight ?? 0) * scale > 16
   const sideHasSpace = (svgWidth - openingWidthSvg) / 2 > 16
 
-  const area = (opening.width * opening.height) / (1000 * 1000)
+  const area = opening.width * opening.height
 
   // Styling - simplified single mode
   const getStyle = () => ({
@@ -199,7 +199,7 @@ export function OpeningPreviewSimple({
         dominantBaseline="middle"
         fill="var(--gray-11)"
       >
-        {area.toFixed(2)}m²
+        {formatArea(area)}
       </text>
     </svg>
   )

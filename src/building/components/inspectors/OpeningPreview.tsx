@@ -3,7 +3,7 @@ import { useId } from 'react'
 import type { OpeningType } from '@/building/model/model'
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import type { Length } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatArea, formatLength } from '@/shared/utils/formatting'
 
 export interface OpeningPreviewProps {
   opening: {
@@ -78,8 +78,7 @@ export function OpeningPreview({
   const finishedHeightSvg = finishedHeightMm * scale
   const finishedRight = finishedLeft + finishedWidthSvg
 
-  const area =
-    (highlightMode === 'fitting' ? opening.width * opening.height : finishedWidthMm * finishedHeightMm) / (1000 * 1000)
+  const area = highlightMode === 'fitting' ? opening.width * opening.height : finishedWidthMm * finishedHeightMm
 
   // Styling based on highlight mode and focus
   const getFittingStyle = () => ({
@@ -292,7 +291,7 @@ export function OpeningPreview({
           filter: 'drop-shadow(0 0 0.2em var(--gray-1))'
         }}
       >
-        {area.toFixed(2)}m²
+        {formatArea(area)}
       </text>
     </svg>
   )

@@ -10,7 +10,7 @@ import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { LengthField } from '@/shared/components/LengthField'
 import { offsetPolygon } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatLength'
+import { formatLength } from '@/shared/utils/formatting'
 
 import { LShape0Icon, LShape90Icon, LShape180Icon, LShape270Icon } from './Icons'
 import { LShapedPreset } from './LShapedPreset'
