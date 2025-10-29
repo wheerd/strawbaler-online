@@ -66,6 +66,26 @@ describe('IFC importer integration', () => {
 
     expect(summary).toMatchSnapshot()
   })
+
+  test('parses FZK House sample', async () => {
+    const importer = new IfcImporter()
+    const filePath = path.resolve(process.cwd(), 'src', 'test', 'AC20-FZK-Haus.ifc')
+    const file = await fs.readFile(filePath)
+
+    let model
+    try {
+      model = await importer.importFromArrayBuffer(file.buffer)
+    } catch (error) {
+      console.error('IFC import failed', error)
+      throw error
+    }
+
+    await generateDebugSvgs(model, 'fzk')
+
+    const summary = summarizeModel(model)
+
+    expect(summary).toMatchSnapshot()
+  })
 })
 
 function summarizeModel(model: { unitScale: number; storeys: ImportedStorey[] }): unknown {

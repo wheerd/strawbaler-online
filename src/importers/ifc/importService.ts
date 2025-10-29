@@ -95,7 +95,12 @@ function applyImportedModel(model: ParsedIfcModel): void {
       const perimeterPolygon = clonePolygon(candidate.boundary.outer)
       const defaultThicknessFromSegments = averageSegmentThickness(candidate.segments) ?? wallThickness ?? undefined
 
-      const perimeter = actions.addPerimeter(targetStoreyId, perimeterPolygon, defaultWallAssemblyId, defaultThicknessFromSegments)
+      const perimeter = actions.addPerimeter(
+        targetStoreyId,
+        perimeterPolygon,
+        defaultWallAssemblyId,
+        defaultThicknessFromSegments
+      )
       const perimeterRecord = actions.getPerimeterById(perimeter.id) ?? perimeter
 
       candidate.segments.forEach((segment, index) => {
@@ -112,13 +117,17 @@ function applyImportedModel(model: ParsedIfcModel): void {
 
           const offset = Math.max(0, opening.offset)
 
-          actions.addPerimeterWallOpening(perimeter.id, wall.id, {
-            type: opening.type === 'void' ? 'passage' : opening.type,
-            offsetFromStart: offset,
-            width,
-            height: opening.height,
-            sillHeight: opening.sill
-          })
+          try {
+            actions.addPerimeterWallOpening(perimeter.id, wall.id, {
+              type: opening.type === 'void' ? 'passage' : opening.type,
+              offsetFromStart: offset,
+              width,
+              height: opening.height,
+              sillHeight: opening.sill
+            })
+          } catch (e) {
+            console.error(e)
+          }
         }
       })
 

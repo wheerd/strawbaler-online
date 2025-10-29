@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="13000" height="11000" viewBox="0 0 13000 11000">
+<text x="500" y="500" fill="#222" font-size="200" font-family="monospace">Erdgeschoss</text>
+<polygon points="7910,6490 12200,6490 12200,6250 8150,6250" fill="none" stroke="#2979ff" stroke-width="20" />
+<polygon points="7910,800 7910,6490 8150,6250 8150,800" fill="none" stroke="#2979ff" stroke-width="20" />
+<polygon points="7910,5057.5 7910,5942.5 7910,5942.5 7910,5057.5" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="4300,800 4300,4510 4540,4510 4540,800" fill="none" stroke="#2979ff" stroke-width="20" />
+<polygon points="800,4750 7910,4750 7910,4510 800,4510" fill="none" stroke="#2979ff" stroke-width="20" />
+<polygon points="5717.5,4750 6602.5,4750 6602.5,4750 5717.5,4750" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="2107.5,4750 2992.5,4750 2992.5,4750 2107.5,4750" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="800,6490 4300,6490 4300,6250 800,6250" fill="none" stroke="#2979ff" stroke-width="20" />
+<polygon points="800,10200 800,800 500,500 500,10500" fill="none" stroke="#2979ff" stroke-width="20" />
+<polygon points="670,4005 670,2005 670,2005 670,4005" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="670,9295 670,7295 670,7295 670,9295" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="800,6005 800,4995 800,4995 800,6005" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="12200,10200 800,10200 500,10500 12500,10500" fill="none" stroke="#2979ff" stroke-width="20" />
+<polygon points="4290,10330 2290,10330 2290,10330 4290,10330" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="10710,10330 8710,10330 8710,10330 10710,10330" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="7505,10200 5495,10200 5495,10200 7505,10200" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="12200,800 12200,10200 12500,10500 12500,500" fill="none" stroke="#2979ff" stroke-width="20" />
+<polygon points="12330,1997.61 12330,3997.61 12330,3997.61 12330,1997.61" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="12330,7295 12330,9295 12330,9295 12330,7295" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="800,800 12200,800 12500,500 500,500" fill="none" stroke="#2979ff" stroke-width="20" />
+<polygon points="1550,670 3550,670 3550,670 1550,670" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="5160,670 7160,670 7160,670 5160,670" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="9295,670 11295,670 11295,670 9295,670" fill="#FFFFFF55" stroke="white" stroke-width="20" />
+<polygon points="500,500 500,10500 12500,10500 12500,500" fill="rgba(0,200,83,0.18)" stroke="#2979ff" stroke-width="20" />
+<polygon points="800,10200 800,800 12200,800 12200,10200" fill="none" stroke="#ff1744" stroke-width="40" />
+<line x1="800" y1="4005" x2="800" y2="2005" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="800" y1="9295" x2="800" y2="7295" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="800" y1="6005" x2="800" y2="4995" stroke="#d84315" stroke-width="40" stroke-linecap="round" />
+<line x1="1550" y1="800" x2="3550" y2="800" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="5160" y1="800" x2="7160" y2="800" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="9295" y1="800" x2="11295" y2="800" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="12200" y1="1997.61" x2="12200" y2="3997.61" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="12200" y1="7295" x2="12200" y2="9295" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="4290" y1="10200" x2="2290" y2="10200" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="10710" y1="10200" x2="8710" y2="10200" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="7505" y1="10200" x2="5495" y2="10200" stroke="#d84315" stroke-width="40" stroke-linecap="round" />
+</svg>
