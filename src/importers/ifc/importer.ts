@@ -43,7 +43,7 @@ import type {
   RawIfcStorey
 } from '@/importers/ifc/types'
 import { createIdentityMatrix } from '@/importers/ifc/utils'
-import { type Polygon2D, type PolygonWithHoles2D, boundsFromPoints, boundsFromPoints3D } from '@/shared/geometry'
+import { type Polygon2D, type PolygonWithHoles2D, boundsFromPoints } from '@/shared/geometry'
 import { isPointInPolygon, polygonEdgeOffset, unionPolygons, unionPolygonsWithHoles } from '@/shared/geometry/polygon'
 
 interface CachedModelContext {
@@ -285,10 +285,16 @@ export class IfcImporter {
     const holes: Polygon2D[] = []
     for (const slab of slabs) {
       const profile = slab.profile
-      if (!profile) continue
-      for (const hole of profile.footprint.holes) {
-        if (hole.points.length >= 3) {
-          holes.push(clonePolygon2D(hole))
+      if (profile) {
+        for (const hole of profile.footprint.holes) {
+          if (hole.points.length >= 3) {
+            holes.push(clonePolygon2D(hole))
+          }
+        }
+      }
+      for (const opening of slab.openings) {
+        if (opening.profile?.footprint) {
+          holes.push(clonePolygon2D(opening.profile.footprint.outer))
         }
       }
     }
@@ -687,6 +693,7 @@ export class IfcImporter {
         const placement = this.resolveObjectPlacement(context, slab)
         const profile = this.extractPrimaryExtrudedProfile(context, slab, placement)
         const thickness = profile?.extrusionDepth ?? null
+        const openings = this.extractOpenings(context, slab)
 
         slabs.push({
           expressId: slab.expressID,
@@ -694,7 +701,8 @@ export class IfcImporter {
           name: this.getStringValue(slab.Name),
           placement,
           profile,
-          thickness
+          thickness,
+          openings
         })
       }
     }
@@ -702,10 +710,10 @@ export class IfcImporter {
     return slabs
   }
 
-  private extractOpenings(context: CachedModelContext, wall: IFC4.IfcWall): ImportedOpening[] {
+  private extractOpenings(context: CachedModelContext, element: IFC4.IfcElement): ImportedOpening[] {
     const openings: ImportedOpening[] = []
 
-    for (const openingRelRef of this.toArray(wall.HasOpenings)) {
+    for (const openingRelRef of this.toArray(element.HasOpenings)) {
       const relation = this.dereferenceLine(context, openingRelRef)
       if (!this.isRelVoidsElement(relation)) continue
 
@@ -797,94 +805,6 @@ export class IfcImporter {
     }
 
     return null
-  }
-
-  private projectToXYAndHeight(
-    context: CachedModelContext,
-    element: IFC4.IfcProduct,
-    eps2D = 1
-  ): { height: number; polygons: Polygon2D[] } {
-    const mesh = this.api.GetFlatMesh(context.modelID, element.expressID)
-    let height = 0
-    const polygons: Polygon2D[] = []
-    for (let j = 0; j < mesh.geometries.size(); j++) {
-      const placedGeometry = mesh.geometries.get(j)
-      const matrix = mat4.fromValues.apply(mat4.fromValues, placedGeometry.flatTransformation as any)
-
-      const geometry = this.api.GetGeometry(context.modelID, placedGeometry.geometryExpressID)
-
-      const idx = this.api.GetIndexArray(geometry.GetIndexData(), geometry.GetIndexDataSize()) as Uint32Array
-      const v = this.api.GetVertexArray(geometry.GetVertexData(), geometry.GetVertexDataSize()) as Float32Array
-
-      const points: vec3[] = []
-      for (let i = 0; i < v.length; i += 3) {
-        points.push(
-          vec3.scale(
-            vec3.create(),
-            vec3.transformMat4(vec3.create(), vec3.fromValues(v[i], v[i + 1], v[i + 2]), matrix),
-            context.unitScale
-          )
-        )
-      }
-
-      let minZ = Number.POSITIVE_INFINITY
-      let maxZ = Number.NEGATIVE_INFINITY
-
-      const usedPoints: vec3[] = []
-      // --- Project triangles to XY and collect as polygons ---
-      const triPolys: Polygon2D[] = []
-      for (let t = 0; t < idx.length; t += 3) {
-        const i0 = idx[t] * 3,
-          i1 = idx[t + 1] * 3,
-          i2 = idx[t + 2] * 3
-
-        usedPoints.push(points[idx[t]], points[idx[t + 1]], points[idx[t + 1]])
-
-        const p0: vec2 = [v[i0] * context.unitScale, v[i0 + 1] * context.unitScale]
-        const p1: vec2 = [v[i1] * context.unitScale, v[i1 + 1] * context.unitScale]
-        const p2: vec2 = [v[i2] * context.unitScale, v[i2 + 1] * context.unitScale]
-
-        minZ = Math.min(
-          minZ,
-          v[i0 + 2] * context.unitScale,
-          v[i0 + 2] * context.unitScale,
-          v[i0 + 2] * context.unitScale
-        )
-        maxZ = Math.max(
-          maxZ,
-          v[i0 + 2] * context.unitScale,
-          v[i0 + 2] * context.unitScale,
-          v[i0 + 2] * context.unitScale
-        )
-
-        const a2 = this.signedArea2([p0, p1, p2])
-        if (Math.abs(a2) <= eps2D) continue // drop degenerate/flat
-
-        // Ensure CCW winding (many union libs expect outer rings CCW)
-        triPolys.push({ points: a2 > 0 ? [p0, p1, p2] : [p0, p2, p1] })
-      }
-      const bounds = boundsFromPoints3D(usedPoints)
-      const size = vec3.subtract(vec3.create(), bounds!.max, bounds!.min)
-
-      const geometryHeight = size[2] // isFinite(minZ) && isFinite(maxZ) && maxZ > minZ ? maxZ - minZ : 0
-      if (geometryHeight > height) {
-        height = geometryHeight
-      }
-
-      polygons.push(...unionPolygons(triPolys))
-    }
-
-    return { height, polygons }
-  }
-
-  private signedArea2(pts: vec2[]): number {
-    let a = 0
-    for (let i = 0, n = pts.length; i < n; i++) {
-      const [x0, y0] = pts[i]
-      const [x1, y1] = pts[(i + 1) % n]
-      a += x0 * y1 - y0 * x1
-    }
-    return 0.5 * a
   }
 
   private buildExtrudedProfile(

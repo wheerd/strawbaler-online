@@ -44,6 +44,7 @@ export interface ImportedSlab {
   readonly placement: mat4
   readonly profile: ExtrudedProfile | null
   readonly thickness: number | null
+  readonly openings: ImportedOpening[]
 }
 
 export interface ImportedPerimeterCandidate {
