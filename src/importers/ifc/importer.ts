@@ -417,8 +417,9 @@ export class IfcImporter {
         if (!opening.profile) continue
         const polygon = opening.profile.footprint.outer
         if (polygon.points.length < 3) continue
-        const sillHeight = opening.placement[14] - elevation
         const profileBounds = boundsFromPoints(opening.profile.localOutline.points)
+        const sillHeight =
+          opening.profile.extrusionDirection[2] !== 0 ? opening.placement[14] - elevation : profileBounds.min[1]
         const height =
           opening.profile.extrusionDirection[2] !== 0
             ? opening.profile.extrusionDepth
