@@ -4,7 +4,6 @@ import React, { useState } from 'react'
 
 import { usePersistenceStore } from '@/building/store/persistenceStore'
 import { clearSelection } from '@/editor/hooks/useSelectionStore'
-import { importIfcIntoModel } from '@/importers/ifc/importService'
 import { SaveIcon } from '@/shared/components/Icons'
 import { ProjectImportExportService } from '@/shared/services/ProjectImportExportService'
 import { createBinaryFileInput, createFileInput } from '@/shared/utils/createFileInput'
@@ -83,6 +82,7 @@ export function AutoSaveIndicator(): React.JSX.Element {
     try {
       await createBinaryFileInput(async (content: ArrayBuffer) => {
         clearSelection()
+        const { importIfcIntoModel } = await import('@/importers/ifc/importService')
         const result = await importIfcIntoModel(content)
         if (!result.success) {
           throw new Error(result.error ?? 'Failed to import IFC file')
