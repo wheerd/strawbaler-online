@@ -1,5 +1,4 @@
 import { mat4, vec2, vec3 } from 'gl-matrix'
-import path from 'node:path'
 import {
   IFC4,
   IFCARBITRARYCLOSEDPROFILEDEF,
@@ -57,11 +56,13 @@ import {
 } from '@/shared/geometry'
 import {
   arePolygonsIntersecting,
+  calculatePolygonArea,
   ensurePolygonIsClockwise,
   isPointInPolygon,
   minimumAreaBoundingBox,
   offsetPolygon,
   polygonEdgeOffset,
+  polygonPerimeter,
   simplifyPolygon,
   unionPolygons,
   unionPolygonsWithHoles,
@@ -95,6 +96,10 @@ const EDGE_DISTANCE_TOLERANCE = 10
 const EDGE_PROJECTION_TOLERANCE = 10
 const MINIMUM_THICKNESS = 50
 const DEFAULT_WALL_THICKNESS = 300
+const SHELL_THRESHOLD = 1000
+const MERGE_SLAB_TOLERANCE = 5
+const MERGE_WALL_TOLERANCE = 2
+const SIMPLIFY_TOLERANCE = 1
 
 export class IfcImporter {
   private readonly api = new IfcAPI()
@@ -194,7 +199,7 @@ export class IfcImporter {
     const wallFootprints = walls
       .map(wall => wall.profile?.footprint.outer)
       .filter((polygon): polygon is Polygon2D => polygon != null && polygon.points.length >= 3)
-      .map(p => offsetPolygon(ensurePolygonIsClockwise(simplifyPolygon(p, 1)), 2))
+      .map(p => offsetPolygon(ensurePolygonIsClockwise(simplifyPolygon(p, SIMPLIFY_TOLERANCE)), MERGE_WALL_TOLERANCE))
       .map(p => ({
         points: p.points.map(p => vec3.round(vec3.create(), p))
       }))
@@ -203,12 +208,13 @@ export class IfcImporter {
       return []
     }
 
-    const unionShells = unionPolygonsWithHoles(wallFootprints).map(s => simplifyPolygon(s.outer, 1))
-    const filteredShells = unionShells.filter((shell, i) =>
+    const unionShells = unionPolygonsWithHoles(wallFootprints).map(s => simplifyPolygon(s.outer, SIMPLIFY_TOLERANCE))
+    const outerShells = unionShells.filter((shell, i) =>
       shell.points.every(point => unionShells.every((other, j) => i === j || !isPointInPolygon(point, other)))
     )
+    const sizableShells = outerShells.filter(s => this.areaToPerimeterRatio(s) > SHELL_THRESHOLD)
 
-    if (filteredShells.length === 0) {
+    if (sizableShells.length === 0) {
       return []
     }
 
@@ -218,8 +224,11 @@ export class IfcImporter {
     const wallEdges = this.collectWallEdges(walls)
     const averageThickness = this.computeAverageWallThickness(walls)
 
-    for (const shell of filteredShells) {
-      const outer = simplifyPolygon(offsetPolygon(ensurePolygonIsClockwise(shell), -2), 1)
+    for (const shell of sizableShells) {
+      const outer = simplifyPolygon(
+        offsetPolygon(ensurePolygonIsClockwise(shell), -MERGE_WALL_TOLERANCE),
+        SIMPLIFY_TOLERANCE
+      )
       const edgeThicknesses = this.deriveEdgeThicknesses(outer, wallEdges, -averageThickness)
       const innerPolygon = this.offsetPolygonWithThickness(outer, edgeThicknesses)
       if (!innerPolygon || wouldClosingPolygonSelfIntersect(innerPolygon)) continue
@@ -242,29 +251,46 @@ export class IfcImporter {
     return candidates
   }
 
+  private areaToPerimeterRatio(polygon: Polygon2D) {
+    const area = calculatePolygonArea(polygon)
+    const perimeter = polygonPerimeter(polygon)
+    return perimeter > 0 ? (2 * area) / perimeter : 0
+  }
+
   private buildSlabPerimeterCandidates(
     slabs: ImportedSlab[],
     walls: ImportedWall[],
     slabHoles: Polygon2D[],
     wallOpenings: OpeningProjection[]
   ): ImportedPerimeterCandidate[] {
-    const averageThickness = this.computeAverageWallThickness(walls)
-
     const allSlabOuter = slabs
       .map(slab => slab.profile?.footprint.outer)
       .filter((polygon): polygon is Polygon2D => polygon != null && polygon.points.length >= 3)
+      .map(p => offsetPolygon(simplifyPolygon(ensurePolygonIsClockwise(p)), MERGE_SLAB_TOLERANCE))
+
     if (allSlabOuter.length === 0) return []
 
+    const averageThickness = this.computeAverageWallThickness(walls)
+
     const mergedOuter = unionPolygons(allSlabOuter)
+
     return mergedOuter.map(outer => {
-      const inner = offsetPolygon(ensurePolygonIsClockwise(outer), -averageThickness)
+      const simplified = offsetPolygon(
+        ensurePolygonIsClockwise(simplifyPolygon(outer, SIMPLIFY_TOLERANCE)),
+        -MERGE_SLAB_TOLERANCE
+      )
+      const inner =
+        this.offsetPolygonWithThickness(
+          simplified,
+          simplified.points.map(_ => -averageThickness)
+        ) ?? simplified
       const relevantHoles = slabHoles.filter(h => arePolygonsIntersecting(h, inner))
 
       const segments = this.createPerimeterSegments(
         inner,
         inner.points.map(() => averageThickness)
       )
-      this.assignOpeningsToSegments(outer, segments, wallOpenings)
+      this.assignOpeningsToSegments(simplified, segments, wallOpenings)
 
       return {
         source: 'slab',
@@ -1141,7 +1167,7 @@ export class IfcImporter {
     }
 
     if (assetUrl.startsWith('/')) {
-      return path.join(process.cwd(), assetUrl.slice(1))
+      return process.cwd() + assetUrl
     }
 
     try {

@@ -1,6 +1,5 @@
 import clipperWasmUrl from 'clipper2-wasm/dist/es/clipper2z.wasm?url'
-import fs from 'node:fs/promises'
-import { readFile } from 'node:fs/promises'
+import fs, { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
