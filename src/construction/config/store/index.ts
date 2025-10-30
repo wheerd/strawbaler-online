@@ -9,14 +9,6 @@ import {
   createRingBeamAssemblyId,
   createWallAssemblyId
 } from '@/building/model/ids'
-import { type FloorConfig, validateFloorConfig } from '@/construction/floors/types'
-import { clt180, concrete, straw, strawbale, wood120x60, wood360x60 } from '@/construction/materials/material'
-import { type StrawConfig, validateStrawConfig } from '@/construction/materials/straw'
-import { type RingBeamConfig, validateRingBeamConfig } from '@/construction/ringBeams/types'
-import { type WallConfig, validateWallConfig } from '@/construction/walls/types'
-import '@/shared/geometry'
-
-import { CURRENT_VERSION, applyMigrations } from './migrations'
 import type {
   FloorAssemblyConfig,
   FullRingBeamAssemblyConfig,
@@ -26,7 +18,15 @@ import type {
   RingBeamAssemblyConfig,
   StrawhengeWallAssemblyConfig,
   WallAssemblyConfig
-} from './types'
+} from '@/construction/config/types'
+import { type FloorConfig, validateFloorConfig } from '@/construction/floors/types'
+import { clt180, concrete, straw, strawbale, wood120x60, wood360x60 } from '@/construction/materials/material'
+import { type StrawConfig, validateStrawConfig } from '@/construction/materials/straw'
+import { type RingBeamConfig, validateRingBeamConfig } from '@/construction/ringBeams/types'
+import { type WallConfig, validateWallConfig } from '@/construction/walls/types'
+import '@/shared/geometry'
+
+import { CURRENT_VERSION, applyMigrations } from './migrations'
 
 export interface ConfigState {
   straw: StrawConfig

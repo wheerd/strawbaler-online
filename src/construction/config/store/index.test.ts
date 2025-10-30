@@ -5,7 +5,7 @@ import type { RingBeamConfig } from '@/construction/ringBeams'
 import type { InfillWallConfig, WallConfig } from '@/construction/walls'
 import '@/shared/geometry'
 
-import { _clearAllAssemblies, getConfigActions } from './store'
+import { _clearAllAssemblies, getConfigActions } from '.'
 
 describe('ConfigStore', () => {
   describe('Default Ring Beam Assembly', () => {
