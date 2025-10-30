@@ -1,16 +1,21 @@
 import { mat4, vec2, vec3 } from 'gl-matrix'
 import {
+  Handle,
   IFC4,
   IFCARBITRARYCLOSEDPROFILEDEF,
   IFCARBITRARYPROFILEDEFWITHVOIDS,
   IFCAXIS2PLACEMENT2D,
   IFCAXIS2PLACEMENT3D,
   IFCBUILDINGSTOREY,
+  IFCCARTESIANPOINTLIST3D,
   IFCDOOR,
   IFCEXTRUDEDAREASOLID,
   IFCEXTRUDEDAREASOLIDTAPERED,
+  IFCINDEXEDPOLYGONALFACE,
+  IFCINDEXEDPOLYGONALFACEWITHVOIDS,
   IFCLOCALPLACEMENT,
   IFCOPENINGELEMENT,
+  IFCPOLYGONALFACESET,
   IFCPOLYLINE,
   IFCRECTANGLEPROFILEDEF,
   IFCRELCONTAINEDINSPATIALSTRUCTURE,
@@ -55,6 +60,8 @@ import {
   distanceToLineSegment
 } from '@/shared/geometry'
 import {
+  type Polygon3D,
+  type PolygonWithHoles3D,
   arePolygonsIntersecting,
   calculatePolygonArea,
   ensurePolygonIsClockwise,
@@ -197,6 +204,7 @@ export class IfcImporter {
     wallOpenings: OpeningProjection[]
   ): ImportedPerimeterCandidate[] {
     const wallFootprints = walls
+      .filter(w => !w.thickness || w.thickness > MINIMUM_THICKNESS)
       .map(wall => wall.profile?.footprint.outer)
       .filter((polygon): polygon is Polygon2D => polygon != null && polygon.points.length >= 3)
       .map(p => offsetPolygon(ensurePolygonIsClockwise(simplifyPolygon(p, SIMPLIFY_TOLERANCE)), MERGE_WALL_TOLERANCE))
@@ -447,6 +455,8 @@ export class IfcImporter {
       const points = footprint.points
       const thickness = wall.thickness ?? this.estimatePolygonThickness(footprint) ?? DEFAULT_WALL_THICKNESS
 
+      if (thickness < MINIMUM_THICKNESS) continue
+
       const wallEdges: WallEdgeInfo[] = []
       for (let i = 0; i < points.length; i++) {
         const start = points[i]
@@ -459,7 +469,7 @@ export class IfcImporter {
           end: vec2.clone(end),
           direction,
           length,
-          thickness: Math.max(thickness, MINIMUM_THICKNESS)
+          thickness
         })
       }
 
@@ -597,7 +607,7 @@ export class IfcImporter {
         const minDistance = Math.min(...distances)
         const maxDistance = Math.max(...distances)
         const thickness = segment.thickness ?? DEFAULT_WALL_THICKNESS
-        if (minDistance > thickness || maxDistance > 2 * thickness) {
+        if (minDistance > thickness || maxDistance > 3 * thickness) {
           continue
         }
 
@@ -912,10 +922,12 @@ export class IfcImporter {
     const profiles = []
     for (const itemRef of this.toArray(shape.Items)) {
       const item = this.dereferenceLine(context, itemRef)
-      if (!this.isExtrudedAreaSolid(item) && !this.isExtrudedAreaSolidTapered(item)) {
-        continue
+      let profile: ExtrudedProfile | null = null
+      if (this.isExtrudedAreaSolid(item) || this.isExtrudedAreaSolidTapered(item)) {
+        profile = this.buildExtrudedProfile(context, item, productPlacement)
+      } else if (this.isPolygonalFaceSet(item)) {
+        profile = this.buildProfileFromPolygonFaceset(context, item, productPlacement)
       }
-      const profile = this.buildExtrudedProfile(context, item as IFC4.IfcExtrudedAreaSolid, productPlacement)
       if (profile) {
         profiles.push(profile)
       }
@@ -992,6 +1004,77 @@ export class IfcImporter {
       extrusionDirection,
       extrusionDepth
     }
+  }
+
+  private buildProfileFromPolygonFaceset(
+    context: CachedModelContext,
+    set: IFC4.IfcPolygonalFaceSet,
+    productPlacement: mat4
+  ): ExtrudedProfile | null {
+    const coordinates = this.dereferenceLine(context, set.Coordinates)
+    if (!this.isCartesianPointList3D(coordinates)) return null
+
+    const points = coordinates.CoordList.map(l => this.getPoint3(context, l)).map(p =>
+      vec3.transformMat4(vec3.create(), p, productPlacement)
+    )
+    const pnIndex = set.PnIndex?.map(i => i.value as number)
+
+    const bounds = boundsFromPoints3D(points)
+
+    if (!bounds) return null
+
+    const faces = this.extractFaces(context, set.Faces, points, pnIndex)
+    const faces2D: Polygon2D[] = faces
+      .map(f => ({ points: f.outer.points.map(p => vec2.copy(vec2.create(), p)) }))
+      .filter(f => Math.abs(this.signedArea2(f.points)) > 1)
+      .map(ensurePolygonIsClockwise)
+
+    // TODO: Proper union with holes
+    const union = unionPolygons(faces2D)
+
+    if (union.length !== 1) return null
+
+    const footprint = { outer: union[0], holes: [] }
+    const height = bounds.max[2] - bounds.min[2]
+
+    return {
+      footprint,
+      localOutline: union[0],
+      localToWorld: mat4.identity(mat4.create()),
+      extrusionDirection: vec3.fromValues(0, 0, 1),
+      extrusionDepth: height
+    }
+  }
+
+  extractFaces(
+    context: CachedModelContext,
+    faceRefs: (IFC4.IfcIndexedPolygonalFace | Handle<IFC4.IfcIndexedPolygonalFace>)[],
+    points: vec3[],
+    pnIndex: number[] | undefined
+  ): PolygonWithHoles3D[] {
+    const faces = faceRefs
+      .map(f => this.dereferenceLine(context, f))
+      .filter(f => this.isIndexedPolygonalFace(f) || this.isIndexedPolygonalFaceWithVoids(f))
+    return faces.map(f => {
+      let holes: Polygon3D[] = []
+      if (f.type === IFCINDEXEDPOLYGONALFACEWITHVOIDS) {
+        const withVoids = f as IFC4.IfcIndexedPolygonalFaceWithVoids
+        holes = withVoids.InnerCoordIndices.map(hole => ({
+          points: hole
+            .map(i => i.value as number)
+            .map(i => pnIndex?.[i - 1] ?? i)
+            .map(i => points[i - 1])
+        }))
+      }
+      return {
+        outer: {
+          points: f.CoordIndex.map(i => i.value as number)
+            .map(i => pnIndex?.[i - 1] ?? i)
+            .map(i => points[i - 1])
+        },
+        holes
+      }
+    })
   }
 
   private transformPolygonWithMatrix(matrix: mat4, polygon: PolygonWithHoles2D): PolygonWithHoles2D {
@@ -1318,12 +1401,17 @@ export class IfcImporter {
   }
 
   private getPoint3(context: CachedModelContext, reference: unknown): vec3 {
-    const pointLine = this.dereferenceLine(context, reference)
-    if (!this.isCartesianPoint(pointLine)) {
-      return vec3.fromValues(0, 0, 0)
-    }
+    let coords: IFC4.IfcLengthMeasure[]
+    if (Array.isArray(reference)) {
+      coords = reference as IFC4.IfcLengthMeasure[]
+    } else {
+      const pointLine = this.dereferenceLine(context, reference)
+      if (!this.isCartesianPoint(pointLine)) {
+        return vec3.fromValues(0, 0, 0)
+      }
 
-    const coords = pointLine.Coordinates ?? []
+      coords = pointLine.Coordinates ?? []
+    }
     return vec3.fromValues(
       this.getNumberValue(coords[0]) * context.unitScale,
       this.getNumberValue(coords[1]) * context.unitScale,
@@ -1389,6 +1477,22 @@ export class IfcImporter {
 
   private isExtrudedAreaSolidTapered(value: IfcLineObject | null): value is IFC4.IfcExtrudedAreaSolidTapered {
     return value != null && value.type === IFCEXTRUDEDAREASOLIDTAPERED
+  }
+
+  private isPolygonalFaceSet(value: IfcLineObject | null): value is IFC4.IfcPolygonalFaceSet {
+    return value != null && value.type === IFCPOLYGONALFACESET
+  }
+
+  private isCartesianPointList3D(value: IfcLineObject | null): value is IFC4.IfcCartesianPointList3D {
+    return value != null && value.type === IFCCARTESIANPOINTLIST3D
+  }
+
+  private isIndexedPolygonalFace(value: IfcLineObject | null): value is IFC4.IfcIndexedPolygonalFace {
+    return value != null && value.type === IFCINDEXEDPOLYGONALFACE
+  }
+
+  private isIndexedPolygonalFaceWithVoids(value: IfcLineObject | null): value is IFC4.IfcIndexedPolygonalFaceWithVoids {
+    return value != null && value.type === IFCINDEXEDPOLYGONALFACEWITHVOIDS
   }
 
   private isArbitraryClosedProfile(value: IfcLineObject | null): value is IFC4.IfcArbitraryClosedProfileDef {

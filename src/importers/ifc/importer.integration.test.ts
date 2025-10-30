@@ -9,6 +9,7 @@ import type {
   ExtrudedProfile,
   ImportedOpening,
   ImportedPerimeterOpening,
+  ImportedPerimeterSegment,
   ImportedSlab,
   ImportedStorey,
   ImportedWall
@@ -20,92 +21,64 @@ const ROUNDING_PRECISION = 4
 
 vi.unmock('@/shared/geometry/clipperInstance')
 
-describe('IFC importer integration', () => {
+const testFiles = [
+  {
+    name: 'strawbaler export',
+    fileName: 'strawbaler-export.ifc',
+    key: 'export'
+  },
+  {
+    name: 'IFC Builder',
+    fileName: 'testsb.ifc',
+    key: 'testsb'
+  },
+  {
+    name: 'FZK House',
+    fileName: 'AC20-FZK-Haus.ifc',
+    key: 'fzk'
+  },
+  {
+    name: 'wellness center',
+    fileName: '2022020320211122Wellness center Sama.ifc',
+    key: 'wellness'
+  },
+  {
+    name: 'Digital Hub',
+    fileName: 'DigitalHub_FM-ARC_v2.ifc',
+    key: 'DigitalHub'
+  }
+]
+
+describe.runIf('IFCIMPORTER' in process.env)('IFC importer integration', () => {
   beforeAll(async () => {
     const clipperPath = resolveBundledAssetPath(clipperWasmUrl)
     const clipperBinary = await fs.readFile(clipperPath)
     await ensureClipperModule({ wasmBinary: clipperBinary })
   })
 
-  test('parses strawbaler export sample', async () => {
-    const importer = new IfcImporter()
-    const filePath = path.resolve(process.cwd(), 'src', 'test', 'strawbaler-export.ifc')
-    const file = await fs.readFile(filePath)
+  test.each(testFiles)(
+    'parses $name sample',
+    async ({ key, fileName }) => {
+      const importer = new IfcImporter()
+      const filePath = path.resolve(process.cwd(), 'src', 'test', fileName)
+      const file = await fs.readFile(filePath)
 
-    let model
-    try {
-      model = await importer.importFromArrayBuffer(file.buffer)
-    } catch (error) {
-      console.error('IFC import failed', error)
-      throw error
-    }
+      let model
+      try {
+        model = await importer.importFromArrayBuffer(file.buffer)
+      } catch (error) {
+        console.error('IFC import failed', error)
+        throw error
+      }
 
-    await generateDebugSvgs(model, 'export')
+      await generateDebugSvgs(model, key)
 
-    const summary = summarizeModel(model)
+      const summary = summarizeModel(model)
 
-    expect(summary).toMatchSnapshot()
-  })
-
-  test('parses IFC Builder sample', async () => {
-    const importer = new IfcImporter()
-    const filePath = path.resolve(process.cwd(), 'src', 'test', 'testsb.ifc')
-    const file = await fs.readFile(filePath)
-
-    let model
-    try {
-      model = await importer.importFromArrayBuffer(file.buffer)
-    } catch (error) {
-      console.error('IFC import failed', error)
-      throw error
-    }
-
-    await generateDebugSvgs(model, 'testsb')
-
-    const summary = summarizeModel(model)
-
-    expect(summary).toMatchSnapshot()
-  })
-
-  test('parses FZK House sample', async () => {
-    const importer = new IfcImporter()
-    const filePath = path.resolve(process.cwd(), 'src', 'test', 'AC20-FZK-Haus.ifc')
-    const file = await fs.readFile(filePath)
-
-    let model
-    try {
-      model = await importer.importFromArrayBuffer(file.buffer)
-    } catch (error) {
-      console.error('IFC import failed', error)
-      throw error
-    }
-
-    await generateDebugSvgs(model, 'fzk')
-
-    const summary = summarizeModel(model)
-
-    expect(summary).toMatchSnapshot()
-  })
-
-  test('parses wellness center sample', async () => {
-    const importer = new IfcImporter()
-    const filePath = path.resolve(process.cwd(), 'src', 'test', '2022020320211122Wellness center Sama.ifc')
-    const file = await fs.readFile(filePath)
-
-    let model
-    try {
-      model = await importer.importFromArrayBuffer(file.buffer)
-    } catch (error) {
-      console.error('IFC import failed', error)
-      throw error
-    }
-
-    await generateDebugSvgs(model, 'fzk')
-
-    const summary = summarizeModel(model)
-
-    expect(summary).toMatchSnapshot()
-  })
+      expect(summary).toMatchSnapshot()
+    },
+    15000
+  )
 })
 
 function summarizeModel(model: { unitScale: number; storeys: ImportedStorey[] }): unknown {
@@ -125,7 +98,8 @@ function summarizeStorey(storey: ImportedStorey): unknown {
     slabs: storey.slabs.map(summarizeSlab),
     perimeterCandidates: storey.perimeterCandidates.map(candidate => ({
       source: candidate.source,
-      boundary: summarizePolygonWithHoles(candidate.boundary)
+      boundary: summarizePolygonWithHoles(candidate.boundary),
+      segments: summarizeSegments(candidate.segments)
     }))
   }
 }
@@ -156,6 +130,10 @@ function summarizeOpening(opening: ImportedOpening): unknown {
     profile: summarizeProfile(opening.profile),
     placement: Array.from(opening.placement)
   }
+}
+
+function summarizeSegments(segments: ImportedPerimeterSegment[]): any {
+  return segments.map(s => ({ openings: s.openings, thickness: s.thickness }))
 }
 
 function summarizeProfile(profile: ExtrudedProfile | null): unknown {

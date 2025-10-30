@@ -1,5 +1,5 @@
 import type { PolyPathD } from 'clipper2-wasm'
-import { vec2 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 
 import {
   createPathD,
@@ -22,6 +22,15 @@ export interface Polygon2D {
 export interface PolygonWithHoles2D {
   outer: Polygon2D
   holes: Polygon2D[]
+}
+
+export interface Polygon3D {
+  points: vec3[]
+}
+
+export interface PolygonWithHoles3D {
+  outer: Polygon3D
+  holes: Polygon3D[]
 }
 
 export function calculatePolygonArea(polygon: Polygon2D): Area {
