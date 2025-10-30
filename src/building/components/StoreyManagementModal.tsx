@@ -3,7 +3,7 @@ import { Button, Grid, Text } from '@radix-ui/themes'
 import React, { useCallback } from 'react'
 
 import { useModelActions, useStoreysOrderedByLevel } from '@/building/store'
-import { useConfigActions } from '@/construction/config'
+import { useConfigActions } from '@/construction/config/store'
 import { BaseModal } from '@/shared/components/BaseModal'
 
 import { StoreyListItem } from './StoreyListItem'
