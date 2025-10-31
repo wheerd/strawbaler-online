@@ -420,9 +420,6 @@ function LayersFields({
   onRemoveBottomLayer: (id: FloorAssemblyId, index: number) => void
   onMoveBottomLayer: (id: FloorAssemblyId, fromIndex: number, toIndex: number) => void
 }) {
-  const topDefaultThickness = config.layers.topLayers.at(-1)?.thickness ?? config.layers.topThickness ?? 30
-  const bottomDefaultThickness = config.layers.bottomLayers.at(-1)?.thickness ?? config.layers.bottomThickness ?? 30
-
   return (
     <Flex direction="column" gap="3">
       <LayerListEditor
@@ -435,7 +432,6 @@ function LayersFields({
         onMoveLayer={(fromIndex, toIndex) => onMoveTopLayer(assemblyId, fromIndex, toIndex)}
         addLabel="Add Top Layer"
         emptyHint="No top layers defined"
-        defaultThickness={topDefaultThickness}
       />
 
       <Separator size="4" />
@@ -450,7 +446,6 @@ function LayersFields({
         onMoveLayer={(fromIndex, toIndex) => onMoveBottomLayer(assemblyId, fromIndex, toIndex)}
         addLabel="Add Bottom Layer"
         emptyHint="No bottom layers defined"
-        defaultThickness={bottomDefaultThickness}
       />
     </Flex>
   )

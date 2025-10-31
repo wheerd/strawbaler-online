@@ -55,7 +55,6 @@ interface LayerListEditorProps {
   measurementInfo?: React.ReactNode
   addLabel?: string
   emptyHint?: string
-  defaultThickness?: number
 }
 
 export function LayerListEditor({
@@ -67,12 +66,10 @@ export function LayerListEditor({
   onMoveLayer,
   measurementInfo,
   addLabel = 'Add Layer',
-  emptyHint = 'No layers yet',
-  defaultThickness = 30
+  emptyHint = 'No layers yet'
 }: LayerListEditorProps): React.JSX.Element {
   const hasLayers = layers.length > 0
   const totalThickness = useMemo(() => sumThickness(layers), [layers])
-  const newLayerThickness = useMemo(() => Math.max(defaultThickness || 0, 10), [defaultThickness])
 
   return (
     <Flex direction="column" gap="2">
@@ -93,11 +90,17 @@ export function LayerListEditor({
             </IconButton>
           </DropdownMenu.Trigger>
           <DropdownMenu.Content>
-            <DropdownMenu.Item onSelect={() => onAddLayer(getDefaultLayer('monolithic', newLayerThickness))}>
-              Monolithic Layer
+            <DropdownMenu.Item onSelect={() => onAddLayer(getDefaultLayer('monolithic', 0))}>
+              <Flex align="center" gap="1">
+                <LayerTypeIcon type="monolithic" />
+                Monolithic Layer
+              </Flex>
             </DropdownMenu.Item>
-            <DropdownMenu.Item onSelect={() => onAddLayer(getDefaultLayer('striped', newLayerThickness))}>
-              Striped Layer
+            <DropdownMenu.Item onSelect={() => onAddLayer(getDefaultLayer('striped', 0))}>
+              <Flex align="center" gap="1">
+                <LayerTypeIcon type="striped" />
+                Striped Layer
+              </Flex>
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Root>

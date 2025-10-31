@@ -483,9 +483,6 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
     moveWallAssemblyOutsideLayer
   } = useConfigActions()
 
-  const insideDefaultThickness = config.layers.insideLayers.at(-1)?.thickness ?? config.layers.insideThickness ?? 30
-  const outsideDefaultThickness = config.layers.outsideLayers.at(-1)?.thickness ?? config.layers.outsideThickness ?? 30
-
   return (
     <Flex direction="column" gap="3">
       {/* Openings Configuration */}
@@ -595,7 +592,6 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyInsideLayer(assemblyId, fromIndex, toIndex)}
           addLabel="Add Inside Layer"
           emptyHint="No inside layers defined"
-          defaultThickness={insideDefaultThickness}
         />
 
         <Separator size="4" />
@@ -610,7 +606,6 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyOutsideLayer(assemblyId, fromIndex, toIndex)}
           addLabel="Add Outside Layer"
           emptyHint="No outside layers defined"
-          defaultThickness={outsideDefaultThickness}
         />
       </Flex>
     </Flex>
