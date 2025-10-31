@@ -21,6 +21,7 @@ import { useStoreysOrderedByLevel } from '@/building/store'
 import { useConfigActions, useDefaultFloorAssemblyId, useFloorAssemblies } from '@/construction/config/store'
 import { getFloorAssemblyUsage } from '@/construction/config/usage'
 import type { FloorAssemblyType, FloorConfig, MonolithicFloorConfig } from '@/construction/floors/types'
+import type { LayerConfig } from '@/construction/layers/types'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
@@ -29,6 +30,7 @@ import '@/shared/geometry'
 
 import { FloorAssemblySelect } from './FloorAssemblySelect'
 import { getFloorAssemblyTypeIcon } from './Icons'
+import { LayerListEditor } from './layers/LayerListEditor'
 
 export interface FloorAssemblyConfigContentProps {
   initialSelectionId?: string
@@ -43,7 +45,15 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
     updateFloorAssemblyConfig,
     duplicateFloorAssembly,
     removeFloorAssembly,
-    setDefaultFloorAssembly
+    setDefaultFloorAssembly,
+    addFloorAssemblyTopLayer,
+    updateFloorAssemblyTopLayer,
+    removeFloorAssemblyTopLayer,
+    moveFloorAssemblyTopLayer,
+    addFloorAssemblyBottomLayer,
+    updateFloorAssemblyBottomLayer,
+    removeFloorAssemblyBottomLayer,
+    moveFloorAssemblyBottomLayer
   } = useConfigActions()
 
   const defaultConfigId = useDefaultFloorAssemblyId()
@@ -76,7 +86,9 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
           material: defaultMaterial,
           layers: {
             topThickness: 0,
-            bottomThickness: 0
+            topLayers: [],
+            bottomThickness: 0,
+            bottomLayers: []
           }
         }
       } else {
@@ -91,7 +103,9 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
           subfloorMaterial: defaultMaterial,
           layers: {
             topThickness: 0,
-            bottomThickness: 0
+            topLayers: [],
+            bottomThickness: 0,
+            bottomLayers: []
           }
         }
       }
@@ -268,7 +282,19 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
 
           <Separator size="4" />
 
-          <LayersFields config={selectedConfig} onUpdate={handleUpdateConfig} />
+          <LayersFields
+            assemblyId={selectedConfig.id}
+            config={selectedConfig}
+            onUpdateConfig={handleUpdateConfig}
+            onAddTopLayer={addFloorAssemblyTopLayer}
+            onUpdateTopLayer={updateFloorAssemblyTopLayer}
+            onRemoveTopLayer={removeFloorAssemblyTopLayer}
+            onMoveTopLayer={moveFloorAssemblyTopLayer}
+            onAddBottomLayer={addFloorAssemblyBottomLayer}
+            onUpdateBottomLayer={updateFloorAssemblyBottomLayer}
+            onRemoveBottomLayer={removeFloorAssemblyBottomLayer}
+            onMoveBottomLayer={moveFloorAssemblyBottomLayer}
+          />
         </Flex>
       )}
 
@@ -373,11 +399,29 @@ function JoistConfigPlaceholder() {
 }
 
 function LayersFields({
+  assemblyId,
   config,
-  onUpdate
+  onUpdateConfig,
+  onAddTopLayer,
+  onUpdateTopLayer,
+  onRemoveTopLayer,
+  onMoveTopLayer,
+  onAddBottomLayer,
+  onUpdateBottomLayer,
+  onRemoveBottomLayer,
+  onMoveBottomLayer
 }: {
+  assemblyId: FloorAssemblyId
   config: FloorConfig
-  onUpdate: (updates: Partial<FloorConfig>) => void
+  onUpdateConfig: (updates: Partial<FloorConfig>) => void
+  onAddTopLayer: (id: FloorAssemblyId, layer: LayerConfig) => void
+  onUpdateTopLayer: (id: FloorAssemblyId, index: number, updates: Partial<LayerConfig>) => void
+  onRemoveTopLayer: (id: FloorAssemblyId, index: number) => void
+  onMoveTopLayer: (id: FloorAssemblyId, fromIndex: number, toIndex: number) => void
+  onAddBottomLayer: (id: FloorAssemblyId, layer: LayerConfig) => void
+  onUpdateBottomLayer: (id: FloorAssemblyId, index: number, updates: Partial<LayerConfig>) => void
+  onRemoveBottomLayer: (id: FloorAssemblyId, index: number) => void
+  onMoveBottomLayer: (id: FloorAssemblyId, fromIndex: number, toIndex: number) => void
 }) {
   return (
     <>
@@ -393,7 +437,7 @@ function LayersFields({
         </Flex>
         <LengthField
           value={config.layers.topThickness}
-          onChange={topThickness => onUpdate({ layers: { ...config.layers, topThickness } })}
+          onChange={topThickness => onUpdateConfig({ layers: { ...config.layers, topThickness } })}
           unit="mm"
           size="2"
         />
@@ -408,11 +452,39 @@ function LayersFields({
         </Flex>
         <LengthField
           value={config.layers.bottomThickness}
-          onChange={bottomThickness => onUpdate({ layers: { ...config.layers, bottomThickness } })}
+          onChange={bottomThickness => onUpdateConfig({ layers: { ...config.layers, bottomThickness } })}
           unit="mm"
           size="2"
         />
       </Grid>
+
+      <Separator size="4" />
+
+      <Flex direction="column" gap="4">
+        <LayerListEditor
+          title="Top Layers"
+          layers={config.layers.topLayers}
+          onAddLayer={layer => onAddTopLayer(assemblyId, layer)}
+          onUpdateLayer={(index, updates) => onUpdateTopLayer(assemblyId, index, updates)}
+          onRemoveLayer={index => onRemoveTopLayer(assemblyId, index)}
+          onMoveLayer={(fromIndex, toIndex) => onMoveTopLayer(assemblyId, fromIndex, toIndex)}
+          addLabel="Add Top Layer"
+          emptyHint="No top layers defined"
+          defaultThickness={config.layers.topThickness || 30}
+        />
+
+        <LayerListEditor
+          title="Bottom Layers"
+          layers={config.layers.bottomLayers}
+          onAddLayer={layer => onAddBottomLayer(assemblyId, layer)}
+          onUpdateLayer={(index, updates) => onUpdateBottomLayer(assemblyId, index, updates)}
+          onRemoveLayer={index => onRemoveBottomLayer(assemblyId, index)}
+          onMoveLayer={(fromIndex, toIndex) => onMoveBottomLayer(assemblyId, fromIndex, toIndex)}
+          addLabel="Add Bottom Layer"
+          emptyHint="No bottom layers defined"
+          defaultThickness={config.layers.bottomThickness || 30}
+        />
+      </Flex>
     </>
   )
 }

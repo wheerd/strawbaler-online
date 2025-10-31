@@ -38,6 +38,7 @@ import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField'
 
 import { getPerimeterConfigTypeIcon } from './Icons'
+import { LayerListEditor } from './layers/LayerListEditor'
 import { WallAssemblySelect } from './WallAssemblySelect'
 
 interface InfillConfigFormProps {
@@ -470,7 +471,17 @@ interface CommonConfigSectionsProps {
 }
 
 function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps): React.JSX.Element {
-  const { updateWallAssemblyConfig } = useConfigActions()
+  const {
+    updateWallAssemblyConfig,
+    addWallAssemblyInsideLayer,
+    updateWallAssemblyInsideLayer,
+    removeWallAssemblyInsideLayer,
+    moveWallAssemblyInsideLayer,
+    addWallAssemblyOutsideLayer,
+    updateWallAssemblyOutsideLayer,
+    removeWallAssemblyOutsideLayer,
+    moveWallAssemblyOutsideLayer
+  } = useConfigActions()
 
   return (
     <Flex direction="column" gap="3">
@@ -605,6 +616,34 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           size="1"
         />
       </Grid>
+
+      <Separator size="4" />
+
+      <Flex direction="column" gap="4">
+        <LayerListEditor
+          title="Inside Layers"
+          layers={config.layers.insideLayers}
+          onAddLayer={layer => addWallAssemblyInsideLayer(assemblyId, layer)}
+          onUpdateLayer={(index, updates) => updateWallAssemblyInsideLayer(assemblyId, index, updates)}
+          onRemoveLayer={index => removeWallAssemblyInsideLayer(assemblyId, index)}
+          onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyInsideLayer(assemblyId, fromIndex, toIndex)}
+          addLabel="Add Inside Layer"
+          emptyHint="No inside layers defined"
+          defaultThickness={config.layers.insideThickness || 30}
+        />
+
+        <LayerListEditor
+          title="Outside Layers"
+          layers={config.layers.outsideLayers}
+          onAddLayer={layer => addWallAssemblyOutsideLayer(assemblyId, layer)}
+          onUpdateLayer={(index, updates) => updateWallAssemblyOutsideLayer(assemblyId, index, updates)}
+          onRemoveLayer={index => removeWallAssemblyOutsideLayer(assemblyId, index)}
+          onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyOutsideLayer(assemblyId, fromIndex, toIndex)}
+          addLabel="Add Outside Layer"
+          emptyHint="No outside layers defined"
+          defaultThickness={config.layers.outsideThickness || 30}
+        />
+      </Flex>
     </Flex>
   )
 }
@@ -728,7 +767,9 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
       }
       const layers = {
         insideThickness: 30,
-        outsideThickness: 50
+        insideLayers: [],
+        outsideThickness: 50,
+        outsideLayers: []
       }
 
       switch (type) {

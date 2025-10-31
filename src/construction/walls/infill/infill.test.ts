@@ -159,7 +159,9 @@ function createMockPerimeter(walls: PerimeterWall[]): Perimeter {
 function createMockLayers(): WallLayersConfig {
   return {
     insideThickness: 30,
-    outsideThickness: 50
+    insideLayers: [],
+    outsideThickness: 50,
+    outsideLayers: []
   }
 }
 

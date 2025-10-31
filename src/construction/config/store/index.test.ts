@@ -3,11 +3,77 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createMaterialId, strawbale } from '@/construction/materials/material'
 import type { RingBeamConfig } from '@/construction/ringBeams'
 import type { InfillWallConfig, WallConfig } from '@/construction/walls'
+import type { FloorConfig } from '@/construction/floors/types'
+import type { LayerConfig } from '@/construction/layers/types'
 import '@/shared/geometry'
 
 import { _clearAllAssemblies, getConfigActions } from '.'
 
 describe('ConfigStore', () => {
+  describe('Floor Assembly Layers', () => {
+    const createFloorConfig = (): FloorConfig => ({
+      type: 'monolithic',
+      thickness: 180,
+      material: createMaterialId(),
+      layers: {
+        topThickness: 0,
+        topLayers: [],
+        bottomThickness: 0,
+        bottomLayers: []
+      }
+    })
+
+    const createMonolithicLayer = (thickness = 20): LayerConfig => ({
+      type: 'monolithic',
+      thickness,
+      material: createMaterialId()
+    })
+
+    beforeEach(() => {
+      _clearAllAssemblies()
+    })
+
+    it('supports adding, updating, moving, and removing top layers', () => {
+      const store = getConfigActions()
+      const assembly = store.addFloorAssembly('Test Floor', createFloorConfig())
+
+      const firstLayer = createMonolithicLayer(20)
+      const secondLayer = createMonolithicLayer(15)
+
+      store.addFloorAssemblyTopLayer(assembly.id, firstLayer)
+      store.addFloorAssemblyTopLayer(assembly.id, secondLayer)
+
+      let updated = store.getFloorAssemblyById(assembly.id)
+      expect(updated?.layers.topLayers).toHaveLength(2)
+
+      store.updateFloorAssemblyTopLayer(assembly.id, 0, { thickness: 25 })
+      updated = store.getFloorAssemblyById(assembly.id)
+      expect(updated?.layers.topLayers[0].thickness).toBe(25)
+
+      store.moveFloorAssemblyTopLayer(assembly.id, 0, 1)
+      updated = store.getFloorAssemblyById(assembly.id)
+      expect(updated?.layers.topLayers[0].thickness).toBe(secondLayer.thickness)
+
+      store.removeFloorAssemblyTopLayer(assembly.id, 1)
+      updated = store.getFloorAssemblyById(assembly.id)
+      expect(updated?.layers.topLayers).toHaveLength(1)
+    })
+
+    it('supports managing bottom layers and validates indices', () => {
+      const store = getConfigActions()
+      const assembly = store.addFloorAssembly('Bottom Floor', createFloorConfig())
+
+      store.addFloorAssemblyBottomLayer(assembly.id, createMonolithicLayer(18))
+
+      expect(() => store.updateFloorAssemblyBottomLayer(assembly.id, 2, { thickness: 10 })).toThrow(
+        'Layer index out of bounds'
+      )
+
+      const updated = store.getFloorAssemblyById(assembly.id)
+      expect(updated?.layers.bottomLayers).toHaveLength(1)
+    })
+  })
+
   describe('Default Ring Beam Assembly', () => {
     it('should initialize with a default ring beam assembly', () => {
       // Check the initial state (don't clear first)
@@ -325,7 +391,9 @@ describe('ConfigStore', () => {
         },
         layers: {
           insideThickness: 30,
-          outsideThickness: 50
+          insideLayers: [],
+          outsideThickness: 50,
+          outsideLayers: []
         }
       }
     }
@@ -358,7 +426,9 @@ describe('ConfigStore', () => {
       const assembly = store.addWallAssembly('Standard Infill', createValidWallConfig())
 
       expect(() =>
-        store.updateWallAssemblyConfig(assembly.id, { layers: { insideThickness: -1, outsideThickness: 0 } })
+        store.updateWallAssemblyConfig(assembly.id, {
+          layers: { insideThickness: -1, insideLayers: [], outsideThickness: 0, outsideLayers: [] }
+        })
       ).toThrow('Inside layer thickness cannot be negative')
 
       const fetched = store.getWallAssemblyById(assembly.id)
@@ -367,6 +437,83 @@ describe('ConfigStore', () => {
       } else {
         throw new Error('Expected infill wall assembly')
       }
+    })
+
+    const createMonolithicLayer = (thickness: number): LayerConfig => ({
+      type: 'monolithic',
+      thickness,
+      material: createMaterialId()
+    })
+
+    const createStripedLayer = (): LayerConfig => ({
+      type: 'striped',
+      thickness: 40,
+      direction: 'perpendicular',
+      stripeWidth: 50,
+      stripeMaterial: createMaterialId(),
+      gapWidth: 30,
+      gapMaterial: createMaterialId()
+    })
+
+    it('manages inside layer arrays', () => {
+      const store = getConfigActions()
+      const assembly = store.addWallAssembly('Layered Wall', createValidWallConfig())
+
+      store.addWallAssemblyInsideLayer(assembly.id, createMonolithicLayer(25))
+      store.addWallAssemblyInsideLayer(assembly.id, createMonolithicLayer(15))
+
+      let updated = store.getWallAssemblyById(assembly.id)
+      expect(updated?.layers.insideLayers).toHaveLength(2)
+
+      store.updateWallAssemblyInsideLayer(assembly.id, 0, { thickness: 35 })
+      updated = store.getWallAssemblyById(assembly.id)
+      expect(updated?.layers.insideLayers[0].thickness).toBe(35)
+
+      store.moveWallAssemblyInsideLayer(assembly.id, 0, 1)
+      updated = store.getWallAssemblyById(assembly.id)
+      expect(updated?.layers.insideLayers[0].thickness).toBe(15)
+
+      store.removeWallAssemblyInsideLayer(assembly.id, 1)
+      updated = store.getWallAssemblyById(assembly.id)
+      expect(updated?.layers.insideLayers).toHaveLength(1)
+    })
+
+    it('supports changing layer type when updating inside layers', () => {
+      const store = getConfigActions()
+      const assembly = store.addWallAssembly('Convertible Wall', createValidWallConfig())
+
+      store.addWallAssemblyInsideLayer(assembly.id, createMonolithicLayer(30))
+
+      const gapMaterial = createMaterialId()
+      store.updateWallAssemblyInsideLayer(assembly.id, 0, {
+        type: 'striped',
+        thickness: 45,
+        direction: 'diagonal',
+        stripeWidth: 60,
+        stripeMaterial: createMaterialId(),
+        gapWidth: 20,
+        gapMaterial
+      })
+
+      const updated = store.getWallAssemblyById(assembly.id)
+      const layer = updated?.layers.insideLayers[0]
+
+      expect(layer?.type).toBe('striped')
+      expect('material' in (layer ?? {})).toBe(false)
+      if (layer?.type === 'striped') {
+        expect(layer.gapMaterial).toBe(gapMaterial)
+      }
+    })
+
+    it('validates outside layer indices', () => {
+      const store = getConfigActions()
+      const assembly = store.addWallAssembly('Outside Wall', createValidWallConfig())
+
+      store.addWallAssemblyOutsideLayer(assembly.id, createStripedLayer())
+      const updated = store.getWallAssemblyById(assembly.id)
+      expect(updated?.layers.outsideLayers).toHaveLength(1)
+
+      expect(() => store.removeWallAssemblyOutsideLayer(assembly.id, 3)).toThrow('Layer index out of bounds')
     })
   })
 })

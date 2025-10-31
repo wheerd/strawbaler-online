@@ -12,6 +12,15 @@ import { concrete, straw, strawbale, wood120x60, wood360x60 } from '@/constructi
 import { type WallConfig, validateWallConfig } from '@/construction/walls/types'
 import '@/shared/geometry'
 
+import type { LayerConfig } from '@/construction/layers/types'
+
+import {
+  appendLayer,
+  moveLayer,
+  removeLayerAt,
+  updateLayerAt
+} from '@/construction/config/store/layerUtils'
+
 export interface WallAssembliesState {
   wallAssemblyConfigs: Record<WallAssemblyId, WallAssemblyConfig>
   defaultWallAssemblyId: WallAssemblyId
@@ -24,6 +33,14 @@ export interface WallAssembliesActions {
   updateWallAssemblyName: (id: WallAssemblyId, name: string) => void
   updateWallAssemblyConfig: (id: WallAssemblyId, config: Partial<Omit<WallConfig, 'type'>>) => void
   duplicateWallAssembly: (id: WallAssemblyId, name: string) => WallAssemblyConfig
+  addWallAssemblyInsideLayer: (id: WallAssemblyId, layer: LayerConfig) => void
+  updateWallAssemblyInsideLayer: (id: WallAssemblyId, index: number, updates: Partial<LayerConfig>) => void
+  removeWallAssemblyInsideLayer: (id: WallAssemblyId, index: number) => void
+  moveWallAssemblyInsideLayer: (id: WallAssemblyId, fromIndex: number, toIndex: number) => void
+  addWallAssemblyOutsideLayer: (id: WallAssemblyId, layer: LayerConfig) => void
+  updateWallAssemblyOutsideLayer: (id: WallAssemblyId, index: number, updates: Partial<LayerConfig>) => void
+  removeWallAssemblyOutsideLayer: (id: WallAssemblyId, index: number) => void
+  moveWallAssemblyOutsideLayer: (id: WallAssemblyId, fromIndex: number, toIndex: number) => void
 
   // Wall assembly queries
   getWallAssemblyById: (id: WallAssemblyId) => WallAssemblyConfig | null
@@ -67,7 +84,9 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
     },
     layers: {
       insideThickness: 30,
-      outsideThickness: 50
+      insideLayers: [],
+      outsideThickness: 50,
+      outsideLayers: []
     }
   } as InfillWallAssemblyConfig,
   {
@@ -99,7 +118,9 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
     },
     layers: {
       insideThickness: 30,
-      outsideThickness: 50
+      insideLayers: [],
+      outsideThickness: 50,
+      outsideLayers: []
     }
   } as StrawhengeWallAssemblyConfig,
   {
@@ -131,7 +152,9 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
     },
     layers: {
       insideThickness: 30,
-      outsideThickness: 50
+      insideLayers: [],
+      outsideThickness: 50,
+      outsideLayers: []
     }
   } as ModulesWallAssemblyConfig,
   {
@@ -149,7 +172,9 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
     },
     layers: {
       insideThickness: 30,
-      outsideThickness: 30
+      insideLayers: [],
+      outsideThickness: 30,
+      outsideLayers: []
     }
   } as NonStrawbaleWallAssemblyConfig
 ]
@@ -285,6 +310,174 @@ export const createWallAssembliesSlice: StateCreator<
       getDefaultWallAssemblyId: () => {
         const state = get()
         return state.defaultWallAssemblyId
+      },
+
+      addWallAssemblyInsideLayer: (id: WallAssemblyId, layer: LayerConfig) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const insideLayers = appendLayer(assembly.layers.insideLayers, layer)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, insideLayers }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
+      },
+
+      updateWallAssemblyInsideLayer: (id: WallAssemblyId, index: number, updates: Partial<LayerConfig>) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const insideLayers = updateLayerAt(assembly.layers.insideLayers, index, updates)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, insideLayers }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
+      },
+
+      removeWallAssemblyInsideLayer: (id: WallAssemblyId, index: number) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const insideLayers = removeLayerAt(assembly.layers.insideLayers, index)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, insideLayers }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
+      },
+
+      moveWallAssemblyInsideLayer: (id: WallAssemblyId, fromIndex: number, toIndex: number) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const insideLayers = moveLayer(assembly.layers.insideLayers, fromIndex, toIndex)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, insideLayers }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
+      },
+
+      addWallAssemblyOutsideLayer: (id: WallAssemblyId, layer: LayerConfig) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const outsideLayers = appendLayer(assembly.layers.outsideLayers, layer)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, outsideLayers }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
+      },
+
+      updateWallAssemblyOutsideLayer: (id: WallAssemblyId, index: number, updates: Partial<LayerConfig>) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const outsideLayers = updateLayerAt(assembly.layers.outsideLayers, index, updates)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, outsideLayers }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
+      },
+
+      removeWallAssemblyOutsideLayer: (id: WallAssemblyId, index: number) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const outsideLayers = removeLayerAt(assembly.layers.outsideLayers, index)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, outsideLayers }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
+      },
+
+      moveWallAssemblyOutsideLayer: (id: WallAssemblyId, fromIndex: number, toIndex: number) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const outsideLayers = moveLayer(assembly.layers.outsideLayers, fromIndex, toIndex)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, outsideLayers }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
       }
     } satisfies WallAssembliesActions
   }

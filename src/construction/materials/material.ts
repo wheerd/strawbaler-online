@@ -136,6 +136,22 @@ export const woodwool: SheetMaterial = {
   color: '#ddb984'
 }
 
+export const clayPlaster: VolumeMaterial = {
+  id: 'material_clay_plaster' as MaterialId,
+  name: 'Clay Plaster',
+  type: 'volume',
+  availableVolumes: [],
+  color: '#927d61'
+}
+
+export const limePlaster: VolumeMaterial = {
+  id: 'material_lime_plaster' as MaterialId,
+  name: 'Lime Plaster',
+  type: 'volume',
+  availableVolumes: [],
+  color: '#e5dbd3'
+}
+
 export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [wood360x60.id]: wood360x60,
   [wood240x60.id]: wood240x60,
@@ -147,5 +163,7 @@ export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [door.id]: door,
   [concrete.id]: concrete,
   [clt180.id]: clt180,
-  [woodwool.id]: woodwool
+  [woodwool.id]: woodwool,
+  [clayPlaster.id]: clayPlaster,
+  [limePlaster.id]: limePlaster
 }

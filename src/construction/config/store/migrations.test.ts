@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { strawbale, wood120x60, woodwool } from '@/construction/materials/material'
+import { clayPlaster, limePlaster, strawbale, wood120x60, woodwool } from '@/construction/materials/material'
+import { INVALID_FLOOR_LAYER_MATERIAL_ID } from '@/construction/layers/defaults'
 
 import { applyMigrations } from './migrations'
 
@@ -107,5 +108,74 @@ describe('config migrations', () => {
       topCutoffLimit: 50,
       flakeSize: 70
     })
+  })
+
+  it('populates missing wall layer arrays with clay and lime defaults', () => {
+    const migrated = applyMigrations({
+      wallAssemblyConfigs: {
+        test: {
+          type: 'infill',
+          openings: {},
+          layers: {
+            insideThickness: 25,
+            outsideThickness: 45
+          }
+        }
+      }
+    }) as {
+      wallAssemblyConfigs: Record<
+        string,
+        {
+          layers: {
+            insideLayers: { material: string; thickness: number }[]
+            outsideLayers: { material: string; thickness: number }[]
+          }
+        }
+      >
+    }
+
+    const layers = migrated.wallAssemblyConfigs.test.layers
+    expect(layers.insideLayers).toHaveLength(1)
+    expect(layers.insideLayers[0].material).toBe(clayPlaster.id)
+    expect(layers.insideLayers[0].thickness).toBe(25)
+
+    expect(layers.outsideLayers).toHaveLength(1)
+    expect(layers.outsideLayers[0].material).toBe(limePlaster.id)
+    expect(layers.outsideLayers[0].thickness).toBe(45)
+  })
+
+  it('populates missing floor layer arrays with invalid material defaults', () => {
+    const migrated = applyMigrations({
+      floorAssemblyConfigs: {
+        floor: {
+          type: 'monolithic',
+          thickness: 180,
+          material: 'mat',
+          layers: {
+            topThickness: 22,
+            bottomThickness: 12
+          }
+        }
+      }
+    }) as {
+      floorAssemblyConfigs: Record<
+        string,
+        {
+          layers: {
+            topLayers: { material: string; thickness: number }[]
+            bottomLayers: { material: string; thickness: number }[]
+          }
+        }
+      >
+    }
+
+    const layers = migrated.floorAssemblyConfigs.floor.layers
+    expect(layers.topLayers).toHaveLength(1)
+    expect(layers.topLayers[0].material).toBe(INVALID_FLOOR_LAYER_MATERIAL_ID)
+    expect(layers.topLayers[0].thickness).toBe(22)
+
+    expect(layers.bottomLayers).toHaveLength(1)
+    expect(layers.bottomLayers[0].material).toBe(INVALID_FLOOR_LAYER_MATERIAL_ID)
+    expect(layers.bottomLayers[0].thickness).toBe(12)
   })
 })

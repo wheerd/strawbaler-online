@@ -5,7 +5,7 @@ export type LayerType = 'monolithic' | 'striped'
 
 interface BaseLayerConfig {
   type: LayerType
-  thickess: Length
+  thickness: Length
 }
 
 export interface MonolithicLayerConfig extends BaseLayerConfig {

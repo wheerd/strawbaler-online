@@ -1,5 +1,4 @@
-import type { LayerConfig } from 'konva/lib/Layer'
-
+import type { LayerConfig } from '@/construction/layers/types'
 import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
 import type { Length, PolygonWithHoles2D } from '@/shared/geometry'

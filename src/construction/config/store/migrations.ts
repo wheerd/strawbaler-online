@@ -1,6 +1,12 @@
 import { strawbale, wood120x60, woodwool } from '@/construction/materials/material'
+import {
+  createDefaultFloorBottomLayers,
+  createDefaultFloorTopLayers,
+  createDefaultInsideLayers,
+  createDefaultOutsideLayers
+} from '@/construction/layers/defaults'
 
-export const CURRENT_VERSION = 4
+export const CURRENT_VERSION = 5
 
 export function applyMigrations(state: unknown): unknown {
   if (!state || typeof state !== 'object') {
@@ -129,6 +135,82 @@ export function applyMigrations(state: unknown): unknown {
   }
 
   updateDoubleModules(newState.wallAssemblyConfigs)
+  const ensureWallLayerArrays = (assemblies: unknown) => {
+    if (!assemblies || typeof assemblies !== 'object') {
+      return
+    }
+
+    for (const assembly of Object.values(assemblies as Record<string, unknown>)) {
+      if (!assembly || typeof assembly !== 'object') {
+        continue
+      }
+
+      const assemblyConfig = assembly as Record<string, unknown>
+      const layers = assemblyConfig.layers
+      if (!layers || typeof layers !== 'object') {
+        continue
+      }
+
+      const layerConfig = layers as Record<string, unknown>
+
+      const ensureLayerArray = (
+        key: 'insideLayers' | 'outsideLayers',
+        thicknessKey: 'insideThickness' | 'outsideThickness',
+        factory: (thickness: number) => unknown
+      ) => {
+        const existing = layerConfig[key]
+        if (Array.isArray(existing) && existing.length > 0) {
+          return
+        }
+
+        const thickness = Number(layerConfig[thicknessKey] ?? 0)
+        layerConfig[key] = factory(Number.isFinite(thickness) ? thickness : 0)
+      }
+
+      ensureLayerArray('insideLayers', 'insideThickness', createDefaultInsideLayers)
+      ensureLayerArray('outsideLayers', 'outsideThickness', createDefaultOutsideLayers)
+    }
+  }
+
+  const ensureFloorLayerArrays = (assemblies: unknown) => {
+    if (!assemblies || typeof assemblies !== 'object') {
+      return
+    }
+
+    for (const assembly of Object.values(assemblies as Record<string, unknown>)) {
+      if (!assembly || typeof assembly !== 'object') {
+        continue
+      }
+
+      const assemblyConfig = assembly as Record<string, unknown>
+      const layers = assemblyConfig.layers
+      if (!layers || typeof layers !== 'object') {
+        continue
+      }
+
+      const layerConfig = layers as Record<string, unknown>
+
+      const ensureLayerArray = (
+        key: 'topLayers' | 'bottomLayers',
+        thicknessKey: 'topThickness' | 'bottomThickness',
+        factory: (thickness: number) => unknown
+      ) => {
+        const existing = layerConfig[key]
+        if (Array.isArray(existing) && existing.length > 0) {
+          return
+        }
+
+        const thickness = Number(layerConfig[thicknessKey] ?? 0)
+        layerConfig[key] = factory(Number.isFinite(thickness) ? thickness : 0)
+      }
+
+      ensureLayerArray('topLayers', 'topThickness', createDefaultFloorTopLayers)
+      ensureLayerArray('bottomLayers', 'bottomThickness', createDefaultFloorBottomLayers)
+    }
+  }
+
+  ensureWallLayerArrays(newState.wallAssemblyConfigs)
+  ensureFloorLayerArrays(newState.floorAssemblyConfigs)
 
   if (!('straw' in newState) || newState.straw == null) {
     newState.straw = defaultStrawConfig

@@ -56,7 +56,9 @@ const createTestConfig = (): StrawhengeWallConfig => ({
   openings: {} as any,
   layers: {
     insideThickness: 0,
-    outsideThickness: 0
+    insideLayers: [],
+    outsideThickness: 0,
+    outsideLayers: []
   }
 })
 

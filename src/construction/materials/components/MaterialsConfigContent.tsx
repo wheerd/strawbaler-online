@@ -6,6 +6,7 @@ import {
   LayersIcon,
   OpacityIcon,
   PlusIcon,
+  ResetIcon,
   TrashIcon
 } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
@@ -40,7 +41,7 @@ type MaterialType = Material['type']
 
 export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigContentProps): React.JSX.Element {
   const materials = useMaterials()
-  const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial } = useMaterialActions()
+  const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial, reset } = useMaterialActions()
   const ringBeamAssemblies = useRingBeamAssemblies()
   const wallAssemblies = useWallAssemblies()
   const strawConfig = useStrawConfig()
@@ -138,6 +139,8 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
     [selectedMaterial, updateMaterial]
   )
 
+  const handleReset = useCallback(() => reset(), [reset])
+
   const Icon = selectedMaterial ? getMaterialTypeIcon(selectedMaterial.type) : null
 
   return (
@@ -210,6 +213,31 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
               </AlertDialog.Cancel>
               <AlertDialog.Action>
                 <Button variant="solid" color="red" onClick={handleDelete}>
+                  Delete
+                </Button>
+              </AlertDialog.Action>
+            </Flex>
+          </AlertDialog.Content>
+        </AlertDialog.Root>
+        <AlertDialog.Root>
+          <AlertDialog.Trigger>
+            <IconButton color="red" variant="outline" title="Reset to Default">
+              <ResetIcon />
+            </IconButton>
+          </AlertDialog.Trigger>
+          <AlertDialog.Content>
+            <AlertDialog.Title>Reset Materials</AlertDialog.Title>
+            <AlertDialog.Description>
+              Are you sure you want to reset all materials to default? This action cannot be undone.
+            </AlertDialog.Description>
+            <Flex gap="3" mt="4" justify="end">
+              <AlertDialog.Cancel>
+                <Button variant="soft" color="gray">
+                  Cancel
+                </Button>
+              </AlertDialog.Cancel>
+              <AlertDialog.Action>
+                <Button variant="solid" color="red" onClick={handleReset}>
                   Delete
                 </Button>
               </AlertDialog.Action>

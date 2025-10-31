@@ -82,7 +82,7 @@ describe('applyWallFaceOffsets', () => {
   beforeEach(() => {
     mockedGetWallAssemblyById.mockReset()
     mockedGetWallAssemblyById.mockReturnValue({
-      layers: { insideThickness, outsideThickness }
+      layers: { insideThickness, insideLayers: [], outsideThickness, outsideLayers: [] }
     } as any)
   })
 
