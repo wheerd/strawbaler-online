@@ -68,7 +68,10 @@ const computeOffsetLine = (start: vec2, end: vec2, normal: vec2, distance: Lengt
 }
 
 const projectAlongWall = (wall: PerimeterWall, point: vec2): Length => {
-  const direction = vec2.normalize(vec2.create(), vec2.subtract(vec2.create(), wall.insideLine.end, wall.insideLine.start))
+  const direction = vec2.normalize(
+    vec2.create(),
+    vec2.subtract(vec2.create(), wall.insideLine.end, wall.insideLine.start)
+  )
   const relative = vec2.subtract(vec2.create(), point, wall.insideLine.start)
   return vec2.dot(relative, direction)
 }
@@ -87,7 +90,12 @@ const computeCornerIntersection = (
   const offsetDistance = (side === 'inside' ? 1 : -1) * depth
 
   const baseLine = computeOffsetLine(baseSegment.start, baseSegment.end, wall.outsideDirection, offsetDistance)
-  const referenceLine = computeOffsetLine(referenceSegment.start, referenceSegment.end, referenceWall.outsideDirection, offsetDistance)
+  const referenceLine = computeOffsetLine(
+    referenceSegment.start,
+    referenceSegment.end,
+    referenceWall.outsideDirection,
+    offsetDistance
+  )
 
   if (baseLine && referenceLine) {
     const intersection = lineIntersection(baseLine, referenceLine)
@@ -236,36 +244,47 @@ export function constructWallLayers(
   const bottom = basePlateHeight
   const top = totalConstructionHeight - topPlateHeight
 
+  const baseInsideSpan = computeLayerSpan('inside', 0 as Length, wall, context)
+  const baseOutsideSpan = computeLayerSpan('outside', layers.outsideThickness, wall, context)
+
   const layerResults: ConstructionResult[] = []
 
   if (layers.insideLayers.length > 0) {
     let insideOffset: Length = 0
     let cumulativeInside: Length = 0
+    let previousSpan = baseInsideSpan
 
     for (const layer of layers.insideLayers) {
       cumulativeInside = (cumulativeInside + layer.thickness) as Length
-      const { start, end } = computeLayerSpan('inside', cumulativeInside, wall, context)
+      const span = computeLayerSpan('inside', cumulativeInside, wall, context)
+      const start = Math.min(span.start, previousSpan.start)
+      const end = Math.max(span.end, previousSpan.end)
       const polygon = createLayerPolygon(start, end, bottom, top)
       const polygonWithHoles = subtractOpenings(polygon, start, end, bottom, top, wall)
       const normalizedPolygon = normalizePolygonWithHoles(polygonWithHoles)
       layerResults.push(...runLayerConstruction(normalizedPolygon, insideOffset, WALL_LAYER_PLANE, layer))
       insideOffset = (insideOffset + layer.thickness) as Length
+      previousSpan = span
     }
   }
 
   if (layers.outsideLayers.length > 0) {
     let outsideOffset: Length = (wall.thickness - layers.outsideThickness) as Length
     let remainingOutside: Length = layers.outsideThickness
+    let previousSpan = baseOutsideSpan
 
     for (const layer of layers.outsideLayers) {
       remainingOutside = (remainingOutside - layer.thickness) as Length
       const depth = Math.max(remainingOutside, 0) as Length
-      const { start, end } = computeLayerSpan('outside', depth, wall, context)
+      const span = computeLayerSpan('outside', depth, wall, context)
+      const start = Math.min(span.start, previousSpan.start)
+      const end = Math.max(span.end, previousSpan.end)
       const polygon = createLayerPolygon(start, end, bottom, top)
       const polygonWithHoles = subtractOpenings(polygon, start, end, bottom, top, wall)
       const normalizedPolygon = normalizePolygonWithHoles(polygonWithHoles)
       layerResults.push(...runLayerConstruction(normalizedPolygon, outsideOffset, WALL_LAYER_PLANE, layer))
       outsideOffset = (outsideOffset + layer.thickness) as Length
+      previousSpan = span
     }
   }
 
