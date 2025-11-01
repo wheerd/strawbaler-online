@@ -5,6 +5,7 @@ import type { ConstructionElementId } from '@/construction/elements'
 import { constructPost } from '@/construction/materials/posts'
 import { constructStraw } from '@/construction/materials/straw'
 import type { ConstructionModel } from '@/construction/model'
+import { mergeModels } from '@/construction/model'
 import { constructOpeningFrame } from '@/construction/openings/openings'
 import type { ConstructionResult } from '@/construction/results'
 import {
@@ -16,6 +17,7 @@ import {
 } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { InfillWallConfig, InfillWallSegmentConfig, WallAssembly } from '@/construction/walls'
+import { constructWallLayers } from '@/construction/walls/layers'
 import { type WallStoreyContext, segmentedWallConstruction } from '@/construction/walls/segmentation'
 import { type Length, boundsFromCuboid, mergeBounds } from '@/shared/geometry'
 
@@ -162,6 +164,11 @@ function getBaleWidth(availableWidth: Length, config: InfillWallSegmentConfig): 
   return maxPostSpacing
 }
 
+const ZERO_BOUNDS = {
+  min: vec3.fromValues(0, 0, 0),
+  max: vec3.fromValues(0, 0, 0)
+}
+
 export class InfillWallAssembly implements WallAssembly<InfillWallConfig> {
   construct(
     wall: PerimeterWall,
@@ -186,14 +193,18 @@ export class InfillWallAssembly implements WallAssembly<InfillWallConfig> {
     )
 
     const aggRes = aggregateResults(allResults)
-
-    return {
-      bounds: mergeBounds(...aggRes.elements.map(e => e.bounds)),
+    const baseModel: ConstructionModel = {
+      bounds:
+        aggRes.elements.length > 0 ? mergeBounds(...aggRes.elements.map(e => e.bounds)) : ZERO_BOUNDS,
       elements: aggRes.elements,
       measurements: aggRes.measurements,
       areas: aggRes.areas,
       errors: aggRes.errors,
       warnings: aggRes.warnings
     }
+
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+
+    return mergeModels(baseModel, layerModel)
   }
 }

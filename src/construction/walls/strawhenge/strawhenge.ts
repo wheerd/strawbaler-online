@@ -3,11 +3,13 @@ import { vec3 } from 'gl-matrix'
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
 import { constructStraw } from '@/construction/materials/straw'
 import type { ConstructionModel } from '@/construction/model'
+import { mergeModels } from '@/construction/model'
 import { constructOpeningFrame } from '@/construction/openings/openings'
 import type { ConstructionResult } from '@/construction/results'
 import { aggregateResults } from '@/construction/results'
 import type { StrawhengeWallConfig, WallAssembly } from '@/construction/walls'
 import { infillWallArea } from '@/construction/walls/infill/infill'
+import { constructWallLayers } from '@/construction/walls/layers'
 import { type WallStoreyContext, segmentedWallConstruction } from '@/construction/walls/segmentation'
 import { type Length, mergeBounds } from '@/shared/geometry'
 
@@ -159,6 +161,11 @@ export function* strawhengeWallArea(
   }
 }
 
+const ZERO_BOUNDS = {
+  min: vec3.fromValues(0, 0, 0),
+  max: vec3.fromValues(0, 0, 0)
+}
+
 export class StrawhengeWallAssembly implements WallAssembly<StrawhengeWallConfig> {
   construct(
     wall: PerimeterWall,
@@ -183,14 +190,18 @@ export class StrawhengeWallAssembly implements WallAssembly<StrawhengeWallConfig
     )
 
     const aggRes = aggregateResults(allResults)
-
-    return {
-      bounds: mergeBounds(...aggRes.elements.map(e => e.bounds)),
+    const baseModel: ConstructionModel = {
+      bounds:
+        aggRes.elements.length > 0 ? mergeBounds(...aggRes.elements.map(e => e.bounds)) : ZERO_BOUNDS,
       elements: aggRes.elements,
       measurements: aggRes.measurements,
       areas: aggRes.areas,
       errors: aggRes.errors,
       warnings: aggRes.warnings
     }
+
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+
+    return mergeModels(baseModel, layerModel)
   }
 }

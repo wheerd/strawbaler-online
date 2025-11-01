@@ -1,12 +1,14 @@
-import type { vec3 } from 'gl-matrix'
+import { vec3 } from 'gl-matrix'
 
 import type { Perimeter, PerimeterWall } from '@/building/model'
 import { createConstructionElement } from '@/construction/elements'
 import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
+import { mergeModels } from '@/construction/model'
 import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
 import { createCuboidShape } from '@/construction/shapes'
 import type { NonStrawbaleWallConfig, WallAssembly } from '@/construction/walls'
+import { constructWallLayers } from '@/construction/walls/layers'
 import { type WallStoreyContext, segmentedWallConstruction } from '@/construction/walls/segmentation'
 import { mergeBounds } from '@/shared/geometry'
 
@@ -24,6 +26,11 @@ function* constructNonStrawbaleOpeningFrame(
   size: vec3
 ): Generator<ConstructionResult> {
   yield yieldElement(createConstructionElement(material, createCuboidShape(position, size)))
+}
+
+const ZERO_BOUNDS = {
+  min: vec3.fromValues(0, 0, 0),
+  max: vec3.fromValues(0, 0, 0)
 }
 
 export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallConfig> {
@@ -44,14 +51,17 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
       )
     )
     const aggRes = aggregateResults(allResults)
-
-    return {
-      bounds: mergeBounds(...aggRes.elements.map(e => e.bounds)),
+    const baseModel: ConstructionModel = {
+      bounds: aggRes.elements.length > 0 ? mergeBounds(...aggRes.elements.map(e => e.bounds)) : ZERO_BOUNDS,
       elements: aggRes.elements,
       measurements: aggRes.measurements,
       areas: aggRes.areas,
       errors: aggRes.errors,
       warnings: aggRes.warnings
     }
+
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+
+    return mergeModels(baseModel, layerModel)
   }
 }

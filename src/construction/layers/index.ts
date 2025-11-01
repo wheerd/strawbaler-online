@@ -3,7 +3,9 @@ import { StripedLayerConstruction } from '@/construction/layers/stripe'
 
 import type { LayerConfig, LayerConstruction, LayerType } from './types'
 
-export const FLOOR_ASSEMBLIES: { [TType in LayerType]: LayerConstruction<Extract<LayerConfig, { type: TType }>> } = {
+export const LAYER_CONSTRUCTIONS: {
+  [TType in LayerType]: LayerConstruction<Extract<LayerConfig, { type: TType }>>
+} = {
   monolithic: new MonolithicLayerConstruction(),
   striped: new StripedLayerConstruction()
 }
