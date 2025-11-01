@@ -92,6 +92,7 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
             <Flex direction="column" gap="1">
               <OpacityControlButton category="straw" label="Straw" />
               <OpacityControlButton category="wall-layer" label="Wall Layers" />
+              <OpacityControlButton category="floor-layer" label="Floor Layers" />
             </Flex>
           </Flex>
         </Card>

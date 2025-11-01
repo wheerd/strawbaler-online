@@ -13,6 +13,8 @@ import { WallAssemblySelectWithEdit } from '@/construction/config/components/Wal
 import { constructPerimeter } from '@/construction/perimeter'
 import {
   TAG_BASE_PLATE,
+  TAG_FLOOR_LAYER_CEILING,
+  TAG_FLOOR_LAYER_TOP,
   TAG_TOP_PLATE,
   TAG_WALLS,
   TAG_WALL_LAYER_INSIDE,
@@ -25,6 +27,7 @@ import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import {
   BasePlateIcon,
   ConstructionPlanIcon,
+  FloorLayersIcon,
   FitToViewIcon,
   Model3DIcon,
   TopPlateIcon,
@@ -188,6 +191,11 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
                 icon: WallLayersIcon,
                 title: 'Wall Layers',
                 tags: [TAG_WALL_LAYER_INSIDE.id, TAG_WALL_LAYER_OUTSIDE.id]
+              },
+              {
+                icon: FloorLayersIcon,
+                title: 'Floor/Ceiling Layers',
+                tags: [TAG_FLOOR_LAYER_TOP.id, TAG_FLOOR_LAYER_CEILING.id]
               }
             ]}
             refreshKey={perimeter}

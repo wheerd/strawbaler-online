@@ -12,6 +12,7 @@ export const ALL_CATEGORIES = {
   straw: { label: 'Straw' },
   'wall-wood': { label: 'Wall Wood' },
   'wall-construction-type': { label: 'Wall Construction Type' },
+  'floor-layer': { label: 'Floor Layers' },
   'wall-layer': { label: 'Wall Layers' },
   measurement: { label: 'Measurement' },
   opening: { label: 'Opening' },
@@ -116,6 +117,18 @@ export const TAG_WALL_LAYER_OUTSIDE: Tag = {
   id: 'construction_wall-layer-outside',
   label: 'Outside Wall Layers',
   category: 'wall-layer'
+}
+
+export const TAG_FLOOR_LAYER_TOP: Tag = {
+  id: 'construction_floor-layer-top',
+  label: 'Floor Finish Layers',
+  category: 'floor-layer'
+}
+
+export const TAG_FLOOR_LAYER_CEILING: Tag = {
+  id: 'construction_floor-layer-ceiling',
+  label: 'Ceiling Finish Layers',
+  category: 'floor-layer'
 }
 
 // Opening tags

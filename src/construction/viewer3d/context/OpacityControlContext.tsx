@@ -11,7 +11,10 @@ interface OpacityControlContextValue {
 const OpacityControlContext = createContext<OpacityControlContextValue | undefined>(undefined)
 
 export function OpacityControlProvider({ children }: { children: ReactNode }): React.JSX.Element {
-  const initialOpacity = new Map<TagCategoryId, number>([['wall-layer', 0]])
+  const initialOpacity = new Map<TagCategoryId, number>([
+    ['wall-layer', 0],
+    ['floor-layer', 1]
+  ])
   const [categoryOpacity, setCategoryOpacity] = useState<Map<TagCategoryId, number>>(initialOpacity)
 
   const getOpacityForCategory = (category: TagCategoryId): number => {

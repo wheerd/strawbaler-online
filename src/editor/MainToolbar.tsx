@@ -17,6 +17,8 @@ import { useConfigurationModal } from '@/construction/config/context/Configurati
 import { constructModel, constructStorey } from '@/construction/storey'
 import {
   TAG_BASE_PLATE,
+  TAG_FLOOR_LAYER_CEILING,
+  TAG_FLOOR_LAYER_TOP,
   TAG_TOP_PLATE,
   TAG_WALLS,
   TAG_WALL_LAYER_INSIDE,
@@ -30,6 +32,7 @@ import {
   BasePlateIcon,
   ConstructionPlanIcon,
   Model3DIcon,
+  FloorLayersIcon,
   TopPlateIcon,
   WallLayersIcon,
   WallToggleIcon
@@ -112,6 +115,11 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
               icon: WallLayersIcon,
               title: 'Wall Layers',
               tags: [TAG_WALL_LAYER_INSIDE.id, TAG_WALL_LAYER_OUTSIDE.id]
+            },
+            {
+              icon: FloorLayersIcon,
+              title: 'Floor/Ceiling Layers',
+              tags: [TAG_FLOOR_LAYER_TOP.id, TAG_FLOOR_LAYER_CEILING.id]
             }
           ]}
           refreshKey={[activeStoreyId, activePerimiters]}

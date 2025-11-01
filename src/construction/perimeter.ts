@@ -2,7 +2,7 @@ import { vec2, vec3 } from 'gl-matrix'
 
 import type { Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { FLOOR_ASSEMBLIES } from '@/construction/floors'
+import { FLOOR_ASSEMBLIES, constructFloorLayers } from '@/construction/floors'
 import { IDENTITY } from '@/construction/geometry'
 import { applyWallFaceOffsets, createWallFaceOffsets } from '@/construction/storey'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
@@ -64,7 +64,7 @@ export function computeFloorConstructionPolygon(perimeter: Perimeter): Polygon2D
 }
 
 export function constructPerimeter(perimeter: Perimeter, includeFloor = true): ConstructionModel {
-  const { getStoreyById, getStoreysOrderedByLevel, getFloorOpeningsByStorey } = getModelActions()
+  const { getStoreyById, getStoreysOrderedByLevel, getFloorOpeningsByStorey, getPerimetersByStorey } = getModelActions()
   const storey = getStoreyById(perimeter.storeyId)
   if (!storey) {
     throw new Error('Invalid storey on perimeter')
@@ -136,6 +136,9 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
   }
 
   if (includeFloor) {
+    const finishedFloorPolygon: Polygon2D = {
+      points: perimeter.corners.map(corner => vec2.fromValues(corner.insidePoint[0], corner.insidePoint[1]))
+    }
     const floorPolygon = computeFloorConstructionPolygon(perimeter)
     const holes = getFloorOpeningsByStorey(storey.id).map(opening => opening.area)
     const relevantHoles = holes.filter(hole => arePolygonsIntersecting(floorPolygon, hole))
@@ -145,6 +148,37 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
     const floorAssembly = FLOOR_ASSEMBLIES[currentFloorAssembly.type]
     const floorModel = floorAssembly.construct({ outer: floorPolygon, holes: mergedHoles }, currentFloorAssembly)
     allModels.push(floorModel)
+
+    const topHoles = mergedHoles
+
+    let ceilingHoles: Polygon2D[] = []
+    if (nextStorey && nextFloorAssembly) {
+      const nextPerimeters = getPerimetersByStorey(nextStorey.id)
+      if (nextPerimeters.length > 0) {
+        const nextWallFaces = createWallFaceOffsets(nextPerimeters)
+        const nextFloorPolygon: Polygon2D = {
+          points: finishedFloorPolygon.points.map(point => vec2.fromValues(point[0], point[1]))
+        }
+        const nextHolesRaw = getFloorOpeningsByStorey(nextStorey.id).map(opening => opening.area)
+        const nextRelevantHoles = nextHolesRaw.filter(hole => arePolygonsIntersecting(nextFloorPolygon, hole))
+        const nextAdjustedHoles = nextRelevantHoles.map(hole => applyWallFaceOffsets(hole, nextWallFaces))
+        ceilingHoles = unionPolygons(nextAdjustedHoles)
+      }
+    }
+
+    const floorLayersModel = constructFloorLayers({
+      finishedPolygon: finishedFloorPolygon,
+      topHoles,
+      ceilingHoles,
+      currentFloorConfig: currentFloorAssembly,
+      nextFloorConfig: nextFloorAssembly ?? null,
+      floorTopOffset: storeyContext.floorTopOffset,
+      ceilingStartHeight:
+        (storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset) as Length
+    })
+    if (floorLayersModel) {
+      allModels.push(floorLayersModel)
+    }
   }
 
   return mergeModels(...allModels)
