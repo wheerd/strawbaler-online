@@ -10,12 +10,13 @@ import { BACK_VIEW, FRONT_VIEW, TOP_VIEW } from '@/construction/components/Const
 import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { useWallAssemblyById } from '@/construction/config/store'
+import { TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE } from '@/construction/tags'
 import { constructWall } from '@/construction/walls'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { pushTool } from '@/editor/tools/system/store'
-import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon } from '@/shared/components/Icons'
+import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon, WallLayersIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
 import { type Polygon2D, boundsFromPoints } from '@/shared/geometry'
 import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
@@ -258,6 +259,14 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               { view: FRONT_VIEW, label: 'Outside' },
               { view: BACK_VIEW, label: 'Inside' },
               { view: TOP_VIEW, label: 'Top' }
+            ]}
+            visibilityToggles={[
+              {
+                icon: WallLayersIcon,
+                title: 'Wall Layers',
+                tags: [TAG_WALL_LAYER_INSIDE.id, TAG_WALL_LAYER_OUTSIDE.id],
+                defaultHidden: true
+              }
             ]}
             refreshKey={[perimeterId, wallId]}
             trigger={

@@ -40,6 +40,7 @@ export interface VisibilityToggleConfig {
   icon: React.ComponentType<IconProps>
   title: string
   tags: TagOrCategory[]
+  defaultHidden?: boolean
 }
 
 interface ConstructionPlanProps {
@@ -60,7 +61,9 @@ export function ConstructionPlan({
   const viewportRef = useRef<SVGViewportRef>(null)
   const [currentViewIndex, setCurrentViewIndex] = useState(0)
   const [midCutEnabled, setMidCutEnabled] = useState(midCutActiveDefault)
-  const [hiddenTagIds, setHiddenTagIds] = useState<Set<TagOrCategory>>(new Set())
+  const [hiddenTagIds, setHiddenTagIds] = useState<Set<TagOrCategory>>(
+    new Set(visibilityToggles.filter(t => t.defaultHidden === true).flatMap(t => t.tags))
+  )
   const [hideAreas, setHideAreas] = useState(false)
   const [hideIssues, setHideIssues] = useState(false)
   const [hideMeasurements, setHideMeasurements] = useState(false)
@@ -339,7 +342,7 @@ export function ConstructionPlan({
               {/* Visibility toggles */}
               {visibilityToggles.map((toggle, index) => {
                 const Icon = toggle.icon
-                const isVisible = !hiddenTagIds.has(toggle.tags[0])
+                const isVisible = toggle.tags.some(tag => !hiddenTagIds.has(tag))
                 return (
                   <IconButton
                     key={index}

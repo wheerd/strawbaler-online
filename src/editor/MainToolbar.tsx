@@ -15,7 +15,7 @@ import { TOP_VIEW } from '@/construction/components/ConstructionPlan'
 import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 import { constructModel, constructStorey } from '@/construction/storey'
-import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
+import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE, TAG_WALLS } from '@/construction/tags'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
 import { TOOL_GROUPS, getToolInfoById } from '@/editor/tools/system/metadata'
 import { replaceTool, useActiveToolId } from '@/editor/tools/system/store'
@@ -24,6 +24,7 @@ import {
   BasePlateIcon,
   ConstructionPlanIcon,
   Model3DIcon,
+  WallLayersIcon,
   TopPlateIcon,
   WallToggleIcon
 } from '@/shared/components/Icons'
@@ -100,7 +101,12 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
           visibilityToggles={[
             { icon: TopPlateIcon, title: 'Top Plate', tags: [TAG_TOP_PLATE.id] },
             { icon: BasePlateIcon, title: 'Base Plate', tags: [TAG_BASE_PLATE.id] },
-            { icon: WallToggleIcon, title: 'Wall', tags: [TAG_WALLS.id] }
+            { icon: WallToggleIcon, title: 'Wall', tags: [TAG_WALLS.id] },
+            {
+              icon: WallLayersIcon,
+              title: 'Wall Layers',
+              tags: [TAG_WALL_LAYER_INSIDE.id, TAG_WALL_LAYER_OUTSIDE.id]
+            }
           ]}
           refreshKey={[activeStoreyId, activePerimiters]}
           trigger={
