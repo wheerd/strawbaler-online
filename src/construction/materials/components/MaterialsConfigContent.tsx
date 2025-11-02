@@ -238,7 +238,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
               </AlertDialog.Cancel>
               <AlertDialog.Action>
                 <Button variant="solid" color="red" onClick={handleReset}>
-                  Delete
+                  Reset
                 </Button>
               </AlertDialog.Action>
             </Flex>
