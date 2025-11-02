@@ -21,29 +21,23 @@ import type { Polygon2D } from '@/shared/geometry'
 
 import { constructWallLayers } from './layers'
 
-vi.mock('@/shared/geometry', async () => {
-  const actual = await vi.importActual<typeof import('@/shared/geometry')>('@/shared/geometry')
-
+vi.mock('@/shared/geometry', async importOriginal => {
   return {
-    ...actual,
+    ...(await importOriginal()),
     subtractPolygons: vi.fn((subjects: Polygon2D[], clips: Polygon2D[]) => {
       if (subjects.length === 0) {
         return []
       }
 
-      const outer = actual.ensurePolygonIsClockwise(subjects[0])
-      const holes = clips.map(clip => actual.ensurePolygonIsCounterClockwise(clip))
-
       return [
         {
-          outer,
-          holes
+          outer: subjects[0],
+          holes: clips
         }
       ]
     })
   }
 })
-
 const mockAssemblies = new Map<string, { layers: WallLayersConfig }>()
 
 const baseAssemblyId = createWallAssemblyId()
