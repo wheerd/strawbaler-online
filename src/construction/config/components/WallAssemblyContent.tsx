@@ -21,6 +21,7 @@ import { usePerimeters, useStoreysOrderedByLevel } from '@/building/store'
 import { useConfigActions, useDefaultWallAssemblyId, useWallAssemblies } from '@/construction/config/store'
 import type { WallAssemblyConfig } from '@/construction/config/types'
 import { getWallAssemblyUsage } from '@/construction/config/usage'
+import { DEFAULT_WALL_LAYER_SETS } from '@/construction/layers/defaults'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { wood120x60, woodwool } from '@/construction/materials/material'
@@ -474,10 +475,12 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
   const {
     updateWallAssemblyConfig,
     addWallAssemblyInsideLayer,
+    setWallAssemblyInsideLayers,
     updateWallAssemblyInsideLayer,
     removeWallAssemblyInsideLayer,
     moveWallAssemblyInsideLayer,
     addWallAssemblyOutsideLayer,
+    setWallAssemblyOutsideLayers,
     updateWallAssemblyOutsideLayer,
     removeWallAssemblyOutsideLayer,
     moveWallAssemblyOutsideLayer
@@ -587,11 +590,13 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           measurementInfo={<MeasurementInfo highlightedPart="insideLayer" showFinishedSides />}
           layers={config.layers.insideLayers}
           onAddLayer={layer => addWallAssemblyInsideLayer(assemblyId, layer)}
+          onReplaceLayers={layers => setWallAssemblyInsideLayers(assemblyId, layers)}
           onUpdateLayer={(index, updates) => updateWallAssemblyInsideLayer(assemblyId, index, updates)}
           onRemoveLayer={index => removeWallAssemblyInsideLayer(assemblyId, index)}
           onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyInsideLayer(assemblyId, fromIndex, toIndex)}
           addLabel="Add Inside Layer"
           emptyHint="No inside layers defined"
+          layerPresets={DEFAULT_WALL_LAYER_SETS}
         />
 
         <Separator size="4" />
@@ -601,11 +606,13 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           measurementInfo={<MeasurementInfo highlightedPart="outsideLayer" showFinishedSides />}
           layers={config.layers.outsideLayers}
           onAddLayer={layer => addWallAssemblyOutsideLayer(assemblyId, layer)}
+          onReplaceLayers={layers => setWallAssemblyOutsideLayers(assemblyId, layers)}
           onUpdateLayer={(index, updates) => updateWallAssemblyOutsideLayer(assemblyId, index, updates)}
           onRemoveLayer={index => removeWallAssemblyOutsideLayer(assemblyId, index)}
           onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyOutsideLayer(assemblyId, fromIndex, toIndex)}
           addLabel="Add Outside Layer"
           emptyHint="No outside layers defined"
+          layerPresets={DEFAULT_WALL_LAYER_SETS}
         />
       </Flex>
     </Flex>

@@ -113,7 +113,7 @@ export const concrete: GenericMaterial = {
   id: 'material_concrete' as MaterialId,
   name: 'Concrete',
   type: 'generic',
-  color: MATERIAL_COLORS.concrete
+  color: '#97989d'
 }
 
 export const clt180: SheetMaterial = {
@@ -152,6 +152,22 @@ export const limePlaster: VolumeMaterial = {
   color: '#e5dbd3'
 }
 
+export const cementScreed: VolumeMaterial = {
+  id: 'material_cement_screed' as MaterialId,
+  name: 'Cement Screed',
+  type: 'volume',
+  availableVolumes: [],
+  color: '#767773'
+}
+
+export const impactSoundInsulation: VolumeMaterial = {
+  id: 'material_impact_sound_insulation' as MaterialId,
+  name: 'Impact Sound Insulation',
+  type: 'volume',
+  availableVolumes: [],
+  color: '#CCCC33'
+}
+
 export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [wood360x60.id]: wood360x60,
   [wood240x60.id]: wood240x60,
@@ -165,5 +181,7 @@ export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [clt180.id]: clt180,
   [woodwool.id]: woodwool,
   [clayPlaster.id]: clayPlaster,
-  [limePlaster.id]: limePlaster
+  [limePlaster.id]: limePlaster,
+  [cementScreed.id]: cementScreed,
+  [impactSoundInsulation.id]: impactSoundInsulation
 }

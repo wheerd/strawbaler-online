@@ -5,6 +5,7 @@ import {
   appendLayer,
   moveLayer,
   removeLayerAt,
+  sanitizeLayerArray,
   sumLayerThickness,
   updateLayerAt
 } from '@/construction/config/store/layerUtils'
@@ -35,6 +36,7 @@ export interface WallAssembliesActions {
   duplicateWallAssembly: (id: WallAssemblyId, name: string) => WallAssemblyConfig
 
   addWallAssemblyInsideLayer: (id: WallAssemblyId, layer: LayerConfig) => void
+  setWallAssemblyInsideLayers: (id: WallAssemblyId, layers: LayerConfig[]) => void
   updateWallAssemblyInsideLayer: (
     id: WallAssemblyId,
     index: number,
@@ -44,6 +46,7 @@ export interface WallAssembliesActions {
   moveWallAssemblyInsideLayer: (id: WallAssemblyId, fromIndex: number, toIndex: number) => void
 
   addWallAssemblyOutsideLayer: (id: WallAssemblyId, layer: LayerConfig) => void
+  setWallAssemblyOutsideLayers: (id: WallAssemblyId, layers: LayerConfig[]) => void
   updateWallAssemblyOutsideLayer: (
     id: WallAssemblyId,
     index: number,
@@ -347,6 +350,28 @@ export const createWallAssembliesSlice: StateCreator<
         })
       },
 
+      setWallAssemblyInsideLayers: (id: WallAssemblyId, layers: LayerConfig[]) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const insideLayers = sanitizeLayerArray(layers)
+          const insideThickness = sumLayerThickness(insideLayers)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, insideLayers, insideThickness }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
+      },
+
       updateWallAssemblyInsideLayer: (
         id: WallAssemblyId,
         index: number,
@@ -423,6 +448,28 @@ export const createWallAssembliesSlice: StateCreator<
           if (assembly == null) return state
 
           const outsideLayers = appendLayer(assembly.layers.outsideLayers, layer)
+          const outsideThickness = sumLayerThickness(outsideLayers)
+          const updatedAssembly: WallAssemblyConfig = {
+            ...assembly,
+            layers: { ...assembly.layers, outsideLayers, outsideThickness }
+          }
+
+          const { id: _id, name: _name, ...wallConfig } = updatedAssembly
+          validateWallConfig(wallConfig as WallConfig)
+
+          return {
+            ...state,
+            wallAssemblyConfigs: { ...state.wallAssemblyConfigs, [id]: updatedAssembly }
+          }
+        })
+      },
+
+      setWallAssemblyOutsideLayers: (id: WallAssemblyId, layers: LayerConfig[]) => {
+        set(state => {
+          const assembly = state.wallAssemblyConfigs[id]
+          if (assembly == null) return state
+
+          const outsideLayers = sanitizeLayerArray(layers)
           const outsideThickness = sumLayerThickness(outsideLayers)
           const updatedAssembly: WallAssemblyConfig = {
             ...assembly,

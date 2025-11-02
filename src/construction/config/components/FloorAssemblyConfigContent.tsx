@@ -22,6 +22,7 @@ import { useConfigActions, useDefaultFloorAssemblyId, useFloorAssemblies } from 
 import { getFloorAssemblyUsage } from '@/construction/config/usage'
 import type { FloorAssemblyType, FloorConfig, MonolithicFloorConfig } from '@/construction/floors/types'
 import type { LayerConfig } from '@/construction/layers/types'
+import { DEFAULT_CEILING_LAYER_SETS, DEFAULT_FLOOR_LAYER_SETS } from '@/construction/layers/defaults'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
@@ -47,10 +48,12 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
     removeFloorAssembly,
     setDefaultFloorAssembly,
     addFloorAssemblyTopLayer,
+    setFloorAssemblyTopLayers,
     updateFloorAssemblyTopLayer,
     removeFloorAssemblyTopLayer,
     moveFloorAssemblyTopLayer,
     addFloorAssemblyBottomLayer,
+    setFloorAssemblyBottomLayers,
     updateFloorAssemblyBottomLayer,
     removeFloorAssemblyBottomLayer,
     moveFloorAssemblyBottomLayer
@@ -286,10 +289,12 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
             assemblyId={selectedConfig.id}
             config={selectedConfig}
             onAddTopLayer={addFloorAssemblyTopLayer}
+            onSetTopLayers={setFloorAssemblyTopLayers}
             onUpdateTopLayer={updateFloorAssemblyTopLayer}
             onRemoveTopLayer={removeFloorAssemblyTopLayer}
             onMoveTopLayer={moveFloorAssemblyTopLayer}
             onAddBottomLayer={addFloorAssemblyBottomLayer}
+            onSetBottomLayers={setFloorAssemblyBottomLayers}
             onUpdateBottomLayer={updateFloorAssemblyBottomLayer}
             onRemoveBottomLayer={removeFloorAssemblyBottomLayer}
             onMoveBottomLayer={moveFloorAssemblyBottomLayer}
@@ -401,10 +406,12 @@ function LayersFields({
   assemblyId,
   config,
   onAddTopLayer,
+  onSetTopLayers,
   onUpdateTopLayer,
   onRemoveTopLayer,
   onMoveTopLayer,
   onAddBottomLayer,
+  onSetBottomLayers,
   onUpdateBottomLayer,
   onRemoveBottomLayer,
   onMoveBottomLayer
@@ -412,10 +419,12 @@ function LayersFields({
   assemblyId: FloorAssemblyId
   config: FloorConfig
   onAddTopLayer: (id: FloorAssemblyId, layer: LayerConfig) => void
+  onSetTopLayers: (id: FloorAssemblyId, layers: LayerConfig[]) => void
   onUpdateTopLayer: (id: FloorAssemblyId, index: number, updates: Partial<Omit<LayerConfig, 'type'>>) => void
   onRemoveTopLayer: (id: FloorAssemblyId, index: number) => void
   onMoveTopLayer: (id: FloorAssemblyId, fromIndex: number, toIndex: number) => void
   onAddBottomLayer: (id: FloorAssemblyId, layer: LayerConfig) => void
+  onSetBottomLayers: (id: FloorAssemblyId, layers: LayerConfig[]) => void
   onUpdateBottomLayer: (id: FloorAssemblyId, index: number, updates: Partial<Omit<LayerConfig, 'type'>>) => void
   onRemoveBottomLayer: (id: FloorAssemblyId, index: number) => void
   onMoveBottomLayer: (id: FloorAssemblyId, fromIndex: number, toIndex: number) => void
@@ -427,11 +436,13 @@ function LayersFields({
         measurementInfo={<MeasurementInfo highlightedPart="floorTopLayers" />}
         layers={config.layers.topLayers}
         onAddLayer={layer => onAddTopLayer(assemblyId, layer)}
+        onReplaceLayers={layers => onSetTopLayers(assemblyId, layers)}
         onUpdateLayer={(index, updates) => onUpdateTopLayer(assemblyId, index, updates)}
         onRemoveLayer={index => onRemoveTopLayer(assemblyId, index)}
         onMoveLayer={(fromIndex, toIndex) => onMoveTopLayer(assemblyId, fromIndex, toIndex)}
         addLabel="Add Top Layer"
         emptyHint="No top layers defined"
+        layerPresets={DEFAULT_FLOOR_LAYER_SETS}
       />
 
       <Separator size="4" />
@@ -441,11 +452,13 @@ function LayersFields({
         measurementInfo={<MeasurementInfo highlightedPart="floorBottomLayers" />}
         layers={config.layers.bottomLayers}
         onAddLayer={layer => onAddBottomLayer(assemblyId, layer)}
+        onReplaceLayers={layers => onSetBottomLayers(assemblyId, layers)}
         onUpdateLayer={(index, updates) => onUpdateBottomLayer(assemblyId, index, updates)}
         onRemoveLayer={index => onRemoveBottomLayer(assemblyId, index)}
         onMoveLayer={(fromIndex, toIndex) => onMoveBottomLayer(assemblyId, fromIndex, toIndex)}
         addLabel="Add Bottom Layer"
         emptyHint="No bottom layers defined"
+        layerPresets={DEFAULT_CEILING_LAYER_SETS}
       />
     </Flex>
   )

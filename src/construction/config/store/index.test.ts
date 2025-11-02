@@ -92,6 +92,25 @@ describe('ConfigStore', () => {
         'Layer name cannot be empty'
       )
     })
+
+    it('replaces floor layers from presets', () => {
+      const store = getConfigActions()
+      const assembly = store.addFloorAssembly('Preset Floor', createFloorConfig())
+
+      store.setFloorAssemblyTopLayers(assembly.id, [
+        createMonolithicLayer(30, 'Base Layer'),
+        createMonolithicLayer(10, 'Finish Layer')
+      ])
+      store.setFloorAssemblyBottomLayers(assembly.id, [createMonolithicLayer(15, 'Ceiling Layer')])
+
+      const updated = store.getFloorAssemblyById(assembly.id)
+      expect(updated?.layers.topLayers).toHaveLength(2)
+      expect(updated?.layers.topThickness).toBe(40)
+      expect(updated?.layers.topLayers[0].name).toBe('Base Layer')
+
+      expect(updated?.layers.bottomLayers).toHaveLength(1)
+      expect(updated?.layers.bottomThickness).toBe(15)
+    })
   })
 
   describe('Default Ring Beam Assembly', () => {
@@ -546,6 +565,26 @@ describe('ConfigStore', () => {
       expect(() => store.updateWallAssemblyInsideLayer(assembly.id, 0, { name: '   ' })).toThrow(
         'Layer name cannot be empty'
       )
+    })
+
+    it('replaces wall layers from presets', () => {
+      const store = getConfigActions()
+      const assembly = store.addWallAssembly('Preset Wall', createValidWallConfig())
+
+      store.setWallAssemblyInsideLayers(assembly.id, [
+        createMonolithicLayer(15, 'Clay Base'),
+        createMonolithicLayer(5, 'Clay Finish')
+      ])
+
+      store.setWallAssemblyOutsideLayers(assembly.id, [createStripedLayer('Exterior Stripe')])
+
+      const updated = store.getWallAssemblyById(assembly.id)
+      expect(updated?.layers.insideLayers).toHaveLength(2)
+      expect(updated?.layers.insideThickness).toBe(20)
+      expect(updated?.layers.insideLayers[0].name).toBe('Clay Base')
+
+      expect(updated?.layers.outsideLayers).toHaveLength(1)
+      expect(updated?.layers.outsideLayers[0].name).toBe('Exterior Stripe')
     })
   })
 })

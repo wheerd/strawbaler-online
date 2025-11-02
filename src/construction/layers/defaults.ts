@@ -1,4 +1,4 @@
-import { clayPlaster, limePlaster } from '@/construction/materials/material'
+import { cementScreed, clayPlaster, impactSoundInsulation, limePlaster } from '@/construction/materials/material'
 import type { MaterialId } from '@/construction/materials/material'
 import type { Length } from '@/shared/geometry'
 
@@ -16,12 +16,7 @@ const createMonolithicLayer = (material: MaterialId, thickness: Length, name: st
   thickness: sanitizeThickness(thickness)
 })
 
-export const INVALID_FLOOR_LAYER_MATERIAL_ID = 'layer_invalid_material' as MaterialId
-
-export const DEFAULT_WALL_LAYERS: Record<string, LayerConfig> = {
-  'Clay Plaster (3cm)': createMonolithicLayer(clayPlaster.id, 30, 'Clay Plaster'),
-  'Lime Plaster (3cm)': createMonolithicLayer(limePlaster.id, 30, 'Lime Plaster')
-}
+export const INVALID_FLOOR_LAYER_MATERIAL_ID = 'material_invalid' as MaterialId
 
 export const createDefaultInsideLayers = (thickness: Length): LayerConfig[] => [
   createMonolithicLayer(clayPlaster.id, thickness, 'Inside Finish')
@@ -38,3 +33,32 @@ export const createDefaultFloorTopLayers = (thickness: Length): LayerConfig[] =>
 export const createDefaultFloorBottomLayers = (thickness: Length): LayerConfig[] => [
   createMonolithicLayer(INVALID_FLOOR_LAYER_MATERIAL_ID, thickness, 'Bottom Layer')
 ]
+
+export const DEFAULT_WALL_LAYER_SETS: Record<string, LayerConfig[]> = {
+  'Clay Plaster': [
+    createMonolithicLayer(clayPlaster.id, 20, 'Base Plaster (Clay)'),
+    createMonolithicLayer(clayPlaster.id, 10, 'Fine Plaster (Clay)')
+  ],
+  'Lime Plaster': [
+    createMonolithicLayer(limePlaster.id, 20, 'Base Plaster (Lime)'),
+    createMonolithicLayer(limePlaster.id, 10, 'Fine Plaster (Lime)')
+  ]
+}
+
+export const DEFAULT_FLOOR_LAYER_SETS: Record<string, LayerConfig[]> = {
+  Screet: [
+    createMonolithicLayer(impactSoundInsulation.id, 25, 'Impact Sound Insulation'),
+    createMonolithicLayer(cementScreed.id, 35, 'Screed')
+  ]
+}
+
+export const DEFAULT_CEILING_LAYER_SETS: Record<string, LayerConfig[]> = {
+  'Clay Plaster': [
+    createMonolithicLayer(clayPlaster.id, 20, 'Base Plaster (Clay)'),
+    createMonolithicLayer(clayPlaster.id, 10, 'Fine Plaster (Clay)')
+  ],
+  'Lime Plaster': [
+    createMonolithicLayer(limePlaster.id, 20, 'Base Plaster (Lime)'),
+    createMonolithicLayer(limePlaster.id, 10, 'Fine Plaster (Lime)')
+  ]
+}

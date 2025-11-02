@@ -3,6 +3,7 @@ import {
   ChevronUpIcon,
   ColumnsIcon,
   HeightIcon,
+  MagicWandIcon,
   PlusIcon,
   SquareIcon,
   TrashIcon,
@@ -63,6 +64,8 @@ interface LayerListEditorProps {
   measurementInfo?: React.ReactNode
   addLabel?: string
   emptyHint?: string
+  layerPresets?: Record<string, LayerConfig[]>
+  onReplaceLayers?: (layers: LayerConfig[]) => void
 }
 
 export function LayerListEditor({
@@ -74,10 +77,20 @@ export function LayerListEditor({
   onMoveLayer,
   measurementInfo,
   addLabel = 'Add Layer',
-  emptyHint = 'No layers yet'
+  emptyHint = 'No layers yet',
+  layerPresets,
+  onReplaceLayers
 }: LayerListEditorProps): React.JSX.Element {
   const hasLayers = layers.length > 0
   const totalThickness = useMemo(() => sumThickness(layers), [layers])
+  const presetEntries = useMemo(() => (layerPresets ? Object.entries(layerPresets) : []), [layerPresets])
+  const hasPresetMenu = onReplaceLayers != null && presetEntries.length > 0
+
+  const applyPreset = (presetLayers: LayerConfig[]) => {
+    if (!onReplaceLayers) return
+    const clonedLayers = presetLayers.map(layer => ({ ...layer }))
+    onReplaceLayers(clonedLayers)
+  }
 
   return (
     <Flex direction="column" gap="2">
@@ -91,27 +104,51 @@ export function LayerListEditor({
             · {formatLength(totalThickness)}
           </Text>
         </Flex>
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger>
-            <IconButton title={addLabel} size="1" variant="soft">
-              <PlusIcon />
-            </IconButton>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content>
-            <DropdownMenu.Item onSelect={() => onAddLayer(getDefaultLayer('monolithic', 0))}>
-              <Flex align="center" gap="1">
-                <LayerTypeIcon type="monolithic" />
-                Monolithic Layer
-              </Flex>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item onSelect={() => onAddLayer(getDefaultLayer('striped', 0))}>
-              <Flex align="center" gap="1">
-                <LayerTypeIcon type="striped" />
-                Striped Layer
-              </Flex>
-            </DropdownMenu.Item>
-          </DropdownMenu.Content>
-        </DropdownMenu.Root>
+        <Flex gap="1">
+          {hasPresetMenu && (
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger>
+                <IconButton title="Apply preset" size="1" variant="soft">
+                  <MagicWandIcon />
+                </IconButton>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content>
+                {presetEntries.map(([name, presetLayers]) => (
+                  <DropdownMenu.Item key={name} onSelect={() => applyPreset(presetLayers)}>
+                    <Flex align="center" gap="2">
+                      <Text>{name}</Text>
+                      <Text size="1" color="gray">
+                        · {formatLength(sumThickness(presetLayers))}
+                      </Text>
+                    </Flex>
+                  </DropdownMenu.Item>
+                ))}
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
+          )}
+
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+              <IconButton title={addLabel} size="1" variant="soft">
+                <PlusIcon />
+              </IconButton>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content>
+              <DropdownMenu.Item onSelect={() => onAddLayer(getDefaultLayer('monolithic', 0))}>
+                <Flex align="center" gap="1">
+                  <LayerTypeIcon type="monolithic" />
+                  Monolithic Layer
+                </Flex>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => onAddLayer(getDefaultLayer('striped', 0))}>
+                <Flex align="center" gap="1">
+                  <LayerTypeIcon type="striped" />
+                  Striped Layer
+                </Flex>
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+        </Flex>
       </Flex>
 
       {!hasLayers && (
