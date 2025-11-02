@@ -27,8 +27,8 @@ import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import {
   BasePlateIcon,
   ConstructionPlanIcon,
-  FloorLayersIcon,
   FitToViewIcon,
+  FloorLayersIcon,
   Model3DIcon,
   TopPlateIcon,
   WallLayersIcon,

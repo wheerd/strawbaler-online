@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { constructFloorLayers } from '@/construction/floors/layers'
-import type { FloorLayersConfig, FloorAssemblyConfigBase } from '@/construction/floors/types'
-import { TAG_FLOOR_LAYER_TOP, TAG_FLOOR_LAYER_CEILING } from '@/construction/tags'
+import type { FloorAssemblyConfigBase, FloorLayersConfig } from '@/construction/floors/types'
+import { TAG_FLOOR_LAYER_CEILING, TAG_FLOOR_LAYER_TOP } from '@/construction/tags'
 
 const createLayersConfig = (topThickness: number, bottomThickness: number): FloorLayersConfig => ({
   topThickness,

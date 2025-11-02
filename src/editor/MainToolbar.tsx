@@ -31,8 +31,8 @@ import type { ToolId } from '@/editor/tools/system/types'
 import {
   BasePlateIcon,
   ConstructionPlanIcon,
-  Model3DIcon,
   FloorLayersIcon,
+  Model3DIcon,
   TopPlateIcon,
   WallLayersIcon,
   WallToggleIcon

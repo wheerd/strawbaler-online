@@ -1,7 +1,6 @@
 import { vec2, vec3 } from 'gl-matrix'
 
 import type { Perimeter, PerimeterWall } from '@/building/model/model'
-import { getConfigActions } from '@/construction/config'
 import type { GroupOrElement } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
 import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
@@ -229,24 +228,13 @@ export function constructWallLayers(
   storeyContext: WallStoreyContext,
   layers: WallLayersConfig
 ): ConstructionModel {
-  const { getRingBeamAssemblyById } = getConfigActions()
-
   const context = getWallContext(wall, perimeter)
-  const basePlateAssembly = perimeter.baseRingBeamAssemblyId
-    ? getRingBeamAssemblyById(perimeter.baseRingBeamAssemblyId)
-    : null
-  const topPlateAssembly = perimeter.topRingBeamAssemblyId
-    ? getRingBeamAssemblyById(perimeter.topRingBeamAssemblyId)
-    : null
-
-  const basePlateHeight = basePlateAssembly?.height ?? 0
-  const topPlateHeight = topPlateAssembly?.height ?? 0
 
   const totalConstructionHeight =
     storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
 
-  const bottom = basePlateHeight
-  const top = totalConstructionHeight - topPlateHeight
+  const bottom = 0
+  const top = totalConstructionHeight
 
   const baseInsideSpan = computeLayerSpan('inside', 0 as Length, wall, context)
   const baseOutsideSpan = computeLayerSpan('outside', layers.outsideThickness, wall, context)

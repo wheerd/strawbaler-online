@@ -74,7 +74,7 @@ function* constructTopLayers(
     return
   }
 
-  let offset = (floorTopOffset - layers.topThickness) as Length
+  const offset = (floorTopOffset - layers.topThickness) as Length
   let cumulative = 0 as Length
 
   for (const layer of layers.topLayers) {
