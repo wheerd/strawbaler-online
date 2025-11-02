@@ -33,7 +33,6 @@ describe('IFC import service', () => {
   test('imports storeys and perimeters into the model store', async () => {
     const fileBuffer = await readFile(IFC_SAMPLE_PATH)
     const result = await importIfcIntoModel(fileBuffer)
-    console.log(result)
     expect(result.success).toBe(true)
 
     const actions = getModelActions()
