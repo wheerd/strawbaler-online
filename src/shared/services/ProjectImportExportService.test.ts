@@ -17,6 +17,7 @@ const mockActions = {
   getPerimetersByStorey: vi.fn(() => [
     {
       id: 'perimeter_1',
+      referenceSide: 'inside' as const,
       corners: [
         { id: 'corner_1', insidePoint: vec2.fromValues(0, 0), constructedByWall: 'next' },
         { id: 'corner_2', insidePoint: vec2.fromValues(100, 0), constructedByWall: 'next' },
@@ -59,6 +60,7 @@ const mockActions = {
   })),
   addPerimeter: vi.fn(() => ({
     id: 'new_perimeter',
+    referenceSide: 'inside' as const,
     walls: [{ id: 'new_wall_1' }],
     corners: [{ id: 'new_corner_1' }]
   })),

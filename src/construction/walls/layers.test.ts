@@ -84,6 +84,7 @@ const createWall = (overrides: Partial<PerimeterWall> = {}): PerimeterWall => ({
 const createPerimeter = (wall: PerimeterWall, overrides: Partial<Perimeter> = {}): Perimeter => ({
   id: createPerimeterId(),
   storeyId: createStoreyId(),
+  referenceSide: 'inside',
   walls: [wall],
   corners: [],
   ...overrides

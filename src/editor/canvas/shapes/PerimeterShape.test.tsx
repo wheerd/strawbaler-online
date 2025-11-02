@@ -20,6 +20,7 @@ describe('PerimeterShape', () => {
   const testPerimeter: Perimeter = {
     id: createPerimeterId(),
     storeyId: createStoreyId(),
+    referenceSide: 'inside',
     walls: [
       {
         id: createPerimeterWallId(),

@@ -236,6 +236,7 @@ describe('StoreyManagementService', () => {
       const sourcePerimeter = {
         id: 'perimeter-1' as PerimeterId,
         storeyId: 'storey-1' as StoreyId,
+        referenceSide: 'inside' as const,
         corners: [
           { insidePoint: vec2.fromValues(0, 0) },
           { insidePoint: vec2.fromValues(10, 0) },
@@ -262,7 +263,8 @@ describe('StoreyManagementService', () => {
         'assembly-1',
         400,
         'base-assembly',
-        'top-assembly'
+        'top-assembly',
+        'inside'
       )
     })
   })

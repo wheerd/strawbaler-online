@@ -21,6 +21,7 @@ export interface ExportedStorey {
 }
 
 export interface ExportedPerimeter {
+  referenceSide?: 'inside' | 'outside'
   corners: ExportedCorner[]
   walls: ExportedWall[]
   baseRingBeamAssemblyId?: string
@@ -123,6 +124,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           .getFloorOpeningsByStorey(storey.id)
           .map(opening => polygonToExport(opening.area))
         const perimeters = modelActions.getPerimetersByStorey(storey.id).map(perimeter => ({
+          referenceSide: perimeter.referenceSide,
           corners: perimeter.corners.map(corner => ({
             insideX: corner.insidePoint[0],
             insideY: corner.insidePoint[1],
@@ -231,7 +233,8 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
             wallAssemblyId,
             thickness,
             exportedPerimeter.baseRingBeamAssemblyId as RingBeamAssemblyId | undefined,
-            exportedPerimeter.topRingBeamAssemblyId as RingBeamAssemblyId | undefined
+            exportedPerimeter.topRingBeamAssemblyId as RingBeamAssemblyId | undefined,
+            exportedPerimeter.referenceSide ?? 'inside'
           )
 
           // 7. Update wall properties - auto-recomputes geometry

@@ -68,6 +68,7 @@ function createRectangularPerimeter(width: number, height: number, wallThickness
   return {
     id: 'perimeter-1' as PerimeterId,
     storeyId: 'storey-1' as StoreyId,
+    referenceSide: 'inside',
     walls,
     corners,
     baseRingBeamAssemblyId: undefined,

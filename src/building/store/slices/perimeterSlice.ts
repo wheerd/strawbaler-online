@@ -16,7 +16,7 @@ import {
   createPerimeterId,
   createPerimeterWallId
 } from '@/building/model/ids'
-import type { Opening, Perimeter, PerimeterCorner, PerimeterWall } from '@/building/model/model'
+import type { Opening, Perimeter, PerimeterCorner, PerimeterReferenceSide, PerimeterWall } from '@/building/model/model'
 import type { Length, Line2D, Polygon2D } from '@/shared/geometry'
 import {
   direction,
@@ -40,7 +40,8 @@ export interface PerimetersActions {
     wallAssemblyId: WallAssemblyId,
     thickness?: Length,
     baseRingBeamAssemblyId?: RingBeamAssemblyId,
-    topRingBeamAssemblyId?: RingBeamAssemblyId
+    topRingBeamAssemblyId?: RingBeamAssemblyId,
+    referenceSide?: PerimeterReferenceSide
   ) => Perimeter
   removePerimeter: (perimeterId: PerimeterId) => void
 
@@ -140,7 +141,8 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       wallAssemblyId: WallAssemblyId,
       thickness?: Length,
       baseRingBeamAssemblyId?: RingBeamAssemblyId,
-      topRingBeamAssemblyId?: RingBeamAssemblyId
+      topRingBeamAssemblyId?: RingBeamAssemblyId,
+      referenceSide: PerimeterReferenceSide = 'inside'
     ) => {
       if (boundary.points.length < 3) {
         throw new Error('Perimeter boundary must have at least 3 points')
@@ -185,6 +187,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         perimeter = {
           id: createPerimeterId(),
           storeyId,
+          referenceSide,
           walls,
           corners,
           baseRingBeamAssemblyId,

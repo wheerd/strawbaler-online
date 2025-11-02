@@ -74,7 +74,8 @@ describe('ProjectImportExportService Integration', () => {
       wallAssemblyId,
       200,
       ringBeamAssemblyId,
-      ringBeamAssemblyId
+      ringBeamAssemblyId,
+      'inside'
     )
 
     // Add openings to walls

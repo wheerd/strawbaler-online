@@ -52,6 +52,7 @@ describe('PerimeterLayer', () => {
       {
         id: 'perimeter1' as PerimeterId,
         storeyId: 'storey1' as StoreyId,
+        referenceSide: 'inside' as const,
         walls: [],
         corners: []
       }

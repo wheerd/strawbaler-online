@@ -93,6 +93,7 @@ describe('computeFloorConstructionPolygon', () => {
     const perimeter: Perimeter = {
       id: 'perimeter-1' as PerimeterId,
       storeyId: 'storey-1' as StoreyId,
+      referenceSide: 'inside',
       walls,
       corners,
       baseRingBeamAssemblyId: undefined,

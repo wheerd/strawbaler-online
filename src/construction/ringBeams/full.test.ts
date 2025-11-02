@@ -77,6 +77,7 @@ function createMockPerimeter(corners: PerimeterCorner[]): Perimeter {
   return {
     id: 'perimeter-1' as PerimeterId,
     storeyId: 'storey-1' as any,
+    referenceSide: 'inside',
     walls: [],
     corners
   }

@@ -82,7 +82,8 @@ export class PerimeterTool extends BasePolygonTool<PerimeterToolState> implement
       this.state.wallAssemblyId,
       this.state.wallThickness,
       this.state.baseRingBeamAssemblyId,
-      this.state.topRingBeamAssemblyId
+      this.state.topRingBeamAssemblyId,
+      'inside'
     )
   }
 }

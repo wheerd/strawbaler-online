@@ -85,6 +85,7 @@ describe('constructWall', () => {
   const createMockPerimeter = (walls: PerimeterWall[], corners: PerimeterCorner[]): Perimeter => ({
     id: perimeterId,
     storeyId,
+    referenceSide: 'inside',
     walls,
     corners
   })
