@@ -1,5 +1,5 @@
 import { vec2, vec3 } from 'gl-matrix'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { type Mocked, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createOpeningId, createPerimeterId, createWallAssemblyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
@@ -7,7 +7,7 @@ import { getConfigActions } from '@/construction/config'
 import { IDENTITY } from '@/construction/geometry'
 import { aggregateResults, yieldElement } from '@/construction/results'
 import { TAG_OPENING_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
-import type { WallLayersConfig } from '@/construction/walls'
+import type { OpeningSegmentConstruction, WallLayersConfig, WallSegmentConstruction } from '@/construction/walls'
 import type { Length } from '@/shared/geometry'
 import '@/shared/geometry'
 
@@ -121,12 +121,15 @@ function createMockCornerInfo(
 function createMockLayers(): WallLayersConfig {
   return {
     insideThickness: 30,
-    outsideThickness: 50
+    insideLayers: [],
+    outsideThickness: 50,
+    outsideLayers: []
   }
 }
 
 function createMockStoreyContext(storeyHeight: Length = 2500): WallStoreyContext {
   return {
+    floorConstructionThickness: 0,
     storeyHeight,
     floorTopOffset: 0,
     ceilingBottomOffset: 0
@@ -134,8 +137,8 @@ function createMockStoreyContext(storeyHeight: Length = 2500): WallStoreyContext
 }
 
 describe('segmentedWallConstruction', () => {
-  let mockWallConstruction: ReturnType<typeof vi.fn>
-  let mockOpeningConstruction: ReturnType<typeof vi.fn>
+  let mockWallConstruction: Mocked<WallSegmentConstruction>
+  let mockOpeningConstruction: Mocked<OpeningSegmentConstruction>
   let mockGetRingBeamAssemblyById: ReturnType<typeof vi.fn>
 
   beforeEach(() => {

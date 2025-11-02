@@ -20,8 +20,10 @@ import {
   BasePlateIcon,
   ConstructionPlanIcon,
   FitToViewIcon,
+  FloorLayersIcon,
   Model3DIcon,
   TopPlateIcon,
+  WallLayersIcon,
   WallToggleIcon
 } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
@@ -176,7 +178,17 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
             visibilityToggles={[
               { icon: TopPlateIcon, title: 'Top Plate', tags: [TAG_TOP_PLATE.id] },
               { icon: BasePlateIcon, title: 'Base Plate', tags: [TAG_BASE_PLATE.id] },
-              { icon: WallToggleIcon, title: 'Wall', tags: [TAG_WALLS.id] }
+              { icon: WallToggleIcon, title: 'Wall', tags: [TAG_WALLS.id] },
+              {
+                icon: WallLayersIcon,
+                title: 'Wall Layers',
+                tags: ['wall-layer']
+              },
+              {
+                icon: FloorLayersIcon,
+                title: 'Floor/Ceiling Layers',
+                tags: ['floor-layer']
+              }
             ]}
             refreshKey={perimeter}
             trigger={

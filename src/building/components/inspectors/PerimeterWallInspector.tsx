@@ -15,7 +15,7 @@ import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { pushTool } from '@/editor/tools/system/store'
-import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon } from '@/shared/components/Icons'
+import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon, WallLayersIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
 import { type Polygon2D, boundsFromPoints } from '@/shared/geometry'
 import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
@@ -258,6 +258,14 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               { view: FRONT_VIEW, label: 'Outside' },
               { view: BACK_VIEW, label: 'Inside' },
               { view: TOP_VIEW, label: 'Top' }
+            ]}
+            visibilityToggles={[
+              {
+                icon: WallLayersIcon,
+                title: 'Wall Layers',
+                tags: ['wall-layer'],
+                defaultHidden: true
+              }
             ]}
             refreshKey={[perimeterId, wallId]}
             trigger={

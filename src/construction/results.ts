@@ -98,6 +98,9 @@ export function* yieldAsGroup(
       yield result
     }
   }
+  if (children.length === 0) {
+    return
+  }
   yield {
     type: 'element',
     element: {

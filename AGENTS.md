@@ -6,7 +6,7 @@
 - `pnpm build` - Build production (runs TypeScript check then Vite build)
 - `pnpm lint` - Run ESLint
 - `pnpm format:check` - Formats with prettier and fixes all fixable issues with eslint
-- `pnpm test` - Run all tests with Vitest
+- `pnpm test -- --pool=threads` - Run all tests with Vitest (thread pool avoids sandbox fork crashes)
 - `pnpm preview` - Preview production build
 - `pnpm add <package>` - Add dependency
 - `pnpm typecheck` - TypeScript check only

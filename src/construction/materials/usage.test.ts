@@ -78,7 +78,9 @@ describe('Material Usage Detection', () => {
         },
         layers: {
           insideThickness: 30,
-          outsideThickness: 50
+          insideLayers: [],
+          outsideThickness: 50,
+          outsideLayers: []
         }
       }
 
@@ -119,7 +121,9 @@ describe('Material Usage Detection', () => {
         },
         layers: {
           insideThickness: 30,
-          outsideThickness: 50
+          insideLayers: [],
+          outsideThickness: 50,
+          outsideLayers: []
         }
       }
 
@@ -167,7 +171,9 @@ describe('Material Usage Detection', () => {
         },
         layers: {
           insideThickness: 30,
-          outsideThickness: 50
+          insideLayers: [],
+          outsideThickness: 50,
+          outsideLayers: []
         }
       }
 
@@ -213,7 +219,9 @@ describe('Material Usage Detection', () => {
         },
         layers: {
           insideThickness: 30,
-          outsideThickness: 50
+          insideLayers: [],
+          outsideThickness: 50,
+          outsideLayers: []
         }
       }
 

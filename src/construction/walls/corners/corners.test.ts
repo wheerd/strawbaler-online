@@ -185,7 +185,9 @@ describe('Corner Calculations', () => {
     beforeEach(() => {
       const layers: WallLayersConfig = {
         insideThickness: 30,
-        outsideThickness: 50
+        insideLayers: [],
+        outsideThickness: 50,
+        outsideLayers: []
       }
 
       const previousAssembly = createMockAssembly('assembly-1', 'Previous Assembly', layers)
@@ -352,7 +354,9 @@ describe('Corner Calculations', () => {
     it('should work with getWallContext and calculateWallCornerInfo together', () => {
       const layers: WallLayersConfig = {
         insideThickness: 30,
-        outsideThickness: 50
+        insideLayers: [],
+        outsideThickness: 50,
+        outsideLayers: []
       }
 
       const assembly1 = createMockAssembly('assembly-1', 'Assembly 1', layers)

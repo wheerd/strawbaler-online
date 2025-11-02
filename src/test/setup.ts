@@ -239,11 +239,18 @@ vi.mock('react-konva/lib/ReactKonvaCore', async () => {
 })
 
 // Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn()
-}))
+class ResizeObserverMock {
+  callback: ResizeObserverCallback | undefined
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+
+  constructor(callback: ResizeObserverCallback) {
+    this.callback = callback
+  }
+}
+
+vi.stubGlobal('ResizeObserver', ResizeObserverMock)
 
 // Mock SVG DOM methods for CTM support
 beforeAll(() => {

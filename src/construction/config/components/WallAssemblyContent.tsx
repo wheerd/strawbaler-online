@@ -21,6 +21,7 @@ import { usePerimeters, useStoreysOrderedByLevel } from '@/building/store'
 import { useConfigActions, useDefaultWallAssemblyId, useWallAssemblies } from '@/construction/config/store'
 import type { WallAssemblyConfig } from '@/construction/config/types'
 import { getWallAssemblyUsage } from '@/construction/config/usage'
+import { DEFAULT_WALL_LAYER_SETS } from '@/construction/layers/defaults'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import { wood120x60, woodwool } from '@/construction/materials/material'
@@ -39,6 +40,7 @@ import { LengthField } from '@/shared/components/LengthField'
 
 import { getPerimeterConfigTypeIcon } from './Icons'
 import { WallAssemblySelect } from './WallAssemblySelect'
+import { LayerListEditor } from './layers/LayerListEditor'
 
 interface InfillConfigFormProps {
   config: InfillWallSegmentConfig
@@ -470,7 +472,19 @@ interface CommonConfigSectionsProps {
 }
 
 function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps): React.JSX.Element {
-  const { updateWallAssemblyConfig } = useConfigActions()
+  const {
+    updateWallAssemblyConfig,
+    addWallAssemblyInsideLayer,
+    setWallAssemblyInsideLayers,
+    updateWallAssemblyInsideLayer,
+    removeWallAssemblyInsideLayer,
+    moveWallAssemblyInsideLayer,
+    addWallAssemblyOutsideLayer,
+    setWallAssemblyOutsideLayers,
+    updateWallAssemblyOutsideLayer,
+    removeWallAssemblyOutsideLayer,
+    moveWallAssemblyOutsideLayer
+  } = useConfigActions()
 
   return (
     <Flex direction="column" gap="3">
@@ -568,43 +582,43 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
         </Flex>
       </Grid>
 
-      {/* Layers Configuration */}
-      <Heading size="2">Layers</Heading>
-      <Grid columns="8em 1fr 8em 1fr" gap="2" gapX="3">
-        <Flex align="center" gap="1">
-          <Label.Root>
-            <Text size="1" weight="medium" color="gray">
-              Inside Thickness
-            </Text>
-          </Label.Root>
-          <MeasurementInfo highlightedPart="insideLayer" showFinishedSides />
-        </Flex>
-        <LengthField
-          value={config.layers.insideThickness}
-          onChange={insideThickness =>
-            updateWallAssemblyConfig(assemblyId, { layers: { ...config.layers, insideThickness } })
-          }
-          unit="mm"
-          size="1"
+      <Separator size="4" />
+
+      <Flex direction="column" gap="3">
+        <LayerListEditor
+          title="Inside Layers"
+          measurementInfo={<MeasurementInfo highlightedPart="insideLayer" showFinishedSides />}
+          layers={config.layers.insideLayers}
+          onAddLayer={layer => addWallAssemblyInsideLayer(assemblyId, layer)}
+          onReplaceLayers={layers => setWallAssemblyInsideLayers(assemblyId, layers)}
+          onUpdateLayer={(index, updates) => updateWallAssemblyInsideLayer(assemblyId, index, updates)}
+          onRemoveLayer={index => removeWallAssemblyInsideLayer(assemblyId, index)}
+          onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyInsideLayer(assemblyId, fromIndex, toIndex)}
+          addLabel="Add Inside Layer"
+          emptyHint="No inside layers defined"
+          layerPresets={DEFAULT_WALL_LAYER_SETS}
+          beforeLabel="Wall Construction"
+          afterLabel="Inside"
         />
 
-        <Flex align="center" gap="1">
-          <Label.Root>
-            <Text size="1" weight="medium" color="gray">
-              Outside Thickness
-            </Text>
-          </Label.Root>
-          <MeasurementInfo highlightedPart="outsideLayer" showFinishedSides />
-        </Flex>
-        <LengthField
-          value={config.layers.outsideThickness}
-          onChange={outsideThickness =>
-            updateWallAssemblyConfig(assemblyId, { layers: { ...config.layers, outsideThickness } })
-          }
-          unit="mm"
-          size="1"
+        <Separator size="4" />
+
+        <LayerListEditor
+          title="Outside Layers"
+          measurementInfo={<MeasurementInfo highlightedPart="outsideLayer" showFinishedSides />}
+          layers={config.layers.outsideLayers}
+          onAddLayer={layer => addWallAssemblyOutsideLayer(assemblyId, layer)}
+          onReplaceLayers={layers => setWallAssemblyOutsideLayers(assemblyId, layers)}
+          onUpdateLayer={(index, updates) => updateWallAssemblyOutsideLayer(assemblyId, index, updates)}
+          onRemoveLayer={index => removeWallAssemblyOutsideLayer(assemblyId, index)}
+          onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyOutsideLayer(assemblyId, fromIndex, toIndex)}
+          addLabel="Add Outside Layer"
+          emptyHint="No outside layers defined"
+          layerPresets={DEFAULT_WALL_LAYER_SETS}
+          beforeLabel="Wall Construction"
+          afterLabel="Outside"
         />
-      </Grid>
+      </Flex>
     </Flex>
   )
 }
@@ -728,7 +742,9 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
       }
       const layers = {
         insideThickness: 30,
-        outsideThickness: 50
+        insideLayers: [],
+        outsideThickness: 50,
+        outsideLayers: []
       }
 
       switch (type) {

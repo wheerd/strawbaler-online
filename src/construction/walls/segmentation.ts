@@ -64,7 +64,7 @@ function mergeAdjacentOpenings(sortedOpenings: Opening[]): Opening[][] {
   return groups
 }
 
-type WallSegmentConstruction = (
+export type WallSegmentConstruction = (
   position: vec3,
   size: vec3,
   startsWithStand: boolean,
@@ -72,7 +72,7 @@ type WallSegmentConstruction = (
   startAtEnd: boolean
 ) => Generator<ConstructionResult>
 
-type OpeningSegmentConstruction = (
+export type OpeningSegmentConstruction = (
   position: vec3,
   size: vec3,
   zOffset: Length,
@@ -169,6 +169,7 @@ function* createPlateAreas(
 }
 
 export interface WallStoreyContext {
+  floorConstructionThickness: Length
   ceilingBottomOffset: Length
   storeyHeight: Length
   floorTopOffset: Length
@@ -183,6 +184,7 @@ export function createWallStoreyContext(
   const nextFloorFloorAssembly = nextFloorAssembly ? FLOOR_ASSEMBLIES[nextFloorAssembly.type] : null
 
   return {
+    floorConstructionThickness: currentFloorFloorAssembly.getConstructionThickness(currentFloorAssembly),
     storeyHeight: currentStorey.height,
     floorTopOffset:
       currentFloorAssembly.layers.topThickness + currentFloorFloorAssembly.getTopOffset(currentFloorAssembly),

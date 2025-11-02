@@ -21,6 +21,7 @@ import { InfillWallAssembly, infillWallArea } from './infill'
 
 function createMockStoreyContext(storeyHeight: Length = 2500): WallStoreyContext {
   return {
+    floorConstructionThickness: 0,
     storeyHeight,
     floorTopOffset: 0,
     ceilingBottomOffset: 0
@@ -55,6 +56,20 @@ vi.mock('@/construction/openings/openings', () => ({
 
 vi.mock('@/construction/walls/segmentation', () => ({
   segmentedWallConstruction: vi.fn()
+}))
+
+vi.mock('@/construction/walls/layers', () => ({
+  constructWallLayers: vi.fn(() => ({
+    elements: [],
+    measurements: [],
+    areas: [],
+    errors: [],
+    warnings: [],
+    bounds: {
+      min: vec3.fromValues(0, 0, 0),
+      max: vec3.fromValues(0, 0, 0)
+    }
+  }))
 }))
 
 vi.mock('@/shared/utils/formatLength', () => ({
@@ -159,7 +174,9 @@ function createMockPerimeter(walls: PerimeterWall[]): Perimeter {
 function createMockLayers(): WallLayersConfig {
   return {
     insideThickness: 30,
-    outsideThickness: 50
+    insideLayers: [],
+    outsideThickness: 50,
+    outsideLayers: []
   }
 }
 

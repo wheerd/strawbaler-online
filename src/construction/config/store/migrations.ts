@@ -1,6 +1,6 @@
-import { strawbale, wood120x60, woodwool } from '@/construction/materials/material'
+import { type MaterialId, strawbale, wood120x60, woodwool } from '@/construction/materials/material'
 
-export const CURRENT_VERSION = 4
+export const CURRENT_VERSION = 5
 
 export function applyMigrations(state: unknown): unknown {
   if (!state || typeof state !== 'object') {
@@ -129,6 +129,132 @@ export function applyMigrations(state: unknown): unknown {
   }
 
   updateDoubleModules(newState.wallAssemblyConfigs)
+  const ensureWallLayerArrays = (assemblies: unknown) => {
+    if (!assemblies || typeof assemblies !== 'object') {
+      return
+    }
+
+    for (const assembly of Object.values(assemblies as Record<string, unknown>)) {
+      if (!assembly || typeof assembly !== 'object') {
+        continue
+      }
+
+      const assemblyConfig = assembly as Record<string, unknown>
+      const layers = assemblyConfig.layers
+      if (!layers || typeof layers !== 'object') {
+        continue
+      }
+
+      const layerConfig = layers as Record<string, unknown>
+
+      const ensureLayerArray = (
+        key: 'insideLayers' | 'outsideLayers',
+        thicknessKey: 'insideThickness' | 'outsideThickness'
+      ) => {
+        const existing = layerConfig[key]
+        if (Array.isArray(existing)) {
+          return
+        }
+
+        const thickness = Number(layerConfig[thicknessKey] ?? 0)
+        layerConfig[key] = [
+          {
+            type: 'monolithic',
+            name: 'Default Layer',
+            material: 'material_invalid' as MaterialId,
+            thickness: Number.isFinite(thickness) ? Math.max(thickness, 0) : 0
+          }
+        ]
+      }
+
+      ensureLayerArray('insideLayers', 'insideThickness')
+      ensureLayerArray('outsideLayers', 'outsideThickness')
+
+      const ensureLayerNames = (key: 'insideLayers' | 'outsideLayers', prefix: string) => {
+        const layers = layerConfig[key]
+        if (!Array.isArray(layers)) {
+          return
+        }
+
+        layers.forEach((layer, index) => {
+          if (!layer || typeof layer !== 'object') {
+            return
+          }
+          const layerObject = layer as Record<string, unknown>
+          const existingName = typeof layerObject.name === 'string' ? layerObject.name.trim() : ''
+          layerObject.name = existingName.length > 0 ? existingName : `${prefix} ${index + 1}`
+        })
+      }
+
+      ensureLayerNames('insideLayers', 'Inside Layer')
+      ensureLayerNames('outsideLayers', 'Outside Layer')
+    }
+  }
+
+  const ensureFloorLayerArrays = (assemblies: unknown) => {
+    if (!assemblies || typeof assemblies !== 'object') {
+      return
+    }
+
+    for (const assembly of Object.values(assemblies as Record<string, unknown>)) {
+      if (!assembly || typeof assembly !== 'object') {
+        continue
+      }
+
+      const assemblyConfig = assembly as Record<string, unknown>
+      const layers = assemblyConfig.layers
+      if (!layers || typeof layers !== 'object') {
+        continue
+      }
+
+      const layerConfig = layers as Record<string, unknown>
+
+      const ensureLayerArray = (
+        key: 'topLayers' | 'bottomLayers',
+        thicknessKey: 'topThickness' | 'bottomThickness'
+      ) => {
+        const existing = layerConfig[key]
+        if (Array.isArray(existing)) {
+          return
+        }
+
+        const thickness = Number(layerConfig[thicknessKey] ?? 0)
+        layerConfig[key] = [
+          {
+            type: 'monolithic',
+            name: 'Default Layer',
+            material: 'material_invalid' as MaterialId,
+            thickness: Number.isFinite(thickness) ? Math.max(thickness, 0) : 0
+          }
+        ]
+      }
+
+      ensureLayerArray('topLayers', 'topThickness')
+      ensureLayerArray('bottomLayers', 'bottomThickness')
+
+      const ensureLayerNames = (key: 'topLayers' | 'bottomLayers', prefix: string) => {
+        const layers = layerConfig[key]
+        if (!Array.isArray(layers)) {
+          return
+        }
+
+        layers.forEach((layer, index) => {
+          if (!layer || typeof layer !== 'object') {
+            return
+          }
+          const layerObject = layer as Record<string, unknown>
+          const existingName = typeof layerObject.name === 'string' ? layerObject.name.trim() : ''
+          layerObject.name = existingName.length > 0 ? existingName : `${prefix} ${index + 1}`
+        })
+      }
+
+      ensureLayerNames('topLayers', 'Top Layer')
+      ensureLayerNames('bottomLayers', 'Bottom Layer')
+    }
+  }
+
+  ensureWallLayerArrays(newState.wallAssemblyConfigs)
+  ensureFloorLayerArrays(newState.floorAssemblyConfigs)
 
   if (!('straw' in newState) || newState.straw == null) {
     newState.straw = defaultStrawConfig

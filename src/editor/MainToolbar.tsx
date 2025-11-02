@@ -23,8 +23,10 @@ import type { ToolId } from '@/editor/tools/system/types'
 import {
   BasePlateIcon,
   ConstructionPlanIcon,
+  FloorLayersIcon,
   Model3DIcon,
   TopPlateIcon,
+  WallLayersIcon,
   WallToggleIcon
 } from '@/shared/components/Icons'
 import { Logo } from '@/shared/components/Logo'
@@ -100,7 +102,17 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
           visibilityToggles={[
             { icon: TopPlateIcon, title: 'Top Plate', tags: [TAG_TOP_PLATE.id] },
             { icon: BasePlateIcon, title: 'Base Plate', tags: [TAG_BASE_PLATE.id] },
-            { icon: WallToggleIcon, title: 'Wall', tags: [TAG_WALLS.id] }
+            { icon: WallToggleIcon, title: 'Wall', tags: [TAG_WALLS.id] },
+            {
+              icon: WallLayersIcon,
+              title: 'Wall Layers',
+              tags: ['wall-layer']
+            },
+            {
+              icon: FloorLayersIcon,
+              title: 'Floor/Ceiling Layers',
+              tags: ['floor-layer']
+            }
           ]}
           refreshKey={[activeStoreyId, activePerimiters]}
           trigger={

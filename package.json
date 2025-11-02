@@ -65,7 +65,7 @@
     "@types/three": "^0.180.0",
     "@types/throttle-debounce": "^5.0.2",
     "@vitejs/plugin-react": "^4.7.0",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^4.0.6",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",
@@ -80,7 +80,8 @@
     "typescript-eslint": "^8.46.2",
     "vite": "^7.1.12",
     "vite-plugin-pwa": "^1.1.0",
-    "vitest": "^3.2.4",
+    "vitest": "^4.0.6",
     "vitest-canvas-mock": "^0.3.3"
-  }
+  },
+  "packageManager": "pnpm@10.20.0+sha512.cf9998222162dd85864d0a8102e7892e7ba4ceadebbf5a31f9c2fce48dfce317a9c53b9f6464d1ef9042cba2e02ae02a9f7c143a2b438cd93c91840f0192b9dd"
 }

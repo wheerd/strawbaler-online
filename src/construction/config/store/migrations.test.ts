@@ -108,4 +108,77 @@ describe('config migrations', () => {
       flakeSize: 70
     })
   })
+
+  it('populates missing wall layer arrays with clay and lime defaults', () => {
+    const migrated = applyMigrations({
+      wallAssemblyConfigs: {
+        test: {
+          type: 'infill',
+          openings: {},
+          layers: {
+            insideThickness: 25,
+            outsideThickness: 45
+          }
+        }
+      }
+    }) as {
+      wallAssemblyConfigs: Record<
+        string,
+        {
+          layers: {
+            insideLayers: { material: string; thickness: number; name: string }[]
+            outsideLayers: { material: string; thickness: number; name: string }[]
+          }
+        }
+      >
+    }
+
+    const layers = migrated.wallAssemblyConfigs.test.layers
+    expect(layers.insideLayers).toHaveLength(1)
+    expect(layers.insideLayers[0].material).toBeDefined()
+    expect(layers.insideLayers[0].thickness).toBe(25)
+    expect(layers.insideLayers[0].name).toBe('Default Layer')
+
+    expect(layers.outsideLayers).toHaveLength(1)
+    expect(layers.outsideLayers[0].material).toBeDefined()
+    expect(layers.outsideLayers[0].thickness).toBe(45)
+    expect(layers.outsideLayers[0].name).toBe('Default Layer')
+  })
+
+  it('populates missing floor layer arrays with invalid material defaults', () => {
+    const migrated = applyMigrations({
+      floorAssemblyConfigs: {
+        floor: {
+          type: 'monolithic',
+          thickness: 180,
+          material: 'mat',
+          layers: {
+            topThickness: 22,
+            bottomThickness: 12
+          }
+        }
+      }
+    }) as {
+      floorAssemblyConfigs: Record<
+        string,
+        {
+          layers: {
+            topLayers: { material: string; thickness: number; name: string }[]
+            bottomLayers: { material: string; thickness: number; name: string }[]
+          }
+        }
+      >
+    }
+
+    const layers = migrated.floorAssemblyConfigs.floor.layers
+    expect(layers.topLayers).toHaveLength(1)
+    expect(layers.topLayers[0].material).toBeDefined()
+    expect(layers.topLayers[0].thickness).toBe(22)
+    expect(layers.topLayers[0].name).toBe('Default Layer')
+
+    expect(layers.bottomLayers).toHaveLength(1)
+    expect(layers.bottomLayers[0].material).toBeDefined()
+    expect(layers.bottomLayers[0].thickness).toBe(12)
+    expect(layers.bottomLayers[0].name).toBe('Default Layer')
+  })
 })

@@ -33,6 +33,8 @@ export interface MaterialsActions {
   getMaterialById: (id: MaterialId) => Material | null
   getAllMaterials: () => Material[]
   getMaterialsByType: (type: Material['type']) => Material[]
+
+  reset(): void
 }
 
 export type MaterialsStore = MaterialsState & { actions: MaterialsActions }
@@ -86,7 +88,7 @@ const validateMaterialUpdates = (updates: Partial<Omit<Material, 'id' | 'type'>>
 const useMaterialsStore = create<MaterialsStore>()(
   persist(
     devtools(
-      (set, get) => ({
+      (set, get, store) => ({
         // Initialize with default materials
         materials: { ...DEFAULT_MATERIALS },
 
@@ -195,6 +197,10 @@ const useMaterialsStore = create<MaterialsStore>()(
           getMaterialsByType: (type: Material['type']) => {
             const state = get()
             return Object.values(state.materials).filter(material => material.type === type)
+          },
+
+          reset: () => {
+            set(store.getInitialState())
           }
         }
       }),

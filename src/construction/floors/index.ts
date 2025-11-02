@@ -11,3 +11,4 @@ export const FLOOR_ASSEMBLIES: Record<FloorAssemblyType, FloorAssembly<any>> = {
 export * from './types'
 export * from './monolithic'
 export * from './joists'
+export * from './layers'

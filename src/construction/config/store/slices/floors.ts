@@ -1,8 +1,18 @@
 import { type StateCreator } from 'zustand'
 
 import { DEFAULT_FLOOR_ASSEMBLY_ID, type FloorAssemblyId, createFloorAssemblyId } from '@/building/model'
+import {
+  appendLayer,
+  moveLayer,
+  removeLayerAt,
+  sanitizeLayerArray,
+  sumLayerThickness,
+  updateLayerAt
+} from '@/construction/config/store/layerUtils'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { type FloorConfig, validateFloorConfig } from '@/construction/floors/types'
+import { DEFAULT_FLOOR_LAYER_SETS } from '@/construction/layers/defaults'
+import type { LayerConfig } from '@/construction/layers/types'
 import { clt180, concrete } from '@/construction/materials/material'
 import '@/shared/geometry'
 
@@ -18,6 +28,20 @@ export interface FloorAssembliesActions {
   updateFloorAssemblyName: (id: FloorAssemblyId, name: string) => void
   updateFloorAssemblyConfig: (id: FloorAssemblyId, config: Partial<Omit<FloorConfig, 'type'>>) => void
   duplicateFloorAssembly: (id: FloorAssemblyId, name: string) => FloorAssemblyConfig
+  addFloorAssemblyTopLayer: (id: FloorAssemblyId, layer: LayerConfig) => void
+  setFloorAssemblyTopLayers: (id: FloorAssemblyId, layers: LayerConfig[]) => void
+  updateFloorAssemblyTopLayer: (id: FloorAssemblyId, index: number, updates: Partial<Omit<LayerConfig, 'type'>>) => void
+  removeFloorAssemblyTopLayer: (id: FloorAssemblyId, index: number) => void
+  moveFloorAssemblyTopLayer: (id: FloorAssemblyId, fromIndex: number, toIndex: number) => void
+  addFloorAssemblyBottomLayer: (id: FloorAssemblyId, layer: LayerConfig) => void
+  setFloorAssemblyBottomLayers: (id: FloorAssemblyId, layers: LayerConfig[]) => void
+  updateFloorAssemblyBottomLayer: (
+    id: FloorAssemblyId,
+    index: number,
+    updates: Partial<Omit<LayerConfig, 'type'>>
+  ) => void
+  removeFloorAssemblyBottomLayer: (id: FloorAssemblyId, index: number) => void
+  moveFloorAssemblyBottomLayer: (id: FloorAssemblyId, fromIndex: number, toIndex: number) => void
 
   // Queries
   getFloorAssemblyById: (id: FloorAssemblyId) => FloorAssemblyConfig | null
@@ -45,7 +69,9 @@ const createDefaultFloorAssemblies = (): FloorAssemblyConfig[] => [
     material: clt180.id,
     layers: {
       topThickness: 60,
-      bottomThickness: 0
+      topLayers: DEFAULT_FLOOR_LAYER_SETS['Screet'],
+      bottomThickness: 0,
+      bottomLayers: []
     }
   },
   {
@@ -56,7 +82,9 @@ const createDefaultFloorAssemblies = (): FloorAssemblyConfig[] => [
     material: concrete.id,
     layers: {
       topThickness: 60,
-      bottomThickness: 0
+      topLayers: DEFAULT_FLOOR_LAYER_SETS['Screet'],
+      bottomThickness: 0,
+      bottomLayers: []
     }
   }
 ]
@@ -202,6 +230,214 @@ export const createFloorAssembliesSlice: StateCreator<
       getDefaultFloorAssemblyId: () => {
         const state = get()
         return state.defaultFloorAssemblyId
+      },
+
+      addFloorAssemblyTopLayer: (id: FloorAssemblyId, layer: LayerConfig) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const topLayers = appendLayer(config.layers.topLayers, layer)
+          const topThickness = sumLayerThickness(topLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, topLayers, topThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
+      },
+
+      setFloorAssemblyTopLayers: (id: FloorAssemblyId, layers: LayerConfig[]) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const topLayers = sanitizeLayerArray(layers)
+          const topThickness = sumLayerThickness(topLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, topLayers, topThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
+      },
+
+      updateFloorAssemblyTopLayer: (
+        id: FloorAssemblyId,
+        index: number,
+        updates: Partial<Omit<LayerConfig, 'type'>>
+      ) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const topLayers = updateLayerAt(config.layers.topLayers, index, updates)
+          const topThickness = sumLayerThickness(topLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, topLayers, topThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
+      },
+
+      removeFloorAssemblyTopLayer: (id: FloorAssemblyId, index: number) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const topLayers = removeLayerAt(config.layers.topLayers, index)
+          const topThickness = sumLayerThickness(topLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, topLayers, topThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
+      },
+
+      moveFloorAssemblyTopLayer: (id: FloorAssemblyId, fromIndex: number, toIndex: number) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const topLayers = moveLayer(config.layers.topLayers, fromIndex, toIndex)
+          const topThickness = sumLayerThickness(topLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, topLayers, topThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
+      },
+
+      addFloorAssemblyBottomLayer: (id: FloorAssemblyId, layer: LayerConfig) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const bottomLayers = appendLayer(config.layers.bottomLayers, layer)
+          const bottomThickness = sumLayerThickness(bottomLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, bottomLayers, bottomThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
+      },
+
+      setFloorAssemblyBottomLayers: (id: FloorAssemblyId, layers: LayerConfig[]) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const bottomLayers = sanitizeLayerArray(layers)
+          const bottomThickness = sumLayerThickness(bottomLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, bottomLayers, bottomThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
+      },
+
+      updateFloorAssemblyBottomLayer: (
+        id: FloorAssemblyId,
+        index: number,
+        updates: Partial<Omit<LayerConfig, 'type'>>
+      ) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const bottomLayers = updateLayerAt(config.layers.bottomLayers, index, updates)
+          const bottomThickness = sumLayerThickness(bottomLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, bottomLayers, bottomThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
+      },
+
+      removeFloorAssemblyBottomLayer: (id: FloorAssemblyId, index: number) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const bottomLayers = removeLayerAt(config.layers.bottomLayers, index)
+          const bottomThickness = sumLayerThickness(bottomLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, bottomLayers, bottomThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
+      },
+
+      moveFloorAssemblyBottomLayer: (id: FloorAssemblyId, fromIndex: number, toIndex: number) => {
+        set(state => {
+          const config = state.floorAssemblyConfigs[id]
+          if (config == null) return state
+
+          const bottomLayers = moveLayer(config.layers.bottomLayers, fromIndex, toIndex)
+          const bottomThickness = sumLayerThickness(bottomLayers)
+          const updatedConfig: FloorAssemblyConfig = {
+            ...config,
+            layers: { ...config.layers, bottomLayers, bottomThickness }
+          }
+          validateFloorConfig(updatedConfig)
+
+          return {
+            ...state,
+            floorAssemblyConfigs: { ...state.floorAssemblyConfigs, [id]: updatedConfig }
+          }
+        })
       }
     } satisfies FloorAssembliesActions
   }
