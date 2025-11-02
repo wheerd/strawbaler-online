@@ -120,10 +120,10 @@ function renderStrawLayoutSvg(elements: ConstructionElement[], options?: { paddi
 
   const bounds = elements.filter(element => element.shape.type === 'cuboid').map(element => element.bounds)
 
-  const minX = Math.min(...bounds.map(b => Number(b.min[0])))
-  const maxX = Math.max(...bounds.map(b => Number(b.max[0])))
-  const minZ = Math.min(...bounds.map(b => Number(b.min[2])))
-  const maxZ = Math.max(...bounds.map(b => Number(b.max[2])))
+  const minX = Math.min(...bounds.map(b => b.min[0]))
+  const maxX = Math.max(...bounds.map(b => b.max[0]))
+  const minZ = Math.min(...bounds.map(b => b.min[2]))
+  const maxZ = Math.max(...bounds.map(b => b.max[2]))
 
   const width = maxX - minX
   const height = maxZ - minZ
@@ -134,10 +134,10 @@ function renderStrawLayoutSvg(elements: ConstructionElement[], options?: { paddi
   const rectangles = elements
     .filter(element => element.shape.type === 'cuboid')
     .map(element => ({
-      minX: Number(element.bounds.min[0]),
-      maxX: Number(element.bounds.max[0]),
-      minZ: Number(element.bounds.min[2]),
-      maxZ: Number(element.bounds.max[2]),
+      minX: element.bounds.min[0],
+      maxX: element.bounds.max[0],
+      minZ: element.bounds.min[2],
+      maxZ: element.bounds.max[2],
       type: element.tags?.[0]?.id
     }))
     .sort((a, b) => a.minX - b.minX || a.minZ - b.minZ)

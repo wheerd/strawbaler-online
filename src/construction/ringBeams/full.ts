@@ -1,4 +1,4 @@
-import { vec2, vec3 } from 'gl-matrix'
+import { vec2 } from 'gl-matrix'
 
 import type { Perimeter, PerimeterCorner } from '@/building/model/model'
 import { createConstructionElement } from '@/construction/elements'
@@ -15,7 +15,6 @@ import { createExtrudedPolygon } from '@/construction/shapes'
 import { TAG_PERIMETER_INSIDE, TAG_PERIMETER_OUTSIDE } from '@/construction/tags'
 import {
   Bounds2D,
-  Bounds3D,
   type Polygon2D,
   lineFromPoints,
   lineIntersection,
@@ -29,10 +28,7 @@ export class FullRingBeamAssembly implements RingBeamAssembly<FullRingBeamConfig
   construct(perimeter: Perimeter, config: FullRingBeamConfig): ConstructionModel {
     const aggRes = aggregateResults([...this._constructFullRingBeam(perimeter, config)])
     const bounds2D = Bounds2D.fromPoints(perimeter.corners.map(c => c.outsidePoint))
-    const bounds3D = Bounds3D.fromMinMax(
-      vec3.fromValues(bounds2D.min[0], bounds2D.min[1], 0),
-      vec3.fromValues(bounds2D.max[0], bounds2D.max[1], config.height)
-    )
+    const bounds3D = bounds2D.toBounds3D('xy', 0, config.height)
 
     return {
       bounds: bounds3D,

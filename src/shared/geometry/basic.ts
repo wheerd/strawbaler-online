@@ -91,6 +91,30 @@ export class Bounds2D {
     return vec2.equals(this.min, this.max)
   }
 
+  toBounds3D(plane: Plane3D, minNormal: number, maxNormal: number): Bounds3D {
+    if (this.isEmpty || minNormal >= maxNormal) {
+      return Bounds3D.EMPTY
+    }
+
+    switch (plane) {
+      case 'xy':
+        return Bounds3D.fromMinMax(
+          vec3.fromValues(this.min[0], this.min[1], minNormal),
+          vec3.fromValues(this.max[0], this.max[1], maxNormal)
+        )
+      case 'xz':
+        return Bounds3D.fromMinMax(
+          vec3.fromValues(this.min[0], minNormal, this.min[1]),
+          vec3.fromValues(this.max[0], maxNormal, this.max[1])
+        )
+      case 'yz':
+        return Bounds3D.fromMinMax(
+          vec3.fromValues(minNormal, this.min[0], this.min[1]),
+          vec3.fromValues(maxNormal, this.max[0], this.max[1])
+        )
+    }
+  }
+
   pad(amount: number | vec2): Bounds2D {
     const padX = typeof amount === 'number' ? amount : amount[0]
     const padY = typeof amount === 'number' ? amount : amount[1]
@@ -233,7 +257,22 @@ export class Bounds3D {
   }
 
   get isEmpty(): boolean {
-    return vec3.equals(this.min, this.max)
+    return this.width === 0 && this.depth === 0 && this.height === 0
+  }
+
+  project(plane: Plane3D): Bounds2D {
+    if (this.isEmpty) {
+      return Bounds2D.EMPTY
+    }
+
+    switch (plane) {
+      case 'xy':
+        return Bounds2D.fromMinMax(vec2.fromValues(this.min[0], this.min[1]), vec2.fromValues(this.max[0], this.max[1]))
+      case 'xz':
+        return Bounds2D.fromMinMax(vec2.fromValues(this.min[0], this.min[2]), vec2.fromValues(this.max[0], this.max[2]))
+      case 'yz':
+        return Bounds2D.fromMinMax(vec2.fromValues(this.min[1], this.min[2]), vec2.fromValues(this.max[1], this.max[2]))
+    }
   }
 
   pad(amount: number | vec3): Bounds3D {

@@ -761,7 +761,7 @@ export class IfcImporter {
         if (profiles.length === 0) {
           const geometries = this.projectGeometry(context, wall)
           geometries.forEach(geometry => {
-            const height = geometry.bounds.max[2] - geometry.bounds.min[2]
+            const height = geometry.bounds.height
             geometry.polygons.forEach(polygon => {
               profiles.push({
                 footprint: { outer: polygon, holes: [] },

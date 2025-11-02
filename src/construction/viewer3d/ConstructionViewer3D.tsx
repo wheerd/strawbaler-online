@@ -21,14 +21,8 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
   const theme = useCanvasTheme()
   const exportFnRef = useRef<((format: ExportFormat) => void) | null>(null)
 
-  const centerX = (model.bounds.min[0] + model.bounds.max[0]) / 2
-  const centerY = (model.bounds.min[1] + model.bounds.max[1]) / 2
-  const centerZ = (model.bounds.min[2] + model.bounds.max[2]) / 2
-
-  const sizeX = model.bounds.max[0] - model.bounds.min[0]
-  const sizeY = model.bounds.max[1] - model.bounds.min[1]
-  const sizeZ = model.bounds.max[2] - model.bounds.min[2]
-  const maxSize = Math.max(sizeX, sizeY, sizeZ)
+  const [centerX, centerY, centerZ] = model.bounds.center
+  const maxSize = Math.max(...model.bounds.size)
 
   const cameraDistance = maxSize * 1.5
 

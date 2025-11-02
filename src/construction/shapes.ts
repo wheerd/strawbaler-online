@@ -36,24 +36,13 @@ export const createExtrudedPolygon = (
   const bounds2D = Bounds2D.fromPoints(polygon.outer.points)
   const minT = Math.min(thickness, 0)
   const maxT = Math.max(thickness, 0)
-  const min =
-    plane === 'xy'
-      ? vec3.fromValues(bounds2D.min[0], bounds2D.min[1], minT)
-      : plane === 'xz'
-        ? vec3.fromValues(bounds2D.min[0], minT, bounds2D.min[1])
-        : vec3.fromValues(minT, bounds2D.min[0], bounds2D.min[1])
-  const max =
-    plane === 'xy'
-      ? vec3.fromValues(bounds2D.max[0], bounds2D.max[1], maxT)
-      : plane === 'xz'
-        ? vec3.fromValues(bounds2D.max[0], maxT, bounds2D.max[1])
-        : vec3.fromValues(maxT, bounds2D.max[0], bounds2D.max[1])
+  const bounds3D = bounds2D.toBounds3D(plane, minT, maxT)
   return {
     type: 'polygon',
     polygon,
     plane,
     thickness,
-    bounds: Bounds3D.fromMinMax(min, max)
+    bounds: bounds3D
   }
 }
 
