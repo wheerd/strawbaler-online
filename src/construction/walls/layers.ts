@@ -233,7 +233,7 @@ export function constructWallLayers(
   const totalConstructionHeight =
     storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
 
-  const bottom = 0
+  const bottom = -storeyContext.floorConstructionThickness
   const top = totalConstructionHeight
 
   const baseInsideSpan = computeLayerSpan('inside', 0 as Length, wall, context)
