@@ -15,15 +15,7 @@ import { TOP_VIEW } from '@/construction/components/ConstructionPlan'
 import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 import { constructModel, constructStorey } from '@/construction/storey'
-import {
-  TAG_BASE_PLATE,
-  TAG_FLOOR_LAYER_CEILING,
-  TAG_FLOOR_LAYER_TOP,
-  TAG_TOP_PLATE,
-  TAG_WALLS,
-  TAG_WALL_LAYER_INSIDE,
-  TAG_WALL_LAYER_OUTSIDE
-} from '@/construction/tags'
+import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
 import { TOOL_GROUPS, getToolInfoById } from '@/editor/tools/system/metadata'
 import { replaceTool, useActiveToolId } from '@/editor/tools/system/store'
@@ -114,12 +106,12 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
             {
               icon: WallLayersIcon,
               title: 'Wall Layers',
-              tags: [TAG_WALL_LAYER_INSIDE.id, TAG_WALL_LAYER_OUTSIDE.id]
+              tags: ['wall-layer']
             },
             {
               icon: FloorLayersIcon,
               title: 'Floor/Ceiling Layers',
-              tags: [TAG_FLOOR_LAYER_TOP.id, TAG_FLOOR_LAYER_CEILING.id]
+              tags: ['floor-layer']
             }
           ]}
           refreshKey={[activeStoreyId, activePerimiters]}

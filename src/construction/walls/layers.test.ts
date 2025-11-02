@@ -13,6 +13,7 @@ import type { Opening, Perimeter, PerimeterCorner, PerimeterWall } from '@/build
 import type { ConstructionElement, GroupOrElement } from '@/construction/elements'
 import { clayPlaster, limePlaster } from '@/construction/materials/material'
 import type { ExtrudedPolygon } from '@/construction/shapes'
+import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE } from '@/construction/tags'
 import type { WallCornerInfo } from '@/construction/walls'
 import type { WallContext } from '@/construction/walls/corners/corners'
 import type { WallStoreyContext } from '@/construction/walls/segmentation'
@@ -258,6 +259,22 @@ describe('constructWallLayers', () => {
 
     expect(insidePolygon.polygon.outer.points[0][1]).toBeCloseTo(0)
     expect(insidePolygon.polygon.outer.points[1][1]).toBeCloseTo(3000)
+
+    const layerGroups = model.elements.filter((element): element is GroupOrElement => 'children' in element)
+    expect(layerGroups).toHaveLength(2)
+
+    const insideGroup = layerGroups.find(group => group.tags?.includes(TAG_WALL_LAYER_INSIDE))
+    const outsideGroup = layerGroups.find(group => group.tags?.includes(TAG_WALL_LAYER_OUTSIDE))
+
+    expect(insideGroup?.tags).toContain(TAG_LAYERS)
+    expect(outsideGroup?.tags).toContain(TAG_LAYERS)
+    const insideCustom = insideGroup?.tags?.find(tag => tag.category === 'wall-layer' && tag !== TAG_WALL_LAYER_INSIDE)
+    const outsideCustom = outsideGroup?.tags?.find(
+      tag => tag.category === 'wall-layer' && tag !== TAG_WALL_LAYER_OUTSIDE
+    )
+
+    expect(insideCustom?.label).toBe('Inside Layer')
+    expect(outsideCustom?.label).toBe('Outside Layer')
   })
 
   it('adds holes for openings', () => {

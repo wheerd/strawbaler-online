@@ -5,7 +5,7 @@ import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
 import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/construction/layers/types'
 import { type ConstructionModel } from '@/construction/model'
 import { type ConstructionResult, aggregateResults, yieldAsGroup } from '@/construction/results'
-import { TAG_FLOOR_LAYER_CEILING, TAG_FLOOR_LAYER_TOP } from '@/construction/tags'
+import { TAG_FLOOR_LAYER_BOTTOM, TAG_FLOOR_LAYER_TOP, TAG_LAYERS, createTag } from '@/construction/tags'
 import {
   type Length,
   type Polygon2D,
@@ -80,8 +80,13 @@ function* constructTopLayers(
   for (const layer of layers.topLayers) {
     cumulative = (cumulative + layer.thickness) as Length
     const currentOffset = (offset + (cumulative - layer.thickness)) as Length
+    const customTag = createTag('floor-layer', layer.name)
     for (const polygon of basePolygons) {
-      yield* yieldAsGroup(runLayerConstruction(polygon, currentOffset, layer), [TAG_FLOOR_LAYER_TOP])
+      yield* yieldAsGroup(runLayerConstruction(polygon, currentOffset, layer), [
+        TAG_FLOOR_LAYER_TOP,
+        TAG_LAYERS,
+        customTag
+      ])
     }
   }
 }
@@ -100,8 +105,9 @@ function* constructCeilingLayers(
   for (const layer of layers.bottomLayers) {
     cumulative = (cumulative + layer.thickness) as Length
     const offset = (ceilingStartHeight - cumulative) as Length
+    const customTag = createTag('floor-layer', layer.name)
     for (const polygon of basePolygons) {
-      yield* yieldAsGroup(runLayerConstruction(polygon, offset, layer), [TAG_FLOOR_LAYER_CEILING])
+      yield* yieldAsGroup(runLayerConstruction(polygon, offset, layer), [TAG_FLOOR_LAYER_BOTTOM, TAG_LAYERS, customTag])
     }
   }
 }

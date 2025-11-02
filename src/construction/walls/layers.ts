@@ -7,7 +7,7 @@ import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
 import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/construction/layers/types'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { type ConstructionResult, aggregateResults } from '@/construction/results'
-import { TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE } from '@/construction/tags'
+import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE, createTag } from '@/construction/tags'
 import {
   type Bounds3D,
   type Length,
@@ -240,15 +240,13 @@ export function constructWallLayers(
   const baseOutsideSpan = computeLayerSpan('outside', layers.outsideThickness, wall, context)
 
   const layerResults: ConstructionResult[] = []
-  const insideElements: GroupOrElement[] = []
-  const outsideElements: GroupOrElement[] = []
 
   if (layers.insideLayers.length > 0) {
     let insideOffset: Length = 0
     let cumulativeInside: Length = 0
     let previousSpan = baseInsideSpan
 
-    for (const layer of layers.insideLayers) {
+    layers.insideLayers.forEach(layer => {
       cumulativeInside = (cumulativeInside + layer.thickness) as Length
       const span = computeLayerSpan('inside', cumulativeInside, wall, context)
       const start = Math.min(span.start, previousSpan.start)
@@ -257,24 +255,29 @@ export function constructWallLayers(
       const polygonWithHoles = subtractOpenings(polygon, start, end, bottom, top, wall, storeyContext.floorTopOffset)
       const normalizedPolygon = normalizePolygonWithHoles(polygonWithHoles)
       const results = runLayerConstruction(normalizedPolygon, insideOffset, WALL_LAYER_PLANE, layer)
+      const layerElements: GroupOrElement[] = []
       for (const result of results) {
         if (result.type === 'element') {
-          insideElements.push(result.element)
+          layerElements.push(result.element)
         } else {
           layerResults.push(result)
         }
       }
+      if (layerElements.length > 0) {
+        const customTag = createTag('wall-layer', layer.name)
+        const group = createConstructionGroup(layerElements, IDENTITY, [TAG_WALL_LAYER_INSIDE, TAG_LAYERS, customTag])
+        layerResults.push({ type: 'element', element: group })
+      }
       insideOffset = (insideOffset + layer.thickness) as Length
       previousSpan = span
-    }
+    })
   }
 
   if (layers.outsideLayers.length > 0) {
     let outsideOffset: Length = (wall.thickness - layers.outsideThickness) as Length
     let remainingOutside: Length = layers.outsideThickness
     let previousSpan = baseOutsideSpan
-
-    for (const layer of layers.outsideLayers) {
+    layers.outsideLayers.forEach(layer => {
       remainingOutside = (remainingOutside - layer.thickness) as Length
       const depth = Math.max(remainingOutside, 0) as Length
       const span = computeLayerSpan('outside', depth, wall, context)
@@ -284,26 +287,22 @@ export function constructWallLayers(
       const polygonWithHoles = subtractOpenings(polygon, start, end, bottom, top, wall, storeyContext.floorTopOffset)
       const normalizedPolygon = normalizePolygonWithHoles(polygonWithHoles)
       const results = runLayerConstruction(normalizedPolygon, outsideOffset, WALL_LAYER_PLANE, layer)
+      const layerElements: GroupOrElement[] = []
       for (const result of results) {
         if (result.type === 'element') {
-          outsideElements.push(result.element)
+          layerElements.push(result.element)
         } else {
           layerResults.push(result)
         }
       }
+      if (layerElements.length > 0) {
+        const customTag = createTag('wall-layer', layer.name)
+        const group = createConstructionGroup(layerElements, IDENTITY, [TAG_WALL_LAYER_OUTSIDE, TAG_LAYERS, customTag])
+        layerResults.push({ type: 'element', element: group })
+      }
       outsideOffset = (outsideOffset + layer.thickness) as Length
       previousSpan = span
-    }
-  }
-
-  if (insideElements.length > 0) {
-    const group = createConstructionGroup(insideElements, IDENTITY, [TAG_WALL_LAYER_INSIDE])
-    layerResults.push({ type: 'element', element: group })
-  }
-
-  if (outsideElements.length > 0) {
-    const group = createConstructionGroup(outsideElements, IDENTITY, [TAG_WALL_LAYER_OUTSIDE])
-    layerResults.push({ type: 'element', element: group })
+    })
   }
 
   const rawModel = aggregateLayerResults(layerResults)

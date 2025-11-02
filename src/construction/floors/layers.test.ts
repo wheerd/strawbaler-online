@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { constructFloorLayers } from '@/construction/floors/layers'
 import type { FloorAssemblyConfigBase, FloorLayersConfig } from '@/construction/floors/types'
-import { TAG_FLOOR_LAYER_CEILING, TAG_FLOOR_LAYER_TOP } from '@/construction/tags'
+import { TAG_FLOOR_LAYER_BOTTOM, TAG_FLOOR_LAYER_TOP, TAG_LAYERS } from '@/construction/tags'
 import type { Polygon2D } from '@/shared/geometry'
 
 vi.mock('@/shared/geometry', async importOriginal => {
@@ -73,12 +73,21 @@ describe('constructFloorLayers', () => {
 
     expect(results).not.toHaveLength(0)
 
-    const hasTopLayer = results.some(
+    const topGroupResult = results.find(
       result =>
         result.type === 'element' && 'children' in result.element && result.element.tags?.includes(TAG_FLOOR_LAYER_TOP)
     )
 
-    expect(hasTopLayer).toBe(true)
+    expect(topGroupResult).toBeDefined()
+    if (!topGroupResult || topGroupResult.type !== 'element' || !('children' in topGroupResult.element)) {
+      throw new Error('Expected top layer group')
+    }
+
+    const topGroup = topGroupResult.element
+
+    expect(topGroup.tags).toContain(TAG_LAYERS)
+    const customTag = topGroup.tags?.find(tag => tag.category === 'floor-layer' && tag.id !== TAG_FLOOR_LAYER_TOP.id)
+    expect(customTag?.label).toBe('Top Layer')
   })
 
   it('creates ceiling finish layers when next floor bottom layers exist', () => {
@@ -97,13 +106,24 @@ describe('constructFloorLayers', () => {
 
     expect(results).not.toHaveLength(0)
 
-    const hasCeilingLayer = results.some(
+    const ceilingGroupResult = results.find(
       result =>
         result.type === 'element' &&
         'children' in result.element &&
-        result.element.tags?.includes(TAG_FLOOR_LAYER_CEILING)
+        result.element.tags?.includes(TAG_FLOOR_LAYER_BOTTOM)
     )
 
-    expect(hasCeilingLayer).toBe(true)
+    expect(ceilingGroupResult).toBeDefined()
+    if (!ceilingGroupResult || ceilingGroupResult.type !== 'element' || !('children' in ceilingGroupResult.element)) {
+      throw new Error('Expected ceiling layer group')
+    }
+
+    const ceilingGroup = ceilingGroupResult.element
+
+    expect(ceilingGroup.tags).toContain(TAG_LAYERS)
+    const customTag = ceilingGroup.tags?.find(
+      tag => tag.category === 'floor-layer' && tag.id !== TAG_FLOOR_LAYER_BOTTOM.id
+    )
+    expect(customTag?.label).toBe('Bottom Layer')
   })
 })

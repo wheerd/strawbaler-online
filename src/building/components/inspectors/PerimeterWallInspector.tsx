@@ -10,7 +10,6 @@ import { BACK_VIEW, FRONT_VIEW, TOP_VIEW } from '@/construction/components/Const
 import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { useWallAssemblyById } from '@/construction/config/store'
-import { TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE } from '@/construction/tags'
 import { constructWall } from '@/construction/walls'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
@@ -264,7 +263,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               {
                 icon: WallLayersIcon,
                 title: 'Wall Layers',
-                tags: [TAG_WALL_LAYER_INSIDE.id, TAG_WALL_LAYER_OUTSIDE.id],
+                tags: ['wall-layer'],
                 defaultHidden: true
               }
             ]}

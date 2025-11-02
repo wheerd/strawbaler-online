@@ -11,15 +11,7 @@ import { ConstructionPlanModal } from '@/construction/components/ConstructionPla
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { constructPerimeter } from '@/construction/perimeter'
-import {
-  TAG_BASE_PLATE,
-  TAG_FLOOR_LAYER_CEILING,
-  TAG_FLOOR_LAYER_TOP,
-  TAG_TOP_PLATE,
-  TAG_WALLS,
-  TAG_WALL_LAYER_INSIDE,
-  TAG_WALL_LAYER_OUTSIDE
-} from '@/construction/tags'
+import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
@@ -190,12 +182,12 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
               {
                 icon: WallLayersIcon,
                 title: 'Wall Layers',
-                tags: [TAG_WALL_LAYER_INSIDE.id, TAG_WALL_LAYER_OUTSIDE.id]
+                tags: ['wall-layer']
               },
               {
                 icon: FloorLayersIcon,
                 title: 'Floor/Ceiling Layers',
-                tags: [TAG_FLOOR_LAYER_TOP.id, TAG_FLOOR_LAYER_CEILING.id]
+                tags: ['floor-layer']
               }
             ]}
             refreshKey={perimeter}

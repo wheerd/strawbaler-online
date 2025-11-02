@@ -26,6 +26,18 @@ export interface TagCategory {
   label: string
 }
 
+export const createTagId = (category: TagCategoryId, name: string): TagId =>
+  `${category}_${name
+    .trim()
+    .toLowerCase()
+    .replace(/[\W_]+/g, '-')}`
+
+export const createTag = (category: TagCategoryId, name: string): Tag => ({
+  category,
+  id: createTagId(category, name),
+  label: name
+})
+
 // Straw tags
 export const TAG_FULL_BALE: Tag = {
   id: 'straw_full-bale',
@@ -107,26 +119,28 @@ export const TAG_NON_STRAWBALE_CONSTRUCTION: Tag = {
   category: 'wall-construction-type'
 }
 
+// Wall layer
 export const TAG_WALL_LAYER_INSIDE: Tag = {
-  id: 'construction_wall-layer-inside',
+  id: 'wall-layer_inside',
   label: 'Inside Wall Layers',
   category: 'wall-layer'
 }
 
 export const TAG_WALL_LAYER_OUTSIDE: Tag = {
-  id: 'construction_wall-layer-outside',
+  id: 'wall-layer_outside',
   label: 'Outside Wall Layers',
   category: 'wall-layer'
 }
 
+// Floor layer
 export const TAG_FLOOR_LAYER_TOP: Tag = {
-  id: 'construction_floor-layer-top',
+  id: 'floor-layer_top',
   label: 'Floor Finish Layers',
   category: 'floor-layer'
 }
 
-export const TAG_FLOOR_LAYER_CEILING: Tag = {
-  id: 'construction_floor-layer-ceiling',
+export const TAG_FLOOR_LAYER_BOTTOM: Tag = {
+  id: 'floor-layer_bottom',
   label: 'Ceiling Finish Layers',
   category: 'floor-layer'
 }
@@ -255,14 +269,8 @@ export const TAG_STOREY: Tag = {
   category: 'construction'
 }
 
-export const TAG_INSIDE_LAYERS: Tag = {
-  id: 'construction_inside-layers',
-  label: 'Inside Layers',
-  category: 'construction'
-}
-
-export const TAG_OUTSIDE_LAYERS: Tag = {
-  id: 'construction_outside-layers',
-  label: 'Outside Layers',
+export const TAG_LAYERS: Tag = {
+  id: 'construction_layers',
+  label: 'Layers',
   category: 'construction'
 }
