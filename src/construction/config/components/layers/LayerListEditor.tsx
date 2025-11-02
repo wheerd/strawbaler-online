@@ -241,7 +241,7 @@ function LayerCard({
                 event.currentTarget.blur()
               }
             }}
-            placeholder={`Enter Layer Name`}
+            placeholder="Enter Layer Name"
             required
           />
           <LengthField

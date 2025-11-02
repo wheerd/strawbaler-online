@@ -1,10 +1,4 @@
-import {
-  createDefaultFloorBottomLayers,
-  createDefaultFloorTopLayers,
-  createDefaultInsideLayers,
-  createDefaultOutsideLayers
-} from '@/construction/layers/defaults'
-import { strawbale, wood120x60, woodwool } from '@/construction/materials/material'
+import { type MaterialId, strawbale, wood120x60, woodwool } from '@/construction/materials/material'
 
 export const CURRENT_VERSION = 5
 
@@ -155,8 +149,7 @@ export function applyMigrations(state: unknown): unknown {
 
       const ensureLayerArray = (
         key: 'insideLayers' | 'outsideLayers',
-        thicknessKey: 'insideThickness' | 'outsideThickness',
-        factory: (thickness: number) => unknown
+        thicknessKey: 'insideThickness' | 'outsideThickness'
       ) => {
         const existing = layerConfig[key]
         if (Array.isArray(existing)) {
@@ -164,11 +157,18 @@ export function applyMigrations(state: unknown): unknown {
         }
 
         const thickness = Number(layerConfig[thicknessKey] ?? 0)
-        layerConfig[key] = factory(Number.isFinite(thickness) ? thickness : 0)
+        layerConfig[key] = [
+          {
+            type: 'monolithic',
+            name: 'Default Layer',
+            material: 'material_invalid' as MaterialId,
+            thickness: Number.isFinite(thickness) ? Math.max(thickness, 0) : 0
+          }
+        ]
       }
 
-      ensureLayerArray('insideLayers', 'insideThickness', createDefaultInsideLayers)
-      ensureLayerArray('outsideLayers', 'outsideThickness', createDefaultOutsideLayers)
+      ensureLayerArray('insideLayers', 'insideThickness')
+      ensureLayerArray('outsideLayers', 'outsideThickness')
 
       const ensureLayerNames = (key: 'insideLayers' | 'outsideLayers', prefix: string) => {
         const layers = layerConfig[key]
@@ -211,8 +211,7 @@ export function applyMigrations(state: unknown): unknown {
 
       const ensureLayerArray = (
         key: 'topLayers' | 'bottomLayers',
-        thicknessKey: 'topThickness' | 'bottomThickness',
-        factory: (thickness: number) => unknown
+        thicknessKey: 'topThickness' | 'bottomThickness'
       ) => {
         const existing = layerConfig[key]
         if (Array.isArray(existing)) {
@@ -220,11 +219,18 @@ export function applyMigrations(state: unknown): unknown {
         }
 
         const thickness = Number(layerConfig[thicknessKey] ?? 0)
-        layerConfig[key] = factory(Number.isFinite(thickness) ? thickness : 0)
+        layerConfig[key] = [
+          {
+            type: 'monolithic',
+            name: 'Default Layer',
+            material: 'material_invalid' as MaterialId,
+            thickness: Number.isFinite(thickness) ? Math.max(thickness, 0) : 0
+          }
+        ]
       }
 
-      ensureLayerArray('topLayers', 'topThickness', createDefaultFloorTopLayers)
-      ensureLayerArray('bottomLayers', 'bottomThickness', createDefaultFloorBottomLayers)
+      ensureLayerArray('topLayers', 'topThickness')
+      ensureLayerArray('bottomLayers', 'bottomThickness')
 
       const ensureLayerNames = (key: 'topLayers' | 'bottomLayers', prefix: string) => {
         const layers = layerConfig[key]

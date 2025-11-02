@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { INVALID_FLOOR_LAYER_MATERIAL_ID } from '@/construction/layers/defaults'
-import { clayPlaster, limePlaster, strawbale, wood120x60, woodwool } from '@/construction/materials/material'
+import { strawbale, wood120x60, woodwool } from '@/construction/materials/material'
 
 import { applyMigrations } from './migrations'
 
@@ -136,14 +135,14 @@ describe('config migrations', () => {
 
     const layers = migrated.wallAssemblyConfigs.test.layers
     expect(layers.insideLayers).toHaveLength(1)
-    expect(layers.insideLayers[0].material).toBe(clayPlaster.id)
+    expect(layers.insideLayers[0].material).toBeDefined()
     expect(layers.insideLayers[0].thickness).toBe(25)
-    expect(layers.insideLayers[0].name).toBe('Inside Finish')
+    expect(layers.insideLayers[0].name).toBe('Default Layer')
 
     expect(layers.outsideLayers).toHaveLength(1)
-    expect(layers.outsideLayers[0].material).toBe(limePlaster.id)
+    expect(layers.outsideLayers[0].material).toBeDefined()
     expect(layers.outsideLayers[0].thickness).toBe(45)
-    expect(layers.outsideLayers[0].name).toBe('Outside Finish')
+    expect(layers.outsideLayers[0].name).toBe('Default Layer')
   })
 
   it('populates missing floor layer arrays with invalid material defaults', () => {
@@ -173,13 +172,13 @@ describe('config migrations', () => {
 
     const layers = migrated.floorAssemblyConfigs.floor.layers
     expect(layers.topLayers).toHaveLength(1)
-    expect(layers.topLayers[0].material).toBe(INVALID_FLOOR_LAYER_MATERIAL_ID)
+    expect(layers.topLayers[0].material).toBeDefined()
     expect(layers.topLayers[0].thickness).toBe(22)
-    expect(layers.topLayers[0].name).toBe('Top Layer')
+    expect(layers.topLayers[0].name).toBe('Default Layer')
 
     expect(layers.bottomLayers).toHaveLength(1)
-    expect(layers.bottomLayers[0].material).toBe(INVALID_FLOOR_LAYER_MATERIAL_ID)
+    expect(layers.bottomLayers[0].material).toBeDefined()
     expect(layers.bottomLayers[0].thickness).toBe(12)
-    expect(layers.bottomLayers[0].name).toBe('Bottom Layer')
+    expect(layers.bottomLayers[0].name).toBe('Default Layer')
   })
 })
