@@ -11,17 +11,25 @@ import {
   distanceToInfiniteLine,
   perpendicular,
   polygonEdgeOffset,
-  subtractPolygons
+  subtractPolygons,
+  unionPolygons
 } from '@/shared/geometry'
 
 import { getConfigActions } from './config'
-import { FLOOR_ASSEMBLIES } from './floors'
+import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from './floors'
 import { type ConstructionModel, mergeModels, transformModel } from './model'
 import { computeFloorConstructionPolygon, constructPerimeter } from './perimeter'
 import { TAG_STOREY } from './tags'
+import { createWallStoreyContext } from './walls'
 
 export function constructStoreyFloor(storeyId: StoreyId): ConstructionModel[] {
-  const { getPerimetersByStorey, getFloorAreasByStorey, getFloorOpeningsByStorey, getStoreyById } = getModelActions()
+  const {
+    getPerimetersByStorey,
+    getFloorAreasByStorey,
+    getFloorOpeningsByStorey,
+    getStoreyById,
+    getStoreysOrderedByLevel
+  } = getModelActions()
   const storey = getStoreyById(storeyId)
   if (!storey) {
     throw new Error('Invalid storey')
@@ -35,15 +43,61 @@ export function constructStoreyFloor(storeyId: StoreyId): ConstructionModel[] {
 
   const perimeters = getPerimetersByStorey(storeyId)
   const wallFaces = createWallFaceOffsets(perimeters)
-  const perimeterPolygons = perimeters.map(perimeter => computeFloorConstructionPolygon(perimeter))
 
-  const floorAreas = getFloorAreasByStorey(storeyId).map(a => applyWallFaceOffsets(a.area, wallFaces))
-  const openings = getFloorOpeningsByStorey(storeyId).map(o => applyWallFaceOffsets(o.area, wallFaces))
+  const perimeterPolygons = perimeters.map(computeFloorConstructionPolygon)
 
-  const floorPolygons = subtractPolygons([...perimeterPolygons, ...floorAreas], openings)
+  const floorAreas = getFloorAreasByStorey(storeyId).map(area => applyWallFaceOffsets(area.area, wallFaces))
+  const floorOpenings = unionPolygons(
+    getFloorOpeningsByStorey(storeyId).map(opening => applyWallFaceOffsets(opening.area, wallFaces))
+  )
+
+  const floorPolygons = subtractPolygons([...perimeterPolygons, ...floorAreas], floorOpenings)
   const floorAssembly = FLOOR_ASSEMBLIES[floorAssemblyConfig.type]
   const floorModels = floorPolygons.map(p => floorAssembly.construct(p, floorAssemblyConfig))
-  return floorModels
+
+  const allStoreys = getStoreysOrderedByLevel()
+  const currentIndex = allStoreys.findIndex(s => s.id === storey.id)
+  const nextStorey = currentIndex >= 0 && currentIndex < allStoreys.length - 1 ? allStoreys[currentIndex + 1] : null
+  const nextFloorAssemblyConfig = nextStorey ? getFloorAssemblyById(nextStorey.floorAssemblyId) : null
+
+  const storeyContext = createWallStoreyContext(storey, floorAssemblyConfig, nextFloorAssemblyConfig ?? null)
+  const ceilingStartHeight = (storeyContext.floorTopOffset +
+    storeyContext.storeyHeight +
+    storeyContext.ceilingBottomOffset) as Length
+
+  let nextFloorOpenings: Polygon2D[] = []
+  if (nextStorey && nextFloorAssemblyConfig) {
+    const nextPerimeters = getPerimetersByStorey(nextStorey.id)
+    if (nextPerimeters.length > 0) {
+      const nextWallFaces = createWallFaceOffsets(nextPerimeters)
+      nextFloorOpenings = unionPolygons(
+        getFloorOpeningsByStorey(nextStorey.id).map(opening => applyWallFaceOffsets(opening.area, nextWallFaces))
+      )
+    }
+  }
+
+  const floorLayerModels: ConstructionModel[] = []
+
+  const innerPolygons = perimeters.map(perimeter => ({
+    points: perimeter.corners.map(corner => vec2.fromValues(corner.insidePoint[0], corner.insidePoint[1]))
+  }))
+  innerPolygons.forEach(finishedPolygon => {
+    const floorLayerModel = constructFloorLayerModel({
+      finishedPolygon,
+      topHoles: floorOpenings,
+      ceilingHoles: nextFloorOpenings,
+      currentFloorConfig: floorAssemblyConfig,
+      nextFloorConfig: nextFloorAssemblyConfig ?? null,
+      floorTopOffset: storeyContext.floorTopOffset,
+      ceilingStartHeight
+    })
+
+    if (floorLayerModel) {
+      floorLayerModels.push(floorLayerModel)
+    }
+  })
+
+  return [...floorModels, ...floorLayerModels]
 }
 
 export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
@@ -68,7 +122,10 @@ export function constructModel(): ConstructionModel | null {
       throw new Error('Invalid floor assembly id')
     }
     const floorAssembly = FLOOR_ASSEMBLIES[floor.type]
-    zOffset += floorAssembly.getBottomOffset(floor) + floorAssembly.getConstructionThickness(floor)
+    zOffset +=
+      floor.layers.bottomThickness +
+      floorAssembly.getBottomOffset(floor) +
+      floorAssembly.getConstructionThickness(floor)
     const model = constructStorey(storey.id)
     if (model) {
       models.push(

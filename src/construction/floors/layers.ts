@@ -3,7 +3,8 @@ import { vec2 } from 'gl-matrix'
 import type { FloorAssemblyConfigBase, FloorLayersConfig } from '@/construction/floors/types'
 import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
 import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/construction/layers/types'
-import { type ConstructionResult, yieldAsGroup } from '@/construction/results'
+import { type ConstructionModel } from '@/construction/model'
+import { type ConstructionResult, aggregateResults, yieldAsGroup } from '@/construction/results'
 import { TAG_FLOOR_LAYER_CEILING, TAG_FLOOR_LAYER_TOP } from '@/construction/tags'
 import {
   type Length,
@@ -11,6 +12,7 @@ import {
   type PolygonWithHoles2D,
   ensurePolygonIsClockwise,
   ensurePolygonIsCounterClockwise,
+  mergeBounds,
   simplifyPolygon,
   subtractPolygons
 } from '@/shared/geometry'
@@ -119,5 +121,19 @@ export function* constructFloorLayers({
   if (nextFloorConfig) {
     const ceilingPolygon = buildPolygonWithHoles(finishedPolygon, ceilingHoles)
     yield* constructCeilingLayers(ceilingPolygon, nextFloorConfig.layers, ceilingStartHeight)
+  }
+}
+
+export function constructFloorLayerModel(options: FloorLayerOptions): ConstructionModel | null {
+  const floorLayersConstruction = Array.from(constructFloorLayers(options))
+
+  if (floorLayersConstruction.length === 0) {
+    return null
+  }
+
+  const results = aggregateResults(floorLayersConstruction)
+  return {
+    ...results,
+    bounds: mergeBounds(...results.elements.map(element => element.bounds))
   }
 }
