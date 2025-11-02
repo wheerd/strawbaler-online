@@ -4,6 +4,7 @@ import type { Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { FLOOR_ASSEMBLIES, constructFloorLayers } from '@/construction/floors'
 import { IDENTITY } from '@/construction/geometry'
+import { aggregateResults } from '@/construction/results'
 import { applyWallFaceOffsets, createWallFaceOffsets } from '@/construction/storey'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
 import {
@@ -16,6 +17,7 @@ import {
   calculatePolygonArea,
   calculatePolygonWithHolesArea,
   lineIntersection,
+  mergeBounds,
   polygonPerimeter,
   subtractPolygons,
   unionPolygons
@@ -166,18 +168,26 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
       }
     }
 
-    const floorLayersModel = constructFloorLayers({
-      finishedPolygon: finishedFloorPolygon,
-      topHoles,
-      ceilingHoles,
-      currentFloorConfig: currentFloorAssembly,
-      nextFloorConfig: nextFloorAssembly ?? null,
-      floorTopOffset: storeyContext.floorTopOffset,
-      ceilingStartHeight:
-        (storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset) as Length
-    })
-    if (floorLayersModel) {
-      allModels.push(floorLayersModel)
+    const floorLayersConstruction = Array.from(
+      constructFloorLayers({
+        finishedPolygon: finishedFloorPolygon,
+        topHoles,
+        ceilingHoles,
+        currentFloorConfig: currentFloorAssembly,
+        nextFloorConfig: nextFloorAssembly ?? null,
+        floorTopOffset: storeyContext.floorTopOffset,
+        ceilingStartHeight: (storeyContext.storeyHeight +
+          storeyContext.floorTopOffset +
+          storeyContext.ceilingBottomOffset) as Length
+      })
+    )
+
+    if (floorLayersConstruction.length > 0) {
+      const results = aggregateResults(floorLayersConstruction)
+      allModels.push({
+        ...results,
+        bounds: mergeBounds(...results.elements.map(e => e.bounds))
+      })
     }
   }
 
