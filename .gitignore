@@ -27,3 +27,10 @@ dist-ssr
 
 coverage
 *.actual.svg
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
