@@ -237,6 +237,12 @@ describe('StoreyManagementService', () => {
         id: 'perimeter-1' as PerimeterId,
         storeyId: 'storey-1' as StoreyId,
         referenceSide: 'inside' as const,
+        referencePolygon: [
+          vec2.fromValues(0, 0),
+          vec2.fromValues(10, 0),
+          vec2.fromValues(10, 10),
+          vec2.fromValues(0, 10)
+        ],
         corners: [
           { insidePoint: vec2.fromValues(0, 0) },
           { insidePoint: vec2.fromValues(10, 0) },

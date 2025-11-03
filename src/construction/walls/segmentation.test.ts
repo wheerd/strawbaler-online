@@ -73,6 +73,7 @@ function createMockPerimeter(walls: PerimeterWall[]): Perimeter {
     id: createPerimeterId(),
     storeyId: 'test-storey' as any,
     referenceSide: 'inside',
+    referencePolygon: [],
     walls,
     corners: [],
     baseRingBeamAssemblyId: 'base-assembly' as any,

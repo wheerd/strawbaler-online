@@ -191,6 +191,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           id: createPerimeterId(),
           storeyId,
           referenceSide,
+          referencePolygon: boundary.points.map(point => vec2.clone(point)),
           walls,
           corners,
           baseRingBeamAssemblyId,
@@ -228,7 +229,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         if (cornerIndex === -1 || perimeter.corners.length < 4) return
 
         // Validation - check if removal would create self-intersecting polygon
-        const newBoundaryPoints = perimeter.corners.map((c: PerimeterCorner) => c.insidePoint)
+        const newBoundaryPoints = perimeter.referencePolygon.map(point => vec2.clone(point))
         newBoundaryPoints.splice(cornerIndex, 1)
         if (wouldClosingPolygonSelfIntersect({ points: newBoundaryPoints })) return
 
@@ -251,7 +252,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         if (wallIndex === -1 || perimeter.walls.length < 5) return
 
         // Validation - check if removal would create self-intersecting polygon
-        const newBoundaryPoints = perimeter.corners.map((c: PerimeterCorner) => c.insidePoint)
+        const newBoundaryPoints = perimeter.referencePolygon.map(point => vec2.clone(point))
         const cornerIndex1 = wallIndex
         const cornerIndex2 = (wallIndex + 1) % perimeter.corners.length
 
@@ -300,15 +301,18 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           if (splitPosition > openingStart && splitPosition < openingEnd) return
         }
 
-        // Calculate split point in world coordinates
+        // Calculate split points in world coordinates based on the reference side
         const wallDirection = originalWall.direction
-        const splitPoint = vec2.scaleAndAdd(vec2.create(), originalWall.insideLine.start, wallDirection, splitPosition)
+        const referenceLine = perimeter.referenceSide === 'inside' ? originalWall.insideLine : originalWall.outsideLine
+        const referenceSplitPoint = vec2.scaleAndAdd(vec2.create(), referenceLine.start, wallDirection, splitPosition)
 
         // Create new corner at split position
         const newCorner: PerimeterCorner = {
           id: createPerimeterCornerId(),
-          insidePoint: splitPoint,
-          outsidePoint: vec2.fromValues(0, 0), // Will be calculated by updatePerimeterGeometry
+          insidePoint:
+            perimeter.referenceSide === 'inside' ? vec2.clone(referenceSplitPoint) : vec2.fromValues(0, 0),
+          outsidePoint:
+            perimeter.referenceSide === 'outside' ? vec2.clone(referenceSplitPoint) : vec2.fromValues(0, 0),
           constructedByWall: 'next',
           interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
           exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
@@ -362,6 +366,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         // Insert new corner at the correct position
         const cornerIndex = wallIndex + 1
         perimeter.corners.splice(cornerIndex, 0, newCorner)
+        perimeter.referencePolygon.splice(cornerIndex, 0, vec2.clone(referenceSplitPoint))
 
         // Replace original wall with two new walls
         perimeter.walls.splice(wallIndex, 1, firstWall, secondWall)
@@ -692,19 +697,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         const perimeter = state.perimeters[perimeterId]
         if (!perimeter) return
 
-        // Directly translate all corner points
-        perimeter.corners.forEach((corner: PerimeterCorner) => {
-          corner.insidePoint = vec2.add(vec2.create(), corner.insidePoint, offset)
-          corner.outsidePoint = vec2.add(vec2.create(), corner.outsidePoint, offset)
-        })
-
-        // Directly translate all wall line endpoints
-        perimeter.walls.forEach((wall: PerimeterWall) => {
-          wall.insideLine.start = vec2.add(vec2.create(), wall.insideLine.start, offset)
-          wall.insideLine.end = vec2.add(vec2.create(), wall.insideLine.end, offset)
-          wall.outsideLine.start = vec2.add(vec2.create(), wall.outsideLine.start, offset)
-          wall.outsideLine.end = vec2.add(vec2.create(), wall.outsideLine.end, offset)
-        })
+        perimeter.referencePolygon = perimeter.referencePolygon.map(point =>
+          vec2.add(vec2.create(), point, offset)
+        )
+        updatePerimeterGeometry(perimeter)
       })
 
       return true
@@ -727,17 +723,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         const perimeter = state.perimeters[perimeterId]
         if (!perimeter || perimeter.corners.length !== newPolygon.points.length) return
 
-        if (perimeter.referenceSide === 'inside') {
-          perimeter.corners.forEach((corner: PerimeterCorner, index: number) => {
-            corner.insidePoint = vec2.clone(newPolygon.points[index])
-          })
-        } else {
-          perimeter.corners.forEach((corner: PerimeterCorner, index: number) => {
-            corner.outsidePoint = vec2.clone(newPolygon.points[index])
-          })
-        }
-
-        // Recalculate all geometry with the new boundary
+        perimeter.referencePolygon = newPolygon.points.map(point => vec2.clone(point))
         updatePerimeterGeometry(perimeter)
         success = true
       })
@@ -788,6 +774,12 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         if (!perimeter) return
         if (perimeter.referenceSide === referenceSide) return
 
+        const boundaryPoints =
+          referenceSide === 'inside'
+            ? perimeter.corners.map(corner => vec2.clone(corner.insidePoint))
+            : perimeter.corners.map(corner => vec2.clone(corner.outsidePoint))
+
+        perimeter.referencePolygon = boundaryPoints
         perimeter.referenceSide = referenceSide
         updatePerimeterGeometry(perimeter)
       })
@@ -1014,31 +1006,37 @@ const updateWallGeometry = (wall: PerimeterWall, startCorner: PerimeterCorner, e
 
 // High-level helper to recalculate all perimeter geometry in place
 const updatePerimeterGeometry = (perimeter: Perimeter): void => {
-  const boundaryPoints =
-    perimeter.referenceSide === 'inside'
-      ? perimeter.corners.map((c: PerimeterCorner) => vec2.clone(c.insidePoint))
-      : perimeter.corners.map((c: PerimeterCorner) => vec2.clone(c.outsidePoint))
+  if (perimeter.referencePolygon.length !== perimeter.corners.length) {
+    throw new Error('Reference polygon and corners are out of sync')
+  }
 
-  const boundary = { points: boundaryPoints }
+  if (perimeter.referencePolygon.length !== perimeter.walls.length) {
+    throw new Error('Reference polygon and walls are out of sync')
+  }
+
+  const canonical = ensurePolygonIsClockwise({
+    points: perimeter.referencePolygon.map(point => vec2.clone(point))
+  })
+
+  perimeter.referencePolygon = canonical.points.map(point => vec2.clone(point))
+
   const thicknesses = perimeter.walls.map((wall: PerimeterWall) => wall.thickness)
-  const infiniteLines = createInfiniteLines(boundary, thicknesses, perimeter.referenceSide)
+  const infiniteLines = createInfiniteLines({ points: perimeter.referencePolygon }, thicknesses, perimeter.referenceSide)
 
   if (perimeter.referenceSide === 'inside') {
     perimeter.corners.forEach((corner: PerimeterCorner, index: number) => {
-      corner.insidePoint = vec2.clone(boundary.points[index])
+      corner.insidePoint = vec2.clone(perimeter.referencePolygon[index])
     })
     updateAllCornerOutsidePoints(perimeter.corners, thicknesses, infiniteLines)
   } else {
     perimeter.corners.forEach((corner: PerimeterCorner, index: number) => {
-      corner.outsidePoint = vec2.clone(boundary.points[index])
+      corner.outsidePoint = vec2.clone(perimeter.referencePolygon[index])
     })
     updateAllCornerInsidePoints(perimeter.corners, thicknesses, infiniteLines)
   }
 
-  // Update corner angles in place
   updateAllCornerAngles(perimeter.corners)
 
-  // Update wall geometry in place
   for (let i = 0; i < perimeter.walls.length; i++) {
     const startCorner = perimeter.corners[i]
     const endCorner = perimeter.corners[(i + 1) % perimeter.corners.length]
@@ -1075,6 +1073,7 @@ const removeCornerAndMergeWalls = (perimeter: Perimeter, cornerIndex: number): v
   const isExactlyStraight = corner.interiorAngle === 180
 
   perimeter.corners.splice(cornerIndex, 1)
+  perimeter.referencePolygon.splice(cornerIndex, 1)
 
   const mergedWall: PerimeterWall = {
     id: createPerimeterWallId(),
@@ -1126,6 +1125,11 @@ const removeWallAndMergeAdjacent = (perimeter: Perimeter, wallIndex: number): vo
   } else {
     perimeter.corners.splice(cornerIndex1, 1)
     perimeter.corners.splice(cornerIndex2, 1)
+  }
+
+  const polygonRemovalIndices = [cornerIndex1, cornerIndex2].sort((a, b) => b - a)
+  for (const index of polygonRemovalIndices) {
+    perimeter.referencePolygon.splice(index, 1)
   }
 
   // Remove the three walls (remove from highest index to avoid shifting)

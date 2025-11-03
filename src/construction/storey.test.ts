@@ -69,6 +69,7 @@ function createRectangularPerimeter(width: number, height: number, wallThickness
     id: 'perimeter-1' as PerimeterId,
     storeyId: 'storey-1' as StoreyId,
     referenceSide: 'inside',
+    referencePolygon: insideCorners.map(point => vec2.clone(point)),
     walls,
     corners,
     baseRingBeamAssemblyId: undefined,

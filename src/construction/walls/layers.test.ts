@@ -85,6 +85,7 @@ const createPerimeter = (wall: PerimeterWall, overrides: Partial<Perimeter> = {}
   id: createPerimeterId(),
   storeyId: createStoreyId(),
   referenceSide: 'inside',
+  referencePolygon: (overrides.referencePolygon as vec2[] | undefined) ?? ([] as unknown as vec2[]),
   walls: [wall],
   corners: [],
   ...overrides

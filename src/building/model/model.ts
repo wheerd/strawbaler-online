@@ -53,6 +53,7 @@ export interface Perimeter {
   id: PerimeterId
   storeyId: StoreyId
   referenceSide: PerimeterReferenceSide
+  referencePolygon: vec2[]
 
   // Per-side wall data
   walls: PerimeterWall[] // walls[i] goes from corners[i].insidePoint -> corners[(i + 1) % corners.length].insidePoint

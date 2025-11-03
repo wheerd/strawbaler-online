@@ -21,6 +21,12 @@ describe('PerimeterShape', () => {
     id: createPerimeterId(),
     storeyId: createStoreyId(),
     referenceSide: 'inside',
+    referencePolygon: [
+      vec2.fromValues(0, 0),
+      vec2.fromValues(1000, 0),
+      vec2.fromValues(1000, 1000),
+      vec2.fromValues(0, 1000)
+    ],
     walls: [
       {
         id: createPerimeterWallId(),

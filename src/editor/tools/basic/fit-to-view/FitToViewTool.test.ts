@@ -1,8 +1,8 @@
 import { vec2 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { StoreyId } from '@/building/model/ids'
-import type { Perimeter } from '@/building/model/model'
+import type { PerimeterId, StoreyId } from '@/building/model/ids'
+import type { Perimeter, PerimeterCorner, PerimeterWall } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
 import '@/shared/geometry/basic'
@@ -57,28 +57,50 @@ describe('FitToViewTool', () => {
   it('should perform fit to view and switch to select tool on activation', () => {
     const mockOuterWalls = [
       {
+        id: 'perimeter-fit-1' as PerimeterId,
+        storeyId: 'storey1' as StoreyId,
+        referenceSide: 'inside' as const,
+        referencePolygon: [
+          vec2.fromValues(-1000, -500),
+          vec2.fromValues(1000, -500),
+          vec2.fromValues(1000, 500),
+          vec2.fromValues(-1000, 500)
+        ],
+        walls: [] as PerimeterWall[],
         corners: [
           {
+            id: 'corner-fit-1' as any,
             insidePoint: vec2.fromValues(-1000, -500),
             outsidePoint: vec2.fromValues(-1100, -600),
-            constructedByWall: 'previous' as const
+            constructedByWall: 'previous' as const,
+            interiorAngle: 90,
+            exteriorAngle: 270
           },
           {
+            id: 'corner-fit-2' as any,
             insidePoint: vec2.fromValues(1000, -500),
             outsidePoint: vec2.fromValues(1100, -600),
-            constructedByWall: 'previous' as const
+            constructedByWall: 'previous' as const,
+            interiorAngle: 90,
+            exteriorAngle: 270
           },
           {
+            id: 'corner-fit-3' as any,
             insidePoint: vec2.fromValues(1000, 500),
             outsidePoint: vec2.fromValues(1100, 600),
-            constructedByWall: 'previous' as const
+            constructedByWall: 'previous' as const,
+            interiorAngle: 90,
+            exteriorAngle: 270
           },
           {
+            id: 'corner-fit-4' as any,
             insidePoint: vec2.fromValues(-1000, 500),
             outsidePoint: vec2.fromValues(-1100, 600),
-            constructedByWall: 'previous' as const
+            constructedByWall: 'previous' as const,
+            interiorAngle: 90,
+            exteriorAngle: 270
           }
-        ]
+        ] as PerimeterCorner[]
       } as Perimeter
     ]
 
@@ -111,28 +133,50 @@ describe('FitToViewTool', () => {
   it('should calculate correct zoom and pan for given bounds', () => {
     const mockOuterWalls = [
       {
+        id: 'perimeter-fit-2' as PerimeterId,
+        storeyId: 'storey1' as StoreyId,
+        referenceSide: 'inside' as const,
+        referencePolygon: [
+          vec2.fromValues(0, 0),
+          vec2.fromValues(2000, 0),
+          vec2.fromValues(2000, 800),
+          vec2.fromValues(0, 800)
+        ],
+        walls: [] as PerimeterWall[],
         corners: [
           {
+            id: 'corner-fit-5' as any,
             insidePoint: vec2.fromValues(0, 0),
             outsidePoint: vec2.fromValues(-100, -100),
-            constructedByWall: 'previous' as const
+            constructedByWall: 'previous' as const,
+            interiorAngle: 90,
+            exteriorAngle: 270
           },
           {
+            id: 'corner-fit-6' as any,
             insidePoint: vec2.fromValues(2000, 0),
             outsidePoint: vec2.fromValues(2100, -100),
-            constructedByWall: 'previous' as const
+            constructedByWall: 'previous' as const,
+            interiorAngle: 90,
+            exteriorAngle: 270
           },
           {
-            insidePoint: vec2.fromValues(2000, 1000),
-            outsidePoint: vec2.fromValues(2100, 1100),
-            constructedByWall: 'previous' as const
+            id: 'corner-fit-7' as any,
+            insidePoint: vec2.fromValues(2000, 800),
+            outsidePoint: vec2.fromValues(2100, 900),
+            constructedByWall: 'previous' as const,
+            interiorAngle: 90,
+            exteriorAngle: 270
           },
           {
-            insidePoint: vec2.fromValues(0, 1000),
-            outsidePoint: vec2.fromValues(-100, 1100),
-            constructedByWall: 'previous' as const
+            id: 'corner-fit-8' as any,
+            insidePoint: vec2.fromValues(0, 800),
+            outsidePoint: vec2.fromValues(-100, 900),
+            constructedByWall: 'previous' as const,
+            interiorAngle: 90,
+            exteriorAngle: 270
           }
-        ]
+        ] as PerimeterCorner[]
       } as Perimeter
     ]
 

@@ -86,6 +86,7 @@ describe('constructWall', () => {
     id: perimeterId,
     storeyId,
     referenceSide: 'inside',
+    referencePolygon: corners.map(corner => vec2.clone(corner.insidePoint)),
     walls,
     corners
   })

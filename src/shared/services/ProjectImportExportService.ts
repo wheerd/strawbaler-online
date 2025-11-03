@@ -22,6 +22,7 @@ export interface ExportedStorey {
 
 export interface ExportedPerimeter {
   referenceSide?: 'inside' | 'outside'
+  referencePolygon?: ExportedFloorPolygon
   corners: ExportedCorner[]
   walls: ExportedWall[]
   baseRingBeamAssemblyId?: string
@@ -125,6 +126,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           .map(opening => polygonToExport(opening.area))
         const perimeters = modelActions.getPerimetersByStorey(storey.id).map(perimeter => ({
           referenceSide: perimeter.referenceSide,
+          referencePolygon: polygonToExport({ points: perimeter.referencePolygon }),
           corners: perimeter.corners.map(corner => ({
             insideX: corner.insidePoint[0],
             insideY: corner.insidePoint[1],
@@ -218,8 +220,11 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
 
         // 6. Recreate perimeters - let store auto-compute all geometry
         exportedStorey.perimeters.forEach(exportedPerimeter => {
+          const boundaryPoints =
+            exportedPerimeter.referencePolygon?.points?.map(point => vec2.fromValues(point.x, point.y)) ??
+            exportedPerimeter.corners.map(c => vec2.fromValues(c.insideX, c.insideY))
           const boundary: Polygon2D = {
-            points: exportedPerimeter.corners.map(c => vec2.fromValues(c.insideX, c.insideY))
+            points: boundaryPoints
           }
 
           // Get assembly from first wall or use default

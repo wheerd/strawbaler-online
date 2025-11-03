@@ -65,6 +65,7 @@ function createMockPerimeter(walls: PerimeterWall[], corners: PerimeterCorner[])
     id: createPerimeterId(),
     storeyId: 'test-storey' as any,
     referenceSide: 'inside',
+    referencePolygon: corners.map(corner => vec2.clone(corner.insidePoint)),
     walls,
     corners
   } as Perimeter
