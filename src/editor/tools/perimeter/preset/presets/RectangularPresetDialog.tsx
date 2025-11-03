@@ -1,16 +1,20 @@
-import { Button, Dialog, Flex, Grid, Heading, Text } from '@radix-ui/themes'
+import { Button, Dialog, Flex, Grid, Heading, SegmentedControl, Text } from '@radix-ui/themes'
+import type { vec2 } from 'gl-matrix'
 import { useCallback, useEffect, useState } from 'react'
 
 import type { WallAssemblyId } from '@/building/model/ids'
+import type { PerimeterReferenceSide } from '@/building/model/model'
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { useConfigActions } from '@/construction/config/store'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { LengthField } from '@/shared/components/LengthField'
+import { offsetPolygon } from '@/shared/geometry'
 import '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatting'
 
+import { RectangularPreset } from './RectangularPreset'
 import type { RectangularPresetConfig } from './types'
 
 interface RectangularPresetDialogProps {
@@ -24,77 +28,91 @@ interface RectangularPresetDialogProps {
  * Shows inside dimensions (interior space) vs outside perimeter
  */
 function RectangularPreview({ config }: { config: RectangularPresetConfig }) {
-  const insideWidth = config.width
-  const insideLength = config.length
-  const outsideWidth = insideWidth + 2 * config.thickness
-  const outsideLength = insideLength + 2 * config.thickness
+  const preset = new RectangularPreset()
+  const referencePolygon = { points: preset.getPolygonPoints(config) }
 
-  // Scale for display (fit in preview area)
-  const maxDimension = Math.max(outsideWidth, outsideLength)
-  const scale = 200 / maxDimension
+  let derivedPolygon = referencePolygon
+  try {
+    const offset = offsetPolygon(referencePolygon, config.referenceSide === 'inside' ? config.thickness : -config.thickness)
+    if (offset.points.length > 0) {
+      derivedPolygon = offset
+    }
+  } catch (error) {
+    console.warn('Failed to compute rectangular preset preview offset:', error)
+  }
 
-  const displayOutsideWidth = outsideWidth * scale
-  const displayOutsideLength = outsideLength * scale
-  const displayInsideWidth = insideWidth * scale
-  const displayInsideLength = insideLength * scale
-  const scaledThickness = config.thickness * scale
+  const interiorPolygon = config.referenceSide === 'inside' ? referencePolygon : derivedPolygon
+  const exteriorPolygon = config.referenceSide === 'inside' ? derivedPolygon : referencePolygon
+
+  const interiorWidth =
+    Math.max(...interiorPolygon.points.map(point => point[0])) -
+    Math.min(...interiorPolygon.points.map(point => point[0]))
+  const interiorLength =
+    Math.max(...interiorPolygon.points.map(point => point[1])) -
+    Math.min(...interiorPolygon.points.map(point => point[1]))
+
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+
+  exteriorPolygon.points.forEach(point => {
+    minX = Math.min(minX, point[0])
+    minY = Math.min(minY, point[1])
+    maxX = Math.max(maxX, point[0])
+    maxY = Math.max(maxY, point[1])
+  })
+
+  const width = maxX - minX
+  const height = maxY - minY
+  const maxDimension = Math.max(width, height)
+  const scale = maxDimension > 0 ? 200 / maxDimension : 1
+  const centerX = 100
+  const centerY = 100
+
+  const transformPoint = (point: vec2) => ({
+    x: (point[0] - (minX + maxX) / 2) * scale + centerX,
+    y: -(point[1] - (minY + maxY) / 2) * scale + centerY
+  })
+
+  const exteriorPath =
+    exteriorPolygon.points
+      .map(transformPoint)
+      .reduce((path, point, index) => `${path}${index === 0 ? 'M' : 'L'} ${point.x} ${point.y} `, '') + 'Z'
+
+  const interiorPath =
+    interiorPolygon.points
+      .map(transformPoint)
+      .reduce((path, point, index) => `${path}${index === 0 ? 'M' : 'L'} ${point.x} ${point.y} `, '') + 'Z'
 
   return (
     <Flex direction="column" align="center">
-      <svg
-        width={displayOutsideWidth}
-        height={displayOutsideLength}
-        viewBox={`0 0 ${displayOutsideWidth} ${displayOutsideLength}`}
-        className="overflow-visible"
-      >
-        {/* Outer rectangle (perimeter walls) */}
-        <rect
-          width={displayOutsideWidth}
-          height={displayOutsideLength}
-          fill="var(--gray-3)"
-          stroke="var(--gray-8)"
-          strokeWidth="1"
-          strokeDasharray="3,3"
-        />
+      <svg width={200} height={200} viewBox="0 0 200 200" className="overflow-visible">
+        <path d={exteriorPath} fill="var(--gray-3)" stroke="var(--gray-8)" strokeWidth="1" strokeDasharray="3,3" />
+        <path d={interiorPath} fill="var(--accent-3)" stroke="var(--accent-8)" strokeWidth="2" />
 
-        {/* Inner rectangle (interior space) */}
-        <rect
-          x={scaledThickness}
-          y={scaledThickness}
-          width={displayInsideWidth}
-          height={displayInsideLength}
-          fill="var(--accent-3)"
-          stroke="var(--accent-8)"
-          strokeWidth="2"
-        />
-
-        {/* Dimension labels */}
         <text
           fill="var(--gray-12)"
           className="font-mono"
-          x={displayOutsideWidth / 2}
-          y={12 + scaledThickness}
+          x={100}
+          y={30}
           textAnchor="middle"
           fontSize={12}
-          style={{
-            filter: 'drop-shadow(1px 1px 2px var(--gray-1))'
-          }}
+          style={{ filter: 'drop-shadow(1px 1px 2px var(--gray-1))' }}
         >
-          {formatLength(insideWidth)}
+          {formatLength(interiorWidth)}
         </text>
         <text
           fill="var(--gray-12)"
           className="font-mono"
-          x={10 + scaledThickness}
-          y={displayOutsideLength / 2}
+          x={30}
+          y={100}
           textAnchor="middle"
           fontSize={12}
-          transform={`rotate(-90, ${12 + scaledThickness}, ${displayOutsideLength / 2})`}
-          style={{
-            filter: 'drop-shadow(1px 1px 2px var(--gray-1))'
-          }}
+          transform="rotate(-90 30 100)"
+          style={{ filter: 'drop-shadow(1px 1px 2px var(--gray-1))' }}
         >
-          {formatLength(insideLength)}
+          {formatLength(interiorLength)}
         </text>
       </svg>
     </Flex>
@@ -116,6 +134,7 @@ export function RectangularPresetDialog({
     wallAssemblyId: configStore.getDefaultWallAssemblyId(),
     baseRingBeamAssemblyId: configStore.getDefaultBaseRingBeamAssemblyId(),
     topRingBeamAssemblyId: configStore.getDefaultTopRingBeamAssemblyId(),
+    referenceSide: 'inside',
     ...initialConfig
   }))
 
@@ -126,13 +145,22 @@ export function RectangularPresetDialog({
     }
   }, [initialConfig])
 
+  const effectiveInteriorWidth =
+    config.referenceSide === 'inside' ? config.width : config.width - 2 * config.thickness
+  const effectiveInteriorLength =
+    config.referenceSide === 'inside' ? config.length : config.length - 2 * config.thickness
+
+  const isValid =
+    effectiveInteriorWidth > 0 &&
+    effectiveInteriorLength > 0 &&
+    config.thickness > 0 &&
+    (config.wallAssemblyId?.length ?? 0) > 0
+
   const handleConfirm = useCallback(() => {
-    if (config.width > 0 && config.length > 0 && config.thickness > 0 && config.wallAssemblyId) {
+    if (isValid) {
       onConfirm(config)
     }
-  }, [config, onConfirm])
-
-  const isValid = config.width > 0 && config.length > 0 && config.thickness > 0 && config.wallAssemblyId
+  }, [config, isValid, onConfirm])
 
   return (
     <BaseModal title="Rectangular Perimeter" trigger={trigger} size="3" maxWidth="600px">
@@ -199,6 +227,23 @@ export function RectangularPresetDialog({
                   size="1"
                   style={{ width: '100%' }}
                 />
+              </Flex>
+
+              {/* Reference Side */}
+              <Flex direction="column" gap="1">
+                <Text size="1" color="gray">
+                  Reference Side
+                </Text>
+                <SegmentedControl.Root
+                  size="1"
+                  value={config.referenceSide}
+                  onValueChange={value =>
+                    setConfig(prev => ({ ...prev, referenceSide: value as PerimeterReferenceSide }))
+                  }
+                >
+                  <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
+                  <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
+                </SegmentedControl.Root>
               </Flex>
 
               {/* Wall Assembly */}

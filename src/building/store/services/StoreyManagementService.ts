@@ -110,7 +110,7 @@ export class StoreyManagementService {
           thickness,
           sourcePerimeter.baseRingBeamAssemblyId,
           sourcePerimeter.topRingBeamAssemblyId,
-          'inside'
+          sourcePerimeter.referenceSide
         )
       }
     }

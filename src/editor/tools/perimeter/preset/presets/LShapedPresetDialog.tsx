@@ -3,6 +3,7 @@ import { vec2 } from 'gl-matrix'
 import { useCallback, useEffect, useState } from 'react'
 
 import type { WallAssemblyId } from '@/building/model/ids'
+import type { PerimeterReferenceSide } from '@/building/model/model'
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import { useConfigActions } from '@/construction/config/store'
@@ -29,13 +30,21 @@ interface LShapedPresetDialogProps {
 function LShapedPreview({ config }: { config: LShapedPresetConfig }) {
   const preset = new LShapedPreset()
 
-  // Get the polygon points (interior space) and side lengths
-  const interiorPoints = preset.getPolygonPoints(config)
-  const sideLengths = preset.getSideLengths(config)
+  const referencePolygon = { points: preset.getPolygonPoints(config) }
 
-  // Create outer wall polygon by offsetting outward
-  const interiorPolygon = { points: interiorPoints }
-  const exteriorPolygon = offsetPolygon(interiorPolygon, config.thickness)
+  let derivedPolygon = referencePolygon
+  try {
+    const offset = offsetPolygon(referencePolygon, config.referenceSide === 'inside' ? config.thickness : -config.thickness)
+    if (offset.points.length > 0) {
+      derivedPolygon = offset
+    }
+  } catch (error) {
+    console.warn('Failed to compute L-shaped preset preview offset:', error)
+  }
+
+  const interiorPolygon = config.referenceSide === 'inside' ? referencePolygon : derivedPolygon
+  const exteriorPolygon = config.referenceSide === 'inside' ? derivedPolygon : referencePolygon
+  const interiorPoints = interiorPolygon.points
   const exteriorPoints = exteriorPolygon.points
 
   // Calculate bounds for scaling (use exterior for proper sizing)
@@ -54,7 +63,7 @@ function LShapedPreview({ config }: { config: LShapedPresetConfig }) {
   const width = maxX - minX
   const height = maxY - minY
   const maxDimension = Math.max(width, height)
-  const scale = 200 / maxDimension
+  const scale = maxDimension > 0 ? 200 / maxDimension : 1
   const centerX = 100
   const centerY = 100
 
@@ -78,36 +87,31 @@ function LShapedPreview({ config }: { config: LShapedPresetConfig }) {
       return path + (index === 0 ? `M ${point.x} ${point.y}` : ` L ${point.x} ${point.y}`)
     }, '') + ' Z'
 
-  // Calculate label positions and rotations (offset inward from each side's midpoint)
   const labelPositions = scaledInteriorPoints.map((point, index) => {
     const nextPoint = scaledInteriorPoints[(index + 1) % scaledInteriorPoints.length]
     const midX = (point.x + nextPoint.x) / 2
     const midY = (point.y + nextPoint.y) / 2
 
-    // Calculate edge direction and normal vectors
     const dx = nextPoint.x - point.x
     const dy = nextPoint.y - point.y
     const edgeLength = Math.sqrt(dx * dx + dy * dy)
-    const normalX = dy / edgeLength // Perpendicular (inward) - corrected direction
-    const normalY = -dx / edgeLength // Perpendicular (inward) - corrected direction
+    const normalX = dy / edgeLength
+    const normalY = -dx / edgeLength
 
-    // Calculate text rotation angle along the edge
     let textAngle = (Math.atan2(dy, dx) * 180) / Math.PI
-
-    // Keep text readable (same logic as SvgMeasurementIndicator)
     if (textAngle > 90) {
       textAngle -= 180
     } else if (textAngle < -90) {
       textAngle += 180
     }
 
-    // Offset inward by 15 pixels
     const offsetDistance = 10
+    const interiorLength = Math.sqrt(Math.pow(nextPoint.x - point.x, 2) + Math.pow(nextPoint.y - point.y, 2)) / scale
 
     return {
       x: midX + normalX * offsetDistance,
       y: midY + normalY * offsetDistance,
-      length: sideLengths[index],
+      length: interiorLength,
       rotation: textAngle
     }
   })
@@ -163,6 +167,7 @@ export function LShapedPresetDialog({
     wallAssemblyId: configStore.getDefaultWallAssemblyId(),
     baseRingBeamAssemblyId: configStore.getDefaultBaseRingBeamAssemblyId(),
     topRingBeamAssemblyId: configStore.getDefaultTopRingBeamAssemblyId(),
+    referenceSide: 'inside',
     ...initialConfig
   }))
 
@@ -192,6 +197,23 @@ export function LShapedPresetDialog({
             <Heading size="2" weight="medium">
               Configuration
             </Heading>
+
+            {/* Reference Side */}
+            <Flex direction="column" gap="1">
+              <Text size="1" color="gray">
+                Reference Side
+              </Text>
+              <SegmentedControl.Root
+                size="1"
+                value={config.referenceSide}
+                onValueChange={value =>
+                  setConfig(prev => ({ ...prev, referenceSide: value as PerimeterReferenceSide }))
+                }
+              >
+                <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
+                <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
+              </SegmentedControl.Root>
+            </Flex>
 
             {/* Main Rectangle Dimensions */}
             <Flex direction="column" gap="2">

@@ -78,6 +78,8 @@ describe('ProjectImportExportService Integration', () => {
       'inside'
     )
 
+    modelActions.setPerimeterReferenceSide(perimeter.id, 'outside')
+
     // Add openings to walls
     const wall1 = perimeter.walls[0]
     const wall2 = perimeter.walls[1]
@@ -201,6 +203,8 @@ describe('ProjectImportExportService Integration', () => {
       for (let j = 0; j < originalPerimeters.length; j++) {
         const originalPerimeter = originalPerimeters[j]
         const importedPerimeter = importedPerimeters[j]
+
+        expect(importedPerimeter.referenceSide).toBe(originalPerimeter.referenceSide)
 
         // Compare perimeter ring beam settings
         expect(importedPerimeter.baseRingBeamAssemblyId).toBe(originalPerimeter.baseRingBeamAssemblyId)

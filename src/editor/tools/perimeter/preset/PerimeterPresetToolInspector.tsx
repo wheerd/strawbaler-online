@@ -59,8 +59,8 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
           </Callout.Icon>
           <Callout.Text>
             <Text size="1">
-              Presets create common building shapes with the <Text weight="bold">inside edge</Text> aligned to your
-              chosen dimensions. Configure the shape, then click to place it on the plan.
+              Presets create common building shapes with the reference edge you choose. Switch between inside or outside
+              dimensions, then click to place the perimeter on the plan.
             </Text>
           </Callout.Text>
         </Callout.Root>
@@ -72,7 +72,8 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
             width: 4000,
             length: 6000,
             thickness: 420,
-            wallAssemblyId: defaultWallAssemblyId
+            wallAssemblyId: defaultWallAssemblyId,
+            referenceSide: 'inside'
           }}
           trigger={
             <Button className="w-full" size="2">
@@ -92,7 +93,8 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
             length2: 3000,
             rotation: 0,
             thickness: 420,
-            wallAssemblyId: defaultWallAssemblyId
+            wallAssemblyId: defaultWallAssemblyId,
+            referenceSide: 'inside'
           }}
           trigger={
             <Button className="w-full" size="2">
@@ -115,7 +117,9 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
                 {/* Show preset-specific details */}
                 {state.activePreset?.type === 'rectangular' && (
                   <DataList.Item>
-                    <DataList.Label minWidth="80px">Dimensions</DataList.Label>
+                    <DataList.Label minWidth="80px">
+                      {currentConfig.referenceSide === 'outside' ? 'Outside Dimensions' : 'Inside Dimensions'}
+                    </DataList.Label>
                     <DataList.Value>
                       {formatLength((currentConfig as RectangularPresetConfig).width)} ×{' '}
                       {formatLength((currentConfig as RectangularPresetConfig).length)}
@@ -130,6 +134,7 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
                       <DataList.Value>
                         {formatLength((currentConfig as LShapedPresetConfig).width1)} ×{' '}
                         {formatLength((currentConfig as LShapedPresetConfig).length1)}
+                        {currentConfig.referenceSide === 'outside' ? ' (outside)' : ' (inside)'}
                       </DataList.Value>
                     </DataList.Item>
                     <DataList.Item>
@@ -137,6 +142,7 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
                       <DataList.Value>
                         {formatLength((currentConfig as LShapedPresetConfig).width2)} ×{' '}
                         {formatLength((currentConfig as LShapedPresetConfig).length2)}
+                        {currentConfig.referenceSide === 'outside' ? ' (outside)' : ' (inside)'}
                       </DataList.Value>
                     </DataList.Item>
                     <DataList.Item>
@@ -154,6 +160,11 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
                     </Flex>
                   </DataList.Label>
                   <DataList.Value>{formatLength(currentConfig.thickness)}</DataList.Value>
+                </DataList.Item>
+
+                <DataList.Item>
+                  <DataList.Label minWidth="80px">Reference Side</DataList.Label>
+                  <DataList.Value>{currentConfig.referenceSide === 'outside' ? 'Outside' : 'Inside'}</DataList.Value>
                 </DataList.Item>
 
                 <DataList.Item>

@@ -157,6 +157,12 @@ describe('ProjectImportExportService', () => {
         expect(parsed.configStore.straw.tolerance).toBe(2)
         expect(parsed.configStore.straw.topCutoffLimit).toBe(50)
         expect(parsed.configStore.straw.flakeSize).toBe(70)
+
+        const exportedStorey = parsed.modelStore.storeys[0]
+        expect(exportedStorey).toBeDefined()
+        if (exportedStorey.perimeters.length > 0) {
+          expect(exportedStorey.perimeters[0].referenceSide).toBeDefined()
+        }
       }
     })
 

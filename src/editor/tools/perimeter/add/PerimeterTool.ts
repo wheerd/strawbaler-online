@@ -1,15 +1,16 @@
 import { vec2 } from 'gl-matrix'
 
 import type { RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
+import type { PerimeterReferenceSide } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config/store'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
-import { PolygonToolOverlay } from '@/editor/tools/shared/polygon/PolygonToolOverlay'
 import type { ToolImplementation } from '@/editor/tools/system/types'
 import type { Length, Polygon2D } from '@/shared/geometry'
 import { polygonIsClockwise } from '@/shared/geometry'
 
+import { PerimeterToolOverlay } from './PerimeterToolOverlay'
 import { PerimeterToolInspector } from './PerimeterToolInspector'
 
 interface PerimeterToolState extends PolygonToolStateBase {
@@ -17,17 +18,19 @@ interface PerimeterToolState extends PolygonToolStateBase {
   wallThickness: Length
   baseRingBeamAssemblyId?: RingBeamAssemblyId
   topRingBeamAssemblyId?: RingBeamAssemblyId
+  referenceSide: PerimeterReferenceSide
 }
 
 export class PerimeterTool extends BasePolygonTool<PerimeterToolState> implements ToolImplementation {
   readonly id = 'perimeter.add'
-  readonly overlayComponent = PolygonToolOverlay
+  readonly overlayComponent = PerimeterToolOverlay
   readonly inspectorComponent = PerimeterToolInspector
 
   constructor() {
     super({
       wallAssemblyId: '' as WallAssemblyId,
-      wallThickness: 420
+      wallThickness: 420,
+      referenceSide: 'inside'
     })
   }
 
@@ -51,12 +54,18 @@ export class PerimeterTool extends BasePolygonTool<PerimeterToolState> implement
     this.triggerRender()
   }
 
+  public setReferenceSide(side: PerimeterReferenceSide): void {
+    this.state.referenceSide = side
+    this.triggerRender()
+  }
+
   protected onToolActivated(): void {
     getViewModeActions().ensureMode('walls')
     const configStore = getConfigActions()
     this.state.baseRingBeamAssemblyId = configStore.getDefaultBaseRingBeamAssemblyId()
     this.state.topRingBeamAssemblyId = configStore.getDefaultTopRingBeamAssemblyId()
     this.state.wallAssemblyId = configStore.getDefaultWallAssemblyId()
+    this.state.referenceSide = 'inside'
   }
 
   protected buildPolygon(points: vec2[]): Polygon2D {
@@ -83,7 +92,7 @@ export class PerimeterTool extends BasePolygonTool<PerimeterToolState> implement
       this.state.wallThickness,
       this.state.baseRingBeamAssemblyId,
       this.state.topRingBeamAssemblyId,
-      'inside'
+      this.state.referenceSide
     )
   }
 }
