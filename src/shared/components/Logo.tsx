@@ -22,8 +22,7 @@ export function Logo({ className = '', compact = false }: LogoProps): React.JSX.
         viewBox="-2.5 7.5 27.5 22"
         className="flex-shrink-0"
         xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        aria-hidden={compact}
+        aria-hidden
         focusable="false"
       >
         <defs>

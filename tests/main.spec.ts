@@ -1,7 +1,33 @@
 import { expect, test } from '@playwright/test'
 
-test('has title', async ({ page }) => {
+test('Test Data Screenshot', async ({ page }) => {
   await page.goto('/')
-
   await expect(page).toHaveTitle(/Strawbaler/)
+  await expect(page.getByText('Important Disclaimer')).toBeVisible()
+  await page.getByRole('button', { name: 'I Understand & Continue' }).click()
+  await expect(page.getByTestId('main-toolbar')).toMatchAriaSnapshot(`
+    - text: Strawbaler Construction Planning
+    - toolbar:
+      - button "Select"
+      - button "Move"
+      - button "Fit to View"
+      - separator
+      - button "Building Perimeter"
+      - button "Perimeter Presets"
+      - button "Add Opening"
+      - button "Split Wall"
+      - separator
+      - button "Floor Area"
+      - button "Floor Opening"
+      - separator
+      - button "Test Data"
+    - button "View Construction Plan"
+    - button "View Parts List"
+    - button "View 3D Construction"
+    - button "Configuration"
+    - button "About"
+    `)
+  await page.getByRole('button', { name: 'Test Data' }).click()
+  await page.getByRole('button', { name: '📐 Cross/T-Shape Perimeter' }).click()
+  await expect(page.locator('canvas').nth(2)).toHaveScreenshot({ animations: 'disabled', scale: 'css' })
 })

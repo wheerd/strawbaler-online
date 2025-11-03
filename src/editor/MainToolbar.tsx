@@ -59,7 +59,11 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
         <Flex align="center" gap="2">
           {TOOL_GROUPS.map((group, groupIndex) => (
             <React.Fragment key={groupIndex}>
-              {groupIndex > 0 && <Separator orientation="vertical" size="2" />}
+              {groupIndex > 0 && (
+                <Toolbar.Separator orientation="vertical">
+                  <Separator orientation="vertical" size="2" />
+                </Toolbar.Separator>
+              )}
 
               <Flex align="center" gap="1">
                 {/* Group of tools */}
@@ -77,11 +81,12 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
                     >
                       <Toolbar.Button asChild>
                         <IconButton
+                          aria-label={toolInfo.name}
                           size="2"
                           variant={activeToolId === toolId ? 'solid' : 'surface'}
                           onClick={() => handleToolSelect(toolId)}
                         >
-                          <toolInfo.iconComponent width={20} height={20} />
+                          <toolInfo.iconComponent width={20} height={20} aria-hidden />
                         </IconButton>
                       </Toolbar.Button>
                     </Tooltip>
@@ -117,7 +122,7 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
           refreshKey={[activeStoreyId, activePerimiters]}
           trigger={
             <IconButton title="View Construction Plan" size="2" variant="solid">
-              <ConstructionPlanIcon width={20} height={20} />
+              <ConstructionPlanIcon width={20} height={20} aria-hidden />
             </IconButton>
           }
         />
@@ -127,7 +132,7 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
           refreshKey={[storeys, perimeters]}
           trigger={
             <IconButton title="View Parts List" size="2" variant="solid">
-              <FileTextIcon width={20} height={20} />
+              <FileTextIcon width={20} height={20} aria-hidden />
             </IconButton>
           }
         />
@@ -136,15 +141,15 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
           refreshKey={[storeys, perimeters]}
           trigger={
             <IconButton title="View 3D Construction" size="2" variant="solid">
-              <Model3DIcon width={20} height={20} />
+              <Model3DIcon width={20} height={20} aria-hidden />
             </IconButton>
           }
         />
         <IconButton title="Configuration" variant="surface" size="2" onClick={() => openConfiguration('materials')}>
-          <GearIcon width={20} height={20} />
+          <GearIcon width={20} height={20} aria-hidden />
         </IconButton>
         <IconButton title="About" variant="ghost" size="2" onClick={onInfoClick}>
-          <InfoCircledIcon />
+          <InfoCircledIcon aria-hidden />
         </IconButton>
       </Flex>
     </Flex>
