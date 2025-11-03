@@ -2,7 +2,7 @@ import { vec2 } from 'gl-matrix'
 
 import type { StoreState } from '@/building/store/types'
 
-export type MigrationState = Partial<StoreState> & Record<string, any>
+export type MigrationState = Partial<StoreState> & Record<string, unknown>
 export type Migration = (state: MigrationState) => void
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>

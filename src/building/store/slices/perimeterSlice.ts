@@ -309,10 +309,8 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         // Create new corner at split position
         const newCorner: PerimeterCorner = {
           id: createPerimeterCornerId(),
-          insidePoint:
-            perimeter.referenceSide === 'inside' ? vec2.clone(referenceSplitPoint) : vec2.fromValues(0, 0),
-          outsidePoint:
-            perimeter.referenceSide === 'outside' ? vec2.clone(referenceSplitPoint) : vec2.fromValues(0, 0),
+          insidePoint: perimeter.referenceSide === 'inside' ? vec2.clone(referenceSplitPoint) : vec2.fromValues(0, 0),
+          outsidePoint: perimeter.referenceSide === 'outside' ? vec2.clone(referenceSplitPoint) : vec2.fromValues(0, 0),
           constructedByWall: 'next',
           interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
           exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
@@ -697,9 +695,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         const perimeter = state.perimeters[perimeterId]
         if (!perimeter) return
 
-        perimeter.referencePolygon = perimeter.referencePolygon.map(point =>
-          vec2.add(vec2.create(), point, offset)
-        )
+        perimeter.referencePolygon = perimeter.referencePolygon.map(point => vec2.add(vec2.create(), point, offset))
         updatePerimeterGeometry(perimeter)
       })
 
@@ -1021,7 +1017,11 @@ const updatePerimeterGeometry = (perimeter: Perimeter): void => {
   perimeter.referencePolygon = canonical.points.map(point => vec2.clone(point))
 
   const thicknesses = perimeter.walls.map((wall: PerimeterWall) => wall.thickness)
-  const infiniteLines = createInfiniteLines({ points: perimeter.referencePolygon }, thicknesses, perimeter.referenceSide)
+  const infiniteLines = createInfiniteLines(
+    { points: perimeter.referencePolygon },
+    thicknesses,
+    perimeter.referenceSide
+  )
 
   if (perimeter.referenceSide === 'inside') {
     perimeter.corners.forEach((corner: PerimeterCorner, index: number) => {

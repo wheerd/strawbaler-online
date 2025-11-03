@@ -24,10 +24,7 @@ interface LShapedPresetDialogProps {
   trigger: React.ReactNode
 }
 
-export function LShapedPresetDialog({
-  onConfirm,
-  trigger
-}: LShapedPresetDialogProps): React.JSX.Element {
+export function LShapedPresetDialog({ onConfirm, trigger }: LShapedPresetDialogProps): React.JSX.Element {
   const defaultWallAssemblyId = useDefaultWallAssemblyId()
   const defaultBaseRingBeamAssemblyId = useDefaultBaseRingBeamAssemblyId()
   const defaultTopRingBeamAssemblyId = useDefaultTopRingBeamAssemblyId()
@@ -44,7 +41,7 @@ export function LShapedPresetDialog({
     wallAssemblyId: defaultWallAssemblyId,
     baseRingBeamAssemblyId: defaultBaseRingBeamAssemblyId,
     topRingBeamAssemblyId: defaultTopRingBeamAssemblyId,
-    referenceSide: 'inside',
+    referenceSide: 'inside'
   }))
 
   useEffect(() => setConfig(prev => ({ ...prev, wallAssemblyId: defaultWallAssemblyId })), [defaultWallAssemblyId])
