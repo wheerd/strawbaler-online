@@ -15,6 +15,7 @@ export function SidePanel(): React.JSX.Element {
         overflowX: 'hidden'
       }}
       className="side-panel"
+      data-testid="side-panel"
     >
       <Flex direction="column" p="2" gap="2">
         <activeTool.inspectorComponent tool={activeTool} />

@@ -248,28 +248,30 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
   )
 
   return (
-    <Stage
-      ref={stageRef}
-      width={width}
-      height={height}
-      x={panX}
-      y={panY}
-      scaleX={zoom}
-      scaleY={-zoom}
-      onWheel={handleWheel}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerLeave}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      draggable={false}
-    >
-      <GridLayer width={width} height={height} viewport={{ zoom, panX, panY }} />
-      <FloorLayer />
-      <PerimeterLayer />
-      <ToolOverlayLayer />
-    </Stage>
+    <div data-testid="konva-canvas">
+      <Stage
+        ref={stageRef}
+        width={width}
+        height={height}
+        x={panX}
+        y={panY}
+        scaleX={zoom}
+        scaleY={-zoom}
+        onWheel={handleWheel}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        draggable={false}
+      >
+        <GridLayer width={width} height={height} viewport={{ zoom, panX, panY }} />
+        <FloorLayer />
+        <PerimeterLayer />
+        <ToolOverlayLayer />
+      </Stage>
+    </div>
   )
 }

@@ -7,7 +7,7 @@ export function ViewModeToggle(): React.JSX.Element {
   const { setMode } = useViewModeActions()
 
   return (
-    <Box position="absolute" top="2" left="2" className="z-10">
+    <Box position="absolute" top="2" left="2" className="z-10" data-testid="viewmode-toggle">
       <Card size="1" variant="surface" className="shadow-md">
         <Flex m="-2">
           <SegmentedControl.Root

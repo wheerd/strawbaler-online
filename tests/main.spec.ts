@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import path from 'node:path'
 
 test('Test Data Screenshot', async ({ page }) => {
   await page.goto('/')
@@ -29,5 +30,9 @@ test('Test Data Screenshot', async ({ page }) => {
     `)
   await page.getByRole('button', { name: 'Test Data' }).click()
   await page.getByRole('button', { name: '📐 Cross/T-Shape Perimeter' }).click()
-  await expect(page.locator('canvas').nth(2)).toHaveScreenshot({ animations: 'disabled', scale: 'css' })
+  await expect(page.getByTestId('konva-canvas')).toHaveScreenshot({
+    animations: 'disabled',
+    scale: 'css',
+    stylePath: path.resolve(import.meta.dirname, 'hide-overlays.css')
+  })
 })

@@ -1,0 +1,4 @@
+[data-testid='statusbar'],
+[data-testid='viewmode-toggle'] {
+  display: none;
+}

@@ -22,6 +22,7 @@ export function StatusBar(): React.JSX.Element {
         backgroundColor: 'var(--color-panel-solid)',
         borderTop: '1px solid var(--gray-6)'
       }}
+      data-testid="statusbar"
     >
       <Grid columns="1fr 1fr 1fr" align="center" gap="4" p="1" className="pointer-events-auto">
         <Flex align="center" gap="3" p="0">
