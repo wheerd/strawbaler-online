@@ -1,6 +1,6 @@
+import { vec2 } from 'gl-matrix'
 import React, { useMemo } from 'react'
 import { Circle, Group, Line } from 'react-konva/lib/ReactKonvaCore'
-import { vec2 } from 'gl-matrix'
 
 import { SnappingLines } from '@/editor/canvas/utils/SnappingLines'
 import { useZoom } from '@/editor/hooks/useViewportStore'
@@ -101,6 +101,7 @@ export function PerimeterToolOverlay({ tool }: ToolOverlayComponentProps<Perimet
   const scaledLineWidth = Math.max(1, 2 / zoom)
   const dashSize = 10 / zoom
   const scaledDashPattern = [dashSize, dashSize]
+  const scaledDashPattern2 = [3 / zoom, 10 / zoom]
   const scaledPointRadius = 5 / zoom
   const scaledPointStrokeWidth = 1 / zoom
 
@@ -140,7 +141,7 @@ export function PerimeterToolOverlay({ tool }: ToolOverlayComponentProps<Perimet
           points={derivedGeometry.points}
           stroke={theme.textSecondary}
           strokeWidth={scaledLineWidth}
-          dash={scaledDashPattern}
+          dash={scaledDashPattern2}
           lineCap="round"
           lineJoin="round"
           opacity={0.8}
@@ -155,7 +156,7 @@ export function PerimeterToolOverlay({ tool }: ToolOverlayComponentProps<Perimet
             points={segment.points}
             stroke={theme.textSecondary}
             strokeWidth={scaledLineWidth}
-            dash={scaledDashPattern}
+            dash={scaledDashPattern2}
             lineCap="round"
             lineJoin="round"
             opacity={0.8}
@@ -185,6 +186,17 @@ export function PerimeterToolOverlay({ tool }: ToolOverlayComponentProps<Perimet
           stroke={state.isCurrentSegmentValid ? theme.textTertiary : theme.danger}
           strokeWidth={scaledLineWidth}
           dash={scaledDashPattern}
+          listening={false}
+        />
+      )}
+
+      {state.points.length >= 2 && !isClosingSnap && (
+        <Line
+          points={[previewPos[0], previewPos[1], state.points[0][0], state.points[0][1]]}
+          stroke={theme.textTertiary}
+          strokeWidth={scaledLineWidth}
+          dash={scaledDashPattern2}
+          opacity={0.8}
           listening={false}
         />
       )}
