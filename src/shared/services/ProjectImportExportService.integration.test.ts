@@ -78,8 +78,6 @@ describe('ProjectImportExportService Integration', () => {
       'inside'
     )
 
-    modelActions.setPerimeterReferenceSide(perimeter.id, 'outside')
-
     // Add openings to walls
     const wall1 = perimeter.walls[0]
     const wall2 = perimeter.walls[1]
