@@ -2,7 +2,14 @@ import { useMemo } from 'react'
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
-import type { Material, MaterialId } from './material'
+import type {
+  DimensionalMaterial,
+  Material,
+  MaterialId,
+  SheetMaterial,
+  StrawbaleMaterial,
+  VolumeMaterial
+} from './material'
 import { DEFAULT_MATERIALS, createMaterialId } from './material'
 import { MATERIALS_STORE_VERSION, migrateMaterialsState } from './store/migrations'
 
@@ -34,101 +41,117 @@ const validateMaterialName = (name: string): void => {
   }
 }
 
-const validateMaterialUpdates = (updates: Partial<Omit<Material, 'id' | 'type'>>): void => {
+const validateMaterialUpdates = (updates: Partial<Omit<Material, 'id'>>, materialType: Material['type']): void => {
   if (updates.name !== undefined) {
     validateMaterialName(updates.name)
   }
 
-  if ('crossSections' in updates && updates.crossSections !== undefined) {
-    if (!Array.isArray(updates.crossSections) || updates.crossSections.length === 0) {
-      throw new Error('Cross sections must be a non-empty array')
-    }
-    updates.crossSections.forEach(section => {
-      if (
-        section == null ||
-        typeof section.smallerLength !== 'number' ||
-        typeof section.biggerLength !== 'number' ||
-        section.smallerLength <= 0 ||
-        section.biggerLength <= 0
-      ) {
-        throw new Error('Cross section dimensions must be positive numbers')
+  switch (materialType) {
+    case 'dimensional': {
+      const dimensional = updates as Partial<DimensionalMaterial>
+      if (dimensional.crossSections !== undefined) {
+        if (!Array.isArray(dimensional.crossSections) || dimensional.crossSections.length === 0) {
+          throw new Error('Cross sections must be a non-empty array')
+        }
+        dimensional.crossSections.forEach(section => {
+          if (
+            section == null ||
+            typeof section.smallerLength !== 'number' ||
+            typeof section.biggerLength !== 'number' ||
+            section.smallerLength <= 0 ||
+            section.biggerLength <= 0
+          ) {
+            throw new Error('Cross section dimensions must be positive numbers')
+          }
+        })
       }
-    })
-  }
 
-  if ('lengths' in updates && updates.lengths !== undefined) {
-    if (!Array.isArray(updates.lengths) || updates.lengths.length === 0) {
-      throw new Error('Lengths must be a non-empty array')
-    }
-    if (updates.lengths.some(length => length <= 0)) {
-      throw new Error('All lengths must be positive')
-    }
-  }
-
-  if ('sizes' in updates && updates.sizes !== undefined) {
-    if (!Array.isArray(updates.sizes) || updates.sizes.length === 0) {
-      throw new Error('Sheet sizes must be a non-empty array')
-    }
-    updates.sizes.forEach(size => {
-      if (
-        size == null ||
-        typeof size.smallerLength !== 'number' ||
-        typeof size.biggerLength !== 'number' ||
-        size.smallerLength <= 0 ||
-        size.biggerLength <= 0
-      ) {
-        throw new Error('Sheet size dimensions must be positive numbers')
+      if (dimensional.lengths !== undefined) {
+        if (!Array.isArray(dimensional.lengths) || dimensional.lengths.length === 0) {
+          throw new Error('Lengths must be a non-empty array')
+        }
+        if (dimensional.lengths.some(length => length <= 0)) {
+          throw new Error('All lengths must be positive')
+        }
       }
-    })
-  }
+      break
+    }
+    case 'sheet': {
+      const sheet = updates as Partial<SheetMaterial>
+      if (sheet.sizes !== undefined) {
+        if (!Array.isArray(sheet.sizes) || sheet.sizes.length === 0) {
+          throw new Error('Sheet sizes must be a non-empty array')
+        }
+        sheet.sizes.forEach(size => {
+          if (
+            size == null ||
+            typeof size.smallerLength !== 'number' ||
+            typeof size.biggerLength !== 'number' ||
+            size.smallerLength <= 0 ||
+            size.biggerLength <= 0
+          ) {
+            throw new Error('Sheet size dimensions must be positive numbers')
+          }
+        })
+      }
 
-  if ('thicknesses' in updates && updates.thicknesses !== undefined) {
-    if (!Array.isArray(updates.thicknesses) || updates.thicknesses.length === 0) {
-      throw new Error('Sheet thicknesses must be a non-empty array')
+      if (sheet.thicknesses !== undefined) {
+        if (!Array.isArray(sheet.thicknesses) || sheet.thicknesses.length === 0) {
+          throw new Error('Sheet thicknesses must be a non-empty array')
+        }
+        if (sheet.thicknesses.some(thickness => thickness <= 0)) {
+          throw new Error('All sheet thicknesses must be positive')
+        }
+      }
+      break
     }
-    if (updates.thicknesses.some(thickness => thickness <= 0)) {
-      throw new Error('All sheet thicknesses must be positive')
+    case 'volume': {
+      const volumeMaterial = updates as Partial<VolumeMaterial>
+      if (volumeMaterial.availableVolumes !== undefined) {
+        if (!Array.isArray(volumeMaterial.availableVolumes) || volumeMaterial.availableVolumes.length === 0) {
+          throw new Error('Available volumes must be a non-empty array')
+        }
+        if (volumeMaterial.availableVolumes.some(volume => volume <= 0)) {
+          throw new Error('All available volumes must be positive')
+        }
+      }
+      break
     }
-  }
-
-  if ('availableVolumes' in updates && updates.availableVolumes !== undefined) {
-    if (!Array.isArray(updates.availableVolumes) || updates.availableVolumes.length === 0) {
-      throw new Error('Available volumes must be a non-empty array')
+    case 'strawbale': {
+      const strawMaterial = updates as Partial<StrawbaleMaterial>
+      if (strawMaterial.baleMinLength !== undefined && strawMaterial.baleMinLength <= 0) {
+        throw new Error('Bale minimum length must be positive')
+      }
+      if (strawMaterial.baleMaxLength !== undefined && strawMaterial.baleMaxLength <= 0) {
+        throw new Error('Bale maximum length must be positive')
+      }
+      if (
+        strawMaterial.baleMinLength !== undefined &&
+        strawMaterial.baleMaxLength !== undefined &&
+        strawMaterial.baleMinLength > strawMaterial.baleMaxLength
+      ) {
+        throw new Error('Bale minimum length cannot exceed the maximum length')
+      }
+      if (strawMaterial.baleHeight !== undefined && strawMaterial.baleHeight <= 0) {
+        throw new Error('Bale height must be positive')
+      }
+      if (strawMaterial.baleWidth !== undefined && strawMaterial.baleWidth <= 0) {
+        throw new Error('Bale width must be positive')
+      }
+      if (strawMaterial.tolerance !== undefined && strawMaterial.tolerance < 0) {
+        throw new Error('Bale tolerance cannot be negative')
+      }
+      if (strawMaterial.topCutoffLimit !== undefined && strawMaterial.topCutoffLimit <= 0) {
+        throw new Error('Top cutoff limit must be positive')
+      }
+      if (strawMaterial.flakeSize !== undefined && strawMaterial.flakeSize <= 0) {
+        throw new Error('Flake size must be positive')
+      }
+      break
     }
-    if (updates.availableVolumes.some(volume => volume <= 0)) {
-      throw new Error('All available volumes must be positive')
-    }
-  }
-
-  if ('baleMinLength' in updates && updates.baleMinLength !== undefined && updates.baleMinLength <= 0) {
-    throw new Error('Bale minimum length must be positive')
-  }
-  if ('baleMaxLength' in updates && updates.baleMaxLength !== undefined && updates.baleMaxLength <= 0) {
-    throw new Error('Bale maximum length must be positive')
-  }
-  if (
-    'baleMinLength' in updates &&
-    'baleMaxLength' in updates &&
-    updates.baleMinLength !== undefined &&
-    updates.baleMaxLength !== undefined &&
-    updates.baleMinLength > updates.baleMaxLength
-  ) {
-    throw new Error('Bale minimum length cannot exceed the maximum length')
-  }
-  if ('baleHeight' in updates && updates.baleHeight !== undefined && updates.baleHeight <= 0) {
-    throw new Error('Bale height must be positive')
-  }
-  if ('baleWidth' in updates && updates.baleWidth !== undefined && updates.baleWidth <= 0) {
-    throw new Error('Bale width must be positive')
-  }
-  if ('tolerance' in updates && updates.tolerance !== undefined && updates.tolerance < 0) {
-    throw new Error('Bale tolerance cannot be negative')
-  }
-  if ('topCutoffLimit' in updates && updates.topCutoffLimit !== undefined && updates.topCutoffLimit <= 0) {
-    throw new Error('Top cutoff limit must be positive')
-  }
-  if ('flakeSize' in updates && updates.flakeSize !== undefined && updates.flakeSize <= 0) {
-    throw new Error('Flake size must be positive')
+    case 'generic':
+    default:
+      break
   }
 }
 
@@ -142,7 +165,7 @@ const useMaterialsStore = create<MaterialsStore>()(
         actions: {
           addMaterial: (materialData: Omit<Material, 'id'>) => {
             validateMaterialName(materialData.name)
-            validateMaterialUpdates(materialData)
+            validateMaterialUpdates(materialData, materialData.type)
 
             const id = createMaterialId()
             const material: Material = {
@@ -173,7 +196,7 @@ const useMaterialsStore = create<MaterialsStore>()(
               const material = state.materials[id]
               if (material == null) return state
 
-              validateMaterialUpdates(updates)
+              validateMaterialUpdates(updates, material.type)
 
               // Check for name uniqueness (excluding current material)
               if (updates.name !== undefined) {
