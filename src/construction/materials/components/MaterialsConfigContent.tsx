@@ -620,76 +620,85 @@ function SheetMaterialFields({
 
   return (
     <Flex direction="column" gap="3">
-      <Flex direction="column" gap="2">
-        <Text size="2" weight="medium" color="gray">
-          Sheet Sizes
-        </Text>
-        <Flex gap="2" wrap="wrap">
-          {material.sizes.map(size => (
-            <Badge key={`${size.smallerLength}x${size.biggerLength}`} size="2" variant="soft">
-              <Flex align="center" gap="1">
-                {formatCrossSectionLabel(size)}
-                <IconButton
-                  size="1"
-                  variant="ghost"
-                  color="gray"
-                  onClick={() => handleRemoveSize(size)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <Cross2Icon width="10" height="10" />
-                </IconButton>
-              </Flex>
-            </Badge>
-          ))}
-          {material.sizes.length === 0 && <Text color="gray">No sheet sizes configured</Text>}
+      <Flex direction="row" justify="between" align="end">
+        <Flex direction="column" gap="2">
+          <Text size="2" weight="medium" color="gray">
+            Sheet Sizes
+          </Text>
+          <Flex gap="2" wrap="wrap">
+            {material.sizes.map(size => (
+              <Badge key={`${size.smallerLength}x${size.biggerLength}`} size="2" variant="soft">
+                <Flex align="center" gap="1">
+                  {formatCrossSectionLabel(size)}
+                  <IconButton
+                    size="1"
+                    variant="ghost"
+                    color="gray"
+                    onClick={() => handleRemoveSize(size)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Cross2Icon width="10" height="10" />
+                  </IconButton>
+                </Flex>
+              </Badge>
+            ))}
+            {material.sizes.length === 0 && (
+              <Callout.Root color="amber" size="1">
+                <Callout.Icon>
+                  <ExclamationTriangleIcon />
+                </Callout.Icon>
+                <Callout.Text>No sheet sizes configured</Callout.Text>
+              </Callout.Root>
+            )}
+          </Flex>
         </Flex>
-        <Grid columns="repeat(2, minmax(0, 1fr)) auto" gap="2" align="end">
-          <Flex direction="column" gap="1">
-            <Text size="1" color="gray">
-              Width
-            </Text>
-            <LengthField value={newWidth} onChange={setNewWidth} unit="mm" size="2" />
-          </Flex>
-          <Flex direction="column" gap="1">
-            <Text size="1" color="gray">
-              Length
-            </Text>
-            <LengthField value={newLength} onChange={setNewLength} unit="mm" size="2" />
-          </Flex>
-          <Button onClick={handleAddSize} variant="surface" size="2">
-            <PlusIcon /> Add
-          </Button>
+        <Grid columns="6em auto 6em auto" gap="2" align="center" justify="end">
+          <LengthField value={newWidth} onChange={setNewWidth} unit="cm" size="2" />
+          <Text>x</Text>
+          <LengthField value={newLength} onChange={setNewLength} unit="cm" size="2" />
+          <IconButton title="Add size" onClick={handleAddSize} variant="surface" size="2">
+            <PlusIcon />
+          </IconButton>
         </Grid>
       </Flex>
 
-      <Flex direction="column" gap="2">
-        <Text size="2" weight="medium" color="gray">
-          Thicknesses
-        </Text>
-        <Flex gap="2" wrap="wrap">
-          {material.thicknesses.map(thickness => (
-            <Badge key={thickness} size="2" variant="soft">
-              <Flex align="center" gap="1">
-                {formatLength(thickness)}
-                <IconButton
-                  size="1"
-                  variant="ghost"
-                  color="gray"
-                  onClick={() => handleRemoveThickness(thickness)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <Cross2Icon width="10" height="10" />
-                </IconButton>
-              </Flex>
-            </Badge>
-          ))}
-          {material.thicknesses.length === 0 && <Text color="gray">No thicknesses configured</Text>}
+      <Flex direction="row" justify="between" align="end">
+        <Flex direction="column" gap="2">
+          <Text size="2" weight="medium" color="gray">
+            Thicknesses
+          </Text>
+          <Flex gap="2" wrap="wrap">
+            {material.thicknesses.map(thickness => (
+              <Badge key={thickness} size="2" variant="soft">
+                <Flex align="center" gap="1">
+                  {formatLength(thickness)}
+                  <IconButton
+                    size="1"
+                    variant="ghost"
+                    color="gray"
+                    onClick={() => handleRemoveThickness(thickness)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Cross2Icon width="10" height="10" />
+                  </IconButton>
+                </Flex>
+              </Badge>
+            ))}
+            {material.thicknesses.length === 0 && (
+              <Callout.Root color="amber" size="1">
+                <Callout.Icon>
+                  <ExclamationTriangleIcon />
+                </Callout.Icon>
+                <Callout.Text>No thicknesses configured</Callout.Text>
+              </Callout.Root>
+            )}
+          </Flex>
         </Flex>
         <Flex gap="2" align="end">
-          <LengthField value={newThickness} onChange={setNewThickness} unit="mm" size="2" style={{ flexGrow: 1 }} />
-          <Button onClick={handleAddThickness} variant="surface" size="2">
-            <PlusIcon /> Add
-          </Button>
+          <LengthField value={newThickness} onChange={setNewThickness} unit="mm" size="2" style={{ width: '8em' }} />
+          <IconButton title="Add thickness" onClick={handleAddThickness} variant="surface" size="2">
+            <PlusIcon />
+          </IconButton>
         </Flex>
       </Flex>
     </Flex>
