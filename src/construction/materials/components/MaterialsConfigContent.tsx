@@ -66,7 +66,6 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
   })
 
   const selectedMaterial = materials.find(m => m.id === selectedMaterialId) ?? null
-  const strawMaterials = React.useMemo(() => materials.filter(m => m.type === 'strawbale'), [materials])
 
   const usage = React.useMemo(
     () =>
@@ -78,7 +77,6 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
 
   const handleAddNew = useCallback(
     (type: MaterialType) => {
-      const noStrawMaterials = strawMaterials.length === 0
       let newMaterial: Material
 
       switch (type) {
@@ -135,9 +133,6 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
             flakeSize: strawbale.flakeSize,
             density: strawbale.density
           } as Omit<StrawbaleMaterial, 'id'>)
-          if (noStrawMaterials) {
-            updateDefaultStrawMaterial(newMaterial.id)
-          }
           break
         default:
           return
@@ -145,7 +140,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
 
       setSelectedMaterialId(newMaterial.id)
     },
-    [addMaterial, strawMaterials.length, updateDefaultStrawMaterial]
+    [addMaterial, updateDefaultStrawMaterial]
   )
 
   const handleDuplicate = useCallback(() => {
@@ -183,132 +178,133 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
 
   return (
     <Flex direction="column" gap="4" style={{ width: '100%' }}>
-      {/* Selector + Actions */}
-      <Flex gap="2" align="center" width="100%">
-        <Flex direction="column" flexGrow="1">
-          <MaterialSelect
-            value={selectedMaterialId ?? null}
-            onValueChange={materialId => setSelectedMaterialId(materialId ?? null)}
-            placeholder="Select material..."
-          />
+      <Grid columns="2" gap="2">
+        {/* Selector + Actions */}
+        <Flex gap="2" align="center" width="100%">
+          <Flex direction="column" flexGrow="1">
+            <MaterialSelect
+              value={selectedMaterialId ?? null}
+              onValueChange={materialId => setSelectedMaterialId(materialId ?? null)}
+              placeholder="Select material..."
+            />
+          </Flex>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+              <IconButton title="Add New">
+                <PlusIcon />
+              </IconButton>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content>
+              <DropdownMenu.Item onSelect={() => handleAddNew('dimensional')}>
+                <Flex align="center" gap="1">
+                  <CubeIcon />
+                  Dimensional
+                </Flex>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => handleAddNew('strawbale')}>
+                <Flex align="center" gap="1">
+                  <CubeIcon />
+                  Strawbale
+                </Flex>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => handleAddNew('sheet')}>
+                <Flex align="center" gap="1">
+                  <LayersIcon />
+                  Sheet
+                </Flex>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => handleAddNew('volume')}>
+                <Flex align="center" gap="1">
+                  <OpacityIcon />
+                  Volume
+                </Flex>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => handleAddNew('generic')}>
+                <Flex align="center" gap="1">
+                  <CircleIcon />
+                  Generic
+                </Flex>
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+          <IconButton onClick={handleDuplicate} disabled={!selectedMaterial} title="Duplicate" variant="soft">
+            <CopyIcon />
+          </IconButton>
+          <AlertDialog.Root>
+            <AlertDialog.Trigger>
+              <IconButton
+                disabled={!selectedMaterial || usage.isUsed}
+                color="red"
+                title={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}
+              >
+                <TrashIcon />
+              </IconButton>
+            </AlertDialog.Trigger>
+            <AlertDialog.Content>
+              <AlertDialog.Title>Delete Material</AlertDialog.Title>
+              <AlertDialog.Description>
+                Are you sure you want to delete "{selectedMaterial?.name}"? This action cannot be undone.
+              </AlertDialog.Description>
+              <Flex gap="3" mt="4" justify="end">
+                <AlertDialog.Cancel>
+                  <Button variant="soft" color="gray">
+                    Cancel
+                  </Button>
+                </AlertDialog.Cancel>
+                <AlertDialog.Action>
+                  <Button variant="solid" color="red" onClick={handleDelete}>
+                    Delete
+                  </Button>
+                </AlertDialog.Action>
+              </Flex>
+            </AlertDialog.Content>
+          </AlertDialog.Root>
+          <AlertDialog.Root>
+            <AlertDialog.Trigger>
+              <IconButton color="red" variant="outline" title="Reset to Default">
+                <ResetIcon />
+              </IconButton>
+            </AlertDialog.Trigger>
+            <AlertDialog.Content>
+              <AlertDialog.Title>Reset Materials</AlertDialog.Title>
+              <AlertDialog.Description>
+                Are you sure you want to reset all materials to default? This action cannot be undone.
+              </AlertDialog.Description>
+              <Flex gap="3" mt="4" justify="end">
+                <AlertDialog.Cancel>
+                  <Button variant="soft" color="gray">
+                    Cancel
+                  </Button>
+                </AlertDialog.Cancel>
+                <AlertDialog.Action>
+                  <Button variant="solid" color="red" onClick={handleReset}>
+                    Reset
+                  </Button>
+                </AlertDialog.Action>
+              </Flex>
+            </AlertDialog.Content>
+          </AlertDialog.Root>
         </Flex>
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger>
-            <IconButton title="Add New">
-              <PlusIcon />
-            </IconButton>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content>
-            <DropdownMenu.Item onSelect={() => handleAddNew('dimensional')}>
-              <Flex align="center" gap="1">
-                <CubeIcon />
-                Dimensional
-              </Flex>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item onSelect={() => handleAddNew('strawbale')}>
-              <Flex align="center" gap="1">
-                <CubeIcon />
-                Strawbale
-              </Flex>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item onSelect={() => handleAddNew('sheet')}>
-              <Flex align="center" gap="1">
-                <LayersIcon />
-                Sheet
-              </Flex>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item onSelect={() => handleAddNew('volume')}>
-              <Flex align="center" gap="1">
-                <OpacityIcon />
-                Volume
-              </Flex>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item onSelect={() => handleAddNew('generic')}>
-              <Flex align="center" gap="1">
-                <CircleIcon />
-                Generic
-              </Flex>
-            </DropdownMenu.Item>
-          </DropdownMenu.Content>
-        </DropdownMenu.Root>
-        <IconButton onClick={handleDuplicate} disabled={!selectedMaterial} title="Duplicate" variant="soft">
-          <CopyIcon />
-        </IconButton>
-        <AlertDialog.Root>
-          <AlertDialog.Trigger>
-            <IconButton
-              disabled={!selectedMaterial || usage.isUsed}
-              color="red"
-              title={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}
-            >
-              <TrashIcon />
-            </IconButton>
-          </AlertDialog.Trigger>
-          <AlertDialog.Content>
-            <AlertDialog.Title>Delete Material</AlertDialog.Title>
-            <AlertDialog.Description>
-              Are you sure you want to delete "{selectedMaterial?.name}"? This action cannot be undone.
-            </AlertDialog.Description>
-            <Flex gap="3" mt="4" justify="end">
-              <AlertDialog.Cancel>
-                <Button variant="soft" color="gray">
-                  Cancel
-                </Button>
-              </AlertDialog.Cancel>
-              <AlertDialog.Action>
-                <Button variant="solid" color="red" onClick={handleDelete}>
-                  Delete
-                </Button>
-              </AlertDialog.Action>
-            </Flex>
-          </AlertDialog.Content>
-        </AlertDialog.Root>
-        <AlertDialog.Root>
-          <AlertDialog.Trigger>
-            <IconButton color="red" variant="outline" title="Reset to Default">
-              <ResetIcon />
-            </IconButton>
-          </AlertDialog.Trigger>
-          <AlertDialog.Content>
-            <AlertDialog.Title>Reset Materials</AlertDialog.Title>
-            <AlertDialog.Description>
-              Are you sure you want to reset all materials to default? This action cannot be undone.
-            </AlertDialog.Description>
-            <Flex gap="3" mt="4" justify="end">
-              <AlertDialog.Cancel>
-                <Button variant="soft" color="gray">
-                  Cancel
-                </Button>
-              </AlertDialog.Cancel>
-              <AlertDialog.Action>
-                <Button variant="solid" color="red" onClick={handleReset}>
-                  Reset
-                </Button>
-              </AlertDialog.Action>
-            </Flex>
-          </AlertDialog.Content>
-        </AlertDialog.Root>
-      </Flex>
 
-      <Flex direction="column" gap="1">
-        <Label.Root>
-          <Text size="2" weight="medium" color="gray">
-            Default Straw Material
-          </Text>
-        </Label.Root>
-        <MaterialSelect
-          value={defaultStrawMaterialId}
-          onValueChange={materialId => {
-            if (materialId) {
-              updateDefaultStrawMaterial(materialId)
-            }
-          }}
-          placeholder={strawMaterials.length === 0 ? 'Create a strawbale material first' : 'Select straw material...'}
-          size="2"
-          disabled={strawMaterials.length === 0}
-          materials={strawMaterials}
-        />
-      </Flex>
+        <Grid columns="auto 1fr" gap="2" align="center">
+          <Label.Root>
+            <Text size="1" weight="medium" color="gray">
+              Default Straw Material
+            </Text>
+          </Label.Root>
+          <MaterialSelect
+            value={defaultStrawMaterialId}
+            onValueChange={materialId => {
+              if (materialId) {
+                updateDefaultStrawMaterial(materialId)
+              }
+            }}
+            placeholder={'Select straw material...'}
+            size="2"
+            materials={materials}
+          />
+        </Grid>
+      </Grid>
 
       {/* Form */}
       {selectedMaterial && (
