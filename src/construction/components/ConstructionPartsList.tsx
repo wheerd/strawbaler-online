@@ -168,19 +168,19 @@ interface PartsTableProps {
   onBackToTop: () => void
 }
 
-  const PartsTable = React.forwardRef<HTMLDivElement, PartsTableProps>(function PartsTable(
-    { material, parts, onBackToTop },
-    ref
-  ) {
-    const crossSection =
-      material.type === 'dimensional'
-        ? material.crossSections.length === 1
-          ? formatCrossSection([
-              material.crossSections[0]?.smallerLength ?? 0,
-              material.crossSections[0]?.biggerLength ?? 0
-            ])
-          : `${material.crossSections.length} cross sections`
-        : null
+const PartsTable = React.forwardRef<HTMLDivElement, PartsTableProps>(function PartsTable(
+  { material, parts, onBackToTop },
+  ref
+) {
+  const crossSection =
+    material.type === 'dimensional'
+      ? material.crossSections.length === 1
+        ? formatCrossSection([
+            material.crossSections[0]?.smallerLength ?? 0,
+            material.crossSections[0]?.biggerLength ?? 0
+          ])
+        : `${material.crossSections.length} cross sections`
+      : null
 
   return (
     <Card ref={ref} variant="surface" size="2">

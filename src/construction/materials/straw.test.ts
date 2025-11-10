@@ -6,7 +6,7 @@ import type { ConstructionElement } from '@/construction/elements'
 import { aggregateResults } from '@/construction/results'
 import type { Cuboid } from '@/construction/shapes'
 
-import type { StrawbaleMaterial, MaterialId } from './material'
+import type { MaterialId, StrawbaleMaterial } from './material'
 import { strawbale } from './material'
 import { getMaterialsActions } from './store'
 import { constructStraw } from './straw'
@@ -27,7 +27,7 @@ vi.mocked(getConfigActions).mockReturnValue({
 
 vi.mocked(getMaterialsActions).mockReturnValue({
   getMaterialById: mockGetMaterialById
-})
+} as any)
 
 const mockMaterialId = 'test-material' as MaterialId
 
@@ -50,7 +50,7 @@ describe('constructStraw', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(800, 360, 500)
 
-      const results = [...constructStraw(position, size, customMaterial)]
+      const results = [...constructStraw(position, size)]
       const { elements, errors, warnings } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -139,16 +139,17 @@ describe('constructStraw', () => {
     })
 
     it('should use provided material ID', () => {
-      const customMaterial = 'custom-straw-material' as MaterialId
+      const customMaterialId = 'custom-straw-material' as MaterialId
       mockGetMaterialById.mockImplementation(id => createMaterial({ id }))
 
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(800, 360, 500)
 
-      const results = [...constructStraw(position, size)]
+      const results = [...constructStraw(position, size, customMaterialId)]
       const { elements } = aggregateResults(results)
 
-      expect((elements[0] as ConstructionElement).material).toBe(customMaterial)
+      expect(mockGetMaterialById).toHaveBeenCalledWith(customMaterialId)
+      expect((elements[0] as ConstructionElement).material).toBe(customMaterialId)
     })
   })
 

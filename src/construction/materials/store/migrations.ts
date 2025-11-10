@@ -1,4 +1,3 @@
-import type { MaterialsState } from '../store'
 import type {
   DimensionalMaterial,
   Material,
@@ -7,8 +6,9 @@ import type {
   StrawbaleMaterial
 } from '@/construction/materials/material'
 import { DEFAULT_MATERIALS, strawbale } from '@/construction/materials/material'
+import type { MaterialsState } from '@/construction/materials/store'
 
-type LegacyDimensionalMaterialShape = {
+interface LegacyDimensionalMaterialShape {
   id: MaterialId
   name: string
   color: string
@@ -20,7 +20,7 @@ type LegacyDimensionalMaterialShape = {
   availableLengths?: number[]
 }
 
-type LegacySheetMaterialShape = {
+interface LegacySheetMaterialShape {
   id: MaterialId
   name: string
   color: string

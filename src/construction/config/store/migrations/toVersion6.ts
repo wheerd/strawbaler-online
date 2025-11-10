@@ -1,4 +1,4 @@
-import { strawbale, type MaterialId } from '@/construction/materials/material'
+import { type MaterialId, strawbale } from '@/construction/materials/material'
 
 import type { MigrationState } from './shared'
 

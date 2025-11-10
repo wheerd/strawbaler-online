@@ -303,9 +303,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
               updateDefaultStrawMaterial(materialId)
             }
           }}
-          placeholder={
-            strawMaterials.length === 0 ? 'Create a strawbale material first' : 'Select straw material...'
-          }
+          placeholder={strawMaterials.length === 0 ? 'Create a strawbale material first' : 'Select straw material...'}
           size="2"
           disabled={strawMaterials.length === 0}
           materials={strawMaterials}
@@ -759,14 +757,24 @@ function StrawbaleMaterialFields({
             Min Bale Length
           </Text>
         </Label.Root>
-        <LengthField value={material.baleMinLength} onChange={baleMinLength => onUpdate({ baleMinLength })} unit="mm" size="2" />
+        <LengthField
+          value={material.baleMinLength}
+          onChange={baleMinLength => onUpdate({ baleMinLength })}
+          unit="mm"
+          size="2"
+        />
 
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
             Max Bale Length
           </Text>
         </Label.Root>
-        <LengthField value={material.baleMaxLength} onChange={baleMaxLength => onUpdate({ baleMaxLength })} unit="mm" size="2" />
+        <LengthField
+          value={material.baleMaxLength}
+          onChange={baleMaxLength => onUpdate({ baleMaxLength })}
+          unit="mm"
+          size="2"
+        />
 
         <Label.Root>
           <Text size="1" weight="medium" color="gray">

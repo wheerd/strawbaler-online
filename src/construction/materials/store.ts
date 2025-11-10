@@ -17,11 +17,13 @@ export interface MaterialsState {
   materials: Record<MaterialId, Material>
 }
 
+type UnionOmit<T, K extends string | number | symbol> = T extends unknown ? Omit<T, K> : never
+
 export interface MaterialsActions {
   // CRUD operations
-  addMaterial: (material: Omit<Material, 'id'>) => Material
+  addMaterial: (material: UnionOmit<Material, 'id'>) => Material
   removeMaterial: (id: MaterialId) => void
-  updateMaterial: (id: MaterialId, updates: Partial<Omit<Material, 'id' | 'type'>>) => void
+  updateMaterial: (id: MaterialId, updates: Partial<UnionOmit<Material, 'id' | 'type'>>) => void
   duplicateMaterial: (id: MaterialId, newName: string) => Material
 
   // Queries
@@ -41,7 +43,7 @@ const validateMaterialName = (name: string): void => {
   }
 }
 
-const validateMaterialUpdates = (updates: Partial<Omit<Material, 'id'>>, materialType: Material['type']): void => {
+const validateMaterialUpdates = (updates: Partial<UnionOmit<Material, 'id'>>, materialType: Material['type']): void => {
   if (updates.name !== undefined) {
     validateMaterialName(updates.name)
   }
@@ -163,7 +165,7 @@ const useMaterialsStore = create<MaterialsStore>()(
         materials: { ...DEFAULT_MATERIALS },
 
         actions: {
-          addMaterial: (materialData: Omit<Material, 'id'>) => {
+          addMaterial: (materialData: UnionOmit<Material, 'id'>) => {
             validateMaterialName(materialData.name)
             validateMaterialUpdates(materialData, materialData.type)
 
@@ -191,7 +193,7 @@ const useMaterialsStore = create<MaterialsStore>()(
             })
           },
 
-          updateMaterial: (id: MaterialId, updates: Partial<Omit<Material, 'id' | 'type'>>) => {
+          updateMaterial: (id: MaterialId, updates: Partial<UnionOmit<Material, 'id' | 'type'>>) => {
             set(state => {
               const material = state.materials[id]
               if (material == null) return state

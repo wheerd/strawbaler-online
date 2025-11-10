@@ -11,6 +11,7 @@ import { strawbale } from '@/construction/materials/material'
 import { getMaterialsActions } from '@/construction/materials/store'
 import { aggregateResults } from '@/construction/results'
 import { TAG_FULL_BALE, TAG_PARTIAL_BALE, TAG_STRAW_FLAKES, TAG_STRAW_STUFFED } from '@/construction/tags'
+
 import { constructStraw } from './straw'
 
 vi.mock('@/construction/config', () => ({
@@ -27,7 +28,7 @@ vi.mocked(getConfigActions).mockReturnValue({
 } as unknown as ConfigActions)
 vi.mocked(getMaterialsActions).mockReturnValue({
   getMaterialById: mockGetMaterialById
-})
+} as any)
 
 const defaultMaterial: StrawbaleMaterial = { ...strawbale }
 
