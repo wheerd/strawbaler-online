@@ -192,7 +192,7 @@ export type PartIssue = 'CrossSectionMismatch' | 'LengthExceedsAvailable' | 'Thi
 const computeDimensionalDetails = (size: vec3, material: DimensionalMaterial) => {
   const dimensions = [Math.round(size[0]), Math.round(size[1]), Math.round(size[2])] as [number, number, number]
   let issue: PartIssue | undefined
-  let length = dimensions[0]
+  let length = dimensions[2]
 
   const matchesCrossSection = material.crossSections.some(section => {
     const indices = [0, 1, 2]
@@ -212,7 +212,7 @@ const computeDimensionalDetails = (size: vec3, material: DimensionalMaterial) =>
       return false
     }
 
-    length = dimensions[indices[0] ?? 2]
+    length = dimensions[indices[0]]
     return true
   })
 
