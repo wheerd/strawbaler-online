@@ -1,7 +1,7 @@
 import { vec2, vec3 } from 'gl-matrix'
 
 import type { ConstructionElement, ConstructionElementId } from '@/construction/elements'
-import type { DimensionalMaterial, MaterialId, SheetMaterial } from '@/construction/materials/material'
+import type { CrossSection, DimensionalMaterial, MaterialId, SheetMaterial } from '@/construction/materials/material'
 import { getMaterialById } from '@/construction/materials/store'
 import type { ConstructionModel } from '@/construction/model'
 import {
@@ -155,6 +155,8 @@ export interface MaterialPartItem extends PartItem {
   totalArea?: Length
   length?: Length
   totalLength?: Length
+  crossSection?: CrossSection
+  thickness?: Length
   polygon?: Polygon2D
   polygonPlane?: Plane3D
   issue?: PartIssue
@@ -193,6 +195,7 @@ const computeDimensionalDetails = (size: vec3, material: DimensionalMaterial) =>
   const dimensions = [Math.round(size[0]), Math.round(size[1]), Math.round(size[2])] as [number, number, number]
   let issue: PartIssue | undefined
   let length = dimensions[2]
+  let crossSection: CrossSection = { smallerLength: dimensions[0], biggerLength: dimensions[1] }
 
   const matchesCrossSection = material.crossSections.some(section => {
     const indices = [0, 1, 2]
@@ -213,6 +216,7 @@ const computeDimensionalDetails = (size: vec3, material: DimensionalMaterial) =>
     }
 
     length = dimensions[indices[0]]
+    crossSection = section
     return true
   })
 
@@ -225,7 +229,7 @@ const computeDimensionalDetails = (size: vec3, material: DimensionalMaterial) =>
     }
   }
 
-  return { length, issue }
+  return { length, issue, crossSection }
 }
 
 const computeSheetDetails = (size: vec3, material: SheetMaterial) => {
@@ -387,11 +391,14 @@ function processPart(
   let length: Length | undefined
   let area: Area | undefined
   let issue: PartIssue | undefined
+  let crossSection: CrossSection | undefined
+  let thickness: Length | undefined
 
   if (materialDefinition?.type === 'dimensional') {
     const details = computeDimensionalDetails(size, materialDefinition)
     length = details.length
     issue = details.issue
+    crossSection = details.crossSection
   } else if (materialDefinition?.type === 'sheet') {
     const details = computeSheetDetails(size, materialDefinition)
     if (partInfo.polygon) {
@@ -400,6 +407,7 @@ function processPart(
       area = details.areaSize[0] * details.areaSize[1]
     }
     issue = details.issue
+    thickness = details.thickness
   } else if (materialDefinition?.type === 'volume') {
     if (partInfo.polygon) {
       area = calculatePolygonArea(partInfo.polygon)
@@ -422,7 +430,9 @@ function processPart(
     quantity: 1,
     issue,
     polygon: partInfo.polygon,
-    polygonPlane: partInfo.polygonPlane
+    polygonPlane: partInfo.polygonPlane,
+    crossSection,
+    thickness
   }
 
   if (length !== undefined) {
@@ -526,7 +536,8 @@ function processConstructionElement(
     totalVolume: volume,
     quantity: 1,
     polygon: polygon?.outer,
-    polygonPlane
+    polygonPlane,
+    thickness
   }
 
   if (area !== undefined) {

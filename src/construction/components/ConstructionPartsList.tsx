@@ -6,9 +6,11 @@ import React, { useCallback, useMemo, useRef } from 'react'
 import { getMaterialTypeIcon, getMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
 import type { DimensionalMaterial, Material, SheetMaterial, VolumeMaterial } from '@/construction/materials/material'
 import { useMaterialsMap } from '@/construction/materials/store'
-import type { MaterialPartItem, MaterialPartsList } from '@/construction/parts'
+import type { MaterialPartItem, MaterialParts, MaterialPartsList } from '@/construction/parts'
 import { Bounds2D, type Polygon2D, type Volume } from '@/shared/geometry'
-import { formatArea, formatLengthInMeters, formatVolume } from '@/shared/utils/formatting'
+import { formatArea, formatLength, formatLengthInMeters, formatVolume } from '@/shared/utils/formatting'
+
+type BadgeColor = React.ComponentProps<typeof Badge>['color']
 
 interface ConstructionPartsListProps {
   partsList: MaterialPartsList
@@ -20,6 +22,17 @@ interface RowMetrics {
   totalLength?: number
   totalArea?: number
   totalWeight?: number
+}
+
+interface MaterialGroup {
+  key: string
+  label: string
+  badgeLabel?: string
+  badgeColor?: BadgeColor
+  hasIssue: boolean
+  issueMessage?: string
+  parts: MaterialPartItem[]
+  metrics: RowMetrics & { partCount: number }
 }
 
 const formatCrossSection = ([first, second]: [number, number]) =>
@@ -41,6 +54,215 @@ const calculateWeight = (volume: Volume, material: Material): number | undefined
   return (volume * material.density) / 1_000_000_000
 }
 
+const UNKNOWN_CROSS_SECTION_LABEL = 'Other cross sections'
+const UNKNOWN_THICKNESS_LABEL = 'Other thicknesses'
+const UNKNOWN_CROSS_SECTION_MESSAGE = 'Cross section does not match available options for this material'
+const UNKNOWN_THICKNESS_MESSAGE = 'Thickness does not match available options for this material'
+
+const createMaterialGroups = (material: Material, materialParts: MaterialParts): MaterialGroup[] => {
+  const parts = Object.values(materialParts.parts)
+  if (parts.length === 0) return []
+
+  if (material.type === 'dimensional') {
+    return groupDimensionalParts(parts, material)
+  }
+
+  if (material.type === 'sheet') {
+    return groupSheetParts(parts, material)
+  }
+
+  return [
+    createGroup({
+      key: `${material.id}-all`,
+      label: 'All parts',
+      hasIssue: false,
+      material,
+      parts
+    })
+  ]
+}
+
+const groupDimensionalParts = (parts: MaterialPartItem[], material: DimensionalMaterial): MaterialGroup[] => {
+  const groups = new Map<
+    string,
+    {
+      label: string
+      badgeLabel: string
+      badgeColor: BadgeColor
+      parts: MaterialPartItem[]
+      sortValue: number
+      hasIssue: boolean
+      issueMessage?: string
+    }
+  >()
+
+  for (const part of parts) {
+    const displayCrossSection = part.crossSection
+    const groupKey = displayCrossSection
+      ? `dimensional:${displayCrossSection.smallerLength}x${displayCrossSection.biggerLength}`
+      : 'dimensional:other'
+    const key = `${material.id}|${groupKey}`
+    const label = displayCrossSection
+      ? formatCrossSection([displayCrossSection.smallerLength, displayCrossSection.biggerLength])
+      : UNKNOWN_CROSS_SECTION_LABEL
+    const sortValue = displayCrossSection
+      ? displayCrossSection.smallerLength * displayCrossSection.biggerLength
+      : Number.MAX_SAFE_INTEGER
+
+    const isKnown = material.crossSections.some(
+      cs =>
+        cs.smallerLength === displayCrossSection?.smallerLength && cs.biggerLength === displayCrossSection?.biggerLength
+    )
+    const badgeColor: BadgeColor = displayCrossSection != null ? (isKnown ? 'green' : 'red') : 'gray'
+
+    const entry = groups.get(key)
+    if (entry) {
+      entry.parts.push(part)
+      continue
+    }
+
+    groups.set(key, {
+      label,
+      badgeLabel: label,
+      parts: [part],
+      sortValue,
+      badgeColor,
+      hasIssue: displayCrossSection !== undefined && !isKnown,
+      issueMessage: isKnown ? undefined : UNKNOWN_CROSS_SECTION_MESSAGE
+    })
+  }
+
+  return Array.from(groups.entries())
+    .sort((a, b) => a[1].sortValue - b[1].sortValue || a[0].localeCompare(b[0]))
+    .map(([key, entry]) =>
+      createGroup({
+        key,
+        label: entry.label,
+        badgeLabel: entry.badgeLabel,
+        badgeColor: entry.badgeColor,
+        hasIssue: entry.hasIssue,
+        issueMessage: entry.issueMessage,
+        material,
+        parts: entry.parts
+      })
+    )
+}
+
+const groupSheetParts = (parts: MaterialPartItem[], material: SheetMaterial): MaterialGroup[] => {
+  const groups = new Map<
+    string,
+    {
+      label: string
+      badgeLabel: string
+      badgeColor: BadgeColor
+      parts: MaterialPartItem[]
+      sortValue: number
+      hasIssue: boolean
+      issueMessage?: string
+    }
+  >()
+
+  for (const part of parts) {
+    const thickness = part.thickness
+    const key = thickness != null ? `sheet:${thickness}` : 'sheet:other'
+    const label = thickness != null ? formatLength(thickness) : UNKNOWN_THICKNESS_LABEL
+    const sortValue = thickness ?? Number.MAX_SAFE_INTEGER
+    const isKnown = thickness != null && material.thicknesses.includes(thickness)
+    const badgeColor: BadgeColor = thickness != null ? (isKnown ? 'green' : 'red') : 'gray'
+
+    const entry = groups.get(key)
+    if (entry) {
+      entry.parts.push(part)
+      continue
+    }
+
+    groups.set(key, {
+      label,
+      badgeLabel: label,
+      parts: [part],
+      sortValue,
+      badgeColor,
+      hasIssue: thickness != null && !isKnown,
+      issueMessage: isKnown ? undefined : UNKNOWN_THICKNESS_MESSAGE
+    })
+  }
+
+  return Array.from(groups.entries())
+    .sort((a, b) => a[1].sortValue - b[1].sortValue || a[0].localeCompare(b[0]))
+    .map(([key, entry]) =>
+      createGroup({
+        key,
+        label: entry.label,
+        badgeLabel: entry.badgeLabel,
+        badgeColor: entry.badgeColor,
+        hasIssue: entry.hasIssue,
+        issueMessage: entry.issueMessage,
+        material,
+        parts: entry.parts
+      })
+    )
+}
+
+const createGroup = ({
+  key,
+  label,
+  badgeLabel,
+  badgeColor,
+  hasIssue,
+  issueMessage,
+  material,
+  parts
+}: {
+  key: string
+  label: string
+  badgeLabel?: string
+  badgeColor?: BadgeColor
+  hasIssue: boolean
+  issueMessage?: string
+  material: Material
+  parts: MaterialPartItem[]
+}): MaterialGroup => {
+  return {
+    key,
+    label,
+    badgeLabel,
+    badgeColor,
+    hasIssue,
+    issueMessage,
+    parts,
+    metrics: computeGroupMetrics(parts, material)
+  }
+}
+
+const computeGroupMetrics = (parts: MaterialPartItem[], material: Material): RowMetrics & { partCount: number } => {
+  let totalQuantity = 0
+  let totalVolume = 0
+  let totalLength: number | undefined
+  let totalArea: number | undefined
+
+  for (const part of parts) {
+    totalQuantity += part.quantity
+    totalVolume += part.totalVolume
+
+    if (part.totalLength !== undefined) {
+      totalLength = (totalLength ?? 0) + part.totalLength
+    }
+
+    if (part.totalArea !== undefined) {
+      totalArea = (totalArea ?? 0) + part.totalArea
+    }
+  }
+
+  return {
+    totalQuantity,
+    totalVolume,
+    totalLength,
+    totalArea,
+    totalWeight: calculateWeight(totalVolume, material),
+    partCount: parts.length
+  }
+}
+
 function MaterialTypeIndicator({ material, size = 18 }: { material: Material; size?: number }) {
   const Icon = getMaterialTypeIcon(material.type)
   if (!Icon) return null
@@ -57,7 +279,8 @@ function MaterialTypeIndicator({ material, size = 18 }: { material: Material; si
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        flexShrink: 0
+        flexShrink: 0,
+        margin: '0 auto'
       }}
       aria-hidden
     >
@@ -146,7 +369,7 @@ function MaterialSummaryRow({
 }) {
   return (
     <Table.Row>
-      <Table.RowHeaderCell width="6em" justify="center">
+      <Table.RowHeaderCell justify="center">
         <MaterialTypeIndicator material={material} />
       </Table.RowHeaderCell>
       <Table.RowHeaderCell>
@@ -157,73 +380,82 @@ function MaterialSummaryRow({
           </IconButton>
         </Flex>
       </Table.RowHeaderCell>
-      <Table.Cell width="10em" justify="center">
-        {metrics.totalQuantity}
-      </Table.Cell>
-      <Table.Cell width="10em" justify="center">
-        {metrics.partCount}
-      </Table.Cell>
-      <Table.Cell width="10em" justify="end">
+      <Table.Cell justify="center">{metrics.totalQuantity}</Table.Cell>
+      <Table.Cell justify="center">{metrics.partCount}</Table.Cell>
+      <Table.Cell justify="end">
         {metrics.totalLength !== undefined ? formatLengthInMeters(metrics.totalLength) : '—'}
       </Table.Cell>
-      <Table.Cell width="10em" justify="end">
-        {metrics.totalArea !== undefined ? formatArea(metrics.totalArea) : '—'}
-      </Table.Cell>
-      <Table.Cell width="10em" justify="end">
-        {formatVolume(metrics.totalVolume)}
-      </Table.Cell>
-      <Table.Cell width="10em" justify="end">
-        {formatWeight(metrics.totalWeight)}
-      </Table.Cell>
+      <Table.Cell justify="end">{metrics.totalArea !== undefined ? formatArea(metrics.totalArea) : '—'}</Table.Cell>
+      <Table.Cell justify="end">{formatVolume(metrics.totalVolume)}</Table.Cell>
+      <Table.Cell justify="end">{formatWeight(metrics.totalWeight)}</Table.Cell>
     </Table.Row>
   )
 }
 
-interface PartsTableProps {
+function MaterialGroupSummaryRow({ group, onNavigate }: { group: MaterialGroup; onNavigate: () => void }) {
+  const { metrics } = group
+  return (
+    <Table.Row>
+      <Table.Cell width="6em" justify="center">
+        <Text color="gray">↳</Text>
+      </Table.Cell>
+      <Table.Cell>
+        <Flex align="center" gap="2" justify="between">
+          <Badge color={group.badgeColor}>{group.badgeLabel}</Badge>
+          <IconButton title="Jump to details" size="1" variant="ghost" onClick={onNavigate}>
+            <PinBottomIcon />
+          </IconButton>
+        </Flex>
+      </Table.Cell>
+      <Table.Cell justify="center">{metrics.totalQuantity}</Table.Cell>
+      <Table.Cell justify="center">{metrics.partCount}</Table.Cell>
+      <Table.Cell justify="end">
+        {metrics.totalLength !== undefined ? formatLengthInMeters(metrics.totalLength) : '—'}
+      </Table.Cell>
+      <Table.Cell justify="end">{metrics.totalArea !== undefined ? formatArea(metrics.totalArea) : '—'}</Table.Cell>
+      <Table.Cell justify="end">{formatVolume(metrics.totalVolume)}</Table.Cell>
+      <Table.Cell justify="end">{formatWeight(metrics.totalWeight)}</Table.Cell>
+    </Table.Row>
+  )
+}
+
+interface MaterialGroupCardProps {
   material: Material
-  parts: MaterialPartItem[]
+  group: MaterialGroup
   onBackToTop: () => void
 }
 
-const PartsTable = React.forwardRef<HTMLDivElement, PartsTableProps>(function PartsTable(
-  { material, parts, onBackToTop },
-  ref
-) {
-  const crossSection =
-    material.type === 'dimensional'
-      ? material.crossSections.length === 1
-        ? formatCrossSection([
-            material.crossSections[0]?.smallerLength ?? 0,
-            material.crossSections[0]?.biggerLength ?? 0
-          ])
-        : `${material.crossSections.length} cross sections`
-      : null
-
+function MaterialGroupCard({ material, group, onBackToTop }: MaterialGroupCardProps) {
   return (
-    <Card ref={ref} variant="surface" size="2">
+    <Card variant="surface" size="2">
       <Flex direction="column" gap="3">
         <Flex align="center" justify="between" gap="3">
           <Flex align="center" gap="3">
             <MaterialTypeIndicator material={material} size={24} />
             <Heading size="4">{material.name}</Heading>
-            {crossSection ? (
-              <Badge variant="soft" color="gray">
-                {crossSection}
+            <Flex align="center" gap="2">
+              <Badge variant="soft" color={group.badgeColor}>
+                {group.badgeLabel}
               </Badge>
-            ) : null}
+              {group.hasIssue && (
+                <Tooltip content={group.issueMessage ?? 'This group does not match the defined material options'}>
+                  <ExclamationTriangleIcon style={{ color: 'var(--red-9)' }} />
+                </Tooltip>
+              )}
+            </Flex>
           </Flex>
           <IconButton title="Back to summary" size="1" variant="ghost" onClick={onBackToTop}>
             <PinTopIcon />
           </IconButton>
         </Flex>
 
-        {material.type === 'dimensional' && <DimensionalPartsTable parts={parts} material={material} />}
-        {material.type === 'sheet' && <SheetPartsTable parts={parts} material={material} />}
-        {material.type === 'volume' && <VolumePartsTable parts={parts} material={material} />}
+        {material.type === 'dimensional' && <DimensionalPartsTable parts={group.parts} material={material} />}
+        {material.type === 'sheet' && <SheetPartsTable parts={group.parts} material={material} />}
+        {material.type === 'volume' && <VolumePartsTable parts={group.parts} material={material} />}
       </Flex>
     </Card>
   )
-})
+}
 
 function DimensionalPartsTable({ parts, material }: { parts: MaterialPartItem[]; material: DimensionalMaterial }) {
   return (
@@ -264,14 +496,6 @@ function DimensionalPartsTable({ parts, material }: { parts: MaterialPartItem[];
               <Table.Cell>
                 <Flex align="center" gap="2">
                   <Text>{part.description}</Text>
-                  {part.issue === 'CrossSectionMismatch' && (
-                    <Tooltip
-                      key="cross-section-mismatch"
-                      content={`Part dimensions ${formatDimensions(part.size)} do not match any available cross section`}
-                    >
-                      <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--red-9)' }} />
-                    </Tooltip>
-                  )}
                   {part.polygon && part.polygon.points.length >= 3 && (
                     <Tooltip key="special-cut" content={<SpecialCutTooltip polygon={part.polygon} />}>
                       <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--amber-9)' }} />
@@ -446,14 +670,15 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
   const topRef = useRef<HTMLDivElement | null>(null)
   const detailRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  const setDetailRef = useCallback((materialId: Material['id']) => {
+  const setDetailRef = useCallback((groupKey: string) => {
     return (element: HTMLDivElement | null) => {
-      detailRefs.current[materialId] = element
+      detailRefs.current[groupKey] = element
     }
   }, [])
 
-  const scrollToDetail = useCallback((materialId: Material['id']) => {
-    const target = detailRefs.current[materialId]
+  const scrollToGroup = useCallback((groupKey?: string) => {
+    if (!groupKey) return
+    const target = detailRefs.current[groupKey]
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
 
@@ -478,10 +703,10 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
   const summaryRows = materialIds
     .map(materialId => {
       const materialParts = partsList[materialId]
-      const parts = Object.values(materialParts.parts)
       const material = materialsMap[materialId]
       if (!material) return null
       const totalWeight = calculateWeight(materialParts.totalVolume, material)
+      const parts = Object.values(materialParts.parts)
       const metrics: RowMetrics & { partCount: number } = {
         totalQuantity: materialParts.totalQuantity,
         totalVolume: materialParts.totalVolume,
@@ -490,9 +715,13 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
         totalWeight,
         partCount: parts.length
       }
-      return { material, metrics }
+      const groups = createMaterialGroups(material, materialParts)
+      return { material, metrics, groups }
     })
-    .filter((row): row is { material: Material; metrics: RowMetrics & { partCount: number } } => row !== null)
+    .filter(
+      (row): row is { material: Material; metrics: RowMetrics & { partCount: number }; groups: MaterialGroup[] } =>
+        row !== null
+    )
 
   return (
     <Flex direction="column" gap="4">
@@ -502,24 +731,47 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
           <Table.Root variant="surface" size="2" className="min-w-full">
             <Table.Header>
               <Table.Row>
-                <Table.ColumnHeaderCell justify="center">Type</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell width="4em" justify="center">
+                  Type
+                </Table.ColumnHeaderCell>
                 <Table.ColumnHeaderCell>Material</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell justify="center">Total Quantity</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell justify="center">Different Parts</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell justify="end">Total Length</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell justify="end">Total Area</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell justify="end">Total Volume</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell justify="end">Total Weight</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell width="10em" justify="center">
+                  Total Quantity
+                </Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell width="10em" justify="center">
+                  Different Parts
+                </Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell width="10em" justify="end">
+                  Total Length
+                </Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell width="10em" justify="end">
+                  Total Area
+                </Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell width="10em" justify="end">
+                  Total Volume
+                </Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell width="10em" justify="end">
+                  Total Weight
+                </Table.ColumnHeaderCell>
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {summaryRows.map(row => (
-                <MaterialSummaryRow
-                  key={row.material.id}
-                  material={row.material}
-                  metrics={row.metrics}
-                  onNavigate={() => scrollToDetail(row.material.id)}
-                />
+                <React.Fragment key={row.material.id}>
+                  <MaterialSummaryRow
+                    material={row.material}
+                    metrics={row.metrics}
+                    onNavigate={() => scrollToGroup(row.groups[0]?.key)}
+                  />
+                  {row.groups.length > 1 &&
+                    row.groups.map(group => (
+                      <MaterialGroupSummaryRow
+                        key={group.key}
+                        group={group}
+                        onNavigate={() => scrollToGroup(group.key)}
+                      />
+                    ))}
+                </React.Fragment>
               ))}
             </Table.Body>
           </Table.Root>
@@ -531,15 +783,16 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
           const material = materialsMap[materialId]
           const materialParts = partsList[materialId]
           if (!material || !materialParts) return null
-          const parts = Object.values(materialParts.parts)
+          const groups = createMaterialGroups(material, materialParts)
+          if (groups.length === 0) return null
           return (
-            <PartsTable
-              key={materialId}
-              ref={setDetailRef(materialId)}
-              material={material}
-              parts={parts}
-              onBackToTop={scrollToTop}
-            />
+            <Flex key={materialId} direction="column" gap="4">
+              {groups.map(group => (
+                <div key={group.key} ref={setDetailRef(group.key)}>
+                  <MaterialGroupCard material={material} group={group} onBackToTop={scrollToTop} />
+                </div>
+              ))}
+            </Flex>
           )
         })}
       </Flex>

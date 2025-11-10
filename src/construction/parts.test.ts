@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createConstructionElement } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
-import { DEFAULT_MATERIALS, window as windowMaterial, wood } from '@/construction/materials/material'
+import { DEFAULT_MATERIALS, clt, window as windowMaterial, wood } from '@/construction/materials/material'
 import type { MaterialId } from '@/construction/materials/material'
 import { setMaterialsState } from '@/construction/materials/store'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
@@ -39,6 +39,7 @@ const createModel = (elements: ConstructionModel['elements']): ConstructionModel
 }
 
 const woodMaterialId = wood.id
+const cltMaterialId = clt.id
 
 const createElement = (materialId: MaterialId, partInfo: PartInfo) =>
   createConstructionElement(
@@ -88,6 +89,14 @@ describe('generateMaterialPartsList', () => {
     expect(part.elements).toEqual([elementA.id, elementB.id])
   })
 
+  it('stores cross section metadata for dimensional parts', () => {
+    const partInfo = dimensionalPartInfo('stud', vec3.fromValues(4000, 120, 60))
+    const model = createModel([createElement(woodMaterialId, partInfo)])
+
+    const part = generateMaterialPartsList(model)[woodMaterialId].parts[partInfo.partId]
+    expect(part.crossSection).toEqual({ smallerLength: 60, biggerLength: 120 })
+  })
+
   it('assigns sequential labels per material when parts differ', () => {
     const partA = dimensionalPartInfo('post', vec3.fromValues(5000, 360, 60))
     const partB = dimensionalPartInfo('post', vec3.fromValues(3000, 360, 60))
@@ -102,6 +111,18 @@ describe('generateMaterialPartsList', () => {
     expect(parts[partB.partId].label).toBe('B')
     expect(parts[partA.partId].elements).toEqual([elementA.id])
     expect(parts[partB.partId].elements).toEqual([elementB.id])
+  })
+
+  it('stores thickness metadata for sheet parts', () => {
+    const partInfo: PartInfo = {
+      partId: 'sheet-part' as PartId,
+      type: 'sheet',
+      size: vec3.fromValues(160, 16500, 3500)
+    }
+
+    const model = createModel([createElement(cltMaterialId, partInfo)])
+    const part = generateMaterialPartsList(model)[cltMaterialId].parts[partInfo.partId]
+    expect(part.thickness).toBe(160)
   })
 
   it('omits length metrics for non-dimensional materials', () => {
