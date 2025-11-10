@@ -47,7 +47,7 @@ import { getMaterialUsage } from '@/construction/materials/usage'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import { VolumeField } from '@/shared/components/VolumeField/VolumeField'
 import type { Length } from '@/shared/geometry'
-import { formatLength, formatVolume } from '@/shared/utils/formatting'
+import { formatLength, formatVolume, formatVolumeInLiters } from '@/shared/utils/formatting'
 
 import { MaterialSelect, getMaterialTypeIcon, getMaterialTypeName } from './MaterialSelect'
 
@@ -756,7 +756,7 @@ function VolumeMaterialFields({
             {material.availableVolumes.map(volume => (
               <Badge key={volume} size="2" variant="soft">
                 <Flex align="center" gap="1">
-                  {formatVolume(volume)}
+                  {volumeUnit === 'liter' ? formatVolumeInLiters(volume) : formatVolume(volume)}
                   <IconButton
                     size="1"
                     variant="ghost"
