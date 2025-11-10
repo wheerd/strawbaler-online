@@ -52,9 +52,6 @@ const validateMaterialUpdates = (updates: Partial<UnionOmit<Material, 'id'>>, ma
     case 'dimensional': {
       const dimensional = updates as Partial<DimensionalMaterial>
       if (dimensional.crossSections !== undefined) {
-        if (!Array.isArray(dimensional.crossSections) || dimensional.crossSections.length === 0) {
-          throw new Error('Cross sections must be a non-empty array')
-        }
         dimensional.crossSections.forEach(section => {
           if (
             section == null ||
@@ -69,9 +66,6 @@ const validateMaterialUpdates = (updates: Partial<UnionOmit<Material, 'id'>>, ma
       }
 
       if (dimensional.lengths !== undefined) {
-        if (!Array.isArray(dimensional.lengths) || dimensional.lengths.length === 0) {
-          throw new Error('Lengths must be a non-empty array')
-        }
         if (dimensional.lengths.some(length => length <= 0)) {
           throw new Error('All lengths must be positive')
         }

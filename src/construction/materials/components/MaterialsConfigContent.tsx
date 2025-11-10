@@ -3,6 +3,7 @@ import {
   CopyIcon,
   Cross2Icon,
   CubeIcon,
+  ExclamationTriangleIcon,
   LayersIcon,
   OpacityIcon,
   PlusIcon,
@@ -10,7 +11,18 @@ import {
   TrashIcon
 } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { AlertDialog, Badge, Button, DropdownMenu, Flex, Grid, IconButton, Text, TextField } from '@radix-ui/themes'
+import {
+  AlertDialog,
+  Badge,
+  Button,
+  Callout,
+  DropdownMenu,
+  Flex,
+  Grid,
+  IconButton,
+  Text,
+  TextField
+} from '@radix-ui/themes'
 import React, { useCallback, useState } from 'react'
 
 import {
@@ -33,7 +45,7 @@ import { useMaterialActions, useMaterials } from '@/construction/materials/store
 import { getMaterialUsage } from '@/construction/materials/usage'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import type { Length } from '@/shared/geometry'
-import { formatLengthInMeters } from '@/shared/utils/formatting'
+import { formatLength } from '@/shared/utils/formatting'
 
 import { MaterialSelect, getMaterialTypeIcon, getMaterialTypeName } from './MaterialSelect'
 
@@ -48,7 +60,7 @@ export interface MaterialsConfigContentProps {
 type MaterialType = Material['type']
 
 const formatCrossSectionLabel = (section: { smallerLength: number; biggerLength: number }) =>
-  `${formatLengthInMeters(section.smallerLength)} × ${formatLengthInMeters(section.biggerLength)}`
+  `${formatLength(section.smallerLength)} × ${formatLength(section.biggerLength)}`
 
 export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigContentProps): React.JSX.Element {
   const materials = useMaterials()
@@ -459,76 +471,91 @@ function DimensionalMaterialFields({
 
   return (
     <Flex direction="column" gap="3">
-      <Flex direction="column" gap="2">
-        <Text size="2" weight="medium" color="gray">
-          Cross Sections
-        </Text>
-        <Flex gap="2" wrap="wrap">
-          {material.crossSections.map(section => (
-            <Badge key={`${section.smallerLength}x${section.biggerLength}`} size="2" variant="soft">
-              <Flex align="center" gap="1">
-                {formatCrossSectionLabel(section)}
-                <IconButton
-                  size="1"
-                  variant="ghost"
-                  color="gray"
-                  onClick={() => handleRemoveCrossSection(section)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <Cross2Icon width="10" height="10" />
-                </IconButton>
-              </Flex>
-            </Badge>
-          ))}
-          {material.crossSections.length === 0 && <Text color="gray">No cross sections configured</Text>}
+      <Flex direction="row" justify="between" align="end">
+        <Flex direction="column" gap="2">
+          <Text size="2" weight="medium" color="gray">
+            Cross Sections
+          </Text>
+          <Flex gap="2" wrap="wrap">
+            {material.crossSections.map(section => (
+              <Badge key={`${section.smallerLength}x${section.biggerLength}`} size="2" variant="soft">
+                <Flex align="center" gap="1">
+                  {formatCrossSectionLabel(section)}
+                  <IconButton
+                    size="1"
+                    variant="ghost"
+                    color="gray"
+                    onClick={() => handleRemoveCrossSection(section)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Cross2Icon width="10" height="10" />
+                  </IconButton>
+                </Flex>
+              </Badge>
+            ))}
+            {material.crossSections.length === 0 && (
+              <Callout.Root color="amber" size="1">
+                <Callout.Icon>
+                  <ExclamationTriangleIcon />
+                </Callout.Icon>
+                <Callout.Text>No cross sections configured</Callout.Text>
+              </Callout.Root>
+            )}
+          </Flex>
         </Flex>
-        <Grid columns="repeat(2, minmax(0, 1fr)) auto" gap="2" align="end">
-          <Flex direction="column" gap="1">
-            <Text size="1" color="gray">
-              Width
-            </Text>
-            <LengthField value={newWidth} onChange={setNewWidth} unit="mm" size="2" />
-          </Flex>
-          <Flex direction="column" gap="1">
-            <Text size="1" color="gray">
-              Thickness
-            </Text>
-            <LengthField value={newThickness} onChange={setNewThickness} unit="mm" size="2" />
-          </Flex>
-          <Button onClick={handleAddCrossSection} variant="surface" size="2">
-            <PlusIcon /> Add
-          </Button>
+        <Grid columns="5em auto 5em auto" gap="2" align="center" justify="end">
+          <LengthField value={newWidth} onChange={setNewWidth} unit="cm" size="2" />
+          <Text>x</Text>
+          <LengthField value={newThickness} onChange={setNewThickness} unit="cm" size="2" />
+          <IconButton title="Add" onClick={handleAddCrossSection} variant="surface" size="2">
+            <PlusIcon />
+          </IconButton>
         </Grid>
       </Flex>
 
-      <Flex direction="column" gap="2">
-        <Text size="2" weight="medium" color="gray">
-          Stock Lengths
-        </Text>
-        <Flex gap="2" wrap="wrap">
-          {material.lengths.map(length => (
-            <Badge key={length} size="2" variant="soft">
-              <Flex align="center" gap="1">
-                {formatLengthInMeters(length)}
-                <IconButton
-                  size="1"
-                  variant="ghost"
-                  color="gray"
-                  onClick={() => handleRemoveLength(length)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <Cross2Icon width="10" height="10" />
-                </IconButton>
-              </Flex>
-            </Badge>
-          ))}
-          {material.lengths.length === 0 && <Text color="gray">No lengths configured</Text>}
+      <Flex direction="row" justify="between" align="end">
+        <Flex direction="column" gap="2">
+          <Text size="2" weight="medium" color="gray">
+            Stock Lengths
+          </Text>
+          <Flex gap="2" wrap="wrap">
+            {material.lengths.map(length => (
+              <Badge key={length} size="2" variant="soft">
+                <Flex align="center" gap="1">
+                  {formatLength(length)}
+                  <IconButton
+                    size="1"
+                    variant="ghost"
+                    color="gray"
+                    onClick={() => handleRemoveLength(length)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Cross2Icon width="10" height="10" />
+                  </IconButton>
+                </Flex>
+              </Badge>
+            ))}
+            {material.lengths.length === 0 && (
+              <Callout.Root color="amber" size="1">
+                <Callout.Icon>
+                  <ExclamationTriangleIcon />
+                </Callout.Icon>
+                <Callout.Text>No lengths configured</Callout.Text>
+              </Callout.Root>
+            )}
+          </Flex>
         </Flex>
         <Flex gap="2" align="end">
-          <LengthField value={newLengthInput} onChange={setNewLengthInput} unit="mm" size="2" style={{ flexGrow: 1 }} />
-          <Button onClick={handleAddLength} variant="surface" size="2">
-            <PlusIcon /> Add
-          </Button>
+          <LengthField
+            value={newLengthInput}
+            onChange={setNewLengthInput}
+            unit="cm"
+            size="2"
+            style={{ width: '8em' }}
+          />
+          <IconButton title="Add" onClick={handleAddLength} variant="surface" size="2">
+            <PlusIcon />
+          </IconButton>
         </Flex>
       </Flex>
     </Flex>
@@ -643,7 +670,7 @@ function SheetMaterialFields({
           {material.thicknesses.map(thickness => (
             <Badge key={thickness} size="2" variant="soft">
               <Flex align="center" gap="1">
-                {formatLengthInMeters(thickness)}
+                {formatLength(thickness)}
                 <IconButton
                   size="1"
                   variant="ghost"
@@ -756,7 +783,7 @@ function StrawbaleMaterialFields({
         <LengthField
           value={material.baleMinLength}
           onChange={baleMinLength => onUpdate({ baleMinLength })}
-          unit="mm"
+          unit="cm"
           size="2"
         />
 
@@ -768,7 +795,7 @@ function StrawbaleMaterialFields({
         <LengthField
           value={material.baleMaxLength}
           onChange={baleMaxLength => onUpdate({ baleMaxLength })}
-          unit="mm"
+          unit="cm"
           size="2"
         />
 
@@ -777,14 +804,14 @@ function StrawbaleMaterialFields({
             Bale Height
           </Text>
         </Label.Root>
-        <LengthField value={material.baleHeight} onChange={baleHeight => onUpdate({ baleHeight })} unit="mm" size="2" />
+        <LengthField value={material.baleHeight} onChange={baleHeight => onUpdate({ baleHeight })} unit="cm" size="2" />
 
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
             Bale Width
           </Text>
         </Label.Root>
-        <LengthField value={material.baleWidth} onChange={baleWidth => onUpdate({ baleWidth })} unit="mm" size="2" />
+        <LengthField value={material.baleWidth} onChange={baleWidth => onUpdate({ baleWidth })} unit="cm" size="2" />
       </Grid>
 
       <Grid columns="8em 1fr 8em 1fr" gap="3" gapX="4">
@@ -803,7 +830,7 @@ function StrawbaleMaterialFields({
         <LengthField
           value={material.topCutoffLimit}
           onChange={topCutoffLimit => onUpdate({ topCutoffLimit })}
-          unit="mm"
+          unit="cm"
           size="2"
         />
 
@@ -812,7 +839,7 @@ function StrawbaleMaterialFields({
             Flake Size
           </Text>
         </Label.Root>
-        <LengthField value={material.flakeSize} onChange={flakeSize => onUpdate({ flakeSize })} unit="mm" size="2" />
+        <LengthField value={material.flakeSize} onChange={flakeSize => onUpdate({ flakeSize })} unit="cm" size="2" />
       </Grid>
     </Flex>
   )
