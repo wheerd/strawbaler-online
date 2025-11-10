@@ -13,7 +13,7 @@ export interface BaseMaterial {
   id: MaterialId
   name: string
   color: string
-  density?: number
+  density?: number // kg/m³
 }
 
 export interface CrossSection {
@@ -84,7 +84,17 @@ export const strawbale: StrawbaleMaterial = {
   baleWidth: 360,
   tolerance: 2,
   topCutoffLimit: 50,
-  flakeSize: 70
+  flakeSize: 70,
+  density: 90
+}
+
+export const straw: VolumeMaterial = {
+  id: 'material_straw' as MaterialId,
+  name: 'Straw',
+  type: 'volume',
+  availableVolumes: [140000000],
+  color: MATERIAL_COLORS.straw,
+  density: 90
 }
 
 export const window: GenericMaterial = {
@@ -167,6 +177,7 @@ export const impactSoundInsulation: VolumeMaterial = {
 export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [wood.id]: wood,
   [strawbale.id]: strawbale,
+  [straw.id]: straw,
   [window.id]: window,
   [door.id]: door,
   [concrete.id]: concrete,
