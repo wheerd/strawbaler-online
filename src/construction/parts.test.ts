@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createConstructionElement } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
-import { DEFAULT_MATERIALS, clt, window as windowMaterial, wood } from '@/construction/materials/material'
+import { DEFAULT_MATERIALS, clt, strawbale, window as windowMaterial, wood } from '@/construction/materials/material'
 import type { MaterialId } from '@/construction/materials/material'
 import { setMaterialsState } from '@/construction/materials/store'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
@@ -16,6 +16,7 @@ import {
   polygonPartInfo
 } from '@/construction/parts'
 import { createCuboidShape } from '@/construction/shapes'
+import { TAG_FULL_BALE, TAG_PARTIAL_BALE } from '@/construction/tags'
 import { Bounds2D, Bounds3D, canonicalPolygonKey, minimumAreaBoundingBox } from '@/shared/geometry'
 
 vi.mock('@/shared/geometry', async importActual => ({
@@ -40,6 +41,7 @@ const createModel = (elements: ConstructionModel['elements']): ConstructionModel
 
 const woodMaterialId = wood.id
 const cltMaterialId = clt.id
+const strawbaleMaterialId = strawbale.id
 
 const createElement = (materialId: MaterialId, partInfo: PartInfo) =>
   createConstructionElement(
@@ -123,6 +125,48 @@ describe('generateMaterialPartsList', () => {
     const model = createModel([createElement(cltMaterialId, partInfo)])
     const part = generateMaterialPartsList(model)[cltMaterialId].parts[partInfo.partId]
     expect(part.thickness).toBe(160)
+  })
+
+  it('groups straw bales by their category tags', () => {
+    const fullSize = vec3.fromValues(strawbale.baleMaxLength, strawbale.baleWidth, strawbale.baleHeight)
+    const partialSize = vec3.fromValues(strawbale.baleMaxLength / 2, strawbale.baleWidth, strawbale.baleHeight)
+
+    const fullPart = dimensionalPartInfo('straw', fullSize)
+    const partialPart = dimensionalPartInfo('straw', partialSize)
+
+    const fullElement = createConstructionElement(
+      strawbaleMaterialId,
+      createCuboidShape(vec3.create(), vec3.clone(fullPart.size)),
+      undefined,
+      [TAG_FULL_BALE],
+      fullPart
+    )
+
+    const partialElement = createConstructionElement(
+      strawbaleMaterialId,
+      createCuboidShape(vec3.create(), vec3.clone(partialPart.size)),
+      undefined,
+      [TAG_PARTIAL_BALE],
+      partialPart
+    )
+
+    const model = createModel([fullElement, partialElement])
+    const strawParts = generateMaterialPartsList(model)[strawbaleMaterialId].parts
+
+    const fullBucket = strawParts['strawbale:full' as PartId]
+    const partialBucket = strawParts['strawbale:partial' as PartId]
+
+    expect(fullBucket).toBeDefined()
+    expect(fullBucket.type).toBe('strawbale-full')
+    expect(fullBucket.description).toBe('Full bales')
+    expect(fullBucket.quantity).toBe(1)
+    expect(fullBucket.strawCategory).toBe('full')
+
+    expect(partialBucket).toBeDefined()
+    expect(partialBucket.type).toBe('strawbale-partial')
+    expect(partialBucket.description).toBe('Partial bales')
+    expect(partialBucket.quantity).toBe(1)
+    expect(partialBucket.strawCategory).toBe('partial')
   })
 
   it('omits length metrics for non-dimensional materials', () => {

@@ -4,7 +4,13 @@ import { vec3 } from 'gl-matrix'
 import React, { useCallback, useMemo, useRef } from 'react'
 
 import { getMaterialTypeIcon, getMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
-import type { DimensionalMaterial, Material, SheetMaterial, VolumeMaterial } from '@/construction/materials/material'
+import type {
+  DimensionalMaterial,
+  Material,
+  SheetMaterial,
+  StrawbaleMaterial,
+  VolumeMaterial
+} from '@/construction/materials/material'
 import { useMaterialsMap } from '@/construction/materials/store'
 import type { MaterialPartItem, MaterialParts, MaterialPartsList } from '@/construction/parts'
 import { Bounds2D, type Polygon2D, type Volume } from '@/shared/geometry'
@@ -35,6 +41,16 @@ interface MaterialGroup {
   metrics: RowMetrics & { partCount: number }
 }
 
+type StrawCategory = NonNullable<MaterialPartItem['strawCategory']>
+
+const STRAW_CATEGORY_ORDER: StrawCategory[] = ['full', 'partial', 'flakes', 'stuffed']
+const STRAW_CATEGORY_LABELS: Record<StrawCategory, string> = {
+  full: 'Full bales',
+  partial: 'Partial bales',
+  flakes: 'Flakes',
+  stuffed: 'Stuffed fill'
+}
+
 const formatCrossSection = ([first, second]: [number, number]) =>
   `${formatLengthInMeters(first)} × ${formatLengthInMeters(second)}`
 
@@ -59,6 +75,78 @@ const UNKNOWN_THICKNESS_LABEL = 'Other thicknesses'
 const UNKNOWN_CROSS_SECTION_MESSAGE = 'Cross section does not match available options for this material'
 const UNKNOWN_THICKNESS_MESSAGE = 'Thickness does not match available options for this material'
 
+interface StrawSummary {
+  buckets: Record<StrawCategory, { volume: number; count: number }>
+  nominalMaxVolume: number
+  nominalMinVolume: number
+  minRemainingBaleCount: number
+  maxRemainingBaleCount: number
+  remainingVolumeMin: number
+  remainingVolumeMax: number
+  totalEstimatedBalesMax: number
+  totalVolume: number
+}
+
+const ceilDiv = (value: number, divisor: number) => {
+  if (value <= 0 || divisor <= 0) return 0
+  return Math.ceil(value / divisor)
+}
+
+const floorDiv = (value: number, divisor: number) => {
+  if (value <= 0 || divisor <= 0) return 0
+  return Math.floor(value / divisor)
+}
+
+const summarizeStrawbaleParts = (parts: MaterialPartItem[], material: StrawbaleMaterial): StrawSummary => {
+  const buckets: Record<StrawCategory, { volume: number; count: number }> = {
+    full: { volume: 0, count: 0 },
+    partial: { volume: 0, count: 0 },
+    flakes: { volume: 0, count: 0 },
+    stuffed: { volume: 0, count: 0 }
+  }
+
+  for (const part of parts) {
+    const category: StrawCategory = part.strawCategory ?? 'stuffed'
+    buckets[category].volume += part.totalVolume
+    buckets[category].count += part.quantity
+  }
+
+  const nominalMaxVolume = material.baleHeight * material.baleWidth * material.baleMaxLength
+  const nominalMinVolume = Math.max(material.baleHeight * material.baleWidth * material.baleMinLength, 1)
+  const totalVolume = STRAW_CATEGORY_ORDER.reduce((sum, category) => sum + buckets[category].volume, 0)
+
+  const partialBucket = buckets.partial
+  const expectedPartialVolumeMin = partialBucket.count * nominalMinVolume
+  const expectedPartialVolumeMax = partialBucket.count * nominalMaxVolume
+  const remainingVolumeMin = Math.max(expectedPartialVolumeMin - partialBucket.volume, 0)
+  const remainingVolumeMax = Math.max(expectedPartialVolumeMax - partialBucket.volume, 0)
+
+  const remainingBaleCount1 = floorDiv(remainingVolumeMin, nominalMinVolume)
+  const remainingBaleCount2 = floorDiv(remainingVolumeMax, nominalMaxVolume)
+
+  const minRemainingBaleCount = Math.min(remainingBaleCount1, remainingBaleCount2)
+  const maxRemainingBaleCount = Math.max(remainingBaleCount1, remainingBaleCount2)
+
+  const totalEstimatedBalesMax =
+    buckets.full.count +
+    buckets.partial.count -
+    minRemainingBaleCount +
+    ceilDiv(buckets.flakes.volume, nominalMaxVolume) +
+    ceilDiv(buckets.stuffed.volume, nominalMaxVolume)
+
+  return {
+    buckets,
+    nominalMaxVolume,
+    nominalMinVolume,
+    minRemainingBaleCount,
+    maxRemainingBaleCount,
+    remainingVolumeMin,
+    remainingVolumeMax,
+    totalEstimatedBalesMax,
+    totalVolume
+  }
+}
+
 const createMaterialGroups = (material: Material, materialParts: MaterialParts): MaterialGroup[] => {
   const parts = Object.values(materialParts.parts)
   if (parts.length === 0) return []
@@ -69,6 +157,20 @@ const createMaterialGroups = (material: Material, materialParts: MaterialParts):
 
   if (material.type === 'sheet') {
     return groupSheetParts(parts, material)
+  }
+
+  if (material.type === 'strawbale') {
+    return [
+      createGroup({
+        key: `${material.id}-straw`,
+        label: 'Strawbales',
+        badgeLabel: 'Strawbales',
+        badgeColor: 'gray',
+        hasIssue: false,
+        material,
+        parts
+      })
+    ]
   }
 
   return [
@@ -235,6 +337,18 @@ const createGroup = ({
 }
 
 const computeGroupMetrics = (parts: MaterialPartItem[], material: Material): RowMetrics & { partCount: number } => {
+  if (material.type === 'strawbale') {
+    const summary = summarizeStrawbaleParts(parts, material)
+    return {
+      totalQuantity: summary.totalEstimatedBalesMax,
+      totalVolume: summary.totalVolume,
+      totalLength: undefined,
+      totalArea: undefined,
+      totalWeight: calculateWeight(summary.totalVolume, material),
+      partCount: parts.length
+    }
+  }
+
   let totalQuantity = 0
   let totalVolume = 0
   let totalLength: number | undefined
@@ -434,9 +548,11 @@ function MaterialGroupCard({ material, group, onBackToTop }: MaterialGroupCardPr
             <MaterialTypeIndicator material={material} size={24} />
             <Heading size="4">{material.name}</Heading>
             <Flex align="center" gap="2">
-              <Badge variant="soft" color={group.badgeColor}>
-                {group.badgeLabel}
-              </Badge>
+              {group.badgeLabel && (
+                <Badge variant="soft" color={group.badgeColor ?? 'gray'}>
+                  {group.badgeLabel}
+                </Badge>
+              )}
               {group.hasIssue && (
                 <Tooltip content={group.issueMessage ?? 'This group does not match the defined material options'}>
                   <ExclamationTriangleIcon style={{ color: 'var(--red-9)' }} />
@@ -452,9 +568,8 @@ function MaterialGroupCard({ material, group, onBackToTop }: MaterialGroupCardPr
         {material.type === 'dimensional' && <DimensionalPartsTable parts={group.parts} material={material} />}
         {material.type === 'sheet' && <SheetPartsTable parts={group.parts} material={material} />}
         {material.type === 'volume' && <VolumePartsTable parts={group.parts} material={material} />}
-        {(material.type === 'generic' || material.type === 'strawbale') && (
-          <GenericPartsTable parts={group.parts} />
-        )}
+        {material.type === 'generic' && <GenericPartsTable parts={group.parts} />}
+        {material.type === 'strawbale' && <StrawbalePartsTable parts={group.parts} material={material} />}
       </Flex>
     </Card>
   )
@@ -699,6 +814,64 @@ function GenericPartsTable({ parts }: { parts: MaterialPartItem[] }) {
   )
 }
 
+function StrawbalePartsTable({ parts, material }: { parts: MaterialPartItem[]; material: StrawbaleMaterial }) {
+  const summary = summarizeStrawbaleParts(parts, material)
+
+  const rows = STRAW_CATEGORY_ORDER.map(category => {
+    const bucket = summary.buckets[category]
+    const label = STRAW_CATEGORY_LABELS[category]
+    const volume = bucket.volume
+    const maxQuantity =
+      category === 'full' || category === 'partial' ? bucket.count : ceilDiv(volume, summary.nominalMinVolume)
+    const minQuantity =
+      category === 'full' || category === 'partial' ? bucket.count : ceilDiv(volume, summary.nominalMaxVolume)
+    return {
+      key: category,
+      label,
+      volume,
+      maxQuantity,
+      minQuantity
+    }
+  })
+
+  rows.splice(2, 0, {
+    key: 'remaining',
+    label: 'Leftover from partial bales',
+    volume: summary.remainingVolumeMin,
+    maxQuantity: summary.maxRemainingBaleCount,
+    minQuantity: summary.minRemainingBaleCount
+  })
+
+  return (
+    <Table.Root variant="surface" size="2" className="min-w-full">
+      <Table.Header>
+        <Table.Row>
+          <Table.ColumnHeaderCell>Category</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="12em" justify="center">
+            Bale Count
+          </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="12em" justify="end">
+            Total Volume
+          </Table.ColumnHeaderCell>
+        </Table.Row>
+      </Table.Header>
+      <Table.Body>
+        {rows.map(row => (
+          <Table.Row key={row.key}>
+            <Table.RowHeaderCell>
+              <Text weight="medium">{row.label}</Text>
+            </Table.RowHeaderCell>
+            <Table.Cell justify="center">
+              {row.minQuantity === row.maxQuantity ? row.minQuantity : row.minQuantity + '-' + row.maxQuantity}
+            </Table.Cell>
+            <Table.Cell justify="end">{formatVolume(row.volume)}</Table.Cell>
+          </Table.Row>
+        ))}
+      </Table.Body>
+    </Table.Root>
+  )
+}
+
 export function ConstructionPartsList({ partsList }: ConstructionPartsListProps): React.JSX.Element {
   const materialsMap = useMaterialsMap()
   const topRef = useRef<HTMLDivElement | null>(null)
@@ -748,6 +921,10 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
         totalArea: materialParts.totalArea,
         totalWeight,
         partCount: parts.length
+      }
+      if (material.type === 'strawbale') {
+        const strawSummary = summarizeStrawbaleParts(parts, material)
+        metrics.totalQuantity = strawSummary.totalEstimatedBalesMax
       }
       const groups = createMaterialGroups(material, materialParts)
       return { material, metrics, groups }

@@ -7,6 +7,10 @@ import type { ConstructionModel } from '@/construction/model'
 import {
   TAG_FLOOR_LAYER_BOTTOM,
   TAG_FLOOR_LAYER_TOP,
+  TAG_FULL_BALE,
+  TAG_PARTIAL_BALE,
+  TAG_STRAW_FLAKES,
+  TAG_STRAW_STUFFED,
   TAG_WALL_LAYER_INSIDE,
   TAG_WALL_LAYER_OUTSIDE,
   type Tag
@@ -157,6 +161,7 @@ export interface MaterialPartItem extends PartItem {
   totalLength?: Length
   crossSection?: CrossSection
   thickness?: Length
+  strawCategory?: StrawCategory
   polygon?: Polygon2D
   polygonPlane?: Plane3D
   issue?: PartIssue
@@ -190,6 +195,31 @@ const indexToLabel = (index: number): string => {
 const computeVolume = (size: vec3): Volume => size[0] * size[1] * size[2]
 
 export type PartIssue = 'CrossSectionMismatch' | 'LengthExceedsAvailable' | 'ThicknessMismatch' | 'SheetSizeExceeded'
+
+type StrawCategory = 'full' | 'partial' | 'flakes' | 'stuffed'
+
+const STRAW_CATEGORY_BY_TAG: Record<string, StrawCategory> = {
+  [TAG_FULL_BALE.id]: 'full',
+  [TAG_PARTIAL_BALE.id]: 'partial',
+  [TAG_STRAW_FLAKES.id]: 'flakes',
+  [TAG_STRAW_STUFFED.id]: 'stuffed'
+}
+
+const STRAW_CATEGORY_LABELS: Record<StrawCategory, string> = {
+  full: 'Full bales',
+  partial: 'Partial bales',
+  flakes: 'Flakes',
+  stuffed: 'Stuffed fill'
+}
+
+const getStrawCategoryFromTags = (tags?: Tag[]): StrawCategory => {
+  if (!tags) return 'stuffed'
+  for (const tag of tags) {
+    const category = STRAW_CATEGORY_BY_TAG[tag.id]
+    if (category) return category
+  }
+  return 'stuffed'
+}
 
 const computeDimensionalDetails = (size: vec3, material: DimensionalMaterial) => {
   const dimensions = [Math.round(size[0]), Math.round(size[1]), Math.round(size[2])] as [number, number, number]
@@ -289,15 +319,16 @@ export const generateMaterialPartsList = (model: ConstructionModel, excludeTypes
     }
 
     const { material, partInfo, id } = element
+    const elementTags = [...tags, ...(element.tags ?? [])]
 
     if (partInfo && excludeTypes?.some(t => t === partInfo.type)) return
 
     const materialEntry = ensureMaterialEntry(material)
 
     if (partInfo) {
-      processPart(partInfo, materialEntry, id, labelCounters)
+      processPart(partInfo, materialEntry, id, labelCounters, elementTags)
     } else {
-      processConstructionElement(element, [...tags, ...(element.tags ?? [])], materialEntry, labelCounters)
+      processConstructionElement(element, elementTags, materialEntry, labelCounters)
     }
   }
 
@@ -357,9 +388,20 @@ function processPart(
   partInfo: PartInfo,
   materialEntry: MaterialParts,
   id: ConstructionElementId,
-  labelCounters: Map<MaterialId, number>
+  labelCounters: Map<MaterialId, number>,
+  tags: Tag[]
 ) {
-  const partId = partInfo.partId
+  const materialDefinition = getMaterialById(materialEntry.material)
+  const isStrawbaleMaterial = materialDefinition?.type === 'strawbale'
+
+  let partId: PartId = partInfo.partId
+  let strawCategory: StrawCategory | undefined
+
+  if (isStrawbaleMaterial) {
+    strawCategory = getStrawCategoryFromTags(tags)
+    partId = `strawbale:${strawCategory}` as PartId
+  }
+
   const existingPart = materialEntry.parts[partId]
 
   const size = partInfo.size
@@ -387,7 +429,6 @@ function processPart(
     return
   }
 
-  const materialDefinition = getMaterialById(materialEntry.material)
   let length: Length | undefined
   let area: Area | undefined
   let issue: PartIssue | undefined
@@ -418,10 +459,13 @@ function processPart(
   const label = indexToLabel(labelIndex)
   labelCounters.set(materialEntry.material, labelIndex + 1)
 
+  const partType = strawCategory ? `strawbale-${strawCategory}` : partInfo.type
+  const description = strawCategory ? STRAW_CATEGORY_LABELS[strawCategory] : partInfo.description
+
   const partItem: MaterialPartItem = {
     partId,
-    type: partInfo.type,
-    description: partInfo.description,
+    type: partType,
+    description,
     label,
     material: materialEntry.material,
     size: vec3.clone(size),
@@ -432,7 +476,8 @@ function processPart(
     polygon: partInfo.polygon,
     polygonPlane: partInfo.polygonPlane,
     crossSection,
-    thickness
+    thickness,
+    strawCategory
   }
 
   if (length !== undefined) {
