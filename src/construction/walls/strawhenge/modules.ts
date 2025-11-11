@@ -98,15 +98,7 @@ function* constructSingleFrameModule(
   yield yieldElement(endFrame)
 
   // Straw filling
-  if (config.strawMaterial) {
-    yield yieldElement(
-      createConstructionElement(config.strawMaterial, createCuboidShape(strawPosition, strawSize), undefined, [
-        TAG_STRAW_INFILL
-      ])
-    )
-  } else {
-    yield* constructStraw(strawPosition, strawSize)
-  }
+  yield* constructStraw(strawPosition, strawSize, config.strawMaterial)
 
   yield yieldMeasurement({
     startPoint: position,
