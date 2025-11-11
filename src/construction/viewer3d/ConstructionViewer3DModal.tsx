@@ -21,11 +21,12 @@ export function ConstructionViewer3DModal({
   trigger,
   refreshKey
 }: ConstructionViewer3DModalProps): React.JSX.Element {
-  const [containerSize, containerRef] = elementSizeRef()
+  const [containerSize, containerRef, setObserverActive] = elementSizeRef()
   const [modelPromise, setModelPromise] = useState<Promise<ConstructionModel | null> | null>(null)
   const [isOpen, setIsOpen] = useState(false)
 
   const handleOpenChange = (open: boolean) => {
+    setObserverActive(open)
     setIsOpen(open)
     if (open && !modelPromise) {
       setModelPromise(constructionModelFactory())

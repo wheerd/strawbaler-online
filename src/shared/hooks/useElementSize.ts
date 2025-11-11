@@ -5,35 +5,113 @@ export interface Size {
   height: number
 }
 
-export function elementSizeRef(): [size: Size, ref: (element: Element | null) => void] {
-  const [size, setSize] = useState({ width: 0, height: 0 })
+export function elementSizeRef(): [
+  size: Size,
+  ref: (element: Element | null) => void,
+  setActive: (active: boolean) => void
+] {
+  const [size, setSize] = useState<Size>({ width: 0, height: 0 })
   const observer = useRef<ResizeObserver | null>(null)
+  const observedElement = useRef<Element | null>(null)
+  const isActive = useRef(true)
+  const pendingSize = useRef<Size | null>(null)
+  const rafId = useRef<number | null>(null)
 
-  const callback = useCallback((element: Element | null) => {
+  const cleanupObserver = useCallback(() => {
     if (observer.current) {
       observer.current.disconnect()
+      observer.current = null
     }
+  }, [])
 
-    if (!element) return
+  const cancelPendingFrame = useCallback(() => {
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current)
+      rafId.current = null
+    }
+  }, [])
 
-    observer.current = new ResizeObserver(entries => {
-      const entry = entries[0]
-      if (entry) {
-        setSize({
+  const commitSize = useCallback(() => {
+    rafId.current = null
+    if (pendingSize.current) {
+      setSize(pendingSize.current)
+      pendingSize.current = null
+    }
+  }, [])
+
+  const scheduleCommit = useCallback(() => {
+    if (rafId.current !== null) return
+    rafId.current = requestAnimationFrame(commitSize)
+  }, [commitSize])
+
+  const queueSize = useCallback(
+    (next: Size) => {
+      if (!isActive.current) return
+      pendingSize.current = next
+      scheduleCommit()
+    },
+    [scheduleCommit]
+  )
+
+  const attachObserver = useCallback(
+    (element: Element) => {
+      cleanupObserver()
+      observer.current = new ResizeObserver(entries => {
+        const entry = entries[0]
+        if (!entry || !isActive.current) return
+        queueSize({
           width: entry.contentRect.width,
           height: entry.contentRect.height
         })
+      })
+      observer.current.observe(element)
+
+      const rect = element.getBoundingClientRect()
+      queueSize({ width: rect.width, height: rect.height })
+    },
+    [cleanupObserver, queueSize]
+  )
+
+  const callback = useCallback(
+    (element: Element | null) => {
+      observedElement.current = element
+      if (!element) {
+        cleanupObserver()
+        return
       }
-    })
 
-    observer.current.observe(element)
+      if (!isActive.current) return
+      attachObserver(element)
+    },
+    [attachObserver, cleanupObserver]
+  )
 
-    // Get initial size
-    const rect = element.getBoundingClientRect()
-    setSize({ width: rect.width, height: rect.height })
-  }, [])
+  const setActive = useCallback(
+    (active: boolean) => {
+      if (isActive.current === active) return
+      isActive.current = active
+      if (!active) {
+        cleanupObserver()
+        cancelPendingFrame()
+        pendingSize.current = null
+        return
+      }
 
-  return [size, callback]
+      if (observedElement.current) {
+        attachObserver(observedElement.current)
+      }
+    },
+    [attachObserver, cancelPendingFrame, cleanupObserver]
+  )
+
+  useLayoutEffect(() => {
+    return () => {
+      cleanupObserver()
+      cancelPendingFrame()
+    }
+  }, [cleanupObserver, cancelPendingFrame])
+
+  return [size, callback, setActive]
 }
 
 export function useElementSize(element: RefObject<HTMLElement | null>): Size {
