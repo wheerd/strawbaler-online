@@ -452,6 +452,9 @@ function MaterialGroupCard({ material, group, onBackToTop }: MaterialGroupCardPr
         {material.type === 'dimensional' && <DimensionalPartsTable parts={group.parts} material={material} />}
         {material.type === 'sheet' && <SheetPartsTable parts={group.parts} material={material} />}
         {material.type === 'volume' && <VolumePartsTable parts={group.parts} material={material} />}
+        {(material.type === 'generic' || material.type === 'strawbale') && (
+          <GenericPartsTable parts={group.parts} />
+        )}
       </Flex>
     </Card>
   )
@@ -660,6 +663,37 @@ function VolumePartsTable({ parts, material }: { parts: MaterialPartItem[]; mate
             </Table.Row>
           )
         })}
+      </Table.Body>
+    </Table.Root>
+  )
+}
+
+function GenericPartsTable({ parts }: { parts: MaterialPartItem[] }) {
+  return (
+    <Table.Root variant="surface" size="2" className="min-w-full">
+      <Table.Header>
+        <Table.Row>
+          <Table.ColumnHeaderCell width="5em" justify="center">
+            Label
+          </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="10em">Type</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="5em" justify="center">
+            Quantity
+          </Table.ColumnHeaderCell>
+        </Table.Row>
+      </Table.Header>
+      <Table.Body>
+        {parts.map(part => (
+          <Table.Row key={part.partId}>
+            <Table.RowHeaderCell justify="center">
+              <Text weight="medium">{part.label}</Text>
+            </Table.RowHeaderCell>
+            <Table.Cell>{part.type}</Table.Cell>
+            <Table.Cell>{part.description}</Table.Cell>
+            <Table.Cell justify="center">{part.quantity}</Table.Cell>
+          </Table.Row>
+        ))}
       </Table.Body>
     </Table.Root>
   )
