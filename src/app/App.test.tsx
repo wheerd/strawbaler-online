@@ -8,6 +8,14 @@ vi.mock('next-themes', () => ({
   useTheme: vi.fn().mockReturnValue({ resolvedTheme: 'light' })
 }))
 
+vi.mock('@/editor/FloorPlanEditor', () => ({
+  FloorPlanEditor: () => (
+    <div data-testid="floor-plan-editor">
+      <div data-testid="main-toolbar" />
+    </div>
+  )
+}))
+
 test('renders loading state initially', () => {
   render(
     <Theme>
@@ -32,9 +40,9 @@ test('renders floor plan editor after loading', async () => {
       const editorElement = screen.getByTestId('floor-plan-editor')
       expect(editorElement).toBeInTheDocument()
     },
-    { timeout: 15000 }
+    { timeout: 1000 }
   )
-}, 15000)
+}, 1500)
 
 test('renders toolbar with select tool after loading', async () => {
   render(
