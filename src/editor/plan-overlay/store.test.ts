@@ -105,4 +105,33 @@ describe('floor plan store', () => {
     expect(useFloorPlanStore.getState().plans[floorId]).toBeUndefined()
     expect(URL.revokeObjectURL).toHaveBeenCalled()
   })
+
+  it('recalibrates an existing plan without replacing image', () => {
+    const actions = getFloorPlanActions()
+
+    actions.importPlan({
+      floorId,
+      file: createTestFile(),
+      imageSize: { width: 1000, height: 500 },
+      referencePoints: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 }
+      ],
+      realDistanceMm: 2000
+    })
+
+    actions.recalibratePlan({
+      floorId,
+      referencePoints: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 }
+      ],
+      realDistanceMm: 1000,
+      originImagePoint: { x: 10, y: 20 }
+    })
+
+    const plan = useFloorPlanStore.getState().plans[floorId]
+    expect(plan?.calibration.mmPerPixel).toBeCloseTo(20)
+    expect(plan?.origin.image).toEqual({ x: 10, y: 20 })
+  })
 })

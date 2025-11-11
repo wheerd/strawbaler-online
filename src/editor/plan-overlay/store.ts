@@ -7,7 +7,8 @@ import {
   type FloorPlanOverlay,
   type FloorPlanPlacement,
   type ImagePoint,
-  type PlanImportPayload
+  type PlanImportPayload,
+  type PlanRecalibrationPayload
 } from './types'
 import { calculateMmPerPixel, calculatePixelDistance } from './utils/calibration'
 
@@ -19,6 +20,7 @@ interface FloorPlanStoreActions {
   importPlan: (payload: PlanImportPayload) => void
   setPlacement: (floorId: StoreyId, placement: FloorPlanPlacement) => void
   togglePlacement: (floorId: StoreyId) => void
+  recalibratePlan: (payload: PlanRecalibrationPayload) => void
   clearPlan: (floorId: StoreyId) => void
 }
 
@@ -102,6 +104,37 @@ export const useFloorPlanStore = create<FloorPlanStore>()((set, get) => ({
       const current = plans[floorId]
       const nextPlacement: FloorPlanPlacement = current?.placement === 'under' ? 'over' : 'under'
       get().actions.setPlacement(floorId, nextPlacement)
+    },
+
+    recalibratePlan: ({ floorId, referencePoints, realDistanceMm, originImagePoint }) => {
+      set(state => {
+        const existing = state.plans[floorId]
+        if (!existing) {
+          return state
+        }
+
+        const pixelDistance = calculatePixelDistance(referencePoints[0], referencePoints[1])
+        const mmPerPixel = calculateMmPerPixel(realDistanceMm, pixelDistance)
+
+        return {
+          plans: {
+            ...state.plans,
+            [floorId]: {
+              ...existing,
+              calibration: {
+                referencePoints,
+                realDistanceMm,
+                pixelDistance,
+                mmPerPixel
+              },
+              origin: {
+                image: originImagePoint,
+                world: { x: 0, y: 0 }
+              }
+            }
+          }
+        }
+      })
     },
 
     clearPlan: floorId => {

@@ -1,26 +1,27 @@
-import { ExclamationTriangleIcon, ImageIcon, LayersIcon, TrashIcon } from '@radix-ui/react-icons'
-import { AlertDialog, Button, Flex, IconButton, Text } from '@radix-ui/themes'
-import React, { useMemo, useState } from 'react'
+import { ExclamationTriangleIcon, ImageIcon } from '@radix-ui/react-icons'
+import { AlertDialog, Button, DropdownMenu, Flex, IconButton, Text } from '@radix-ui/themes'
+import React, { useState } from 'react'
 
 import { useActiveStoreyId, useStoreyById } from '@/building/store'
 import { PlanImportModal } from '@/editor/plan-overlay/components/PlanImportModal'
 import { useFloorPlanActions, useFloorPlanForStorey } from '@/editor/plan-overlay/store'
+import type { FloorPlanPlacement } from '@/editor/plan-overlay/types'
 
 export function PlanOverlayControls(): React.JSX.Element | null {
   const activeStoreyId = useActiveStoreyId()
   const storey = useStoreyById(activeStoreyId)
   const plan = useFloorPlanForStorey(activeStoreyId)
-  const { togglePlacement, clearPlan } = useFloorPlanActions()
+  const { setPlacement, clearPlan } = useFloorPlanActions()
   const [modalOpen, setModalOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   if (!activeStoreyId) {
     return null
   }
 
-  const placementLabel = useMemo(() => {
-    if (!plan) return ''
-    return plan.placement === 'over' ? 'Show underlay' : 'Show on top'
-  }, [plan])
+  const handlePlacementChange = (placement: FloorPlanPlacement) => {
+    setPlacement(activeStoreyId, placement)
+  }
 
   return (
     <Flex align="center" gap="2">
@@ -28,15 +29,30 @@ export function PlanOverlayControls(): React.JSX.Element | null {
 
       {plan ? (
         <>
-          <IconButton size="1" variant="soft" onClick={() => togglePlacement(activeStoreyId)} title={placementLabel}>
-            <LayersIcon />
-          </IconButton>
-          <AlertDialog.Root>
-            <AlertDialog.Trigger>
-              <IconButton size="1" variant="outline" color="red" title="Remove plan image">
-                <TrashIcon />
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+              <IconButton size="1" variant="soft" aria-label="Plan Overlay">
+                <ImageIcon />
               </IconButton>
-            </AlertDialog.Trigger>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content>
+              <DropdownMenu.Label>Plan Overlay</DropdownMenu.Label>
+              <DropdownMenu.RadioGroup
+                value={plan.placement}
+                onValueChange={value => handlePlacementChange(value as FloorPlanPlacement)}
+              >
+                <DropdownMenu.RadioItem value="over">Show on top</DropdownMenu.RadioItem>
+                <DropdownMenu.RadioItem value="under">Show under layout</DropdownMenu.RadioItem>
+              </DropdownMenu.RadioGroup>
+              <DropdownMenu.Separator />
+              <DropdownMenu.Item onSelect={() => setModalOpen(true)}>Recalibrate</DropdownMenu.Item>
+              <DropdownMenu.Item color="red" onSelect={() => setConfirmOpen(true)}>
+                Remove plan
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+
+          <AlertDialog.Root open={confirmOpen} onOpenChange={setConfirmOpen}>
             <AlertDialog.Content maxWidth="400px">
               <Flex direction="column" gap="3">
                 <AlertDialog.Title>
@@ -50,10 +66,18 @@ export function PlanOverlayControls(): React.JSX.Element | null {
                 </AlertDialog.Description>
                 <Flex justify="end" gap="2">
                   <AlertDialog.Cancel>
-                    <Button variant="soft">Cancel</Button>
+                    <Button variant="soft" onClick={() => setConfirmOpen(false)}>
+                      Cancel
+                    </Button>
                   </AlertDialog.Cancel>
                   <AlertDialog.Action>
-                    <Button color="red" onClick={() => clearPlan(activeStoreyId)}>
+                    <Button
+                      color="red"
+                      onClick={() => {
+                        clearPlan(activeStoreyId)
+                        setConfirmOpen(false)
+                      }}
+                    >
                       Remove
                     </Button>
                   </AlertDialog.Action>

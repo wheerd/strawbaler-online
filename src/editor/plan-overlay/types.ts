@@ -53,3 +53,10 @@ export interface PlanImportPayload {
   readonly realDistanceMm: number
   readonly origin?: FloorPlanOrigin
 }
+
+export interface PlanRecalibrationPayload {
+  readonly floorId: StoreyId
+  readonly referencePoints: readonly [ImagePoint, ImagePoint]
+  readonly realDistanceMm: number
+  readonly originImagePoint: ImagePoint
+}

@@ -21,33 +21,56 @@ type SelectionMode = 'measure' | 'origin' | 'idle'
 
 const DEFAULT_DISTANCE_MM = 5000
 
+interface PreviewSource {
+  url: string
+  revokeOnDispose: boolean
+}
+
 export function PlanImportModal({
   floorId,
   open,
   onOpenChange,
   existingPlan
 }: PlanImportModalProps): React.JSX.Element {
-  const { importPlan } = useFloorPlanActions()
+  const { importPlan, recalibratePlan } = useFloorPlanActions()
   const [file, setFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewSource, setPreviewSource] = useState<PreviewSource | null>(null)
   const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null)
   const [referencePoints, setReferencePoints] = useState<ImagePoint[]>([])
   const [originPoint, setOriginPoint] = useState<ImagePoint | null>(null)
   const [realDistance, setRealDistance] = useState<number>(DEFAULT_DISTANCE_MM)
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('measure')
 
+  const clearPreview = useCallback(() => {
+    setPreviewSource(prev => {
+      if (prev?.revokeOnDispose) {
+        URL.revokeObjectURL(prev.url)
+      }
+      return null
+    })
+    setImageElement(null)
+  }, [])
+
+  const applyPreview = useCallback((url: string, revokeOnDispose: boolean) => {
+    setPreviewSource(prev => {
+      if (prev?.revokeOnDispose && prev.url !== url) {
+        URL.revokeObjectURL(prev.url)
+      }
+      return { url, revokeOnDispose }
+    })
+    const img = new Image()
+    img.onload = () => setImageElement(img)
+    img.src = url
+  }, [])
+
   const resetState = useCallback(() => {
     setFile(null)
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl)
-    }
-    setPreviewUrl(null)
-    setImageElement(null)
+    clearPreview()
     setReferencePoints([])
     setOriginPoint(null)
-    setRealDistance(DEFAULT_DISTANCE_MM)
+    setRealDistance(existingPlan ? existingPlan.calibration.realDistanceMm : DEFAULT_DISTANCE_MM)
     setSelectionMode('measure')
-  }, [previewUrl])
+  }, [clearPreview, existingPlan])
 
   useEffect(() => {
     if (!open) {
@@ -57,11 +80,20 @@ export function PlanImportModal({
 
   useEffect(() => {
     return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-      }
+      clearPreview()
     }
-  }, [previewUrl])
+  }, [clearPreview])
+
+  useEffect(() => {
+    if (!open || !existingPlan || file) {
+      return
+    }
+    applyPreview(existingPlan.image.url, false)
+    setReferencePoints(existingPlan.calibration.referencePoints.slice())
+    setOriginPoint(existingPlan.origin.image)
+    setRealDistance(existingPlan.calibration.realDistanceMm)
+    setSelectionMode('measure')
+  }, [open, existingPlan, file, applyPreview])
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,22 +102,13 @@ export function PlanImportModal({
         return
       }
       const objectUrl = URL.createObjectURL(nextFile)
-      const img = new Image()
-      img.onload = () => {
-        setImageElement(img)
-      }
-      img.src = objectUrl
-
+      applyPreview(objectUrl, true)
       setFile(nextFile)
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-      }
-      setPreviewUrl(objectUrl)
       setReferencePoints([])
       setOriginPoint(null)
       setSelectionMode('measure')
     },
-    [previewUrl]
+    [applyPreview]
   )
 
   const handleDistanceCommit = useCallback(
@@ -106,29 +129,57 @@ export function PlanImportModal({
   }, [pixelDistance, realDistance])
 
   const handleSubmit = useCallback(() => {
-    if (!file || !imageElement || referencePoints.length !== 2 || realDistance <= 0) {
+    if (!imageElement || referencePoints.length !== 2 || realDistance <= 0) {
       return
     }
 
     const selectedOriginPoint = originPoint ?? referencePoints[0]
+    const [firstPoint, secondPoint] = referencePoints as [ImagePoint, ImagePoint]
 
-    importPlan({
-      floorId,
-      file,
-      imageSize: { width: imageElement.naturalWidth, height: imageElement.naturalHeight },
-      referencePoints: [referencePoints[0], referencePoints[1]],
-      realDistanceMm: realDistance,
-      origin: {
-        image: selectedOriginPoint,
-        world: { x: 0, y: 0 }
-      }
-    })
+    if (file) {
+      importPlan({
+        floorId,
+        file,
+        imageSize: { width: imageElement.naturalWidth, height: imageElement.naturalHeight },
+        referencePoints: [firstPoint, secondPoint],
+        realDistanceMm: realDistance,
+        origin: {
+          image: selectedOriginPoint,
+          world: { x: 0, y: 0 }
+        }
+      })
+    } else if (existingPlan) {
+      recalibratePlan({
+        floorId,
+        referencePoints: [firstPoint, secondPoint],
+        realDistanceMm: realDistance,
+        originImagePoint: selectedOriginPoint
+      })
+    } else {
+      return
+    }
 
     onOpenChange(false)
     resetState()
-  }, [file, floorId, imageElement, importPlan, onOpenChange, originPoint, realDistance, referencePoints, resetState])
+  }, [
+    existingPlan,
+    file,
+    floorId,
+    imageElement,
+    importPlan,
+    onOpenChange,
+    originPoint,
+    realDistance,
+    recalibratePlan,
+    referencePoints,
+    resetState
+  ])
 
-  const canSubmit = Boolean(file && imageElement && referencePoints.length === 2 && realDistance > 0)
+  const canSubmit =
+    imageElement != null &&
+    referencePoints.length === 2 &&
+    realDistance > 0 &&
+    (file != null || (existingPlan != null && previewSource != null))
 
   const handleSelectOriginClick = useCallback(() => {
     setSelectionMode(current => (current === 'origin' ? 'measure' : 'origin'))
@@ -150,15 +201,21 @@ export function PlanImportModal({
     <BaseModal
       open={open}
       onOpenChange={onOpenChange}
-      title={existingPlan ? 'Replace plan image' : 'Import plan image'}
+      title={existingPlan ? 'Plan image' : 'Import plan image'}
       maxWidth="720px"
     >
       <Flex direction="column" gap="4">
         <Flex direction="column" gap="2">
           <Text weight="medium">1. Select floor plan image</Text>
-          <Text size="2" color="gray">
-            Upload a PNG, JPG, or SVG. The file stays local and is not saved with your project.
-          </Text>
+          {existingPlan && !file ? (
+            <Text size="2" color="gray">
+              Using current image ({existingPlan.image.name}). Upload a new file below to replace it.
+            </Text>
+          ) : (
+            <Text size="2" color="gray">
+              Upload a PNG, JPG, or SVG. The file stays local and is not saved with your project.
+            </Text>
+          )}
           <input type="file" accept="image/*" onChange={handleFileChange} />
         </Flex>
 
