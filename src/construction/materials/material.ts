@@ -70,7 +70,8 @@ export const wood: DimensionalMaterial = {
     { smallerLength: 60, biggerLength: 120 },
     { smallerLength: 140, biggerLength: 140 }
   ],
-  lengths: [5000]
+  lengths: [5000],
+  density: 520
 }
 
 export const strawbale: StrawbaleMaterial = {
@@ -85,7 +86,7 @@ export const strawbale: StrawbaleMaterial = {
   tolerance: 2,
   topCutoffLimit: 50,
   flakeSize: 70,
-  density: 90
+  density: 110
 }
 
 export const straw: VolumeMaterial = {
@@ -111,11 +112,13 @@ export const door: GenericMaterial = {
   type: 'generic'
 }
 
-export const concrete: GenericMaterial = {
+export const concrete: VolumeMaterial = {
   id: 'material_concrete' as MaterialId,
   name: 'Concrete',
-  type: 'generic',
-  color: '#97989d'
+  type: 'volume',
+  color: '#97989d',
+  availableVolumes: [],
+  density: 2400
 }
 
 export const clt: SheetMaterial = {
@@ -163,7 +166,8 @@ export const cementScreed: VolumeMaterial = {
   name: 'Cement Screed',
   type: 'volume',
   availableVolumes: [],
-  color: '#767773'
+  color: '#767773',
+  density: 2000
 }
 
 export const impactSoundInsulation: VolumeMaterial = {
@@ -171,7 +175,8 @@ export const impactSoundInsulation: VolumeMaterial = {
   name: 'Impact Sound Insulation',
   type: 'volume',
   availableVolumes: [],
-  color: '#CCCC33'
+  color: '#CCCC33',
+  density: 40
 }
 
 export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
