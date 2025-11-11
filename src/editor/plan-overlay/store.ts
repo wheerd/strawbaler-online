@@ -13,7 +13,6 @@ interface FloorPlanStoreActions {
   importPlan: (payload: PlanImportPayload) => void
   setPlacement: (floorId: StoreyId, placement: FloorPlanPlacement) => void
   togglePlacement: (floorId: StoreyId) => void
-  updateOrigin: (floorId: StoreyId, origin: Partial<FloorPlanOrigin>) => void
   clearPlan: (floorId: StoreyId) => void
 }
 
@@ -97,28 +96,6 @@ export const useFloorPlanStore = create<FloorPlanStore>()((set, get) => ({
       const current = plans[floorId]
       const nextPlacement: FloorPlanPlacement = current?.placement === 'under' ? 'over' : 'under'
       get().actions.setPlacement(floorId, nextPlacement)
-    },
-
-    updateOrigin: (floorId, origin) => {
-      set(state => {
-        const plan = state.plans[floorId]
-        if (!plan) {
-          return state
-        }
-
-        return {
-          plans: {
-            ...state.plans,
-            [floorId]: {
-              ...plan,
-              origin: {
-                image: origin.image ?? plan.origin.image,
-                world: origin.world ?? plan.origin.world
-              }
-            }
-          }
-        }
-      })
     },
 
     clearPlan: floorId => {

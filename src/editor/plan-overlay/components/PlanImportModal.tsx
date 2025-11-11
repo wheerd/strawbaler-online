@@ -1,4 +1,4 @@
-import { Button, Flex, Grid, Separator, Text, TextField, Tooltip } from '@radix-ui/themes'
+import { Button, Flex, Grid, Separator, Text, Tooltip } from '@radix-ui/themes'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { StoreyId } from '@/building/model/ids'
@@ -7,7 +7,7 @@ import { LengthField } from '@/shared/components/LengthField'
 import { formatLength } from '@/shared/utils/formatting'
 
 import { useFloorPlanActions } from '../store'
-import type { FloorPlanOverlay, ImagePoint, WorldPoint } from '../types'
+import type { FloorPlanOverlay, ImagePoint } from '../types'
 import { calculatePixelDistance } from '../utils/calibration'
 import { PlanCalibrationCanvas } from './PlanCalibrationCanvas'
 
@@ -34,7 +34,6 @@ export function PlanImportModal({
   const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null)
   const [referencePoints, setReferencePoints] = useState<ImagePoint[]>([])
   const [originPoint, setOriginPoint] = useState<ImagePoint | null>(null)
-  const [originWorld, setOriginWorld] = useState<WorldPoint>({ x: 0, y: 0 })
   const [realDistance, setRealDistance] = useState<number>(DEFAULT_DISTANCE_MM)
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('measure')
 
@@ -47,7 +46,6 @@ export function PlanImportModal({
     setImageElement(null)
     setReferencePoints([])
     setOriginPoint(null)
-    setOriginWorld({ x: 0, y: 0 })
     setRealDistance(DEFAULT_DISTANCE_MM)
     setSelectionMode('measure')
   }, [previewUrl])
@@ -123,33 +121,15 @@ export function PlanImportModal({
       realDistanceMm: realDistance,
       origin: {
         image: selectedOriginPoint,
-        world: originWorld
+        world: { x: 0, y: 0 }
       }
     })
 
     onOpenChange(false)
     resetState()
-  }, [
-    file,
-    floorId,
-    imageElement,
-    importPlan,
-    onOpenChange,
-    originPoint,
-    originWorld,
-    realDistance,
-    referencePoints,
-    resetState
-  ])
+  }, [file, floorId, imageElement, importPlan, onOpenChange, originPoint, realDistance, referencePoints, resetState])
 
   const canSubmit = Boolean(file && imageElement && referencePoints.length === 2 && realDistance > 0)
-
-  const handleOriginWorldChange = useCallback(
-    (axis: 'x' | 'y', value: number) => {
-      setOriginWorld(prev => ({ ...prev, [axis]: value }))
-    },
-    [setOriginWorld]
-  )
 
   const handleSelectOriginClick = useCallback(() => {
     setSelectionMode(current => (current === 'origin' ? 'measure' : 'origin'))
@@ -253,30 +233,11 @@ export function PlanImportModal({
         <Flex direction="column" gap="2">
           <Text weight="medium">3. Position origin (optional)</Text>
           <Text size="2" color="gray">
-            The origin aligns the image with your drawing coordinates. Leave blank to place the first reference point at
-            the drawing origin.
+            Pick a point on the image that should align with the origin in the editor. If you skip this step, the first
+            reference point becomes the origin.
           </Text>
 
           <Flex gap="3" align="center">
-            <LengthField
-              value={originWorld.x}
-              onCommit={value => handleOriginWorldChange('x', value)}
-              unit="m"
-              precision={3}
-              style={{ width: '140px' }}
-            >
-              <TextField.Slot side="left">X</TextField.Slot>
-            </LengthField>
-            <LengthField
-              value={originWorld.y}
-              onCommit={value => handleOriginWorldChange('y', value)}
-              unit="m"
-              precision={3}
-              style={{ width: '140px' }}
-            >
-              <TextField.Slot side="left">Y</TextField.Slot>
-            </LengthField>
-
             <Tooltip content={showOriginHint ? 'Click on the image to set origin' : 'Pick origin on the image'}>
               <Button
                 size="1"
