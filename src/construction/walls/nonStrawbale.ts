@@ -1,31 +1,36 @@
 import { vec3 } from 'gl-matrix'
 
-import type { Perimeter, PerimeterWall } from '@/building/model'
+import type { Opening, Perimeter, PerimeterWall } from '@/building/model'
+import { getConfigActions } from '@/construction/config'
 import { createConstructionElement } from '@/construction/elements'
-import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
-import { createCuboidShape } from '@/construction/shapes'
+import { createExtrudedPolygon } from '@/construction/shapes'
 import type { NonStrawbaleWallConfig, WallAssembly } from '@/construction/walls'
+import { calculateWallCornerInfo, getWallContext } from '@/construction/walls/corners/corners'
 import { constructWallLayers } from '@/construction/walls/layers'
+import { WALL_POLYGON_PLANE, createWallPolygonWithOpenings } from '@/construction/walls/polygons'
 import { type WallStoreyContext, segmentedWallConstruction } from '@/construction/walls/segmentation'
-import { Bounds3D } from '@/shared/geometry'
+import { Bounds3D, type Length } from '@/shared/geometry'
 
-function* infillNonStrawbaleWallArea(
-  position: vec3,
-  size: vec3,
-  config: NonStrawbaleWallConfig
+function* noopWallSegment(
+  _position: vec3,
+  _size: vec3,
+  _startsWithStand: boolean,
+  _endsWithStand: boolean,
+  _startAtEnd: boolean
 ): Generator<ConstructionResult> {
-  yield yieldElement(createConstructionElement(config.material, createCuboidShape(position, size)))
+  // Intentionally empty - structural wall handled as a single extruded polygon
 }
 
-function* constructNonStrawbaleOpeningFrame(
-  material: MaterialId,
-  position: vec3,
-  size: vec3
+function* noopOpeningSegment(
+  _position: vec3,
+  _size: vec3,
+  _zOffset: Length,
+  _openings: Opening[]
 ): Generator<ConstructionResult> {
-  yield yieldElement(createConstructionElement(material, createCuboidShape(position, size)))
+  // Intentionally empty - openings are handled by polygon holes
 }
 
 export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallConfig> {
@@ -35,16 +40,54 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
     storeyContext: WallStoreyContext,
     config: NonStrawbaleWallConfig
   ): ConstructionModel {
-    const allResults = Array.from(
-      segmentedWallConstruction(
-        wall,
-        perimeter,
-        storeyContext,
-        config.layers,
-        (position, size) => infillNonStrawbaleWallArea(position, size, config),
-        (position: vec3, size: vec3) => constructNonStrawbaleOpeningFrame(config.material, position, size)
-      )
+    const wallContext = getWallContext(wall, perimeter)
+    const cornerInfo = calculateWallCornerInfo(wall, wallContext)
+
+    const { getRingBeamAssemblyById } = getConfigActions()
+    const basePlateAssembly = perimeter.baseRingBeamAssemblyId
+      ? getRingBeamAssemblyById(perimeter.baseRingBeamAssemblyId)
+      : null
+    const topPlateAssembly = perimeter.topRingBeamAssemblyId
+      ? getRingBeamAssemblyById(perimeter.topRingBeamAssemblyId)
+      : null
+
+    const basePlateHeight = basePlateAssembly?.height ?? 0
+    const topPlateHeight = topPlateAssembly?.height ?? 0
+    const totalConstructionHeight =
+      storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
+
+    const structuralThickness = (wall.thickness -
+      config.layers.insideThickness -
+      config.layers.outsideThickness) as Length
+    if (structuralThickness <= 0) {
+      throw new Error('Non-strawbale wall structural thickness must be greater than 0')
+    }
+
+    const polygonBounds = {
+      start: -cornerInfo.extensionStart as Length,
+      end: (cornerInfo.constructionLength - cornerInfo.extensionStart) as Length,
+      bottom: basePlateHeight as Length,
+      top: (totalConstructionHeight - topPlateHeight) as Length
+    }
+
+    const structuralPolygons = createWallPolygonWithOpenings(polygonBounds, wall, storeyContext.floorTopOffset)
+
+    const structureShapes = structuralPolygons.map(p =>
+      createExtrudedPolygon(p, WALL_POLYGON_PLANE, structuralThickness)
     )
+    const structureTransform = {
+      position: vec3.fromValues(0, config.layers.insideThickness, 0),
+      rotation: vec3.fromValues(0, 0, 0)
+    }
+    const structureElements = structureShapes.map(s =>
+      createConstructionElement(config.material, s, structureTransform)
+    )
+
+    const metadataResults = Array.from(
+      segmentedWallConstruction(wall, perimeter, storeyContext, config.layers, noopWallSegment, noopOpeningSegment)
+    )
+
+    const allResults = [...metadataResults, ...structureElements.map(e => yieldElement(e))]
     const aggRes = aggregateResults(allResults)
     const baseModel: ConstructionModel = {
       bounds: Bounds3D.merge(...aggRes.elements.map(e => e.bounds)),

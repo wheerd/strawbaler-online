@@ -70,9 +70,11 @@ export interface ExportData {
     defaultWallAssemblyId: WallAssemblyId
     defaultFloorAssemblyId?: FloorAssemblyId
   }
-  materialsStore: {
-    materials: Record<MaterialId, Material>
-  } | undefined
+  materialsStore:
+    | {
+        materials: Record<MaterialId, Material>
+      }
+    | undefined
 }
 
 export interface ImportResult {
@@ -192,10 +194,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
 
       // 2. Import materials state (if available for backwards compatibility) and apply migrations
       if (importResult.data.materialsStore) {
-        const migratedMaterials = migrateMaterialsState(
-          importResult.data.materialsStore,
-          MATERIALS_STORE_VERSION
-        )
+        const migratedMaterials = migrateMaterialsState(importResult.data.materialsStore, MATERIALS_STORE_VERSION)
         setMaterialsState(migratedMaterials)
       }
 

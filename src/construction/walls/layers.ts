@@ -8,22 +8,12 @@ import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/c
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { type ConstructionResult, aggregateResults } from '@/construction/results'
 import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE, createTag } from '@/construction/tags'
-import {
-  Bounds3D,
-  type Length,
-  type Plane3D,
-  type PolygonWithHoles2D,
-  ensurePolygonIsClockwise,
-  ensurePolygonIsCounterClockwise,
-  simplifyPolygon
-} from '@/shared/geometry'
-import { lineFromSegment, lineIntersection } from '@/shared/geometry/line'
+import { Bounds3D, type Length, type Plane3D, type PolygonWithHoles2D } from '@/shared/geometry'
 
 import { getWallContext } from './corners/corners'
+import { computeLayerSpan, createLayerPolygon, subtractWallOpenings } from './polygons'
 import type { WallStoreyContext } from './segmentation'
 import type { WallLayersConfig } from './types'
-
-type LayerSide = 'inside' | 'outside'
 
 const WALL_LAYER_PLANE: Plane3D = 'xz'
 
@@ -52,145 +42,6 @@ const runLayerConstruction = (
   }
   throw new Error(`Unsupported layer type: ${(layer as { type: string }).type}`)
 }
-
-const shiftPoint = (point: vec2, direction: vec2, distance: Length): vec2 => {
-  return vec2.scaleAndAdd(vec2.create(), point, direction, distance)
-}
-
-const computeOffsetLine = (start: vec2, end: vec2, normal: vec2, distance: Length) => {
-  const offsetStart = shiftPoint(start, normal, distance)
-  const offsetEnd = shiftPoint(end, normal, distance)
-  return lineFromSegment({ start: offsetStart, end: offsetEnd })
-}
-
-const projectAlongWall = (wall: PerimeterWall, point: vec2): Length => {
-  const direction = vec2.normalize(
-    vec2.create(),
-    vec2.subtract(vec2.create(), wall.insideLine.end, wall.insideLine.start)
-  )
-  const relative = vec2.subtract(vec2.create(), point, wall.insideLine.start)
-  return vec2.dot(relative, direction)
-}
-
-const computeCornerIntersection = (
-  corner: 'start' | 'end',
-  side: LayerSide,
-  depth: Length,
-  wall: PerimeterWall,
-  context: ReturnType<typeof getWallContext>
-): vec2 => {
-  const baseSegment = side === 'inside' ? wall.insideLine : wall.outsideLine
-  const referenceWall = corner === 'start' ? context.previousWall : context.nextWall
-  const referenceSegment = side === 'inside' ? referenceWall.insideLine : referenceWall.outsideLine
-
-  const offsetDistance = (side === 'inside' ? 1 : -1) * depth
-
-  const baseLine = computeOffsetLine(baseSegment.start, baseSegment.end, wall.outsideDirection, offsetDistance)
-  const referenceLine = computeOffsetLine(
-    referenceSegment.start,
-    referenceSegment.end,
-    referenceWall.outsideDirection,
-    offsetDistance
-  )
-
-  if (baseLine && referenceLine) {
-    const intersection = lineIntersection(baseLine, referenceLine)
-    if (intersection) {
-      return intersection
-    }
-  }
-
-  return corner === 'start'
-    ? shiftPoint(baseSegment.start, wall.outsideDirection, offsetDistance)
-    : shiftPoint(baseSegment.end, wall.outsideDirection, offsetDistance)
-}
-
-const computeLayerSpan = (
-  side: LayerSide,
-  depth: Length,
-  wall: PerimeterWall,
-  context: ReturnType<typeof getWallContext>
-): { start: Length; end: Length } => {
-  const startPoint = computeCornerIntersection('start', side, depth, wall, context)
-  const endPoint = computeCornerIntersection('end', side, depth, wall, context)
-
-  const startProjection = projectAlongWall(wall, startPoint)
-  const endProjection = projectAlongWall(wall, endPoint)
-
-  return startProjection <= endProjection
-    ? { start: startProjection, end: endProjection }
-    : { start: endProjection, end: startProjection }
-}
-
-const createLayerPolygon = (start: Length, end: Length, bottom: Length, top: Length): PolygonWithHoles2D => ({
-  outer: ensurePolygonIsClockwise(
-    simplifyPolygon({
-      points: [
-        vec2.fromValues(start, bottom),
-        vec2.fromValues(start, top),
-        vec2.fromValues(end, top),
-        vec2.fromValues(end, bottom)
-      ]
-    })
-  ),
-  holes: []
-})
-
-const subtractOpenings = (
-  polygon: PolygonWithHoles2D,
-  start: Length,
-  end: Length,
-  bottom: Length,
-  top: Length,
-  wall: PerimeterWall,
-  finishedFloorHeight: Length
-): PolygonWithHoles2D => {
-  const holes = wall.openings
-    .map(opening => {
-      const openingStart = opening.offsetFromStart
-      const openingEnd = openingStart + opening.width
-      const clampedStart = Math.max(openingStart, start)
-      const clampedEnd = Math.min(openingEnd, end)
-      if (clampedEnd <= clampedStart) {
-        return null
-      }
-
-      const sill = opening.sillHeight ?? 0
-      const openingBottom = finishedFloorHeight + sill
-      const openingTop = openingBottom + opening.height
-      const clampedBottom = Math.max(openingBottom, bottom)
-      const clampedTop = Math.min(openingTop, top)
-      if (clampedTop <= clampedBottom) {
-        return null
-      }
-
-      return ensurePolygonIsCounterClockwise(
-        simplifyPolygon({
-          points: [
-            vec2.fromValues(clampedStart, clampedBottom),
-            vec2.fromValues(clampedStart, clampedTop),
-            vec2.fromValues(clampedEnd, clampedTop),
-            vec2.fromValues(clampedEnd, clampedBottom)
-          ]
-        })
-      )
-    })
-    .filter((hole): hole is { points: vec2[] } => hole !== null)
-
-  if (holes.length === 0) {
-    return polygon
-  }
-
-  return {
-    outer: polygon.outer,
-    holes
-  }
-}
-
-const normalizePolygonWithHoles = (polygon: PolygonWithHoles2D): PolygonWithHoles2D => ({
-  outer: ensurePolygonIsClockwise(simplifyPolygon(polygon.outer)),
-  holes: polygon.holes.map(hole => ensurePolygonIsCounterClockwise(simplifyPolygon(hole)))
-})
 
 const aggregateLayerResults = (results: ConstructionResult[]): ConstructionModel => {
   const aggregated = aggregateResults(results)
@@ -226,9 +77,16 @@ export function constructWallLayers(
       const bottom = storeyContext.floorTopConstructionOffset
       const top = totalConstructionHeight - storeyContext.floorTopConstructionOffset
       const polygon = createLayerPolygon(start, end, bottom, top)
-      const polygonWithHoles = subtractOpenings(polygon, start, end, bottom, top, wall, storeyContext.floorTopOffset)
-      const normalizedPolygon = normalizePolygonWithHoles(polygonWithHoles)
-      const results = runLayerConstruction(normalizedPolygon, insideOffset, WALL_LAYER_PLANE, layer)
+      const polygonsWithHoles = subtractWallOpenings(
+        polygon,
+        start,
+        end,
+        bottom,
+        top,
+        wall,
+        storeyContext.floorTopOffset
+      )
+      const results = polygonsWithHoles.flatMap(p => runLayerConstruction(p, insideOffset, WALL_LAYER_PLANE, layer))
       const layerElements: GroupOrElement[] = []
       for (const result of results) {
         if (result.type === 'element') {
@@ -260,9 +118,16 @@ export function constructWallLayers(
       const bottom = -storeyContext.floorConstructionThickness
       const top = totalConstructionHeight
       const polygon = createLayerPolygon(start, end, bottom, top)
-      const polygonWithHoles = subtractOpenings(polygon, start, end, bottom, top, wall, storeyContext.floorTopOffset)
-      const normalizedPolygon = normalizePolygonWithHoles(polygonWithHoles)
-      const results = runLayerConstruction(normalizedPolygon, outsideOffset, WALL_LAYER_PLANE, layer)
+      const polygonsWithHoles = subtractWallOpenings(
+        polygon,
+        start,
+        end,
+        bottom,
+        top,
+        wall,
+        storeyContext.floorTopOffset
+      )
+      const results = polygonsWithHoles.flatMap(p => runLayerConstruction(p, outsideOffset, WALL_LAYER_PLANE, layer))
       const layerElements: GroupOrElement[] = []
       for (const result of results) {
         if (result.type === 'element') {
