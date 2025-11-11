@@ -1,6 +1,7 @@
 import { ExclamationTriangleIcon, ImageIcon, LayersIcon, TrashIcon } from '@radix-ui/react-icons'
-import { AlertDialog, Button, Flex, IconButton } from '@radix-ui/themes'
+import { AlertDialog, Button, Flex, IconButton, Text } from '@radix-ui/themes'
 import React, { useMemo, useState } from 'react'
+
 import { useActiveStoreyId, useStoreyById } from '@/building/store'
 
 import { useFloorPlanActions, useFloorPlanForStorey } from '../store'
@@ -18,7 +19,7 @@ export function PlanOverlayControls(): React.JSX.Element | null {
   }
 
   const placementLabel = useMemo(() => {
-    if (!plan) return null
+    if (!plan) return ''
     return plan.placement === 'over' ? 'Show underlay' : 'Show on top'
   }, [plan])
 
@@ -28,10 +29,9 @@ export function PlanOverlayControls(): React.JSX.Element | null {
 
       {plan ? (
         <>
-          <Button size="1" variant="soft" onClick={() => togglePlacement(activeStoreyId)} title="Toggle plan placement">
+          <IconButton size="1" variant="soft" onClick={() => togglePlacement(activeStoreyId)} title={placementLabel}>
             <LayersIcon />
-            {placementLabel}
-          </Button>
+          </IconButton>
           <AlertDialog.Root>
             <AlertDialog.Trigger>
               <IconButton size="1" variant="outline" color="red" title="Remove plan image">
@@ -40,10 +40,12 @@ export function PlanOverlayControls(): React.JSX.Element | null {
             </AlertDialog.Trigger>
             <AlertDialog.Content maxWidth="400px">
               <Flex direction="column" gap="3">
-                <Flex align="center" gap="2">
-                  <ExclamationTriangleIcon />
-                  <AlertDialog.Title>Remove plan image</AlertDialog.Title>
-                </Flex>
+                <AlertDialog.Title>
+                  <Flex align="center" gap="2">
+                    <ExclamationTriangleIcon />
+                    <Text>Remove plan image</Text>
+                  </Flex>
+                </AlertDialog.Title>
                 <AlertDialog.Description>
                   Remove the plan image for {storey?.name ?? 'this floor'}? This cannot be undone.
                 </AlertDialog.Description>
@@ -62,10 +64,9 @@ export function PlanOverlayControls(): React.JSX.Element | null {
           </AlertDialog.Root>
         </>
       ) : (
-        <Button size="1" variant="surface" onClick={() => setModalOpen(true)} title="Import plan image">
+        <IconButton size="1" variant="surface" onClick={() => setModalOpen(true)} title="Import plan image">
           <ImageIcon />
-          Add plan
-        </Button>
+        </IconButton>
       )}
     </Flex>
   )
