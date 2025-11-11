@@ -78,6 +78,21 @@ function InfillConfigForm({ config, onUpdate }: InfillConfigFormProps): React.JS
         />
       </Grid>
 
+      <Flex direction="column" gap="1">
+        <Label.Root>
+          <Text size="1" weight="medium" color="gray">
+            Straw Material (Override)
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.strawMaterial ?? null}
+          allowEmpty
+          emptyLabel="Use global straw settings"
+          onValueChange={strawMaterial => onUpdate({ ...config, strawMaterial: strawMaterial ?? undefined })}
+          size="1"
+        />
+      </Flex>
+
       <Separator size="4" />
       <PostsConfigSection posts={config.posts} onUpdate={posts => onUpdate({ ...config, posts })} />
     </Flex>
