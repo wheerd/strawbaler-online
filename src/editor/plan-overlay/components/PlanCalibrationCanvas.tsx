@@ -1,9 +1,11 @@
+import { Box, Button, Card, Flex, Inset, Text } from '@radix-ui/themes'
 import type Konva from 'konva'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Circle, Group, Layer, Line, Rect, Stage } from 'react-konva/lib/ReactKonvaCore'
 import { Image as KonvaImage } from 'react-konva/lib/ReactKonvaCore'
 
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
+import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 
 import type { ImagePoint } from '../types'
 
@@ -60,6 +62,14 @@ export function PlanCalibrationCanvas({
     pan: { x: 0, y: 0 }
   }))
   const dragOrigin = useRef<{ pointer: { x: number; y: number }; pan: { x: number; y: number } } | null>(null)
+  const theme = useCanvasTheme()
+
+  const handleContainerRef = useCallback(
+    (element: HTMLDivElement | null) => {
+      setContainerRef(element)
+    },
+    [setContainerRef]
+  )
 
   const stageWidth = useMemo(() => {
     if (containerSize.width > 0) {
@@ -224,7 +234,7 @@ export function PlanCalibrationCanvas({
     return (
       <Line
         points={[start.x, start.y, end.x, end.y]}
-        stroke="#1E63D5"
+        stroke={theme.primary}
         strokeWidth={2}
         dash={[12, 8]}
         listening={false}
@@ -237,121 +247,86 @@ export function PlanCalibrationCanvas({
       <Circle x={point.x} y={point.y} radius={8} stroke={color} strokeWidth={3} opacity={0.7} />
       <Line
         points={[point.x - 12, point.y - 12, point.x + 12, point.y + 12]}
-        stroke="#060708"
+        stroke={theme.black}
         strokeWidth={3}
         opacity={0.4}
       />
       <Line
         points={[point.x - 12, point.y + 12, point.x + 12, point.y - 12]}
-        stroke="#060708"
+        stroke={theme.black}
         strokeWidth={3}
         opacity={0.4}
       />
-      <Line points={[point.x - 12, point.y - 12, point.x + 12, point.y + 12]} stroke="#ffffff" strokeWidth={1.5} />
-      <Line points={[point.x - 12, point.y + 12, point.x + 12, point.y - 12]} stroke="#ffffff" strokeWidth={1.5} />
+      <Line points={[point.x - 12, point.y - 12, point.x + 12, point.y + 12]} stroke={theme.white} strokeWidth={1.5} />
+      <Line points={[point.x - 12, point.y + 12, point.x + 12, point.y - 12]} stroke={theme.white} strokeWidth={1.5} />
     </Group>
   )
 
   return (
-    <div
-      ref={setContainerRef}
-      style={{
-        width: '100%',
-        minHeight: `${MIN_STAGE_HEIGHT}px`,
-        position: 'relative',
-        border: '1px solid var(--gray-5)',
-        borderRadius: '8px',
-        backgroundColor: 'var(--gray-1)',
-        boxShadow: 'var(--shadow-2)'
-      }}
-    >
-      {image ? (
-        <Stage
-          ref={stageRef}
-          width={stageWidth}
-          height={stageHeight}
-          scaleX={view.scale}
-          scaleY={view.scale}
-          x={view.pan.x}
-          y={view.pan.y}
-          draggable={false}
-          onWheel={handleWheel}
-          onPointerDown={beginPan}
-          onPointerMove={updatePan}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={endPan}
-          onClick={handleStageClick}
-          onContextMenu={event => event.evt.preventDefault()}
-        >
-          <Layer listening={false}>
-            <Rect
-              x={-view.pan.x / view.scale}
-              y={-view.pan.y / view.scale}
-              width={stageWidth / view.scale}
-              height={stageHeight / view.scale}
-              fill="#f6f6f6"
-              listening={false}
-            />
-            <KonvaImage image={image} width={image.naturalWidth} height={image.naturalHeight} listening={false} />
-            {renderReferenceLine()}
-            {referencePoints.map(point => renderCrosshair(point, '#0F62FE'))}
-            {originPoint && renderCrosshair(originPoint, '#B42318')}
-          </Layer>
-        </Stage>
-      ) : (
-        <div
-          style={{
-            height: '300px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '0.9rem',
-            color: 'var(--gray-11)'
-          }}
-        >
-          Upload an image to begin
-        </div>
-      )}
-      {image && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '8px',
-            left: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '20px',
-            borderRadius: '6px',
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            color: '#fff',
-            fontSize: '12px',
-            padding: '4px 12px'
-          }}
-        >
-          <span>Scroll to zoom</span>
-          <span>Shift + drag to pan</span>
-          <button
-            type="button"
-            onClick={() => {
-              resetView()
-              setHasInteracted(false)
-            }}
-            style={{
-              border: '1px solid rgba(255,255,255,0.4)',
-              borderRadius: '4px',
-              padding: '2px 8px',
-              textTransform: 'uppercase',
-              fontSize: '11px',
-              letterSpacing: '0.05em',
-              background: 'transparent',
-              color: 'inherit',
-              cursor: 'pointer'
-            }}
-          >
-            Reset
-          </button>
-        </div>
-      )}
-    </div>
+    <Card>
+      <Inset>
+        <Box ref={handleContainerRef} position="relative">
+          {image ? (
+            <Stage
+              ref={stageRef}
+              width={stageWidth}
+              height={stageHeight}
+              scaleX={view.scale}
+              scaleY={view.scale}
+              x={view.pan.x}
+              y={view.pan.y}
+              draggable={false}
+              onWheel={handleWheel}
+              onPointerDown={beginPan}
+              onPointerMove={updatePan}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={endPan}
+              onClick={handleStageClick}
+              onContextMenu={event => event.evt.preventDefault()}
+            >
+              <Layer listening={false}>
+                <Rect
+                  x={-view.pan.x / view.scale}
+                  y={-view.pan.y / view.scale}
+                  width={stageWidth / view.scale}
+                  height={stageHeight / view.scale}
+                  fill={theme.bgSubtle}
+                  listening={false}
+                />
+                <KonvaImage image={image} width={image.naturalWidth} height={image.naturalHeight} listening={false} />
+                {renderReferenceLine()}
+                {referencePoints.map(point => renderCrosshair(point, theme.primary))}
+                {originPoint && renderCrosshair(originPoint, theme.danger)}
+              </Layer>
+            </Stage>
+          ) : (
+            <Flex height="300px" align="center" justify="center">
+              <Text color="gray">Upload an image to begin</Text>
+            </Flex>
+          )}
+          {image && (
+            <Box position="absolute" bottom="3" left="3" style={{ zIndex: 10 }}>
+              <Card size="1" variant="surface" className="shadow-md">
+                <Flex align="center" gap="3" m="-2" p="1">
+                  <Text size="1">Scroll to zoom</Text>
+                  <Text size="1">Shift + drag to pan</Text>
+                  <Button
+                    size="1"
+                    variant="solid"
+                    color="gray"
+                    onClick={() => {
+                      resetView()
+                      setHasInteracted(false)
+                    }}
+                  >
+                    Reset view
+                  </Button>
+                </Flex>
+              </Card>
+            </Box>
+          )}
+        </Box>
+      </Inset>
+    </Card>
   )
 }
