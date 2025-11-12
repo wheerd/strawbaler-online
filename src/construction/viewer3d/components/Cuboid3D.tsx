@@ -1,5 +1,6 @@
 import type { Cuboid } from '@/construction/shapes'
 import { getCuboidGeometry } from '@/construction/viewer3d/utils/geometryCache'
+import { getLineMaterial, getMeshMaterial } from '@/construction/viewer3d/utils/materialCache'
 
 interface Cuboid3DProps {
   shape: Cuboid
@@ -19,6 +20,8 @@ function Cuboid3D({ shape, color, opacity = 1.0, partId }: Cuboid3DProps): React
   const centerThreeZ = -(y + h / 2)
 
   const { geometry, edgesGeometry, cacheKey } = getCuboidGeometry(shape, partId)
+  const meshMaterial = getMeshMaterial(color, opacity)
+  const lineMaterial = getLineMaterial('#000000', 0.4, 1)
 
   return (
     <mesh
@@ -26,11 +29,9 @@ function Cuboid3D({ shape, color, opacity = 1.0, partId }: Cuboid3DProps): React
       position={[centerThreeX, centerThreeY, centerThreeZ]}
       userData={{ partId, geometryKey: cacheKey }}
       dispose={null}
+      material={meshMaterial}
     >
-      <meshStandardMaterial color={color} opacity={opacity} transparent depthWrite={opacity === 1.0} />
-      <lineSegments geometry={edgesGeometry} dispose={null}>
-        <lineBasicMaterial color="#000000" opacity={0.4} transparent linewidth={1} />
-      </lineSegments>
+      <lineSegments geometry={edgesGeometry} dispose={null} material={lineMaterial} />
     </mesh>
   )
 }
