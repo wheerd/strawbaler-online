@@ -47,7 +47,7 @@ describe('StoreysSlice', () => {
       expect(addedStorey).toBeDefined()
       expect(addedStorey.name).toBe('Ground Floor')
       expect(addedStorey.level).toBe(0)
-      expect(addedStorey.height).toBe(store.defaultHeight)
+      expect(addedStorey.floorHeight).toBe(store.defaultFloorHeight)
     })
 
     it('should add subsequent storeys with incrementing levels', () => {
@@ -62,13 +62,13 @@ describe('StoreysSlice', () => {
     })
 
     it('should add a storey with custom height', () => {
-      const height = 4000
-      const storey = store.actions.addStorey('First Floor', height)
+      const floorHeight = 4000
+      const storey = store.actions.addStorey('First Floor', floorHeight)
 
       expect(Object.keys(store.storeys).length).toBe(1)
 
       const addedStorey = store.storeys[storey.id]
-      expect(addedStorey?.height).toBe(height)
+      expect(addedStorey?.floorHeight).toBe(floorHeight)
     })
 
     it('should trim storey name whitespace', () => {
@@ -83,12 +83,12 @@ describe('StoreysSlice', () => {
       expect(() => store.actions.addStorey('   ')).toThrow('Storey name cannot be empty')
     })
 
-    it('should throw error for invalid storey height', () => {
-      expect(() => store.actions.addStorey('Floor', 0)).toThrow('Storey height must be greater than 0')
+    it('should throw error for invalid floor height', () => {
+      expect(() => store.actions.addStorey('Floor', 0)).toThrow('Floor height must be greater than 0')
     })
 
-    it('should throw error for negative storey height', () => {
-      expect(() => store.actions.addStorey('Floor', -1000)).toThrow('Storey height must be greater than 0')
+    it('should throw error for negative floor height', () => {
+      expect(() => store.actions.addStorey('Floor', -1000)).toThrow('Floor height must be greater than 0')
     })
   })
 
@@ -205,33 +205,35 @@ describe('StoreysSlice', () => {
     })
   })
 
-  describe('updateStoreyHeight', () => {
-    it('should update storey height', () => {
+  describe('updateStoreyFloorHeight', () => {
+    it('should update floor height', () => {
       const storey = store.actions.addStorey('Test Floor')
       const newHeight = 3500
 
-      store.actions.updateStoreyHeight(storey.id, newHeight)
+      store.actions.updateStoreyFloorHeight(storey.id, newHeight)
 
       const updatedStorey = store.storeys[storey.id]
-      expect(updatedStorey?.height).toBe(newHeight)
+      expect(updatedStorey?.floorHeight).toBe(newHeight)
     })
 
-    it('should throw error for invalid storey height', () => {
+    it('should throw error for invalid floor height', () => {
       const storey = store.actions.addStorey('Test Floor')
 
-      expect(() => store.actions.updateStoreyHeight(storey.id, 0)).toThrow('Storey height must be greater than 0')
+      expect(() => store.actions.updateStoreyFloorHeight(storey.id, 0)).toThrow('Floor height must be greater than 0')
     })
 
-    it('should throw error for negative storey height', () => {
+    it('should throw error for negative floor height', () => {
       const storey = store.actions.addStorey('Test Floor')
 
-      expect(() => store.actions.updateStoreyHeight(storey.id, -1000)).toThrow('Storey height must be greater than 0')
+      expect(() => store.actions.updateStoreyFloorHeight(storey.id, -1000)).toThrow(
+        'Floor height must be greater than 0'
+      )
     })
 
     it('should do nothing if storey does not exist', () => {
       const initialStoreys = { ...store.storeys }
 
-      store.actions.updateStoreyHeight('non-existent' as StoreyId, 3000)
+      store.actions.updateStoreyFloorHeight('non-existent' as StoreyId, 3000)
 
       expect(store.storeys).toEqual(initialStoreys)
     })

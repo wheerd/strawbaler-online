@@ -37,7 +37,7 @@ export function StoreyListItem({
   const { setActiveStoreyId } = useModelActions()
   const [editName, setEditName] = useState(storey.name)
 
-  const { updateStoreyName, updateStoreyHeight, updateStoreyFloorAssembly } = useModelActions()
+  const { updateStoreyName, updateStoreyFloorHeight, updateStoreyFloorAssembly } = useModelActions()
 
   // Calculate button states
   const isLowest = storey.id === lowestStorey.id
@@ -154,13 +154,13 @@ export function StoreyListItem({
           />
         </Flex>
 
-        {/* Height input */}
+        {/* Floor height input */}
         <Flex direction="column" gap="1">
           <Flex align="center" gap="1">
             <Text size="1" weight="medium" color="gray">
-              Room Height
+              Floor Height
             </Text>
-            <MeasurementInfo highlightedMeasurement="roomHeight" />
+            <MeasurementInfo highlightedMeasurement="storeyHeight" />
           </Flex>
           <LengthField
             min={1000}
@@ -169,9 +169,9 @@ export function StoreyListItem({
             unit="m"
             step={100}
             style={{ width: '6.5rem' }}
-            value={storey.height}
-            onCommit={value => updateStoreyHeight(storey.id, value)}
-            title={`Floor height: ${formatLength(storey.height)}`}
+            value={storey.floorHeight}
+            onCommit={value => updateStoreyFloorHeight(storey.id, value)}
+            title={`Floor height: ${formatLength(storey.floorHeight)}`}
           >
             <TextField.Slot side="left" className="pl-1 pr-0">
               <HeightIcon />

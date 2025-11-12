@@ -5,6 +5,7 @@ import { getConfigActions } from '@/construction/config'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
+import { getStoreyCeilingHeight } from '@/construction/storeyHeight'
 import { TAG_OPENING_SPACING, TAG_WALL_LENGTH } from '@/construction/tags'
 import type { WallLayersConfig } from '@/construction/walls'
 import type { Length } from '@/shared/geometry'
@@ -190,7 +191,7 @@ export function createWallStoreyContext(
 
   return {
     floorConstructionThickness: currentFloorFloorAssembly.getConstructionThickness(currentFloorAssembly),
-    storeyHeight: currentStorey.height,
+    storeyHeight: getStoreyCeilingHeight(currentStorey, nextFloorAssembly),
     floorTopConstructionOffset: topOffset,
     floorTopOffset: currentFloorAssembly.layers.topThickness + topOffset,
     ceilingBottomConstructionOffset: bottomOffset,

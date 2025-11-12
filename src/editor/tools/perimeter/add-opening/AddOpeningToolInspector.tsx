@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react'
 
 import type { OpeningType } from '@/building/model/model'
 import { useActiveStoreyId, useModelActions } from '@/building/store'
+import { getStoreyCeilingHeight } from '@/construction/storeyHeight'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import { LengthField } from '@/shared/components/LengthField'
@@ -103,6 +104,10 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
     return getStoreyById(activeStoreyId)
   }, [getStoreyById, activeStoreyId])
 
+  const wallHeight = useMemo(() => {
+    return activeStorey ? getStoreyCeilingHeight(activeStorey) : 2500
+  }, [activeStorey])
+
   // Event handlers with stable references
   const handleTypeChange = useCallback(
     (newType: OpeningType) => {
@@ -149,7 +154,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
             height: state.height,
             sillHeight: state.sillHeight
           }}
-          wallHeight={activeStorey?.height || 2500} // Fallback height
+          wallHeight={wallHeight}
           focusedField={focusedField}
         />
       </Flex>

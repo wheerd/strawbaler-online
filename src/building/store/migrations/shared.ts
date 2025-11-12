@@ -1,6 +1,8 @@
 import { vec2 } from 'gl-matrix'
 
+import type { FloorAssemblyId } from '@/building/model/ids'
 import type { StoreState } from '@/building/store/types'
+import type { FloorAssemblyConfig } from '@/construction/config/types'
 
 export type MigrationState = Partial<StoreState> & Record<string, unknown>
 export type Migration = (state: MigrationState) => void
@@ -15,4 +17,35 @@ export const toVec2 = (value: unknown): vec2 | null => {
   const numY = Number(y)
   if (!Number.isFinite(numX) || !Number.isFinite(numY)) return null
   return vec2.fromValues(numX, numY)
+}
+
+const CONFIG_STORAGE_KEY = 'strawbaler-config'
+
+export interface PersistedConfigStoreState {
+  floorAssemblyConfigs?: Record<FloorAssemblyId, FloorAssemblyConfig>
+}
+
+export const getPersistedConfigStoreState = (): PersistedConfigStoreState | null => {
+  const storage = (globalThis as { localStorage?: Storage }).localStorage
+  if (!storage) {
+    return null
+  }
+
+  try {
+    const raw = storage.getItem(CONFIG_STORAGE_KEY)
+    if (!raw) {
+      return null
+    }
+    const parsed = JSON.parse(raw)
+    if (!isRecord(parsed)) {
+      return null
+    }
+    const state = (parsed as Record<string, unknown>).state
+    if (!isRecord(state)) {
+      return null
+    }
+    return state as PersistedConfigStoreState
+  } catch {
+    return null
+  }
 }

@@ -30,9 +30,9 @@ describe('StoreyManagementService', () => {
   describe('moveStoreyUp', () => {
     it('should swap with storey above when not highest', () => {
       const storeys = [
-        { id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), height: 3000 },
-        { id: 'storey-2' as StoreyId, name: 'First', level: createStoreyLevel(1), height: 3000 },
-        { id: 'storey-3' as StoreyId, name: 'Second', level: createStoreyLevel(2), height: 3000 }
+        { id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), floorHeight: 3000 },
+        { id: 'storey-2' as StoreyId, name: 'First', level: createStoreyLevel(1), floorHeight: 3000 },
+        { id: 'storey-3' as StoreyId, name: 'Second', level: createStoreyLevel(2), floorHeight: 3000 }
       ]
 
       mockActions.getStoreysOrderedByLevel.mockReturnValue(storeys)
@@ -45,8 +45,8 @@ describe('StoreyManagementService', () => {
 
     it('should increase all levels when moving highest storey up', () => {
       const storeys = [
-        { id: 'storey-1' as StoreyId, name: 'Basement', level: createStoreyLevel(-1), height: 3000 },
-        { id: 'storey-2' as StoreyId, name: 'Ground', level: createStoreyLevel(0), height: 3000 }
+        { id: 'storey-1' as StoreyId, name: 'Basement', level: createStoreyLevel(-1), floorHeight: 3000 },
+        { id: 'storey-2' as StoreyId, name: 'Ground', level: createStoreyLevel(0), floorHeight: 3000 }
       ]
 
       mockActions.getStoreysOrderedByLevel.mockReturnValue(storeys)
@@ -59,8 +59,8 @@ describe('StoreyManagementService', () => {
 
     it('should throw error when moving highest would make lowest > 0', () => {
       const storeys = [
-        { id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), height: 3000 },
-        { id: 'storey-2' as StoreyId, name: 'First', level: createStoreyLevel(1), height: 3000 }
+        { id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), floorHeight: 3000 },
+        { id: 'storey-2' as StoreyId, name: 'First', level: createStoreyLevel(1), floorHeight: 3000 }
       ]
 
       mockActions.getStoreysOrderedByLevel.mockReturnValue(storeys)
@@ -72,7 +72,7 @@ describe('StoreyManagementService', () => {
     })
 
     it('should do nothing with single storey', () => {
-      const storeys = [{ id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), height: 3000 }]
+      const storeys = [{ id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), floorHeight: 3000 }]
 
       mockActions.getStoreysOrderedByLevel.mockReturnValue(storeys)
       mockActions.getStoreyAbove.mockReturnValue(null)
@@ -87,9 +87,9 @@ describe('StoreyManagementService', () => {
   describe('moveStoreyDown', () => {
     it('should swap with storey below when not lowest', () => {
       const storeys = [
-        { id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), height: 3000 },
-        { id: 'storey-2' as StoreyId, name: 'First', level: createStoreyLevel(1), height: 3000 },
-        { id: 'storey-3' as StoreyId, name: 'Second', level: createStoreyLevel(2), height: 3000 }
+        { id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), floorHeight: 3000 },
+        { id: 'storey-2' as StoreyId, name: 'First', level: createStoreyLevel(1), floorHeight: 3000 },
+        { id: 'storey-3' as StoreyId, name: 'Second', level: createStoreyLevel(2), floorHeight: 3000 }
       ]
 
       mockActions.getStoreysOrderedByLevel.mockReturnValue(storeys)
@@ -101,8 +101,8 @@ describe('StoreyManagementService', () => {
 
     it('should decrease all levels when moving lowest storey down', () => {
       const storeys = [
-        { id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), height: 3000 },
-        { id: 'storey-2' as StoreyId, name: 'First', level: createStoreyLevel(1), height: 3000 }
+        { id: 'storey-1' as StoreyId, name: 'Ground', level: createStoreyLevel(0), floorHeight: 3000 },
+        { id: 'storey-2' as StoreyId, name: 'First', level: createStoreyLevel(1), floorHeight: 3000 }
       ]
 
       mockActions.getStoreysOrderedByLevel.mockReturnValue(storeys)
@@ -114,8 +114,8 @@ describe('StoreyManagementService', () => {
 
     it('should throw error when moving lowest would make highest < 0', () => {
       const storeys = [
-        { id: 'storey-1' as StoreyId, name: 'Basement', level: createStoreyLevel(-1), height: 3000 },
-        { id: 'storey-2' as StoreyId, name: 'Ground', level: createStoreyLevel(0), height: 3000 }
+        { id: 'storey-1' as StoreyId, name: 'Basement', level: createStoreyLevel(-1), floorHeight: 3000 },
+        { id: 'storey-2' as StoreyId, name: 'Ground', level: createStoreyLevel(0), floorHeight: 3000 }
       ]
 
       mockActions.getStoreysOrderedByLevel.mockReturnValue(storeys)
@@ -132,7 +132,7 @@ describe('StoreyManagementService', () => {
         id: 'storey-1' as StoreyId,
         name: 'Ground Floor',
         level: createStoreyLevel(0),
-        height: 3000,
+        floorHeight: 3000,
         floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
       }
 
@@ -140,7 +140,7 @@ describe('StoreyManagementService', () => {
         id: 'storey-2' as StoreyId,
         name: 'Ground Floor Copy',
         level: createStoreyLevel(1),
-        height: 3000,
+        floorHeight: 3000,
         floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
       }
 
@@ -160,7 +160,7 @@ describe('StoreyManagementService', () => {
         id: 'storey-1' as StoreyId,
         name: 'Ground Floor',
         level: createStoreyLevel(0),
-        height: 3000,
+        floorHeight: 3000,
         floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
       }
 
@@ -168,7 +168,7 @@ describe('StoreyManagementService', () => {
         id: 'storey-2' as StoreyId,
         name: 'Custom Name',
         level: createStoreyLevel(1),
-        height: 3000,
+        floorHeight: 3000,
         floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
       }
 
@@ -193,7 +193,7 @@ describe('StoreyManagementService', () => {
         id: 'storey-1' as StoreyId,
         name: 'Only Floor',
         level: createStoreyLevel(0),
-        height: 3000,
+        floorHeight: 3000,
         floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
       }
 
@@ -201,7 +201,7 @@ describe('StoreyManagementService', () => {
         id: 'storey-2' as StoreyId,
         name: 'Only Floor Copy',
         level: createStoreyLevel(1),
-        height: 3000,
+        floorHeight: 3000,
         floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
       }
 
@@ -221,7 +221,7 @@ describe('StoreyManagementService', () => {
         id: 'storey-1' as StoreyId,
         name: 'Ground Floor',
         level: createStoreyLevel(0),
-        height: 3000,
+        floorHeight: 3000,
         floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
       }
 
@@ -229,7 +229,7 @@ describe('StoreyManagementService', () => {
         id: 'storey-2' as StoreyId,
         name: 'Ground Floor Copy',
         level: createStoreyLevel(1),
-        height: 3000,
+        floorHeight: 3000,
         floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
       }
 

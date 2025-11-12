@@ -136,7 +136,7 @@
                 <text x="0" y="0" font-size="60" font-family="Arial" font-weight="bold"
                     fill="#666" text-anchor="middle" dominant-baseline="central"
                     transform="translate(0 0)" style="filter: drop-shadow(0 0 0.1em var(--gray-1));">
-                    <tspan x="0" dy="0">Room Height</tspan>
+                    <tspan x="0" dy="0">Ceiling Height</tspan>
                 </text>
             </g>
         </g>

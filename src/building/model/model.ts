@@ -45,7 +45,7 @@ export interface Storey {
   readonly id: StoreyId
   readonly name: string
   readonly level: StoreyLevel // Floor level (0 = ground floor, 1 = first floor, etc.)
-  readonly height: Length
+  readonly floorHeight: Length // Finished floor to finished floor
   readonly floorAssemblyId: FloorAssemblyId
 }
 

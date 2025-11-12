@@ -348,12 +348,6 @@ class IfcExporter {
       const nextFloorConfig = nextStorey ? getFloorAssemblyById(nextStorey.floorAssemblyId) : null
       const storeyContext = createWallStoreyContext(storey, floorConfig, nextFloorConfig ?? null)
 
-      const floorAssembly = FLOOR_ASSEMBLIES[floorConfig.type]
-      const bottomOffset = floorAssembly.getBottomOffset(floorConfig)
-      const constructionThickness = floorAssembly.getConstructionThickness(floorConfig)
-
-      elevation += bottomOffset + constructionThickness
-
       infos.push({
         storey,
         elevation,
@@ -361,7 +355,7 @@ class IfcExporter {
         wallHeight: storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
       })
 
-      elevation += floorConfig.layers.topThickness + floorAssembly.getTopOffset(floorConfig) + storey.height
+      elevation += storey.floorHeight
     }
 
     return infos

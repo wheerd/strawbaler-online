@@ -163,7 +163,7 @@ export function StoreyInspector({ selectedId }: StoreyInspectorProps): React.JSX
           </DataList.Item>
 
           <DataList.Item>
-            <DataList.Label>Storey Height</DataList.Label>
+            <DataList.Label>Floor Height</DataList.Label>
             <DataList.Value>
               <Flex justify="end" width="100%">
                 {formatLength(combinedStats.storeyHeight)}

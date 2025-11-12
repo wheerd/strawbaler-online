@@ -58,13 +58,13 @@ function applyImportedModel(model: ParsedIfcModel): void {
     return
   }
 
-  let previousHeight = baseStorey.height ?? DEFAULT_STOREY_HEIGHT
+  let previousHeight = baseStorey.floorHeight ?? DEFAULT_STOREY_HEIGHT
 
   const storeyIdMap = new Map<ImportedStorey, StoreyId>()
 
   importedStoreys.forEach((importedStorey, index) => {
     const storeyName = importedStorey.name?.trim() || `Storey ${index + 1}`
-    const resolvedHeight = resolveStoreyHeight(importedStorey, importedStoreys[index + 1], previousHeight)
+    const resolvedHeight = resolveStoreyFloorHeight(importedStorey, importedStoreys[index + 1], previousHeight)
     previousHeight = resolvedHeight
 
     let targetStoreyId: StoreyId
@@ -72,7 +72,7 @@ function applyImportedModel(model: ParsedIfcModel): void {
     if (index === 0 && baseStorey) {
       targetStoreyId = baseStorey.id
       actions.updateStoreyName(targetStoreyId, storeyName)
-      actions.updateStoreyHeight(targetStoreyId, resolvedHeight)
+      actions.updateStoreyFloorHeight(targetStoreyId, resolvedHeight)
       actions.updateStoreyFloorAssembly(targetStoreyId, defaultFloorAssemblyId)
     } else {
       const newStorey = actions.addStorey(storeyName, resolvedHeight, defaultFloorAssemblyId)
@@ -183,7 +183,7 @@ function normalizeArrayBuffer(input: ArrayBuffer | Uint8Array): ArrayBuffer {
   return copy.buffer
 }
 
-function resolveStoreyHeight(current: ImportedStorey, next: ImportedStorey | undefined, fallback: number): number {
+function resolveStoreyFloorHeight(current: ImportedStorey, next: ImportedStorey | undefined, fallback: number): number {
   if (current.height != null && current.height > 0) {
     return current.height
   }

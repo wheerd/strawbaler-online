@@ -58,7 +58,7 @@ describe('ProjectImportExportService Integration', () => {
 
     // Update its properties
     modelActions.updateStoreyName(testStorey.id, 'Test Floor')
-    modelActions.updateStoreyHeight(testStorey.id, 3000)
+    modelActions.updateStoreyFloorHeight(testStorey.id, 3000)
 
     // Create a perimeter with custom boundary
     const boundary = {
@@ -189,7 +189,7 @@ describe('ProjectImportExportService Integration', () => {
       // Compare storey properties (excluding IDs)
       expect(importedStorey.name).toBe(originalStorey.name)
       expect(importedStorey.level).toBe(originalStorey.level)
-      expect(Number(importedStorey.height)).toBe(Number(originalStorey.height))
+      expect(Number(importedStorey.floorHeight)).toBe(Number(originalStorey.floorHeight))
 
       // Get imported perimeters for comparison
       const importedPerimeters = modelActions.getPerimetersByStorey(importedStorey.id)

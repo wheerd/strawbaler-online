@@ -8,6 +8,7 @@ import type { OpeningId, PerimeterId, PerimeterWallId } from '@/building/model/i
 import type { OpeningType } from '@/building/model/model'
 import { useModelActions, usePerimeterById } from '@/building/store'
 import { useWallAssemblyById } from '@/construction/config/store'
+import { getStoreyCeilingHeight } from '@/construction/storeyHeight'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { FitToViewIcon } from '@/shared/components/Icons'
@@ -53,6 +54,13 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   // Get assembly for padding config
   const wallAssembly = wall?.wallAssemblyId && useWallAssemblyById(wall.wallAssemblyId)
   const viewportActions = useViewportActions()
+
+  const wallHeight = useMemo(() => {
+    if (!storey) {
+      return null
+    }
+    return getStoreyCeilingHeight(storey)
+  }, [storey])
 
   // Preview state
   const [highlightMode, setHighlightMode] = useState<'fitting' | 'finished'>('fitting')
@@ -179,11 +187,11 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   return (
     <Flex direction="column" gap="4">
       {/* Preview */}
-      {opening && storey && wallAssembly && (
+      {opening && storey && wallAssembly && wallHeight !== null && (
         <Flex direction="column" align="center">
           <OpeningPreview
             opening={opening}
-            wallHeight={storey.height}
+            wallHeight={wallHeight}
             padding={wallAssembly.openings.padding}
             highlightMode={highlightMode}
             focusedField={focusedField}

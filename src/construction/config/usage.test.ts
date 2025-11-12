@@ -21,7 +21,7 @@ describe('Assembly Usage Detection', () => {
     id: storeyId,
     name: 'Test Floor',
     level: createStoreyLevel(0),
-    height: 3000,
+    floorHeight: 3000,
     floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
   }
 

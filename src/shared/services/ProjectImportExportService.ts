@@ -6,6 +6,7 @@ import { getModelActions } from '@/building/store'
 import { getConfigState, setConfigState } from '@/construction/config/store'
 import { applyMigrations } from '@/construction/config/store/migrations'
 import type { FloorAssemblyConfig, RingBeamAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
+import { FLOOR_ASSEMBLIES } from '@/construction/floors'
 import type { Material, MaterialId } from '@/construction/materials/material'
 import { getMaterialsState, setMaterialsState } from '@/construction/materials/store'
 import { MATERIALS_STORE_VERSION, migrateMaterialsState } from '@/construction/materials/store/migrations'
@@ -13,7 +14,8 @@ import type { Polygon2D } from '@/shared/geometry'
 
 export interface ExportedStorey {
   name: string
-  height: number
+  floorHeight?: number
+  height?: number // legacy alias retained for backwards compatibility
   floorAssemblyId: string
   perimeters: ExportedPerimeter[]
   floorAreas?: ExportedFloorPolygon[]
@@ -103,12 +105,45 @@ export interface IProjectImportExportService {
   importFromString(content: string): Promise<ImportResult | ImportError>
 }
 
-const CURRENT_VERSION = '1.6.0'
-const SUPPORTED_VERSIONS = ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '1.5.0', '1.6.0'] as const
+const CURRENT_VERSION = '1.7.0'
+const SUPPORTED_VERSIONS = ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '1.5.0', '1.6.0', '1.7.0'] as const
 
 const polygonToExport = (polygon: Polygon2D): ExportedFloorPolygon => ({
   points: polygon.points.map(point => ({ x: point[0], y: point[1] }))
 })
+
+const getFloorAssemblyThicknessFromConfig = (
+  configs: Record<FloorAssemblyId, FloorAssemblyConfig> | undefined,
+  floorAssemblyId: FloorAssemblyId
+): number => {
+  if (!configs) return 0
+  const config = configs[floorAssemblyId]
+  if (!config) return 0
+  const assembly = FLOOR_ASSEMBLIES[config.type]
+  return Number(assembly.getTotalThickness(config))
+}
+
+const resolveImportedFloorHeight = (
+  storey: ExportedStorey,
+  nextStorey: ExportedStorey | undefined,
+  floorAssemblyConfigs: Record<FloorAssemblyId, FloorAssemblyConfig> | undefined
+): number => {
+  if (storey.floorHeight != null && storey.floorHeight > 0) {
+    return storey.floorHeight
+  }
+
+  const legacyCeilingHeight = storey.height ?? 0
+  if (!nextStorey) {
+    return legacyCeilingHeight
+  }
+
+  const nextThickness = getFloorAssemblyThicknessFromConfig(
+    floorAssemblyConfigs,
+    nextStorey.floorAssemblyId as FloorAssemblyId
+  )
+
+  return legacyCeilingHeight + nextThickness
+}
 
 class ProjectImportExportServiceImpl implements IProjectImportExportService {
   async exportToString(): Promise<StringExportResult | StringExportError> {
@@ -151,7 +186,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
 
         return {
           name: storey.name,
-          height: Number(storey.height),
+          floorHeight: Number(storey.floorHeight),
           floorAssemblyId: storey.floorAssemblyId,
           perimeters,
           floorAreas: floorAreas.length > 0 ? floorAreas : undefined,
@@ -208,19 +243,24 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
       // 5. Process imported storeys
       const exportedStoreys = importResult.data.modelStore.storeys
 
-      exportedStoreys.forEach((exportedStorey, index) => {
+      exportedStoreys.forEach((exportedStorey, index, list) => {
         let targetStorey: Storey
         const floorAssemblyId = exportedStorey.floorAssemblyId as FloorAssemblyId
+        const resolvedFloorHeight = resolveImportedFloorHeight(
+          exportedStorey,
+          list[index + 1],
+          configStore.floorAssemblyConfigs
+        )
 
         if (index === 0) {
           // Modify existing default ground floor
           targetStorey = defaultGroundFloor
           modelActions.updateStoreyName(targetStorey.id, exportedStorey.name)
-          modelActions.updateStoreyHeight(targetStorey.id, exportedStorey.height)
+          modelActions.updateStoreyFloorHeight(targetStorey.id, resolvedFloorHeight)
           modelActions.updateStoreyFloorAssembly(targetStorey.id, floorAssemblyId)
         } else {
           // Add additional storeys with floor config
-          targetStorey = modelActions.addStorey(exportedStorey.name, exportedStorey.height, floorAssemblyId)
+          targetStorey = modelActions.addStorey(exportedStorey.name, resolvedFloorHeight, floorAssemblyId)
         }
 
         // 6. Recreate perimeters - let store auto-compute all geometry

@@ -9,7 +9,7 @@ import '@/shared/geometry'
 
 export interface StoreysState {
   readonly activeStoreyId: StoreyId
-  readonly defaultHeight: Length
+  readonly defaultFloorHeight: Length
   readonly storeys: Readonly<Record<StoreyId, Storey>>
 }
 
@@ -20,12 +20,12 @@ export interface StoreysActions {
   setActiveStoreyId: (storeyId: StoreyId) => void
 
   // CRUD operations
-  addStorey: (name: string, height?: Length, floorAssemblyId?: FloorAssemblyId) => Storey
+  addStorey: (name: string, floorHeight?: Length, floorAssemblyId?: FloorAssemblyId) => Storey
   removeStorey: (storeyId: StoreyId) => void
 
   // Storey modifications
   updateStoreyName: (storeyId: StoreyId, name: string) => void
-  updateStoreyHeight: (storeyId: StoreyId, height: Length) => void
+  updateStoreyFloorHeight: (storeyId: StoreyId, floorHeight: Length) => void
   updateStoreyFloorAssembly: (storeyId: StoreyId, floorAssemblyId: FloorAssemblyId) => void
 
   // Level management operations
@@ -47,9 +47,9 @@ const validateStoreyName = (name: string): void => {
   }
 }
 
-const validateStoreyHeight = (height: Length): void => {
+const validateStoreyFloorHeight = (height: Length): void => {
   if (Number(height) <= 0) {
-    throw new Error('Storey height must be greater than 0')
+    throw new Error('Floor height must be greater than 0')
   }
 }
 
@@ -57,7 +57,7 @@ const groundFloor: Storey = {
   id: 'storey_ground' as StoreyId,
   name: 'Ground Floor',
   level: createStoreyLevel(0),
-  height: 2400,
+  floorHeight: 3000,
   floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
 }
 
@@ -66,7 +66,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
   get
 ) => ({
   activeStoreyId: groundFloor.id,
-  defaultHeight: 2400,
+  defaultFloorHeight: 3000,
   storeys: { [groundFloor.id]: groundFloor } as Record<StoreyId, Storey>,
 
   actions: {
@@ -84,9 +84,9 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
       }),
 
     // CRUD operations
-    addStorey: (name: string, height?: Length, floorAssemblyId?: FloorAssemblyId) => {
+    addStorey: (name: string, floorHeight?: Length, floorAssemblyId?: FloorAssemblyId) => {
       validateStoreyName(name)
-      if (height !== undefined) validateStoreyHeight(height)
+      if (floorHeight !== undefined) validateStoreyFloorHeight(floorHeight)
 
       let storey: Storey | undefined
       set(state => {
@@ -97,7 +97,7 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
           id: createStoreyId(),
           name: name.trim(),
           level,
-          height: height ?? state.defaultHeight,
+          floorHeight: floorHeight ?? state.defaultFloorHeight,
           floorAssemblyId: floorAssemblyId ?? DEFAULT_FLOOR_ASSEMBLY_ID
         }
         state.storeys[storey.id] = storey
@@ -148,11 +148,11 @@ export const createStoreysSlice: StateCreator<StoreysSlice, [['zustand/immer', n
         }
       }),
 
-    updateStoreyHeight: (storeyId: StoreyId, height: Length) =>
+    updateStoreyFloorHeight: (storeyId: StoreyId, floorHeight: Length) =>
       set(({ storeys }) => {
-        validateStoreyHeight(height)
+        validateStoreyFloorHeight(floorHeight)
         if (storeyId in storeys) {
-          storeys[storeyId].height = height
+          storeys[storeyId].floorHeight = floorHeight
         }
       }),
 

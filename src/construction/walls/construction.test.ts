@@ -95,7 +95,7 @@ describe('constructWall', () => {
     id: storeyId,
     name: 'Ground Floor',
     level: 0 as any,
-    height: 3000,
+    floorHeight: 3000,
     floorAssemblyId
   })
 

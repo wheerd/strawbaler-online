@@ -8,6 +8,11 @@ vi.mock('@/shared/geometry/polygon', () => ({
 }))
 
 describe('model store migrations', () => {
+  beforeEach(() => {
+    const storage = (globalThis as { localStorage?: Storage }).localStorage
+    storage?.clear()
+  })
+
   it('ensures floor collections are plain objects', () => {
     const migrated = applyMigrations({
       floorAreas: null,
@@ -66,5 +71,48 @@ describe('model store migrations', () => {
       vec2.fromValues(10, 10),
       vec2.fromValues(10, 0)
     ])
+  })
+
+  it('renames storey height to floorHeight and adds next floor thickness', () => {
+    const storage = (globalThis as { localStorage?: Storage }).localStorage
+    storage?.setItem(
+      'strawbaler-config',
+      JSON.stringify({
+        state: {
+          floorAssemblyConfigs: {
+            floorB: {
+              id: 'floorB',
+              name: 'Second Floor',
+              type: 'monolithic',
+              thickness: 200,
+              material: 'material_floor',
+              layers: {
+                topThickness: 40,
+                bottomThickness: 60
+              }
+            }
+          }
+        }
+      })
+    )
+
+    const migrated = applyMigrations({
+      defaultHeight: 2600,
+      storeys: {
+        a: { id: 'a', level: 0, height: 2400, floorAssemblyId: 'floorA' },
+        b: { id: 'b', level: 1, height: 2300, floorAssemblyId: 'floorB' }
+      }
+    }) as Record<string, any>
+
+    const storeys = migrated.storeys as Record<string, any>
+
+    expect(migrated.defaultHeight).toBeUndefined()
+    expect(migrated.defaultFloorHeight).toBe(2600)
+
+    expect(storeys.a.height).toBeUndefined()
+    expect(storeys.a.floorHeight).toBe(2400 + 200 + 40 + 60)
+
+    expect(storeys.b.height).toBeUndefined()
+    expect(storeys.b.floorHeight).toBe(2300)
   })
 })

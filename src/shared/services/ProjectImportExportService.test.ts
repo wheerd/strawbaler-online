@@ -8,7 +8,8 @@ const mockStorey = {
   id: 'storey_ground',
   name: 'Ground Floor',
   level: 0,
-  height: 2500
+  floorHeight: 2500,
+  floorAssemblyId: 'fa_1'
 }
 
 const mockActions = {
@@ -83,14 +84,14 @@ const mockActions = {
   getFloorOpeningsByStorey: vi.fn(() => []),
   reset: vi.fn(),
   updateStoreyName: vi.fn(),
-  updateStoreyHeight: vi.fn(),
+  updateStoreyFloorHeight: vi.fn(),
   updateStoreyFloorAssembly: vi.fn(),
   adjustAllLevels: vi.fn(),
-  addStorey: vi.fn((name, height) => ({
+  addStorey: vi.fn((name, floorHeight) => ({
     id: 'new_storey',
     name,
     level: 1,
-    height
+    floorHeight
   })),
   addPerimeter: vi.fn(() => ({
     id: 'new_perimeter',
@@ -217,13 +218,13 @@ describe('ProjectImportExportService', () => {
     it('calls the correct store assemblies on import', async () => {
       // Create simple valid import data
       const validImportData = {
-        version: '1.6.0',
+        version: '1.7.0',
         timestamp: new Date().toISOString(),
         modelStore: {
           storeys: [
             {
               name: 'Test Floor',
-              height: 2500,
+              floorHeight: 2500,
               perimeters: [],
               floorAssemblyId: 'fa_1',
               floorAreas: [
@@ -284,7 +285,7 @@ describe('ProjectImportExportService', () => {
 
       // For a storey with no perimeters, should still call updateStoreyName
       expect(mockActions.updateStoreyName).toHaveBeenCalled()
-      expect(mockActions.updateStoreyHeight).toHaveBeenCalled()
+      expect(mockActions.updateStoreyFloorHeight).toHaveBeenCalled()
       expect(mockActions.updateStoreyFloorAssembly).toHaveBeenCalled()
       expect(mockActions.addFloorArea).toHaveBeenCalled()
       expect(mockActions.addFloorOpening).toHaveBeenCalled()

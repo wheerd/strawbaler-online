@@ -480,7 +480,7 @@ e | y +--------------+ s | Floor top layers                 }
       {renderMeasurement('storeyHeight', {
         startPoint: [marginRightX, marginTop],
         endPoint: [marginRightX, marginTop + storeyHeight],
-        label: 'Storey Height',
+        label: 'Floor Height',
         fontSize: 60,
         offset: 40,
         strokeWidth: 10
@@ -489,7 +489,7 @@ e | y +--------------+ s | Floor top layers                 }
       {renderMeasurement('roomHeight', {
         startPoint: [marginRightX, roomHeightStartY],
         endPoint: [marginRightX, marginTop + storeyHeight],
-        label: 'Room Height',
+        label: 'Ceiling Height',
         fontSize: 60,
         offset: 120,
         strokeWidth: 10

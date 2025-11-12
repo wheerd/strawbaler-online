@@ -33,14 +33,14 @@ describe('StoreySelector', () => {
       id: 'storey-1' as StoreyId,
       name: 'Ground Floor',
       level: createStoreyLevel(0),
-      height: 3000,
+      floorHeight: 3000,
       floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
     },
     {
       id: 'storey-2' as StoreyId,
       name: 'First Floor',
       level: createStoreyLevel(1),
-      height: 3000,
+      floorHeight: 3000,
       floorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID
     }
   ]

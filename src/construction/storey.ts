@@ -106,26 +106,16 @@ export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
 
 export function constructModel(): ConstructionModel | null {
   const { getStoreysOrderedByLevel } = getModelActions()
-  const { getFloorAssemblyById } = getConfigActions()
   const models: ConstructionModel[] = []
   let zOffset = 0
   for (const storey of getStoreysOrderedByLevel()) {
-    const floor = getFloorAssemblyById(storey.floorAssemblyId)
-    if (!floor) {
-      throw new Error('Invalid floor assembly id')
-    }
-    const floorAssembly = FLOOR_ASSEMBLIES[floor.type]
-    zOffset +=
-      floor.layers.bottomThickness +
-      floorAssembly.getBottomOffset(floor) +
-      floorAssembly.getConstructionThickness(floor)
     const model = constructStorey(storey.id)
     if (model) {
       models.push(
         transformModel(model, { position: [0, 0, zOffset], rotation: vec3.fromValues(0, 0, 0) }, [TAG_STOREY])
       )
     }
-    zOffset += floor.layers.topThickness + floorAssembly.getTopOffset(floor) + storey.height
+    zOffset += storey.floorHeight
   }
   return models.length > 0 ? mergeModels(...models) : null
 }
