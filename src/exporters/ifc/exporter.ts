@@ -7,7 +7,6 @@ import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
-import { createWallStoreyContext } from '@/construction/walls/segmentation'
 import type { Polygon2D, PolygonWithHoles2D } from '@/shared/geometry'
 import { arePolygonsIntersecting, subtractPolygons, unionPolygons } from '@/shared/geometry/polygon'
 import { downloadFile } from '@/shared/utils/downloadFile'
@@ -335,7 +334,7 @@ class IfcExporter {
     getFloorAssemblyById: (id: Storey['floorAssemblyId']) => FloorAssemblyConfig | null
   ): StoreyRuntimeInfo[] {
     const infos: StoreyRuntimeInfo[] = []
-    let elevation = 0
+    let finishedFloorElevation = 0
 
     for (let index = 0; index < storeys.length; index++) {
       const storey = storeys[index]
@@ -346,16 +345,17 @@ class IfcExporter {
 
       const nextStorey = storeys[index + 1]
       const nextFloorConfig = nextStorey ? getFloorAssemblyById(nextStorey.floorAssemblyId) : null
-      const storeyContext = createWallStoreyContext(storey, floorConfig, nextFloorConfig ?? null)
+      const nextFloorAssembly = nextFloorConfig ? FLOOR_ASSEMBLIES[nextFloorConfig.type] : null
+      const nextFloorThickness = nextFloorAssembly?.getTotalThickness(nextFloorConfig) ?? 0
 
       infos.push({
         storey,
-        elevation,
+        elevation: finishedFloorElevation,
         floorConfig,
-        wallHeight: storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
+        wallHeight: storey.floorHeight - nextFloorThickness
       })
 
-      elevation += storey.floorHeight
+      finishedFloorElevation += storey.floorHeight
     }
 
     return infos
@@ -398,7 +398,7 @@ class IfcExporter {
       geometries.push({
         storeyId: info.storey.id,
         polygons: polygonsWithHoles,
-        thickness: floorAssembly.getConstructionThickness(info.floorConfig)
+        thickness: floorAssembly.getTotalThickness(info.floorConfig)
       })
     }
 

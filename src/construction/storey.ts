@@ -94,28 +94,51 @@ export function constructStoreyFloor(storeyId: StoreyId): ConstructionModel[] {
 }
 
 export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
-  const { getPerimetersByStorey } = getModelActions()
+  const { getPerimetersByStorey, getStoreyById } = getModelActions()
+  const { getFloorAssemblyById } = getConfigActions()
   const perimeters = getPerimetersByStorey(storeyId)
   if (perimeters.length === 0) {
     return null
   }
+  const storey = getStoreyById(storeyId)
+  if (!storey) {
+    throw new Error('Invalid storey')
+  }
+  const floorAssemblyConfig = getFloorAssemblyById(storey.floorAssemblyId)
+  if (!floorAssemblyConfig) {
+    throw new Error('Invalid floor assembly')
+  }
+  const floorAssembly = FLOOR_ASSEMBLIES[floorAssemblyConfig.type]
+  const finishedFloorOffset = (floorAssemblyConfig.layers.topThickness +
+    floorAssembly.getTopOffset(floorAssemblyConfig)) as Length
   const perimeterModels = perimeters.map(p => constructPerimeter(p, false))
   const floorModels = constructStoreyFloor(storeyId)
-  return mergeModels(...perimeterModels, ...floorModels)
+  const storeyModel = mergeModels(...perimeterModels, ...floorModels)
+  if (finishedFloorOffset === 0) {
+    return storeyModel
+  }
+  return transformModel(storeyModel, {
+    position: vec3.fromValues(0, 0, -finishedFloorOffset),
+    rotation: vec3.fromValues(0, 0, 0)
+  })
 }
 
 export function constructModel(): ConstructionModel | null {
   const { getStoreysOrderedByLevel } = getModelActions()
   const models: ConstructionModel[] = []
-  let zOffset = 0
+  let finishedFloorElevation = 0
   for (const storey of getStoreysOrderedByLevel()) {
     const model = constructStorey(storey.id)
     if (model) {
       models.push(
-        transformModel(model, { position: [0, 0, zOffset], rotation: vec3.fromValues(0, 0, 0) }, [TAG_STOREY])
+        transformModel(
+          model,
+          { position: vec3.fromValues(0, 0, finishedFloorElevation), rotation: vec3.fromValues(0, 0, 0) },
+          [TAG_STOREY]
+        )
       )
     }
-    zOffset += storey.floorHeight
+    finishedFloorElevation += storey.floorHeight
   }
   return models.length > 0 ? mergeModels(...models) : null
 }
