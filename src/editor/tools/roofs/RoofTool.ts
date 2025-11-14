@@ -8,14 +8,14 @@ import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/share
 import { PolygonToolOverlay } from '@/editor/tools/shared/polygon/PolygonToolOverlay'
 import type { ToolImplementation } from '@/editor/tools/system/types'
 import type { Length, Polygon2D } from '@/shared/geometry'
-import { direction, perpendicular, polygonIsClockwise } from '@/shared/geometry'
+import { polygonIsClockwise } from '@/shared/geometry'
 
 import { RoofToolInspector } from './RoofToolInspector'
 
 interface RoofToolState extends PolygonToolStateBase {
   type: RoofType
   slope: number // degrees
-  ridgeHeight: Length
+  verticalOffset: Length
   overhang: Length // single value applied to all sides
 }
 
@@ -40,7 +40,7 @@ export class RoofTool extends BasePolygonTool<RoofToolState> implements ToolImpl
     super({
       type: 'gable',
       slope: 30,
-      ridgeHeight: 0,
+      verticalOffset: 0,
       overhang: 300
     })
   }
@@ -56,7 +56,7 @@ export class RoofTool extends BasePolygonTool<RoofToolState> implements ToolImpl
   }
 
   public setRidgeHeight(height: Length): void {
-    this.state.ridgeHeight = height
+    this.state.verticalOffset = height
     this.triggerRender()
   }
 
@@ -76,8 +76,8 @@ export class RoofTool extends BasePolygonTool<RoofToolState> implements ToolImpl
     const perimeterPoints = perimeters.flatMap(perimeter => perimeter.corners.map(corner => corner.outsidePoint))
     const perimeterSegments = perimeters.flatMap(perimeter => perimeter.walls.map(wall => wall.outsideLine))
 
-    const roofPoints = roofs.flatMap(roof => roof.area.points)
-    const roofSegments = roofs.flatMap(roof => createPolygonSegments(roof.area.points))
+    const roofPoints = roofs.flatMap(roof => roof.referencePolygon.points)
+    const roofSegments = roofs.flatMap(roof => createPolygonSegments(roof.referencePolygon.points))
 
     return {
       ...context,
@@ -108,8 +108,8 @@ export class RoofTool extends BasePolygonTool<RoofToolState> implements ToolImpl
       return
     }
 
-    const firstEdge = direction(polygon.points[0], polygon.points[1])
-    const roofDirection = perpendicular(firstEdge)
+    // Use first side (index 0) as main side for direction
+    const mainSideIndex = 0
 
     // Use empty string as placeholder for assemblyId (will be added later)
     const assemblyId = '' as RoofAssemblyId
@@ -118,9 +118,9 @@ export class RoofTool extends BasePolygonTool<RoofToolState> implements ToolImpl
       activeStoreyId,
       this.state.type,
       polygon,
-      roofDirection,
+      mainSideIndex,
       this.state.slope,
-      this.state.ridgeHeight,
+      this.state.verticalOffset,
       this.state.overhang,
       assemblyId
     )

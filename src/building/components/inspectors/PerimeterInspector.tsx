@@ -41,7 +41,7 @@ import {
   WallToggleIcon
 } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
-import { Bounds2D, type Length, calculatePolygonArea, direction, perpendicular } from '@/shared/geometry'
+import { Bounds2D, type Length, calculatePolygonArea } from '@/shared/geometry'
 import { formatArea, formatLength } from '@/shared/utils/formatting'
 
 interface PerimeterInspectorProps {
@@ -162,12 +162,12 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
         return
       }
 
-      const firstEdge = direction(polygon.points[0], polygon.points[1])
-      const roofDirection = perpendicular(firstEdge)
+      // Use first side (index 0) as main side for direction
+      const mainSideIndex = 0
 
       // Default values for new roof
       const slope = 30 // degrees
-      const ridgeHeight = 0 // mm
+      const verticalOffset = 0 // mm
       const overhang = 300 // mm
       const assemblyId = '' as RoofAssemblyId // placeholder
 
@@ -175,9 +175,9 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
         perimeter.storeyId,
         roofType,
         polygon,
-        roofDirection,
+        mainSideIndex,
         slope,
-        ridgeHeight,
+        verticalOffset,
         overhang,
         assemblyId,
         selectedId

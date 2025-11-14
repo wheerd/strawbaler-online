@@ -4,7 +4,7 @@ import { Arrow, Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { Roof } from '@/building/model/model'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
-import { Bounds2D, polygonEdgeOffset } from '@/shared/geometry'
+import { Bounds2D, direction, perpendicular } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 
@@ -15,32 +15,34 @@ interface RoofShapeProps {
 export function RoofShape({ roof }: RoofShapeProps): React.JSX.Element {
   const select = useSelectionStore()
   const theme = useCanvasTheme()
-  const points = roof.area.points.flatMap(point => [point[0], point[1]])
   const isSelected = select.isCurrentSelection(roof.id)
 
-  // Calculate eave polygon (offset by overhang)
-  const eavePolygon = useMemo(() => {
-    const offsetPolygon = polygonEdgeOffset(roof.area, roof.overhang)
-    return offsetPolygon.points.flatMap(point => [point[0], point[1]])
-  }, [roof.area, roof.overhang])
+  const points = roof.referencePolygon.points.flatMap((point: vec2) => [point[0], point[1]])
+  const eavePolygon = roof.overhangPolygon.points.flatMap((point: vec2) => [point[0], point[1]])
 
   // Calculate center point for direction arrow
   const { center, arrowEnd } = useMemo(() => {
-    const bounds = Bounds2D.fromPoints(roof.area.points)
+    const bounds = Bounds2D.fromPoints(roof.referencePolygon.points)
     const centerPoint = vec2.fromValues((bounds.min[0] + bounds.max[0]) / 2, (bounds.min[1] + bounds.max[1]) / 2)
 
     // Arrow length is 20% of the smaller dimension
     const size = bounds.size
     const arrowLength = Math.min(size[0], size[1]) * 0.2
 
+    // Calculate direction perpendicular to mainSide
+    const mainSideStart = roof.referencePolygon.points[roof.mainSideIndex]
+    const mainSideEnd = roof.referencePolygon.points[(roof.mainSideIndex + 1) % roof.referencePolygon.points.length]
+    const mainSideDirection = direction(mainSideStart, mainSideEnd)
+    const roofDirection = perpendicular(mainSideDirection)
+
     // Arrow points in the direction vector
-    const arrowEndPoint = vec2.scaleAndAdd(vec2.create(), centerPoint, roof.direction, arrowLength)
+    const arrowEndPoint = vec2.scaleAndAdd(vec2.create(), centerPoint, roofDirection, arrowLength)
 
     return {
       center: centerPoint,
       arrowEnd: arrowEndPoint
     }
-  }, [roof.area.points, roof.direction])
+  }, [roof.referencePolygon.points, roof.mainSideIndex])
 
   return (
     <Group name={`roof-${roof.id}`} entityId={roof.id} entityType="roof" parentIds={[]} listening>

@@ -23,17 +23,17 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
 
   const perimeterLength = useMemo(() => {
     if (!roof) return 0
-    return polygonPerimeter(roof.area)
+    return polygonPerimeter(roof.overhangPolygon)
   }, [roof])
 
   const area = useMemo(() => {
     if (!roof) return 0
-    return calculatePolygonArea(roof.area)
+    return calculatePolygonArea(roof.overhangPolygon)
   }, [roof])
 
   const handleFitToView = useCallback(() => {
     if (!roof) return
-    const bounds = Bounds2D.fromPoints(roof.area.points)
+    const bounds = Bounds2D.fromPoints(roof.overhangPolygon.points)
     fitToView(bounds)
   }, [roof, fitToView])
 
@@ -49,7 +49,7 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
   const handleRidgeHeightChange = useCallback(
     (value: number) => {
       if (roof && value >= 0) {
-        updateRoofProperties(roof.id, { ridgeHeight: value })
+        updateRoofProperties(roof.id, { verticalOffset: value })
       }
     },
     [roof, updateRoofProperties]
@@ -132,16 +132,16 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
             </TextField.Root>
           </Flex>
 
-          {/* Ridge Height */}
+          {/* Vertical Offset */}
           <Flex align="center" gap="2" justify="between">
-            <Label.Root htmlFor="ridge-height">
+            <Label.Root htmlFor="vertical-offset">
               <Text size="1" weight="medium" color="gray">
-                Ridge Height
+                Vertical Offset
               </Text>
             </Label.Root>
             <LengthField
-              id="ridge-height"
-              value={roof.ridgeHeight}
+              id="vertical-offset"
+              value={roof.verticalOffset}
               onCommit={handleRidgeHeightChange}
               min={0}
               max={10000}

@@ -26,8 +26,8 @@ function buildSnapContext(perimeters: Perimeter[], otherRoofs: Roof[]): Snapping
   const perimeterPoints = perimeters.flatMap(perimeter => perimeter.corners.map(corner => corner.outsidePoint))
   const perimeterSegments = perimeters.flatMap(perimeter => perimeter.walls.map(wall => wall.outsideLine))
 
-  const roofPoints = otherRoofs.flatMap(roof => roof.area.points)
-  const roofSegments = otherRoofs.flatMap(roof => createPolygonSegments(roof.area.points))
+  const roofPoints = otherRoofs.flatMap(roof => roof.referencePolygon.points)
+  const roofSegments = otherRoofs.flatMap(roof => createPolygonSegments(roof.referencePolygon.points))
 
   return {
     snapPoints: [...perimeterPoints, ...roofPoints],
@@ -56,12 +56,12 @@ export class RoofMovementBehavior extends PolygonMovementBehavior<RoofEntityCont
   }
 
   protected getPolygonPoints(context: MovementContext<RoofEntityContext>): readonly vec2[] {
-    return context.entity.roof.area.points
+    return context.entity.roof.referencePolygon.points
   }
 
   protected applyMovementDelta(delta: vec2, context: MovementContext<RoofEntityContext>): boolean {
     const newPolygon: Polygon2D = {
-      points: this.translatePoints(context.entity.roof.area.points, delta)
+      points: this.translatePoints(context.entity.roof.referencePolygon.points, delta)
     }
 
     return context.store.updateRoofArea(context.entity.roof.id, newPolygon)

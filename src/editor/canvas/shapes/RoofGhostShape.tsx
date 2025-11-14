@@ -1,8 +1,6 @@
-import { useMemo } from 'react'
 import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { Roof } from '@/building/model/model'
-import { polygonEdgeOffset } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 
 interface RoofGhostShapeProps {
@@ -11,13 +9,8 @@ interface RoofGhostShapeProps {
 
 export function RoofGhostShape({ roof }: RoofGhostShapeProps): React.JSX.Element {
   const theme = useCanvasTheme()
-  const points = roof.area.points.flatMap(point => [point[0], point[1]])
-
-  // Calculate eave polygon (offset by overhang)
-  const eavePolygon = useMemo(() => {
-    const offsetPolygon = polygonEdgeOffset(roof.area, roof.overhang)
-    return offsetPolygon.points.flatMap(point => [point[0], point[1]])
-  }, [roof.area, roof.overhang])
+  const points = roof.referencePolygon.points.flatMap(point => [point[0], point[1]])
+  const eavePolygon = roof.overhangPolygon.points.flatMap(point => [point[0], point[1]])
 
   return (
     <Group listening={false}>

@@ -121,11 +121,12 @@ export interface Roof {
   id: RoofId
   storeyId: StoreyId
   type: RoofType
-  area: Polygon2D
-  direction: vec2
+  referencePolygon: Polygon2D
+  overhangPolygon: Polygon2D
+  mainSideIndex: number
   slope: number // Angle in degrees
   // Added to the floorHeight of the storey to determine the highest point of the roof (outside)
-  ridgeHeight: Length
+  verticalOffset: Length
   overhang: Length[] // For each side of the area polygon
   assemblyId: RoofAssemblyId
   referencePerimeter?: PerimeterId

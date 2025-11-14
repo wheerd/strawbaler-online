@@ -28,7 +28,6 @@ describe('roofsSlice', () => {
   let mockGet: any
   let testStoreyId: StoreyId
   let testAssemblyId: RoofAssemblyId
-  let testDirection: vec2
 
   beforeEach(() => {
     wouldClosingPolygonSelfIntersectMock.mockReset()
@@ -41,7 +40,6 @@ describe('roofsSlice', () => {
     const mockStore = {} as any
     testStoreyId = createStoreyId()
     testAssemblyId = 'ra_test' as RoofAssemblyId
-    testDirection = vec2.fromValues(1, 0)
 
     store = createRoofsSlice(mockSet, mockGet, mockStore)
 
@@ -70,22 +68,22 @@ describe('roofsSlice', () => {
   describe('addRoof', () => {
     it('should create a roof with valid parameters', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       expect(roof).toBeDefined()
       expect(roof.storeyId).toBe(testStoreyId)
       expect(roof.type).toBe('gable')
       expect(roof.slope).toBe(45)
-      expect(roof.ridgeHeight).toBe(3000)
+      expect(roof.verticalOffset).toBe(3000)
       expect(roof.assemblyId).toBe(testAssemblyId)
-      expect(roof.area.points).toHaveLength(4)
+      expect(roof.referencePolygon.points).toHaveLength(4)
       expect(roof.overhang).toHaveLength(4)
       expect(roof.overhang).toEqual([500, 500, 500, 500])
     })
 
     it('should expand single overhang value to array matching polygon sides', () => {
       const polygon = createTrianglePolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'shed', polygon, testDirection, 30, 2500, 400, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'shed', polygon, 0, 30, 2500, 400, testAssemblyId)
 
       expect(roof.overhang).toHaveLength(3)
       expect(roof.overhang).toEqual([400, 400, 400])
@@ -93,7 +91,7 @@ describe('roofsSlice', () => {
 
     it('should normalize polygon to clockwise', () => {
       const polygon = createTestPolygon()
-      store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       expect(ensurePolygonIsClockwiseMock).toHaveBeenCalledWith(polygon)
     })
@@ -101,47 +99,38 @@ describe('roofsSlice', () => {
     it('should reject invalid slope (< 0)', () => {
       const polygon = createTestPolygon()
       expect(() => {
-        store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, -5, 3000, 500, testAssemblyId)
+        store.actions.addRoof(testStoreyId, 'gable', polygon, 0, -5, 3000, 500, testAssemblyId)
       }).toThrow('Roof slope must be between 0 and 90 degrees')
     })
 
     it('should reject invalid slope (> 90)', () => {
       const polygon = createTestPolygon()
       expect(() => {
-        store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 95, 3000, 500, testAssemblyId)
+        store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 95, 3000, 500, testAssemblyId)
       }).toThrow('Roof slope must be between 0 and 90 degrees')
     })
 
     it('should accept boundary slope values (0 and 90)', () => {
       const polygon = createTestPolygon()
 
-      const flatRoof = store.actions.addRoof(testStoreyId, 'shed', polygon, testDirection, 0, 3000, 500, testAssemblyId)
+      const flatRoof = store.actions.addRoof(testStoreyId, 'shed', polygon, 0, 0, 3000, 500, testAssemblyId)
       expect(flatRoof.slope).toBe(0)
 
-      const steepRoof = store.actions.addRoof(
-        testStoreyId,
-        'gable',
-        polygon,
-        testDirection,
-        90,
-        3000,
-        500,
-        testAssemblyId
-      )
+      const steepRoof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 90, 3000, 500, testAssemblyId)
       expect(steepRoof.slope).toBe(90)
     })
 
-    it('should reject negative ridge height', () => {
+    it('should reject negative vertical offset', () => {
       const polygon = createTestPolygon()
       expect(() => {
-        store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, -100, 500, testAssemblyId)
-      }).toThrow('Ridge height must be non-negative')
+        store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, -100, 500, testAssemblyId)
+      }).toThrow('Vertical offset must be non-negative')
     })
 
     it('should reject negative overhang', () => {
       const polygon = createTestPolygon()
       expect(() => {
-        store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, -50, testAssemblyId)
+        store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, -50, testAssemblyId)
       }).toThrow('Overhang must be non-negative')
     })
 
@@ -150,7 +139,7 @@ describe('roofsSlice', () => {
         points: [vec2.fromValues(0, 0), vec2.fromValues(100, 0)]
       }
       expect(() => {
-        store.actions.addRoof(testStoreyId, 'gable', invalidPolygon, testDirection, 45, 3000, 500, testAssemblyId)
+        store.actions.addRoof(testStoreyId, 'gable', invalidPolygon, 0, 45, 3000, 500, testAssemblyId)
       }).toThrow('Roof polygon must have at least 3 points')
     })
 
@@ -159,28 +148,23 @@ describe('roofsSlice', () => {
       const polygon = createTestPolygon()
 
       expect(() => {
-        store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+        store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
       }).toThrow('Roof polygon must not self-intersect')
     })
 
-    it('should clone direction vector', () => {
+    it('should store mainSideIndex', () => {
       const polygon = createTestPolygon()
-      const direction = vec2.fromValues(1, 0)
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, direction, 45, 3000, 500, testAssemblyId)
+      const mainSideIndex = 2
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, mainSideIndex, 45, 3000, 500, testAssemblyId)
 
-      // Modify original direction
-      vec2.set(direction, 0, 1)
-
-      // Roof direction should be unchanged
-      expect(roof.direction[0]).toBe(1)
-      expect(roof.direction[1]).toBe(0)
+      expect(roof.mainSideIndex).toBe(2)
     })
   })
 
   describe('removeRoof', () => {
     it('should remove roof by ID', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       expect(store.roofs[roof.id]).toBeDefined()
 
@@ -199,7 +183,7 @@ describe('roofsSlice', () => {
   describe('updateRoofOverhang', () => {
     it('should update overhang by index', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const success = store.actions.updateRoofOverhang(roof.id, 1, 750)
 
@@ -210,7 +194,7 @@ describe('roofsSlice', () => {
 
     it('should reject out-of-bounds index (negative)', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const success = store.actions.updateRoofOverhang(roof.id, -1, 750)
 
@@ -220,7 +204,7 @@ describe('roofsSlice', () => {
 
     it('should reject out-of-bounds index (too large)', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const success = store.actions.updateRoofOverhang(roof.id, 4, 750)
 
@@ -230,7 +214,7 @@ describe('roofsSlice', () => {
 
     it('should reject negative overhang value', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       expect(() => {
         store.actions.updateRoofOverhang(roof.id, 0, -100)
@@ -246,68 +230,65 @@ describe('roofsSlice', () => {
   describe('updateRoofProperties', () => {
     it('should update single property (slope)', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const success = store.actions.updateRoofProperties(roof.id, { slope: 30 })
 
       expect(success).toBe(true)
       const updatedRoof = store.roofs[roof.id]
       expect(updatedRoof.slope).toBe(30)
-      expect(updatedRoof.ridgeHeight).toBe(3000) // Unchanged
+      expect(updatedRoof.verticalOffset).toBe(3000) // Unchanged
     })
 
     it('should update multiple properties at once', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const success = store.actions.updateRoofProperties(roof.id, {
         slope: 35,
-        ridgeHeight: 3500
+        verticalOffset: 3500
       })
 
       expect(success).toBe(true)
       const updatedRoof = store.roofs[roof.id]
       expect(updatedRoof.slope).toBe(35)
-      expect(updatedRoof.ridgeHeight).toBe(3500)
+      expect(updatedRoof.verticalOffset).toBe(3500)
     })
 
     it('should update all properties at once', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
-      const newDirection = vec2.fromValues(0, 1)
       const newAssemblyId = 'ra_new' as RoofAssemblyId
       const success = store.actions.updateRoofProperties(roof.id, {
         slope: 25,
-        direction: newDirection,
-        ridgeHeight: 2800,
+        mainSideIndex: 1,
+        verticalOffset: 2800,
         assemblyId: newAssemblyId
       })
 
       expect(success).toBe(true)
       const updatedRoof = store.roofs[roof.id]
       expect(updatedRoof.slope).toBe(25)
-      expect(updatedRoof.direction[0]).toBe(0)
-      expect(updatedRoof.direction[1]).toBe(1)
-      expect(updatedRoof.ridgeHeight).toBe(2800)
+      expect(updatedRoof.verticalOffset).toBe(2800)
       expect(updatedRoof.assemblyId).toBe(newAssemblyId)
     })
 
     it('should handle empty updates object', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const success = store.actions.updateRoofProperties(roof.id, {})
 
       expect(success).toBe(true)
       const updatedRoof = store.roofs[roof.id]
       expect(updatedRoof.slope).toBe(45)
-      expect(updatedRoof.ridgeHeight).toBe(3000)
+      expect(updatedRoof.verticalOffset).toBe(3000)
     })
 
     it('should reject invalid slope in update', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       expect(() => {
         store.actions.updateRoofProperties(roof.id, { slope: -10 })
@@ -318,29 +299,20 @@ describe('roofsSlice', () => {
       }).toThrow('Roof slope must be between 0 and 90 degrees')
     })
 
-    it('should reject invalid ridgeHeight in update', () => {
+    it('should reject invalid verticalOffset in update', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       expect(() => {
-        store.actions.updateRoofProperties(roof.id, { ridgeHeight: -500 })
-      }).toThrow('Ridge height must be non-negative')
+        store.actions.updateRoofProperties(roof.id, { verticalOffset: -500 })
+      }).toThrow('Vertical offset must be non-negative')
     })
 
     it('should clone direction vector on update', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
-      const newDirection = vec2.fromValues(0, 1)
-      store.actions.updateRoofProperties(roof.id, { direction: newDirection })
-
-      // Modify original direction
-      vec2.set(newDirection, 1, 1)
-
-      // Roof direction should be unchanged
-      const updatedRoof = store.roofs[roof.id]
-      expect(updatedRoof.direction[0]).toBe(0)
-      expect(updatedRoof.direction[1]).toBe(1)
+      store.actions.updateRoofProperties(roof.id, { mainSideIndex: 1 })
     })
 
     it('should return false for non-existent roof', () => {
@@ -352,7 +324,7 @@ describe('roofsSlice', () => {
   describe('updateRoofArea', () => {
     it('should update area with same point count', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const newPolygon: Polygon2D = {
         points: [vec2.fromValues(0, 0), vec2.fromValues(200, 0), vec2.fromValues(200, 200), vec2.fromValues(0, 200)]
@@ -362,13 +334,13 @@ describe('roofsSlice', () => {
 
       expect(success).toBe(true)
       const updatedRoof = store.roofs[roof.id]
-      expect(updatedRoof.area.points).toHaveLength(4)
-      expect(updatedRoof.area.points[1][0]).toBe(200)
+      expect(updatedRoof.referencePolygon.points).toHaveLength(4)
+      expect(updatedRoof.referencePolygon.points[1][0]).toBe(200)
     })
 
     it('should preserve overhang array when updating area', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       // Set different overhangs
       store.actions.updateRoofOverhang(roof.id, 0, 300)
@@ -387,7 +359,7 @@ describe('roofsSlice', () => {
 
     it('should reject update with different point count', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const trianglePolygon = createTrianglePolygon()
 
@@ -398,7 +370,7 @@ describe('roofsSlice', () => {
 
     it('should normalize polygon to clockwise on update', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const newPolygon = createTestPolygon()
       store.actions.updateRoofArea(roof.id, newPolygon)
@@ -408,7 +380,7 @@ describe('roofsSlice', () => {
 
     it('should reject self-intersecting polygon on update', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       wouldClosingPolygonSelfIntersectMock.mockReturnValue(true)
       const badPolygon = createTestPolygon()
@@ -428,7 +400,7 @@ describe('roofsSlice', () => {
   describe('getRoofById', () => {
     it('should get roof by ID', () => {
       const polygon = createTestPolygon()
-      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
 
       const retrieved = store.actions.getRoofById(roof.id)
 
@@ -447,9 +419,9 @@ describe('roofsSlice', () => {
       const storey1 = createStoreyId()
       const storey2 = createStoreyId()
 
-      const roof1 = store.actions.addRoof(storey1, 'gable', polygon, testDirection, 45, 3000, 500, testAssemblyId)
-      const roof2 = store.actions.addRoof(storey1, 'shed', polygon, testDirection, 30, 2500, 400, testAssemblyId)
-      const roof3 = store.actions.addRoof(storey2, 'gable', polygon, testDirection, 40, 3200, 600, testAssemblyId)
+      const roof1 = store.actions.addRoof(storey1, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId)
+      const roof2 = store.actions.addRoof(storey1, 'shed', polygon, 0, 30, 2500, 400, testAssemblyId)
+      const roof3 = store.actions.addRoof(storey2, 'gable', polygon, 0, 40, 3200, 600, testAssemblyId)
 
       const storey1Roofs = store.actions.getRoofsByStorey(storey1)
       const storey2Roofs = store.actions.getRoofsByStorey(storey2)
@@ -482,21 +454,11 @@ describe('roofsSlice', () => {
     it('should preserve type and referencePerimeter on property updates', () => {
       const polygon = createTestPolygon()
       const perimeterId = 'perimeter_test' as any
-      const roof = store.actions.addRoof(
-        testStoreyId,
-        'gable',
-        polygon,
-        testDirection,
-        45,
-        3000,
-        500,
-        testAssemblyId,
-        perimeterId
-      )
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 45, 3000, 500, testAssemblyId, perimeterId)
 
       store.actions.updateRoofProperties(roof.id, {
         slope: 30,
-        ridgeHeight: 2500
+        verticalOffset: 2500
       })
 
       const updatedRoof = store.roofs[roof.id]

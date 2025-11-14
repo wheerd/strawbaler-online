@@ -72,7 +72,7 @@ function useSelectionOutlinePoints(
     }
 
     if (isRoofId(currentSelection) && roof) {
-      return roof.area.points
+      return roof.overhangPolygon.points
     }
 
     if (isPerimeterId(rootEntityId) && perimeter) {

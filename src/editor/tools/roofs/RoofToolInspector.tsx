@@ -77,17 +77,17 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
             style={{ width: '5rem' }}
           />
 
-          {/* Ridge Height */}
+          {/* Vertical Offset */}
           <Flex align="center" gap="1">
-            <Label.Root htmlFor="ridge-height">
+            <Label.Root htmlFor="vertical-offset">
               <Text size="1" weight="medium" color="gray">
-                Ridge Height
+                Vertical Offset
               </Text>
             </Label.Root>
           </Flex>
           <LengthField
-            id="ridge-height"
-            value={state.ridgeHeight}
+            id="vertical-offset"
+            value={state.verticalOffset}
             onCommit={value => tool.setRidgeHeight(value)}
             min={0}
             max={10000}
