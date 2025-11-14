@@ -1,6 +1,6 @@
-import { TrashIcon } from '@radix-ui/react-icons'
+import { ReloadIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { Box, DataList, Flex, IconButton, Separator, Text, TextField } from '@radix-ui/themes'
+import { Box, DataList, Flex, IconButton, Separator, Text, TextField, Tooltip } from '@radix-ui/themes'
 import { useCallback, useMemo } from 'react'
 
 import type { RoofId } from '@/building/model/ids'
@@ -18,7 +18,7 @@ interface RoofInspectorProps {
 
 export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element | null {
   const roof = useRoofById(roofId)
-  const { removeRoof, updateRoofProperties, updateRoofOverhang } = useModelActions()
+  const { removeRoof, updateRoofProperties, updateRoofOverhang, cycleRoofMainSide } = useModelActions()
   const { fitToView } = useViewportActions()
 
   const perimeterLength = useMemo(() => {
@@ -176,6 +176,11 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
 
         {/* Action Buttons */}
         <Flex gap="2" justify="end">
+          <Tooltip content="Cycle main side (changes roof direction)">
+            <IconButton size="2" onClick={() => cycleRoofMainSide(roofId)}>
+              <ReloadIcon />
+            </IconButton>
+          </Tooltip>
           <IconButton size="2" title="Fit to view" onClick={handleFitToView}>
             <FitToViewIcon />
           </IconButton>

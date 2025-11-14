@@ -1,10 +1,17 @@
+import { vec2 } from 'gl-matrix'
 import type { StateCreator } from 'zustand'
 
 import type { PerimeterId, RoofAssemblyId, RoofId, StoreyId } from '@/building/model/ids'
 import { createRoofId } from '@/building/model/ids'
 import type { Roof, RoofType } from '@/building/model/model'
 import type { Length, Polygon2D } from '@/shared/geometry'
-import { ensurePolygonIsClockwise, polygonEdgeOffset, wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
+import {
+  ensurePolygonIsClockwise,
+  polygonEdgeOffset,
+  simplifyPolygon,
+  wouldClosingPolygonSelfIntersect
+} from '@/shared/geometry'
+import { convexHullOfPolygon } from '@/shared/geometry/polygon'
 
 export interface RoofsState {
   roofs: Record<RoofId, Roof>
@@ -39,13 +46,17 @@ export interface RoofsActions {
 
   updateRoofArea: (roofId: RoofId, newPolygon: Polygon2D) => boolean
 
+  cycleRoofMainSide: (roofId: RoofId) => boolean
+
+  getValidMainSides: (roofId: RoofId) => number[]
+
   getRoofById: (roofId: RoofId) => Roof | null
   getRoofsByStorey: (storeyId: StoreyId) => Roof[]
 }
 
 export type RoofsSlice = RoofsState & { actions: RoofsActions }
 
-// Helper function to validate roof polygon
+// Helper function to validate and prepare roof polygon
 const ensureRoofPolygon = (polygon: Polygon2D): Polygon2D => {
   if (polygon.points.length < 3) {
     throw new Error('Roof polygon must have at least 3 points')
@@ -55,13 +66,54 @@ const ensureRoofPolygon = (polygon: Polygon2D): Polygon2D => {
     throw new Error('Roof polygon must not self-intersect')
   }
 
+  // Simplify polygon to remove redundant points
+  const simplified = simplifyPolygon(polygon)
+
   // Normalize to clockwise
-  return ensurePolygonIsClockwise(polygon)
+  return ensurePolygonIsClockwise(simplified)
 }
 
 // Helper function to compute overhang polygon
 const computeOverhangPolygon = (referencePolygon: Polygon2D, overhangs: Length[]): Polygon2D => {
   return polygonEdgeOffset(referencePolygon, overhangs)
+}
+
+// Helper function to get valid main side indices (edges on convex hull)
+const getValidMainSideIndices = (polygon: Polygon2D): number[] => {
+  const points = polygon.points
+  const n = points.length
+
+  if (n <= 3) {
+    // All sides are valid for triangles or smaller
+    return Array.from({ length: n }, (_, i) => i)
+  }
+
+  // Get convex hull
+  const hull = convexHullOfPolygon(polygon)
+  const hullPoints = hull.points
+
+  // Find which edges of the original polygon are on the convex hull
+  const validIndices: number[] = []
+
+  for (let i = 0; i < n; i++) {
+    const p1 = points[i]
+    const p2 = points[(i + 1) % n]
+
+    // Check if this edge exists in the hull
+    // An edge is on the hull if both its vertices are consecutive in the hull
+    for (let j = 0; j < hullPoints.length; j++) {
+      const h1 = hullPoints[j]
+      const h2 = hullPoints[(j + 1) % hullPoints.length]
+
+      // Check if (p1, p2) matches (h1, h2) in either direction
+      if ((vec2.equals(p1, h1) && vec2.equals(p2, h2)) || (vec2.equals(p1, h2) && vec2.equals(p2, h1))) {
+        validIndices.push(i)
+        break
+      }
+    }
+  }
+
+  return validIndices.length > 0 ? validIndices : Array.from({ length: n }, (_, i) => i)
 }
 
 export const createRoofsSlice: StateCreator<RoofsSlice, [['zustand/immer', never]], [], RoofsSlice> = (set, get) => ({
@@ -81,9 +133,13 @@ export const createRoofsSlice: StateCreator<RoofsSlice, [['zustand/immer', never
     ) => {
       const validatedPolygon = ensureRoofPolygon(polygon)
 
-      // Validate mainSideIndex
-      if (mainSideIndex < 0 || mainSideIndex >= validatedPolygon.points.length) {
-        throw new Error(`mainSideIndex must be between 0 and ${validatedPolygon.points.length - 1}`)
+      // Get valid main sides and use first valid side if mainSideIndex is invalid
+      const validSides = getValidMainSideIndices(validatedPolygon)
+      let finalMainSideIndex = mainSideIndex
+
+      if (!validSides.includes(mainSideIndex)) {
+        // If provided index is not valid, use first valid side
+        finalMainSideIndex = validSides[0] ?? 0
       }
 
       // Validate slope
@@ -118,7 +174,7 @@ export const createRoofsSlice: StateCreator<RoofsSlice, [['zustand/immer', never
         type,
         referencePolygon: validatedPolygon,
         overhangPolygon,
-        mainSideIndex,
+        mainSideIndex: finalMainSideIndex,
         slope,
         verticalOffset,
         overhang: overhangArray,
@@ -249,6 +305,32 @@ export const createRoofsSlice: StateCreator<RoofsSlice, [['zustand/immer', never
       })
 
       return success
+    },
+
+    cycleRoofMainSide: (roofId: RoofId): boolean => {
+      const roof = get().roofs[roofId]
+      if (!roof) return false
+
+      const validSides = get().actions.getValidMainSides(roofId)
+      if (validSides.length === 0) return false
+
+      // Find current index in valid sides array
+      const currentIndexInValid = validSides.indexOf(roof.mainSideIndex)
+      if (currentIndexInValid === -1) {
+        // Current side is invalid, use first valid side
+        return get().actions.updateRoofProperties(roofId, { mainSideIndex: validSides[0] })
+      }
+
+      // Cycle to next valid side
+      const nextIndexInValid = (currentIndexInValid + 1) % validSides.length
+      return get().actions.updateRoofProperties(roofId, { mainSideIndex: validSides[nextIndexInValid] })
+    },
+
+    getValidMainSides: (roofId: RoofId): number[] => {
+      const roof = get().roofs[roofId]
+      if (!roof) return []
+
+      return getValidMainSideIndices(roof.referencePolygon)
     },
 
     getRoofById: (roofId: RoofId) => {

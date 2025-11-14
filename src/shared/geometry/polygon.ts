@@ -517,6 +517,11 @@ function convexHullOfSimplePolygon(points: vec2[]): vec2[] {
   return combined
 }
 
+export function convexHullOfPolygon(polygon: Polygon2D): Polygon2D {
+  const hullPoints = convexHullOfSimplePolygon(polygon.points)
+  return { points: hullPoints }
+}
+
 export function convexHullOfPolygonWithHoles(polygon: PolygonWithHoles2D): Polygon2D {
   const hullPoints = convexHullOfSimplePolygon(polygon.outer.points)
   return { points: hullPoints }
