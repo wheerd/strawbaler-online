@@ -9,11 +9,11 @@ export interface RoofAssembly<TConfig extends RoofAssemblyConfigBase> {
   construct: (polygon: Polygon2D, config: TConfig) => ConstructionModel
 
   getTopOffset: (config: TConfig) => Length
-  getBottomOffsets: (config: TConfig, wallLine: LineSegment2D) => vec2[]
+  getBottomWallOffsets: (config: TConfig, wallLine: LineSegment2D) => vec2[]
   getConstructionThickness: (config: TConfig) => Length
 }
 
-export type RoofAssemblyType = 'monolithic' // | 'joist'
+export type RoofAssemblyType = 'monolithic' | 'purlin'
 
 export interface RoofAssemblyConfigBase {
   type: RoofAssemblyType
@@ -21,10 +21,12 @@ export interface RoofAssemblyConfigBase {
 }
 
 export interface RoofLayersConfig {
-  bottomThickness: Length
-  bottomLayers: LayerConfig[]
+  insideThickness: Length
+  insideLayers: LayerConfig[]
   topThickness: Length
   topLayers: LayerConfig[]
+  overhangThickness: Length
+  overhangLayers: LayerConfig[]
 }
 
 export interface MonolithicRoofConfig extends RoofAssemblyConfigBase {
@@ -33,7 +35,31 @@ export interface MonolithicRoofConfig extends RoofAssemblyConfigBase {
   material: MaterialId
 }
 
-export type RoofConfig = MonolithicRoofConfig // | JoistRoofConfig
+export interface PurlinRoofConfig extends RoofAssemblyConfigBase {
+  type: 'purlin'
+  thickness: Length
+
+  purlinMaterial: MaterialId
+  purlinHeight: Length
+  purlinWidth: Length
+  purlinSpacing: Length
+
+  rafterMaterial: MaterialId
+  rafterWidth: Length
+  rafterSpacingMin: Length
+  rafterSpacing: Length
+  rafterSpacingMax: Length
+
+  insideCladdingMaterial: MaterialId
+  insideCladdingThickness: Length
+
+  topCladdingMaterial: MaterialId
+  topCladdingThickness: Length
+
+  strawMaterial?: MaterialId
+}
+
+export type RoofConfig = MonolithicRoofConfig | PurlinRoofConfig
 
 // Validation
 

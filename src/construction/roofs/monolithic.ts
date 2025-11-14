@@ -14,7 +14,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
     throw new Error('Not implemented')
   }
 
-  getBottomOffsets = (_config: MonolithicRoofConfig, _wallLine: LineSegment2D): vec2[] => {
+  getBottomWallOffsets = (_config: MonolithicRoofConfig, _wallLine: LineSegment2D): vec2[] => {
     throw new Error('Not implemented')
   }
 

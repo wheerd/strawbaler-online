@@ -1,9 +1,14 @@
+import type { RoofAssemblyConfig } from '@/construction/config'
+import { PurlinRoofAssembly } from '@/construction/roofs/purlin'
+
 import { MonolithicRoofAssembly } from './monolithic'
 import type { RoofAssembly, RoofAssemblyType } from './types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ROOF_ASSEMBLIES: Record<RoofAssemblyType, RoofAssembly<any>> = {
-  monolithic: new MonolithicRoofAssembly()
+export const ROOF_ASSEMBLIES: {
+  [TType in RoofAssemblyType]: RoofAssembly<Extract<RoofAssemblyConfig, { type: TType }>>
+} = {
+  monolithic: new MonolithicRoofAssembly(),
+  purlin: new PurlinRoofAssembly()
 }
 
 export * from './types'
