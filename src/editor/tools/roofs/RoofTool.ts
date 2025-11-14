@@ -55,7 +55,7 @@ export class RoofTool extends BasePolygonTool<RoofToolState> implements ToolImpl
     this.triggerRender()
   }
 
-  public setRidgeHeight(height: Length): void {
+  public setVerticalOffset(height: Length): void {
     this.state.verticalOffset = height
     this.triggerRender()
   }

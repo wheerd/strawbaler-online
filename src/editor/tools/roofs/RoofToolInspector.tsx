@@ -88,7 +88,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
           <LengthField
             id="vertical-offset"
             value={state.verticalOffset}
-            onCommit={value => tool.setRidgeHeight(value)}
+            onCommit={value => tool.setVerticalOffset(value)}
             min={0}
             max={10000}
             step={10}

@@ -123,6 +123,7 @@ export interface Roof {
   type: RoofType
   referencePolygon: Polygon2D
   overhangPolygon: Polygon2D
+  ridgeLine: LineSegment2D
   mainSideIndex: number
   slope: number // Angle in degrees
   // Added to the floorHeight of the storey to determine the highest point of the roof (outside)

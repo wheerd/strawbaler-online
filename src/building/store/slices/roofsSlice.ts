@@ -4,9 +4,12 @@ import type { StateCreator } from 'zustand'
 import type { PerimeterId, RoofAssemblyId, RoofId, StoreyId } from '@/building/model/ids'
 import { createRoofId } from '@/building/model/ids'
 import type { Roof, RoofType } from '@/building/model/model'
-import type { Length, Polygon2D } from '@/shared/geometry'
+import type { Length, LineSegment2D, Polygon2D } from '@/shared/geometry'
 import {
+  direction,
   ensurePolygonIsClockwise,
+  lineIntersection,
+  perpendicular,
   polygonEdgeOffset,
   simplifyPolygon,
   wouldClosingPolygonSelfIntersect
@@ -76,6 +79,84 @@ const ensureRoofPolygon = (polygon: Polygon2D): Polygon2D => {
 // Helper function to compute overhang polygon
 const computeOverhangPolygon = (referencePolygon: Polygon2D, overhangs: Length[]): Polygon2D => {
   return polygonEdgeOffset(referencePolygon, overhangs)
+}
+
+// Helper function to compute ridge line
+const computeRidgeLine = (polygon: Polygon2D, mainSideIndex: number, roofType: RoofType): LineSegment2D => {
+  const points = polygon.points
+  const mainStart = points[mainSideIndex]
+  const mainEnd = points[(mainSideIndex + 1) % points.length]
+
+  if (roofType === 'shed') {
+    // Ridge is simply the main side edge
+    return { start: vec2.clone(mainStart), end: vec2.clone(mainEnd) }
+  }
+
+  // Gable roof: ridge runs from midpoint of gable side perpendicular to opposite edge
+  const midpoint = vec2.scale(vec2.create(), vec2.add(vec2.create(), mainStart, mainEnd), 0.5)
+
+  // Direction perpendicular to main side
+  const mainDirection = direction(mainStart, mainEnd)
+  const ridgeDirection = perpendicular(mainDirection)
+
+  // Create infinite line from midpoint in ridge direction
+  const ridgeLine = {
+    point: midpoint,
+    direction: ridgeDirection
+  }
+
+  // Find intersection with polygon edges (excluding main side and adjacent edges)
+  let bestIntersection: vec2 | null = null
+  let maxDistance = 0
+
+  for (let i = 0; i < points.length; i++) {
+    // Skip main side and adjacent sides
+    if (
+      i === mainSideIndex ||
+      i === (mainSideIndex - 1 + points.length) % points.length ||
+      i === (mainSideIndex + 1) % points.length
+    ) {
+      continue
+    }
+
+    const edgeStart = points[i]
+    const edgeEnd = points[(i + 1) % points.length]
+    const edgeDir = direction(edgeStart, edgeEnd)
+
+    const edgeLine = {
+      point: edgeStart,
+      direction: edgeDir
+    }
+
+    const intersection = lineIntersection(ridgeLine, edgeLine)
+
+    if (intersection) {
+      // Check if intersection is within the edge segment
+      const edgeVector = vec2.subtract(vec2.create(), edgeEnd, edgeStart)
+      const toIntersection = vec2.subtract(vec2.create(), intersection, edgeStart)
+      const edgeLength = vec2.length(edgeVector)
+
+      if (edgeLength > 0) {
+        const t = vec2.dot(toIntersection, edgeVector) / (edgeLength * edgeLength)
+
+        if (t >= -0.001 && t <= 1.001) {
+          // Intersection is within edge bounds
+          const dist = vec2.distance(midpoint, intersection)
+          if (dist > maxDistance) {
+            maxDistance = dist
+            bestIntersection = intersection
+          }
+        }
+      }
+    }
+  }
+
+  if (!bestIntersection) {
+    // Fallback: ridge is just a point at the midpoint
+    return { start: vec2.clone(midpoint), end: vec2.clone(midpoint) }
+  }
+
+  return { start: vec2.clone(midpoint), end: bestIntersection }
 }
 
 // Helper function to get valid main side indices (edges on convex hull)
@@ -166,6 +247,9 @@ export const createRoofsSlice: StateCreator<RoofsSlice, [['zustand/immer', never
       // Compute overhang polygon
       const overhangPolygon = computeOverhangPolygon(validatedPolygon, overhangArray)
 
+      // Compute ridge line
+      const ridgeLine = computeRidgeLine(validatedPolygon, finalMainSideIndex, type)
+
       const roofId = createRoofId()
 
       const newRoof: Roof = {
@@ -174,6 +258,7 @@ export const createRoofsSlice: StateCreator<RoofsSlice, [['zustand/immer', never
         type,
         referencePolygon: validatedPolygon,
         overhangPolygon,
+        ridgeLine,
         mainSideIndex: finalMainSideIndex,
         slope,
         verticalOffset,
@@ -261,6 +346,8 @@ export const createRoofsSlice: StateCreator<RoofsSlice, [['zustand/immer', never
         }
         if (updates.mainSideIndex !== undefined) {
           roof.mainSideIndex = updates.mainSideIndex
+          // Recompute ridge line when main side changes
+          roof.ridgeLine = computeRidgeLine(roof.referencePolygon, updates.mainSideIndex, roof.type)
         }
         if (updates.verticalOffset !== undefined) {
           roof.verticalOffset = updates.verticalOffset
@@ -300,6 +387,9 @@ export const createRoofsSlice: StateCreator<RoofsSlice, [['zustand/immer', never
 
         // Recompute overhang polygon
         roof.overhangPolygon = computeOverhangPolygon(validatedPolygon, roof.overhang)
+
+        // Recompute ridge line
+        roof.ridgeLine = computeRidgeLine(validatedPolygon, roof.mainSideIndex, roof.type)
 
         success = true
       })

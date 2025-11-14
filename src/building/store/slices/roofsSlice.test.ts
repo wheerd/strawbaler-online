@@ -180,6 +180,32 @@ describe('roofsSlice', () => {
     })
   })
 
+  describe('ridgeLine computation', () => {
+    it('should compute ridge line for shed roof as main side edge', () => {
+      const polygon = createTestPolygon()
+      const roof = store.actions.addRoof(testStoreyId, 'shed', polygon, 0, 30, 0, 300, testAssemblyId)
+
+      expect(roof.ridgeLine).toBeDefined()
+      expect(roof.ridgeLine.start[0]).toBe(0)
+      expect(roof.ridgeLine.start[1]).toBe(0)
+      expect(roof.ridgeLine.end[0]).toBe(100)
+      expect(roof.ridgeLine.end[1]).toBe(0)
+    })
+
+    it('should compute ridge line for gable roof perpendicular to gable side', () => {
+      const polygon = createTestPolygon()
+      const roof = store.actions.addRoof(testStoreyId, 'gable', polygon, 0, 30, 0, 300, testAssemblyId)
+
+      expect(roof.ridgeLine).toBeDefined()
+      // Ridge should start at midpoint of bottom edge (0,0)-(100,0)
+      expect(roof.ridgeLine.start[0]).toBe(50)
+      expect(roof.ridgeLine.start[1]).toBe(0)
+      // Ridge should extend perpendicular to opposite edge
+      expect(roof.ridgeLine.end[0]).toBe(50)
+      expect(roof.ridgeLine.end[1]).toBeGreaterThan(0)
+    })
+  })
+
   describe('updateRoofOverhang', () => {
     it('should update overhang by index', () => {
       const polygon = createTestPolygon()

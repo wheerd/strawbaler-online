@@ -4,7 +4,7 @@ import { Arrow, Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { Roof } from '@/building/model/model'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
-import { Bounds2D, direction, perpendicular } from '@/shared/geometry'
+import { Bounds2D, direction, isPointInPolygon, perpendicular } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 
@@ -20,29 +20,62 @@ export function RoofShape({ roof }: RoofShapeProps): React.JSX.Element {
   const points = roof.referencePolygon.points.flatMap((point: vec2) => [point[0], point[1]])
   const eavePolygon = roof.overhangPolygon.points.flatMap((point: vec2) => [point[0], point[1]])
 
-  // Calculate center point for direction arrow
-  const { center, arrowEnd } = useMemo(() => {
-    const bounds = Bounds2D.fromPoints(roof.referencePolygon.points)
-    const centerPoint = vec2.fromValues((bounds.min[0] + bounds.max[0]) / 2, (bounds.min[1] + bounds.max[1]) / 2)
+  // Ridge line points
+  const ridgePoints = [roof.ridgeLine.start[0], roof.ridgeLine.start[1], roof.ridgeLine.end[0], roof.ridgeLine.end[1]]
 
-    // Arrow length is 20% of the smaller dimension
+  // Calculate arrow positions and directions
+  const arrows = useMemo(() => {
+    const ridgeMidpoint = vec2.scale(
+      vec2.create(),
+      vec2.add(vec2.create(), roof.ridgeLine.start, roof.ridgeLine.end),
+      0.5
+    )
+
+    const bounds = Bounds2D.fromPoints(roof.referencePolygon.points)
     const size = bounds.size
     const arrowLength = Math.min(size[0], size[1]) * 0.2
+    const arrowOffset = 100
 
-    // Calculate direction perpendicular to mainSide
-    const mainSideStart = roof.referencePolygon.points[roof.mainSideIndex]
-    const mainSideEnd = roof.referencePolygon.points[(roof.mainSideIndex + 1) % roof.referencePolygon.points.length]
-    const mainSideDirection = direction(mainSideStart, mainSideEnd)
-    const roofDirection = perpendicular(mainSideDirection)
+    const ridgeDir = direction(roof.ridgeLine.start, roof.ridgeLine.end)
 
-    // Arrow points in the direction vector
-    const arrowEndPoint = vec2.scaleAndAdd(vec2.create(), centerPoint, roofDirection, arrowLength)
+    if (roof.type === 'shed') {
+      // Single arrow pointing away from ridge (downslope)
+      const perpDir = perpendicular(ridgeDir)
 
-    return {
-      center: centerPoint,
-      arrowEnd: arrowEndPoint
+      // Test which perpendicular direction points into polygon (that's upslope)
+      // Arrow should point the opposite direction (downslope)
+      const testPoint = vec2.scaleAndAdd(vec2.create(), ridgeMidpoint, perpDir, 10)
+      const isInside = isPointInPolygon(testPoint, roof.referencePolygon)
+
+      const arrowDirection = isInside ? perpDir : vec2.negate(vec2.create(), perpDir)
+      const arrowStart = vec2.scaleAndAdd(vec2.create(), ridgeMidpoint, arrowDirection, arrowOffset)
+      const arrowEnd = vec2.scaleAndAdd(vec2.create(), ridgeMidpoint, arrowDirection, arrowLength + arrowOffset)
+
+      return [
+        {
+          start: arrowStart,
+          end: arrowEnd
+        }
+      ]
+    } else {
+      // Gable: Two arrows, one on each side of ridge
+      const perpDir1 = perpendicular(ridgeDir)
+      const perpDir2 = vec2.negate(vec2.create(), perpDir1)
+
+      const offset = 200
+
+      const arrowPos1 = vec2.scaleAndAdd(vec2.create(), ridgeMidpoint, perpDir1, offset)
+      const arrowPos2 = vec2.scaleAndAdd(vec2.create(), ridgeMidpoint, perpDir2, offset)
+
+      const arrowEnd1 = vec2.scaleAndAdd(vec2.create(), arrowPos1, perpDir1, arrowLength)
+      const arrowEnd2 = vec2.scaleAndAdd(vec2.create(), arrowPos2, perpDir2, arrowLength)
+
+      return [
+        { start: arrowPos1, end: arrowEnd1 },
+        { start: arrowPos2, end: arrowEnd2 }
+      ]
     }
-  }, [roof.referencePolygon.points, roof.mainSideIndex])
+  }, [roof.ridgeLine, roof.type, roof.referencePolygon])
 
   return (
     <Group name={`roof-${roof.id}`} entityId={roof.id} entityType="roof" parentIds={[]} listening>
@@ -53,18 +86,23 @@ export function RoofShape({ roof }: RoofShapeProps): React.JSX.Element {
       {/* Eave polygon - dashed outline */}
       <Line points={eavePolygon} closed stroke={MATERIAL_COLORS.roof} strokeWidth={20} dash={[200, 100]} listening />
 
-      {/* Direction arrow */}
-      {isSelected && (
-        <Arrow
-          points={[center[0], center[1], arrowEnd[0], arrowEnd[1]]}
-          stroke={theme.white}
-          strokeWidth={400}
-          fill={theme.white}
-          pointerLength={200}
-          pointerWidth={200}
-          listening={false}
-        />
-      )}
+      {/* Ridge line - thicker stroke */}
+      <Line points={ridgePoints} stroke={theme.primary} strokeWidth={60} listening={false} />
+
+      {/* Direction arrows */}
+      {isSelected &&
+        arrows.map((arrow, index) => (
+          <Arrow
+            key={index}
+            points={[arrow.start[0], arrow.start[1], arrow.end[0], arrow.end[1]]}
+            stroke={theme.white}
+            strokeWidth={400}
+            fill={theme.white}
+            pointerLength={200}
+            pointerWidth={200}
+            listening={false}
+          />
+        ))}
     </Group>
   )
 }
