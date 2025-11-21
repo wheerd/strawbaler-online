@@ -100,13 +100,12 @@ interface WallEdgeInfo {
 
 const EDGE_ALIGNMENT_DOT_THRESHOLD = 0.98
 const EDGE_DISTANCE_TOLERANCE = 10
-const EDGE_PROJECTION_TOLERANCE = 10
 const MINIMUM_THICKNESS = 50
 const DEFAULT_WALL_THICKNESS = 300
 const SHELL_THRESHOLD = 1000
 const MERGE_SLAB_TOLERANCE = 5
 const MERGE_WALL_TOLERANCE = 2
-const SIMPLIFY_TOLERANCE = 1
+const SIMPLIFY_TOLERANCE = 3
 
 export class IfcImporter {
   private readonly api = new IfcAPI()
@@ -426,7 +425,8 @@ export class IfcImporter {
         const polygon = opening.profile.footprint.outer
         if (polygon.points.length < 3) continue
         const profileBounds = Bounds2D.fromPoints(opening.profile.localOutline.points)
-        const sillHeight = opening.placement[14] - elevation
+        const sillHeight =
+          opening.placement[14] - elevation + (opening.profile.extrusionDirection[2] === 0 ? profileBounds.min[1] : 0)
         const height =
           opening.profile.extrusionDirection[2] !== 0 ? opening.profile.extrusionDepth : profileBounds.height
 
@@ -534,8 +534,8 @@ export class IfcImporter {
         if (alignment < EDGE_ALIGNMENT_DOT_THRESHOLD) continue
         if (!this.segmentsOverlap(start, end, edge)) continue
 
-        const distStart = this.distancePointToSegment(start, edge.start, edge.end)
-        const distEnd = this.distancePointToSegment(end, edge.start, edge.end)
+        const distStart = distanceToLineSegment(start, edge)
+        const distEnd = distanceToLineSegment(end, edge)
         const distance = Math.max(distStart, distEnd)
         if (distance < bestDistance) {
           bestDistance = distance
@@ -704,43 +704,15 @@ export class IfcImporter {
     return Math.min(...minimumAreaBoundingBox(polygon).size)
   }
 
-  private distancePointToSegment(point: vec2, segmentStart: vec2, segmentEnd: vec2): number {
-    const segmentVector = vec2.subtract(vec2.create(), segmentEnd, segmentStart)
-    const lengthSquared = vec2.squaredLength(segmentVector)
-    if (lengthSquared === 0) {
-      return vec2.distance(point, segmentStart)
-    }
-
-    const t = Math.max(
-      0,
-      Math.min(1, vec2.dot(vec2.subtract(vec2.create(), point, segmentStart), segmentVector) / lengthSquared)
-    )
-    const projection = vec2.scaleAndAdd(vec2.create(), segmentStart, segmentVector, t)
-    return vec2.distance(point, projection)
-  }
-
   private segmentsOverlap(segmentStart: vec2, segmentEnd: vec2, edge: WallEdgeInfo): boolean {
-    const edgeDir = edge.direction
-    const edgeLength = edge.length
+    const lineSegment: LineSegment2D = { start: segmentStart, end: segmentEnd }
 
-    const projectPoint = (point: vec2): number => {
-      return vec2.dot(vec2.subtract(vec2.create(), point, edge.start), edgeDir)
-    }
-
-    const startProjection = projectPoint(segmentStart)
-    const endProjection = projectPoint(segmentEnd)
-
-    const minProjection = Math.min(startProjection, endProjection)
-    const maxProjection = Math.max(startProjection, endProjection)
-
-    if (maxProjection < -EDGE_PROJECTION_TOLERANCE || minProjection > edgeLength + EDGE_PROJECTION_TOLERANCE) {
-      return false
-    }
-
-    const distStart = this.distancePointToSegment(edge.start, segmentStart, segmentEnd)
-    const distEnd = this.distancePointToSegment(edge.end, segmentStart, segmentEnd)
-
-    return distStart < EDGE_DISTANCE_TOLERANCE && distEnd < EDGE_DISTANCE_TOLERANCE
+    return (
+      Math.min(
+        Math.max(distanceToLineSegment(segmentStart, edge), distanceToLineSegment(segmentEnd, edge)),
+        Math.max(distanceToLineSegment(edge.start, lineSegment), distanceToLineSegment(edge.end, lineSegment))
+      ) < EDGE_DISTANCE_TOLERANCE
+    )
   }
 
   private extractWalls(context: CachedModelContext, storey: IFC4.IfcBuildingStorey): ImportedWall[] {

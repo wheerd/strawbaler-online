@@ -21,9 +21,9 @@
 <polygon points="3086.84,3383.57 3721.67,2896.77 3478.27,2579.34 2843.43,3066.15" fill="#FFFFFF55" stroke="white" stroke-width="20" />
 <polygon points="3806.62,1029.26 3055.18,754.77 2917.94,1130.49 3669.38,1404.98" fill="#FFFFFF55" stroke="white" stroke-width="20" />
 <polygon points="682.82,658.2 500.01,3806.17 2069.18,4163.85 5398.73,1610.83 2357.65,500.02" fill="rgba(0,200,83,0.18)" stroke="#2979ff" stroke-width="20" />
-<polygon points="1974.66,3731.7 919.35,3491.21 1061.83,1024.4 2305.64,907.05 4576.82,1736.94" fill="none" stroke="#ff1744" stroke-width="40" />
+<polygon points="1974.66,3731.7 919.35,3491.21 1061.84,1024.3 2307.71,906.39 4577.11,1736.72" fill="none" stroke="#ff1744" stroke-width="40" />
 <polygon points="1533.36,1693.08 1771.97,2539.07 2574.57,2192 2314.27,1389.39" fill="rgba(255,193,7,0.25)" stroke="#ff9100" stroke-width="20" />
 <line x1="959.27" y1="2800.05" x2="1005.41" y2="2001.26" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
-<line x1="2917.8" y1="1130.74" x2="3669.25" y2="1405.32" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
+<line x1="2918.01" y1="1129.69" x2="3669.5" y2="1404.64" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
 <line x1="3478.18" y1="2579.13" x2="2843.22" y2="3065.88" stroke="#00b0ff" stroke-width="40" stroke-linecap="round" />
 </svg>

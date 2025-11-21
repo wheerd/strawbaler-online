@@ -536,7 +536,9 @@ export interface MinimumBoundingBox {
 
 function minimumAreaBoundingBoxFromPoints(points: vec2[]): MinimumBoundingBox {
   if (points.length < 3) throw new Error('Polygon requires at least 3 points')
-  const hull = convexHullOfSimplePolygon(points)
+
+  // Use a robust convex hull (Andrew / monotone chain) instead of hull-for-simple-polygons
+  const hull = convexHullAndrew(points)
   if (hull.length < 3) throw new Error('Convex hull of polygon requires at least 3 points')
 
   let bestArea = Infinity
@@ -736,4 +738,52 @@ export function polygonDiameterInDirection(polygon: Polygon2D, direction: vec2):
   }
 
   return maxProj - minProj
+}
+
+// Add a robust convex hull implementation (Andrew / monotone chain)
+function convexHullAndrew(points: vec2[]): vec2[] {
+  if (points.length <= 3) return ensureCounterClockwiseOrder([...points])
+
+  // Sort by x, then y
+  const pts = [...points].sort((a, b) => {
+    if (a[0] === b[0]) return a[1] - b[1]
+    return a[0] - b[0]
+  })
+
+  // Remove duplicates (within epsilon)
+  const uniq: vec2[] = []
+  for (const p of pts) {
+    if (uniq.length === 0 || !pointsEqual(uniq[uniq.length - 1], p)) {
+      uniq.push(p)
+    }
+  }
+
+  if (uniq.length <= 3) return ensureCounterClockwiseOrder(uniq)
+
+  const cross = (a: vec2, b: vec2, c: vec2) => {
+    return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+  }
+
+  const lower: vec2[] = []
+  for (const p of uniq) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= CONVEX_HULL_EPSILON) {
+      lower.pop()
+    }
+    lower.push(p)
+  }
+
+  const upper: vec2[] = []
+  for (let i = uniq.length - 1; i >= 0; i--) {
+    const p = uniq[i]
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= CONVEX_HULL_EPSILON) {
+      upper.pop()
+    }
+    upper.push(p)
+  }
+
+  // Concatenate lower and upper removing duplicate endpoints
+  lower.pop()
+  upper.pop()
+  const hull = lower.concat(upper)
+  return ensureCounterClockwiseOrder(hull)
 }

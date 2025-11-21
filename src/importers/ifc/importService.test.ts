@@ -46,7 +46,7 @@ describe('IFC import service', () => {
 
     const perimeter = perimeters[0]
     expect(perimeter.walls.length).toBe(5)
-    expect(perimeter.walls.map(wall => wall.thickness)).toEqual([400, 400, 420, 420, 420])
+    expect(perimeter.walls.map(wall => wall.thickness)).toEqual([400, 420, 420, 420, 400])
 
     const floorAreas = actions.getFloorAreasByStorey(firstStorey.id)
     expect(floorAreas.length).toBeGreaterThan(0)

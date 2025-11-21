@@ -46,6 +46,11 @@ const testFiles = [
     name: 'Digital Hub',
     fileName: 'DigitalHub_FM-ARC_v2.ifc',
     key: 'DigitalHub'
+  },
+  {
+    name: 'Strawbale House',
+    fileName: 'Strawbale House.ifc',
+    key: 'strawbale-house'
   }
 ]
 
