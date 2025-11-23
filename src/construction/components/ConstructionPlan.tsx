@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { CutAreaShape } from '@/construction/components/CutAreaShape'
 import { Measurements } from '@/construction/components/Measurements'
-import { type Face, geometryFaces } from '@/construction/components/faceHelpers'
+import { type FaceTree, geometryFaces } from '@/construction/components/faceHelpers'
 import { bounds3Dto2D, project, projectRotation } from '@/construction/geometry'
 import type { ConstructionModel, HighlightedCuboid, HighlightedCut, HighlightedPolygon } from '@/construction/model'
 import type { TagCategoryId, TagId } from '@/construction/tags'
@@ -58,6 +58,15 @@ function polygonWithHolesToSvgPath(polygon: PolygonWithHoles2D) {
   return [polygon.outer, ...polygon.holes].map(polygonToSvgPath).join(' ')
 }
 
+export function FaceTreeElement({ tree }: { tree: FaceTree }): React.JSX.Element {
+  return (
+    <g className={tree.className} transform={tree.svgTransform}>
+      {'polygon' in tree && <path className="apply-material" d={polygonWithHolesToSvgPath(tree.polygon)} />}
+      {'children' in tree && tree.children.map((child, index) => <FaceTreeElement key={index} tree={child} />)}
+    </g>
+  )
+}
+
 export function ConstructionPlan({
   model,
   views,
@@ -97,10 +106,12 @@ export function ConstructionPlan({
     )
     const zOrder =
       currentView.zOrder === 'descending'
-        ? (a: Face, b: Face) => a.zIndex - b.zIndex
-        : (a: Face, b: Face) => b.zIndex - a.zIndex
+        ? (a: FaceTree, b: FaceTree) => a.zIndex - b.zIndex
+        : (a: FaceTree, b: FaceTree) => b.zIndex - a.zIndex
     const aboveCut =
-      currentView.zOrder === 'descending' ? (a: Face) => a.zIndex > zCutOffset : (a: Face) => a.zIndex < zCutOffset
+      currentView.zOrder === 'descending'
+        ? (a: FaceTree) => a.zIndex > zCutOffset
+        : (a: FaceTree) => a.zIndex < zCutOffset
     return allFaces
       .sort(zOrder)
       .map(face => ({ ...face, className: face.className + (aboveCut(face) ? ' above-cut' : '') }))
@@ -191,9 +202,7 @@ export function ConstructionPlan({
 
         {/* Construction element faces */}
         {faces.map((face, index) => (
-          <g key={`face${index}`} className={face.className} transform={face.svgTransform}>
-            <path className="apply-material" d={polygonWithHolesToSvgPath(face.polygon)} />
-          </g>
+          <FaceTreeElement key={`face${index}`} tree={face} />
         ))}
 
         {/* Warnings */}
