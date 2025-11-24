@@ -1,3 +1,10 @@
+export class FileInputCancelledError extends Error {
+  constructor() {
+    super('File selection cancelled')
+    this.name = 'FileInputCancelledError'
+  }
+}
+
 export function createFileInput(
   onFileLoaded: (content: string, file: File) => void,
   accept = '.json'
@@ -36,7 +43,7 @@ export function createFileInput(
 
     // Handle case where user cancels file dialog
     input.addEventListener('cancel', () => {
-      reject(new Error('File selection cancelled'))
+      reject(new FileInputCancelledError())
     })
 
     document.body.appendChild(input)

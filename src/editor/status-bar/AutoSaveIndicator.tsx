@@ -6,7 +6,7 @@ import { usePersistenceStore } from '@/building/store/persistenceStore'
 import { clearSelection } from '@/editor/hooks/useSelectionStore'
 import { SaveIcon } from '@/shared/components/Icons'
 import { ProjectImportExportService } from '@/shared/services/ProjectImportExportService'
-import { createBinaryFileInput, createFileInput } from '@/shared/utils/createFileInput'
+import { FileInputCancelledError, createBinaryFileInput, createFileInput } from '@/shared/utils/createFileInput'
 import { downloadFile } from '@/shared/utils/downloadFile'
 
 export function AutoSaveIndicator(): React.JSX.Element {
@@ -64,14 +64,16 @@ export function AutoSaveIndicator(): React.JSX.Element {
         clearSelection()
         const result = await ProjectImportExportService.importFromString(content)
 
-        setIsImporting(false)
         if (!result.success) {
           setImportError(result.error)
         }
       })
     } catch (error) {
+      if (!(error instanceof FileInputCancelledError)) {
+        setImportError(error instanceof Error ? error.message : 'Failed to import file')
+      }
+    } finally {
       setIsImporting(false)
-      setImportError(error instanceof Error ? error.message : 'Failed to import file')
     }
   }
 
@@ -89,7 +91,9 @@ export function AutoSaveIndicator(): React.JSX.Element {
         }
       }, '.ifc')
     } catch (error) {
-      setImportError(error instanceof Error ? error.message : 'Failed to import IFC file')
+      if (!(error instanceof FileInputCancelledError)) {
+        setImportError(error instanceof Error ? error.message : 'Failed to import IFC file')
+      }
     } finally {
       setIsImporting(false)
     }
