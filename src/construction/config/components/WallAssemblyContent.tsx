@@ -52,46 +52,69 @@ function InfillConfigForm({ config, onUpdate }: InfillConfigFormProps): React.JS
     <Flex direction="column" gap="3">
       <Heading size="2">Infill Configuration</Heading>
 
-      <Grid columns="7em 1fr 7em 1fr" gap="2" gapX="3">
-        <Label.Root>
-          <Text size="1" weight="medium" color="gray">
-            Max Post Spacing
-          </Text>
-        </Label.Root>
-        <LengthField
-          value={config.maxPostSpacing}
-          onChange={value => onUpdate({ ...config, maxPostSpacing: value })}
-          unit="mm"
-          size="1"
-        />
+      <Grid columns="1fr 1fr" gap="2" gapX="3">
+        <Flex direction="column" gap="1">
+          <Label.Root>
+            <Text size="1" weight="medium" color="gray">
+              Desired Post Spacing
+            </Text>
+          </Label.Root>
+          <LengthField
+            value={config.desiredPostSpacing}
+            onChange={value => onUpdate({ ...config, desiredPostSpacing: value })}
+            unit="mm"
+            size="1"
+            min={config.minStrawSpace}
+            max={config.maxPostSpacing}
+          />
+        </Flex>
 
-        <Label.Root>
-          <Text size="1" weight="medium" color="gray">
-            Min Straw Space
-          </Text>
-        </Label.Root>
-        <LengthField
-          value={config.minStrawSpace}
-          onChange={value => onUpdate({ ...config, minStrawSpace: value })}
-          unit="mm"
-          size="1"
-        />
+        <Flex direction="column" gap="1">
+          <Label.Root>
+            <Text size="1" weight="medium" color="gray">
+              Max Post Spacing
+            </Text>
+          </Label.Root>
+          <LengthField
+            value={config.maxPostSpacing}
+            onChange={value => onUpdate({ ...config, maxPostSpacing: value })}
+            unit="mm"
+            size="1"
+            min={config.desiredPostSpacing}
+          />
+        </Flex>
+
+        <Flex direction="column" gap="1">
+          <Label.Root>
+            <Text size="1" weight="medium" color="gray">
+              Min Straw Space
+            </Text>
+          </Label.Root>
+          <LengthField
+            value={config.minStrawSpace}
+            onChange={value => onUpdate({ ...config, minStrawSpace: value })}
+            unit="mm"
+            size="1"
+            min={0}
+            max={config.desiredPostSpacing}
+          />
+        </Flex>
+
+        <Flex direction="column" gap="1">
+          <Label.Root>
+            <Text size="1" weight="medium" color="gray">
+              Straw Material (Override)
+            </Text>
+          </Label.Root>
+          <MaterialSelectWithEdit
+            value={config.strawMaterial ?? null}
+            allowEmpty
+            emptyLabel="Use global straw settings"
+            onValueChange={strawMaterial => onUpdate({ ...config, strawMaterial: strawMaterial ?? undefined })}
+            size="1"
+          />
+        </Flex>
       </Grid>
-
-      <Flex direction="column" gap="1">
-        <Label.Root>
-          <Text size="1" weight="medium" color="gray">
-            Straw Material (Override)
-          </Text>
-        </Label.Root>
-        <MaterialSelectWithEdit
-          value={config.strawMaterial ?? null}
-          allowEmpty
-          emptyLabel="Use global straw settings"
-          onValueChange={strawMaterial => onUpdate({ ...config, strawMaterial: strawMaterial ?? undefined })}
-          size="1"
-        />
-      </Flex>
 
       <Separator size="4" />
       <PostsConfigSection posts={config.posts} onUpdate={posts => onUpdate({ ...config, posts })} />
@@ -766,7 +789,8 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
         case 'infill':
           config = {
             type: 'infill',
-            maxPostSpacing: 800,
+            maxPostSpacing: 900,
+            desiredPostSpacing: 800,
             minStrawSpace: 70,
             posts: {
               type: 'double',
@@ -790,7 +814,8 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
               strawMaterial: defaultMaterial
             },
             infill: {
-              maxPostSpacing: 800,
+              maxPostSpacing: 900,
+              desiredPostSpacing: 800,
               minStrawSpace: 70,
               posts: {
                 type: 'full',
@@ -813,7 +838,8 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
               strawMaterial: defaultMaterial
             },
             infill: {
-              maxPostSpacing: 800,
+              maxPostSpacing: 900,
+              desiredPostSpacing: 800,
               minStrawSpace: 70,
               posts: {
                 type: 'full',

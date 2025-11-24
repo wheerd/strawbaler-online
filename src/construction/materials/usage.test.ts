@@ -47,7 +47,8 @@ describe('Material Usage Detection', () => {
         id: createWallAssemblyId(),
         name: 'Test Infill',
         type: 'infill',
-        maxPostSpacing: 800,
+        maxPostSpacing: 900,
+        desiredPostSpacing: 800,
         minStrawSpace: 70,
         posts: {
           type: 'double',
@@ -90,7 +91,8 @@ describe('Material Usage Detection', () => {
           strawMaterial: strawbale.id
         },
         infill: {
-          maxPostSpacing: 800,
+          maxPostSpacing: 900,
+          desiredPostSpacing: 800,
           minStrawSpace: 70,
           posts: {
             type: 'full',
@@ -140,7 +142,8 @@ describe('Material Usage Detection', () => {
           infillMaterial: woodwool.id
         },
         infill: {
-          maxPostSpacing: 800,
+          maxPostSpacing: 900,
+          desiredPostSpacing: 800,
           minStrawSpace: 70,
           posts: {
             type: 'full',
@@ -187,7 +190,8 @@ describe('Material Usage Detection', () => {
         id: createWallAssemblyId(),
         name: 'Test Infill',
         type: 'infill',
-        maxPostSpacing: 800,
+        maxPostSpacing: 900,
+        desiredPostSpacing: 800,
         minStrawSpace: 70,
         posts: {
           type: 'full',

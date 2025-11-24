@@ -37,7 +37,8 @@ export interface WallLayersConfig {
 }
 
 export interface InfillWallSegmentConfig {
-  maxPostSpacing: Length // Default: 800mm
+  maxPostSpacing: Length // Default: 900mm
+  desiredPostSpacing: Length // Default: 800mm
   minStrawSpace: Length // Default: 70mm
   posts: PostConfig // Default: full
   strawMaterial?: MaterialId
@@ -101,7 +102,10 @@ const validatePosts = (posts: PostConfig): void => {
   }
 }
 
-const validateInfillSegment = (config: Pick<InfillWallConfig, 'maxPostSpacing' | 'minStrawSpace' | 'posts'>): void => {
+const validateInfillSegment = (
+  config: Pick<InfillWallConfig, 'desiredPostSpacing' | 'maxPostSpacing' | 'minStrawSpace' | 'posts'>
+): void => {
+  ensurePositive(config.desiredPostSpacing, 'Desired post spacing must be greater than 0')
   ensurePositive(config.maxPostSpacing, 'Maximum post spacing must be greater than 0')
   ensurePositive(config.minStrawSpace, 'Minimum straw space must be greater than 0')
   validatePosts(config.posts)

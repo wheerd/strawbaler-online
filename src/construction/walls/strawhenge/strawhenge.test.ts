@@ -45,6 +45,7 @@ const createTestConfig = (): StrawhengeWallConfig => ({
     strawMaterial: 'straw' as any
   },
   infill: {
+    desiredPostSpacing: FULL_BALE,
     maxPostSpacing: FULL_BALE,
     minStrawSpace: MIN_BALE,
     posts: {

@@ -79,7 +79,8 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
     id: 'wa_infill_default' as WallAssemblyId,
     name: 'Standard Infill',
     type: 'infill',
-    maxPostSpacing: 800,
+    maxPostSpacing: 900,
+    desiredPostSpacing: 800,
     minStrawSpace: 70,
     posts: {
       type: 'double',
@@ -114,7 +115,8 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
       strawMaterial: strawbale.id
     },
     infill: {
-      maxPostSpacing: 800,
+      maxPostSpacing: 900,
+      desiredPostSpacing: 800,
       minStrawSpace: 70,
       posts: {
         type: 'full',
@@ -148,7 +150,8 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
       strawMaterial: strawbale.id
     },
     infill: {
-      maxPostSpacing: 800,
+      maxPostSpacing: 900,
+      desiredPostSpacing: 800,
       minStrawSpace: 70,
       posts: {
         type: 'full',

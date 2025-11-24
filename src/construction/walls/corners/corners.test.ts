@@ -76,7 +76,8 @@ function createMockAssembly(id: string, name: string, layers: WallLayersConfig):
     id: id as any,
     name,
     type: 'infill',
-    maxPostSpacing: 800,
+    maxPostSpacing: 900,
+    desiredPostSpacing: 800,
     minStrawSpace: 70,
     posts: {
       type: 'full',

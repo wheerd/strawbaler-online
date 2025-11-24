@@ -130,7 +130,8 @@ function createMockPostConfig(): PostConfig {
 
 function createMockInfillConfig(overrides: Partial<InfillWallSegmentConfig> = {}): InfillWallSegmentConfig {
   return {
-    maxPostSpacing: 800,
+    maxPostSpacing: 900,
+    desiredPostSpacing: 800,
     minStrawSpace: 70,
     posts: createMockPostConfig(),
     ...overrides
@@ -403,16 +404,16 @@ describe('infillWallArea', () => {
       )
     })
 
-    it('should work with different maxPostSpacing', () => {
+    it('should work with different desiredPostSpacing', () => {
       const config = createMockInfillConfig({
-        maxPostSpacing: 600
+        desiredPostSpacing: 600
       })
 
       const results = [...infillWallArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500), config)]
       const { measurements } = aggregateResults(results)
 
       expect(measurements.length).toBeGreaterThan(0)
-      expect((measurements[0] as any).size[0]).toBe(600) // Updated maxPostSpacing
+      expect((measurements[0] as any).size[0]).toBe(600) // Updated desiredPostSpacing
     })
 
     it('should work with different minStrawSpace', () => {

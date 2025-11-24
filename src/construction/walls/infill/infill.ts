@@ -138,11 +138,12 @@ function* constructInfillRecursive(
 
 function getBaleWidth(availableWidth: Length, config: InfillWallSegmentConfig): Length {
   const {
+    desiredPostSpacing,
     maxPostSpacing,
     minStrawSpace,
     posts: { width: postWidth }
   } = config
-  const fullBaleAndPost = maxPostSpacing + postWidth
+  const fullBaleAndPost = desiredPostSpacing + postWidth
 
   // Less space than full bale
   if (availableWidth < maxPostSpacing) {
@@ -161,7 +162,7 @@ function getBaleWidth(availableWidth: Length, config: InfillWallSegmentConfig): 
     return availableWidth - postWidth
   }
 
-  return maxPostSpacing
+  return desiredPostSpacing
 }
 
 export class InfillWallAssembly implements WallAssembly<InfillWallConfig> {
