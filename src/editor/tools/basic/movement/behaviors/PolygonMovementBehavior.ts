@@ -20,9 +20,10 @@ export interface PolygonMovementState extends MovementState {
   snapResult?: SnapResult
 }
 
-export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityContext>
-  implements MovementBehavior<TEntity, PolygonMovementState>
-{
+export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityContext> implements MovementBehavior<
+  TEntity,
+  PolygonMovementState
+> {
   previewComponent = PolygonMovementPreview<TEntity>
 
   abstract getEntity(entityId: SelectableId, parentIds: SelectableId[], store: StoreActions): TEntity

@@ -26,9 +26,10 @@ export interface PerimeterWallMovementState extends MovementState {
   newBoundary: vec2[]
 }
 
-export class PerimeterWallMovementBehavior
-  implements MovementBehavior<PerimeterWallEntityContext, PerimeterWallMovementState>
-{
+export class PerimeterWallMovementBehavior implements MovementBehavior<
+  PerimeterWallEntityContext,
+  PerimeterWallMovementState
+> {
   previewComponent = PerimeterWallMovementPreview
   getEntity(entityId: SelectableId, parentIds: SelectableId[], store: StoreActions): PerimeterWallEntityContext {
     const [perimeterId] = parentIds

@@ -5,14 +5,11 @@ import type { StrawActions, StrawState } from './slices/straw'
 import type { WallAssembliesActions, WallAssembliesState } from './slices/walls'
 
 export interface ConfigState
-  extends StrawState,
-    RingBeamAssembliesState,
-    WallAssembliesState,
-    FloorAssembliesState,
-    RoofAssembliesState {}
+  extends StrawState, RingBeamAssembliesState, WallAssembliesState, FloorAssembliesState, RoofAssembliesState {}
 
 export interface ConfigActions
-  extends StrawActions,
+  extends
+    StrawActions,
     RingBeamAssembliesActions,
     WallAssembliesActions,
     FloorAssembliesActions,

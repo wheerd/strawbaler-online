@@ -8,8 +8,9 @@ import { formatLength } from '@/shared/utils/formatting'
 
 import type { BasePolygonTool, PolygonToolStateBase } from './BasePolygonTool'
 
-interface SimplePolygonToolInspectorProps<TTool extends BasePolygonTool<PolygonToolStateBase> & ToolImplementation>
-  extends ToolInspectorProps<TTool> {
+interface SimplePolygonToolInspectorProps<
+  TTool extends BasePolygonTool<PolygonToolStateBase> & ToolImplementation
+> extends ToolInspectorProps<TTool> {
   title: string
   description: React.ReactNode
   completeLabel: string

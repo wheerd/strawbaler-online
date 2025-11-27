@@ -14,8 +14,10 @@ const UNIT_CONFIG: Record<VolumeUnit, { label: string; factor: number }> = {
   }
 }
 
-export interface VolumeFieldProps
-  extends Omit<React.ComponentPropsWithoutRef<typeof TextField.Root>, 'value' | 'onChange'> {
+export interface VolumeFieldProps extends Omit<
+  React.ComponentPropsWithoutRef<typeof TextField.Root>,
+  'value' | 'onChange'
+> {
   value: number
   onChange: (value: number) => void
   unit?: VolumeUnit
