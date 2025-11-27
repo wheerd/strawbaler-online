@@ -74,6 +74,17 @@ export const wood: DimensionalMaterial = {
   density: 520
 }
 
+export const woodPlanking: SheetMaterial = {
+  id: 'material_wood_planking' as MaterialId,
+  name: 'Wood Planking',
+  sizes: [{ smallerLength: 250, biggerLength: 5000 }],
+  thicknesses: [25],
+  sheetType: 'solid',
+  type: 'sheet',
+  color: MATERIAL_COLORS.woodSupport,
+  density: 500
+}
+
 export const strawbale: StrawbaleMaterial = {
   id: 'material_strawbale' as MaterialId,
   type: 'strawbale',
@@ -199,6 +210,7 @@ export const impactSoundInsulation: VolumeMaterial = {
 
 export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [wood.id]: wood,
+  [woodPlanking.id]: woodPlanking,
   [strawbale.id]: strawbale,
   [straw.id]: straw,
   [window.id]: window,
