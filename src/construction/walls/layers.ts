@@ -30,15 +30,20 @@ const runLayerConstruction = (
   polygon: PolygonWithHoles2D,
   offset: Length,
   plane: Plane3D,
-  layer: LayerConfig
+  layer: LayerConfig,
+  layerDirection: vec2
 ): ConstructionResult[] => {
   if (layer.type === 'monolithic') {
     const construction = LAYER_CONSTRUCTIONS.monolithic as (typeof LAYER_CONSTRUCTIONS)['monolithic']
-    return Array.from(construction.construct(clonePolygon(polygon), offset, plane, layer as MonolithicLayerConfig))
+    return Array.from(
+      construction.construct(clonePolygon(polygon), offset, plane, layer as MonolithicLayerConfig, layerDirection)
+    )
   }
   if (layer.type === 'striped') {
     const construction = LAYER_CONSTRUCTIONS.striped as (typeof LAYER_CONSTRUCTIONS)['striped']
-    return Array.from(construction.construct(clonePolygon(polygon), offset, plane, layer as StripedLayerConfig))
+    return Array.from(
+      construction.construct(clonePolygon(polygon), offset, plane, layer as StripedLayerConfig, layerDirection)
+    )
   }
   throw new Error(`Unsupported layer type: ${(layer as { type: string }).type}`)
 }
@@ -64,6 +69,9 @@ export function constructWallLayers(
 
   const layerResults: ConstructionResult[] = []
 
+  const wallDirection = vec2.signedAngle(wall.direction, vec2.fromValues(1, 0))
+  const layerDirection = wallDirection < 0 ? vec2.fromValues(0, 1) : vec2.fromValues(0, -1)
+
   if (layers.insideLayers.length > 0) {
     let insideOffset: Length = 0
     let cumulativeInside: Length = 0
@@ -86,7 +94,9 @@ export function constructWallLayers(
         wall,
         storeyContext.floorTopOffset
       )
-      const results = polygonsWithHoles.flatMap(p => runLayerConstruction(p, insideOffset, WALL_LAYER_PLANE, layer))
+      const results = polygonsWithHoles.flatMap(p =>
+        runLayerConstruction(p, insideOffset, WALL_LAYER_PLANE, layer, layerDirection)
+      )
       const layerElements: GroupOrElement[] = []
       for (const result of results) {
         if (result.type === 'element') {
@@ -127,7 +137,9 @@ export function constructWallLayers(
         wall,
         storeyContext.floorTopOffset
       )
-      const results = polygonsWithHoles.flatMap(p => runLayerConstruction(p, outsideOffset, WALL_LAYER_PLANE, layer))
+      const results = polygonsWithHoles.flatMap(p =>
+        runLayerConstruction(p, outsideOffset, WALL_LAYER_PLANE, layer, layerDirection)
+      )
       const layerElements: GroupOrElement[] = []
       for (const result of results) {
         if (result.type === 'element') {

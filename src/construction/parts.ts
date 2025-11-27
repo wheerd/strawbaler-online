@@ -25,7 +25,8 @@ import {
   calculatePolygonArea,
   calculatePolygonWithHolesArea,
   canonicalPolygonKey,
-  minimumAreaBoundingBox
+  minimumAreaBoundingBox,
+  simplifyPolygon
 } from '@/shared/geometry'
 
 export type PartId = string & { readonly brand: unique symbol }
@@ -117,10 +118,11 @@ export const polygonPartInfo = (
   const normalizedPolygon: Polygon2D = {
     points: flippedPoints.map(p => vec2.fromValues(Math.round(p[0] - bounds.min[0]), Math.round(p[1] - bounds.min[1])))
   }
+  const simplifiedPolygon = simplifyPolygon(normalizedPolygon, 0.1)
 
   const dimStr = sortedSize.join('x')
-  const isRect = isAxisAlignedRect(normalizedPolygon) && simplifyRect
-  const partId = (isRect ? dimStr : `${dimStr}:${canonicalPolygonKey(normalizedPolygon.points)}`) as PartId
+  const isRect = isAxisAlignedRect(simplifiedPolygon) && simplifyRect
+  const partId = (isRect ? dimStr : `${dimStr}:${canonicalPolygonKey(simplifiedPolygon.points)}`) as PartId
 
   return {
     partId,

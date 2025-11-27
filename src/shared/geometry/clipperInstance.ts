@@ -59,11 +59,14 @@ export function createPointD(point: vec2): PointD {
   return new (getClipperModule().PointD)(point[0], point[1], 0)
 }
 
-export function createPathD(points: vec2[]): PathD {
+export function createPathD(points: vec2[], positive?: boolean): PathD {
   const module = getClipperModule()
   const path = new module.PathD()
   for (const point of points) {
     path.push_back(new module.PointD(point[0], point[1], 0))
+  }
+  if (positive !== undefined && module.IsPositiveD(path) !== positive) {
+    module.ReversePathD(path)
   }
   return path
 }

@@ -2,7 +2,6 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   ColumnsIcon,
-  ExclamationTriangleIcon,
   HeightIcon,
   MagicWandIcon,
   PlusIcon,
@@ -10,7 +9,7 @@ import {
   TrashIcon,
   WidthIcon
 } from '@radix-ui/react-icons'
-import { Callout, Card, DropdownMenu, Flex, Grid, IconButton, Select, Text, TextField, Tooltip } from '@radix-ui/themes'
+import { Card, DropdownMenu, Flex, Grid, IconButton, Select, Text, TextField, Tooltip } from '@radix-ui/themes'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import type {
@@ -355,13 +354,6 @@ function StripedLayerFields({
 }): React.JSX.Element {
   return (
     <>
-      <Callout.Root color="red">
-        <Callout.Icon>
-          <ExclamationTriangleIcon />
-        </Callout.Icon>
-        <Callout.Text>The striped layer is not implemented yet</Callout.Text>
-      </Callout.Root>
-
       <Field
         label="Direction"
         control={

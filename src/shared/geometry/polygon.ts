@@ -1,4 +1,4 @@
-import type { PolyPathD } from 'clipper2-wasm'
+import type { PathsD, PolyPathD } from 'clipper2-wasm'
 import { vec2, vec3 } from 'gl-matrix'
 
 import {
@@ -222,6 +222,33 @@ export function arePolygonsIntersecting(polygon1: Polygon2D, polygon2: Polygon2D
   }
 }
 
+export function intersectPolygon(polygon1: PolygonWithHoles2D, polygon2: PolygonWithHoles2D): PolygonWithHoles2D[] {
+  const module = getClipperModule()
+  const pathsA = polygonToPathsD(polygon1)
+  const pathsB = polygonToPathsD(polygon2)
+
+  const clipper = new module.ClipperD()
+  const polyTree = new module.PolyPathD()
+
+  try {
+    clipper.AddSubject(pathsA)
+    clipper.AddClip(pathsB)
+    clipper.ExecutePoly(module.ClipType.Intersection, module.FillRule.NonZero, polyTree)
+    return collectPolygonsWithHolesFromPolyTree(polyTree)
+  } finally {
+    clipper.delete()
+    polyTree.delete()
+    for (let i = 0; i < pathsA.size(); i++) {
+      pathsA.get(i).delete()
+    }
+    pathsA.delete()
+    for (let i = 0; i < pathsB.size(); i++) {
+      pathsB.get(i).delete()
+    }
+    pathsB.delete()
+  }
+}
+
 export function unionPolygons(polygons: Polygon2D[]): Polygon2D[] {
   if (polygons.length === 0) return []
   if (polygons.length === 1) return polygons
@@ -254,6 +281,13 @@ const pathDToPolygon = (path: ReturnType<typeof createPathD>): Polygon2D => {
   const points = pathDToPoints(path)
   path.delete()
   return { points }
+}
+
+const polygonToPathsD = (polygon: PolygonWithHoles2D): PathsD => {
+  return createPathsD([
+    createPathD(polygon.outer.points, true),
+    ...polygon.holes.map(hole => createPathD(hole.points, false))
+  ])
 }
 
 export const collectPolygonsWithHolesFromPolyTree = (root: PolyPathD): PolygonWithHoles2D[] => {
