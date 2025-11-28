@@ -1,9 +1,7 @@
-import { vec2 } from 'gl-matrix'
-
 import { getConstructionElementClasses } from '@/construction/components/cssHelpers'
 import type { GroupOrElement } from '@/construction/elements'
-import { type Projection, type RotationProjection, bounds3Dto2D, createSvgTransform } from '@/construction/geometry'
-import { extrudedPolygonFaces } from '@/construction/shapes'
+import { type Projection, type RotationProjection, createSvgTransform } from '@/construction/geometry'
+import { getPolygonFacesFromManifold } from '@/construction/manifold/faces'
 import { Bounds2D, type PolygonWithHoles2D } from '@/shared/geometry'
 
 export type FaceTree = Face | FaceGroup
@@ -34,56 +32,29 @@ export function* geometryFaces(
   if ('shape' in groupOrElement) {
     const combinedClassName = getConstructionElementClasses(groupOrElement, undefined)
     const transformZ = (groupOrElement.transform ? projection(groupOrElement.transform?.position)[2] : 0) + zOffset
-
-    if (groupOrElement.shape.type === 'cuboid') {
-      const bounds = bounds3Dto2D(groupOrElement.shape.bounds, projection)
-      const [x, y] = bounds.min
-      const [length, width] = bounds.size
-      const zIndexMin = projection(groupOrElement.shape.bounds.min)[2] + transformZ + EPSILON
-      const zIndexMax = projection(groupOrElement.shape.bounds.max)[2] + transformZ - EPSILON
-
-      for (const zIndex of [zIndexMin, zIndexMax]) {
-        yield {
-          polygon: {
-            outer: {
-              points: [
-                vec2.fromValues(x, y),
-                vec2.fromValues(x + length, y),
-                vec2.fromValues(x + length, y + width),
-                vec2.fromValues(x, y + width)
-              ]
-            },
-            holes: []
-          },
-          zIndex,
-          className: combinedClassName,
-          svgTransform: elementTransform
+    const manifold = groupOrElement.shape.manifold
+    const centerZ = projection(groupOrElement.bounds.center)[2]
+    const faces3D = getPolygonFacesFromManifold(manifold)
+    const faces2D = faces3D
+      .map(f => {
+        const zPosition = projection(f.outer.points[0])[2] + transformZ
+        const zIndex = zPosition < centerZ ? zPosition + EPSILON : zPosition - EPSILON
+        return {
+          outer: { points: f.outer.points.map(o => projection(o)) },
+          holes: f.holes.map(h => ({ points: h.points.map(p => projection(p)) })),
+          zIndex
         }
-      }
-    } else if (groupOrElement.shape.type === 'polygon') {
-      const allFaces = Array.from(extrudedPolygonFaces(groupOrElement.shape))
-      const centerZ = projection(groupOrElement.bounds.center)[2]
-      const faces2D = allFaces
-        .map(f => {
-          const zPosition = projection(f.outer[0])[2] + transformZ
-          const zIndex = zPosition < centerZ ? zPosition + EPSILON : zPosition - EPSILON
-          return {
-            outer: { points: f.outer.map(o => projection(o)) },
-            holes: f.holes.map(h => ({ points: h.map(p => projection(p)) })),
-            zIndex
-          }
-        })
-        .filter(f => !Bounds2D.fromPoints(f.outer.points).isEmpty)
-      for (const { outer, holes, zIndex } of faces2D) {
-        yield {
-          polygon: {
-            outer,
-            holes
-          },
-          zIndex,
-          className: combinedClassName,
-          svgTransform: elementTransform
-        }
+      })
+      .filter(f => !Bounds2D.fromPoints(f.outer.points).isEmpty)
+    for (const { outer, holes, zIndex } of faces2D) {
+      yield {
+        polygon: {
+          outer,
+          holes
+        },
+        zIndex,
+        className: combinedClassName,
+        svgTransform: elementTransform
       }
     }
   } else if ('children' in groupOrElement) {

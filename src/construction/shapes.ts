@@ -1,100 +1,63 @@
-import { vec2, vec3 } from 'gl-matrix'
+import { vec3 } from 'gl-matrix'
+import type { Manifold } from 'manifold-3d'
 
+import { buildAndCacheManifold } from '@/construction/manifold/builders'
 import { Bounds2D, Bounds3D, type Length, type Plane3D, type PolygonWithHoles2D } from '@/shared/geometry'
 
-export type Shape = Cuboid | ExtrudedPolygon
+export type BaseShape = CuboidShape | ExtrudedShape
 
-interface ShapeBase {
-  readonly bounds: Bounds3D
-}
-
-export interface Cuboid extends ShapeBase {
+export interface CuboidShape {
   type: 'cuboid'
-  offset: vec3 // Local coordinate system
-  size: vec3 // Non-negative with axis same as offset
+  size: vec3 // Width, height, depth
 }
 
-export interface ExtrudedPolygon extends ShapeBase {
-  type: 'polygon'
+export interface ExtrudedShape {
+  type: 'extrusion'
   polygon: PolygonWithHoles2D
   plane: Plane3D
   thickness: Length
 }
 
-export const createCuboidShape = (offset: vec3, size: vec3): Cuboid => ({
-  type: 'cuboid',
-  offset,
-  size,
-  bounds: Bounds3D.fromCuboid(offset, size)
-})
+export interface Shape {
+  manifold: Manifold
+  base?: BaseShape
+  bounds: Bounds3D
+}
 
-export const createExtrudedPolygon = (
-  polygon: PolygonWithHoles2D,
-  plane: Plane3D,
-  thickness: Length
-): ExtrudedPolygon => {
+/**
+ * Create a cuboid shape with corner at origin
+ * Use element transform to position it
+ */
+export function createCuboid(size: vec3): Shape {
+  const base: CuboidShape = {
+    type: 'cuboid',
+    size: vec3.clone(size)
+  }
+  return {
+    manifold: buildAndCacheManifold(base),
+    base,
+    bounds: Bounds3D.fromCuboid(vec3.fromValues(0, 0, 0), size)
+  }
+}
+
+/**
+ * Create an extruded polygon shape
+ */
+export function createExtrudedPolygon(polygon: PolygonWithHoles2D, plane: Plane3D, thickness: Length): Shape {
   const bounds2D = Bounds2D.fromPoints(polygon.outer.points)
   const minT = Math.min(thickness, 0)
   const maxT = Math.max(thickness, 0)
   const bounds3D = bounds2D.toBounds3D(plane, minT, maxT)
-  return {
-    type: 'polygon',
+  const base: ExtrudedShape = {
+    type: 'extrusion',
     polygon,
     plane,
-    thickness,
+    thickness
+  }
+
+  return {
+    manifold: buildAndCacheManifold(base),
+    base,
     bounds: bounds3D
-  }
-}
-
-export interface Face3D {
-  outer: vec3[]
-  holes: vec3[][]
-}
-
-function point2DTo3D(p: vec2, plane: Plane3D, z: number) {
-  switch (plane) {
-    case 'xy':
-      return vec3.fromValues(p[0], p[1], z)
-    case 'xz':
-      return vec3.fromValues(p[0], z, p[1])
-    case 'yz':
-      return vec3.fromValues(z, p[0], p[1])
-  }
-}
-
-export function* extrudedPolygonFaces(polygon: ExtrudedPolygon): Generator<Face3D> {
-  yield {
-    outer: polygon.polygon.outer.points.map(p => point2DTo3D(p, polygon.plane, 0)),
-    holes: polygon.polygon.holes.map(h => h.points.map(p => point2DTo3D(p, polygon.plane, 0)))
-  }
-  yield {
-    outer: polygon.polygon.outer.points.map(p => point2DTo3D(p, polygon.plane, polygon.thickness)),
-    holes: polygon.polygon.holes.map(h => h.points.map(p => point2DTo3D(p, polygon.plane, polygon.thickness)))
-  }
-  const op = polygon.polygon.outer.points
-  for (let i = 0; i < op.length; i++) {
-    yield {
-      outer: [
-        point2DTo3D(op[i], polygon.plane, 0),
-        point2DTo3D(op[(i + 1) % op.length], polygon.plane, 0),
-        point2DTo3D(op[(i + 1) % op.length], polygon.plane, polygon.thickness),
-        point2DTo3D(op[i], polygon.plane, polygon.thickness)
-      ],
-      holes: []
-    }
-  }
-  for (const hole of polygon.polygon.holes) {
-    const op = hole.points
-    for (let i = 0; i < op.length; i++) {
-      yield {
-        outer: [
-          point2DTo3D(op[i], polygon.plane, 0),
-          point2DTo3D(op[(i + 1) % op.length], polygon.plane, 0),
-          point2DTo3D(op[(i + 1) % op.length], polygon.plane, polygon.thickness),
-          point2DTo3D(op[i], polygon.plane, polygon.thickness)
-        ],
-        holes: []
-      }
-    }
   }
 }

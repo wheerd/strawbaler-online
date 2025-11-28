@@ -529,9 +529,11 @@ function processConstructionElement(
     type = '-'
   }
 
-  const polygon = element.shape.type === 'polygon' ? element.shape.polygon : undefined
-  const polygonPlane = element.shape.type === 'polygon' ? element.shape.plane : undefined
-  const thickness = element.shape.type === 'polygon' ? element.shape.thickness : undefined
+  // Extract polygon info from manifold shape params if it's an extrusion
+  const baseShape = element.shape.base?.type === 'extrusion' ? element.shape.base : undefined
+  const polygon = baseShape?.polygon
+  const polygonPlane = baseShape?.plane
+  const thickness = baseShape?.thickness
 
   let area: Area | undefined
 

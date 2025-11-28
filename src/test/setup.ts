@@ -1,8 +1,12 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { vec2 } from 'gl-matrix'
+import manifoldWasmUrl from 'manifold-3d/manifold.wasm?url'
+import path from 'path'
 import { afterEach, beforeAll, vi } from 'vitest'
 import 'vitest-canvas-mock'
+
+import { loadManifoldModule } from '@/shared/geometry/manifoldInstance'
 
 vi.mock('@/shared/utils/version', () => ({
   VERSION_INFO: {
@@ -290,6 +294,15 @@ beforeAll(() => {
       right: 100
     }))
   })
+})
+
+// Load Manifold WASM module
+beforeAll(async () => {
+  function resolveBundledAssetPath(assetUrl: string): string {
+    const normalized = assetUrl.startsWith('/') ? assetUrl.slice(1) : assetUrl
+    return path.resolve(process.cwd(), normalized)
+  }
+  await loadManifoldModule({ wasmUrl: resolveBundledAssetPath(manifoldWasmUrl) })
 })
 
 // runs a cleanup after each test case (e.g. clearing jsdom)
