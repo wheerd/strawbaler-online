@@ -1,8 +1,12 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { vec2 } from 'gl-matrix'
+import manifoldWasmUrl from 'manifold-3d/manifold.wasm?url'
+import path from 'path'
 import { afterEach, beforeAll, vi } from 'vitest'
 import 'vitest-canvas-mock'
+
+import { loadManifoldModule } from '@/shared/geometry/manifoldInstance'
 
 vi.mock('@/shared/utils/version', () => ({
   VERSION_INFO: {
@@ -134,6 +138,22 @@ vi.mock('@/shared/geometry/clipperInstance', () => {
     pathDToPoints: vi.fn((path: ClipperPath) => path.points.map(([x, y]) => vec2.fromValues(x, y)))
   }
 })
+
+/*
+vi.mock('@/shared/geometry/manifoldInstance', () => {
+  const mockModule = {
+    cube: vi.fn(() => ({})),
+    CrossSection: {
+      cube: vi.fn(() => ({}))
+    }
+  }
+
+  return {
+    getManifoldModule: vi.fn(() => mockModule),
+    ensureManifoldModule: vi.fn()
+  }
+})
+*/
 
 // Mock Zustand for consistent testing
 vi.mock('zustand')
@@ -290,6 +310,15 @@ beforeAll(() => {
       right: 100
     }))
   })
+})
+
+// Load Manifold WASM module
+beforeAll(async () => {
+  function resolveBundledAssetPath(assetUrl: string): string {
+    const normalized = assetUrl.startsWith('/') ? assetUrl.slice(1) : assetUrl
+    return path.resolve(process.cwd(), normalized)
+  }
+  await loadManifoldModule({ wasmUrl: resolveBundledAssetPath(manifoldWasmUrl) })
 })
 
 // runs a cleanup after each test case (e.g. clearing jsdom)

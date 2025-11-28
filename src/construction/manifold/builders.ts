@@ -1,6 +1,6 @@
 import type { Manifold } from 'manifold-3d'
 
-import type { BooleanParams, ConstructionParams, CuboidParams, ExtrusionParams } from '@/construction/shapes'
+import type { BaseShape, CuboidShape, ExtrudedShape } from '@/construction/shapes'
 import { ensurePolygonIsClockwise, ensurePolygonIsCounterClockwise } from '@/shared/geometry'
 import { getManifoldModule } from '@/shared/geometry/manifoldInstance'
 
@@ -10,21 +10,19 @@ import { cacheManifold, getOrCreateManifold, hasManifold } from './cache'
  * Build manifold from construction parameters
  * All manifolds are centered at origin or positioned according to their params
  */
-export function buildManifold(params: ConstructionParams): Manifold {
+export function buildManifold(params: BaseShape): Manifold {
   switch (params.type) {
     case 'cuboid':
       return buildCuboid(params)
     case 'extrusion':
       return buildExtrusion(params)
-    case 'boolean':
-      return buildBoolean(params)
   }
 }
 
 /**
  * Build and cache manifold if not already cached
  */
-export function buildAndCacheManifold(params: ConstructionParams): Manifold {
+export function buildAndCacheManifold(params: BaseShape): Manifold {
   if (hasManifold(params)) {
     return getOrCreateManifold(params)
   }
@@ -34,7 +32,7 @@ export function buildAndCacheManifold(params: ConstructionParams): Manifold {
   return manifold
 }
 
-function buildCuboid(params: CuboidParams): Manifold {
+function buildCuboid(params: CuboidShape): Manifold {
   const module = getManifoldModule()
   const [w, h, d] = params.size
 
@@ -42,7 +40,7 @@ function buildCuboid(params: CuboidParams): Manifold {
   return module.Manifold.cube([w, h, d], true)
 }
 
-function buildExtrusion(params: ExtrusionParams): Manifold {
+function buildExtrusion(params: ExtrudedShape): Manifold {
   const module = getManifoldModule()
   const { polygon, plane, thickness } = params
 
@@ -116,30 +114,4 @@ function buildExtrusion(params: ExtrusionParams): Manifold {
   }
 
   return manifold
-}
-
-function buildBoolean(params: BooleanParams): Manifold {
-  if (params.operands.length === 0) {
-    throw new Error('Boolean operation requires at least one operand')
-  }
-
-  // Build all operand manifolds (will be cached individually)
-  const manifolds = params.operands.map(buildAndCacheManifold)
-
-  let result = manifolds[0]
-  for (let i = 1; i < manifolds.length; i++) {
-    switch (params.operation) {
-      case 'union':
-        result = result.add(manifolds[i])
-        break
-      case 'subtract':
-        result = result.subtract(manifolds[i])
-        break
-      case 'intersect':
-        result = result.intersect(manifolds[i])
-        break
-    }
-  }
-
-  return result
 }

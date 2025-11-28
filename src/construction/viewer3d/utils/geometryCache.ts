@@ -1,10 +1,8 @@
 import * as THREE from 'three'
 
 import type { GroupOrElement } from '@/construction/elements'
-import { buildAndCacheManifold } from '@/construction/manifold/builders'
-import { getParamsCacheKey } from '@/construction/manifold/cache'
 import type { ConstructionModel } from '@/construction/model'
-import type { ManifoldShape } from '@/construction/shapes'
+import type { Shape } from '@/construction/shapes'
 import type { Manifold } from '@/shared/geometry/manifoldInstance'
 
 type IdleCallback = (deadline?: { didTimeout: boolean; timeRemaining(): number }) => void
@@ -15,7 +13,8 @@ interface GeometryEntry {
   edgesGeometry: THREE.EdgesGeometry
 }
 
-const geometryCache = new Map<string, GeometryEntry>()
+const geometryCache = new WeakMap<Manifold, GeometryEntry>()
+const geometryEntries: GeometryEntry[] = []
 let activeGeometryConsumers = 0
 let scheduledClearHandle: number | null = null
 let scheduledClearType: 'idle' | 'timeout' | null = null
@@ -23,10 +22,6 @@ let scheduledClearType: 'idle' | 'timeout' | null = null
 function disposeEntry(entry: GeometryEntry): void {
   entry.geometry.dispose()
   entry.edgesGeometry.dispose()
-}
-
-function sanitizePartId(partId?: string): string {
-  return partId ?? 'no-part'
 }
 
 /**
@@ -63,37 +58,26 @@ function manifoldToThreeGeometry(manifold: Manifold): THREE.BufferGeometry {
   return geometry
 }
 
+let geometryCounter = 0
+
 /**
  * Get Three.js geometry for a ManifoldShape
  */
-export function getShapeGeometry(shape: ManifoldShape, partId?: string): GeometryEntry {
-  // Cache key includes partId for per-part geometry variations
-  const paramKey = getParamsCacheKey(shape.params)
-  const cacheKey = `${paramKey}|${sanitizePartId(partId)}`
+export function getShapeGeometry(shape: Shape): GeometryEntry {
+  const manifold = shape.manifold
 
-  const cached = geometryCache.get(cacheKey)
+  const cached = geometryCache.get(manifold)
   if (cached) return cached
-
-  // Get or build manifold (from global manifold cache)
-  const manifold = buildAndCacheManifold(shape.params)
 
   // Convert to Three.js geometry
   const geometry = manifoldToThreeGeometry(manifold)
   const edgesGeometry = new THREE.EdgesGeometry(geometry, 1)
 
-  const entry = { cacheKey, geometry, edgesGeometry }
-  geometryCache.set(cacheKey, entry)
+  const entry = { cacheKey: `geometry${geometryCounter++}`, geometry, edgesGeometry }
+  geometryCache.set(manifold, entry)
+  geometryEntries.push(entry)
 
   return entry
-}
-
-// Legacy exports for backwards compatibility during migration
-export function getCuboidGeometry(shape: ManifoldShape, partId?: string): GeometryEntry {
-  return getShapeGeometry(shape, partId)
-}
-
-export function getExtrudedPolygonGeometry(shape: ManifoldShape, partId?: string): GeometryEntry {
-  return getShapeGeometry(shape, partId)
 }
 
 function prewarmElementGeometry(element: GroupOrElement): void {
@@ -102,8 +86,7 @@ function prewarmElementGeometry(element: GroupOrElement): void {
     return
   }
 
-  const partId = element.partInfo?.partId
-  getShapeGeometry(element.shape, partId)
+  getShapeGeometry(element.shape)
 }
 
 export function prewarmGeometryCache(model: ConstructionModel): void {
@@ -113,10 +96,10 @@ export function prewarmGeometryCache(model: ConstructionModel): void {
 }
 
 export function clearGeometryCache(): void {
-  geometryCache.forEach(entry => {
+  geometryEntries.forEach(entry => {
     disposeEntry(entry)
   })
-  geometryCache.clear()
+  geometryEntries.splice(0, geometryEntries.length)
 }
 
 export function acquireGeometryCache(): void {

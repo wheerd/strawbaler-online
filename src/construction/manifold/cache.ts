@@ -1,7 +1,7 @@
 import { vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
-import type { ConstructionParams } from '@/construction/shapes'
+import type { BaseShape } from '@/construction/shapes'
 
 /**
  * Global cache: ConstructionParams -> Manifold
@@ -12,7 +12,7 @@ const manifoldCache = new Map<string, Manifold>()
 /**
  * Generate cache key from construction parameters
  */
-export function getParamsCacheKey(params: ConstructionParams): string {
+export function getParamsCacheKey(params: BaseShape): string {
   switch (params.type) {
     case 'cuboid':
       return `cuboid|${formatVec3(params.size)}`
@@ -27,18 +27,13 @@ export function getParamsCacheKey(params: ConstructionParams): string {
               .join('|')
       return `extrusion|${params.plane}|${formatNumber(params.thickness)}|${outerKey}|${holesKey}`
     }
-
-    case 'boolean': {
-      const operandKeys = params.operands.map(getParamsCacheKey).join('&')
-      return `boolean|${params.operation}|${operandKeys}`
-    }
   }
 }
 
 /**
  * Get or create manifold from construction parameters
  */
-export function getOrCreateManifold(params: ConstructionParams): Manifold {
+export function getOrCreateManifold(params: BaseShape): Manifold {
   const cacheKey = getParamsCacheKey(params)
 
   const manifold = manifoldCache.get(cacheKey)
@@ -53,7 +48,7 @@ export function getOrCreateManifold(params: ConstructionParams): Manifold {
 /**
  * Store a manifold in the cache
  */
-export function cacheManifold(params: ConstructionParams, manifold: Manifold): void {
+export function cacheManifold(params: BaseShape, manifold: Manifold): void {
   const cacheKey = getParamsCacheKey(params)
   manifoldCache.set(cacheKey, manifold)
 }
@@ -61,7 +56,7 @@ export function cacheManifold(params: ConstructionParams, manifold: Manifold): v
 /**
  * Check if manifold is cached
  */
-export function hasManifold(params: ConstructionParams): boolean {
+export function hasManifold(params: BaseShape): boolean {
   const cacheKey = getParamsCacheKey(params)
   return manifoldCache.has(cacheKey)
 }

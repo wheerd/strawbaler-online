@@ -23,7 +23,7 @@ export interface OBB {
  * @param manifold - the manifold object
  */
 export function computeMinimumVolumeOBB(manifold: Manifold): OBB {
-  let hull = manifold.hull()
+  const hull = manifold.hull()
   const mesh = hull.getMesh()
 
   // Expect mesh.vertProperties as flat array [x0,y0,z0, x1,y1,z1, ...]
@@ -85,15 +85,14 @@ export function computeMinimumVolumeOBB(manifold: Manifold): OBB {
     // For numerical stability, prefer storing axes as normalized vec3s
     // axes: x, y, z
     // project all vertices into this local frame and compute bounding box
-    let minX = Number.POSITIVE_INFINITY,
-      minY = Number.POSITIVE_INFINITY,
-      minZ = Number.POSITIVE_INFINITY
-    let maxX = Number.NEGATIVE_INFINITY,
-      maxY = Number.NEGATIVE_INFINITY,
-      maxZ = Number.NEGATIVE_INFINITY
+    let minX = Number.POSITIVE_INFINITY
+    let minY = Number.POSITIVE_INFINITY
+    let minZ = Number.POSITIVE_INFINITY
+    let maxX = Number.NEGATIVE_INFINITY
+    let maxY = Number.NEGATIVE_INFINITY
+    let maxZ = Number.NEGATIVE_INFINITY
 
-    for (let vi = 0; vi < verts.length; vi++) {
-      const p = verts[vi]
+    for (const p of verts) {
       const px = vec3.dot(p, x)
       const py = vec3.dot(p, y)
       const pz = vec3.dot(p, z)

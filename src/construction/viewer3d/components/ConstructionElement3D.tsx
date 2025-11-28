@@ -59,7 +59,7 @@ function ConstructionElement3D({ element, parentOpacity = 1 }: ConstructionEleme
   const partId = element.partInfo?.partId
 
   // Get geometry (single path for all shapes)
-  const { geometry, edgesGeometry, cacheKey } = getShapeGeometry(element.shape, partId)
+  const { geometry, edgesGeometry, cacheKey } = getShapeGeometry(element.shape)
 
   const meshMaterial = getMeshMaterial(color, opacity)
   const lineMaterial = getLineMaterial('#000000', 0.4, 1)

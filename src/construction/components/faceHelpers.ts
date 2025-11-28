@@ -1,7 +1,6 @@
 import { getConstructionElementClasses } from '@/construction/components/cssHelpers'
 import type { GroupOrElement } from '@/construction/elements'
 import { type Projection, type RotationProjection, createSvgTransform } from '@/construction/geometry'
-import { buildAndCacheManifold } from '@/construction/manifold/builders'
 import { getPolygonFacesFromManifold } from '@/construction/manifold/faces'
 import { Bounds2D, type PolygonWithHoles2D } from '@/shared/geometry'
 
@@ -33,7 +32,7 @@ export function* geometryFaces(
   if ('shape' in groupOrElement) {
     const combinedClassName = getConstructionElementClasses(groupOrElement, undefined)
     const transformZ = (groupOrElement.transform ? projection(groupOrElement.transform?.position)[2] : 0) + zOffset
-    const manifold = buildAndCacheManifold(groupOrElement.shape.params)
+    const manifold = groupOrElement.shape.manifold
     const centerZ = projection(groupOrElement.bounds.center)[2]
     const faces3D = getPolygonFacesFromManifold(manifold)
     const faces2D = faces3D

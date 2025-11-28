@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { type ConfigActions, getConfigActions } from '@/construction/config'
 import type { ConstructionElement } from '@/construction/elements'
 import { aggregateResults } from '@/construction/results'
-import type { CuboidParams } from '@/construction/shapes'
+import type { CuboidShape } from '@/construction/shapes'
 
 import type { MaterialId, StrawbaleMaterial } from './material'
 import { strawbale } from './material'
@@ -61,9 +61,9 @@ describe('constructStraw', () => {
       expect('material' in bale).toBe(true) // Should be ConstructionElement
       const baleElement = bale as ConstructionElement
       expect(baleElement.material).toBe(mockMaterialId)
-      expect(baleElement.shape.params.type).toBe('cuboid')
+      expect(baleElement.shape.base?.type).toBe('cuboid')
       expect(baleElement.transform.position).toEqual(vec3.fromValues(400, 180, 250))
-      expect((baleElement.shape.params as CuboidParams).size).toEqual(vec3.fromValues(800, 360, 500))
+      expect((baleElement.shape.base as CuboidShape).size).toEqual(vec3.fromValues(800, 360, 500))
     })
 
     it('should create multiple bales in a horizontal row', () => {
@@ -95,7 +95,7 @@ describe('constructStraw', () => {
       expect((elements[0] as ConstructionElement).transform.position).toEqual(
         vec3.scaleAndAdd(vec3.create(), position, size, 0.5)
       )
-      expect(((elements[0] as ConstructionElement).shape.params as CuboidParams).size).toEqual(size)
+      expect(((elements[0] as ConstructionElement).shape.base as CuboidShape).size).toEqual(size)
     })
 
     it('should generate warning when wall is too thin for single strawbale', () => {
@@ -113,7 +113,7 @@ describe('constructStraw', () => {
       expect((elements[0] as ConstructionElement).transform.position).toEqual(
         vec3.scaleAndAdd(vec3.create(), position, size, 0.5)
       )
-      expect(((elements[0] as ConstructionElement).shape.params as CuboidParams).size).toEqual(size)
+      expect(((elements[0] as ConstructionElement).shape.base as CuboidShape).size).toEqual(size)
     })
   })
 
@@ -139,7 +139,7 @@ describe('constructStraw', () => {
       expect(elements).toHaveLength(1)
 
       const bale = elements[0] as ConstructionElement
-      expect((bale.shape.params as CuboidParams).size).toEqual(vec3.fromValues(1000, 300, 400))
+      expect((bale.shape.base as CuboidShape).size).toEqual(vec3.fromValues(1000, 300, 400))
     })
 
     it('should use provided material ID', () => {

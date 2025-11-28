@@ -1,48 +1,41 @@
 import { vec3 } from 'gl-matrix'
+import type { Manifold } from 'manifold-3d'
 
+import { buildAndCacheManifold } from '@/construction/manifold/builders'
 import { Bounds2D, Bounds3D, type Length, type Plane3D, type PolygonWithHoles2D } from '@/shared/geometry'
 
-/**
- * Construction parameters define HOW to build a manifold
- * Used as cache key to reuse identical geometry
- */
-export type ConstructionParams = CuboidParams | ExtrusionParams | BooleanParams
+export type BaseShape = CuboidShape | ExtrudedShape
 
-export interface CuboidParams {
+export interface CuboidShape {
   type: 'cuboid'
   size: vec3 // Width, height, depth
 }
 
-export interface ExtrusionParams {
+export interface ExtrudedShape {
   type: 'extrusion'
   polygon: PolygonWithHoles2D
   plane: Plane3D
   thickness: Length
 }
 
-export interface BooleanParams {
-  type: 'boolean'
-  operation: 'union' | 'subtract' | 'intersect'
-  operands: ConstructionParams[]
-}
-
-export interface ManifoldShape {
-  params: ConstructionParams
+export interface Shape {
+  manifold: Manifold
+  base?: BaseShape
   bounds: Bounds3D
 }
-
-export type Shape = ManifoldShape
 
 /**
  * Create a cuboid shape (centered at origin)
  * Use element transform to position it
  */
-export function createCuboid(size: vec3): ManifoldShape {
+export function createCuboid(size: vec3): Shape {
+  const base: CuboidShape = {
+    type: 'cuboid',
+    size: vec3.clone(size)
+  }
   return {
-    params: {
-      type: 'cuboid',
-      size: vec3.clone(size)
-    },
+    manifold: buildAndCacheManifold(base),
+    base,
     bounds: Bounds3D.fromCuboid(vec3.fromValues(-size[0] / 2, -size[1] / 2, -size[2] / 2), size)
   }
 }
@@ -50,36 +43,21 @@ export function createCuboid(size: vec3): ManifoldShape {
 /**
  * Create an extruded polygon shape
  */
-export function createExtrudedPolygon(polygon: PolygonWithHoles2D, plane: Plane3D, thickness: Length): ManifoldShape {
+export function createExtrudedPolygon(polygon: PolygonWithHoles2D, plane: Plane3D, thickness: Length): Shape {
   const bounds2D = Bounds2D.fromPoints(polygon.outer.points)
   const minT = Math.min(thickness, 0)
   const maxT = Math.max(thickness, 0)
   const bounds3D = bounds2D.toBounds3D(plane, minT, maxT)
-
-  return {
-    params: {
-      type: 'extrusion',
-      polygon,
-      plane,
-      thickness
-    },
-    bounds: bounds3D
+  const base: ExtrudedShape = {
+    type: 'extrusion',
+    polygon,
+    plane,
+    thickness
   }
-}
-
-/**
- * Create a shape from boolean operations
- */
-export function createBoolean(operation: 'union' | 'subtract' | 'intersect', shapes: ManifoldShape[]): ManifoldShape {
-  const operands = shapes.map(s => s.params)
-  const bounds = Bounds3D.merge(...shapes.map(s => s.bounds))
 
   return {
-    params: {
-      type: 'boolean',
-      operation,
-      operands
-    },
-    bounds
+    manifold: buildAndCacheManifold(base),
+    base,
+    bounds: bounds3D
   }
 }

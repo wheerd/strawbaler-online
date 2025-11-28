@@ -12,7 +12,7 @@ import {
 import type { Opening, Perimeter, PerimeterCorner, PerimeterWall } from '@/building/model/model'
 import type { ConstructionElement, GroupOrElement } from '@/construction/elements'
 import { clayPlasterBase, limePlasterBase } from '@/construction/materials/material'
-import type { ExtrusionParams } from '@/construction/shapes'
+import type { ExtrudedShape } from '@/construction/shapes'
 import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE } from '@/construction/tags'
 import type { WallCornerInfo } from '@/construction/walls'
 import type { WallContext } from '@/construction/walls/corners/corners'
@@ -154,11 +154,11 @@ const flattenElements = (items: GroupOrElement[]): ConstructionElement[] => {
   return result
 }
 
-const expectExtrudedPolygon = (element: ConstructionElement): ExtrusionParams => {
-  if (element.shape.params.type !== 'extrusion') {
+const expectExtrudedPolygon = (element: ConstructionElement): ExtrudedShape => {
+  if (element.shape.base?.type !== 'extrusion') {
     throw new Error('Expected extruded polygon element')
   }
-  return element.shape.params
+  return element.shape.base
 }
 
 describe('constructWallLayers', () => {
@@ -244,10 +244,10 @@ describe('constructWallLayers', () => {
     expect(elements).toHaveLength(2)
 
     const inside = elements.find(
-      element => element.shape.params.type === 'extrusion' && element.shape.params.thickness === 30
+      element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 30
     )
     const outside = elements.find(
-      element => element.shape.params.type === 'extrusion' && element.shape.params.thickness === 20
+      element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 20
     )
     expect(inside).toBeDefined()
     expect(outside).toBeDefined()
@@ -305,7 +305,7 @@ describe('constructWallLayers', () => {
 
     const elements = flattenElements(model.elements)
     const inside = elements.find(
-      element => element.shape.params.type === 'extrusion' && element.shape.params.thickness === 30
+      element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 30
     )
     expect(inside).toBeDefined()
 
@@ -334,7 +334,7 @@ describe('constructWallLayers', () => {
     const baselineOutsideStart = (() => {
       const baselineModel = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
       const baselineOutside = flattenElements(baselineModel.elements).find(
-        element => element.shape.params.type === 'extrusion' && element.shape.params.thickness === 20
+        element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 20
       )
       if (!baselineOutside) {
         throw new Error('Baseline outside layer missing')
@@ -350,7 +350,7 @@ describe('constructWallLayers', () => {
     const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
     const elements = flattenElements(model.elements)
     const outside = elements.find(
-      element => element.shape.params.type === 'extrusion' && element.shape.params.thickness === 20
+      element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 20
     )
 
     expect(outside).toBeDefined()
@@ -370,7 +370,7 @@ describe('constructWallLayers', () => {
     const baselineInsideStart = (() => {
       const baselineModel = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
       const baselineInside = flattenElements(baselineModel.elements).find(
-        element => element.shape.params.type === 'extrusion' && element.shape.params.thickness === 30
+        element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 30
       )
       if (!baselineInside) {
         throw new Error('Baseline inside layer missing')
@@ -386,7 +386,7 @@ describe('constructWallLayers', () => {
     const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
     const elements = flattenElements(model.elements)
     const inside = elements.find(
-      element => element.shape.params.type === 'extrusion' && element.shape.params.thickness === 30
+      element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 30
     )
 
     expect(inside).toBeDefined()
