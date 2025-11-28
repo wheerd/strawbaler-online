@@ -15,7 +15,7 @@ import {
   generateVirtualPartsList,
   polygonPartInfo
 } from '@/construction/parts'
-import { createCuboidShape } from '@/construction/shapes'
+import { createCuboid } from '@/construction/shapes'
 import { TAG_FULL_BALE, TAG_PARTIAL_BALE } from '@/construction/tags'
 import { Bounds2D, Bounds3D, canonicalPolygonKey, minimumAreaBoundingBox } from '@/shared/geometry'
 
@@ -44,13 +44,7 @@ const cltMaterialId = clt.id
 const strawbaleMaterialId = strawbale.id
 
 const createElement = (materialId: MaterialId, partInfo: PartInfo) =>
-  createConstructionElement(
-    materialId,
-    createCuboidShape(vec3.create(), vec3.clone(partInfo.size)),
-    undefined,
-    undefined,
-    partInfo
-  )
+  createConstructionElement(materialId, createCuboid(vec3.clone(partInfo.size)), undefined, undefined, partInfo)
 
 const createGroupWithPartInfo = (partInfo: PartInfo, children: Parameters<typeof createConstructionGroup>[0] = []) => {
   const group = createConstructionGroup(children, IDENTITY)
@@ -136,7 +130,7 @@ describe('generateMaterialPartsList', () => {
 
     const fullElement = createConstructionElement(
       strawbaleMaterialId,
-      createCuboidShape(vec3.create(), vec3.clone(fullPart.size)),
+      createCuboid(vec3.clone(fullPart.size)),
       undefined,
       [TAG_FULL_BALE],
       fullPart
@@ -144,7 +138,7 @@ describe('generateMaterialPartsList', () => {
 
     const partialElement = createConstructionElement(
       strawbaleMaterialId,
-      createCuboidShape(vec3.create(), vec3.clone(partialPart.size)),
+      createCuboid(vec3.clone(partialPart.size)),
       undefined,
       [TAG_PARTIAL_BALE],
       partialPart
@@ -240,10 +234,7 @@ describe('generateMaterialPartsList', () => {
   })
 
   it('creates entries for elements without part info', () => {
-    const nonPartElement = createConstructionElement(
-      woodMaterialId,
-      createCuboidShape(vec3.create(), vec3.fromValues(5000, 360, 60))
-    )
+    const nonPartElement = createConstructionElement(woodMaterialId, createCuboid(vec3.fromValues(5000, 360, 60)))
 
     const model = createModel([nonPartElement])
     const partsList = generateMaterialPartsList(model)

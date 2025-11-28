@@ -1,12 +1,12 @@
 import { vec3 } from 'gl-matrix'
 
 import type { MaterialId } from '@/construction/materials/material'
-import type { PartInfo } from '@/construction/parts'
 import type { Bounds3D } from '@/shared/geometry'
 import { createId } from '@/shared/utils/ids'
 
 import { IDENTITY, type Transform, transformBounds } from './geometry'
-import { type Shape, createCuboidAtCorner } from './shapes'
+import type { PartInfo } from './parts'
+import { type Shape, createCuboid } from './shapes'
 import type { Tag } from './tags'
 
 const CONSTRUCTION_ELEMENT_ID_PREFIX = 'ce_'
@@ -42,7 +42,11 @@ export const createCuboidElement = (
   tags?: Tag[],
   partInfo?: PartInfo
 ): ConstructionElement => {
-  const { shape, transform } = createCuboidAtCorner(corner, size)
+  const shape = createCuboid(size)
+  const transform: Transform = {
+    position: vec3.fromValues(corner[0] + size[0] / 2, corner[1] + size[1] / 2, corner[2] + size[2] / 2),
+    rotation: vec3.fromValues(0, 0, 0)
+  }
   return createConstructionElement(material, shape, transform, tags, partInfo)
 }
 
