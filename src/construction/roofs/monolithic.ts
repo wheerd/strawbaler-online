@@ -9,7 +9,14 @@ import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/c
 import { type ConstructionModel, createConstructionGroup, createUnsupportedModel } from '@/construction/model'
 import { type ConstructionResult } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_LAYERS, createTag } from '@/construction/tags'
+import {
+  TAG_LAYERS,
+  TAG_ROOF,
+  TAG_ROOF_LAYER_INSIDE,
+  TAG_ROOF_LAYER_OVERHANG,
+  TAG_ROOF_LAYER_TOP,
+  createTag
+} from '@/construction/tags'
 import {
   type Length,
   type LineSegment2D,
@@ -267,7 +274,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
           position: vec3.fromValues(0, 0, roof.verticalOffset),
           rotation: vec3.fromValues(0, 0, 0)
         },
-        [createTag('construction', 'main')]
+        [TAG_ROOF]
       )
 
       elements.push(element)
@@ -301,8 +308,8 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
       }
 
       if (layerElements.length > 0) {
-        const customTag = createTag('construction', layer.name)
-        const group = createConstructionGroup(layerElements, IDENTITY, [TAG_LAYERS, customTag])
+        const customTag = createTag('roof-layer', layer.name)
+        const group = createConstructionGroup(layerElements, IDENTITY, [TAG_ROOF_LAYER_TOP, TAG_LAYERS, customTag])
         elements.push(group)
       }
 
@@ -345,8 +352,8 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
       }
 
       if (layerElements.length > 0) {
-        const customTag = createTag('construction', layer.name)
-        const group = createConstructionGroup(layerElements, IDENTITY, [TAG_LAYERS, customTag])
+        const customTag = createTag('roof-layer', layer.name)
+        const group = createConstructionGroup(layerElements, IDENTITY, [TAG_ROOF_LAYER_INSIDE, TAG_LAYERS, customTag])
         elements.push(group)
       }
 
@@ -390,8 +397,12 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
         }
 
         if (layerElements.length > 0) {
-          const customTag = createTag('construction', layer.name)
-          const group = createConstructionGroup(layerElements, IDENTITY, [TAG_LAYERS, customTag])
+          const customTag = createTag('roof-layer', layer.name)
+          const group = createConstructionGroup(layerElements, IDENTITY, [
+            TAG_ROOF_LAYER_OVERHANG,
+            TAG_LAYERS,
+            customTag
+          ])
           elements.push(group)
         }
       }
