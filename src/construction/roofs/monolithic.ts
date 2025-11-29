@@ -229,6 +229,30 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
   }
 
   /**
+   * Translate polygon to be relative to ridge start (rotation origin)
+   */
+  private translatePolygonToOrigin(polygon: Polygon2D, ridgeLine: LineSegment2D): Polygon2D {
+    return {
+      points: polygon.points.map(point => vec2.sub(vec2.create(), point, ridgeLine.start))
+    }
+  }
+
+  /**
+   * Expand and translate polygon - combines expansion and translation to origin
+   * This prepares the polygon for construction by:
+   * 1. Expanding it perpendicular to ridge to compensate for slope angle
+   * 2. Translating it so ridge start is at origin (for rotation)
+   */
+  private preparePolygonForConstruction(
+    polygon: Polygon2D,
+    ridgeLine: LineSegment2D,
+    expansionFactor: number
+  ): Polygon2D {
+    const expanded = this.expandPolygonFromRidge(polygon, ridgeLine, expansionFactor)
+    return this.translatePolygonToOrigin(expanded, ridgeLine)
+  }
+
+  /**
    * Run layer construction similar to wall layers
    */
   private runLayerConstruction(polygon: PolygonWithHoles2D, offset: Length, layer: LayerConfig): ConstructionResult[] {
@@ -265,11 +289,11 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
     const roofSides = this.splitRoofPolygon(roof)
 
     for (const side of roofSides) {
-      const expandedPolygon = this.expandPolygonFromRidge(side, roof.ridgeLine, expansionFactor)
+      const preparedPolygon = this.preparePolygonForConstruction(side, roof.ridgeLine, expansionFactor)
 
       const element = createConstructionElement(
         config.material,
-        createExtrudedPolygon({ outer: expandedPolygon, holes: [] }, 'xy', config.thickness),
+        createExtrudedPolygon({ outer: preparedPolygon, holes: [] }, 'xy', config.thickness),
         {
           position: vec3.fromValues(0, 0, roof.verticalOffset),
           rotation: vec3.fromValues(0, 0, 0)
@@ -293,12 +317,12 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
       return elements
     }
 
-    const expandedPolygon = this.expandPolygonFromRidge(roof.overhangPolygon, roof.ridgeLine, expansionFactor)
+    const preparedPolygon = this.preparePolygonForConstruction(roof.overhangPolygon, roof.ridgeLine, expansionFactor)
 
     let zOffset = (roof.verticalOffset + config.thickness) as Length
 
     for (const layer of config.layers.topLayers) {
-      const results = this.runLayerConstruction({ outer: expandedPolygon, holes: [] }, zOffset, layer)
+      const results = this.runLayerConstruction({ outer: preparedPolygon, holes: [] }, zOffset, layer)
 
       const layerElements: GroupOrElement[] = []
       for (const result of results) {
@@ -334,7 +358,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
       return elements
     }
 
-    const expandedPolygon = this.expandPolygonFromRidge(ceilingPolygon, roof.ridgeLine, expansionFactor)
+    const preparedPolygon = this.preparePolygonForConstruction(ceilingPolygon, roof.ridgeLine, expansionFactor)
 
     let zOffset = (roof.verticalOffset - config.layers.insideThickness) as Length
 
@@ -342,7 +366,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
     const reversedLayers = [...config.layers.insideLayers].reverse()
 
     for (const layer of reversedLayers) {
-      const results = this.runLayerConstruction({ outer: expandedPolygon, holes: [] }, zOffset, layer)
+      const results = this.runLayerConstruction({ outer: preparedPolygon, holes: [] }, zOffset, layer)
 
       const layerElements: GroupOrElement[] = []
       for (const result of results) {
@@ -385,9 +409,9 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
 
     for (const layer of reversedLayers) {
       for (const overhangPoly of overhangPolygons) {
-        const expandedPolygon = this.expandPolygonFromRidge(overhangPoly.outer, roof.ridgeLine, expansionFactor)
+        const preparedPolygon = this.preparePolygonForConstruction(overhangPoly.outer, roof.ridgeLine, expansionFactor)
 
-        const results = this.runLayerConstruction({ outer: expandedPolygon, holes: overhangPoly.holes }, zOffset, layer)
+        const results = this.runLayerConstruction({ outer: preparedPolygon, holes: overhangPoly.holes }, zOffset, layer)
 
         const layerElements: GroupOrElement[] = []
         for (const result of results) {
