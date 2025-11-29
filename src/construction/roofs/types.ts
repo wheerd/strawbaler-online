@@ -1,13 +1,14 @@
 import type { vec2 } from 'gl-matrix'
 
+import type { Roof } from '@/building/model'
 import { sumLayerThickness } from '@/construction/config/store/layerUtils'
 import type { LayerConfig } from '@/construction/layers/types'
 import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
-import type { Length, LineSegment2D, Polygon2D } from '@/shared/geometry'
+import type { Length, LineSegment2D } from '@/shared/geometry'
 
 export interface RoofAssembly<TConfig extends RoofAssemblyConfigBase> {
-  construct: (polygon: Polygon2D, config: TConfig) => ConstructionModel
+  construct: (roof: Roof, config: TConfig) => ConstructionModel
 
   getTopOffset: (config: TConfig) => Length
   getBottomOffsets: (config: TConfig, line: LineSegment2D) => vec2[]

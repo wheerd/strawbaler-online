@@ -1,12 +1,13 @@
 import type { vec2 } from 'gl-matrix'
 
+import type { Roof } from '@/building/model'
 import { createUnsupportedModel } from '@/construction/model'
-import { type Length, type LineSegment2D, type Polygon2D } from '@/shared/geometry'
+import { type Length, type LineSegment2D } from '@/shared/geometry'
 
 import type { MonolithicRoofConfig, RoofAssembly } from './types'
 
 export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig> {
-  construct = (_polygon: Polygon2D, _config: MonolithicRoofConfig) => {
+  construct = (_roof: Roof, _config: MonolithicRoofConfig) => {
     return createUnsupportedModel('Not yet supported.', 'unsupported-roof-monolithic')
   }
 
