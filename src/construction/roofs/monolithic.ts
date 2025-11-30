@@ -230,7 +230,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
   /**
    * Get ceiling polygon as intersection of perimeter inside polygons with roof reference
    */
-  private getCeilingPolygon(roof: Roof): Polygon2D | null {
+  private getCeilingPolygon(roof: Roof): PolygonWithHoles2D | null {
     const { getPerimetersByStorey } = getModelActions()
     const perimeters = getPerimetersByStorey(roof.storeyId)
 
@@ -251,7 +251,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
       { outer: roof.referencePolygon, holes: [] }
     )
 
-    return intersections.length > 0 ? intersections[0].outer : null
+    return intersections.length > 0 ? intersections[0] : null
   }
 
   /**
@@ -391,7 +391,10 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
       return elements
     }
 
-    const preparedPolygon = this.preparePolygonForConstruction(ceilingPolygon, roof.ridgeLine, expansionFactor)
+    const preparedOuter = this.preparePolygonForConstruction(ceilingPolygon.outer, roof.ridgeLine, expansionFactor)
+    const preparedHoles = ceilingPolygon.holes.map(hole =>
+      this.preparePolygonForConstruction(hole, roof.ridgeLine, expansionFactor)
+    )
 
     let zOffset = (roof.verticalOffset - config.layers.insideThickness) as Length
 
@@ -399,7 +402,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
     const reversedLayers = [...config.layers.insideLayers].reverse()
 
     for (const layer of reversedLayers) {
-      const results = this.runLayerConstruction({ outer: preparedPolygon, holes: [] }, zOffset, layer)
+      const results = this.runLayerConstruction({ outer: preparedOuter, holes: preparedHoles }, zOffset, layer)
 
       const layerElements: GroupOrElement[] = []
       for (const result of results) {
@@ -442,9 +445,12 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
 
     for (const layer of reversedLayers) {
       for (const overhangPoly of overhangPolygons) {
-        const preparedPolygon = this.preparePolygonForConstruction(overhangPoly.outer, roof.ridgeLine, expansionFactor)
+        const preparedOuter = this.preparePolygonForConstruction(overhangPoly.outer, roof.ridgeLine, expansionFactor)
+        const preparedHoles = overhangPoly.holes.map(hole =>
+          this.preparePolygonForConstruction(hole, roof.ridgeLine, expansionFactor)
+        )
 
-        const results = this.runLayerConstruction({ outer: preparedPolygon, holes: overhangPoly.holes }, zOffset, layer)
+        const results = this.runLayerConstruction({ outer: preparedOuter, holes: preparedHoles }, zOffset, layer)
 
         const layerElements: GroupOrElement[] = []
         for (const result of results) {
