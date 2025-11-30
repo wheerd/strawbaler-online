@@ -11,7 +11,7 @@ export interface RoofAssembly<TConfig extends RoofAssemblyConfigBase> {
   construct: (roof: Roof, config: TConfig) => ConstructionModel
 
   getTopOffset: (config: TConfig) => Length
-  getBottomOffsets: (config: TConfig, line: LineSegment2D) => vec2[]
+  getBottomOffsets: (roof: Roof, config: TConfig, line: LineSegment2D) => vec2[]
   getConstructionThickness: (config: TConfig) => Length
 }
 
