@@ -4,6 +4,7 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 import type { ConstructionModel } from '@/construction/model'
+import { matAppToThree, toThreeTransform } from '@/construction/viewer3d/utils/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 
 import ConstructionElement3D from './components/ConstructionElement3D'
@@ -54,6 +55,8 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
     return Math.min(dpr, 1.5)
   }, [])
 
+  const { position, rotation, scale } = toThreeTransform(matAppToThree)
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Canvas
@@ -76,13 +79,15 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
 
         <gridHelper args={gridHelperArgs} position={[centerX, 0, -centerY]} />
 
-        {model.elements.map(element =>
-          'children' in element ? (
-            <ConstructionGroup3D key={element.id} group={element} />
-          ) : (
-            <ConstructionElement3D key={element.id} element={element} />
-          )
-        )}
+        <group position={position} rotation={rotation} scale={scale}>
+          {model.elements.map(element =>
+            'children' in element ? (
+              <ConstructionGroup3D key={element.id} group={element} />
+            ) : (
+              <ConstructionElement3D key={element.id} element={element} />
+            )
+          )}
+        </group>
 
         <OrbitControls target={[centerX, centerZ, -centerY]} makeDefault />
         <SceneExporter onExportReady={handleExportReady} />

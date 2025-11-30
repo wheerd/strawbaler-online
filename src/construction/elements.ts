@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 
 import type { MaterialId } from '@/construction/materials/material'
 import type { Bounds3D } from '@/shared/geometry'
@@ -42,10 +42,7 @@ export const createCuboidElement = (
   partInfo?: PartInfo
 ): ConstructionElement => {
   const shape = createCuboid(size)
-  const transform: Transform = {
-    position: vec3.clone(corner),
-    rotation: vec3.fromValues(0, 0, 0)
-  }
+  const transform = mat4.fromTranslation(mat4.create(), corner)
   return createConstructionElement(material, shape, transform, tags, partInfo)
 }
 

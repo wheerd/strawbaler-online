@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 
 import { createConstructionElement } from '@/construction/elements'
 import type { LayerConstruction, MonolithicLayerConfig } from '@/construction/layers/types'
@@ -21,10 +21,11 @@ export class MonolithicLayerConstruction implements LayerConstruction<Monolithic
           : vec3.fromValues(offset, 0, 0)
 
     yield yieldElement(
-      createConstructionElement(config.material, createExtrudedPolygon(polygon, plane, config.thickness), {
-        position,
-        rotation: vec3.fromValues(0, 0, 0)
-      })
+      createConstructionElement(
+        config.material,
+        createExtrudedPolygon(polygon, plane, config.thickness),
+        mat4.fromTranslation(mat4.create(), position)
+      )
     )
   }
 }

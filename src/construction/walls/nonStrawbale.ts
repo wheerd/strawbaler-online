@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model'
 import { getConfigActions } from '@/construction/config'
@@ -75,10 +75,7 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
     const structureShapes = structuralPolygons.map(p =>
       createExtrudedPolygon(p, WALL_POLYGON_PLANE, structuralThickness)
     )
-    const structureTransform = {
-      position: vec3.fromValues(0, config.layers.insideThickness, 0),
-      rotation: vec3.fromValues(0, 0, 0)
-    }
+    const structureTransform = mat4.fromTranslation(mat4.create(), vec3.fromValues(0, config.layers.insideThickness, 0))
     const structureElements = structureShapes.map(s =>
       createConstructionElement(config.material, s, structureTransform)
     )

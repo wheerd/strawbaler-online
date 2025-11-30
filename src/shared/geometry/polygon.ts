@@ -376,6 +376,8 @@ export function splitPolygonByLine(polygon: Polygon2D, line: LineSegment2D): Pol
     return []
   }
 
+  const polygonCW = ensurePolygonIsClockwise(polygon)
+
   // Get line direction and perpendiculars
   const lineDir = direction(line.start, line.end)
   const perpLeft = perpendicularCCW(lineDir)
@@ -398,14 +400,14 @@ export function splitPolygonByLine(polygon: Polygon2D, line: LineSegment2D): Pol
   const rightP3 = vec2.scaleAndAdd(vec2.create(), rightP2, perpRight, largeSize)
   const rightP4 = vec2.scaleAndAdd(vec2.create(), rightP1, perpRight, largeSize)
 
-  const leftHalfPlane: Polygon2D = { points: [leftP1, leftP2, leftP3, leftP4] }
-  const rightHalfPlane: Polygon2D = { points: [rightP1, rightP2, rightP3, rightP4] }
+  const leftHalfPlane: Polygon2D = ensurePolygonIsClockwise({ points: [leftP1, leftP2, leftP3, leftP4] })
+  const rightHalfPlane: Polygon2D = ensurePolygonIsClockwise({ points: [rightP1, rightP2, rightP3, rightP4] })
 
   // Use subtract to get the right side (polygon - left half-plane)
-  const rightResults = subtractPolygons([polygon], [leftHalfPlane])
+  const rightResults = intersectPolygon({ outer: polygonCW, holes: [] }, { outer: rightHalfPlane, holes: [] })
 
   // Use subtract to get the left side (polygon - right half-plane)
-  const leftResults = subtractPolygons([polygon], [rightHalfPlane])
+  const leftResults = intersectPolygon({ outer: polygonCW, holes: [] }, { outer: leftHalfPlane, holes: [] })
 
   // Collect all pieces with side tags
   const result: PolygonSide[] = []

@@ -1,6 +1,7 @@
-import { vec2, vec3 } from 'gl-matrix'
+import { mat4, vec2, vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
+import { IDENTITY, translate } from '@/construction/geometry'
 import { Bounds3D } from '@/shared/geometry'
 
 import type { ConstructionElementId } from './elements'
@@ -276,10 +277,7 @@ describe('transformModel', () => {
       bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
     }
 
-    const transformed = transformModel(model, {
-      position: vec3.fromValues(10, 0, 0),
-      rotation: vec3.fromValues(0, 0, 0)
-    })
+    const transformed = transformModel(model, translate(vec3.fromValues(10, 0, 0)))
 
     expect(transformed.areas).toHaveLength(1)
     const area = transformed.areas[0]
@@ -298,7 +296,7 @@ describe('transformModel', () => {
           type: 'cuboid',
           areaType: 'corner',
           renderPosition: 'top',
-          transform: { position: vec3.fromValues(5, 0, 0), rotation: vec3.fromValues(0, 0, 0) },
+          transform: translate(vec3.fromValues(5, 0, 0)),
           bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
         }
       ],
@@ -307,15 +305,12 @@ describe('transformModel', () => {
       bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
     }
 
-    const transformed = transformModel(model, {
-      position: vec3.fromValues(10, 0, 0),
-      rotation: vec3.fromValues(0, 0, 0)
-    })
+    const transformed = transformModel(model, translate(vec3.fromValues(10, 0, 0)))
 
     expect(transformed.areas).toHaveLength(1)
     const area = transformed.areas[0]
     if (area.type === 'cuboid') {
-      expect(area.transform.position[0]).toBe(15)
+      expect(mat4.getTranslation(vec3.create(), area.transform)[0]).toBe(15)
     }
   })
 
@@ -337,10 +332,7 @@ describe('transformModel', () => {
       bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
     }
 
-    const transformed = transformModel(model, {
-      position: vec3.fromValues(10, 0, 0),
-      rotation: vec3.fromValues(0, 0, 0)
-    })
+    const transformed = transformModel(model, translate(vec3.fromValues(10, 0, 0)))
 
     expect(transformed.areas).toHaveLength(1)
     const area = transformed.areas[0]
@@ -360,7 +352,7 @@ describe('mergeKey functionality', () => {
           type: 'cuboid',
           areaType: 'floor-level',
           renderPosition: 'bottom',
-          transform: { position: vec3.fromValues(0, 0, 0), rotation: vec3.fromValues(0, 0, 0) },
+          transform: IDENTITY,
           bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 10, 1)),
           mergeKey: 'floor-1'
         }
@@ -378,7 +370,7 @@ describe('mergeKey functionality', () => {
           type: 'cuboid',
           areaType: 'floor-level',
           renderPosition: 'bottom',
-          transform: { position: vec3.fromValues(0, 0, 0), rotation: vec3.fromValues(0, 0, 0) },
+          transform: IDENTITY,
           bounds: Bounds3D.fromMinMax(vec3.fromValues(10, 0, 0), vec3.fromValues(20, 10, 1)),
           mergeKey: 'floor-1'
         }
@@ -408,7 +400,7 @@ describe('mergeKey functionality', () => {
           type: 'cuboid',
           areaType: 'floor-level',
           renderPosition: 'bottom',
-          transform: { position: vec3.fromValues(0, 0, 0), rotation: vec3.fromValues(0, 0, 0) },
+          transform: IDENTITY,
           bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 10, 1)),
           mergeKey: 'floor-1'
         }
@@ -426,7 +418,7 @@ describe('mergeKey functionality', () => {
           type: 'cuboid',
           areaType: 'floor-level',
           renderPosition: 'bottom',
-          transform: { position: vec3.fromValues(0, 0, 0), rotation: vec3.fromValues(0, 0, 0) },
+          transform: IDENTITY,
           bounds: Bounds3D.fromMinMax(vec3.fromValues(10, 0, 0), vec3.fromValues(20, 10, 1)),
           mergeKey: 'floor-2'
         }

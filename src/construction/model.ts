@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 
 import { type Axis3D, Bounds3D, type Length, type Plane3D, type Polygon2D } from '@/shared/geometry'
 import { simplifyPolygon, unionPolygons } from '@/shared/geometry/polygon'
@@ -230,12 +230,7 @@ function transformArea(a: HighlightedArea, t: Transform): HighlightedArea {
 }
 
 function composeTransforms(inner: Transform, outer: Transform): Transform {
-  const composedPosition = transform(inner.position, outer)
-  const composedRotation = vec3.add(vec3.create(), inner.rotation, outer.rotation)
-  return {
-    position: composedPosition,
-    rotation: composedRotation
-  }
+  return mat4.multiply(mat4.create(), outer, inner)
 }
 
 function mergeAreaGroup(areas: HighlightedArea[], mergeKey: string): HighlightedArea[] {

@@ -1,4 +1,4 @@
-import { mat2, vec2, vec3 } from 'gl-matrix'
+import { mat2, mat4, vec2, vec3 } from 'gl-matrix'
 
 import { createConstructionElement } from '@/construction/elements'
 import type { LayerConstruction, StripedLayerConfig } from '@/construction/layers/types'
@@ -90,7 +90,7 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
           createConstructionElement(
             config.stripeMaterial,
             createExtrudedPolygon(stripe, plane, config.thickness),
-            { position, rotation: vec3.fromValues(0, 0, 0) },
+            mat4.fromTranslation(mat4.create(), position),
             undefined,
             polygonPartInfo('stripe', stripe.outer, plane, config.thickness)
           )
@@ -116,7 +116,7 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
               createConstructionElement(
                 config.gapMaterial,
                 createExtrudedPolygon(gap, plane, config.thickness),
-                { position, rotation: vec3.fromValues(0, 0, 0) },
+                mat4.fromTranslation(mat4.create(), position),
                 undefined
               )
             )

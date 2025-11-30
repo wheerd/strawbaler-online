@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { type ConfigActions, getConfigActions } from '@/construction/config'
 import type { ConstructionElement } from '@/construction/elements'
+import { getPosition } from '@/construction/geometry'
 import { aggregateResults } from '@/construction/results'
 import type { CuboidShape } from '@/construction/shapes'
 
@@ -62,7 +63,7 @@ describe('constructStraw', () => {
       const baleElement = bale as ConstructionElement
       expect(baleElement.material).toBe(mockMaterialId)
       expect(baleElement.shape.base?.type).toBe('cuboid')
-      expect(baleElement.transform.position).toEqual(vec3.fromValues(0, 0, 0))
+      expect(getPosition(baleElement.transform)).toEqual(vec3.fromValues(0, 0, 0))
       expect((baleElement.shape.base as CuboidShape).size).toEqual(vec3.fromValues(800, 360, 500))
     })
 
@@ -92,7 +93,7 @@ describe('constructStraw', () => {
       expect(elements).toHaveLength(1)
 
       expect(errors[0].description).toBe('Wall is too thick for a single strawbale')
-      expect((elements[0] as ConstructionElement).transform.position).toEqual(position)
+      expect(getPosition(elements[0].transform)).toEqual(position)
       expect(((elements[0] as ConstructionElement).shape.base as CuboidShape).size).toEqual(size)
     })
 
@@ -108,7 +109,7 @@ describe('constructStraw', () => {
       expect(elements).toHaveLength(1)
 
       expect(warnings[0].description).toBe('Wall is too thin for a single strawbale')
-      expect((elements[0] as ConstructionElement).transform.position).toEqual(position)
+      expect(getPosition(elements[0].transform)).toEqual(position)
       expect(((elements[0] as ConstructionElement).shape.base as CuboidShape).size).toEqual(size)
     })
   })

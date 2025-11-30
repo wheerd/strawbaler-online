@@ -1,4 +1,4 @@
-import { vec2, vec3 } from 'gl-matrix'
+import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { Perimeter, StoreyId } from '@/building/model'
 import { getModelActions } from '@/building/store'
@@ -117,10 +117,7 @@ export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
   if (finishedFloorOffset === 0) {
     return storeyModel
   }
-  return transformModel(storeyModel, {
-    position: vec3.fromValues(0, 0, -finishedFloorOffset),
-    rotation: vec3.fromValues(0, 0, 0)
-  })
+  return transformModel(storeyModel, mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, -finishedFloorOffset)))
 }
 
 export function constructModel(): ConstructionModel | null {
@@ -131,11 +128,9 @@ export function constructModel(): ConstructionModel | null {
     const model = constructStorey(storey.id)
     if (model) {
       models.push(
-        transformModel(
-          model,
-          { position: vec3.fromValues(0, 0, finishedFloorElevation), rotation: vec3.fromValues(0, 0, 0) },
-          [TAG_STOREY]
-        )
+        transformModel(model, mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, finishedFloorElevation)), [
+          TAG_STOREY
+        ])
       )
     }
     finishedFloorElevation += storey.floorHeight

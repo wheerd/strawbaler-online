@@ -1,4 +1,4 @@
-import { quat, vec2, vec3 } from 'gl-matrix'
+import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { Roof } from '@/building/model'
 import { getModelActions } from '@/building/store'
@@ -31,6 +31,7 @@ import {
   intersectPolygon,
   lineFromSegment,
   lineIntersection,
+  perpendicularCCW,
   perpendicularCW,
   splitPolygonByLine,
   subtractPolygons,
@@ -59,6 +60,9 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
     // STEP 1: Split roof polygon ONCE
     const roofSides = this.splitRoofPolygon(roof)
 
+    console.log(roof.ridgeLine)
+    console.log(roofSides.map(s => [s.side, s.polygon.points.length]))
+
     const allElements: GroupOrElement[] = []
 
     // STEP 2: For each side, build all layers
@@ -79,10 +83,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
 
       // Group this side with its transform
       const sideTag = roofSide.side === 'left' ? TAG_ROOF_SIDE_LEFT : TAG_ROOF_SIDE_RIGHT
-      const sideGroup = createConstructionGroup(sideElements, roofSide.transform, [
-        createTag('construction', roof.id),
-        sideTag
-      ])
+      const sideGroup = createConstructionGroup(sideElements, roofSide.transform, [sideTag])
 
       allElements.push(sideGroup)
     }
@@ -230,48 +231,41 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
     // Ridge height from FULL polygon (shared by both sides)
     const ridgeHeight = this.calculateRidgeHeight(roof)
 
-    // Rotation axis along ridge
-    const rotationAxis = vec3.fromValues(ridgeDir2D[0], ridgeDir2D[1], 0)
-    vec3.normalize(rotationAxis, rotationAxis)
+    // Rotation axis along ridge (in 3D)
+    const rotationAxis = vec3.normalize(vec3.create(), vec3.fromValues(ridgeDir2D[0], ridgeDir2D[1], 0))
 
-    // Opposite rotation for each side
-    // Left side (CCW perpendicular) rotates one way, right side (CW perpendicular) rotates opposite
-    const angle = side === 'left' ? slopeAngleRad : -slopeAngleRad
+    // Determine rotation direction using right-hand rule
+    // When rotating around an axis, positive rotation makes the perpendicular CCW side go UP
+    // We want the roof to slope DOWN on both sides, so:
+    // - The side on the "up" side of rotation needs NEGATIVE angle (to slope down)
+    // - The side on the "down" side of rotation needs POSITIVE angle (already down, we tilt more)
+    //
+    // Cross product: rotationAxis × +Z = perpendicular that goes "up" with positive rotation
+    const upDirection = vec3.create()
+    vec3.cross(upDirection, rotationAxis, [0, 0, 1])
+    // upDirection now points in the direction that goes UP with positive rotation
 
-    const q = quat.create()
-    quat.setAxisAngle(q, rotationAxis, angle)
-    const euler = this.quaternionToEuler(q)
+    // Get the perpendicular direction for this side
+    const sidePerp = side === 'left' ? perpendicularCCW(ridgeDir2D) : perpendicularCW(ridgeDir2D)
+    const sidePerp3D = vec3.fromValues(sidePerp[0], sidePerp[1], 0)
 
-    return {
-      position: vec3.fromValues(roof.ridgeLine.start[0], roof.ridgeLine.start[1], ridgeHeight),
-      rotation: euler
-    }
-  }
+    // If sidePerp aligns with upDirection, this side goes UP with positive rotation
+    // So we need NEGATIVE rotation to make it go DOWN
+    const dot = vec3.dot(sidePerp3D, upDirection)
+    const angle = dot < 0 ? -slopeAngleRad : slopeAngleRad
+    console.log('angle', rotationAxis, sidePerp, side, dot, angle)
 
-  /**
-   * Convert quaternion to Euler angles (XYZ convention)
-   */
-  private quaternionToEuler(q: quat): vec3 {
-    const x = q[0]
-    const y = q[1]
-    const z = q[2]
-    const w = q[3]
+    const transform = mat4.rotate(
+      mat4.create(),
+      mat4.fromTranslation(
+        mat4.create(),
+        vec3.fromValues(roof.ridgeLine.start[0], roof.ridgeLine.start[1], ridgeHeight)
+      ),
+      angle,
+      rotationAxis
+    )
 
-    // Roll (x-axis rotation)
-    const sinRollCosP = 2 * (w * x + y * z)
-    const cosRollCosP = 1 - 2 * (x * x + y * y)
-    const roll = Math.atan2(sinRollCosP, cosRollCosP)
-
-    // Pitch (y-axis rotation)
-    const sinPitch = 2 * (w * y - z * x)
-    const pitch = Math.abs(sinPitch) >= 1 ? (Math.sign(sinPitch) * Math.PI) / 2 : Math.asin(sinPitch)
-
-    // Yaw (z-axis rotation)
-    const sinYawCosP = 2 * (w * z + x * y)
-    const cosYawCosP = 1 - 2 * (y * y + z * z)
-    const yaw = Math.atan2(sinYawCosP, cosYawCosP)
-
-    return vec3.fromValues(roll, pitch, yaw)
+    return transform
   }
 
   /**
@@ -317,17 +311,17 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
     const rotationAxis = vec3.fromValues(ridgeDir2D[0], ridgeDir2D[1], 0)
     vec3.normalize(rotationAxis, rotationAxis)
 
-    // Use quaternion for axis-angle to Euler conversion
-    const q = quat.create()
-    quat.setAxisAngle(q, rotationAxis, slopeAngleRad)
+    const transform = mat4.rotate(
+      mat4.create(),
+      mat4.fromTranslation(
+        mat4.create(),
+        vec3.fromValues(roof.ridgeLine.start[0], roof.ridgeLine.start[1], ridgeHeight)
+      ),
+      slopeAngleRad,
+      rotationAxis
+    )
 
-    // Convert quaternion to Euler angles
-    const euler = this.quaternionToEuler(q)
-
-    return {
-      position: vec3.fromValues(roof.ridgeLine.start[0], roof.ridgeLine.start[1], ridgeHeight),
-      rotation: euler
-    }
+    return transform
   }
 
   /**
@@ -424,10 +418,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
     const element = createConstructionElement(
       config.material,
       createExtrudedPolygon({ outer: preparedPolygon, holes: [] }, 'xy', config.thickness),
-      {
-        position: vec3.fromValues(0, 0, roof.verticalOffset),
-        rotation: vec3.fromValues(0, 0, 0)
-      },
+      mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, roof.verticalOffset)),
       [TAG_ROOF]
     )
 

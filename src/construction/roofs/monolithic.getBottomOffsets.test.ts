@@ -15,7 +15,7 @@ describe('MonolithicRoofAssembly.getBottomOffsets', () => {
     ridgeStart: vec2,
     ridgeEnd: vec2,
     slope: number,
-    verticalOffset: number = 3000
+    verticalOffset = 3000
   ): Roof => ({
     id: 'test-roof' as any,
     storeyId: 'test-storey' as any,
@@ -39,7 +39,7 @@ describe('MonolithicRoofAssembly.getBottomOffsets', () => {
     assemblyId: 'test-assembly' as any
   })
 
-  const createTestConfig = (insideThickness: number = 0): MonolithicRoofConfig => ({
+  const createTestConfig = (insideThickness = 0): MonolithicRoofConfig => ({
     type: 'monolithic',
     thickness: millimeters(200),
     material: 'test-material' as any,

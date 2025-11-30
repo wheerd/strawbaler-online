@@ -1,7 +1,7 @@
-import { vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
 import type { ConstructionElement, ConstructionGroup } from '@/construction/elements'
+import { IDENTITY } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
 import { Bounds3D } from '@/shared/geometry'
 
@@ -12,7 +12,7 @@ describe('getConstructionElementClasses', () => {
     const element: ConstructionElement = {
       id: 'test-id' as any,
       material: 'wood' as MaterialId,
-      transform: { position: vec3.create(), rotation: vec3.create() },
+      transform: IDENTITY,
       bounds: Bounds3D.EMPTY,
       shape: { type: 'cuboid', bounds: Bounds3D.EMPTY } as any,
       tags: [
@@ -31,7 +31,7 @@ describe('getConstructionElementClasses', () => {
   it('should generate correct classes for group with tags but no material', () => {
     const group: ConstructionGroup = {
       id: 'test-group-id' as any,
-      transform: { position: vec3.create(), rotation: vec3.create() },
+      transform: IDENTITY,
       bounds: Bounds3D.EMPTY,
       children: [],
       tags: [{ id: 'construction_walls', label: 'Walls', category: 'construction' }]
@@ -46,7 +46,7 @@ describe('getConstructionElementClasses', () => {
     const element: ConstructionElement = {
       id: 'test-id' as any,
       material: 'straw' as MaterialId,
-      transform: { position: vec3.create(), rotation: vec3.create() },
+      transform: IDENTITY,
       bounds: Bounds3D.EMPTY,
       shape: { type: 'cuboid', bounds: Bounds3D.EMPTY } as any
     }
@@ -62,7 +62,7 @@ describe('getConstructionElementClasses', () => {
     const element: ConstructionElement = {
       id: 'test-id' as any,
       material: 'concrete' as MaterialId,
-      transform: { position: vec3.create(), rotation: vec3.create() },
+      transform: IDENTITY,
       bounds: Bounds3D.EMPTY,
       shape: { type: 'cuboid', bounds: Bounds3D.EMPTY } as any
     }
@@ -76,7 +76,7 @@ describe('getConstructionElementClasses', () => {
     const element: ConstructionElement = {
       id: 'test-id' as any,
       material: 'steel' as MaterialId,
-      transform: { position: vec3.create(), rotation: vec3.create() },
+      transform: IDENTITY,
       bounds: Bounds3D.EMPTY,
       shape: { type: 'cuboid', bounds: Bounds3D.EMPTY } as any
     }
@@ -89,7 +89,7 @@ describe('getConstructionElementClasses', () => {
   it('should handle group with no tags', () => {
     const group: ConstructionGroup = {
       id: 'test-group-id' as any,
-      transform: { position: vec3.create(), rotation: vec3.create() },
+      transform: IDENTITY,
       bounds: Bounds3D.EMPTY,
       children: []
     }

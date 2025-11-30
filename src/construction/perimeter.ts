@@ -1,4 +1,4 @@
-import { vec2, vec3 } from 'gl-matrix'
+import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
@@ -102,10 +102,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
       const ringBeam = RING_BEAM_ASSEMBLIES[assembly.type].construct(perimeter, assembly)
       const transformedModel = transformModel(
         ringBeam,
-        {
-          position: [0, 0, constructionHeight - assembly.height],
-          rotation: vec3.fromValues(0, 0, 0)
-        },
+        mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, constructionHeight - assembly.height)),
         [TAG_TOP_PLATE]
       )
       allModels.push(transformedModel)
@@ -125,10 +122,11 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
       const segmentAngle = angle(wall.insideLine.start, wall.insideLine.end)
       const transformedModel = transformModel(
         wallModel,
-        {
-          position: [wall.insideLine.start[0], wall.insideLine.start[1], 0],
-          rotation: [0, 0, segmentAngle]
-        },
+        mat4.rotateZ(
+          mat4.create(),
+          mat4.fromTranslation(mat4.create(), vec3.fromValues(wall.insideLine.start[0], wall.insideLine.start[1], 0)),
+          segmentAngle
+        ),
         [TAG_WALLS]
       )
       allModels.push(transformedModel)
@@ -188,10 +186,10 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     const relevantRoofs = roofs.filter(r => r.referencePerimeter === perimeter.id)
     allModels.push(
       ...relevantRoofs.map(roof =>
-        transformModel(constructRoof(roof), {
-          position: vec3.fromValues(0, 0, storey.floorHeight),
-          rotation: vec3.fromValues(0, 0, 0)
-        })
+        transformModel(
+          constructRoof(roof),
+          mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, storey.floorHeight))
+        )
       )
     )
   }

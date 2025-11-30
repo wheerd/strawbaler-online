@@ -4,44 +4,16 @@ import type { GroupOrElement } from '@/construction/elements'
 import { Bounds2D } from '@/shared/geometry'
 import { type Axis3D, Bounds3D, type Plane3D } from '@/shared/geometry'
 
-export interface Transform {
-  readonly position: vec3
-  readonly rotation: vec3 // Euler angles
-}
+export type Transform = mat4
 
-export const IDENTITY: Transform = {
-  position: vec3.fromValues(0, 0, 0),
-  rotation: vec3.fromValues(0, 0, 0)
-}
+export const IDENTITY: Transform = mat4.identity(mat4.create())
 
-export function transform(v: vec3, t: Transform, origin?: vec3): vec3 {
-  // Create transformation matrix
-  const matrix = mat4.create()
+export const getPosition = (t: Transform) => mat4.getTranslation(vec3.create(), t)
 
-  // Apply translation to origin if provided
-  if (origin) {
-    mat4.translate(matrix, matrix, origin)
-  }
+export const translate = (v: vec3) => mat4.fromTranslation(mat4.create(), v)
 
-  // Apply position translation
-  mat4.translate(matrix, matrix, t.position)
-
-  // Apply rotations (Euler angles in radians: X, Y, Z order)
-  mat4.rotateX(matrix, matrix, t.rotation[0])
-  mat4.rotateY(matrix, matrix, t.rotation[1])
-  mat4.rotateZ(matrix, matrix, t.rotation[2])
-
-  // Apply inverse origin translation if provided
-  if (origin) {
-    const negOrigin = vec3.create()
-    vec3.negate(negOrigin, origin)
-    mat4.translate(matrix, matrix, negOrigin)
-  }
-
-  // Transform the vector
-  const result = vec3.create()
-  vec3.transformMat4(result, v, matrix)
-  return result
+export function transform(v: vec3, t: Transform): vec3 {
+  return vec3.transformMat4(vec3.create(), v, t)
 }
 
 export function transformBounds(bounds: Bounds3D, t: Transform): Bounds3D {
@@ -78,17 +50,17 @@ export const createZOrder = (axis: Axis3D, viewOrder: 'ascending' | 'descending'
 
   if (viewOrder === 'descending') {
     return (a, b) => {
+      const aBounds = a.transform ? transformBounds(a.bounds, a.transform) : a.bounds
+      const bBounds = b.transform ? transformBounds(b.bounds, b.transform) : b.bounds
       // For front view: sort by front face (max), farthest front face first
-      const aValue = a.bounds.max[axisIndex] + (a.transform?.position[axisIndex] ?? 0)
-      const bValue = b.bounds.max[axisIndex] + (b.transform?.position[axisIndex] ?? 0)
-      return aValue - bValue
+      return aBounds.max[axisIndex] - bBounds.max[axisIndex]
     }
   } else {
     return (a, b) => {
+      const aBounds = a.transform ? transformBounds(a.bounds, a.transform) : a.bounds
+      const bBounds = b.transform ? transformBounds(b.bounds, b.transform) : b.bounds
       // For back view: sort by back face (min), farthest back face first
-      const aValue = a.bounds.min[axisIndex] + (a.transform?.position[axisIndex] ?? 0)
-      const bValue = b.bounds.min[axisIndex] + (b.transform?.position[axisIndex] ?? 0)
-      return bValue - aValue
+      return bBounds.min[axisIndex] - aBounds.min[axisIndex]
     }
   }
 }
@@ -162,8 +134,13 @@ export const createSvgTransform = (
 ): string | undefined => {
   if (!projection || !rotationProjection) return undefined
   if (transform === IDENTITY) return undefined
-  const position = projection(transform.position)
-  const rotation = rotationProjection(transform.rotation)
+  const position = projection(mat4.getTranslation(vec3.create(), transform))
+  const euler = vec3.fromValues(
+    Math.atan2(transform[6], transform[10]),
+    Math.asin(-transform[2]),
+    Math.atan2(transform[1], transform[0])
+  )
+  const rotation = rotationProjection(euler)
   return `translate(${position[0]} ${position[1]}) rotate(${rotation})`
 }
 

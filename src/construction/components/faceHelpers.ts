@@ -1,3 +1,5 @@
+import { mat4, vec3 } from 'gl-matrix'
+
 import { getConstructionElementClasses } from '@/construction/components/cssHelpers'
 import type { GroupOrElement } from '@/construction/elements'
 import { type Projection, type RotationProjection, createSvgTransform } from '@/construction/geometry'
@@ -31,7 +33,10 @@ export function* geometryFaces(
   const elementTransform = createSvgTransform(groupOrElement.transform, projection, rotationProjection)
   if ('shape' in groupOrElement) {
     const combinedClassName = getConstructionElementClasses(groupOrElement, undefined)
-    const transformZ = (groupOrElement.transform ? projection(groupOrElement.transform?.position)[2] : 0) + zOffset
+    const transformZ =
+      (groupOrElement.transform ? projection(mat4.getTranslation(vec3.create(), groupOrElement.transform))[2] : 0) +
+      zOffset
+    console.log('z', transformZ)
     const manifold = groupOrElement.shape.manifold
     const centerZ = projection(groupOrElement.bounds.center)[2]
     const faces3D = getPolygonFacesFromManifold(manifold)
@@ -58,7 +63,9 @@ export function* geometryFaces(
       }
     }
   } else if ('children' in groupOrElement) {
-    const transformZ = (groupOrElement.transform ? projection(groupOrElement.transform?.position)[2] : 0) + zOffset
+    const transformZ =
+      (groupOrElement.transform ? projection(mat4.getTranslation(vec3.create(), groupOrElement.transform))[2] : 0) +
+      zOffset
     const allChildFaces = groupOrElement.children.flatMap(c =>
       Array.from(geometryFaces(c, projection, rotationProjection, transformZ))
     )
