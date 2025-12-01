@@ -71,79 +71,58 @@ export function fillNullRegions(heightLine: HeightLine, ceilingOffset: Length): 
     ]
   }
 
+  let beforeWasNull = false
   const result: HeightLine = []
 
   // Check if we need to fill before first item
-  const firstItem = heightLine[0]
-  if (firstItem.position > POSITION_EPSILON) {
+  if (heightLine[0].position > 0) {
     // NULL REGION AT START: Gap from 0 to first item
     // Add ceiling offset at start
     result.push({ position: 0, offset: ceilingOffset, nullAfter: false })
-
-    // Add jump FROM ceiling TO first item's offset at first item position
-    const firstOffset = isHeightItem(firstItem) ? firstItem.offset : firstItem.offsetBefore
-    result.push({
-      position: firstItem.position,
-      offsetBefore: ceilingOffset,
-      offsetAfter: firstOffset
-    } as HeightJumpItem)
-  } else {
-    // First item is at/near start - add it
-    if (isHeightItem(firstItem)) {
-      result.push({ position: firstItem.position, offset: firstItem.offset, nullAfter: false })
-    } else {
-      result.push(firstItem)
-    }
+    beforeWasNull = true
   }
 
   // Process remaining items, looking for null regions
-  for (let i = 1; i < heightLine.length; i++) {
-    const prevItem = heightLine[i - 1]
-    const currentItem = heightLine[i]
+  for (const item of heightLine) {
+    const beforeOffset = 'offset' in item ? item.offset : item.offsetBefore
+    const afterOffset = 'offset' in item ? item.offset : item.offsetAfter
+    const isNullAfter = 'nullAfter' in item && item.nullAfter && item.position < 1
 
     // Check if previous item has nullAfter flag
-    if (isHeightItem(prevItem) && prevItem.nullAfter) {
-      // NULL REGION: from prevItem.position to currentItem.position
-
-      // Jump FROM previous offset TO ceiling at previous position
+    if (beforeWasNull) {
       result.push({
-        position: prevItem.position,
-        offsetBefore: prevItem.offset,
-        offsetAfter: ceilingOffset
-      } as HeightJumpItem)
-
-      // Jump FROM ceiling TO current offset at current position
-      const currentOffset = isHeightItem(currentItem) ? currentItem.offset : currentItem.offsetBefore
-      result.push({
-        position: currentItem.position,
+        position: item.position,
         offsetBefore: ceilingOffset,
-        offsetAfter: currentOffset
-      } as HeightJumpItem)
+        offsetAfter: afterOffset
+      })
+    } else if (isNullAfter) {
+      result.push({
+        position: item.position,
+        offsetBefore: beforeOffset,
+        offsetAfter: ceilingOffset
+      })
+    } else if (beforeOffset !== afterOffset) {
+      result.push({
+        position: item.position,
+        offsetBefore: beforeOffset,
+        offsetAfter: afterOffset
+      })
     } else {
-      // No null region - add current item
-      result.push(currentItem)
+      result.push({
+        position: item.position,
+        offset: afterOffset,
+        nullAfter: item.position === 1
+      })
     }
+
+    beforeWasNull = isNullAfter
   }
 
   // Check if we need to fill after last item
-  const lastItem = heightLine[heightLine.length - 1]
-  if (lastItem.position < 1 - POSITION_EPSILON) {
-    const lastOffset = isHeightItem(lastItem) ? lastItem.offset : lastItem.offsetAfter
-
-    // Check if last item has nullAfter
-    if (isHeightItem(lastItem) && lastItem.nullAfter) {
-      // NULL REGION AT END: Already created jump to ceiling above
-      // Just need point at position 1
-      result.push({ position: 1, offset: ceilingOffset, nullAfter: false })
-    } else {
-      // NO NULL: Last item doesn't reach end - extend with jump to ceiling
-      result.push({
-        position: lastItem.position,
-        offsetBefore: lastOffset,
-        offsetAfter: ceilingOffset
-      } as HeightJumpItem)
-      result.push({ position: 1, offset: ceilingOffset, nullAfter: false })
-    }
+  if (heightLine[heightLine.length - 1].position < 1) {
+    // NULL REGION AT END: Gap from last item to 0
+    // Add ceiling offset at end
+    result.push({ position: 1, offset: ceilingOffset, nullAfter: true })
   }
 
   return result
