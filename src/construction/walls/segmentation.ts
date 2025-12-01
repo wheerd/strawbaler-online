@@ -291,7 +291,7 @@ export function* segmentedWallConstruction(
 
   const totalConstructionHeight =
     storeyContext.ceilingHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
-  const ceilingOffset = storeyContext.storeyHeight - totalConstructionHeight
+  const ceilingOffset = storeyContext.storeyHeight - totalConstructionHeight + topPlateHeight
 
   yield* createCornerAreas(cornerInfo, wall.wallLength, totalConstructionHeight)
 
@@ -371,16 +371,13 @@ export function* segmentedWallConstruction(
   if (roofHeightLine) {
     roofOffsets = convertHeightLineToWallOffsets(roofHeightLine, constructionLength)
   } else {
-    roofOffsets = [
-      vec2.fromValues(0, storeyContext.ceilingBottomOffset),
-      vec2.fromValues(constructionLength, storeyContext.ceilingBottomOffset)
-    ]
+    roofOffsets = [vec2.fromValues(0, -ceilingOffset), vec2.fromValues(constructionLength, -ceilingOffset)]
   }
 
   // Create overall wall construction area ONCE with roof offsets
   const overallWallArea = new WallConstructionArea(
     vec3.fromValues(-extensionStart, y, z),
-    vec3.fromValues(constructionLength, sizeY, storeyContext.storeyHeight - z),
+    vec3.fromValues(constructionLength, sizeY, storeyContext.storeyHeight - z - topPlateHeight),
     roofOffsets
   )
 
@@ -424,7 +421,7 @@ export function* segmentedWallConstruction(
     const groupWidth = groupEnd - groupStart
     const openingArea = overallWallArea.withXAdjustment(groupStart, groupWidth)
 
-    yield* openingConstruction(openingArea, finishedFloorZLevel, openingGroup)
+    yield* openingConstruction(openingArea, finishedFloorZLevel - openingArea.position[2], openingGroup)
 
     currentX = groupEnd
   }

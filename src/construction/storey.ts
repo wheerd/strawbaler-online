@@ -2,6 +2,7 @@ import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { Perimeter, StoreyId } from '@/building/model'
 import { getModelActions } from '@/building/store'
+import { constructRoof } from '@/construction/roof'
 import {
   type Length,
   type Line2D,
@@ -94,12 +95,10 @@ export function constructStoreyFloor(storeyId: StoreyId): ConstructionModel[] {
 }
 
 export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
-  const { getPerimetersByStorey, getStoreyById } = getModelActions()
+  const { getPerimetersByStorey, getStoreyById, getRoofsByStorey } = getModelActions()
   const { getFloorAssemblyById } = getConfigActions()
   const perimeters = getPerimetersByStorey(storeyId)
-  if (perimeters.length === 0) {
-    return null
-  }
+  const roofs = getRoofsByStorey(storeyId)
   const storey = getStoreyById(storeyId)
   if (!storey) {
     throw new Error('Invalid storey')
@@ -111,9 +110,12 @@ export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
   const floorAssembly = FLOOR_ASSEMBLIES[floorAssemblyConfig.type]
   const finishedFloorOffset = (floorAssemblyConfig.layers.topThickness +
     floorAssembly.getTopOffset(floorAssemblyConfig)) as Length
-  const perimeterModels = perimeters.map(p => constructPerimeter(p, false))
+  const roofModels = roofs.map(r =>
+    transformModel(constructRoof(r), mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, storey.floorHeight)))
+  )
+  const perimeterModels = perimeters.map(p => constructPerimeter(p, false, false))
   const floorModels = constructStoreyFloor(storeyId)
-  const storeyModel = mergeModels(...perimeterModels, ...floorModels)
+  const storeyModel = mergeModels(...perimeterModels, ...floorModels, ...roofModels)
   if (finishedFloorOffset === 0) {
     return storeyModel
   }
