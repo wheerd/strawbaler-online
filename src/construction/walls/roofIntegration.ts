@@ -307,8 +307,7 @@ function getOffsetAt(heightLine: HeightLine, position: number): Length {
   let before: HeightItem | HeightJumpItem | null = null
   let after: HeightItem | HeightJumpItem | null = null
 
-  for (let i = 0; i < heightLine.length; i++) {
-    const item = heightLine[i]
+  for (let item of heightLine) {
     if (item.position <= position) {
       before = item
     }
@@ -318,12 +317,15 @@ function getOffsetAt(heightLine: HeightLine, position: number): Length {
     }
   }
 
-  if (!before && !after) return 0
-  if (!before) {
-    return isHeightItem(after!) ? after!.offset : after!.offsetBefore
-  }
-  if (!after) {
-    return isHeightItem(before) ? before.offset : before.offsetAfter
+  if (!before || !after) {
+    if (before) {
+      return isHeightItem(before) ? before.offset : before.offsetAfter
+    }
+    if (after) {
+      return isHeightItem(after) ? after.offset : after.offsetBefore
+    }
+
+    return 0
   }
 
   // Exact match

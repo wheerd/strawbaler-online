@@ -1,7 +1,13 @@
-import { mat4, vec3 } from 'gl-matrix'
+import { mat4, vec2, vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
-import { IDENTITY, type Projection, type RotationProjection, createSvgTransform } from './geometry'
+import {
+  IDENTITY,
+  type Projection,
+  type RotationProjection,
+  WallConstructionArea,
+  createSvgTransform
+} from './geometry'
 
 describe('createSvgTransform', () => {
   it('should create correct SVG transform string', () => {
@@ -39,5 +45,78 @@ describe('createSvgTransform', () => {
     const result = createSvgTransform(transform, mockProjection, mockRotationProjection)
 
     expect(result).toMatch(/^translate\(-50 -75\) rotate\(-90(\.\d+)?\)$/)
+  })
+})
+
+describe('WallConstructionArea.withZAdjustment', () => {
+  it('should adjust area without roof offsets', () => {
+    const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(3000, 300, 3000))
+
+    const adjusted = area.withZAdjustment(100, 1000)
+
+    expect(adjusted.position).toEqual(vec3.fromValues(0, 0, 100))
+    expect(adjusted.size).toEqual(vec3.fromValues(3000, 300, 1000))
+    expect(adjusted.topOffsets).toBeUndefined()
+  })
+
+  it('should adjust offsets when roof is fully below new top', () => {
+    const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(3000, 300, 3000), [
+      vec2.fromValues(0, -500), // Roof at Z=2500
+      vec2.fromValues(3000, -700) // Roof at Z=2300
+    ])
+
+    const adjusted = area.withZAdjustment(0, 2700)
+
+    expect(adjusted.position).toEqual(vec3.fromValues(0, 0, 0))
+    expect(adjusted.size).toEqual(vec3.fromValues(3000, 300, 2700))
+    // Roof at 2500 and 2300, new top at 2700 -> offsets should be -200 and -400
+    expect(adjusted.topOffsets).toHaveLength(2)
+    expect(adjusted.topOffsets![0][0]).toBe(0)
+    expect(adjusted.topOffsets![0][1]).toBe(-200)
+    expect(adjusted.topOffsets![1][0]).toBe(3000)
+    expect(adjusted.topOffsets![1][1]).toBe(-400)
+  })
+
+  it('should add intersection points when roof is partially clipped', () => {
+    const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(3000, 300, 3000), [
+      vec2.fromValues(0, -200), // Roof at Z=2800
+      vec2.fromValues(3000, -500) // Roof at Z=2500
+    ])
+
+    const adjusted = area.withZAdjustment(0, 2700)
+
+    // At X=0: roof at 2800, above 2700 -> clipped to 0
+    // At X=3000: roof at 2500, below 2700 -> offset -200
+    // Should have intersection point where roof crosses 2700
+    expect(adjusted.topOffsets!.length).toBeGreaterThan(2)
+
+    // First point should be clipped
+    expect(adjusted.topOffsets![0][0]).toBe(0)
+    expect(adjusted.topOffsets![0][1]).toBe(0)
+
+    // Should have an intersection point
+    const intersectionPoint = adjusted.topOffsets![1]
+    expect(intersectionPoint[1]).toBe(0) // At the boundary
+    expect(intersectionPoint[0]).toBeGreaterThan(0)
+    expect(intersectionPoint[0]).toBeLessThan(3000)
+
+    // Last point should be unclipped
+    const lastPoint = adjusted.topOffsets![adjusted.topOffsets!.length - 1]
+    expect(lastPoint[0]).toBe(3000)
+    expect(lastPoint[1]).toBe(-200)
+  })
+
+  it('should handle fully clipped roof', () => {
+    const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(3000, 300, 3000), [
+      vec2.fromValues(0, -200), // Roof at Z=2800
+      vec2.fromValues(3000, -500) // Roof at Z=2500
+    ])
+
+    const adjusted = area.withZAdjustment(0, 1100)
+
+    // Both points above new top (1100), should be clipped to 0
+    expect(adjusted.topOffsets).toHaveLength(2)
+    expect(adjusted.topOffsets![0][1]).toBe(0)
+    expect(adjusted.topOffsets![1][1]).toBe(0)
   })
 })

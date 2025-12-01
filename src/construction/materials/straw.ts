@@ -1,7 +1,6 @@
 import { vec3 } from 'gl-matrix'
 
 import { getConfigActions } from '@/construction/config'
-import { createCuboidElement } from '@/construction/elements'
 import type { WallConstructionArea } from '@/construction/geometry'
 import { getMaterialsActions } from '@/construction/materials/store'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
@@ -47,7 +46,7 @@ function getStrawTags(size: vec3, material: StrawbaleMaterial): Tag[] {
 }
 
 export function* constructStraw(area: WallConstructionArea, materialId?: MaterialId): Generator<ConstructionResult> {
-  const { position, size } = area
+  const { size } = area
   const strawMaterialId = materialId ?? getConfigActions().getDefaultStrawMaterial()
   const material = getMaterialsActions().getMaterialById(strawMaterialId)
 
@@ -67,7 +66,7 @@ export function* constructStraw(area: WallConstructionArea, materialId?: Materia
     if (Math.abs(size[0] - material.baleHeight) <= material.tolerance) {
       for (let z = 0; z < size[2]; z += material.baleMaxLength) {
         const adjustedHeight = Math.min(material.baleMaxLength, size[2] - z)
-        const baleArea = area.withYAdjustment(z, adjustedHeight)
+        const baleArea = area.withZAdjustment(z, adjustedHeight)
 
         yield yieldElement(
           createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), 'strawbale')
@@ -94,7 +93,7 @@ export function* constructStraw(area: WallConstructionArea, materialId?: Materia
     if (remainderHeight > 0) {
       if (remainderHeight > material.flakeSize) {
         for (let x = 0; x < size[0]; x += material.baleHeight) {
-          const baleArea = area.withZAdjustment(fullEndZ).withXAdjustment(x, material.baleHeight)
+          const baleArea = area.withXAdjustment(x, material.baleHeight).withZAdjustment(fullEndZ)
 
           yield yieldElement(
             createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), 'strawbale')
@@ -109,7 +108,7 @@ export function* constructStraw(area: WallConstructionArea, materialId?: Materia
       }
     }
   } else if (size[1] > material.baleWidth) {
-    const element = createCuboidElement(strawMaterialId, position, size, [TAG_STRAW_STUFFED])
+    const element = createElementFromArea(area, strawMaterialId, [TAG_STRAW_STUFFED])
     yield yieldElement(element)
     yield yieldError({
       description: 'Wall is too thick for a single strawbale',
@@ -118,7 +117,7 @@ export function* constructStraw(area: WallConstructionArea, materialId?: Materia
       groupKey: `strawbale-thick-${strawMaterialId}`
     })
   } else {
-    const element = createCuboidElement(strawMaterialId, position, size, [TAG_STRAW_STUFFED])
+    const element = createElementFromArea(area, strawMaterialId, [TAG_STRAW_STUFFED])
     yield yieldElement(element)
     yield yieldWarning({
       description: 'Wall is too thin for a single strawbale',

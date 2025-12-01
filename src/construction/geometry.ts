@@ -8,8 +8,7 @@ import {
   type Length,
   type Plane3D,
   type Polygon2D,
-  ensurePolygonIsClockwise,
-  simplifyPolygon
+  intersectPolygon
 } from '@/shared/geometry'
 
 export type Transform = mat4
@@ -240,11 +239,10 @@ export class WallConstructionArea {
    * Create a copy with adjusted X position (horizontal offset along wall)
    */
   public withXAdjustment(xOffset: Length, newWidth?: Length): WallConstructionArea {
-    newWidth = Math.min(newWidth ?? this.size[0], this.size[0] - xOffset)
+    newWidth = Math.min(newWidth ?? this.size[0] - xOffset, this.size[0] - xOffset)
     const newPosition = vec3.fromValues(this.position[0] + xOffset, this.position[1], this.position[2])
     const newSize = vec3.fromValues(newWidth, this.size[1], this.size[2])
 
-    // Adjust topOffsets positions if they exist
     if (!this.topOffsets) {
       return new WallConstructionArea(newPosition, newSize)
     }
@@ -268,18 +266,83 @@ export class WallConstructionArea {
 
   /**
    * Create a copy with adjusted Z position/height
+   * Adds intersection points where roof line crosses the new top boundary to preserve slope information
    */
   public withZAdjustment(zOffset: Length, newHeight?: Length): WallConstructionArea {
     newHeight = Math.min(newHeight ?? this.size[2], this.size[2] - zOffset)
     const newPosition = vec3.fromValues(this.position[0], this.position[1], this.position[2] + zOffset)
     const newSize = vec3.fromValues(this.size[0], this.size[1], newHeight)
-    const newTop = zOffset + newHeight
-    const delta = newTop - this.size[2]
-    const newTopOffsets = this.topOffsets?.map(o => vec2.fromValues(o[0], Math.min(o[1] - delta, 0)))
-    if (this.size[2] - zOffset === newHeight) {
-      console.log(newTopOffsets?.map(o => o[0]))
+
+    if (!this.topOffsets || this.topOffsets.length === 0) {
+      return new WallConstructionArea(newPosition, newSize)
     }
-    return new WallConstructionArea(newPosition, newSize, newTopOffsets)
+
+    const oldTop = this.position[2] + this.size[2]
+    const newBase = newPosition[2]
+    const newTop = newPosition[2] + newSize[2]
+
+    const newTopOffsets: vec2[] = []
+
+    for (let i = 0; i < this.topOffsets.length; i++) {
+      const currentOffset = this.topOffsets[i]
+      const x = currentOffset[0]
+      const oldOffset = currentOffset[1]
+
+      const topAbsoluteZ = oldTop + oldOffset
+
+      const newOffset = topAbsoluteZ - newBase
+
+      // If this point needs clipping
+      if (newOffset > newSize[2]) {
+        // Check if we need to add an intersection point before this
+        if (i > 0) {
+          const prevOffset = this.topOffsets[i - 1]
+          const prevX = prevOffset[0]
+          const prevOldOffset = prevOffset[1]
+          const prevRoofZ = oldTop + prevOldOffset
+          const prevNewOffset = prevRoofZ - newBase
+
+          // If previous wasn't clipped but this is, add entry intersection
+          if (prevNewOffset <= newSize[2]) {
+            const intersectionX = this.findZIntersectionX(prevX, prevRoofZ, x, topAbsoluteZ, newTop)
+            newTopOffsets.push(vec2.fromValues(intersectionX, 0)) // At new top, offset = 0
+          }
+        }
+
+        // Add the clipped point (roof is above new top, so offset = 0)
+        newTopOffsets.push(vec2.fromValues(x, 0))
+
+        // Check if next point is unclipped (need exit intersection)
+        if (i < this.topOffsets.length - 1) {
+          const nextOffset = this.topOffsets[i + 1]
+          const nextX = nextOffset[0]
+          const nextOldOffset = nextOffset[1]
+          const nextRoofZ = oldTop + nextOldOffset
+          const nextNewOffset = nextRoofZ - newBase
+
+          if (nextNewOffset <= newSize[2]) {
+            const intersectionX = this.findZIntersectionX(x, topAbsoluteZ, nextX, nextRoofZ, newTop)
+            newTopOffsets.push(vec2.fromValues(intersectionX, 0)) // At new top, offset = 0
+          }
+        }
+      } else {
+        // Not clipped - use adjusted offset
+        newTopOffsets.push(vec2.fromValues(x, newOffset - newSize[2]))
+      }
+    }
+
+    return new WallConstructionArea(newPosition, newSize, newTopOffsets.length > 0 ? newTopOffsets : undefined)
+  }
+
+  private findZIntersectionX(x1: number, z1: number, x2: number, z2: number, targetZ: number): number {
+    if (Math.abs(z2 - z1) < 0.0001) {
+      // Nearly horizontal line
+      return (x1 + x2) / 2
+    }
+
+    // Linear interpolation to find X where Z = targetZ
+    const t = (targetZ - z1) / (z2 - z1)
+    return x1 + t * (x2 - x1)
   }
 
   /**
@@ -287,25 +350,21 @@ export class WallConstructionArea {
    * This polygon can be extruded along Y to create 3D geometry
    */
   public getSideProfilePolygon(): Polygon2D {
+    const basePolygon = {
+      points: [
+        vec2.fromValues(this.position[0], this.position[2]), // bottom-left
+        vec2.fromValues(this.position[0] + this.size[0], this.position[2]), // bottom-right
+        vec2.fromValues(this.position[0] + this.size[0], this.position[2] + this.size[2]), // top-right
+        vec2.fromValues(this.position[0], this.position[2] + this.size[2]) // top-left
+      ]
+    }
     if (!this.topOffsets || this.topOffsets.length === 0) {
       // Simple rectangle
-      return {
-        points: [
-          vec2.fromValues(this.position[0], this.position[2]), // bottom-left
-          vec2.fromValues(this.position[0] + this.size[0], this.position[2]), // bottom-right
-          vec2.fromValues(this.position[0] + this.size[0], this.position[2] + this.size[2]), // top-right
-          vec2.fromValues(this.position[0], this.position[2] + this.size[2]) // top-left
-        ]
-      }
+      return basePolygon
     }
 
     // Complex polygon with sloped top
     const pointsList: vec2[] = []
-
-    // M1380,2000 L525,2000
-    // L525,2482.6767578125
-    // L1380,2500
-    // L1380,2000
 
     const top = this.position[2] + this.size[2]
 
@@ -315,19 +374,22 @@ export class WallConstructionArea {
 
     // Right edge going up
     const lastOffset = this.topOffsets[this.topOffsets.length - 1]
-    pointsList.push(vec2.fromValues(this.position[0] + this.size[0], Math.max(top + lastOffset[1], this.position[2])))
+    pointsList.push(vec2.fromValues(this.position[0] + this.size[0], top + lastOffset[1]))
 
     // Top edge (right to left, following slope)
     for (let i = this.topOffsets.length - 1; i >= 0; i--) {
       const offset = this.topOffsets[i]
-      pointsList.push(vec2.fromValues(this.position[0] + offset[0], Math.max(top + offset[1], this.position[2])))
+      pointsList.push(vec2.fromValues(this.position[0] + offset[0], top + offset[1]))
     }
 
     // Left edge going down
     const firstOffset = this.topOffsets[0]
-    pointsList.push(vec2.fromValues(this.position[0], Math.max(top + firstOffset[1], this.position[2])))
+    pointsList.push(vec2.fromValues(this.position[0], top + firstOffset[1]))
 
-    return ensurePolygonIsClockwise(simplifyPolygon({ points: pointsList }))
+    const sidePolygonRaw = { outer: { points: pointsList }, holes: [] }
+    const sidePolygons = intersectPolygon({ outer: basePolygon, holes: [] }, sidePolygonRaw)
+
+    return sidePolygons[0].outer
   }
 
   public get bounds() {
