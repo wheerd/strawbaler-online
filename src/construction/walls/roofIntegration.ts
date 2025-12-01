@@ -8,7 +8,7 @@ import type { LineSegment2D } from '@/shared/geometry'
  * Result of converting height line to wall offsets
  */
 export interface WallTopOffsets {
-  offsets: ReadonlyArray<ReadonlyVec2> | undefined
+  offsets: readonly ReadonlyVec2[] | undefined
   hasRoofCoverage: boolean
   coverageStart: number // absolute X position where roof starts
   coverageEnd: number // absolute X position where roof ends
@@ -166,8 +166,8 @@ function removeDuplicateOffsets(offsets: vec2[]): vec2[] {
       seen.set(x, [y])
       result.push(offset)
     } else {
-      const heights = seen.get(x)!
-      if (!heights.includes(y)) {
+      const heights = seen.get(x)
+      if (heights && !heights.includes(y)) {
         // Different height at same position - keep it (height jump)
         heights.push(y)
         result.push(offset)
@@ -188,36 +188,37 @@ export function splitAtHeightJumps(area: WallConstructionArea): WallConstruction
     return [area]
   }
 
+  const segments: WallConstructionArea[] = []
+  let start = 0
+  const segmentOffsets: vec2[] = []
+
   // Find positions where jumps occur (same X position, different offsets)
-  const jumpPositions: number[] = []
   for (let i = 0; i < area.topOffsets.length - 1; i++) {
+    segmentOffsets.push(area.topOffsets[i])
     const current = area.topOffsets[i]
     const next = area.topOffsets[i + 1]
     if (Math.abs(current[0] - next[0]) < 0.001) {
-      // Jump detected
-      jumpPositions.push(current[0])
+      const end = current[0]
+      segments.push(
+        new WallConstructionArea(
+          vec3.fromValues(area.position[0] + start, area.position[1], area.position[2]),
+          vec3.fromValues(end - start, area.size[1], area.size[2]),
+          segmentOffsets.map(o => vec2.fromValues(o[0] - start, o[1]))
+        )
+      )
+      start = end
+      segmentOffsets.length = 0
     }
   }
 
-  if (jumpPositions.length === 0) {
-    return [area]
-  }
-
-  // Split area into segments at each jump
-  const segments: WallConstructionArea[] = []
-  let currentStart = area.position[0]
-
-  for (const jumpPos of jumpPositions) {
-    if (jumpPos > currentStart) {
-      segments.push(area.getSubArea(currentStart, jumpPos - currentStart))
-      currentStart = jumpPos
-    }
-  }
-
-  // Add final segment
-  const endPos = area.position[0] + area.size[0]
-  if (endPos > currentStart) {
-    segments.push(area.getSubArea(currentStart, endPos - currentStart))
+  if (segmentOffsets.length > 0) {
+    segments.push(
+      new WallConstructionArea(
+        vec3.fromValues(area.position[0] + start, area.position[1], area.position[2]),
+        vec3.fromValues(area.size[0] - start, area.size[1], area.size[2]),
+        segmentOffsets.map(o => vec2.fromValues(o[0] - start, o[1]))
+      )
+    )
   }
 
   return segments

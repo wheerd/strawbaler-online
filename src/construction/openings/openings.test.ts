@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createOpeningId } from '@/building/model/ids'
 import type { Opening } from '@/building/model/model'
 import { type ConstructionElement, type GroupOrElement, createCuboidElement } from '@/construction/elements'
+import { WallConstructionArea } from '@/construction/geometry'
 import { createMaterialId } from '@/construction/materials/material'
 import type { RawMeasurement } from '@/construction/measurements'
 import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
@@ -20,7 +21,6 @@ import {
 } from '@/construction/tags'
 import type { InfillMethod } from '@/construction/walls'
 import { infillWallArea } from '@/construction/walls/infill/infill'
-import type { WallSegment3D } from '@/construction/walls/segmentation'
 
 import { type OpeningConstructionConfig, constructOpeningFrame } from './openings'
 
@@ -66,12 +66,8 @@ const createTestConfig = (overrides: Partial<OpeningConstructionConfig> = {}): O
   ...overrides
 })
 
-const createTestOpeningSegment = (opening: Opening): WallSegment3D => ({
-  type: 'opening',
-  position: vec3.fromValues(opening.offsetFromStart, 0, 0),
-  size: vec3.fromValues(opening.width, 360, 2500),
-  openings: [opening]
-})
+const createTestOpeningArea = (opening: Opening): WallConstructionArea =>
+  new WallConstructionArea(vec3.fromValues(opening.offsetFromStart, 0, 0), vec3.fromValues(opening.width, 360, 2500))
 
 // Helper to create mock generator for infillWallArea
 const createMockInfillGenerator = function* (numElements = 2): Generator<ConstructionResult> {
@@ -83,12 +79,12 @@ const createMockInfillGenerator = function* (numElements = 2): Generator<Constru
   }
 }
 
-const mockInfillMethod = vi.fn<InfillMethod>((_position, _size) => createMockInfillGenerator())
+const mockInfillMethod = vi.fn<InfillMethod>(_area => createMockInfillGenerator())
 
 describe('constructOpeningFrame', () => {
   beforeEach(() => {
     mockInfillMethod.mockReset()
-    mockInfillMethod.mockImplementation((_position, _size) => createMockInfillGenerator())
+    mockInfillMethod.mockImplementation(_area => createMockInfillGenerator())
     mockInfillWallArea.mockReset()
     mockInfillWallArea.mockImplementation((..._args) => createMockInfillGenerator())
   })
@@ -99,10 +95,10 @@ describe('constructOpeningFrame', () => {
         sillHeight: 900,
         height: 1200
       })
-      const openingSegment = createTestOpeningSegment(opening)
+      const area = createTestOpeningArea(opening)
       const config = createTestConfig()
 
-      const results = [...constructOpeningFrame(openingSegment, config, mockInfillMethod)]
+      const results = [...constructOpeningFrame(area, [opening], 0, config, mockInfillMethod)]
       const { elements, errors, areas } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -123,10 +119,10 @@ describe('constructOpeningFrame', () => {
         height: 1200,
         width: 1000
       })
-      const openingSegment = createTestOpeningSegment(opening)
+      const area = createTestOpeningArea(opening)
       const config = createTestConfig()
 
-      const results = [...constructOpeningFrame(openingSegment, config, mockInfillMethod)]
+      const results = [...constructOpeningFrame(area, [opening], 0, config, mockInfillMethod)]
       const { measurements } = aggregateResults(results)
 
       // Should generate measurements inline
@@ -157,10 +153,10 @@ describe('constructOpeningFrame', () => {
         height: 2000,
         width: 800
       })
-      const openingSegment = createTestOpeningSegment(opening)
+      const area = createTestOpeningArea(opening)
       const config = createTestConfig()
 
-      const results = [...constructOpeningFrame(openingSegment, config, mockInfillMethod)]
+      const results = [...constructOpeningFrame(area, [opening], 0, config, mockInfillMethod)]
       const { measurements } = aggregateResults(results)
 
       // Should generate fewer measurements for door (no sill)
@@ -185,10 +181,10 @@ describe('constructOpeningFrame', () => {
         sillHeight: 0,
         height: 2000
       })
-      const openingSegment = createTestOpeningSegment(opening)
+      const area = createTestOpeningArea(opening)
       const config = createTestConfig()
 
-      const results = [...constructOpeningFrame(openingSegment, config, mockInfillMethod)]
+      const results = [...constructOpeningFrame(area, [opening], 0, config, mockInfillMethod)]
       const { elements, errors, areas } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -205,9 +201,9 @@ describe('constructOpeningFrame', () => {
 
   describe('infill integration', () => {
     it('calls the infill method with the wall above the header', () => {
-      mockInfillMethod.mockImplementationOnce((position, size) => {
-        expect(position).toEqual(vec3.fromValues(0, 0, 1060))
-        expect(size).toEqual(vec3.fromValues(800, 360, 1440))
+      mockInfillMethod.mockImplementationOnce(area => {
+        expect(area.position).toEqual(vec3.fromValues(0, 0, 1060))
+        expect(area.size).toEqual(vec3.fromValues(800, 360, 1440))
         return createMockInfillGenerator(0)
       })
 
@@ -217,21 +213,21 @@ describe('constructOpeningFrame', () => {
         width: 800,
         height: 1000
       })
-      const openingSegment = createTestOpeningSegment(opening)
+      const area = createTestOpeningArea(opening)
       const config = createTestConfig({
         headerThickness: 60,
         sillThickness: 60
       })
 
-      Array.from(constructOpeningFrame(openingSegment, config, mockInfillMethod))
+      Array.from(constructOpeningFrame(area, [opening], 0, config, mockInfillMethod))
 
       expect(mockInfillMethod).toHaveBeenCalledTimes(1)
     })
 
     it('calls the infill method with the wall below the sill', () => {
-      mockInfillMethod.mockImplementationOnce((position, size) => {
-        expect(position).toEqual(vec3.fromValues(0, 0, 0))
-        expect(size).toEqual(vec3.fromValues(800, 360, 540))
+      mockInfillMethod.mockImplementationOnce(area => {
+        expect(area.position).toEqual(vec3.fromValues(0, 0, 0))
+        expect(area.size).toEqual(vec3.fromValues(800, 360, 540))
         return createMockInfillGenerator(0)
       })
 
@@ -241,13 +237,13 @@ describe('constructOpeningFrame', () => {
         width: 800,
         height: 1900
       })
-      const openingSegment = createTestOpeningSegment(opening)
+      const area = createTestOpeningArea(opening)
       const config = createTestConfig({
         headerThickness: 60,
         sillThickness: 60
       })
 
-      Array.from(constructOpeningFrame(openingSegment, config, mockInfillMethod))
+      Array.from(constructOpeningFrame(area, [opening], 0, config, mockInfillMethod))
 
       expect(mockInfillMethod).toHaveBeenCalledTimes(1)
     })
@@ -259,12 +255,12 @@ describe('constructOpeningFrame', () => {
         sillHeight: 2360,
         height: 100
       })
-      const openingSegment = createTestOpeningSegment(opening)
+      const area = createTestOpeningArea(opening)
       const config = createTestConfig({
         headerThickness: 100
       })
 
-      const results = [...constructOpeningFrame(openingSegment, config, mockInfillMethod)]
+      const results = [...constructOpeningFrame(area, [opening], 0, config, mockInfillMethod)]
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
@@ -276,12 +272,12 @@ describe('constructOpeningFrame', () => {
         sillHeight: 50,
         height: 1200
       })
-      const openingSegment = createTestOpeningSegment(opening)
+      const area = createTestOpeningArea(opening)
       const config = createTestConfig({
         sillThickness: 100
       })
 
-      const results = [...constructOpeningFrame(openingSegment, config, mockInfillMethod)]
+      const results = [...constructOpeningFrame(area, [opening], 0, config, mockInfillMethod)]
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)

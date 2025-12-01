@@ -1,8 +1,7 @@
 import { type ReadonlyVec2, type ReadonlyVec3, mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { GroupOrElement } from '@/construction/elements'
-import { Bounds2D, type Length, type Polygon2D } from '@/shared/geometry'
-import { type Axis3D, Bounds3D, type Plane3D } from '@/shared/geometry'
+import { type Axis3D, Bounds2D, Bounds3D, type Length, type Plane3D, type Polygon2D } from '@/shared/geometry'
 
 export type Transform = mat4
 
@@ -164,9 +163,9 @@ export function* allPoints(element: GroupOrElement, projection: Projection): Gen
 export class WallConstructionArea {
   public readonly position: ReadonlyVec3
   public readonly size: ReadonlyVec3
-  public readonly topOffsets?: ReadonlyArray<ReadonlyVec2>
+  public readonly topOffsets?: readonly ReadonlyVec2[]
 
-  constructor(position: ReadonlyVec3, size: ReadonlyVec3, topOffsets?: ReadonlyArray<ReadonlyVec2>) {
+  constructor(position: ReadonlyVec3, size: ReadonlyVec3, topOffsets?: readonly ReadonlyVec2[]) {
     if (topOffsets) {
       const maxOffset = Math.max(...topOffsets.map(o => o[1]))
       topOffsets = topOffsets.map(o => vec2.fromValues(o[0], o[1] - maxOffset))

@@ -899,10 +899,10 @@ function convexHullAndrew(points: vec2[]): vec2[] {
  * Represents a segment where a line intersects a polygon
  */
 export interface LinePolygonIntersection {
-  segments: Array<{
+  segments: {
     tStart: number // 0-1 position along line where it enters polygon
     tEnd: number // 0-1 position along line where it exits polygon
-  }>
+  }[]
 }
 
 /**

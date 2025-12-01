@@ -144,9 +144,9 @@ exports[`Strawhenge Wall Construction > Wall Length Snapshots - startAtEnd=false
     "tags": undefined,
   },
   {
-    "material": "module",
-    "position_x": 401,
-    "size_x": 500,
+    "material": "straw",
+    "position_x": 500,
+    "size_x": 401,
     "tags": undefined,
   },
   {
@@ -167,9 +167,9 @@ exports[`Strawhenge Wall Construction > Wall Length Snapshots - startAtEnd=false
     "tags": undefined,
   },
   {
-    "material": "module",
-    "position_x": 499,
-    "size_x": 500,
+    "material": "straw",
+    "position_x": 500,
+    "size_x": 499,
     "tags": undefined,
   },
   {
@@ -399,9 +399,9 @@ exports[`Strawhenge Wall Construction > Wall Length Snapshots - startAtEnd=false
     "tags": undefined,
   },
   {
-    "material": "module",
+    "material": "straw",
     "position_x": 1400,
-    "size_x": 500,
+    "size_x": 401,
     "tags": undefined,
   },
   {
@@ -604,9 +604,9 @@ exports[`Strawhenge Wall Construction > Wall Length Snapshots - startAtEnd=true 
     "tags": undefined,
   },
   {
-    "material": "module",
+    "material": "straw",
     "position_x": 500,
-    "size_x": 500,
+    "size_x": 401,
     "tags": undefined,
   },
   {
@@ -627,9 +627,9 @@ exports[`Strawhenge Wall Construction > Wall Length Snapshots - startAtEnd=true 
     "tags": undefined,
   },
   {
-    "material": "module",
+    "material": "straw",
     "position_x": 500,
-    "size_x": 500,
+    "size_x": 499,
     "tags": undefined,
   },
   {
@@ -847,9 +847,9 @@ exports[`Strawhenge Wall Construction > Wall Length Snapshots - startAtEnd=true 
     "tags": undefined,
   },
   {
-    "material": "module",
-    "position_x": 401,
-    "size_x": 500,
+    "material": "straw",
+    "position_x": 500,
+    "size_x": 401,
     "tags": undefined,
   },
   {

@@ -1,11 +1,11 @@
 import { mat4, vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
-import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
+import { type ConstructionElement, createConstructionElement, createCuboidElement } from '@/construction/elements'
 import { type WallConstructionArea } from '@/construction/geometry'
 import { buildAndCacheManifold } from '@/construction/manifold/builders'
 import type { MaterialId } from '@/construction/materials/material'
-import { polygonPartInfo } from '@/construction/parts'
+import { dimensionalPartInfo, polygonPartInfo } from '@/construction/parts'
 import type { Tag } from '@/construction/tags'
 import { Bounds2D, Bounds3D, type Length, type Plane3D, type PolygonWithHoles2D } from '@/shared/geometry'
 
@@ -78,6 +78,11 @@ export function createElementFromArea(
   partType?: string,
   partDescription?: string
 ): ConstructionElement {
+  if (area.minHeight === area.size[2]) {
+    const partInfo = partType ? dimensionalPartInfo(partType, area.size, partDescription) : undefined
+    return createCuboidElement(materialId, area.position, area.size, tags, partInfo)
+  }
+
   const sideProfile = area.getSideProfilePolygon()
 
   // Create the polygon with holes structure (no holes for wall profiles)

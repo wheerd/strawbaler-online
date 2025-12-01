@@ -21,16 +21,6 @@ import { convertOpeningToConstruction } from '@/shared/utils/openingDimensions'
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
 
-export interface WallSegment3D {
-  type: 'wall' | 'opening'
-  position: vec3 // [offsetFromStart, 0, 0]
-  size: vec3 // [width, wallThickness, wallHeight]
-
-  // For opening segments - array supports merged adjacent openings
-  openings?: Opening[]
-  zOffset?: Length
-}
-
 function canMergeOpenings(opening1: Opening, opening2: Opening): boolean {
   // Check if openings are adjacent
   const opening1End = opening1.offsetFromStart + opening1.width
