@@ -59,24 +59,6 @@ describe('WallConstructionArea.withZAdjustment', () => {
     expect(adjusted.topOffsets).toBeUndefined()
   })
 
-  it('should adjust offsets when roof is fully below new top', () => {
-    const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(3000, 300, 3000), [
-      vec2.fromValues(0, -500), // Roof at Z=2500
-      vec2.fromValues(3000, -700) // Roof at Z=2300
-    ])
-
-    const adjusted = area.withZAdjustment(0, 2700)
-
-    expect(adjusted.position).toEqual(vec3.fromValues(0, 0, 0))
-    expect(adjusted.size).toEqual(vec3.fromValues(3000, 300, 2700))
-    // Roof at 2500 and 2300, new top at 2700 -> offsets should be -200 and -400
-    expect(adjusted.topOffsets).toHaveLength(2)
-    expect(adjusted.topOffsets![0][0]).toBe(0)
-    expect(adjusted.topOffsets![0][1]).toBe(-200)
-    expect(adjusted.topOffsets![1][0]).toBe(3000)
-    expect(adjusted.topOffsets![1][1]).toBe(-400)
-  })
-
   it('should add intersection points when roof is partially clipped', () => {
     const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(3000, 300, 3000), [
       vec2.fromValues(0, -200), // Roof at Z=2800

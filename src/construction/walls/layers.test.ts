@@ -102,6 +102,7 @@ const createCorner = (overrides: Partial<PerimeterCorner>): PerimeterCorner => (
 })
 
 const storeyContext: WallStoreyContext = {
+  storeyHeight: 3500,
   ceilingHeight: 3000,
   floorTopOffset: 50,
   ceilingBottomOffset: 40,

@@ -21,6 +21,7 @@ import { InfillWallAssembly, infillWallArea } from './infill'
 
 function createMockStoreyContext(storeyHeight: Length = 2500): WallStoreyContext {
   return {
+    storeyHeight: 0,
     floorConstructionThickness: 0,
     ceilingHeight: storeyHeight,
     floorTopOffset: 0,

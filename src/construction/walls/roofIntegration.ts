@@ -307,7 +307,7 @@ function getOffsetAt(heightLine: HeightLine, position: number): Length {
   let before: HeightItem | HeightJumpItem | null = null
   let after: HeightItem | HeightJumpItem | null = null
 
-  for (let item of heightLine) {
+  for (const item of heightLine) {
     if (item.position <= position) {
       before = item
     }
