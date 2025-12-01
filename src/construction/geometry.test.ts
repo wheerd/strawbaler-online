@@ -96,9 +96,8 @@ describe('WallConstructionArea.withZAdjustment', () => {
 
     const adjusted = area.withZAdjustment(0, 1100)
 
-    // Both points above new top (1100), should be clipped to 0
-    expect(adjusted.topOffsets).toHaveLength(2)
-    expect(adjusted.topOffsets![0][1]).toBe(0)
-    expect(adjusted.topOffsets![1][1]).toBe(0)
+    // New top (1100) and top offsets are removed
+    expect(adjusted.size[2]).toEqual(1100)
+    expect(adjusted.topOffsets).toBeUndefined()
   })
 })

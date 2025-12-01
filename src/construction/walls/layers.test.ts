@@ -269,18 +269,18 @@ describe('constructWallLayers', () => {
 
     expect(insidePolygon.polygon.outer.points).toHaveLength(4)
     expect(insidePolygon.polygon.outer.points).toEqual([
-      vec2.fromValues(-30, 3080),
-      vec2.fromValues(3030, 3080),
+      vec2.fromValues(-30, 10),
       vec2.fromValues(3030, 10),
-      vec2.fromValues(-30, 10)
+      vec2.fromValues(3030, 3080),
+      vec2.fromValues(-30, 3080)
     ])
 
     expect(outsidePolygon.polygon.outer.points).toHaveLength(4)
     expect(outsidePolygon.polygon.outer.points).toEqual([
-      vec2.fromValues(-300, 3090),
-      vec2.fromValues(3300, 3090),
+      vec2.fromValues(-300, -200),
       vec2.fromValues(3300, -200),
-      vec2.fromValues(-300, -200)
+      vec2.fromValues(3300, 3080),
+      vec2.fromValues(-300, 3080)
     ])
 
     const layerGroups = model.elements.filter((element): element is GroupOrElement => 'children' in element)
