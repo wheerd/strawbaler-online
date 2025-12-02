@@ -437,7 +437,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
 
     const preparedPolygon = this.preparePolygonForConstruction(roofSide.polygon, roof.ridgeLine, expansionFactor)
 
-    let zOffset = (roof.verticalOffset + config.thickness) as Length
+    let zOffset = config.thickness as Length
 
     for (const layer of config.layers.topLayers) {
       const results = this.runLayerConstruction({ outer: preparedPolygon, holes: [] }, zOffset, layer)
@@ -489,7 +489,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
       return elements
     }
 
-    let zOffset = (roof.verticalOffset - config.layers.insideThickness) as Length
+    let zOffset = -config.layers.insideThickness as Length
 
     // Reverse order: bottom to top
     const reversedLayers = [...config.layers.insideLayers].reverse()
@@ -545,7 +545,7 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
       return elements
     }
 
-    let zOffset = (roof.verticalOffset - config.layers.overhangThickness) as Length
+    let zOffset = -config.layers.overhangThickness as Length
 
     // Reverse order: bottom to top
     const reversedLayers = [...config.layers.overhangLayers].reverse()
