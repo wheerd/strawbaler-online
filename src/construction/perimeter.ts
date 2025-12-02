@@ -3,7 +3,7 @@ import { mat4, vec2, vec3 } from 'gl-matrix'
 import type { Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from '@/construction/floors'
-import { IDENTITY } from '@/construction/geometry'
+import { IDENTITY, translate } from '@/construction/geometry'
 import { constructRoof } from '@/construction/roof'
 import { applyWallFaceOffsets, createWallFaceOffsets } from '@/construction/storey'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
@@ -102,7 +102,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
       const ringBeam = RING_BEAM_ASSEMBLIES[assembly.type].construct(perimeter, assembly)
       const transformedModel = transformModel(
         ringBeam,
-        mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, constructionHeight - assembly.height)),
+        translate(vec3.fromValues(0, 0, constructionHeight - assembly.height)),
         [TAG_TOP_PLATE]
       )
       allModels.push(transformedModel)
@@ -124,7 +124,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
         wallModel,
         mat4.rotateZ(
           mat4.create(),
-          mat4.fromTranslation(mat4.create(), vec3.fromValues(wall.insideLine.start[0], wall.insideLine.start[1], 0)),
+          translate(vec3.fromValues(wall.insideLine.start[0], wall.insideLine.start[1], 0)),
           segmentAngle
         ),
         [TAG_WALLS]
@@ -186,10 +186,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     const relevantRoofs = roofs.filter(r => r.referencePerimeter === perimeter.id)
     allModels.push(
       ...relevantRoofs.map(roof =>
-        transformModel(
-          constructRoof(roof),
-          mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, storey.floorHeight))
-        )
+        transformModel(constructRoof(roof), translate(vec3.fromValues(0, 0, storey.floorHeight)))
       )
     )
   }

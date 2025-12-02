@@ -1,10 +1,10 @@
-import { mat4, vec3 } from 'gl-matrix'
+import { vec3 } from 'gl-matrix'
 
 import type { MaterialId } from '@/construction/materials/material'
 import type { Bounds3D } from '@/shared/geometry'
 import { createId } from '@/shared/utils/ids'
 
-import { IDENTITY, type Transform, transformBounds } from './geometry'
+import { IDENTITY, type Transform, transformBounds, translate } from './geometry'
 import type { PartInfo } from './parts'
 import { type Shape, createCuboid } from './shapes'
 import type { Tag } from './tags'
@@ -42,7 +42,7 @@ export const createCuboidElement = (
   partInfo?: PartInfo
 ): ConstructionElement => {
   const shape = createCuboid(size)
-  const transform = mat4.fromTranslation(mat4.create(), corner)
+  const transform = translate(corner)
   return createConstructionElement(material, shape, transform, tags, partInfo)
 }
 

@@ -1,8 +1,8 @@
-import { mat4, vec3 } from 'gl-matrix'
+import { vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import { type ConstructionElement, createConstructionElement, createCuboidElement } from '@/construction/elements'
-import { type WallConstructionArea } from '@/construction/geometry'
+import { type WallConstructionArea, translate } from '@/construction/geometry'
 import { buildAndCacheManifold } from '@/construction/manifold/builders'
 import type { MaterialId } from '@/construction/materials/material'
 import { dimensionalPartInfo } from '@/construction/parts'
@@ -98,7 +98,7 @@ export function createElementFromArea(
   const shape = createExtrudedPolygon(polygon, 'xz', area.size[1])
 
   // Create transform to position at area's Y position
-  const transform = mat4.fromTranslation(mat4.create(), vec3.fromValues(0, area.position[1], 0))
+  const transform = translate(vec3.fromValues(0, area.position[1], 0))
 
   return createConstructionElement(materialId, shape, transform, tags, partInfo)
 }

@@ -1,9 +1,10 @@
-import { mat4, vec3 } from 'gl-matrix'
+import { vec3 } from 'gl-matrix'
 
 import type { Perimeter } from '@/building/model'
 import type { PerimeterCornerId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
+import { translate } from '@/construction/geometry'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
 import type { Length, LineSegment2D } from '@/shared/geometry'
 
@@ -120,10 +121,7 @@ export function constructWall(
     const wallModel = wallAssembly.construct(currentWall, perimeter, storeyContext, assembly)
 
     if (cumulativeOffset > 0) {
-      const transformedModel = transformModel(
-        wallModel,
-        mat4.fromTranslation(mat4.create(), vec3.fromValues(cumulativeOffset, 0, 0))
-      )
+      const transformedModel = transformModel(wallModel, translate(vec3.fromValues(cumulativeOffset, 0, 0)))
       wallModels.push(transformedModel)
     } else {
       wallModels.push(wallModel)
