@@ -1,6 +1,5 @@
 import { CursorArrowIcon, MoveIcon, RocketIcon } from '@radix-ui/react-icons'
 
-import { ROOFS_FEATURE_ENABLED } from '@/construction/config/store/types'
 import {
   FitToViewIcon,
   FloorAreaIcon,
@@ -83,14 +82,10 @@ export const TOOL_GROUPS: ToolGroup[] = [
     name: 'Floors',
     tools: ['floors.add-area', 'floors.add-opening'] as const
   },
-  ...(ROOFS_FEATURE_ENABLED
-    ? [
-        {
-          name: 'Roofs',
-          tools: ['roofs.add-roof'] satisfies ToolId[]
-        }
-      ]
-    : []),
+  {
+    name: 'Roofs',
+    tools: ['roofs.add-roof'] satisfies ToolId[]
+  },
   {
     name: 'Test Data',
     tools: ['test.data'] as const

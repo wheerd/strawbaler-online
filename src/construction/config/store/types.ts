@@ -18,5 +18,3 @@ export interface ConfigActions
 }
 
 export type ConfigStore = ConfigState & { actions: ConfigActions }
-
-export const ROOFS_FEATURE_ENABLED = true
