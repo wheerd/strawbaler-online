@@ -1,9 +1,17 @@
-import { ComponentInstanceIcon, CopyIcon, PlusIcon, SquareIcon, TrashIcon } from '@radix-ui/react-icons'
+import {
+  ComponentInstanceIcon,
+  CopyIcon,
+  ExclamationTriangleIcon,
+  PlusIcon,
+  SquareIcon,
+  TrashIcon
+} from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import {
   AlertDialog,
   Badge,
   Button,
+  Callout,
   DropdownMenu,
   Flex,
   Grid,
@@ -85,6 +93,15 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
   return (
     <Flex direction="column" gap="3">
       <Heading size="2">Purlin Roof Configuration</Heading>
+
+      <Callout.Root color="amber">
+        <Callout.Icon>
+          <ExclamationTriangleIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          <Text>The construction of purlin roofs is not implemented yet.</Text>
+        </Callout.Text>
+      </Callout.Root>
 
       {/* Main Configuration */}
       <Flex direction="column" gap="1">
