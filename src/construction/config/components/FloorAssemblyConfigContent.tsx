@@ -4,7 +4,6 @@ import {
   AlertDialog,
   Badge,
   Button,
-  Callout,
   DropdownMenu,
   Flex,
   Grid,
@@ -20,7 +19,12 @@ import type { FloorAssemblyId } from '@/building/model/ids'
 import { useStoreysOrderedByLevel } from '@/building/store'
 import { useConfigActions, useDefaultFloorAssemblyId, useFloorAssemblies } from '@/construction/config/store'
 import { getFloorAssemblyUsage } from '@/construction/config/usage'
-import type { FloorAssemblyType, FloorConfig, MonolithicFloorConfig } from '@/construction/floors/types'
+import type {
+  FloorAssemblyType,
+  FloorConfig,
+  JoistFloorConfig,
+  MonolithicFloorConfig
+} from '@/construction/floors/types'
 import { DEFAULT_CEILING_LAYER_SETS, DEFAULT_FLOOR_LAYER_SETS } from '@/construction/layers/defaults'
 import type { LayerConfig } from '@/construction/layers/types'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
@@ -281,7 +285,9 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
             <MonolithicConfigFields config={selectedConfig} onUpdate={handleUpdateConfig} />
           )}
 
-          {selectedConfig.type === 'joist' && <JoistConfigPlaceholder />}
+          {selectedConfig.type === 'joist' && (
+            <JoistConfigFields config={selectedConfig} onUpdate={handleUpdateConfig} />
+          )}
 
           <Separator size="4" />
 
@@ -389,15 +395,98 @@ function MonolithicConfigFields({
   )
 }
 
-function JoistConfigPlaceholder() {
+function JoistConfigFields({
+  config,
+  onUpdate
+}: {
+  config: JoistFloorConfig
+  onUpdate: (updates: Partial<JoistFloorConfig>) => void
+}) {
   return (
     <>
-      <Heading size="2">Joist Configuration</Heading>
-      <Callout.Root color="amber">
-        <Callout.Text>
-          Joist construction is not yet supported. Please use monolithic configuration for now.
-        </Callout.Text>
-      </Callout.Root>
+      <Heading size="2">Joist Floor</Heading>
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Joist Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.joistMaterial}
+          onValueChange={joistMaterial => {
+            if (!joistMaterial) return
+            onUpdate({ joistMaterial })
+          }}
+          placeholder="Select joist material..."
+          size="2"
+        />
+
+        <Flex align="center" gap="1">
+          <Label.Root>
+            <Text size="2" weight="medium" color="gray">
+              Joist Thickness
+            </Text>
+          </Label.Root>
+          <MeasurementInfo highlightedPart="floorConstruction" />
+        </Flex>
+        <LengthField
+          value={config.joistThickness}
+          onChange={joistThickness => onUpdate({ joistThickness })}
+          unit="mm"
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Joist Height
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.joistHeight}
+          onChange={joistHeight => onUpdate({ joistHeight })}
+          unit="mm"
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Joist Spacing
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.joistSpacing}
+          onChange={joistSpacing => onUpdate({ joistSpacing })}
+          unit="mm"
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Subfloor Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.subfloorMaterial}
+          onValueChange={subfloorMaterial => {
+            if (!subfloorMaterial) return
+            onUpdate({ subfloorMaterial })
+          }}
+          placeholder="Select subfloor material..."
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Subfloor Thickness
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.subfloorThickness}
+          onChange={subfloorThickness => onUpdate({ subfloorThickness })}
+          unit="mm"
+          size="2"
+        />
+      </Grid>
     </>
   )
 }
