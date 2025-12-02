@@ -1,18 +1,25 @@
 import { vec2, vec3 } from 'gl-matrix'
 
-import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
+import { createConstructionElement, createConstructionElementId } from '@/construction/elements'
 import { translate } from '@/construction/geometry'
-import { type ConstructionModel, createUnsupportedModel } from '@/construction/model'
+import type { MaterialId } from '@/construction/materials/material'
+import { type ConstructionModel } from '@/construction/model'
 import { polygonPartInfo } from '@/construction/parts'
+import { type ConstructionResult, aggregateResults, yieldElement, yieldWarning } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
+import type { Tag } from '@/construction/tags'
 import {
   Bounds2D,
+  type Length,
   type Line2D,
   type Polygon2D,
   type PolygonWithHoles2D,
+  calculatePolygonArea,
+  ensurePolygonIsClockwise,
   intersectPolygon,
   lineIntersection,
   minimumAreaBoundingBox,
+  offsetPolygon,
   perpendicular
 } from '@/shared/geometry'
 
@@ -23,61 +30,175 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
   construct = (polygon: PolygonWithHoles2D, config: JoistFloorConfig): ConstructionModel => {
     const bbox = minimumAreaBoundingBox(polygon.outer)
     const joistDirection = bbox.smallestDirection
-    const perpDir = perpendicular(joistDirection)
 
-    const dots = polygon.outer.points.map(p => vec2.dot(p, perpDir))
-    const joistStart = polygon.outer.points[dots.indexOf(Math.min(...dots))]
-    const totalSpan = Math.max(...dots) - Math.min(...dots)
+    const expandedHoles = polygon.holes.map(h => offsetPolygon(h, config.joistThickness))
 
-    const dots2 = polygon.outer.points.map(p => vec2.dot(p, joistDirection))
-    const joistMin = polygon.outer.points[dots2.indexOf(Math.min(...dots2))]
-    const joistLength = Math.max(...dots2) - Math.min(...dots2)
-
-    const joistLine: Line2D = { point: joistStart, direction: joistDirection }
-    const perpLine: Line2D = { point: joistMin, direction: perpDir }
-
-    const intersection = lineIntersection(joistLine, perpLine)
-
-    if (!intersection) {
-      return createUnsupportedModel('Could not determine joist positions due to parallel lines.')
-    }
-
-    const joists: ConstructionElement[] = []
-    const stepWidth = config.joistThickness + config.joistSpacing
-    for (let offset = 0; offset < totalSpan; offset += stepWidth) {
-      const clippedOffset = Math.min(offset, totalSpan - config.joistThickness)
-      const p1 = vec2.scaleAndAdd(vec2.create(), intersection, perpDir, clippedOffset)
-      const p2 = vec2.scaleAndAdd(vec2.create(), p1, perpDir, config.joistThickness)
-      const p3 = vec2.scaleAndAdd(vec2.create(), p2, joistDirection, joistLength)
-      const p4 = vec2.scaleAndAdd(vec2.create(), p1, joistDirection, joistLength)
-
-      const joistPolygon: Polygon2D = { points: [p1, p2, p3, p4] }
-      const joistParts = intersectPolygon(polygon, { outer: joistPolygon, holes: [] })
-
-      for (const part of joistParts) {
-        joists.push(
-          createConstructionElement(
+    const results = [
+      ...simpleStripes(
+        {
+          outer: polygon.outer,
+          holes: expandedHoles
+        },
+        joistDirection,
+        config.joistThickness,
+        config.joistHeight,
+        config.joistSpacing,
+        config.joistMaterial,
+        'joist'
+      ),
+      ...polygon.holes.flatMap(h =>
+        Array.from(
+          simplePolygonFrame(
+            h,
+            config.joistThickness,
+            config.joistHeight,
             config.joistMaterial,
-            createExtrudedPolygon(part, 'xy', config.joistHeight),
-            translate(vec3.fromValues(0, 0, -config.joistHeight)),
+            'joist-frame',
             undefined,
-            polygonPartInfo('joist', part.outer, 'xy', config.joistHeight)
+            false
           )
         )
-      }
-    }
+      )
+    ]
 
+    const aggregatedResults = aggregateResults(results)
+
+    const bounds = Bounds2D.fromPoints(polygon.outer.points).toBounds3D('xy', 0, config.joistHeight)
     return {
-      elements: joists,
-      areas: [],
-      bounds: Bounds2D.fromPoints(polygon.outer.points).toBounds3D('xy', 0, config.joistHeight),
-      errors: [],
-      measurements: [],
-      warnings: []
+      elements: [
+        {
+          id: createConstructionElementId(),
+          bounds,
+          transform: translate(vec3.fromValues(0, 0, -config.joistHeight)),
+          children: aggregatedResults.elements
+        }
+      ],
+      areas: aggregatedResults.areas,
+      bounds,
+      errors: aggregatedResults.errors,
+      measurements: aggregatedResults.measurements,
+      warnings: aggregatedResults.warnings
     }
   }
 
   getTopOffset = (config: JoistFloorConfig) => config.subfloorThickness
   getBottomOffset = (_config: JoistFloorConfig) => 0
   getConstructionThickness = (config: JoistFloorConfig) => config.joistHeight
+}
+
+function* simpleStripes(
+  polygon: PolygonWithHoles2D,
+  direction: vec2,
+  thickness: Length,
+  height: Length,
+  spacing: Length,
+  material: MaterialId,
+  partType?: string,
+  tags?: Tag[]
+): Generator<ConstructionResult> {
+  const perpDir = perpendicular(direction)
+
+  const dots = polygon.outer.points.map(p => vec2.dot(p, perpDir))
+  const joistStart = polygon.outer.points[dots.indexOf(Math.min(...dots))]
+  const totalSpan = Math.max(...dots) - Math.min(...dots)
+
+  const dots2 = polygon.outer.points.map(p => vec2.dot(p, direction))
+  const joistMin = polygon.outer.points[dots2.indexOf(Math.min(...dots2))]
+  const joistLength = Math.max(...dots2) - Math.min(...dots2)
+
+  const joistLine: Line2D = { point: joistStart, direction: direction }
+  const perpLine: Line2D = { point: joistMin, direction: perpDir }
+
+  const intersection = lineIntersection(joistLine, perpLine)
+
+  if (!intersection) {
+    yield yieldWarning('Could not determine stripe positions due to parallel lines.', [])
+    return
+  }
+
+  // Used to filter out tiny joist pieces (which are probably not needed)
+  const minRelevantArea = (thickness * thickness) / 2
+
+  const stepWidth = thickness + spacing
+  for (let offset = 0; offset < totalSpan; offset += stepWidth) {
+    const clippedOffset = Math.min(offset, totalSpan - thickness)
+    const p1 = vec2.scaleAndAdd(vec2.create(), intersection, perpDir, clippedOffset)
+    const p2 = vec2.scaleAndAdd(vec2.create(), p1, perpDir, thickness)
+    const p3 = vec2.scaleAndAdd(vec2.create(), p2, direction, joistLength)
+    const p4 = vec2.scaleAndAdd(vec2.create(), p1, direction, joistLength)
+
+    const joistPolygon: Polygon2D = { points: [p1, p2, p3, p4] }
+    const joistParts = intersectPolygon(polygon, { outer: joistPolygon, holes: [] })
+
+    for (const part of joistParts) {
+      if (calculatePolygonArea(part.outer) < minRelevantArea) continue
+      const partInfo = partType ? polygonPartInfo(partType, part.outer, 'xy', height) : undefined
+      yield* yieldElement(
+        createConstructionElement(material, createExtrudedPolygon(part, 'xy', height), undefined, tags, partInfo)
+      )
+    }
+  }
+}
+
+function* simplePolygonFrame(
+  polygon: Polygon2D,
+  thickness: Length,
+  height: Length,
+  material: MaterialId,
+  partType?: string,
+  tags?: Tag[],
+  inside = true
+): Generator<ConstructionResult> {
+  polygon = ensurePolygonIsClockwise(polygon)
+  const outerPolygon = inside ? polygon : offsetPolygon(polygon, thickness)
+  const innerPolygon = inside ? offsetPolygon(polygon, -thickness) : polygon
+
+  if (outerPolygon.points.length === innerPolygon.points.length) {
+    const l = outerPolygon.points.length
+    for (let i0 = 0; i0 < l; i0++) {
+      const i1 = (i0 + 1) % l
+      const innerStart = innerPolygon.points[i0]
+      const innerEnd = innerPolygon.points[i1]
+      const outsideStart = closestPoint(innerStart, outerPolygon.points)
+      const outsideEnd = closestPoint(innerEnd, outerPolygon.points)
+
+      const elementPolygon: PolygonWithHoles2D = {
+        outer: {
+          // points: [outerPolygon.points[i0], outerPolygon.points[i1], innerPolygon.points[i1], innerPolygon.points[i0]]
+          points: [innerStart, innerEnd, outsideEnd, outsideStart]
+        },
+        holes: []
+      }
+      const partInfo = partType ? polygonPartInfo(partType, elementPolygon.outer, 'xy', height) : undefined
+      yield* yieldElement(
+        createConstructionElement(
+          material,
+          createExtrudedPolygon(elementPolygon, 'xy', height),
+          undefined,
+          tags,
+          partInfo
+        )
+      )
+    }
+  }
+}
+
+export function closestPoint(reference: vec2, points: vec2[]): vec2 {
+  if (points.length === 0) {
+    throw new Error("closestPoint: 'points' array must not be empty.")
+  }
+
+  let closest = points[0]
+  let minDistSq = vec2.sqrDist(reference, closest)
+
+  for (let i = 1; i < points.length; i++) {
+    const p = points[i]
+    const distSq = vec2.sqrDist(reference, p)
+    if (distSq < minDistSq) {
+      minDistSq = distSq
+      closest = p
+    }
+  }
+
+  return vec2.clone(closest)
 }
