@@ -6,7 +6,7 @@ import { type GroupOrElement, createConstructionElement } from '@/construction/e
 import { IDENTITY, type Transform } from '@/construction/geometry'
 import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
 import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/construction/layers/types'
-import { type ConstructionModel, createConstructionGroup, createUnsupportedModel } from '@/construction/model'
+import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { type ConstructionResult } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import {
@@ -51,11 +51,6 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
   construct = (roof: Roof, config: MonolithicRoofConfig): ConstructionModel => {
     const slopeAngleRad = degreesToRadians(roof.slope)
     const ridgeHeight = this.calculateRidgeHeight(roof)
-
-    // Avoid division by zero for flat roofs
-    if (Math.abs(slopeAngleRad) < 0.001) {
-      return createUnsupportedModel('Flat roofs not supported', 'unsupported-roof-flat')
-    }
 
     const expansionFactor = 1 / Math.cos(slopeAngleRad)
 
