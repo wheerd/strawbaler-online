@@ -4,7 +4,7 @@ import { type Mocked, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createOpeningId, createPerimeterId, createWallAssemblyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
 import { getConfigActions } from '@/construction/config'
-import { IDENTITY } from '@/construction/geometry'
+import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
 import { aggregateResults, yieldElement } from '@/construction/results'
 import { createCuboid } from '@/construction/shapes'
 import {
@@ -122,7 +122,15 @@ function createMockCornerInfo(
     },
     extensionStart,
     extensionEnd,
-    constructionLength
+    constructionLength,
+    constructionInsideLine: {
+      start: vec2.fromValues(-extensionStart, 0),
+      end: vec2.fromValues(constructionLength - extensionStart, 0)
+    },
+    constructionOutsideLine: {
+      start: vec2.fromValues(-extensionStart, 300),
+      end: vec2.fromValues(constructionLength - extensionStart, 300)
+    }
   }
 }
 
@@ -135,10 +143,11 @@ function createMockLayers(): WallLayersConfig {
   }
 }
 
-function createMockStoreyContext(storeyHeight: Length = 2500): WallStoreyContext {
+function createMockStoreyContext(storeyHeight: Length = 2500, ceilingHeight: Length = 2000): WallStoreyContext {
   return {
-    floorConstructionThickness: 0,
     storeyHeight,
+    floorConstructionThickness: 0,
+    ceilingHeight,
     floorTopOffset: 0,
     ceilingBottomOffset: 0,
     ceilingBottomConstructionOffset: 0,
@@ -150,6 +159,22 @@ describe('segmentedWallConstruction', () => {
   let mockWallConstruction: Mocked<WallSegmentConstruction>
   let mockOpeningConstruction: Mocked<OpeningSegmentConstruction>
   let mockGetRingBeamAssemblyById: ReturnType<typeof vi.fn>
+
+  // Helper to create expected WallConstructionArea matcher
+  function expectArea(position: vec3, size: vec3) {
+    return expect.objectContaining({
+      position: expect.objectContaining({
+        0: position[0],
+        1: position[1],
+        2: position[2]
+      }),
+      size: expect.objectContaining({
+        0: size[0],
+        1: size[1],
+        2: size[2]
+      })
+    })
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -190,8 +215,8 @@ describe('segmentedWallConstruction', () => {
     })
 
     // Mock construction functions
-    mockWallConstruction = vi.fn(function* () {
-      yield yieldElement({
+    mockWallConstruction = vi.fn(function* (_area: WallConstructionArea) {
+      yield* yieldElement({
         id: 'wall-element' as any,
         material: 'material' as any,
         shape: createCuboid(vec3.fromValues(100, 100, 100)),
@@ -200,8 +225,8 @@ describe('segmentedWallConstruction', () => {
       })
     })
 
-    mockOpeningConstruction = vi.fn(function* () {
-      yield yieldElement({
+    mockOpeningConstruction = vi.fn(function* (_area: WallConstructionArea) {
+      yield* yieldElement({
         id: 'opening-element' as any,
         material: 'material' as any,
         shape: createCuboid(vec3.fromValues(50, 50, 50)),
@@ -215,6 +240,7 @@ describe('segmentedWallConstruction', () => {
     it('should generate corner areas, measurements, and wall construction for wall with no openings', () => {
       const wall = createMockWall('wall-1', 3000, 300)
       const perimeter = createMockPerimeter([wall])
+      const storeyHeight = 3000
       const wallHeight = 2500
       const layers = createMockLayers()
 
@@ -222,7 +248,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(storeyHeight, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -246,8 +272,10 @@ describe('segmentedWallConstruction', () => {
       // Should call wall construction once for entire wall
       expect(mockWallConstruction).toHaveBeenCalledTimes(1)
       expect(mockWallConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(-0, 30, 60), // position: [-extensionStart, insideThickness, basePlateHeight]
-        vec3.fromValues(3000, 220, 2380), // size: [constructionLength, thickness-layers, wallHeight-plates]
+        expectArea(
+          vec3.fromValues(-0, 30, 60), // position: [-extensionStart, insideThickness, basePlateHeight]
+          vec3.fromValues(3000, 220, 2380) // size: [constructionLength, thickness-layers, wallHeight-plates]
+        ),
         true, // startsWithStand
         true, // endsWithStand
         false // startAtEnd
@@ -275,7 +303,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -286,8 +314,10 @@ describe('segmentedWallConstruction', () => {
 
       // Should include extensions in wall construction
       expect(mockWallConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(-100, 30, 60), // position includes start extension
-        vec3.fromValues(3250, 220, 2380), // size includes total construction length
+        expectArea(
+          vec3.fromValues(-100, 30, 60), // position includes start extension
+          vec3.fromValues(3250, 220, 2380) // size includes total construction length
+        ),
         true,
         true,
         true // startAtEnd = true when extensionEnd > 0
@@ -312,7 +342,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -324,8 +354,10 @@ describe('segmentedWallConstruction', () => {
       // Should call wall construction once
       expect(mockWallConstruction).toHaveBeenCalledTimes(1)
       expect(mockWallConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(-0, 30, 80), // z position = base plate height
-        vec3.fromValues(3000, 220, 2320), // z size = wallHeight - base - top
+        expectArea(
+          vec3.fromValues(-0, 30, 80), // z position = base plate height
+          vec3.fromValues(3000, 220, 2320) // z size = wallHeight - base - top
+        ),
         true,
         true,
         false
@@ -345,7 +377,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -360,8 +392,7 @@ describe('segmentedWallConstruction', () => {
       // First wall segment (before opening)
       expect(mockWallConstruction).toHaveBeenNthCalledWith(
         1,
-        vec3.fromValues(-0, 30, 60),
-        vec3.fromValues(1000, 220, 2380),
+        expectArea(vec3.fromValues(0, 30, 60), vec3.fromValues(1000, 220, 2380)),
         true,
         true,
         false
@@ -370,8 +401,10 @@ describe('segmentedWallConstruction', () => {
       // Second wall segment (after opening)
       expect(mockWallConstruction).toHaveBeenNthCalledWith(
         2,
-        vec3.fromValues(1800, 30, 60), // 1000 + 800
-        vec3.fromValues(1200, 220, 2380), // 3000 - 1800
+        expectArea(
+          vec3.fromValues(1800, 30, 60), // 1000 + 800
+          vec3.fromValues(1200, 220, 2380) // 3000 - 1800
+        ),
         true,
         true,
         true
@@ -380,9 +413,8 @@ describe('segmentedWallConstruction', () => {
       // Should call opening construction once
       expect(mockOpeningConstruction).toHaveBeenCalledTimes(1)
       expect(mockOpeningConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(1000, 30, 60),
-        vec3.fromValues(800, 220, 2380),
-        0,
+        expectArea(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 2380)),
+        -60,
         [opening]
       )
 
@@ -402,7 +434,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -414,8 +446,7 @@ describe('segmentedWallConstruction', () => {
       // Should call wall construction once (after opening)
       expect(mockWallConstruction).toHaveBeenCalledTimes(1)
       expect(mockWallConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(800, 30, 60),
-        vec3.fromValues(2200, 220, 2380),
+        expectArea(vec3.fromValues(800, 30, 60), vec3.fromValues(2200, 220, 2380)),
         true,
         true,
         true
@@ -423,9 +454,8 @@ describe('segmentedWallConstruction', () => {
 
       // Should call opening construction once
       expect(mockOpeningConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(0, 30, 60),
-        vec3.fromValues(800, 220, 2380),
-        0,
+        expectArea(vec3.fromValues(0, 30, 60), vec3.fromValues(800, 220, 2380)),
+        -60,
         [opening]
       )
     })
@@ -441,7 +471,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -453,8 +483,7 @@ describe('segmentedWallConstruction', () => {
       // Should call wall construction once (before opening)
       expect(mockWallConstruction).toHaveBeenCalledTimes(1)
       expect(mockWallConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(-0, 30, 60),
-        vec3.fromValues(2200, 220, 2380),
+        expectArea(vec3.fromValues(0, 30, 60), vec3.fromValues(2200, 220, 2380)),
         true,
         true,
         false
@@ -462,9 +491,8 @@ describe('segmentedWallConstruction', () => {
 
       // Should call opening construction once
       expect(mockOpeningConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(2200, 30, 60),
-        vec3.fromValues(800, 220, 2380),
-        0,
+        expectArea(vec3.fromValues(2200, 30, 60), vec3.fromValues(800, 220, 2380)),
+        -60,
         [opening]
       )
     })
@@ -481,7 +509,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -493,9 +521,11 @@ describe('segmentedWallConstruction', () => {
       // Should call opening construction once with both openings merged
       expect(mockOpeningConstruction).toHaveBeenCalledTimes(1)
       expect(mockOpeningConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(1000, 30, 60),
-        vec3.fromValues(1400, 220, 2380), // combined width: 800 + 600
-        0,
+        expectArea(
+          vec3.fromValues(1000, 30, 60),
+          vec3.fromValues(1400, 220, 2380) // combined width: 800 + 600
+        ),
+        -60,
         [opening1, opening2]
       )
     })
@@ -512,7 +542,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -525,16 +555,14 @@ describe('segmentedWallConstruction', () => {
       expect(mockOpeningConstruction).toHaveBeenCalledTimes(2)
       expect(mockOpeningConstruction).toHaveBeenNthCalledWith(
         1,
-        vec3.fromValues(1000, 30, 60),
-        vec3.fromValues(800, 220, 2380),
-        0,
+        expectArea(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 2380)),
+        -60,
         [opening1]
       )
       expect(mockOpeningConstruction).toHaveBeenNthCalledWith(
         2,
-        vec3.fromValues(1800, 30, 60),
-        vec3.fromValues(600, 220, 2380),
-        0,
+        expectArea(vec3.fromValues(1800, 30, 60), vec3.fromValues(600, 220, 2380)),
+        -60,
         [opening2]
       )
     })
@@ -551,7 +579,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -577,7 +605,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -589,16 +617,14 @@ describe('segmentedWallConstruction', () => {
       // Should process opening2 first (at position 500), then opening1 (at position 2000)
       expect(mockOpeningConstruction).toHaveBeenNthCalledWith(
         1,
-        vec3.fromValues(500, 30, 60),
-        vec3.fromValues(800, 220, 2380),
-        0,
+        expectArea(vec3.fromValues(500, 30, 60), vec3.fromValues(800, 220, 2380)),
+        -60,
         [opening2]
       )
       expect(mockOpeningConstruction).toHaveBeenNthCalledWith(
         2,
-        vec3.fromValues(2000, 30, 60),
-        vec3.fromValues(600, 220, 2380),
-        0,
+        expectArea(vec3.fromValues(2000, 30, 60), vec3.fromValues(600, 220, 2380)),
+        -60,
         [opening1]
       )
     })
@@ -620,7 +646,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -632,8 +658,10 @@ describe('segmentedWallConstruction', () => {
       // Should use 0 height for missing ring beams
       expect(mockWallConstruction).toHaveBeenCalledTimes(1)
       expect(mockWallConstruction).toHaveBeenCalledWith(
-        vec3.fromValues(-0, 30, 0), // z = 0 when no base plate
-        vec3.fromValues(3000, 220, 2500), // full wall height when no plates
+        expectArea(
+          vec3.fromValues(-0, 30, 0), // z = 0 when no base plate
+          vec3.fromValues(3000, 220, 2500) // full wall height when no plates
+        ),
         true,
         true,
         false
@@ -653,7 +681,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,
@@ -681,7 +709,7 @@ describe('segmentedWallConstruction', () => {
         ...segmentedWallConstruction(
           wall,
           perimeter,
-          createMockStoreyContext(wallHeight),
+          createMockStoreyContext(3000, wallHeight),
           layers,
           mockWallConstruction,
           mockOpeningConstruction,

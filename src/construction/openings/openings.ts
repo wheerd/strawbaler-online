@@ -1,11 +1,10 @@
 import { vec3 } from 'gl-matrix'
 
 import type { Opening } from '@/building/model/model'
-import { type ConstructionElement, createCuboidElement } from '@/construction/elements'
-import { IDENTITY } from '@/construction/geometry'
+import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
-import { dimensionalPartInfo } from '@/construction/parts'
 import { type ConstructionResult, yieldArea, yieldElement, yieldError, yieldMeasurement } from '@/construction/results'
+import { createElementFromArea } from '@/construction/shapes'
 import {
   TAG_HEADER,
   TAG_HEADER_FROM_TOP,
@@ -18,7 +17,6 @@ import {
   TAG_SILL_HEIGHT
 } from '@/construction/tags'
 import type { InfillMethod } from '@/construction/walls'
-import type { WallSegment3D } from '@/construction/walls/segmentation'
 import { Bounds3D, type Length } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatting'
 
@@ -49,40 +47,29 @@ function extractUnifiedDimensions(
 }
 
 export function* constructOpeningFrame(
-  openingSegment: WallSegment3D,
+  area: WallConstructionArea,
+  openings: Opening[],
+  zOffset: Length,
   config: OpeningConstructionConfig,
   infill: InfillMethod
 ): Generator<ConstructionResult> {
-  if (openingSegment.type !== 'opening' || !openingSegment.openings) {
-    throw new Error('constructOpeningFrame requires an opening segment with openings array')
-  }
+  const [openingLeft, wallFront, wallBottom] = area.position
+  const [openingRight, , wallTop] = vec3.add(vec3.create(), area.position, area.size)
+  const [openingWidth, wallThickness] = area.size
 
-  const openings = openingSegment.openings
-  const [openingLeft, wallFront, wallBottom] = openingSegment.position
-  const [openingRight, , wallTop] = vec3.add(vec3.create(), openingSegment.position, openingSegment.size)
-  const [openingWidth, wallThickness] = openingSegment.size
-
-  const zOffset = openingSegment.zOffset ?? 0
   const { sillTop, headerBottom } = extractUnifiedDimensions(openings, zOffset)
+  const sillBottom = sillTop - config.sillThickness
+  const headerTop = headerBottom + config.headerThickness
 
   // Check if header is required and fits
   const isOpeningAtWallTop = headerBottom >= wallTop
   const headerRequired = !isOpeningAtWallTop
 
   if (headerRequired) {
-    const headerTop = headerBottom + config.headerThickness
-
     // Create single header spanning entire segment width
-    const headerSize = vec3.fromValues(openingWidth, wallThickness, config.headerThickness)
-    const headerElement: ConstructionElement = createCuboidElement(
-      config.headerMaterial,
-      vec3.fromValues(openingLeft, wallFront, headerBottom),
-      headerSize,
-      [TAG_HEADER],
-      dimensionalPartInfo('header', headerSize)
-    )
-
-    yield yieldElement(headerElement)
+    const headerArea = area.withZAdjustment(headerBottom, config.headerThickness)
+    const headerElement = createElementFromArea(headerArea, config.headerMaterial, [TAG_HEADER], 'header')
+    yield* yieldElement(headerElement)
 
     // Generate opening width measurement (horizontal, above wall)
     yield yieldMeasurement({
@@ -113,30 +100,20 @@ export function* constructOpeningFrame(
     })
 
     if (headerTop > wallTop) {
-      yield yieldError({
-        description: `Header does not fit: needs ${formatLength(config.headerThickness)} but only ${formatLength(wallTop - headerBottom)} available`,
-        elements: [headerElement.id],
-        bounds: headerElement.bounds
-      })
+      yield yieldError(
+        `Header does not fit: needs ${formatLength(config.headerThickness)} but only ${formatLength(wallTop - headerBottom)} available`,
+        [headerElement]
+      )
     }
   }
 
   // Check if sill is required and fits
-  const sillRequired = sillTop !== wallBottom
+  const sillRequired = sillTop !== 0
   if (sillRequired) {
-    const sillBottom = sillTop - config.sillThickness
-
     // Create single sill spanning entire segment width
-    const sillSize = vec3.fromValues(openingWidth, wallThickness, config.sillThickness)
-    const sillElement = createCuboidElement(
-      config.sillMaterial,
-      vec3.fromValues(openingLeft, wallFront, sillBottom),
-      sillSize,
-      [TAG_SILL],
-      dimensionalPartInfo('sill', sillSize)
-    )
-
-    yield yieldElement(sillElement)
+    const sillArea = area.withZAdjustment(sillBottom, config.sillThickness)
+    const sillElement = createElementFromArea(sillArea, config.sillMaterial, [TAG_SILL], 'sill')
+    yield* yieldElement(sillElement)
 
     // Generate sill height measurement (vertical, in opening right)
     yield yieldMeasurement({
@@ -164,11 +141,10 @@ export function* constructOpeningFrame(
     }
 
     if (sillBottom < wallBottom) {
-      yield yieldError({
-        description: `Sill does not fit: needs ${formatLength(config.sillThickness)} but only ${formatLength(sillTop)} available`,
-        elements: [sillElement.id],
-        bounds: sillElement.bounds
-      })
+      yield yieldError(
+        `Sill does not fit: needs ${formatLength(config.sillThickness)} but only ${formatLength(sillTop)} available`,
+        [sillElement]
+      )
     }
   }
 
@@ -202,28 +178,12 @@ export function* constructOpeningFrame(
   }
 
   // Create wall above header (if space remains)
-  if (headerRequired) {
-    const wallAboveBottom = headerBottom + config.headerThickness
-    const wallAboveHeight = wallTop - wallAboveBottom
-
-    if (wallAboveHeight > 0) {
-      const wallAbovePosition = vec3.fromValues(openingLeft, wallFront, wallAboveBottom)
-      const wallAboveSize = vec3.fromValues(openingWidth, wallThickness, wallAboveHeight)
-
-      yield* infill(wallAbovePosition, wallAboveSize)
-    }
+  if (wallTop > headerTop) {
+    yield* infill(area.withZAdjustment(headerTop))
   }
 
   // Create wall below sill (if space remains)
-  if (sillRequired) {
-    const sillThickness = config.sillThickness ?? 60
-    const wallBelowHeight = sillTop - sillThickness - wallBottom
-
-    if (wallBelowHeight > 0) {
-      const wallBelowPosition = vec3.fromValues(openingLeft, wallFront, wallBottom)
-      const wallBelowSize = vec3.fromValues(openingWidth, wallThickness, wallBelowHeight)
-
-      yield* infill(wallBelowPosition, wallBelowSize)
-    }
+  if (sillBottom > 0) {
+    yield* infill(area.withZAdjustment(0, sillBottom))
   }
 }

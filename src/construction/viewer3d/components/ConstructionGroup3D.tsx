@@ -1,6 +1,7 @@
 import type { ConstructionGroup, GroupOrElement } from '@/construction/elements'
 import type { TagCategoryId } from '@/construction/tags'
 import { useOpacityControl } from '@/construction/viewer3d/context/OpacityControlContext'
+import { toThreeTransform } from '@/construction/viewer3d/utils/geometry'
 
 import ConstructionElement3D from './ConstructionElement3D'
 
@@ -11,11 +12,8 @@ interface ConstructionGroup3DProps {
 
 function ConstructionGroup3D({ group, parentOpacity = 1 }: ConstructionGroup3DProps): React.JSX.Element {
   const { getOpacityForCategory } = useOpacityControl()
-  const position = group.transform.position
-  const rotation = group.transform.rotation
 
-  const threePosition: [number, number, number] = [position[0], position[2], -position[1]]
-  const threeRotation: [number, number, number] = [rotation[0], rotation[2], rotation[1]]
+  const { position, rotation, scale } = toThreeTransform(group.transform)
 
   const categories = new Set<TagCategoryId>()
   group.tags?.forEach(tag => categories.add(tag.category))
@@ -30,7 +28,7 @@ function ConstructionGroup3D({ group, parentOpacity = 1 }: ConstructionGroup3DPr
   }
 
   return (
-    <group position={threePosition} rotation={threeRotation}>
+    <group position={position} rotation={rotation} scale={scale}>
       {group.children.map(child => (
         <GroupOrElement3D key={child.id} element={child} parentOpacity={groupOpacity} />
       ))}

@@ -9,8 +9,17 @@ import {
   pathDToPoints
 } from '@/shared/geometry/clipperInstance'
 
-import { type Area, Bounds2D, type Length, direction, perpendicular, radiansToDegrees } from './basic'
-import { type LineSegment2D, lineIntersection } from './line'
+import {
+  type Area,
+  Bounds2D,
+  type Length,
+  direction,
+  perpendicular,
+  perpendicularCCW,
+  perpendicularCW,
+  radiansToDegrees
+} from './basic'
+import { type Line2D, type LineSegment2D, lineIntersection } from './line'
 
 const COLINEAR_EPSILON = 1e-9
 const SIMPLIFY_TOLERANCE = 0.01
@@ -348,6 +357,70 @@ export function subtractPolygons(subject: Polygon2D[], clips: Polygon2D[]): Poly
     subjectPaths.forEach(path => path.delete())
     clipPaths.forEach(path => path.delete())
   }
+}
+
+export interface PolygonSide {
+  polygon: Polygon2D
+  side: 'left' | 'right'
+}
+
+/**
+ * Split a simple polygon by an infinite line defined by a segment.
+ * Left side is perpendicular CCW from line direction, right side is perpendicular CW.
+ * @param polygon - Simple polygon (no holes)
+ * @param line - Line segment defining the split direction
+ * @returns Array of polygon pieces with side tags (typically 0-2)
+ */
+export function splitPolygonByLine(polygon: Polygon2D, line: LineSegment2D): PolygonSide[] {
+  if (polygon.points.length < 3) {
+    return []
+  }
+
+  const polygonCW = ensurePolygonIsClockwise(polygon)
+
+  // Get line direction and perpendiculars
+  const lineDir = direction(line.start, line.end)
+  const perpLeft = perpendicularCCW(lineDir)
+  const perpRight = perpendicularCW(lineDir)
+
+  // Create a large bounding size
+  const bounds = Bounds2D.fromPoints(polygon.points)
+  const largeSize = Math.max(bounds.width, bounds.height) * 3
+
+  // Create two half-plane rectangles on either side of the line
+  // Left half-plane (CCW perpendicular from line)
+  const leftP1 = vec2.scaleAndAdd(vec2.create(), line.start, lineDir, -largeSize)
+  const leftP2 = vec2.scaleAndAdd(vec2.create(), line.start, lineDir, largeSize)
+  const leftP3 = vec2.scaleAndAdd(vec2.create(), leftP2, perpLeft, largeSize)
+  const leftP4 = vec2.scaleAndAdd(vec2.create(), leftP1, perpLeft, largeSize)
+
+  // Right half-plane (CW perpendicular from line)
+  const rightP1 = vec2.scaleAndAdd(vec2.create(), line.start, lineDir, -largeSize)
+  const rightP2 = vec2.scaleAndAdd(vec2.create(), line.start, lineDir, largeSize)
+  const rightP3 = vec2.scaleAndAdd(vec2.create(), rightP2, perpRight, largeSize)
+  const rightP4 = vec2.scaleAndAdd(vec2.create(), rightP1, perpRight, largeSize)
+
+  const leftHalfPlane: Polygon2D = ensurePolygonIsClockwise({ points: [leftP1, leftP2, leftP3, leftP4] })
+  const rightHalfPlane: Polygon2D = ensurePolygonIsClockwise({ points: [rightP1, rightP2, rightP3, rightP4] })
+
+  // Use subtract to get the right side (polygon - left half-plane)
+  const rightResults = intersectPolygon({ outer: polygonCW, holes: [] }, { outer: rightHalfPlane, holes: [] })
+
+  // Use subtract to get the left side (polygon - right half-plane)
+  const leftResults = intersectPolygon({ outer: polygonCW, holes: [] }, { outer: leftHalfPlane, holes: [] })
+
+  // Collect all pieces with side tags
+  const result: PolygonSide[] = []
+
+  for (const poly of leftResults) {
+    result.push({ polygon: poly.outer, side: 'left' })
+  }
+
+  for (const poly of rightResults) {
+    result.push({ polygon: poly.outer, side: 'right' })
+  }
+
+  return result
 }
 
 export function unionPolygonsWithHoles(polygons: Polygon2D[]): PolygonWithHoles2D[] {
@@ -820,4 +893,137 @@ function convexHullAndrew(points: vec2[]): vec2[] {
   upper.pop()
   const hull = lower.concat(upper)
   return ensureCounterClockwiseOrder(hull)
+}
+
+/**
+ * Represents a segment where a line intersects a polygon
+ */
+export interface LinePolygonIntersection {
+  segments: {
+    tStart: number // 0-1 position along line where it enters polygon
+    tEnd: number // 0-1 position along line where it exits polygon
+  }[]
+}
+
+/**
+ * Find all segments where a line segment intersects with a polygon.
+ * Returns normalized t values (0-1) along the line segment.
+ */
+export function intersectLineSegmentWithPolygon(
+  line: LineSegment2D,
+  polygon: Polygon2D
+): LinePolygonIntersection | null {
+  if (polygon.points.length < 3) {
+    return null
+  }
+
+  const lineDir = direction(line.start, line.end)
+  const lineLength = vec2.distance(line.start, line.end)
+
+  if (lineLength === 0) {
+    // Degenerate line - just check if point is inside
+    return isPointInPolygon(line.start, polygon) ? { segments: [{ tStart: 0, tEnd: 0 }] } : null
+  }
+
+  // Find all intersection points with polygon edges
+  interface Intersection {
+    t: number
+    crossing: boolean // true if actually crossing (not tangent)
+  }
+
+  const intersections: Intersection[] = []
+  const startInside = isPointInPolygon(line.start, polygon)
+  const endInside = isPointInPolygon(line.end, polygon)
+
+  // Check each edge of the polygon
+  for (let i = 0; i < polygon.points.length; i++) {
+    const p1 = polygon.points[i]
+    const p2 = polygon.points[(i + 1) % polygon.points.length]
+
+    // Solve for intersection: line.start + t * lineDir = p1 + s * (p2 - p1)
+    const edgeDir = direction(p1, p2)
+    const edgeLength = vec2.distance(p1, p2)
+
+    if (edgeLength === 0) continue
+
+    // Use lineIntersection to find intersection point
+    const lineDef: Line2D = { point: line.start, direction: lineDir }
+    const edgeDef: Line2D = { point: p1, direction: edgeDir }
+
+    const intersection = lineIntersection(lineDef, edgeDef)
+
+    if (intersection) {
+      // Calculate t along the line segment
+      const toIntersection = vec2.sub(vec2.create(), intersection, line.start)
+      const t = vec2.dot(toIntersection, lineDir) / lineLength
+
+      // Calculate s along the edge
+      const toIntersectionFromEdge = vec2.sub(vec2.create(), intersection, p1)
+      const s = vec2.dot(toIntersectionFromEdge, edgeDir) / edgeLength
+
+      // Only count if intersection is on both segments (with small epsilon for endpoints)
+      const epsilon = 1e-9
+      if (t >= -epsilon && t <= 1 + epsilon && s >= -epsilon && s <= 1 + epsilon) {
+        // Clamp t to valid range
+        const clampedT = Math.max(0, Math.min(1, t))
+
+        // Check if this is a real crossing (not just tangent)
+        // We determine this by checking if the line crosses from one side to the other
+        const crossing = true // Simplified for now - could improve by checking side change
+
+        intersections.push({ t: clampedT, crossing })
+      }
+    }
+  }
+
+  // Remove duplicate intersections (can happen at vertices)
+  const uniqueIntersections: Intersection[] = []
+  for (const int of intersections) {
+    const isDuplicate = uniqueIntersections.some(existing => Math.abs(existing.t - int.t) < 1e-9)
+    if (!isDuplicate) {
+      uniqueIntersections.push(int)
+    }
+  }
+
+  // Sort by t value
+  uniqueIntersections.sort((a, b) => a.t - b.t)
+
+  // Build segments based on start/end inside status and crossings
+  const segments: { tStart: number; tEnd: number }[] = []
+
+  if (uniqueIntersections.length === 0) {
+    // No edge crossings
+    if (startInside && endInside) {
+      // Entire line is inside
+      return { segments: [{ tStart: 0, tEnd: 1 }] }
+    }
+    // Entire line is outside
+    return null
+  }
+
+  // Build segments by tracking inside/outside status
+  let inside = startInside
+  let segmentStart: number | null = inside ? 0 : null
+
+  for (const intersection of uniqueIntersections) {
+    if (inside) {
+      // We're inside, this intersection is an exit
+      if (segmentStart !== null) {
+        segments.push({ tStart: segmentStart, tEnd: intersection.t })
+      }
+      inside = false
+      segmentStart = null
+    } else {
+      // We're outside, this intersection is an entry
+      inside = true
+      segmentStart = intersection.t
+    }
+  }
+
+  // Close final segment if we end inside
+  if (inside && segmentStart !== null) {
+    segments.push({ tStart: segmentStart, tEnd: 1 })
+  }
+
+  return segments.length > 0 ? { segments } : null
 }

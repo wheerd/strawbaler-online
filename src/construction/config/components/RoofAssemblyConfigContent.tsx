@@ -1,9 +1,17 @@
-import { ComponentInstanceIcon, CopyIcon, PlusIcon, SquareIcon, TrashIcon } from '@radix-ui/react-icons'
+import {
+  ComponentInstanceIcon,
+  CopyIcon,
+  ExclamationTriangleIcon,
+  PlusIcon,
+  SquareIcon,
+  TrashIcon
+} from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import {
   AlertDialog,
   Badge,
   Button,
+  Callout,
   DropdownMenu,
   Flex,
   Grid,
@@ -24,6 +32,7 @@ import { DEFAULT_CEILING_LAYER_SETS, DEFAULT_ROOF_LAYER_SETS } from '@/construct
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import type { MonolithicRoofConfig, PurlinRoofConfig, RoofAssemblyType, RoofConfig } from '@/construction/roofs/types'
+import { RoofMeasurementInfo } from '@/editor/components/RoofMeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 
 import { getRoofAssemblyTypeIcon } from './Icons'
@@ -84,6 +93,15 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
   return (
     <Flex direction="column" gap="3">
       <Heading size="2">Purlin Roof Configuration</Heading>
+
+      <Callout.Root color="amber">
+        <Callout.Icon>
+          <ExclamationTriangleIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          <Text>The construction of purlin roofs is not implemented yet.</Text>
+        </Callout.Text>
+      </Callout.Root>
 
       {/* Main Configuration */}
       <Flex direction="column" gap="1">
@@ -363,6 +381,7 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
       <LayerListEditor
         title="Inside Layers (Ceiling)"
         layers={config.layers.insideLayers}
+        measurementInfo={<RoofMeasurementInfo highlightedPart="roofBottomLayers" />}
         onAddLayer={layer => addRoofAssemblyInsideLayer(assemblyId, layer)}
         onReplaceLayers={layers => setRoofAssemblyInsideLayers(assemblyId, layers)}
         onUpdateLayer={(index, updates) => updateRoofAssemblyInsideLayer(assemblyId, index, updates)}
@@ -380,6 +399,7 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
       <LayerListEditor
         title="Top Layers (Roof Covering)"
         layers={displayedTopLayers}
+        measurementInfo={<RoofMeasurementInfo highlightedPart="roofTopLayers" />}
         onAddLayer={layer => addRoofAssemblyTopLayer(assemblyId, layer)}
         onReplaceLayers={layers => setRoofAssemblyTopLayers(assemblyId, [...layers].reverse())}
         onUpdateLayer={(index, updates) => updateRoofAssemblyTopLayer(assemblyId, mapTopIndex(index), updates)}
@@ -399,6 +419,7 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
       <LayerListEditor
         title="Overhang Layers"
         layers={config.layers.overhangLayers}
+        measurementInfo={<RoofMeasurementInfo highlightedPart="overhangBottomLayers" />}
         onAddLayer={layer => addRoofAssemblyOverhangLayer(assemblyId, layer)}
         onReplaceLayers={layers => setRoofAssemblyOverhangLayers(assemblyId, layers)}
         onUpdateLayer={(index, updates) => updateRoofAssemblyOverhangLayer(assemblyId, index, updates)}
@@ -523,6 +544,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
           type: 'monolithic',
           thickness: 180,
           material: defaultMaterial,
+          infillMaterial: defaultMaterial,
           layers: {
             insideThickness: 0,
             insideLayers: [],
@@ -541,6 +563,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
           purlinHeight: 220,
           purlinWidth: 60,
           purlinSpacing: 1000,
+          infillMaterial: defaultMaterial,
           rafterMaterial: defaultMaterial,
           rafterWidth: 60,
           rafterSpacingMin: 600,
@@ -670,9 +693,12 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
 
           <Grid columns="auto 1fr" gap="2" align="center">
             <Label.Root>
-              <Text size="1" weight="medium" color="gray">
-                Default Roof Assembly
-              </Text>
+              <Flex align="center" gap="1">
+                <Text size="1" weight="medium" color="gray">
+                  Default Roof Assembly
+                </Text>
+                <RoofMeasurementInfo highlightedAssembly="roofAssembly" />
+              </Flex>
             </Label.Root>
             <RoofAssemblySelect
               value={defaultAssemblyId}

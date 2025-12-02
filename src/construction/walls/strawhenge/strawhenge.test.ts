@@ -2,6 +2,7 @@ import { vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createCuboidElement } from '@/construction/elements'
+import { WallConstructionArea } from '@/construction/geometry'
 import { constructStraw } from '@/construction/materials/straw'
 import { aggregateResults, yieldElement } from '@/construction/results'
 import type { StrawhengeWallConfig } from '@/construction/walls'
@@ -89,17 +90,17 @@ const WALL_LENGTHS = [
 // Helper to create mock results for testing
 function* createMockStrawResults(position: vec3, size: vec3, material = 'straw') {
   const element = createCuboidElement(material as any, position, size)
-  yield yieldElement(element)
+  yield* yieldElement(element)
 }
 
 function* createMockModuleResults(position: vec3, size: vec3, material = 'module') {
   const element = createCuboidElement(material as any, position, size)
-  yield yieldElement(element)
+  yield* yieldElement(element)
 }
 
 function* createMockInfillResults(position: vec3, size: vec3, material = 'infill') {
   const element = createCuboidElement(material as any, position, size)
-  yield yieldElement(element)
+  yield* yieldElement(element)
 }
 
 // Helper to extract snapshot data from results
@@ -122,20 +123,18 @@ describe('Strawhenge Wall Construction', () => {
     vi.clearAllMocks()
 
     // Setup default mock implementations
-    mockConstructStraw.mockImplementation((position, size) => createMockStrawResults(position, size))
-    mockConstructModule.mockImplementation((position, size) => createMockModuleResults(position, size))
-    mockInfillWallArea.mockImplementation((position, size) => createMockInfillResults(position, size))
+    mockConstructStraw.mockImplementation(area => createMockStrawResults(area.position, area.size))
+    mockConstructModule.mockImplementation(area => createMockModuleResults(area.position, area.size))
+    mockInfillWallArea.mockImplementation(area => createMockInfillResults(area.position, area.size))
   })
 
   describe('Fallback to Infill', () => {
     it('should create module when no stands available but size equals module width', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(MODULE_WIDTH, 360, 2000)
+      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH, 360, 2000))
 
       Array.from(
         strawhengeWallArea(
-          position,
-          size,
+          area,
           config,
           false,
           false,
@@ -144,18 +143,19 @@ describe('Strawhenge Wall Construction', () => {
       )
 
       // Current implementation creates a module even without stands if size equals module width
-      expect(mockConstructModule).toHaveBeenCalledWith(position, size, config.module)
+      expect(mockConstructModule).toHaveBeenCalledWith(area, config.module)
       expect(mockInfillWallArea).not.toHaveBeenCalled()
     })
 
     it('should fall back to infill when no stands and size larger than module', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(MODULE_WIDTH + 100, 360, 2000) // Larger than module but no stands
+      const area = new WallConstructionArea(
+        vec3.fromValues(0, 0, 0),
+        vec3.fromValues(MODULE_WIDTH + 100, 360, 2000) // Larger than module but no stands
+      )
 
       Array.from(
         strawhengeWallArea(
-          position,
-          size,
+          area,
           config,
           false,
           false,
@@ -164,17 +164,18 @@ describe('Strawhenge Wall Construction', () => {
       )
 
       // Should call infill for insufficient space to place modules properly
-      expect(mockInfillWallArea).toHaveBeenCalledWith(position, size, config.infill, false, false, false)
+      expect(mockInfillWallArea).toHaveBeenCalledWith(area, config.infill, false, false, false)
     })
 
     it('should fall back to infill when space is too small for module', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(MODULE_WIDTH - 1, 360, 2000) // Just under module width
+      const area = new WallConstructionArea(
+        vec3.fromValues(0, 0, 0),
+        vec3.fromValues(MODULE_WIDTH - 1, 360, 2000) // Just under module width
+      )
 
       Array.from(
         strawhengeWallArea(
-          position,
-          size,
+          area,
           config,
           true,
           true,
@@ -183,30 +184,31 @@ describe('Strawhenge Wall Construction', () => {
       )
 
       // Should call infill, not module construction
-      expect(mockInfillWallArea).toHaveBeenCalledWith(position, size, config.infill, true, true, false)
+      expect(mockInfillWallArea).toHaveBeenCalledWith(area, config.infill, true, true, false)
       expect(mockConstructModule).not.toHaveBeenCalled()
     })
   })
 
   describe('Single Module Cases', () => {
     it('should create single module when size equals module width', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(MODULE_WIDTH, 360, 2000)
+      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH, 360, 2000))
 
-      Array.from(strawhengeWallArea(position, size, config, true, true, false))
+      Array.from(strawhengeWallArea(area, config, true, true, false))
 
       // Should call module construction, not infill
-      expect(mockConstructModule).toHaveBeenCalledWith(position, size, config.module)
+      expect(mockConstructModule).toHaveBeenCalledWith(area, config.module)
       expect(mockInfillWallArea).not.toHaveBeenCalled()
     })
   })
 
   describe('Multi-Module Patterns', () => {
     it('should handle placement with both starts and ends with stands', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(MODULE_WIDTH + FULL_BALE + MODULE_WIDTH, 360, 2000) // 1400
+      const area = new WallConstructionArea(
+        vec3.fromValues(0, 0, 0),
+        vec3.fromValues(MODULE_WIDTH + FULL_BALE + MODULE_WIDTH, 360, 2000) // 1400
+      )
 
-      Array.from(strawhengeWallArea(position, size, config, true, true, false))
+      Array.from(strawhengeWallArea(area, config, true, true, false))
 
       // Should call both module and straw construction
       expect(mockConstructModule).toHaveBeenCalled()
@@ -217,10 +219,9 @@ describe('Strawhenge Wall Construction', () => {
   describe('Wall Length Snapshots - startAtEnd=false', () => {
     describe.each(WALL_LENGTHS)('Wall length %s', wallLength => {
       it(`should produce consistent layout for length ${wallLength}`, () => {
-        const position = vec3.fromValues(0, 0, 0)
-        const size = vec3.fromValues(wallLength, 360, 2000)
+        const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(wallLength, 360, 2000))
 
-        const results = Array.from(strawhengeWallArea(position, size, config, true, true, false))
+        const results = Array.from(strawhengeWallArea(area, config, true, true, false))
 
         const snapshotData = extractSnapshotData(results)
         expect(snapshotData).toMatchSnapshot(`wall-length-${wallLength}-startAtEnd-false`)
@@ -231,10 +232,9 @@ describe('Strawhenge Wall Construction', () => {
   describe('Wall Length Snapshots - startAtEnd=true', () => {
     describe.each(WALL_LENGTHS)('Wall length %s', wallLength => {
       it(`should produce consistent layout for length ${wallLength}`, () => {
-        const position = vec3.fromValues(0, 0, 0)
-        const size = vec3.fromValues(wallLength, 360, 2000)
+        const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(wallLength, 360, 2000))
 
-        const results = Array.from(strawhengeWallArea(position, size, config, true, true, true))
+        const results = Array.from(strawhengeWallArea(area, config, true, true, true))
 
         const snapshotData = extractSnapshotData(results)
         expect(snapshotData).toMatchSnapshot(`wall-length-${wallLength}-startAtEnd-true`)
@@ -244,13 +244,11 @@ describe('Strawhenge Wall Construction', () => {
 
   describe('Stand Placement', () => {
     it('should place modules at start when startsWithStand=true', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(MODULE_WIDTH * 2, 360, 2000)
+      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH * 2, 360, 2000))
 
       Array.from(
         strawhengeWallArea(
-          position,
-          size,
+          area,
           config,
           true,
           false,
@@ -259,24 +257,22 @@ describe('Strawhenge Wall Construction', () => {
       )
 
       // Should place module at start position
-      const startModuleCall = mockConstructModule.mock.calls.find(([modulePosition, moduleSize]) => {
-        return Math.abs(modulePosition[0] - position[0]) < 1e-3 && Math.abs(moduleSize[0] - MODULE_WIDTH) < 1e-3
+      const startModuleCall = mockConstructModule.mock.calls.find(([a]) => {
+        return Math.abs(a.position[0] - area.position[0]) < 1e-3 && Math.abs(a.size[0] - MODULE_WIDTH) < 1e-3
       })
 
       expect(startModuleCall).toBeDefined()
-      const [, startModuleSize, startModuleConfig] = startModuleCall!
-      expect(startModuleSize[0]).toBeCloseTo(MODULE_WIDTH, 5)
+      const [startModuleArea, startModuleConfig] = startModuleCall!
+      expect(startModuleArea.size[0]).toBeCloseTo(MODULE_WIDTH, 5)
       expect(startModuleConfig).toBe(config.module)
     })
 
     it('should place modules at end when endsWithStand=true', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(MODULE_WIDTH * 2, 360, 2000)
+      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH * 2, 360, 2000))
 
       Array.from(
         strawhengeWallArea(
-          position,
-          size,
+          area,
           config,
           false,
           true,
@@ -285,29 +281,32 @@ describe('Strawhenge Wall Construction', () => {
       )
 
       // Should place module at end position
-      const endModuleCall = mockConstructModule.mock.calls.find(([modulePosition, moduleSize]) => {
-        return Math.abs(modulePosition[0] - MODULE_WIDTH) < 1e-3 && Math.abs(moduleSize[0] - MODULE_WIDTH) < 1e-3
+      const endModuleCall = mockConstructModule.mock.calls.find(([a]) => {
+        return Math.abs(a.position[0] - MODULE_WIDTH) < 1e-3 && Math.abs(a.size[0] - MODULE_WIDTH) < 1e-3
       })
 
       expect(endModuleCall).toBeDefined()
-      const [, endModuleSize, endModuleConfig] = endModuleCall!
-      expect(endModuleSize[0]).toBeCloseTo(MODULE_WIDTH, 5)
+      const [endModuleArea, endModuleConfig] = endModuleCall!
+      expect(endModuleArea.size[0]).toBeCloseTo(MODULE_WIDTH, 5)
       expect(endModuleConfig).toBe(config.module)
     })
   })
 
   describe('Mock Verification', () => {
     it('should call mocked dependencies correctly', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(MODULE_WIDTH, 360, 2000)
+      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH, 360, 2000))
+      const smallerArea = new WallConstructionArea(
+        vec3.fromValues(0, 0, 0),
+        vec3.fromValues(MODULE_WIDTH - 1, 360, 2000)
+      )
 
       // Test module construction
-      Array.from(strawhengeWallArea(position, size, config, true, true, false))
+      Array.from(strawhengeWallArea(area, config, true, true, false))
       expect(mockConstructModule).toHaveBeenCalled()
 
       // Reset and test infill fallback
       vi.clearAllMocks()
-      Array.from(strawhengeWallArea(position, [MODULE_WIDTH - 1, 360, 2000], config, true, true, false))
+      Array.from(strawhengeWallArea(smallerArea, config, true, true, false))
       expect(mockInfillWallArea).toHaveBeenCalled()
     })
   })

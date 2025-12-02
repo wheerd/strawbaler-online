@@ -4,7 +4,7 @@ import type { MaterialId } from '@/construction/materials/material'
 import type { Bounds3D } from '@/shared/geometry'
 import { createId } from '@/shared/utils/ids'
 
-import { IDENTITY, type Transform, transformBounds } from './geometry'
+import { IDENTITY, type Transform, transformBounds, translate } from './geometry'
 import type { PartInfo } from './parts'
 import { type Shape, createCuboid } from './shapes'
 import type { Tag } from './tags'
@@ -42,10 +42,7 @@ export const createCuboidElement = (
   partInfo?: PartInfo
 ): ConstructionElement => {
   const shape = createCuboid(size)
-  const transform: Transform = {
-    position: vec3.clone(corner),
-    rotation: vec3.fromValues(0, 0, 0)
-  }
+  const transform = translate(corner)
   return createConstructionElement(material, shape, transform, tags, partInfo)
 }
 

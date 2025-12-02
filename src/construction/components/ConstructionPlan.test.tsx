@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { vec2, vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
+import { IDENTITY, translate } from '@/construction/geometry'
 import type { ConstructionModel, HighlightedCuboid, HighlightedPolygon } from '@/construction/model'
 import { Bounds3D } from '@/shared/geometry'
 
@@ -78,7 +79,7 @@ describe('ConstructionPlan', () => {
       type: 'cuboid',
       areaType: 'corner',
       label: 'Bottom Area',
-      transform: { position: vec3.fromValues(0, 0, 0), rotation: vec3.fromValues(0, 0, 0) },
+      transform: IDENTITY,
       bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(50, 50, 10)),
       renderPosition: 'bottom'
     }
@@ -87,7 +88,7 @@ describe('ConstructionPlan', () => {
       type: 'cuboid',
       areaType: 'corner',
       label: 'Top Area',
-      transform: { position: vec3.fromValues(60, 0, 0), rotation: vec3.fromValues(0, 0, 0) },
+      transform: translate(vec3.fromValues(60, 0, 0)),
       bounds: Bounds3D.fromMinMax(vec3.fromValues(60, 0, 0), vec3.fromValues(110, 50, 10)),
       renderPosition: 'top'
     }

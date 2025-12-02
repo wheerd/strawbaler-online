@@ -41,10 +41,10 @@ function manifoldToThreeGeometry(manifold: Manifold): THREE.BufferGeometry {
     const y = mesh.vertProperties[baseIdx + 1]
     const z = mesh.vertProperties[baseIdx + 2]
 
-    // Manifold (X,Y,Z) -> Three.js (X,Z,-Y)
+    // Manifold (X,Y,Z) -> Three.js (X,Y,Z)
     positions[i * 3] = x
-    positions[i * 3 + 1] = z
-    positions[i * 3 + 2] = -y
+    positions[i * 3 + 1] = y
+    positions[i * 3 + 2] = z
   }
 
   // triVerts is already a Uint32Array

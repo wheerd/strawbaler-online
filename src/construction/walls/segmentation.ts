@@ -1,10 +1,15 @@
 import { vec2, vec3 } from 'gl-matrix'
 
+import type { StoreyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model/model'
+import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
+import { WallConstructionArea } from '@/construction/geometry'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
+import { ROOF_ASSEMBLIES } from '@/construction/roofs'
+import type { HeightLine } from '@/construction/roofs/types'
 import { getStoreyCeilingHeight } from '@/construction/storeyHeight'
 import {
   TAG_OPENING_SPACING,
@@ -14,21 +19,16 @@ import {
   TAG_WALL_LENGTH
 } from '@/construction/tags'
 import type { WallLayersConfig } from '@/construction/walls'
+import {
+  convertHeightLineToWallOffsets,
+  fillNullRegions,
+  mergeInsideOutsideHeightLines
+} from '@/construction/walls/roofIntegration'
 import type { Length } from '@/shared/geometry'
 import { convertOpeningToConstruction } from '@/shared/utils/openingDimensions'
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
-
-export interface WallSegment3D {
-  type: 'wall' | 'opening'
-  position: vec3 // [offsetFromStart, 0, 0]
-  size: vec3 // [width, wallThickness, wallHeight]
-
-  // For opening segments - array supports merged adjacent openings
-  openings?: Opening[]
-  zOffset?: Length
-}
 
 function canMergeOpenings(opening1: Opening, opening2: Opening): boolean {
   // Check if openings are adjacent
@@ -72,17 +72,73 @@ function mergeAdjacentOpenings(sortedOpenings: Opening[]): Opening[][] {
   return groups
 }
 
+/**
+ * Query all roofs for a storey and merge their height lines
+ * Three-step process:
+ * 1. Merge all roof height lines for each side
+ * 2. Fill null regions with ceiling offset
+ * 3. Merge inside/outside using minimum offsets
+ */
+export function getRoofHeightLineForWall(
+  storeyId: StoreyId,
+  cornerInfo: WallCornerInfo,
+  ceilingBottomOffset: Length
+): HeightLine | undefined {
+  const { getRoofsByStorey } = getModelActions()
+  const { getRoofAssemblyById } = getConfigActions()
+
+  const roofs = getRoofsByStorey(storeyId)
+  if (roofs.length === 0) return undefined
+
+  // Get height lines from all roofs for both sides
+  const insideHeightLine: HeightLine = []
+  const outsideHeightLine: HeightLine = []
+
+  for (const roof of roofs) {
+    const roofAssembly = getRoofAssemblyById(roof.assemblyId)
+    if (!roofAssembly) continue
+
+    const roofImpl = ROOF_ASSEMBLIES[roofAssembly.type]
+    if (!roofImpl) continue
+
+    // Get height lines for construction lines
+    // TypeScript can't narrow the roofAssembly type properly, so we use 'as any'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const insideLine = roofImpl.getBottomOffsets(roof, roofAssembly as any, cornerInfo.constructionInsideLine)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const outsideLine = roofImpl.getBottomOffsets(roof, roofAssembly as any, cornerInfo.constructionOutsideLine)
+
+    insideHeightLine.push(...insideLine)
+    outsideHeightLine.push(...outsideLine)
+  }
+
+  if (insideHeightLine.length === 0 && outsideHeightLine.length === 0) {
+    return undefined
+  }
+
+  // STEP 1: Merge all roof height lines for each side
+  insideHeightLine.sort((a, b) => a.position - b.position)
+  outsideHeightLine.sort((a, b) => a.position - b.position)
+
+  // STEP 2: Fill null regions with ceiling offset (makes complete 0-1 coverage)
+  const filledInside = fillNullRegions(insideHeightLine, ceilingBottomOffset)
+  const filledOutside = fillNullRegions(outsideHeightLine, ceilingBottomOffset)
+
+  // STEP 3: Merge inside/outside using minimum offsets at all positions
+  const finalHeightLine = mergeInsideOutsideHeightLines(filledInside, filledOutside)
+
+  return finalHeightLine.length > 0 ? finalHeightLine : undefined
+}
+
 export type WallSegmentConstruction = (
-  position: vec3,
-  size: vec3,
+  area: WallConstructionArea,
   startsWithStand: boolean,
   endsWithStand: boolean,
   startAtEnd: boolean
 ) => Generator<ConstructionResult>
 
 export type OpeningSegmentConstruction = (
-  position: vec3,
-  size: vec3,
+  area: WallConstructionArea,
   zOffset: Length,
   openings: Opening[]
 ) => Generator<ConstructionResult>
@@ -181,6 +237,7 @@ export interface WallStoreyContext {
   ceilingBottomOffset: Length
   ceilingBottomConstructionOffset: Length
   storeyHeight: Length
+  ceilingHeight: Length
   floorTopOffset: Length
   floorTopConstructionOffset: Length
 }
@@ -197,8 +254,9 @@ export function createWallStoreyContext(
   const bottomOffset = nextFloorFloorAssembly?.getBottomOffset(nextFloorAssembly) ?? 0
 
   return {
+    storeyHeight: currentStorey.floorHeight,
     floorConstructionThickness: currentFloorFloorAssembly.getConstructionThickness(currentFloorAssembly),
-    storeyHeight: getStoreyCeilingHeight(currentStorey, nextFloorAssembly),
+    ceilingHeight: getStoreyCeilingHeight(currentStorey, nextFloorAssembly),
     floorTopConstructionOffset: topOffset,
     floorTopOffset: currentFloorAssembly.layers.topThickness + topOffset,
     ceilingBottomConstructionOffset: bottomOffset,
@@ -232,7 +290,8 @@ export function* segmentedWallConstruction(
   const topPlateHeight = topPlateAssembly?.height ?? 0
 
   const totalConstructionHeight =
-    storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
+    storeyContext.ceilingHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
+  const ceilingOffset = storeyContext.storeyHeight - totalConstructionHeight
 
   yield* createCornerAreas(cornerInfo, wall.wallLength, totalConstructionHeight)
 
@@ -304,15 +363,27 @@ export function* segmentedWallConstruction(
     })
   }
 
+  // Query roofs and get merged height line
+  const roofHeightLine = getRoofHeightLineForWall(perimeter.storeyId, cornerInfo, -ceilingOffset)
+
+  // Convert roof height line to wall offsets
+  let roofOffsets
+  if (roofHeightLine) {
+    roofOffsets = convertHeightLineToWallOffsets(roofHeightLine, constructionLength)
+  } else {
+    roofOffsets = [vec2.fromValues(0, -ceilingOffset), vec2.fromValues(constructionLength, -ceilingOffset)]
+  }
+
+  // Create overall wall construction area ONCE with roof offsets
+  const overallWallArea = new WallConstructionArea(
+    vec3.fromValues(-extensionStart, y, z),
+    vec3.fromValues(constructionLength, sizeY, storeyContext.storeyHeight - z - topPlateHeight),
+    roofOffsets
+  )
+
   if (openingsWithPadding.length === 0) {
-    // No openings - just one wall segment for the entire length
-    yield* wallConstruction(
-      vec3.fromValues(-extensionStart, y, z),
-      vec3.fromValues(constructionLength, sizeY, sizeZ),
-      standAtWallStart,
-      standAtWallEnd,
-      extensionEnd > 0
-    )
+    // No openings - use the overall area directly
+    yield* wallConstruction(overallWallArea, standAtWallStart, standAtWallEnd, extensionEnd > 0)
     return
   }
 
@@ -322,59 +393,55 @@ export function* segmentedWallConstruction(
   // Group adjacent compatible openings
   const openingGroups = mergeAdjacentOpenings(sortedOpenings)
 
-  let currentPosition = -extensionStart
+  let currentX = 0 // Position relative to overallWallArea start
 
   for (const openingGroup of openingGroups) {
-    // Adjust opening positions by start extension to account for corner extension
-    const groupStart = openingGroup[0].offsetFromStart
-    const groupEnd = openingGroup[openingGroup.length - 1].offsetFromStart + openingGroup[openingGroup.length - 1].width
+    const groupStart = openingGroup[0].offsetFromStart + extensionStart
+    const groupEnd =
+      openingGroup[openingGroup.length - 1].offsetFromStart +
+      openingGroup[openingGroup.length - 1].width +
+      extensionStart
 
-    // Create wall segment before opening group if there's space
-    if (groupStart > currentPosition) {
-      const wallSegmentWidth = groupStart - currentPosition
-      yield* wallConstruction(
-        vec3.fromValues(currentPosition, y, z),
-        vec3.fromValues(wallSegmentWidth, sizeY, sizeZ),
-        currentPosition !== -extensionStart || standAtWallStart,
-        true,
-        currentPosition > 0
-      )
+    // Wall segment before opening (if any)
+    if (groupStart > currentX) {
+      const wallSegmentWidth = groupStart - currentX
+      const wallSegmentArea = overallWallArea.withXAdjustment(currentX, wallSegmentWidth)
+
+      yield* wallConstruction(wallSegmentArea, currentX === 0 ? standAtWallStart : true, true, currentX > 0)
 
       yield yieldMeasurement({
-        startPoint: vec3.fromValues(currentPosition, y, z),
-        endPoint: vec3.fromValues(currentPosition + wallSegmentWidth, y, z),
+        startPoint: vec3.fromValues(overallWallArea.position[0] + currentX, y, z),
+        endPoint: vec3.fromValues(overallWallArea.position[0] + currentX + wallSegmentWidth, y, z),
         size: vec3.fromValues(wallSegmentWidth, sizeY, sizeZ),
         tags: [TAG_OPENING_SPACING]
       })
     }
 
-    // Create opening segment for the group
+    // Opening segment
     const groupWidth = groupEnd - groupStart
-    yield* openingConstruction(
-      vec3.fromValues(groupStart, y, z),
-      vec3.fromValues(groupWidth, sizeY, sizeZ),
-      finishedFloorZLevel,
-      openingGroup
-    )
+    const openingArea = overallWallArea.withXAdjustment(groupStart, groupWidth)
 
-    currentPosition = groupEnd
+    yield* openingConstruction(openingArea, finishedFloorZLevel - openingArea.position[2], openingGroup)
+
+    currentX = groupEnd
   }
 
-  // Create final wall segment if there's remaining space
-  if (currentPosition < constructionLength - extensionStart) {
-    const remainingWidth = constructionLength - currentPosition - extensionStart
+  // Final wall segment after last opening (if any)
+  if (currentX < constructionLength) {
+    const finalSegmentWidth = constructionLength - currentX
+    const finalWallArea = overallWallArea.withXAdjustment(currentX, finalSegmentWidth)
+
     yield* wallConstruction(
-      vec3.fromValues(currentPosition, y, z),
-      vec3.fromValues(remainingWidth, sizeY, sizeZ),
+      finalWallArea,
       true,
-      standAtWallEnd,
-      currentPosition > 0
+      currentX + finalSegmentWidth >= constructionLength ? standAtWallEnd : true,
+      true
     )
 
     yield yieldMeasurement({
-      startPoint: vec3.fromValues(currentPosition, y, z),
-      endPoint: vec3.fromValues(currentPosition + remainingWidth, y, z),
-      size: vec3.fromValues(remainingWidth, sizeY, sizeZ),
+      startPoint: vec3.fromValues(overallWallArea.position[0] + currentX, y, z),
+      endPoint: vec3.fromValues(overallWallArea.position[0] + constructionLength, y, z),
+      size: vec3.fromValues(finalSegmentWidth, sizeY, sizeZ),
       tags: [TAG_OPENING_SPACING]
     })
   }

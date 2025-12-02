@@ -9,6 +9,9 @@ import {
   TAG_FLOOR_LAYER_TOP,
   TAG_FULL_BALE,
   TAG_PARTIAL_BALE,
+  TAG_ROOF_LAYER_INSIDE,
+  TAG_ROOF_LAYER_OVERHANG,
+  TAG_ROOF_LAYER_TOP,
   TAG_STRAW_FLAKES,
   TAG_STRAW_STUFFED,
   TAG_WALL_LAYER_INSIDE,
@@ -511,14 +514,19 @@ function processConstructionElement(
 
   const size = Array.from(element.bounds.size).sort()
 
-  const layerTags = tags.filter(t => t.category === 'wall-layer' || t.category === 'floor-layer')
+  const layerTags = tags.filter(
+    t => t.category === 'wall-layer' || t.category === 'floor-layer' || t.category === 'roof-layer'
+  )
   if (layerTags.length > 0) {
     const specificTag = layerTags.find(
       t =>
         t.id !== TAG_WALL_LAYER_INSIDE.id &&
         t.id !== TAG_WALL_LAYER_OUTSIDE.id &&
         t.id !== TAG_FLOOR_LAYER_TOP.id &&
-        t.id !== TAG_FLOOR_LAYER_BOTTOM.id
+        t.id !== TAG_FLOOR_LAYER_BOTTOM.id &&
+        t.id !== TAG_ROOF_LAYER_TOP.id &&
+        t.id !== TAG_ROOF_LAYER_INSIDE.id &&
+        t.id !== TAG_ROOF_LAYER_OVERHANG.id
     )
     const layerTag = specificTag ?? layerTags[0]
     partId = `auto_${layerTag.id}` as PartId
@@ -604,5 +612,8 @@ function getLayerType(layerTags: Tag[]) {
   if (layerTags.indexOf(TAG_WALL_LAYER_OUTSIDE) !== -1) return 'wall-layer-outside'
   if (layerTags.indexOf(TAG_FLOOR_LAYER_TOP) !== -1) return 'floor-layer'
   if (layerTags.indexOf(TAG_FLOOR_LAYER_BOTTOM) !== -1) return 'ceiling-layer'
+  if (layerTags.indexOf(TAG_ROOF_LAYER_TOP) !== -1) return 'roof-layer-top'
+  if (layerTags.indexOf(TAG_ROOF_LAYER_INSIDE) !== -1) return 'roof-layer-ceiling'
+  if (layerTags.indexOf(TAG_ROOF_LAYER_OVERHANG) !== -1) return 'roof-layer-overhang'
   return 'layer'
 }

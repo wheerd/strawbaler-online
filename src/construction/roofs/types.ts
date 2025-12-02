@@ -1,16 +1,15 @@
-import type { vec2 } from 'gl-matrix'
-
+import type { Roof } from '@/building/model'
 import { sumLayerThickness } from '@/construction/config/store/layerUtils'
 import type { LayerConfig } from '@/construction/layers/types'
 import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
-import type { Length, LineSegment2D, Polygon2D } from '@/shared/geometry'
+import type { Length, LineSegment2D } from '@/shared/geometry'
 
 export interface RoofAssembly<TConfig extends RoofAssemblyConfigBase> {
-  construct: (polygon: Polygon2D, config: TConfig) => ConstructionModel
+  construct: (roof: Roof, config: TConfig) => ConstructionModel
 
   getTopOffset: (config: TConfig) => Length
-  getBottomWallOffsets: (config: TConfig, wallLine: LineSegment2D) => vec2[]
+  getBottomOffsets: (roof: Roof, config: TConfig, line: LineSegment2D) => HeightLine
   getConstructionThickness: (config: TConfig) => Length
 }
 
@@ -34,6 +33,7 @@ export interface MonolithicRoofConfig extends RoofAssemblyConfigBase {
   type: 'monolithic'
   thickness: Length
   material: MaterialId
+  infillMaterial: MaterialId
 }
 
 export interface PurlinRoofConfig extends RoofAssemblyConfigBase {
@@ -44,6 +44,8 @@ export interface PurlinRoofConfig extends RoofAssemblyConfigBase {
   purlinHeight: Length
   purlinWidth: Length
   purlinSpacing: Length
+
+  infillMaterial: MaterialId
 
   rafterMaterial: MaterialId
   rafterWidth: Length
@@ -61,6 +63,20 @@ export interface PurlinRoofConfig extends RoofAssemblyConfigBase {
 }
 
 export type RoofConfig = MonolithicRoofConfig | PurlinRoofConfig
+
+export interface HeightJumpItem {
+  position: number // between 0 and 1
+  offsetBefore: Length // Height offset before this position
+  offsetAfter: Length // Height offset after this position
+}
+
+export interface HeightItem {
+  position: number // between 0 and 1
+  offset: Length
+  nullAfter: boolean
+}
+
+export type HeightLine = (HeightJumpItem | HeightItem)[]
 
 // Validation
 

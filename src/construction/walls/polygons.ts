@@ -1,8 +1,10 @@
 import { vec2 } from 'gl-matrix'
 
 import type { PerimeterWall } from '@/building/model/model'
+import type { WallConstructionArea } from '@/construction/geometry'
 import {
   type Length,
+  type LineSegment2D,
   type Plane3D,
   type Polygon2D,
   type PolygonWithHoles2D,
@@ -75,7 +77,7 @@ export const computeLayerSpan = (
   depth: Length,
   wall: PerimeterWall,
   context: WallContext
-): { start: Length; end: Length } => {
+): { start: Length; end: Length; line: LineSegment2D } => {
   const startPoint = computeCornerIntersection('start', side, depth, wall, context)
   const endPoint = computeCornerIntersection('end', side, depth, wall, context)
 
@@ -83,8 +85,8 @@ export const computeLayerSpan = (
   const endProjection = projectAlongWall(wall, endPoint)
 
   return startProjection <= endProjection
-    ? { start: startProjection, end: endProjection }
-    : { start: endProjection, end: startProjection }
+    ? { start: startProjection, end: endProjection, line: { start: startPoint, end: endPoint } }
+    : { start: endProjection, end: startProjection, line: { start: endPoint, end: startPoint } }
 }
 
 export const createLayerPolygon = (start: Length, end: Length, bottom: Length, top: Length): Polygon2D =>
@@ -155,10 +157,16 @@ export interface WallPolygonBounds {
 }
 
 export const createWallPolygonWithOpenings = (
-  bounds: WallPolygonBounds,
+  area: WallConstructionArea,
   wall: PerimeterWall,
   finishedFloorHeight: Length
-): PolygonWithHoles2D[] => {
-  const polygon = createLayerPolygon(bounds.start, bounds.end, bounds.bottom, bounds.top)
-  return subtractWallOpenings(polygon, bounds.start, bounds.end, bounds.bottom, bounds.top, wall, finishedFloorHeight)
-}
+): PolygonWithHoles2D[] =>
+  subtractWallOpenings(
+    area.getSideProfilePolygon(),
+    area.position[0],
+    area.position[0] + area.size[0],
+    area.position[2],
+    area.position[2] + area.size[2],
+    wall,
+    finishedFloorHeight
+  )

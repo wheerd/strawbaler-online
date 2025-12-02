@@ -26,6 +26,7 @@ export interface ConstructionModalProps {
   trigger: React.ReactNode
   refreshKey?: unknown
   visibilityToggles?: VisibilityToggleConfig[]
+  midCutActiveDefault?: boolean
 }
 
 export function ConstructionPlanModal({
@@ -34,7 +35,8 @@ export function ConstructionPlanModal({
   views,
   trigger,
   refreshKey,
-  visibilityToggles
+  visibilityToggles,
+  midCutActiveDefault
 }: ConstructionModalProps): React.JSX.Element {
   const [modelPromise, setModelPromise] = useState<Promise<ConstructionModel | null> | null>(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -124,6 +126,7 @@ export function ConstructionPlanModal({
                     views={views}
                     containerSize={containerSize}
                     visibilityToggles={visibilityToggles}
+                    midCutActiveDefault={midCutActiveDefault}
                   />
                 </Suspense>
               ) : null}
@@ -171,12 +174,14 @@ function ConstructionPlanModalContent({
   modelPromise,
   views,
   containerSize,
-  visibilityToggles
+  visibilityToggles,
+  midCutActiveDefault
 }: {
   modelPromise: Promise<ConstructionModel | null>
   views: ViewOption[]
   containerSize: { width: number; height: number }
   visibilityToggles?: VisibilityToggleConfig[]
+  midCutActiveDefault?: boolean
 }) {
   const constructionModel = use(modelPromise)
 
@@ -198,7 +203,7 @@ function ConstructionPlanModalContent({
       model={constructionModel}
       views={views}
       containerSize={containerSize}
-      midCutActiveDefault
+      midCutActiveDefault={midCutActiveDefault}
       visibilityToggles={visibilityToggles}
     />
   )

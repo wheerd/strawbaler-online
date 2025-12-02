@@ -1,6 +1,7 @@
 import { vec3 } from 'gl-matrix'
 
 import { createConstructionElement } from '@/construction/elements'
+import { translate } from '@/construction/geometry'
 import type { ConstructionModel } from '@/construction/model'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import { TAG_FLOOR } from '@/construction/tags'
@@ -14,7 +15,7 @@ export class MonolithicFloorAssembly extends BaseFloorAssembly<MonolithicFloorCo
     const floor = createConstructionElement(
       config.material,
       createExtrudedPolygon(polygon, 'xy', config.thickness),
-      { position: [0, 0, -config.thickness], rotation: vec3.fromValues(0, 0, 0) },
+      translate(vec3.fromValues(0, 0, -config.thickness)),
       [TAG_FLOOR]
     )
     return {

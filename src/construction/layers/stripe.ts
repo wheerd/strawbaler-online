@@ -1,6 +1,7 @@
 import { mat2, vec2, vec3 } from 'gl-matrix'
 
 import { createConstructionElement } from '@/construction/elements'
+import { translate } from '@/construction/geometry'
 import type { LayerConstruction, StripedLayerConfig } from '@/construction/layers/types'
 import { polygonPartInfo } from '@/construction/parts'
 import { type ConstructionResult, yieldElement, yieldWarning } from '@/construction/results'
@@ -67,10 +68,7 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
     const intersection = lineIntersection(stripeLine, perpLine)
 
     if (!intersection) {
-      yield yieldWarning({
-        description: 'Could not determine stripe positions due to parallel lines.',
-        elements: []
-      })
+      yield yieldWarning('Could not determine stripe positions due to parallel lines.', [])
       return
     }
 
@@ -86,11 +84,11 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
       const stripes = intersectPolygon(polygon, { outer: stripePolygon, holes: [] })
 
       for (const stripe of stripes) {
-        yield yieldElement(
+        yield* yieldElement(
           createConstructionElement(
             config.stripeMaterial,
             createExtrudedPolygon(stripe, plane, config.thickness),
-            { position, rotation: vec3.fromValues(0, 0, 0) },
+            translate(position),
             undefined,
             polygonPartInfo('stripe', stripe.outer, plane, config.thickness)
           )
@@ -112,11 +110,11 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
           const gaps = intersectPolygon(polygon, { outer: gapPolygon, holes: [] })
 
           for (const gap of gaps) {
-            yield yieldElement(
+            yield* yieldElement(
               createConstructionElement(
                 config.gapMaterial,
                 createExtrudedPolygon(gap, plane, config.thickness),
-                { position, rotation: vec3.fromValues(0, 0, 0) },
+                translate(position),
                 undefined
               )
             )

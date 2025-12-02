@@ -2,6 +2,8 @@ import { vec2, vec3 } from 'gl-matrix'
 
 import type { Perimeter, StoreyId } from '@/building/model'
 import { getModelActions } from '@/building/store'
+import { translate } from '@/construction/geometry'
+import { constructRoof } from '@/construction/roof'
 import {
   type Length,
   type Line2D,
@@ -55,7 +57,7 @@ export function constructStoreyFloor(storeyId: StoreyId): ConstructionModel[] {
 
   const storeyContext = createWallStoreyContext(storey, floorAssemblyConfig, nextFloorAssemblyConfig ?? null)
   const ceilingStartHeight = (storeyContext.floorTopOffset +
-    storeyContext.storeyHeight +
+    storeyContext.ceilingHeight +
     storeyContext.ceilingBottomOffset) as Length
 
   let nextFloorOpenings: Polygon2D[] = []
@@ -94,12 +96,10 @@ export function constructStoreyFloor(storeyId: StoreyId): ConstructionModel[] {
 }
 
 export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
-  const { getPerimetersByStorey, getStoreyById } = getModelActions()
+  const { getPerimetersByStorey, getStoreyById, getRoofsByStorey } = getModelActions()
   const { getFloorAssemblyById } = getConfigActions()
   const perimeters = getPerimetersByStorey(storeyId)
-  if (perimeters.length === 0) {
-    return null
-  }
+  const roofs = getRoofsByStorey(storeyId)
   const storey = getStoreyById(storeyId)
   if (!storey) {
     throw new Error('Invalid storey')
@@ -111,16 +111,16 @@ export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
   const floorAssembly = FLOOR_ASSEMBLIES[floorAssemblyConfig.type]
   const finishedFloorOffset = (floorAssemblyConfig.layers.topThickness +
     floorAssembly.getTopOffset(floorAssemblyConfig)) as Length
-  const perimeterModels = perimeters.map(p => constructPerimeter(p, false))
+  const roofModels = roofs.map(r =>
+    transformModel(constructRoof(r), translate(vec3.fromValues(0, 0, storey.floorHeight)))
+  )
+  const perimeterModels = perimeters.map(p => constructPerimeter(p, false, false))
   const floorModels = constructStoreyFloor(storeyId)
-  const storeyModel = mergeModels(...perimeterModels, ...floorModels)
+  const storeyModel = mergeModels(...perimeterModels, ...floorModels, ...roofModels)
   if (finishedFloorOffset === 0) {
     return storeyModel
   }
-  return transformModel(storeyModel, {
-    position: vec3.fromValues(0, 0, -finishedFloorOffset),
-    rotation: vec3.fromValues(0, 0, 0)
-  })
+  return transformModel(storeyModel, translate(vec3.fromValues(0, 0, -finishedFloorOffset)))
 }
 
 export function constructModel(): ConstructionModel | null {
@@ -130,13 +130,7 @@ export function constructModel(): ConstructionModel | null {
   for (const storey of getStoreysOrderedByLevel()) {
     const model = constructStorey(storey.id)
     if (model) {
-      models.push(
-        transformModel(
-          model,
-          { position: vec3.fromValues(0, 0, finishedFloorElevation), rotation: vec3.fromValues(0, 0, 0) },
-          [TAG_STOREY]
-        )
-      )
+      models.push(transformModel(model, translate(vec3.fromValues(0, 0, finishedFloorElevation)), [TAG_STOREY]))
     }
     finishedFloorElevation += storey.floorHeight
   }

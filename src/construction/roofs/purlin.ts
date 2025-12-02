@@ -1,12 +1,11 @@
-import type { vec2 } from 'gl-matrix'
-
+import type { Roof } from '@/building/model'
 import { createUnsupportedModel } from '@/construction/model'
-import { type Length, type LineSegment2D, type Polygon2D } from '@/shared/geometry'
+import { type Length, type LineSegment2D } from '@/shared/geometry'
 
-import type { PurlinRoofConfig, RoofAssembly } from './types'
+import type { HeightLine, PurlinRoofConfig, RoofAssembly } from './types'
 
 export class PurlinRoofAssembly implements RoofAssembly<PurlinRoofConfig> {
-  construct = (_polygon: Polygon2D, _config: PurlinRoofConfig) => {
+  construct = (_roof: Roof, _config: PurlinRoofConfig) => {
     return createUnsupportedModel('Not yet supported.', 'unsupported-roof-purlin')
   }
 
@@ -14,7 +13,7 @@ export class PurlinRoofAssembly implements RoofAssembly<PurlinRoofConfig> {
     throw new Error('Not implemented')
   }
 
-  getBottomWallOffsets = (_config: PurlinRoofConfig, _wallLine: LineSegment2D): vec2[] => {
+  getBottomOffsets = (_roof: Roof, _config: PurlinRoofConfig, _line: LineSegment2D): HeightLine => {
     throw new Error('Not implemented')
   }
 

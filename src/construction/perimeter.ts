@@ -1,9 +1,10 @@
-import { vec2, vec3 } from 'gl-matrix'
+import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from '@/construction/floors'
-import { IDENTITY } from '@/construction/geometry'
+import { IDENTITY, translate } from '@/construction/geometry'
+import { constructRoof } from '@/construction/roof'
 import { applyWallFaceOffsets, createWallFaceOffsets } from '@/construction/storey'
 import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
 import {
@@ -63,8 +64,9 @@ export function computeFloorConstructionPolygon(perimeter: Perimeter): Polygon2D
   return { points }
 }
 
-export function constructPerimeter(perimeter: Perimeter, includeFloor = true): ConstructionModel {
-  const { getStoreyById, getStoreyAbove, getFloorOpeningsByStorey, getPerimetersByStorey } = getModelActions()
+export function constructPerimeter(perimeter: Perimeter, includeFloor = true, includeRoof = true): ConstructionModel {
+  const { getStoreyById, getStoreyAbove, getFloorOpeningsByStorey, getPerimetersByStorey, getRoofsByStorey } =
+    getModelActions()
   const storey = getStoreyById(perimeter.storeyId)
   if (!storey) {
     throw new Error('Invalid storey on perimeter')
@@ -83,7 +85,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
 
   const storeyContext = createWallStoreyContext(storey, currentFloorAssembly, nextFloorAssembly)
   const constructionHeight =
-    storeyContext.storeyHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
+    storeyContext.ceilingHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
 
   const allModels: ConstructionModel[] = []
   if (perimeter.baseRingBeamAssemblyId) {
@@ -100,10 +102,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
       const ringBeam = RING_BEAM_ASSEMBLIES[assembly.type].construct(perimeter, assembly)
       const transformedModel = transformModel(
         ringBeam,
-        {
-          position: [0, 0, constructionHeight - assembly.height],
-          rotation: vec3.fromValues(0, 0, 0)
-        },
+        translate(vec3.fromValues(0, 0, constructionHeight - assembly.height)),
         [TAG_TOP_PLATE]
       )
       allModels.push(transformedModel)
@@ -123,10 +122,11 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
       const segmentAngle = angle(wall.insideLine.start, wall.insideLine.end)
       const transformedModel = transformModel(
         wallModel,
-        {
-          position: [wall.insideLine.start[0], wall.insideLine.start[1], 0],
-          rotation: [0, 0, segmentAngle]
-        },
+        mat4.rotateZ(
+          mat4.create(),
+          translate(vec3.fromValues(wall.insideLine.start[0], wall.insideLine.start[1], 0)),
+          segmentAngle
+        ),
         [TAG_WALLS]
       )
       allModels.push(transformedModel)
@@ -171,7 +171,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
       currentFloorConfig: currentFloorAssembly,
       nextFloorConfig: nextFloorAssembly ?? null,
       floorTopOffset: storeyContext.floorTopOffset,
-      ceilingStartHeight: (storeyContext.storeyHeight +
+      ceilingStartHeight: (storeyContext.ceilingHeight +
         storeyContext.floorTopOffset +
         storeyContext.ceilingBottomOffset) as Length
     })
@@ -179,6 +179,16 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true): C
     if (floorLayerModel) {
       allModels.push(floorLayerModel)
     }
+  }
+
+  if (includeRoof) {
+    const roofs = getRoofsByStorey(perimeter.storeyId)
+    const relevantRoofs = roofs.filter(r => r.referencePerimeter === perimeter.id)
+    allModels.push(
+      ...relevantRoofs.map(roof =>
+        transformModel(constructRoof(roof), translate(vec3.fromValues(0, 0, storey.floorHeight)))
+      )
+    )
   }
 
   return mergeModels(...allModels)
@@ -220,15 +230,15 @@ export function getPerimeterStats(perimeter: Perimeter): PerimeterStats {
 
   const storeyContext = createWallStoreyContext(storey, floorAssemblyConfig, nextFloorAssemblyConfig)
   const storeyHeight =
-    storeyContext.storeyHeight +
+    storeyContext.ceilingHeight +
     storeyContext.floorTopOffset +
     storeyContext.ceilingBottomOffset +
     floorAssembly.getConstructionThickness(floorAssemblyConfig)
   const constructionHeight =
-    storeyContext.storeyHeight +
+    storeyContext.ceilingHeight +
     floorAssemblyConfig.layers.topThickness +
     (nextFloorAssemblyConfig?.layers.bottomThickness ?? 0)
-  const finishedHeight = storeyContext.storeyHeight
+  const finishedHeight = storeyContext.ceilingHeight
 
   const footprintPolygon: Polygon2D = { points: perimeter.corners.map(corner => corner.outsidePoint) }
   const footprint = calculatePolygonArea(footprintPolygon)

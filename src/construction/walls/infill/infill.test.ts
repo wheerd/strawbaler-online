@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createOpeningId, createPerimeterId, createWallAssemblyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
-import { IDENTITY } from '@/construction/geometry'
+import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'
 import { constructPost } from '@/construction/materials/posts'
@@ -21,8 +21,9 @@ import { InfillWallAssembly, infillWallArea } from './infill'
 
 function createMockStoreyContext(storeyHeight: Length = 2500): WallStoreyContext {
   return {
+    storeyHeight: 0,
     floorConstructionThickness: 0,
-    storeyHeight,
+    ceilingHeight: storeyHeight,
     floorTopOffset: 0,
     ceilingBottomOffset: 0,
     ceilingBottomConstructionOffset: 0,
@@ -103,19 +104,24 @@ function createMockElement(id: string, position: vec3, size: vec3, material: Mat
   }
 }
 
-function createMockGenerator(elements: any[] = [], measurements: any[] = [], errors: any[] = [], warnings: any[] = []) {
+function createMockGenerator(
+  elements: any[] = [],
+  measurements: any[] = [],
+  errors: string[] = [],
+  warnings: string[] = []
+) {
   return function* () {
     for (const element of elements) {
-      yield yieldElement(element)
+      yield* yieldElement(element)
     }
     for (const measurement of measurements) {
       yield yieldMeasurement(measurement)
     }
     for (const error of errors) {
-      yield yieldError(error)
+      yield yieldError(error, [])
     }
     for (const warning of warnings) {
-      yield yieldWarning(warning)
+      yield yieldWarning(warning, [])
     }
   }
 }
@@ -211,8 +217,9 @@ describe('infillWallArea', () => {
     it('should create straw infill when no stands are specified', () => {
       const position = vec3.fromValues(100, 0, 0)
       const size = vec3.fromValues(800, 300, 2500)
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config)]
+      const results = [...infillWallArea(area, config)]
       const { elements, errors, warnings } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -225,8 +232,9 @@ describe('infillWallArea', () => {
     it('should create start post when startsWithStand is true', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(1000, 300, 2500)
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config, true)]
+      const results = [...infillWallArea(area, config, true)]
       const { elements, errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -238,8 +246,9 @@ describe('infillWallArea', () => {
     it('should create end post when endsWithStand is true', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(1000, 300, 2500)
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config, false, true)]
+      const results = [...infillWallArea(area, config, false, true)]
       const { elements, errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -251,8 +260,9 @@ describe('infillWallArea', () => {
     it('should create both start and end posts when both stands are true', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(1600, 300, 2500)
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config, true, true)]
+      const results = [...infillWallArea(area, config, true, true)]
       const { elements, errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -264,8 +274,9 @@ describe('infillWallArea', () => {
     it('should generate measurements for post spacing', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(1000, 300, 2500)
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config)]
+      const results = [...infillWallArea(area, config)]
       const { measurements } = aggregateResults(results)
 
       expect(measurements.length).toBeGreaterThan(0)
@@ -278,8 +289,9 @@ describe('infillWallArea', () => {
     it('should generate error when not enough space for a post with start stand', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(30, 300, 2500) // Less than post width
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config, true)]
+      const results = [...infillWallArea(area, config, true)]
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
@@ -289,8 +301,9 @@ describe('infillWallArea', () => {
     it('should generate error when not enough space for a post with end stand', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(30, 300, 2500) // Less than post width
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config, false, true)]
+      const results = [...infillWallArea(area, config, false, true)]
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
@@ -300,8 +313,9 @@ describe('infillWallArea', () => {
     it('should generate error when space for more than one post but not enough for two', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(100, 300, 2500) // More than one post width but less than 2
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config, true, true)]
+      const results = [...infillWallArea(area, config, true, true)]
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
@@ -311,8 +325,9 @@ describe('infillWallArea', () => {
     it('should generate warning when not enough vertical space for straw', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(800, 300, 50) // Less than minStrawSpace
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config)]
+      const results = [...infillWallArea(area, config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(1)
@@ -322,8 +337,9 @@ describe('infillWallArea', () => {
     it('should generate warning when not enough space for infilling straw', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(50, 300, 2500) // Less than minStrawSpace for bale width
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config)]
+      const results = [...infillWallArea(area, config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings.length).toBeGreaterThan(0)
@@ -335,32 +351,35 @@ describe('infillWallArea', () => {
     it('should handle exactly post width with start stand', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(60, 300, 2500) // Exactly post width
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config, true)]
+      const results = [...infillWallArea(area, config, true)]
       const { elements, errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
-      expect(mockConstructPost).toHaveBeenCalledWith(position, size, config.posts)
+      expect(mockConstructPost).toHaveBeenCalledWith(area, config.posts)
       expect(elements).toHaveLength(1)
     })
 
     it('should handle exactly post width with end stand', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(60, 300, 2500) // Exactly post width
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config, false, true)]
+      const results = [...infillWallArea(area, config, false, true)]
       const { elements, errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
-      expect(mockConstructPost).toHaveBeenCalledWith(position, size, config.posts)
+      expect(mockConstructPost).toHaveBeenCalledWith(area, config.posts)
       expect(elements).toHaveLength(1)
     })
 
     it('should handle zero dimensions gracefully', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(0, 0, 0)
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config)]
+      const results = [...infillWallArea(area, config)]
       const { elements, errors } = aggregateResults(results)
 
       expect(elements).toHaveLength(0)
@@ -370,8 +389,9 @@ describe('infillWallArea', () => {
     it('should handle startAtEnd parameter correctly', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(1000, 300, 2500)
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config, false, false, true)]
+      const results = [...infillWallArea(area, config, false, false, true)]
       const { elements } = aggregateResults(results)
 
       expect(mockConstructStraw).toHaveBeenCalled()
@@ -393,13 +413,17 @@ describe('infillWallArea', () => {
         posts: doublePostConfig
       })
 
-      const results = [...infillWallArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500), config, true)]
+      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500))
+
+      const results = [...infillWallArea(area, config, true)]
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
       expect(mockConstructPost).toHaveBeenCalledWith(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(1000, 300, 2500),
+        expect.objectContaining({
+          position: vec3.fromValues(0, 0, 0),
+          size: vec3.fromValues(60, 300, 2500)
+        }),
         doublePostConfig
       )
     })
@@ -409,7 +433,9 @@ describe('infillWallArea', () => {
         desiredPostSpacing: 600
       })
 
-      const results = [...infillWallArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500), config)]
+      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500))
+
+      const results = [...infillWallArea(area, config)]
       const { measurements } = aggregateResults(results)
 
       expect(measurements.length).toBeGreaterThan(0)
@@ -423,8 +449,9 @@ describe('infillWallArea', () => {
 
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(800, 300, 90) // Between old and new minStrawSpace
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config)]
+      const results = [...infillWallArea(area, config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(1)
@@ -436,6 +463,7 @@ describe('infillWallArea', () => {
     it('should create multiple posts and straw sections for large areas', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(2000, 300, 2500) // Large enough for multiple sections
+      const area = new WallConstructionArea(position, size)
 
       // Mock multiple calls to constructPost and constructStraw
       mockConstructPost.mockReturnValue(
@@ -449,7 +477,7 @@ describe('infillWallArea', () => {
         ])()
       )
 
-      const results = [...infillWallArea(position, size, config)]
+      const results = [...infillWallArea(area, config)]
       const { elements } = aggregateResults(results)
 
       expect(mockConstructPost).toHaveBeenCalled()
@@ -460,8 +488,9 @@ describe('infillWallArea', () => {
     it('should alternate straw placement based on atStart parameter', () => {
       const position = vec3.fromValues(0, 0, 0)
       const size = vec3.fromValues(1500, 300, 2500)
+      const area = new WallConstructionArea(position, size)
 
-      const results = [...infillWallArea(position, size, config)]
+      const results = [...infillWallArea(area, config)]
       aggregateResults(results)
 
       expect(mockConstructStraw).toHaveBeenCalled()
@@ -477,12 +506,14 @@ describe('assembly.construct', () => {
     // Mock segmentedWallConstruction to call our wall and opening construction functions
     mockSegmentedWallConstruction.mockImplementation(
       function* (wall, _perimeter, _storeyContext, _layers, wallConstruction, openingConstruction, _padding) {
+        const wallArea = new WallConstructionArea(vec3.fromValues(0, 30, 60), vec3.fromValues(3000, 220, 2380))
         // Simulate calling wall construction
-        yield* wallConstruction(vec3.fromValues(0, 30, 60), vec3.fromValues(3000, 220, 2380), true, true, false)
+        yield* wallConstruction(wallArea, true, true, false)
 
         // Simulate calling opening construction if there are openings
         if (wall.openings.length > 0) {
-          yield* openingConstruction(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 2380), -60, wall.openings)
+          const openingArea = new WallConstructionArea(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 2380))
+          yield* openingConstruction(openingArea, -60, wall.openings)
         }
       }
     )
@@ -572,8 +603,8 @@ describe('assembly.construct', () => {
       const floorHeight = 2500
 
       // Mock segmented construction to return errors/warnings
-      const mockError = { description: 'Test error', elements: [] }
-      const mockWarning = { description: 'Test warning', elements: [] }
+      const mockError = 'Test error'
+      const mockWarning = 'Test warning'
       const mockElement = createMockElement(
         'test',
         vec3.fromValues(0, 0, 0),
@@ -589,8 +620,8 @@ describe('assembly.construct', () => {
 
       expect(result.errors).toHaveLength(1)
       expect(result.warnings).toHaveLength(1)
-      expect(result.errors[0]).toBe(mockError)
-      expect(result.warnings[0]).toBe(mockWarning)
+      expect(result.errors[0].description).toBe(mockError)
+      expect(result.warnings[0].description).toBe(mockWarning)
     })
 
     it('should include measurements in the result', () => {
@@ -641,6 +672,7 @@ describe('assembly.construct', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
       const floorHeight = 2500
+      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500))
 
       assembly.construct(wall, perimeter, createMockStoreyContext(floorHeight), config)
 
@@ -648,9 +680,7 @@ describe('assembly.construct', () => {
       expect(wallConstructionFn).toBeDefined()
 
       // Test that the wall construction function works
-      const result = [
-        ...wallConstructionFn(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500), true, true, false)
-      ]
+      const result = [...wallConstructionFn(area, true, true, false)]
       expect(result.length).toBeGreaterThan(0)
     })
 
@@ -658,6 +688,7 @@ describe('assembly.construct', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
       const floorHeight = 2500
+      const area = new WallConstructionArea(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 2380))
 
       assembly.construct(wall, perimeter, createMockStoreyContext(floorHeight), config)
 
@@ -674,9 +705,7 @@ describe('assembly.construct', () => {
         sillHeight: 900
       }
 
-      const result = [
-        ...openingConstructionFn(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 2380), -60, [mockOpening])
-      ]
+      const result = [...openingConstructionFn(area, -60, [mockOpening])]
       expect(result.length).toBeGreaterThan(0)
       expect(mockConstructOpeningFrame).toHaveBeenCalled()
     })

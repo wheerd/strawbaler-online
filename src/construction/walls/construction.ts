@@ -1,9 +1,12 @@
+import { vec3 } from 'gl-matrix'
+
 import type { Perimeter } from '@/building/model'
 import type { PerimeterCornerId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
+import { translate } from '@/construction/geometry'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
-import type { Length } from '@/shared/geometry'
+import type { Length, LineSegment2D } from '@/shared/geometry'
 
 import { WALL_ASSEMBLIES } from './index'
 import { createWallStoreyContext } from './segmentation'
@@ -22,6 +25,9 @@ export interface WallCornerInfo {
   extensionStart: Length
   constructionLength: Length
   extensionEnd: Length
+  // Construction lines for roof queries (adjusted by layer thickness)
+  constructionInsideLine: LineSegment2D
+  constructionOutsideLine: LineSegment2D
 }
 
 function findColinearWalls(perimeter: Perimeter, startWallId: PerimeterWallId): PerimeterWallId[] {
@@ -115,10 +121,7 @@ export function constructWall(
     const wallModel = wallAssembly.construct(currentWall, perimeter, storeyContext, assembly)
 
     if (cumulativeOffset > 0) {
-      const transformedModel = transformModel(wallModel, {
-        position: [cumulativeOffset, 0, 0],
-        rotation: [0, 0, 0]
-      })
+      const transformedModel = transformModel(wallModel, translate(vec3.fromValues(cumulativeOffset, 0, 0)))
       wallModels.push(transformedModel)
     } else {
       wallModels.push(wallModel)

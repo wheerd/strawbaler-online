@@ -1,10 +1,8 @@
-import { vec3 } from 'gl-matrix'
-
-import { type ConstructionElement, createCuboidElement } from '@/construction/elements'
-import { dimensionalPartInfo } from '@/construction/parts'
+import { WallConstructionArea } from '@/construction/geometry'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
+import { createElementFromArea } from '@/construction/shapes'
 import { TAG_POST } from '@/construction/tags'
-import { Bounds3D, type Length } from '@/shared/geometry'
+import { type Length } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatting'
 
 import type { DimensionalMaterial, MaterialId } from './material'
@@ -50,17 +48,11 @@ const formatAvailableCrossSections = (material: DimensionalMaterial): string =>
     .map(section => `${formatLength(section.smallerLength)}x${formatLength(section.biggerLength)}`)
     .join(', ')
 
-function* constructFullPost(position: vec3, size: vec3, config: FullPostConfig): Generator<ConstructionResult> {
-  const postSize = vec3.fromValues(config.width, size[1], size[2])
-  const postElement: ConstructionElement = createCuboidElement(
-    config.material,
-    position,
-    postSize,
-    [TAG_POST],
-    dimensionalPartInfo('post', postSize)
-  )
+function* constructFullPost(area: WallConstructionArea, config: FullPostConfig): Generator<ConstructionResult> {
+  const { size } = area
+  const postElement = createElementFromArea(area, config.material, [TAG_POST], 'post')
 
-  yield yieldElement(postElement)
+  yield* yieldElement(postElement)
 
   // Check if material is dimensional and dimensions match
   const material = getMaterialById(config.material)
@@ -69,87 +61,79 @@ function* constructFullPost(position: vec3, size: vec3, config: FullPostConfig):
     const postDimensions = { width: config.width, thickness: size[1] }
 
     if (!materialSupportsCrossSection(dimensionalMaterial, postDimensions)) {
-      yield yieldWarning({
-        description: `Post dimensions (${formatLength(config.width)}x${formatLength(
+      yield yieldWarning(
+        `Post dimensions (${formatLength(config.width)}x${formatLength(
           size[1]
         )}) don't match available cross sections (${formatAvailableCrossSections(dimensionalMaterial)})`,
-        elements: [postElement.id],
-        bounds: postElement.bounds,
-        groupKey: `post-cross-section-${dimensionalMaterial.id}`
-      })
+        [postElement],
+        `post-cross-section-${dimensionalMaterial.id}`
+      )
     }
   }
 }
 
-function* constructDoublePost(position: vec3, size: vec3, config: DoublePostConfig): Generator<ConstructionResult> {
+function* constructDoublePost(area: WallConstructionArea, config: DoublePostConfig): Generator<ConstructionResult> {
+  const { size } = area
+
   // Check if wall is wide enough for two posts
   const minimumWallThickness = 2 * config.thickness
   if (size[1] < minimumWallThickness) {
-    const errorElement: ConstructionElement = createCuboidElement(
-      config.material,
-      position,
-      vec3.fromValues(config.width, size[1], size[2])
-    )
+    const errorElement = createElementFromArea(area, config.material)
 
-    yield yieldElement(errorElement)
-    yield yieldError({
-      description: `Wall thickness (${formatLength(size[1])}) is not wide enough for double posts requiring ${formatLength(minimumWallThickness)} minimum`,
-      elements: [errorElement.id],
-      bounds: errorElement.bounds,
-      groupKey: `double-post-thin-wall-${minimumWallThickness}-${config.material}`
-    })
+    yield* yieldElement(errorElement)
+    yield yieldError(
+      `Wall thickness (${formatLength(size[1])}) is not wide enough for double posts requiring ${formatLength(minimumWallThickness)} minimum`,
+      [errorElement],
+      `double-post-thin-wall-${minimumWallThickness}-${config.material}`
+    )
     return
   }
 
-  const postSize = vec3.fromValues(config.width, config.thickness, size[2])
-  const partInfo = dimensionalPartInfo('post', postSize)
-  const post1: ConstructionElement = createCuboidElement(config.material, position, postSize, [TAG_POST], partInfo)
-  yield yieldElement(post1)
+  const post1 = createElementFromArea(area.withYAdjustment(0, config.thickness), config.material, [TAG_POST], 'post')
+  yield* yieldElement(post1)
 
-  const post2: ConstructionElement = createCuboidElement(
+  const post2 = createElementFromArea(
+    area.withYAdjustment(size[1] - config.thickness, config.thickness),
     config.material,
-    vec3.fromValues(position[0], position[1] + size[1] - config.thickness, position[2]),
-    postSize,
     [TAG_POST],
-    partInfo
+    'post'
   )
-  yield yieldElement(post2)
+  yield* yieldElement(post2)
 
   // Only add infill if there's space for it
   const infillThickness = size[1] - 2 * config.thickness
   if (infillThickness > 0) {
-    const infill: ConstructionElement = createCuboidElement(
-      config.infillMaterial,
-      vec3.fromValues(position[0], position[1] + config.thickness, position[2]),
-      vec3.fromValues(config.width, infillThickness, size[2])
+    yield* yieldElement(
+      createElementFromArea(
+        area.withYAdjustment(config.thickness, size[1] - minimumWallThickness),
+        config.infillMaterial
+      )
     )
-    yield yieldElement(infill)
-  }
 
-  // Check if post material is dimensional and dimensions match
-  const postMaterial = getMaterialById(config.material)
-  if (postMaterial && postMaterial.type === 'dimensional') {
-    const dimensionalMaterial = postMaterial as DimensionalMaterial
-    const postDimensions = { width: config.width, thickness: config.thickness }
+    // Check if post material is dimensional and dimensions match
+    const postMaterial = getMaterialById(config.material)
+    if (postMaterial && postMaterial.type === 'dimensional') {
+      const dimensionalMaterial = postMaterial as DimensionalMaterial
+      const postDimensions = { width: config.width, thickness: config.thickness }
 
-    if (!materialSupportsCrossSection(dimensionalMaterial, postDimensions)) {
-      yield yieldWarning({
-        description: `Post dimensions (${formatLength(config.width)}x${formatLength(
-          config.thickness
-        )}) don't match available cross sections (${formatAvailableCrossSections(dimensionalMaterial)})`,
-        elements: [post1.id, post2.id],
-        bounds: Bounds3D.merge(post1.bounds, post2.bounds),
-        groupKey: `post-cross-section-${dimensionalMaterial.id}`
-      })
+      if (!materialSupportsCrossSection(dimensionalMaterial, postDimensions)) {
+        yield yieldWarning(
+          `Post dimensions (${formatLength(config.width)}x${formatLength(
+            config.thickness
+          )}) don't match available cross sections (${formatAvailableCrossSections(dimensionalMaterial)})`,
+          [post1, post2],
+          `post-cross-section-${dimensionalMaterial.id}`
+        )
+      }
     }
   }
 }
 
-export function constructPost(position: vec3, size: vec3, config: PostConfig): Generator<ConstructionResult> {
+export function constructPost(area: WallConstructionArea, config: PostConfig): Generator<ConstructionResult> {
   if (config.type === 'full') {
-    return constructFullPost(position, size, config)
+    return constructFullPost(area, config)
   } else if (config.type === 'double') {
-    return constructDoublePost(position, size, config)
+    return constructDoublePost(area, config)
   } else {
     throw new Error('Invalid post type')
   }
