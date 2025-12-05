@@ -4,7 +4,11 @@ import { type Length, type PolygonWithHoles2D } from '@/shared/geometry'
 import type { FloorAssembly, FloorAssemblyConfigBase } from './types'
 
 export abstract class BaseFloorAssembly<TConfig extends FloorAssemblyConfigBase> implements FloorAssembly<TConfig> {
-  abstract construct: (polygon: PolygonWithHoles2D, config: TConfig) => ConstructionModel
+  abstract construct: (
+    polygon: PolygonWithHoles2D,
+    supportingWalls: PolygonWithHoles2D[],
+    config: TConfig
+  ) => ConstructionModel
   abstract getTopOffset: (config: TConfig) => Length
   abstract getBottomOffset: (config: TConfig) => Length
   abstract getConstructionThickness: (config: TConfig) => Length

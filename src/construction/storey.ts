@@ -9,6 +9,7 @@ import {
   type Line2D,
   type LineSegment2D,
   type Polygon2D,
+  type PolygonWithHoles2D,
   direction,
   distanceToInfiniteLine,
   perpendicular,
@@ -20,7 +21,7 @@ import {
 import { getConfigActions } from './config'
 import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from './floors'
 import { type ConstructionModel, mergeModels, transformModel } from './model'
-import { computeFloorConstructionPolygon, constructPerimeter } from './perimeter'
+import { computeConstructionPolygons, constructPerimeter } from './perimeter'
 import { TAG_STOREY } from './tags'
 import { createWallStoreyContext } from './walls'
 
@@ -41,16 +42,19 @@ export function constructStoreyFloor(storeyId: StoreyId): ConstructionModel[] {
   const perimeters = getPerimetersByStorey(storeyId)
   const wallFaces = createWallFaceOffsets(perimeters)
 
-  const perimeterPolygons = perimeters.map(computeFloorConstructionPolygon)
+  const perimeterPolygons = perimeters.map(computeConstructionPolygons)
 
   const floorAreas = getFloorAreasByStorey(storeyId).map(area => applyWallFaceOffsets(area.area, wallFaces))
   const floorOpenings = unionPolygons(
     getFloorOpeningsByStorey(storeyId).map(opening => applyWallFaceOffsets(opening.area, wallFaces))
   )
+  const wallPolygons = perimeterPolygons.map(
+    p => ({ outer: p.outside, holes: [p.inside] }) satisfies PolygonWithHoles2D
+  )
 
-  const floorPolygons = subtractPolygons([...perimeterPolygons, ...floorAreas], floorOpenings)
+  const floorPolygons = subtractPolygons([...perimeterPolygons.map(p => p.outside), ...floorAreas], floorOpenings)
   const floorAssembly = FLOOR_ASSEMBLIES[floorAssemblyConfig.type]
-  const floorModels = floorPolygons.map(p => floorAssembly.construct(p, floorAssemblyConfig))
+  const floorModels = floorPolygons.map(p => floorAssembly.construct(p, wallPolygons, floorAssemblyConfig))
 
   const nextStorey = getStoreyAbove(storey.id)
   const nextFloorAssemblyConfig = nextStorey ? getFloorAssemblyById(nextStorey.floorAssemblyId) : null

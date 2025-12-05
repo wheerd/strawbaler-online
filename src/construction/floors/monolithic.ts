@@ -11,7 +11,7 @@ import { BaseFloorAssembly } from './base'
 import type { MonolithicFloorConfig } from './types'
 
 export class MonolithicFloorAssembly extends BaseFloorAssembly<MonolithicFloorConfig> {
-  construct = (polygon: PolygonWithHoles2D, config: MonolithicFloorConfig) => {
+  construct = (polygon: PolygonWithHoles2D, _supportingWalls: PolygonWithHoles2D[], config: MonolithicFloorConfig) => {
     const floor = createConstructionElement(
       config.material,
       createExtrudedPolygon(polygon, 'xy', config.thickness),

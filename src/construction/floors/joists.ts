@@ -12,28 +12,57 @@ import {
   Bounds2D,
   type Length,
   type Line2D,
+  type LineSegment2D,
   type Polygon2D,
   type PolygonWithHoles2D,
   calculatePolygonArea,
+  direction,
   ensurePolygonIsClockwise,
   intersectPolygon,
   lineIntersection,
   minimumAreaBoundingBox,
   offsetPolygon,
-  perpendicular
+  perpendicular,
+  perpendicularCW
 } from '@/shared/geometry'
 
 import { BaseFloorAssembly } from './base'
 import type { JoistFloorConfig } from './types'
 
+const EPSILON = 1e-5
+
 export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
-  construct = (polygon: PolygonWithHoles2D, config: JoistFloorConfig): ConstructionModel => {
+  construct = (
+    polygon: PolygonWithHoles2D,
+    supportingWalls: PolygonWithHoles2D[],
+    config: JoistFloorConfig
+  ): ConstructionModel => {
     const bbox = minimumAreaBoundingBox(polygon.outer)
     const joistDirection = bbox.smallestDirection
+    const insideSideEdges = supportingWalls.flatMap(w =>
+      w.holes.flatMap(h =>
+        Array.from(polygonEdges(h))
+          .map(e => ({ point: e.start, direction: direction(e.start, e.end) }) satisfies Line2D)
+          .filter(l => 1 - Math.abs(vec2.dot(l.direction, joistDirection)) < EPSILON)
+      )
+    )
 
     const expandedHoles = polygon.holes.map(h => offsetPolygon(h, config.joistThickness))
 
     const results = [
+      ...insideSideEdges.flatMap(e =>
+        Array.from(
+          beam(
+            e,
+            polygon,
+            config.joistThickness,
+            config.joistThickness,
+            config.joistHeight,
+            'material_window' as MaterialId, // config.joistMaterial,
+            'wall-beam'
+          )
+        )
+      ),
       ...simpleStripes(
         {
           outer: polygon.outer,
@@ -56,6 +85,19 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
             'joist-frame',
             undefined,
             false
+          )
+        )
+      ),
+      ...supportingWalls.flatMap(w =>
+        Array.from(
+          simplePolygonFrame(
+            w.outer,
+            config.joistThickness,
+            config.joistHeight,
+            config.joistMaterial,
+            'joist-frame',
+            undefined,
+            true
           )
         )
       )
@@ -84,6 +126,35 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
   getTopOffset = (config: JoistFloorConfig) => config.subfloorThickness
   getBottomOffset = (_config: JoistFloorConfig) => 0
   getConstructionThickness = (config: JoistFloorConfig) => config.joistHeight
+}
+
+function* beam(
+  line: Line2D,
+  clipPolygon: PolygonWithHoles2D,
+  thicknessLeft: Length,
+  thicknessRight: Length,
+  height: Length,
+  material: MaterialId,
+  partType?: string,
+  tags?: Tag[]
+): Generator<ConstructionResult> {
+  const leftDir = perpendicularCW(line.direction)
+  const lineStart = vec2.scaleAndAdd(vec2.create(), line.point, line.direction, 1e6)
+  const lineEnd = vec2.scaleAndAdd(vec2.create(), line.point, line.direction, -1e6)
+  const p1 = vec2.scaleAndAdd(vec2.create(), lineStart, leftDir, thicknessLeft)
+  const p2 = vec2.scaleAndAdd(vec2.create(), lineStart, leftDir, -thicknessRight)
+  const p3 = vec2.scaleAndAdd(vec2.create(), lineEnd, leftDir, -thicknessRight)
+  const p4 = vec2.scaleAndAdd(vec2.create(), lineEnd, leftDir, thicknessLeft)
+
+  const beamPolygon: Polygon2D = { points: [p1, p2, p3, p4] }
+  const beamParts = intersectPolygon(clipPolygon, { outer: beamPolygon, holes: [] })
+
+  for (const part of beamParts) {
+    const partInfo = partType ? polygonPartInfo(partType, part.outer, 'xy', height) : undefined
+    yield* yieldElement(
+      createConstructionElement(material, createExtrudedPolygon(part, 'xy', height), undefined, tags, partInfo)
+    )
+  }
 }
 
 function* simpleStripes(
@@ -120,7 +191,8 @@ function* simpleStripes(
   const minRelevantArea = (thickness * thickness) / 2
 
   const stepWidth = thickness + spacing
-  for (let offset = 0; offset < totalSpan; offset += stepWidth) {
+  const end = totalSpan + spacing
+  for (let offset = 0; offset <= end; offset += stepWidth) {
     const clippedOffset = Math.min(offset, totalSpan - thickness)
     const p1 = vec2.scaleAndAdd(vec2.create(), intersection, perpDir, clippedOffset)
     const p2 = vec2.scaleAndAdd(vec2.create(), p1, perpDir, thickness)
@@ -201,4 +273,14 @@ export function closestPoint(reference: vec2, points: vec2[]): vec2 {
   }
 
   return vec2.clone(closest)
+}
+
+function* polygonEdges(polygon: Polygon2D): Generator<LineSegment2D> {
+  for (let i0 = 0; i0 < polygon.points.length; i0++) {
+    const i1 = (i0 + 1) % polygon.points.length
+    yield {
+      start: polygon.points[i0],
+      end: polygon.points[i1]
+    }
+  }
 }

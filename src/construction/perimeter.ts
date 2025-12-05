@@ -27,19 +27,27 @@ import { type ConstructionModel, mergeModels, transformModel } from './model'
 import { RING_BEAM_ASSEMBLIES } from './ringBeams'
 import { WALL_ASSEMBLIES, createWallStoreyContext } from './walls'
 
-export function computeFloorConstructionPolygon(perimeter: Perimeter): Polygon2D {
+export function computeFloorConstructionPolygon(perimeter: Perimeter, outside = true): Polygon2D {
   const { getWallAssemblyById } = getConfigActions()
 
   const offsets = perimeter.walls.map(wall => {
     const assembly = getWallAssemblyById(wall.wallAssemblyId)
-    const outsideLayerThickness = Math.max(assembly?.layers.outsideThickness ?? 0, 0)
-    const distanceFromInside = Math.max(wall.thickness - outsideLayerThickness, 0)
-    return distanceFromInside
+    const layerThickness = Math.max(
+      (outside ? assembly?.layers.outsideThickness : assembly?.layers.insideThickness) ?? 0,
+      0
+    )
+    const distanceFromEdge = outside ? Math.min(-layerThickness, 0) : Math.max(layerThickness, 0)
+    return distanceFromEdge
   })
 
   const offsetLines = perimeter.walls.map((wall, index) => {
     const offsetDistance = offsets[index]
-    const offsetPoint = vec2.scaleAndAdd(vec2.create(), wall.insideLine.start, wall.outsideDirection, offsetDistance)
+    const offsetPoint = vec2.scaleAndAdd(
+      vec2.create(),
+      outside ? wall.outsideLine.start : wall.insideLine.start,
+      wall.outsideDirection,
+      offsetDistance
+    )
     return { point: offsetPoint, direction: wall.direction }
   })
 
@@ -55,7 +63,7 @@ export function computeFloorConstructionPolygon(perimeter: Perimeter): Polygon2D
     // For colinear walls fall back to moving the inside corner along the outward normal.
     return vec2.scaleAndAdd(
       vec2.create(),
-      perimeter.corners[index].insidePoint,
+      outside ? perimeter.corners[index].outsidePoint : perimeter.corners[index].insidePoint,
       perimeter.walls[index].outsideDirection,
       fallbackDistance
     )
@@ -63,6 +71,11 @@ export function computeFloorConstructionPolygon(perimeter: Perimeter): Polygon2D
 
   return { points }
 }
+
+export const computeConstructionPolygons = (perimeter: Perimeter) => ({
+  outside: computeFloorConstructionPolygon(perimeter, true),
+  inside: computeFloorConstructionPolygon(perimeter, false)
+})
 
 export function constructPerimeter(perimeter: Perimeter, includeFloor = true, includeRoof = true): ConstructionModel {
   const { getStoreyById, getStoreyAbove, getFloorOpeningsByStorey, getPerimetersByStorey, getRoofsByStorey } =
@@ -137,14 +150,18 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     const finishedFloorPolygon: Polygon2D = {
       points: perimeter.corners.map(corner => vec2.fromValues(corner.insidePoint[0], corner.insidePoint[1]))
     }
-    const floorPolygon = computeFloorConstructionPolygon(perimeter)
+    const floorPolygons = computeConstructionPolygons(perimeter)
     const holes = getFloorOpeningsByStorey(storey.id).map(opening => opening.area)
-    const relevantHoles = holes.filter(hole => arePolygonsIntersecting(floorPolygon, hole))
+    const relevantHoles = holes.filter(hole => arePolygonsIntersecting(floorPolygons.outside, hole))
     const wallFaces = createWallFaceOffsets([perimeter])
     const adjustedHoles = relevantHoles.map(hole => applyWallFaceOffsets(hole, wallFaces))
     const mergedHoles = unionPolygons(adjustedHoles)
     const floorAssembly = FLOOR_ASSEMBLIES[currentFloorAssembly.type]
-    const floorModel = floorAssembly.construct({ outer: floorPolygon, holes: mergedHoles }, currentFloorAssembly)
+    const floorModel = floorAssembly.construct(
+      { outer: floorPolygons.outside, holes: mergedHoles },
+      [{ outer: floorPolygons.outside, holes: [floorPolygons.inside] }],
+      currentFloorAssembly
+    )
     allModels.push(floorModel)
 
     const topHoles = mergedHoles
