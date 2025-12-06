@@ -1,4 +1,4 @@
-import { CopyIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons'
+import { CopyIcon, InfoCircledIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import {
   AlertDialog,
@@ -11,7 +11,8 @@ import {
   IconButton,
   Separator,
   Text,
-  TextField
+  TextField,
+  Tooltip
 } from '@radix-ui/themes'
 import React, { useCallback, useMemo, useState } from 'react'
 
@@ -102,10 +103,14 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
         name = 'New Joist Floor'
         config = {
           type: 'joist',
-          joistThickness: 60,
-          joistHeight: 240,
-          joistSpacing: 400,
+          constructionHeight: 240,
+          joistThickness: 120,
+          joistSpacing: 800,
           joistMaterial: defaultMaterial,
+          wallBeamThickness: 120,
+          wallBeamMaterial: defaultMaterial,
+          wallBeamInsideOffset: 40,
+          wallInfillMaterial: defaultMaterial,
           subfloorThickness: 22,
           subfloorMaterial: defaultMaterial,
           layers: {
@@ -405,6 +410,33 @@ function JoistConfigFields({
   return (
     <>
       <Heading size="2">Joist Floor</Heading>
+
+      {/* Beam Height - Full Width */}
+      <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
+        <Flex align="center" gap="1">
+          <Label.Root>
+            <Text size="2" weight="medium" color="gray">
+              Beam Height
+            </Text>
+          </Label.Root>
+          <Tooltip content="Height of structural beams. Applies to both joists and wall beams.">
+            <IconButton style={{ cursor: 'help' }} color="gray" radius="full" variant="ghost" size="1">
+              <InfoCircledIcon width={12} height={12} />
+            </IconButton>
+          </Tooltip>
+        </Flex>
+        <LengthField
+          value={config.constructionHeight}
+          onChange={constructionHeight => onUpdate({ constructionHeight })}
+          unit="mm"
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      {/* Joists Section */}
+      <Heading size="3">Joists</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
@@ -421,29 +453,14 @@ function JoistConfigFields({
           size="2"
         />
 
-        <Flex align="center" gap="1">
-          <Label.Root>
-            <Text size="2" weight="medium" color="gray">
-              Joist Thickness
-            </Text>
-          </Label.Root>
-          <MeasurementInfo highlightedPart="floorConstruction" />
-        </Flex>
-        <LengthField
-          value={config.joistThickness}
-          onChange={joistThickness => onUpdate({ joistThickness })}
-          unit="mm"
-          size="2"
-        />
-
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            Joist Height
+            Joist Thickness
           </Text>
         </Label.Root>
         <LengthField
-          value={config.joistHeight}
-          onChange={joistHeight => onUpdate({ joistHeight })}
+          value={config.joistThickness}
+          onChange={joistThickness => onUpdate({ joistThickness })}
           unit="mm"
           size="2"
         />
@@ -459,7 +476,73 @@ function JoistConfigFields({
           unit="mm"
           size="2"
         />
+      </Grid>
 
+      <Separator size="4" />
+
+      {/* Wall Beams Section */}
+      <Heading size="3">Wall Beams</Heading>
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Wall Beam Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.wallBeamMaterial}
+          onValueChange={wallBeamMaterial => {
+            if (!wallBeamMaterial) return
+            onUpdate({ wallBeamMaterial })
+          }}
+          placeholder="Select wall beam material..."
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Wall Beam Thickness
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.wallBeamThickness}
+          onChange={wallBeamThickness => onUpdate({ wallBeamThickness })}
+          unit="mm"
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Wall Beam Inside Offset
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.wallBeamInsideOffset}
+          onChange={wallBeamInsideOffset => onUpdate({ wallBeamInsideOffset })}
+          unit="mm"
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Wall Infill Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.wallInfillMaterial}
+          onValueChange={wallInfillMaterial => {
+            if (!wallInfillMaterial) return
+            onUpdate({ wallInfillMaterial })
+          }}
+          placeholder="Select wall infill material..."
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      {/* Subfloor Section */}
+      <Heading size="3">Subfloor</Heading>
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
             Subfloor Material

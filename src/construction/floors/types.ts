@@ -42,10 +42,18 @@ export interface MonolithicFloorConfig extends FloorAssemblyConfigBase {
 
 export interface JoistFloorConfig extends FloorAssemblyConfigBase {
   type: 'joist'
+
+  constructionHeight: Length
+
   joistThickness: Length
-  joistHeight: Length
   joistSpacing: Length
   joistMaterial: MaterialId
+
+  wallBeamThickness: Length
+  wallBeamInsideOffset: Length
+  wallBeamMaterial: MaterialId
+  wallInfillMaterial: MaterialId
+
   subfloorThickness: Length
   subfloorMaterial: MaterialId
 }
@@ -75,7 +83,7 @@ const validateMonolithicFloorConfig = (config: MonolithicFloorConfig): void => {
 }
 
 const validateJoistFloorConfig = (config: JoistFloorConfig): void => {
-  if (config.joistHeight <= 0 || config.joistThickness <= 0) {
+  if (config.constructionHeight <= 0 || config.joistThickness <= 0) {
     throw new Error('Joist dimensions must be greater than 0')
   }
   if (config.joistSpacing <= 0) {
