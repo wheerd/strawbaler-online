@@ -9,6 +9,7 @@ import { type ConstructionResult, aggregateResults, yieldElement, yieldWarning }
 import { createExtrudedPolygon } from '@/construction/shapes'
 import type { Tag } from '@/construction/tags'
 import {
+  type Area,
   Bounds2D,
   type Length,
   type Line2D,
@@ -24,7 +25,8 @@ import {
   offsetLine,
   offsetPolygon,
   perpendicular,
-  perpendicularCW
+  perpendicularCW,
+  subtractPolygons
 } from '@/shared/geometry'
 
 import { BaseFloorAssembly } from './base'
@@ -36,12 +38,36 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
   construct = (context: FloorConstructionContext, config: JoistFloorConfig): ConstructionModel => {
     const bbox = minimumAreaBoundingBox(context.outerPolygon)
     const joistDirection = bbox.smallestDirection
-    const insideSideEdges = Array.from(polygonEdges(context.innerPolygon))
-      .map(e => ({ point: e.start, direction: direction(e.start, e.end) }) satisfies Line2D)
-      .filter(l => 1 - Math.abs(vec2.dot(l.direction, joistDirection)) < EPSILON)
-    const outsideBeamEdges = Array.from(polygonEdges(context.outerPolygon)).filter(
-      e => 1 - Math.abs(vec2.dot(direction(e.start, e.end), joistDirection)) < EPSILON
-    )
+
+    const wallBeamPolygons: PolygonWithHoles2D[] = []
+    const lineCount = context.innerLines.length
+    for (let i = 0; i < lineCount; i++) {
+      const insideLine = context.innerLines[i]
+      if (1 - Math.abs(vec2.dot(insideLine.direction, joistDirection)) > EPSILON) continue
+      const outsideLine = context.outerLines[i]
+      const prevClip = context.outerLines[(i - 1 + lineCount) % lineCount]
+      const nextClip = context.outerLines[(i + 1) % lineCount]
+
+      const insideBeam = infiniteBeamPolygon(
+        insideLine,
+        prevClip,
+        nextClip,
+        config.wallBeamInsideOffset,
+        config.wallBeamThickness - config.wallBeamInsideOffset
+      )
+
+      if (insideBeam) {
+        const clippedBeam = subtractPolygons([insideBeam], context.openings)
+        wallBeamPolygons.push(...clippedBeam)
+      }
+
+      const outsideBeam = infiniteBeamPolygon(outsideLine, prevClip, nextClip, config.wallBeamThickness, 0)
+
+      if (outsideBeam) {
+        const clippedBeam = subtractPolygons([outsideBeam], context.openings)
+        wallBeamPolygons.push(...clippedBeam)
+      }
+    }
 
     const newSides = context.innerLines.map((l, i) =>
       1 - Math.abs(vec2.dot(l.direction, joistDirection)) < EPSILON
@@ -52,44 +78,66 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
 
     const expandedHoles = context.openings.map(h => offsetPolygon(h, config.joistThickness))
 
-    const outerClipPolygon: PolygonWithHoles2D = { outer: context.outerPolygon, holes: context.openings }
     const innerClipPolygon: PolygonWithHoles2D = { outer: newPolygon, holes: expandedHoles }
 
-    const results = [
-      ...insideSideEdges.flatMap(e =>
-        Array.from(
-          infiniteBeam(
-            e,
-            outerClipPolygon,
-            config.wallBeamInsideOffset,
-            config.wallBeamThickness - config.wallBeamInsideOffset,
-            config.constructionHeight,
-            config.wallBeamMaterial,
-            'wall-beam'
-          )
-        )
-      ),
-      ...outsideBeamEdges.flatMap(e =>
-        Array.from(
-          beam(
-            e,
-            outerClipPolygon,
-            config.wallBeamThickness,
-            0,
-            config.constructionHeight,
-            config.wallBeamMaterial,
-            'wall-beam'
-          )
-        )
-      ),
-      ...simpleStripes(
+    const joistPolygons = Array.from(
+      stripesPolygons(
         innerClipPolygon,
         joistDirection,
         config.joistThickness,
-        config.constructionHeight,
         config.joistSpacing,
-        config.joistMaterial,
-        'joist'
+        config.joistSpacing,
+        config.joistSpacing,
+        3000
+      )
+    )
+
+    const clippedHoles = expandedHoles
+      .map(ensurePolygonIsClockwise)
+      .flatMap(p => intersectPolygon({ outer: p, holes: [] }, { outer: newPolygon, holes: [] }))
+      .map(p => p.outer)
+
+    const infillPolygons = subtractPolygons(
+      [context.outerPolygon],
+      [context.innerPolygon, ...joistPolygons.map(p => p.outer), ...wallBeamPolygons.map(p => p.outer), ...clippedHoles]
+    )
+
+    const results = [
+      ...wallBeamPolygons.map(
+        p =>
+          ({
+            type: 'element',
+            element: createConstructionElement(
+              config.wallBeamMaterial,
+              createExtrudedPolygon(p, 'xy', config.constructionHeight),
+              undefined,
+              undefined,
+              polygonPartInfo('wall-beam', p.outer, 'xy', config.constructionHeight)
+            )
+          }) satisfies ConstructionResult
+      ),
+      ...joistPolygons.map(
+        p =>
+          ({
+            type: 'element',
+            element: createConstructionElement(
+              config.joistMaterial,
+              createExtrudedPolygon(p, 'xy', config.constructionHeight),
+              undefined,
+              undefined,
+              polygonPartInfo('joist', p.outer, 'xy', config.constructionHeight)
+            )
+          }) satisfies ConstructionResult
+      ),
+      ...infillPolygons.map(
+        p =>
+          ({
+            type: 'element',
+            element: createConstructionElement(
+              config.wallInfillMaterial,
+              createExtrudedPolygon(p, 'xy', config.constructionHeight)
+            )
+          }) satisfies ConstructionResult
       ),
       ...context.openings.flatMap(h =>
         Array.from(
@@ -145,6 +193,33 @@ function polygonFromLineIntersections(lines: Line2D[]): Polygon2D {
   return { points }
 }
 
+function infiniteBeamPolygon(
+  line: Line2D,
+  clipStart: Line2D,
+  clipEnd: Line2D,
+  thicknessLeft: Length,
+  thicknessRight: Length
+): Polygon2D | null {
+  const leftDir = perpendicularCW(line.direction)
+  const lineLeft: Line2D = {
+    point: vec2.scaleAndAdd(vec2.create(), line.point, leftDir, thicknessLeft),
+    direction: line.direction
+  }
+  const lineRight: Line2D = {
+    point: vec2.scaleAndAdd(vec2.create(), line.point, leftDir, -thicknessRight),
+    direction: line.direction
+  }
+  const p1 = lineIntersection(lineLeft, clipStart)
+  const p2 = lineIntersection(lineRight, clipStart)
+  const p3 = lineIntersection(lineRight, clipEnd)
+  const p4 = lineIntersection(lineLeft, clipEnd)
+
+  if (!p1 || !p2 || !p3 || !p4) return null
+
+  const beamPolygon: Polygon2D = { points: [p1, p2, p3, p4] }
+  return ensurePolygonIsClockwise(beamPolygon)
+}
+
 function* infiniteBeam(
   line: Line2D,
   clipPolygon: PolygonWithHoles2D,
@@ -198,6 +273,50 @@ function* beam(
     yield* yieldElement(
       createConstructionElement(material, createExtrudedPolygon(part, 'xy', height), undefined, tags, partInfo)
     )
+  }
+}
+
+function* stripesPolygons(
+  polygon: PolygonWithHoles2D,
+  direction: vec2,
+  thickness: Length,
+  spacing: Length,
+  startOffset: Length = 0,
+  endOffset: Length = 0,
+  minimumArea: Area = 0
+): Generator<PolygonWithHoles2D> {
+  const perpDir = perpendicular(direction)
+
+  const dots = polygon.outer.points.map(p => vec2.dot(p, perpDir))
+  const joistStart = polygon.outer.points[dots.indexOf(Math.min(...dots))]
+  const totalSpan = Math.max(...dots) - Math.min(...dots)
+
+  const dots2 = polygon.outer.points.map(p => vec2.dot(p, direction))
+  const joistMin = polygon.outer.points[dots2.indexOf(Math.min(...dots2))]
+  const joistLength = Math.max(...dots2) - Math.min(...dots2)
+
+  const joistLine: Line2D = { point: joistStart, direction: direction }
+  const perpLine: Line2D = { point: joistMin, direction: perpDir }
+
+  const intersection = lineIntersection(joistLine, perpLine)
+
+  if (!intersection) {
+    return
+  }
+
+  const stepWidth = thickness + spacing
+  const end = totalSpan + spacing - endOffset
+  for (let offset = startOffset; offset <= end; offset += stepWidth) {
+    const clippedOffset = Math.min(offset, totalSpan - thickness)
+    const p1 = vec2.scaleAndAdd(vec2.create(), intersection, perpDir, clippedOffset)
+    const p2 = vec2.scaleAndAdd(vec2.create(), p1, perpDir, thickness)
+    const p3 = vec2.scaleAndAdd(vec2.create(), p2, direction, joistLength)
+    const p4 = vec2.scaleAndAdd(vec2.create(), p1, direction, joistLength)
+
+    const joistPolygon: Polygon2D = { points: [p1, p2, p3, p4] }
+    const joistParts = intersectPolygon(polygon, { outer: joistPolygon, holes: [] })
+
+    yield* joistParts.filter(p => calculatePolygonArea(p.outer) > minimumArea)
   }
 }
 

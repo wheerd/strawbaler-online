@@ -55,23 +55,17 @@ export function computeFloorConstructionPolygon(
     return { point: offsetPoint, direction: wall.direction }
   })
 
-  const points = offsetLines.map((line, index) => {
-    const prevIndex = (index - 1 + offsetLines.length) % offsetLines.length
-    const prevLine = offsetLines[prevIndex]
-    const intersection = lineIntersection(prevLine, line)
-    if (intersection) {
-      return intersection
-    }
+  const filteredLines = offsetLines.filter(
+    (l, i) => !vec2.equals(l.direction, offsetLines[(i - 1 + offsetLines.length) % offsetLines.length].direction)
+  )
 
-    const fallbackDistance = Math.max(offsets[prevIndex], offsets[index])
-    // For colinear walls fall back to moving the inside corner along the outward normal.
-    return vec2.scaleAndAdd(
-      vec2.create(),
-      outside ? perimeter.corners[index].outsidePoint : perimeter.corners[index].insidePoint,
-      perimeter.walls[index].outsideDirection,
-      fallbackDistance
-    )
-  })
+  const points = filteredLines
+    .map((line, index) => {
+      const prevIndex = (index - 1 + offsetLines.length) % offsetLines.length
+      const prevLine = offsetLines[prevIndex]
+      return lineIntersection(prevLine, line)
+    })
+    .filter(p => p != null)
 
   return { polygon: { points }, lines: offsetLines }
 }
