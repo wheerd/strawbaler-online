@@ -4,6 +4,7 @@ import { createConstructionElement, createConstructionElementId } from '@/constr
 import { translate } from '@/construction/geometry'
 import {
   infiniteBeamPolygon,
+  partitionByAlignedEdges,
   polygonFromLineIntersections,
   simplePolygonFrame,
   stripesPolygons
@@ -14,6 +15,7 @@ import { type ConstructionResult, aggregateResults } from '@/construction/result
 import { createExtrudedPolygon } from '@/construction/shapes'
 import {
   Bounds2D,
+  type Line2D,
   type PolygonWithHoles2D,
   ensurePolygonIsClockwise,
   intersectPolygon,
@@ -33,11 +35,13 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
     const bbox = minimumAreaBoundingBox(context.outerPolygon)
     const joistDirection = bbox.smallestDirection
 
+    const alignedInsideLines: Line2D[] = []
     const wallBeamPolygons: PolygonWithHoles2D[] = []
     const lineCount = context.innerLines.length
     for (let i = 0; i < lineCount; i++) {
       const insideLine = context.innerLines[i]
       if (1 - Math.abs(vec2.dot(insideLine.direction, joistDirection)) > EPSILON) continue
+      alignedInsideLines.push(insideLine)
       const outsideLine = context.outerLines[i]
       const prevClip = context.outerLines[(i - 1 + lineCount) % lineCount]
       const nextClip = context.outerLines[(i + 1) % lineCount]
@@ -69,20 +73,23 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
         : context.outerLines[i]
     )
     const newPolygon = polygonFromLineIntersections(newSides)
+    const partitions = Array.from(partitionByAlignedEdges(newPolygon, joistDirection))
 
     const expandedHoles = context.openings.map(h => offsetPolygon(h, config.openingSideThickness))
 
-    const innerClipPolygon: PolygonWithHoles2D = { outer: newPolygon, holes: expandedHoles }
-
-    const joistPolygons = Array.from(
-      stripesPolygons(
-        innerClipPolygon,
-        joistDirection,
-        config.joistThickness,
-        config.joistSpacing,
-        config.joistSpacing,
-        config.joistSpacing,
-        3000
+    const joistPolygons = partitions.flatMap(p =>
+      subtractPolygons([p], expandedHoles).flatMap(p =>
+        Array.from(
+          stripesPolygons(
+            p,
+            joistDirection,
+            config.joistThickness,
+            config.joistSpacing,
+            config.joistSpacing, // TODO: This needs to depend on whether on the left side is a beam or not
+            config.joistSpacing, // TODO: This needs to depend on whether on the right side is a beam or not
+            3000
+          )
+        )
       )
     )
 
