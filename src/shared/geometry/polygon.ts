@@ -104,6 +104,19 @@ export function isPointInPolygon(point: vec2, polygon: Polygon2D): boolean {
   }
 }
 
+export function isPointStrictlyInPolygon(point: vec2, polygon: Polygon2D): boolean {
+  const testPoint = createPointD(point)
+  const path = createPathD(polygon.points)
+  try {
+    const module = getClipperModule()
+    const result = module.PointInPolygonD(testPoint, path)
+    return result.value === module.PointInPolygonResult.IsInside.value
+  } finally {
+    testPoint.delete()
+    path.delete()
+  }
+}
+
 export function wouldPolygonSelfIntersect(existingPoints: vec2[], newPoint: vec2): boolean {
   if (existingPoints.some(p => vec2.equals(p, newPoint))) {
     return true

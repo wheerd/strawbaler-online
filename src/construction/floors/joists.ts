@@ -15,13 +15,14 @@ import { type ConstructionResult, aggregateResults } from '@/construction/result
 import { createExtrudedPolygon } from '@/construction/shapes'
 import {
   Bounds2D,
-  type Line2D,
+  type Polygon2D,
   type PolygonWithHoles2D,
   ensurePolygonIsClockwise,
   intersectPolygon,
+  isPointStrictlyInPolygon,
   minimumAreaBoundingBox,
-  offsetLine,
   offsetPolygon,
+  perpendicular,
   subtractPolygons
 } from '@/shared/geometry'
 
@@ -30,18 +31,66 @@ import type { FloorConstructionContext, JoistFloorConfig } from './types'
 
 const EPSILON = 1e-5
 
+/**
+ * Detects whether wall beams exist on the left and right sides of a partition.
+ * Checks if midpoints of wall beam polygon edges are strictly inside the partition.
+ */
+function detectBeamEdges(
+  partition: Polygon2D,
+  joistDirection: vec2,
+  wallBeamPolygons: PolygonWithHoles2D[]
+): { leftHasBeam: boolean; rightHasBeam: boolean } {
+  if (partition.points.length === 0 || wallBeamPolygons.length === 0) {
+    return { leftHasBeam: false, rightHasBeam: false }
+  }
+
+  const perpDir = perpendicular(joistDirection)
+
+  // Find left and right boundaries of partition (min/max perpendicular projections)
+  const projections = partition.points.map(p => vec2.dot(p, perpDir))
+  const leftProjection = Math.min(...projections)
+  const rightProjection = Math.max(...projections)
+  const centerProjection = (leftProjection + rightProjection) / 2
+
+  let leftHasBeam = false
+  let rightHasBeam = false
+
+  // Check all wall beam polygon edges
+  for (const beamPoly of wallBeamPolygons) {
+    for (let i = 0; i < beamPoly.outer.points.length; i++) {
+      const edgeStart = beamPoly.outer.points[i]
+      const edgeEnd = beamPoly.outer.points[(i + 1) % beamPoly.outer.points.length]
+
+      // Calculate midpoint of the edge
+      const midpoint = vec2.scale(vec2.create(), vec2.add(vec2.create(), edgeStart, edgeEnd), 0.5)
+
+      // Check if midpoint is strictly inside the partition
+      if (isPointStrictlyInPolygon(midpoint, partition)) {
+        // Determine which side based on perpendicular projection
+        const projection = vec2.dot(midpoint, perpDir)
+
+        if (projection < centerProjection) {
+          leftHasBeam = true
+        } else {
+          rightHasBeam = true
+        }
+      }
+    }
+  }
+
+  return { leftHasBeam, rightHasBeam }
+}
+
 export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
   construct = (context: FloorConstructionContext, config: JoistFloorConfig): ConstructionModel => {
     const bbox = minimumAreaBoundingBox(context.outerPolygon)
     const joistDirection = bbox.smallestDirection
 
-    const alignedInsideLines: Line2D[] = []
     const wallBeamPolygons: PolygonWithHoles2D[] = []
     const lineCount = context.innerLines.length
     for (let i = 0; i < lineCount; i++) {
       const insideLine = context.innerLines[i]
       if (1 - Math.abs(vec2.dot(insideLine.direction, joistDirection)) > EPSILON) continue
-      alignedInsideLines.push(insideLine)
       const outsideLine = context.outerLines[i]
       const prevClip = context.outerLines[(i - 1 + lineCount) % lineCount]
       const nextClip = context.outerLines[(i + 1) % lineCount]
@@ -68,30 +117,30 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
     }
 
     const newSides = context.innerLines.map((l, i) =>
-      1 - Math.abs(vec2.dot(l.direction, joistDirection)) < EPSILON
-        ? offsetLine(l, config.wallBeamInsideOffset)
-        : context.outerLines[i]
+      1 - Math.abs(vec2.dot(l.direction, joistDirection)) < EPSILON ? l : context.outerLines[i]
     )
     const newPolygon = polygonFromLineIntersections(newSides)
     const partitions = Array.from(partitionByAlignedEdges(newPolygon, joistDirection))
 
     const expandedHoles = context.openings.map(h => offsetPolygon(h, config.openingSideThickness))
 
-    const joistPolygons = partitions.flatMap(p =>
-      subtractPolygons([p], expandedHoles).flatMap(p =>
+    const joistPolygons = partitions.flatMap(p => {
+      const { leftHasBeam, rightHasBeam } = detectBeamEdges(p, joistDirection, wallBeamPolygons)
+
+      return subtractPolygons([p], expandedHoles).flatMap(p =>
         Array.from(
           stripesPolygons(
             p,
             joistDirection,
             config.joistThickness,
             config.joistSpacing,
-            config.joistSpacing, // TODO: This needs to depend on whether on the left side is a beam or not
-            config.joistSpacing, // TODO: This needs to depend on whether on the right side is a beam or not
+            leftHasBeam ? config.joistSpacing : 0,
+            rightHasBeam ? config.joistSpacing : 0,
             3000
           )
         )
       )
-    )
+    })
 
     const clippedHoles = expandedHoles
       .map(ensurePolygonIsClockwise)
