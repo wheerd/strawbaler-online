@@ -5,7 +5,6 @@ import { translate } from '@/construction/geometry'
 import {
   infiniteBeamPolygon,
   partitionByAlignedEdges,
-  polygonEdges,
   polygonFromLineIntersections,
   simplePolygonFrame,
   stripesPolygons
@@ -18,6 +17,7 @@ import {
   Bounds2D,
   type Polygon2D,
   type PolygonWithHoles2D,
+  direction,
   ensurePolygonIsClockwise,
   intersectPolygon,
   isPointStrictlyInPolygon,
@@ -26,6 +26,7 @@ import {
   offsetLine,
   offsetPolygon,
   perpendicular,
+  perpendicularCW,
   subtractPolygons
 } from '@/shared/geometry'
 
@@ -41,9 +42,9 @@ const EPSILON = 1e-5
 function detectBeamEdges(
   partition: Polygon2D,
   joistDirection: vec2,
-  wallBeamPolygons: PolygonWithHoles2D[]
+  wallBeamCheckPoints: vec2[]
 ): { leftHasBeam: boolean; rightHasBeam: boolean } {
-  if (partition.points.length === 0 || wallBeamPolygons.length === 0) {
+  if (partition.points.length === 0 || wallBeamCheckPoints.length === 0) {
     return { leftHasBeam: false, rightHasBeam: false }
   }
 
@@ -58,18 +59,14 @@ function detectBeamEdges(
   let leftHasBeam = false
   let rightHasBeam = false
 
-  for (const beamPoly of wallBeamPolygons) {
-    for (const edge of polygonEdges(beamPoly.outer)) {
-      const mid = midpoint(edge.start, edge.end)
-      if (isPointStrictlyInPolygon(mid, partition)) {
-        const projection = vec2.dot(mid, perpDir)
+  for (const checkPoint of wallBeamCheckPoints) {
+    if (isPointStrictlyInPolygon(checkPoint, partition)) {
+      const projection = vec2.dot(checkPoint, perpDir)
 
-        if (projection < centerProjection) {
-          leftHasBeam = true
-        } else {
-          rightHasBeam = true
-        }
-        break
+      if (projection < centerProjection) {
+        leftHasBeam = true
+      } else {
+        rightHasBeam = true
       }
     }
 
@@ -84,6 +81,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
     const bbox = minimumAreaBoundingBox(context.outerPolygon)
     const joistDirection = bbox.smallestDirection
 
+    const wallBeamCheckPoints: vec2[] = []
     const wallBeamPolygons: PolygonWithHoles2D[] = []
     const lineCount = context.innerLines.length
     for (let i = 0; i < lineCount; i++) {
@@ -104,6 +102,9 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
       if (insideBeam) {
         const clippedBeam = subtractPolygons([insideBeam], context.openings)
         wallBeamPolygons.push(...clippedBeam)
+        const leftDir = perpendicularCW(insideLine.direction)
+        const leftPoints = insideBeam.points.filter(p => vec2.dot(direction(insideLine.point, p), leftDir) > 0)
+        wallBeamCheckPoints.push(midpoint(leftPoints[0], leftPoints[1]))
       }
 
       const outsideBeam = infiniteBeamPolygon(outsideLine, prevClip, nextClip, config.wallBeamThickness, 0)
@@ -131,7 +132,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
     const expandedHoles = context.openings.map(h => offsetPolygon(h, config.openingSideThickness))
 
     const joistPolygons = partitions.flatMap(p => {
-      const { leftHasBeam, rightHasBeam } = detectBeamEdges(p, joistDirection, wallBeamPolygons)
+      const { leftHasBeam, rightHasBeam } = detectBeamEdges(p, joistDirection, wallBeamCheckPoints)
 
       return subtractPolygons([p], expandedHoles).flatMap(p =>
         Array.from(
