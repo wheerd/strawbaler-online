@@ -265,8 +265,6 @@ describe('constructWallLayers', () => {
     const insidePolygon = expectExtrudedPolygon(inside)
     const outsidePolygon = expectExtrudedPolygon(outside)
 
-    console.log(insidePolygon)
-
     expect(insidePolygon.polygon.outer.points).toHaveLength(4)
     expect(insidePolygon.polygon.outer.points).toEqual([
       vec2.fromValues(-30, 10),

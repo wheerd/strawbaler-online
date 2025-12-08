@@ -21,6 +21,7 @@ function getStrawWidth(availableWidth: Length, config: StrawhengeWallConfig): Le
   const { module, infill } = config
   const oneModule = module.width
   const maxFilling = infill.maxPostSpacing
+  const desiredFilling = infill.desiredPostSpacing
   const minFilling = infill.minStrawSpace
   const moduleAndFullFilling = oneModule + maxFilling
   const moduleAndMinFilling = oneModule + minFilling
@@ -33,8 +34,10 @@ function getStrawWidth(availableWidth: Length, config: StrawhengeWallConfig): Le
     return availableWidth - moduleAndMinFilling
   } else if (availableWidth < moduleAndFullFilling) {
     return availableWidth - oneModule
-  } else {
+  } else if (availableWidth <= maxFilling) {
     return maxFilling
+  } else {
+    return desiredFilling
   }
 }
 
