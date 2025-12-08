@@ -1,30 +1,74 @@
-import { vec3 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import type { PolygonWithHoles3D } from '@/shared/geometry'
 
 /**
- * Get merged coplanar polygon faces of a manifold mesh.
+ * Extract visible polygon faces from a manifold mesh in view space with backface culling.
+ *
+ * This function:
+ * 1. Transforms all vertices to view space using the provided transform matrix
+ * 2. Computes triangle normals in view space
+ * 3. Performs backface culling (filters out triangles facing away from camera)
+ * 4. Merges coplanar front-facing triangles into polygons
+ *
+ * @param m - The manifold mesh to extract faces from
+ * @param transform - Combined transform matrix (projectionMatrix * accumulatedTransform)
+ *                    that transforms from local manifold space to view space
+ * @returns Array of polygons in view space (x, y, depth), with backfaces culled
  */
-export function getPolygonFacesFromManifold(m: Manifold): PolygonWithHoles3D[] {
+export function getVisibleFacesInViewSpace(m: Manifold, transform: mat4, cullBackFaces = true): PolygonWithHoles3D[] {
   const mesh = m.getMesh()
-  const positions: vec3[] = []
+
+  // Extract vertex positions in local manifold space
+  const localPositions: vec3[] = []
   for (let i = 0; i < mesh.vertProperties.length; i += 3) {
-    positions.push(vec3.fromValues(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
+    localPositions.push(vec3.fromValues(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
   }
 
+  // Transform all vertices to view space upfront
+  const viewSpacePositions = localPositions.map(p => vec3.transformMat4(vec3.create(), p, transform))
+
+  // Extract triangle indices
   const triangles: [number, number, number][] = []
   for (let i = 0; i < mesh.triVerts.length; i += 3) {
     triangles.push([mesh.triVerts[i], mesh.triVerts[i + 1], mesh.triVerts[i + 2]])
   }
 
-  const triangleNormals = triangles.map(t => computeTriangleNormal(positions[t[0]], positions[t[1]], positions[t[2]]))
+  // Compute triangle normals in view space
+  const triangleNormals = triangles.map(t =>
+    computeTriangleNormal(viewSpacePositions[t[0]], viewSpacePositions[t[1]], viewSpacePositions[t[2]])
+  )
 
-  // Step 1: Build edge → triangle adjacency
+  // Backface culling: filter out triangles not facing the camera
+  // In view space, camera always looks down -Z axis, so view direction is (0, 0, -1)
+  const viewDirection = vec3.fromValues(0, 0, -1)
+  const frontFacingIndices: number[] = []
+  const EPSILON = 0.001 // Small tolerance for floating-point precision
+
+  if (cullBackFaces) {
+    for (let i = 0; i < triangles.length; i++) {
+      const dotProduct = vec3.dot(triangleNormals[i], viewDirection)
+      // Exclude perpendicular and back-facing triangles (> 0, not >= 0)
+      if (dotProduct > EPSILON) {
+        frontFacingIndices.push(i)
+      }
+    }
+    // If all faces are culled, return empty array
+    if (frontFacingIndices.length === 0) {
+      return []
+    }
+  }
+
+  // Create filtered arrays with only front-facing triangles
+  const filteredTriangles = cullBackFaces ? frontFacingIndices.map(i => triangles[i]) : triangles
+  const filteredNormals = cullBackFaces ? frontFacingIndices.map(i => triangleNormals[i]) : triangleNormals
+
+  // Step 1: Build edge → triangle adjacency (using filtered triangles)
   const edgeMap = new Map<string, number[]>()
   const norm = (i: number, j: number) => (i < j ? `${i}_${j}` : `${j}_${i}`)
 
-  triangles.forEach((tri, ti) => {
+  filteredTriangles.forEach((tri, ti) => {
     for (let k = 0; k < 3; k++) {
       const a = tri[k]
       const b = tri[(k + 1) % 3]
@@ -38,12 +82,20 @@ export function getPolygonFacesFromManifold(m: Manifold): PolygonWithHoles3D[] {
     }
   })
 
-  // Step 2: Build adjacency graph of coplanar triangles
-  const adj: number[][] = triangles.map(() => [])
+  // Step 2: Build adjacency graph of coplanar triangles (using filtered data)
+  const adj: number[][] = filteredTriangles.map(() => [])
   for (const [, tris] of edgeMap) {
     if (tris.length === 2) {
       const [t1, t2] = tris
-      if (areCoplanar(triangleNormals[t1], triangleNormals[t2], positions, triangles[t1], triangles[t2])) {
+      if (
+        areCoplanar(
+          filteredNormals[t1],
+          filteredNormals[t2],
+          viewSpacePositions,
+          filteredTriangles[t1],
+          filteredTriangles[t2]
+        )
+      ) {
         adj[t1].push(t2)
         adj[t2].push(t1)
       }
@@ -51,10 +103,10 @@ export function getPolygonFacesFromManifold(m: Manifold): PolygonWithHoles3D[] {
   }
 
   // Step 3: BFS to find connected components of coplanar triangles
-  const visited = new Array(triangles.length).fill(false)
+  const visited = new Array(filteredTriangles.length).fill(false)
   const components: number[][] = []
 
-  for (let i = 0; i < triangles.length; i++) {
+  for (let i = 0; i < filteredTriangles.length; i++) {
     if (visited[i]) continue
     const comp: number[] = []
     const queue = [i]
@@ -75,7 +127,8 @@ export function getPolygonFacesFromManifold(m: Manifold): PolygonWithHoles3D[] {
   }
 
   // Step 4: For each coplanar component, extract boundary loops and build polygon(s)
-  return components.map(comp => trianglesToPolygon(comp, triangles, positions))
+  // Polygons are in view space
+  return components.map(comp => trianglesToPolygon(comp, filteredTriangles, viewSpacePositions))
 }
 
 // ---------------------------------------------------------------

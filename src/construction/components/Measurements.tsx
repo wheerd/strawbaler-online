@@ -81,11 +81,12 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
     .map(m => {
       const startProjected = projectPoint(m.startPoint, projection)
       const endProjected = projectPoint(m.endPoint, projection)
+
       return {
         ...m,
         startPoint: vec2.fromValues(startProjected[0], startProjected[1]),
         endPoint: vec2.fromValues(endProjected[0], endProjected[1]),
-        offset: m.offset * 60
+        offset: m.offset * (projection[0] < 0 && startProjected[0] === endProjected[0] ? -60 : 60)
       }
     })
 

@@ -6,12 +6,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { CutAreaShape } from '@/construction/components/CutAreaShape'
 import { Measurements } from '@/construction/components/Measurements'
 import { type FaceTree, geometryFaces } from '@/construction/components/faceHelpers'
-import { bounds3Dto2D, createProjectionMatrix } from '@/construction/geometry'
+import { bounds3Dto2D, createProjectionMatrix, projectPoint } from '@/construction/geometry'
 import type { ConstructionModel, HighlightedCuboid, HighlightedCut, HighlightedPolygon } from '@/construction/model'
 import type { TagCategoryId, TagId } from '@/construction/tags'
 import { MidCutXIcon, MidCutYIcon } from '@/shared/components/Icons'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
-import { type Plane3D, type Polygon2D, type PolygonWithHoles2D, complementaryAxis } from '@/shared/geometry'
+import { type Plane3D, type Polygon2D, type PolygonWithHoles2D } from '@/shared/geometry'
 
 import { CuboidAreaShape } from './CuboidAreaShape'
 import { PolygonAreaShape } from './PolygonAreaShape'
@@ -28,10 +28,10 @@ export interface ViewOption {
   label: string
 }
 
-export const TOP_VIEW: View = { plane: 'xy', xDirection: -1, zOrder: 'descending' }
-export const FRONT_VIEW: View = { plane: 'xz', xDirection: 1, zOrder: 'descending' }
-export const BACK_VIEW: View = { plane: 'xz', xDirection: -1, zOrder: 'ascending' }
-export const LEFT_VIEW: View = { plane: 'yz', xDirection: -1, zOrder: 'ascending' }
+export const TOP_VIEW: View = { plane: 'xy', xDirection: 1, zOrder: 'descending' }
+export const FRONT_VIEW: View = { plane: 'xz', xDirection: -1, zOrder: 'descending' }
+export const BACK_VIEW: View = { plane: 'xz', xDirection: 1, zOrder: 'ascending' }
+export const LEFT_VIEW: View = { plane: 'yz', xDirection: 1, zOrder: 'ascending' }
 
 type TagOrCategory = TagId | TagCategoryId
 
@@ -88,27 +88,23 @@ export function ConstructionPlan({
 
   useEffect(() => viewportRef.current?.fitToContent(), [currentView])
 
-  const axis = complementaryAxis(currentView.plane)
-  const projectionMatrix = useMemo(() => createProjectionMatrix(currentView.plane), [currentView.plane])
+  const projectionMatrix = useMemo(
+    () =>
+      createProjectionMatrix(currentView.plane, currentView.zOrder === 'ascending' ? -1 : 1, currentView.xDirection),
+    [currentView]
+  )
   const contentBounds = bounds3Dto2D(model.bounds, projectionMatrix)
 
   // Calculate cut position when enabled
   const zCutOffset = useMemo(() => {
-    const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2
     // Cut at middle of model depth
-    return model.bounds.center[axisIndex]
-  }, [axis, model.bounds])
+    return projectPoint(model.bounds.center, projectionMatrix)[2]
+  }, [projectionMatrix, model.bounds])
 
   const faces = useMemo(() => {
     const allFaces = model.elements.flatMap(element => Array.from(geometryFaces(element, projectionMatrix)))
-    const zOrder =
-      currentView.zOrder === 'descending'
-        ? (a: FaceTree, b: FaceTree) => a.zIndex - b.zIndex
-        : (a: FaceTree, b: FaceTree) => b.zIndex - a.zIndex
-    const aboveCut =
-      currentView.zOrder === 'descending'
-        ? (a: FaceTree) => a.zIndex > zCutOffset
-        : (a: FaceTree) => a.zIndex < zCutOffset
+    const zOrder = (a: FaceTree, b: FaceTree) => a.zIndex - b.zIndex
+    const aboveCut = (a: FaceTree) => a.zIndex > zCutOffset
     return allFaces
       .sort(zOrder)
       .map(face => ({ ...face, className: face.className + (aboveCut(face) ? ' above-cut' : '') }))
@@ -154,7 +150,6 @@ export function ConstructionPlan({
         className={`w-full h-full ${midCutEnabled ? 'mid-cut-enabled' : ''}`}
         resetButtonPosition="top-right"
         svgSize={containerSize}
-        flipX={currentView.xDirection !== -1}
       >
         {/* Material styles for proper SVG rendering */}
         <SVGMaterialStyles />

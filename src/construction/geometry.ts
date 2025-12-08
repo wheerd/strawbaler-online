@@ -111,43 +111,43 @@ export type CutFunction = (element: { bounds: Bounds3D; transform?: Transform })
  * @param plane - The viewing plane (xy = top view, xz = front view, yz = side view)
  * @returns A 4x4 projection matrix
  */
-export const createProjectionMatrix = (plane: Plane3D): Projection => {
+export const createProjectionMatrix = (plane: Plane3D, z: -1 | 1, x: -1 | 1): Projection => {
   const projMatrix = mat4.create()
 
   switch (plane) {
     case 'xy':
       // Top view: X→X, Y→Y, Z→depth (identity matrix)
-      mat4.identity(projMatrix)
+      // prettier-ignore
+      mat4.set(
+        projMatrix,
+        x,  0,  0,  0,
+        0,  1,  0,  0,
+        0,  0,  z,  0,
+        0,  0,  0,  1 
+      )
       break
 
     case 'xz':
       // Front view: X→X, Z→Y, Y→depth
-      // gl-matrix uses column-major format: mat4.set takes values as m0,m1,m2,m3, m4,m5,m6,m7, ...
-      // out.x = m0*in.x + m4*in.y + m8*in.z
-      // out.y = m1*in.x + m5*in.y + m9*in.z
-      // out.z = m2*in.x + m6*in.y + m10*in.z
       // prettier-ignore
       mat4.set(
         projMatrix,
-        1,  0,  0,  0, // m0,m1,m2,m3   (column 0) - out.x = 1*in.x
-        0,  0,  1,  0, // m4,m5,m6,m7   (column 1) - out.y = 1*in.z  
-        0,  1,  0,  0, // m8,m9,m10,m11 (column 2) - out.z = 1*in.y
-        0,  0,  0,  1  // m12,m13,m14,m15 (column 3)
+        x,  0,  0,  0,
+        0,  0,  z,  0,
+        0,  1,  0,  0,
+        0,  0,  0,  1 
       )
       break
 
     case 'yz':
       // Side view: Y→X, Z→Y, X→depth
-      // out.x = in.y (Y becomes horizontal on screen)
-      // out.y = in.z (Z becomes vertical on screen)
-      // out.z = in.x (X becomes depth)
       // prettier-ignore
       mat4.set(
         projMatrix,
-        0,  0,  1,  0, // m0,m1,m2,m3   (column 0) - out.x = 0, out.y = 0, out.z = 1*in.x
-        1,  0,  0,  0, // m4,m5,m6,m7   (column 1) - out.x = 1*in.y
-        0,  1,  0,  0, // m8,m9,m10,m11 (column 2) - out.y = 1*in.z
-        0,  0,  0,  1  // m12,m13,m14,m15 (column 3)
+        0,  0,  z,  0,
+        x,  0,  0,  0,
+        0,  1,  0,  0, 
+        0,  0,  0,  1  
       )
       break
 

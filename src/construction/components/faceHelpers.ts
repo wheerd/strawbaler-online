@@ -3,7 +3,7 @@ import { mat4, vec2, vec3 } from 'gl-matrix'
 import { getConstructionElementClasses } from '@/construction/components/cssHelpers'
 import type { GroupOrElement } from '@/construction/elements'
 import { type Projection, projectPoint } from '@/construction/geometry'
-import { getPolygonFacesFromManifold } from '@/construction/manifold/faces'
+import { getVisibleFacesInViewSpace } from '@/construction/manifold/faces'
 import { Bounds2D, type PolygonWithHoles2D } from '@/shared/geometry'
 
 export type FaceTree = Face | FaceGroup
@@ -33,8 +33,7 @@ const EPSILON = 0.0001
 export function* geometryFaces(
   groupOrElement: GroupOrElement,
   projectionMatrix: Projection,
-  parentTransform: mat4 = mat4.create(),
-  zOffset = 0
+  parentTransform: mat4 = mat4.create()
 ): Generator<FaceTree> {
   // Accumulate transform: parent * element
   const accumulatedTransform = mat4.multiply(mat4.create(), parentTransform, groupOrElement.transform)
@@ -49,30 +48,21 @@ export function* geometryFaces(
     const worldCenter = vec3.transformMat4(vec3.create(), groupOrElement.bounds.center, accumulatedTransform)
     const centerDepth = projectPoint(worldCenter, projectionMatrix)[2]
 
-    // Get untransformed faces from manifold
+    // Get visible faces in view space with backface culling applied
+    // The finalTransform (projection * accumulated) transforms from local manifold space to view space
     const manifold = groupOrElement.shape.manifold
-    const faces3D = getPolygonFacesFromManifold(manifold)
+    const faces3D = getVisibleFacesInViewSpace(manifold, finalTransform, false)
 
-    // Transform vertices to 2D view space
+    // Faces are already in view space (transformed), so we extract 2D coordinates directly
     const faces2D = faces3D
       .map(f => {
-        // Project outer boundary points
-        const outerPoints = f.outer.points.map(p => {
-          const projected = projectPoint(p, finalTransform)
-          return vec2.fromValues(projected[0], projected[1])
-        })
-
-        // Project hole points
+        const outerPoints = f.outer.points.map(p => vec2.fromValues(p[0], p[1]))
         const holes = f.holes.map(h => ({
-          points: h.points.map(p => {
-            const projected = projectPoint(p, finalTransform)
-            return vec2.fromValues(projected[0], projected[1])
-          })
+          points: h.points.map(p => vec2.fromValues(p[0], p[1]))
         }))
 
-        // Calculate z-index from first point's depth
         // Use centerZ logic: front faces get slight preference over back faces
-        const faceDepth = projectPoint(f.outer.points[0], finalTransform)[2] + zOffset
+        const faceDepth = f.outer.points[0][2]
         const zIndex = faceDepth < centerDepth ? faceDepth + EPSILON : faceDepth - EPSILON
 
         return {
@@ -83,7 +73,6 @@ export function* geometryFaces(
       })
       .filter(f => !Bounds2D.fromPoints(f.outer.points).isEmpty)
 
-    // Yield faces without SVG transform (all transforms baked into vertices)
     for (const { outer, holes, zIndex } of faces2D) {
       yield {
         polygon: { outer, holes },
@@ -92,13 +81,8 @@ export function* geometryFaces(
       }
     }
   } else if ('children' in groupOrElement) {
-    // Calculate depth offset from accumulated transform
-    const transformedOrigin = vec3.transformMat4(vec3.create(), vec3.create(), accumulatedTransform)
-    const transformZ = projectPoint(transformedOrigin, projectionMatrix)[2] + zOffset
-
-    // Process children with accumulated transform
     const allChildFaces = groupOrElement.children.flatMap(c =>
-      Array.from(geometryFaces(c, projectionMatrix, accumulatedTransform, transformZ))
+      Array.from(geometryFaces(c, projectionMatrix, accumulatedTransform))
     )
 
     // Sort by z-index and group
