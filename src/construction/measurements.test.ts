@@ -16,7 +16,7 @@ import type { Tag } from '@/construction/tags'
 
 describe('measurements', () => {
   // Simple orthographic projection (XY plane - top view)
-  const mockProjection: Projection = createProjectionMatrix('xy')
+  const mockProjection: Projection = createProjectionMatrix('xy', 1, 1)
 
   const createMockTag = (id: string): Tag => ({
     id: `measurement_${id}` as const,

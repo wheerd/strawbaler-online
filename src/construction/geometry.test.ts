@@ -5,7 +5,7 @@ import { WallConstructionArea, createProjectionMatrix, projectPoint } from './ge
 
 describe('createProjectionMatrix', () => {
   it('should create identity matrix for XY plane (top view)', () => {
-    const projection = createProjectionMatrix('xy')
+    const projection = createProjectionMatrix('xy', 1, 1)
     const point = vec3.fromValues(10, 20, 30)
     const result = projectPoint(point, projection)
 
@@ -16,7 +16,7 @@ describe('createProjectionMatrix', () => {
   })
 
   it('should create correct matrix for XZ plane (front view)', () => {
-    const projection = createProjectionMatrix('xz')
+    const projection = createProjectionMatrix('xz', 1, 1)
     const point = vec3.fromValues(10, 20, 30)
     const result = projectPoint(point, projection)
 
@@ -27,7 +27,7 @@ describe('createProjectionMatrix', () => {
   })
 
   it('should create correct matrix for YZ plane (side view)', () => {
-    const projection = createProjectionMatrix('yz')
+    const projection = createProjectionMatrix('yz', 1, 1)
     const point = vec3.fromValues(10, 20, 30)
     const result = projectPoint(point, projection)
 
@@ -44,7 +44,7 @@ describe('projectPoint', () => {
     const transform = mat4.fromTranslation(mat4.create(), vec3.fromValues(100, 0, 0))
 
     // Create XZ projection (front view)
-    const projection = createProjectionMatrix('xz')
+    const projection = createProjectionMatrix('xz', 1, 1)
 
     // Combine them
     const combined = mat4.multiply(mat4.create(), projection, transform)
@@ -66,7 +66,7 @@ describe('projectPoint', () => {
     const transform = mat4.fromZRotation(mat4.create(), Math.PI / 2)
 
     // XY projection (top view)
-    const projection = createProjectionMatrix('xy')
+    const projection = createProjectionMatrix('xy', 1, 1)
 
     // Combine them
     const combined = mat4.multiply(mat4.create(), projection, transform)
