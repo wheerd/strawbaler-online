@@ -584,7 +584,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
             typeof (roof as Record<string, unknown>).mainSideIndex !== 'number' ||
             typeof (roof as Record<string, unknown>).slope !== 'number' ||
             typeof (roof as Record<string, unknown>).verticalOffset !== 'number' ||
-            !Array.isArray((roof as Record<string, unknown>).overhang) ||
+            !Array.isArray((roof as Record<string, unknown>).overhangs) ||
             typeof (roof as Record<string, unknown>).assemblyId !== 'string'
           ) {
             return false
