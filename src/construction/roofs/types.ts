@@ -11,6 +11,7 @@ export interface RoofAssembly<TConfig extends RoofAssemblyConfigBase> {
   getTopOffset: (config: TConfig) => Length
   getBottomOffsets: (roof: Roof, config: TConfig, line: LineSegment2D) => HeightLine
   getConstructionThickness: (config: TConfig) => Length
+  getTotalThickness: (config: TConfig) => Length
 }
 
 export type RoofAssemblyType = 'monolithic' | 'purlin'

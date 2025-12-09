@@ -31,9 +31,16 @@ import { getRoofAssemblyUsage } from '@/construction/config/usage'
 import { DEFAULT_CEILING_LAYER_SETS, DEFAULT_ROOF_LAYER_SETS } from '@/construction/layers/defaults'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
-import type { MonolithicRoofConfig, PurlinRoofConfig, RoofAssemblyType, RoofConfig } from '@/construction/roofs/types'
+import { ROOF_ASSEMBLIES } from '@/construction/roofs'
+import type {
+  MonolithicRoofConfig,
+  PurlinRoofConfig,
+  RoofAssemblyType,
+  RoofConfig
+} from '@/construction/roofs/types'
 import { RoofMeasurementInfo } from '@/editor/components/RoofMeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
+import { formatLength } from '@/shared/utils/formatting'
 
 import { getRoofAssemblyTypeIcon } from './Icons'
 import { RoofAssemblySelect } from './RoofAssemblySelect'
@@ -107,7 +114,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
       <Flex direction="column" gap="1">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            Total Thickness
+            Straw Layer Thickness
           </Text>
         </Label.Root>
         <LengthField
@@ -448,6 +455,13 @@ function ConfigForm({ assembly, onUpdateName }: ConfigFormProps): React.JSX.Elem
     [assembly.id, updateRoofAssemblyConfig]
   )
 
+  const totalThickness = useMemo(() => {
+    const assemby = ROOF_ASSEMBLIES[assembly.type]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const totalThickness = assemby.getTotalThickness(assembly as any)
+    return formatLength(totalThickness)
+  }, [assembly])
+
   return (
     <Flex
       direction="column"
@@ -456,31 +470,47 @@ function ConfigForm({ assembly, onUpdateName }: ConfigFormProps): React.JSX.Elem
       style={{ border: '1px solid var(--gray-6)', borderRadius: 'var(--radius-2)' }}
     >
       {/* Basic Info - Full Width */}
-      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
-        <Label.Root>
-          <Text size="2" weight="medium" color="gray">
-            Name
-          </Text>
-        </Label.Root>
-        <TextField.Root
-          value={assembly.name}
-          onChange={e => onUpdateName(e.target.value)}
-          placeholder="Assembly name"
-          size="2"
-        />
+      <Grid columns="1fr 1fr" gap="2" gapX="3" align="center">
+        <Grid columns="auto 1fr" gapX="2" align="center">
+          <Label.Root>
+            <Text size="2" weight="medium" color="gray">
+              Name
+            </Text>
+          </Label.Root>
+          <TextField.Root
+            value={assembly.name}
+            onChange={e => onUpdateName(e.target.value)}
+            placeholder="Assembly name"
+            size="2"
+          />
+        </Grid>
 
-        <Label.Root>
-          <Text size="2" weight="medium" color="gray">
-            Type
-          </Text>
-        </Label.Root>
+        <Grid columns="1fr 1fr" gap="2" gapX="3" align="center">
+          <Flex gap="2" align="center">
+            <Label.Root>
+              <Text size="2" weight="medium" color="gray">
+                Type
+              </Text>
+            </Label.Root>
+            <Flex gap="2" align="center">
+              {React.createElement(getRoofAssemblyTypeIcon(assembly.type))}
+              <Text size="2" color="gray">
+                {assembly.type === 'monolithic' ? 'Monolithic' : 'Purlin'}
+              </Text>
+            </Flex>
+          </Flex>
 
-        <Flex gap="2" align="center">
-          {React.createElement(getRoofAssemblyTypeIcon(assembly.type))}
-          <Text size="2" color="gray">
-            {assembly.type === 'monolithic' ? 'Monolithic' : 'Purlin'}
-          </Text>
-        </Flex>
+          <Flex gap="2" align="center">
+            <Label.Root>
+              <Text size="2" weight="medium" color="gray">
+                Total Thickness
+              </Text>
+            </Label.Root>
+            <Text size="2" color="gray">
+              {totalThickness}
+            </Text>
+          </Flex>
+        </Grid>
       </Grid>
 
       <Separator size="4" />

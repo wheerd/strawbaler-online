@@ -167,6 +167,9 @@ export class MonolithicRoofAssembly implements RoofAssembly<MonolithicRoofConfig
     return result
   }
 
+  getTotalThickness = (config: MonolithicRoofConfig) =>
+    config.layers.insideThickness + config.thickness + config.layers.topThickness
+
   // ============================================================================
   // Helper Methods
   // ============================================================================

@@ -20,4 +20,11 @@ export class PurlinRoofAssembly implements RoofAssembly<PurlinRoofConfig> {
   getConstructionThickness = (_config: PurlinRoofConfig): Length => {
     throw new Error('Not implemented')
   }
+
+  getTotalThickness = (config: PurlinRoofConfig) =>
+    config.layers.insideThickness +
+    config.insideCladdingThickness +
+    config.thickness +
+    config.topCladdingThickness +
+    config.layers.topThickness
 }
