@@ -11,6 +11,7 @@ import { constructStraw } from '@/construction/materials/straw'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import { constructOpeningFrame } from '@/construction/openings/openings'
+import { resolveOpeningConfig } from '@/construction/openings/resolver'
 import type { ConstructionResult } from '@/construction/results'
 import { aggregateResults, yieldAndCollectElementIds, yieldMeasurement } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
@@ -209,9 +210,23 @@ export class InfillWallAssembly implements WallAssembly<InfillWallConfig> {
         config.layers,
         (area, startsWithStand, endsWithStand, startAtEnd) =>
           infillWallArea(area, config, startsWithStand, endsWithStand, startAtEnd),
-        (area, zOffset, openings) =>
-          constructOpeningFrame(area, openings, zOffset, config.openings, a => infillWallArea(a, config)),
-        config.openings.padding
+        (area, zOffset, openings) => {
+          // Resolve opening config from first opening (all have same config in segment)
+          const wallAssembly = getConfigActions().getWallAssemblyById(wall.wallAssemblyId)
+          if (!wallAssembly) throw new Error(`Wall assembly ${wall.wallAssemblyId} not found`)
+          const openingConfig = resolveOpeningConfig(openings[0], wallAssembly)
+          return constructOpeningFrame(area, openings, zOffset, openingConfig, a => infillWallArea(a, config))
+        },
+        // Get padding from resolved config (using first opening as representative)
+        (() => {
+          const wallAssembly = getConfigActions().getWallAssemblyById(wall.wallAssemblyId)
+          if (!wallAssembly) return 15 // Fallback to default
+          // For padding calculation, we need any opening to resolve config
+          // Since we don't have access to openings here, use wall assembly or global default
+          const openingAssemblyId = wallAssembly.openingAssemblyId || getConfigActions().getDefaultOpeningAssemblyId()
+          const openingConfig = getConfigActions().getOpeningAssemblyById(openingAssemblyId)
+          return openingConfig?.padding ?? 15
+        })()
       )
     )
 

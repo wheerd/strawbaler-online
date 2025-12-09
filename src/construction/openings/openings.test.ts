@@ -22,7 +22,8 @@ import {
 import type { InfillMethod } from '@/construction/walls'
 import { infillWallArea } from '@/construction/walls/infill/infill'
 
-import { type OpeningConstructionConfig, constructOpeningFrame } from './openings'
+import { constructOpeningFrame } from './openings'
+import type { SimpleOpeningConfig } from './types'
 
 // Mock the infill module
 vi.mock('@/construction/walls/infill/infill', () => ({
@@ -57,7 +58,8 @@ const createTestOpening = (overrides: Partial<Opening> = {}): Opening => ({
   ...overrides
 })
 
-const createTestConfig = (overrides: Partial<OpeningConstructionConfig> = {}): OpeningConstructionConfig => ({
+const createTestConfig = (overrides: Partial<SimpleOpeningConfig> = {}): SimpleOpeningConfig => ({
+  type: 'simple',
   padding: 15,
   headerThickness: 60,
   headerMaterial: createMaterialId(),

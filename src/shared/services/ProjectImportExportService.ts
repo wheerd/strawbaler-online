@@ -341,7 +341,11 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           // Get assembly from first wall or use default
           const wallAssemblyId = exportedPerimeter.walls[0]?.wallAssemblyId as WallAssemblyId
           const thickness = exportedPerimeter.walls[0]?.thickness || 200
-          const assemblyPadding = configStore.wallAssemblyConfigs?.[wallAssemblyId]?.openings.padding ?? 0
+          // Get padding from opening assembly (via wall assembly or global default)
+          const wallAssembly = configStore.wallAssemblyConfigs?.[wallAssemblyId]
+          const openingAssemblyId =
+            wallAssembly?.openingAssemblyId || configStore.defaultOpeningAssemblyId || ('oa_simple_default' as any)
+          const assemblyPadding = configStore.openingAssemblyConfigs?.[openingAssemblyId]?.padding ?? 0
 
           // Basic perimeter creation - auto-computes geometry, outsidePoints, etc.
           const perimeter = modelActions.addPerimeter(
@@ -366,9 +370,10 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
               exportedWall.wallAssemblyId as WallAssemblyId
             )
 
-            const wallPadding =
-              configStore.wallAssemblyConfigs?.[exportedWall.wallAssemblyId as WallAssemblyId]?.openings.padding ??
-              assemblyPadding
+            // Get padding from this wall's opening assembly (or fall back to perimeter default)
+            const wallAssembly = configStore.wallAssemblyConfigs?.[exportedWall.wallAssemblyId as WallAssemblyId]
+            const wallOpeningAssemblyId = wallAssembly?.openingAssemblyId || openingAssemblyId
+            const wallPadding = configStore.openingAssemblyConfigs?.[wallOpeningAssemblyId]?.padding ?? assemblyPadding
 
             // Add openings
             exportedWall.openings.forEach(exportedOpening => {

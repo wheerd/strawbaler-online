@@ -2,7 +2,6 @@ import { vec3 } from 'gl-matrix'
 
 import type { Opening } from '@/building/model/model'
 import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
-import type { MaterialId } from '@/construction/materials/material'
 import { type ConstructionResult, yieldArea, yieldElement, yieldError, yieldMeasurement } from '@/construction/results'
 import { createElementFromArea } from '@/construction/shapes'
 import {
@@ -20,15 +19,7 @@ import type { InfillMethod } from '@/construction/walls'
 import { Bounds3D, type Length } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatting'
 
-export interface OpeningConstructionConfig {
-  padding: Length // Default: 15mm
-
-  sillThickness: Length // Default: 60mm
-  sillMaterial: MaterialId
-
-  headerThickness: Length // Default: 60mm
-  headerMaterial: MaterialId
-}
+import type { OpeningConfig } from './types'
 
 function extractUnifiedDimensions(
   openings: Opening[],
@@ -50,7 +41,7 @@ export function* constructOpeningFrame(
   area: WallConstructionArea,
   openings: Opening[],
   zOffset: Length,
-  config: OpeningConstructionConfig,
+  config: OpeningConfig,
   infill: InfillMethod
 ): Generator<ConstructionResult> {
   const [openingLeft, wallFront, wallBottom] = area.position
@@ -58,12 +49,14 @@ export function* constructOpeningFrame(
   const [openingWidth, wallThickness] = area.size
 
   const { sillTop, headerBottom } = extractUnifiedDimensions(openings, zOffset)
-  const sillBottom = sillTop - config.sillThickness
-  const headerTop = headerBottom + config.headerThickness
+
+  // Only construct sill/header for 'simple' type
+  const sillBottom = config.type === 'simple' ? sillTop - config.sillThickness : sillTop
+  const headerTop = config.type === 'simple' ? headerBottom + config.headerThickness : headerBottom
 
   // Check if header is required and fits
   const isOpeningAtWallTop = headerBottom >= wallTop
-  const headerRequired = !isOpeningAtWallTop
+  const headerRequired = !isOpeningAtWallTop && config.type === 'simple'
 
   if (headerRequired) {
     // Create single header spanning entire segment width
@@ -108,7 +101,7 @@ export function* constructOpeningFrame(
   }
 
   // Check if sill is required and fits
-  const sillRequired = sillTop !== 0
+  const sillRequired = sillTop !== 0 && config.type === 'simple'
   if (sillRequired) {
     // Create single sill spanning entire segment width
     const sillArea = area.withZAdjustment(sillBottom, config.sillThickness)
@@ -177,13 +170,27 @@ export function* constructOpeningFrame(
     })
   }
 
-  // Create wall above header (if space remains)
-  if (wallTop > headerTop) {
-    yield* infill(area.withZAdjustment(headerTop))
+  // Create wall above header/opening (if space remains)
+  if (config.type === 'simple') {
+    if (wallTop > headerTop) {
+      yield* infill(area.withZAdjustment(headerTop))
+    }
+  } else {
+    // 'empty' type: just infill around the opening area
+    if (wallTop > headerBottom) {
+      yield* infill(area.withZAdjustment(headerBottom))
+    }
   }
 
-  // Create wall below sill (if space remains)
-  if (sillBottom > 0) {
-    yield* infill(area.withZAdjustment(0, sillBottom))
+  // Create wall below sill/opening (if space remains)
+  if (config.type === 'simple') {
+    if (sillBottom > 0) {
+      yield* infill(area.withZAdjustment(0, sillBottom))
+    }
+  } else {
+    // 'empty' type: just infill around the opening area
+    if (sillTop > 0) {
+      yield* infill(area.withZAdjustment(0, sillTop))
+    }
   }
 }

@@ -1,4 +1,4 @@
-import type { RingBeamAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
+import type { OpeningAssemblyConfig, RingBeamAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
 
 import type { MaterialId } from './material'
 
@@ -14,6 +14,7 @@ export function getMaterialUsage(
   materialId: MaterialId,
   ringBeamAssemblies: RingBeamAssemblyConfig[],
   wallAssemblies: WallAssemblyConfig[],
+  openingAssemblies: OpeningAssemblyConfig[],
   defaultStrawMaterialId?: MaterialId
 ): MaterialUsage {
   const usedByConfigs: string[] = []
@@ -45,13 +46,6 @@ export function getMaterialUsage(
         if ('infillMaterial' in assembly.posts && assembly.posts.infillMaterial === materialId) {
           configUsages.push('post infill')
         }
-        // Opening materials
-        if (assembly.openings.headerMaterial === materialId) {
-          configUsages.push('opening headers')
-        }
-        if (assembly.openings.sillMaterial === materialId) {
-          configUsages.push('opening sills')
-        }
         break
 
       case 'strawhenge':
@@ -74,13 +68,6 @@ export function getMaterialUsage(
         // Infill posts material
         if (assembly.infill.posts.material === materialId) {
           configUsages.push('infill posts')
-        }
-        // Opening materials
-        if (assembly.openings.headerMaterial === materialId) {
-          configUsages.push('opening headers')
-        }
-        if (assembly.openings.sillMaterial === materialId) {
-          configUsages.push('opening sills')
         }
         break
 
@@ -105,13 +92,6 @@ export function getMaterialUsage(
         if (assembly.infill.posts.material === materialId) {
           configUsages.push('infill posts')
         }
-        // Opening materials
-        if (assembly.openings.headerMaterial === materialId) {
-          configUsages.push('opening headers')
-        }
-        if (assembly.openings.sillMaterial === materialId) {
-          configUsages.push('opening sills')
-        }
         break
 
       case 'non-strawbale':
@@ -119,19 +99,31 @@ export function getMaterialUsage(
         if (assembly.material === materialId) {
           configUsages.push('wall')
         }
-        // Opening materials
-        if (assembly.openings.headerMaterial === materialId) {
-          configUsages.push('opening headers')
-        }
-        if (assembly.openings.sillMaterial === materialId) {
-          configUsages.push('opening sills')
-        }
         break
     }
 
     // Add to results if material is used in this config
     if (configUsages.length > 0) {
       usedByConfigs.push(`Wall: ${assembly.name} (${configUsages.join(', ')})`)
+    }
+  })
+
+  // Check opening assemblies
+  openingAssemblies.forEach(assembly => {
+    const configUsages: string[] = []
+
+    if (assembly.type === 'simple') {
+      if (assembly.headerMaterial === materialId) {
+        configUsages.push('headers')
+      }
+      if (assembly.sillMaterial === materialId) {
+        configUsages.push('sills')
+      }
+    }
+    // 'empty' type has no materials
+
+    if (configUsages.length > 0) {
+      usedByConfigs.push(`Opening: ${assembly.name} (${configUsages.join(', ')})`)
     }
   })
 

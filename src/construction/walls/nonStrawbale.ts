@@ -102,7 +102,13 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
         config.layers,
         noopWallSegment,
         noopOpeningSegment,
-        config.openings.padding
+        (() => {
+          const wallAssembly = getConfigActions().getWallAssemblyById(wall.wallAssemblyId)
+          if (!wallAssembly) return 15
+          const openingAssemblyId = wallAssembly.openingAssemblyId || getConfigActions().getDefaultOpeningAssemblyId()
+          const openingConfig = getConfigActions().getOpeningAssemblyById(openingAssemblyId)
+          return openingConfig?.padding ?? 15
+        })()
       )
     )
 

@@ -543,14 +543,7 @@ describe('assembly.construct', () => {
       config = {
         type: 'infill',
         ...createMockInfillConfig(),
-        layers: createMockLayers(),
-        openings: {
-          padding: 15,
-          headerThickness: 60,
-          headerMaterial: mockHeaderMaterial,
-          sillThickness: 60,
-          sillMaterial: mockHeaderMaterial
-        }
+        layers: createMockLayers()
       }
     })
 

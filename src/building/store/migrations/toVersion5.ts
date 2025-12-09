@@ -1,5 +1,5 @@
-import type { WallAssemblyId } from '@/building/model/ids'
-import type { WallAssemblyConfig } from '@/construction/config/types'
+import type { OpeningAssemblyId, WallAssemblyId } from '@/building/model/ids'
+import type { OpeningAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
 import {
   constructionHeightToFinished,
   constructionOffsetToFinished,
@@ -12,10 +12,15 @@ import { getPersistedConfigStoreState, isRecord } from './shared'
 
 const getPadding = (
   assemblyId: WallAssemblyId | undefined,
-  configs: Record<WallAssemblyId, WallAssemblyConfig> | undefined
+  configs: Record<WallAssemblyId, WallAssemblyConfig> | undefined,
+  openingAssemblies: Record<OpeningAssemblyId, OpeningAssemblyConfig> | undefined,
+  defaultOpeningAssemblyId: OpeningAssemblyId | undefined
 ): number => {
-  if (!assemblyId || !configs) return 0
-  return Number(configs[assemblyId]?.openings.padding ?? 0)
+  if (!assemblyId || !configs || !openingAssemblies) return 0
+  const wallConfig = configs[assemblyId]
+  const openingAssemblyId = wallConfig?.openingAssemblyId || defaultOpeningAssemblyId
+  if (!openingAssemblyId) return 0
+  return Number(openingAssemblies[openingAssemblyId]?.padding ?? 0)
 }
 
 export const migrateToVersion5: Migration = state => {
@@ -26,6 +31,8 @@ export const migrateToVersion5: Migration = state => {
 
   const configState = getPersistedConfigStoreState()
   const wallAssemblyConfigs = configState?.wallAssemblyConfigs
+  const openingAssemblyConfigs = configState?.openingAssemblyConfigs
+  const defaultOpeningAssemblyId = configState?.defaultOpeningAssemblyId as OpeningAssemblyId | undefined
 
   for (const perimeter of Object.values(perimeters)) {
     if (!isRecord(perimeter)) continue
@@ -37,7 +44,12 @@ export const migrateToVersion5: Migration = state => {
       const openings = wall.openings
       if (!Array.isArray(openings) || openings.length === 0) continue
 
-      const padding = getPadding(wall.wallAssemblyId as WallAssemblyId | undefined, wallAssemblyConfigs)
+      const padding = getPadding(
+        wall.wallAssemblyId as WallAssemblyId | undefined,
+        wallAssemblyConfigs,
+        openingAssemblyConfigs,
+        defaultOpeningAssemblyId
+      )
 
       for (const opening of openings) {
         if (!isRecord(opening)) continue

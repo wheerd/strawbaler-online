@@ -1,8 +1,10 @@
 import type { Perimeter, PerimeterWall } from '@/building/model/model'
+import { getConfigActions } from '@/construction/config'
 import { WallConstructionArea } from '@/construction/geometry'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import { constructOpeningFrame } from '@/construction/openings/openings'
+import { resolveOpeningConfig } from '@/construction/openings/resolver'
 import type { ConstructionResult } from '@/construction/results'
 import { aggregateResults } from '@/construction/results'
 import type { ModulesWallConfig, WallAssembly } from '@/construction/walls'
@@ -49,9 +51,19 @@ export class ModulesWallAssembly implements WallAssembly<ModulesWallConfig> {
         config.layers,
         (area, startsWithStand, endsWithStand, startAtEnd) =>
           moduleWallArea(area, config, startsWithStand, endsWithStand, startAtEnd),
-        (area, zOffset, openings) =>
-          constructOpeningFrame(area, openings, zOffset, config.openings, a => infillWallArea(a, config.infill)),
-        config.openings.padding
+        (area, zOffset, openings) => {
+          const wallAssembly = getConfigActions().getWallAssemblyById(wall.wallAssemblyId)
+          if (!wallAssembly) throw new Error(`Wall assembly ${wall.wallAssemblyId} not found`)
+          const openingConfig = resolveOpeningConfig(openings[0], wallAssembly)
+          return constructOpeningFrame(area, openings, zOffset, openingConfig, a => infillWallArea(a, config.infill))
+        },
+        (() => {
+          const wallAssembly = getConfigActions().getWallAssemblyById(wall.wallAssemblyId)
+          if (!wallAssembly) return 15
+          const openingAssemblyId = wallAssembly.openingAssemblyId || getConfigActions().getDefaultOpeningAssemblyId()
+          const openingConfig = getConfigActions().getOpeningAssemblyById(openingAssemblyId)
+          return openingConfig?.padding ?? 15
+        })()
       )
     )
 

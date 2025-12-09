@@ -1,5 +1,12 @@
-import type { FloorAssemblyId, RingBeamAssemblyId, RoofAssemblyId, WallAssemblyId } from '@/building/model/ids'
+import type {
+  FloorAssemblyId,
+  OpeningAssemblyId,
+  RingBeamAssemblyId,
+  RoofAssemblyId,
+  WallAssemblyId
+} from '@/building/model/ids'
 import type { Perimeter, Roof, Storey } from '@/building/model/model'
+import type { WallAssemblyConfig } from '@/construction/config/types'
 
 export interface RingBeamAssemblyUsage {
   isUsed: boolean
@@ -120,5 +127,58 @@ export function getRoofAssemblyUsage(assemblyId: RoofAssemblyId, roofs: Roof[], 
   return {
     isUsed: usedByRoofs.size > 0,
     usedByRoofs: Array.from(usedByRoofs)
+  }
+}
+
+export interface OpeningAssemblyUsage {
+  isUsed: boolean
+  usedAsGlobalDefault: boolean
+  usedByWallAssemblies: string[]
+  usedByOpenings: string[]
+}
+
+/**
+ * Checks if an opening assembly is currently in use by:
+ * - As the global default
+ * - As a default in any wall assemblies
+ * - By individual openings that override to use this assembly
+ */
+export function getOpeningAssemblyUsage(
+  assemblyId: OpeningAssemblyId,
+  perimeters: Perimeter[],
+  storeys: Storey[],
+  wallAssemblies: WallAssemblyConfig[],
+  defaultOpeningAssemblyId: OpeningAssemblyId
+): OpeningAssemblyUsage {
+  const usedAsGlobalDefault = assemblyId === defaultOpeningAssemblyId
+  const usedByWallAssemblies: string[] = []
+  const usedByOpenings: string[] = []
+
+  // Check wall assemblies that reference this opening assembly
+  wallAssemblies.forEach(wallAssembly => {
+    if (wallAssembly.openingAssemblyId === assemblyId) {
+      usedByWallAssemblies.push(`Wall Assembly: ${wallAssembly.name}`)
+    }
+  })
+
+  // Check individual openings that override to use this assembly
+  perimeters.forEach(perimeter => {
+    const storey = storeys.find(s => s.id === perimeter.storeyId)
+    const storeyName = storey?.name ?? 'Unknown Floor'
+
+    perimeter.walls.forEach((wall, wallIndex) => {
+      wall.openings.forEach((opening, openingIndex) => {
+        if (opening.openingAssemblyId === assemblyId) {
+          usedByOpenings.push(`${storeyName} - Wall ${wallIndex + 1} - Opening ${openingIndex + 1}`)
+        }
+      })
+    })
+  })
+
+  return {
+    isUsed: usedAsGlobalDefault || usedByWallAssemblies.length > 0 || usedByOpenings.length > 0,
+    usedAsGlobalDefault,
+    usedByWallAssemblies,
+    usedByOpenings
   }
 }

@@ -16,9 +16,14 @@ import {
 } from '@radix-ui/themes'
 import React, { useCallback, useMemo, useState } from 'react'
 
-import type { WallAssemblyId } from '@/building/model/ids'
+import type { OpeningAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import { usePerimeters, useStoreysOrderedByLevel } from '@/building/store'
-import { useConfigActions, useDefaultWallAssemblyId, useWallAssemblies } from '@/construction/config/store'
+import {
+  useConfigActions,
+  useDefaultWallAssemblyId,
+  useOpeningAssemblies,
+  useWallAssemblies
+} from '@/construction/config/store'
 import type { WallAssemblyConfig } from '@/construction/config/types'
 import { getWallAssemblyUsage } from '@/construction/config/usage'
 import { DEFAULT_WALL_LAYER_SETS } from '@/construction/layers/defaults'
@@ -539,99 +544,35 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
 
   return (
     <Flex direction="column" gap="3">
-      {/* Openings Configuration */}
+      {/* Opening Assembly Configuration */}
       <Heading size="2">Openings</Heading>
-      <Grid columns="2" gap="2" gapX="3">
-        <Flex direction="column" gap="1" gridColumnEnd="span 2">
-          <Label.Root>
-            <Text size="1" weight="medium" color="gray">
-              Padding
-            </Text>
-          </Label.Root>
-          <LengthField
-            value={config.openings.padding}
-            onChange={padding =>
-              updateWallAssemblyConfig(assemblyId, {
-                openings: { ...config.openings, padding }
-              })
-            }
-            unit="mm"
-            size="1"
-          />
-        </Flex>
-
-        <Flex direction="column" gap="1">
-          <Label.Root>
-            <Text size="1" weight="medium" color="gray">
-              Header Thickness
-            </Text>
-          </Label.Root>
-          <LengthField
-            value={config.openings.headerThickness}
-            onChange={headerThickness =>
-              updateWallAssemblyConfig(assemblyId, {
-                openings: { ...config.openings, headerThickness }
-              })
-            }
-            unit="mm"
-            size="1"
-          />
-        </Flex>
-
-        <Flex direction="column" gap="1">
-          <Label.Root>
-            <Text size="1" weight="medium" color="gray">
-              Header Material
-            </Text>
-          </Label.Root>
-          <MaterialSelectWithEdit
-            value={config.openings.headerMaterial}
-            onValueChange={headerMaterial => {
-              if (!headerMaterial) return
-              updateWallAssemblyConfig(assemblyId, {
-                openings: { ...config.openings, headerMaterial }
-              })
-            }}
-            size="1"
-          />
-        </Flex>
-
-        <Flex direction="column" gap="1">
-          <Label.Root>
-            <Text size="1" weight="medium" color="gray">
-              Sill Thickness
-            </Text>
-          </Label.Root>
-          <LengthField
-            value={config.openings.sillThickness}
-            onChange={sillThickness =>
-              updateWallAssemblyConfig(assemblyId, {
-                openings: { ...config.openings, sillThickness }
-              })
-            }
-            unit="mm"
-            size="1"
-          />
-        </Flex>
-
-        <Flex direction="column" gap="1">
-          <Label.Root>
-            <Text size="1" weight="medium" color="gray">
-              Sill Material
-            </Text>
-          </Label.Root>
-          <MaterialSelectWithEdit
-            value={config.openings.sillMaterial}
-            onValueChange={sillMaterial => {
-              if (!sillMaterial) return
-              updateWallAssemblyConfig(assemblyId, {
-                openings: { ...config.openings, sillMaterial }
-              })
-            }}
-            size="1"
-          />
-        </Flex>
-      </Grid>
+      <Flex direction="column" gap="1">
+        <Label.Root>
+          <Text size="1" weight="medium" color="gray">
+            Opening Assembly
+          </Text>
+        </Label.Root>
+        <Select.Root
+          value={config.openingAssemblyId || '__default__'}
+          onValueChange={value => {
+            updateWallAssemblyConfig(assemblyId, {
+              openingAssemblyId: (value === '__default__' ? undefined : value) as OpeningAssemblyId | undefined
+            })
+          }}
+          size="1"
+        >
+          <Select.Trigger />
+          <Select.Content>
+            <Select.Item value="__default__">Use global default</Select.Item>
+            <Select.Separator />
+            {Object.values(useOpeningAssemblies()).map(assembly => (
+              <Select.Item key={assembly.id} value={assembly.id}>
+                {assembly.name}
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select.Root>
+      </Flex>
 
       <Separator size="4" />
 
@@ -818,13 +759,6 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
       const defaultMaterial = '' as MaterialId
 
       let config: WallConfig
-      const baseOpeningsConfig = {
-        padding: 15,
-        headerThickness: 60,
-        headerMaterial: defaultMaterial,
-        sillThickness: 60,
-        sillMaterial: defaultMaterial
-      }
       const layers = {
         insideThickness: 30,
         insideLayers: [],
@@ -846,7 +780,6 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
               infillMaterial: defaultMaterial,
               material: defaultMaterial
             },
-            openings: baseOpeningsConfig,
             layers
           }
           break
@@ -870,7 +803,6 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                 material: defaultMaterial
               }
             },
-            openings: baseOpeningsConfig,
             layers
           }
           break
@@ -894,7 +826,6 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                 material: defaultMaterial
               }
             },
-            openings: baseOpeningsConfig,
             layers
           }
           break
@@ -902,7 +833,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
           config = {
             type: 'non-strawbale',
             material: defaultMaterial,
-            openings: baseOpeningsConfig,
+            openingAssemblyId: 'oa_empty_default' as OpeningAssemblyId,
             layers
           }
           break
