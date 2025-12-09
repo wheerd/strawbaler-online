@@ -1,10 +1,18 @@
-import type { Opening } from '@/building/model'
+import type { Opening } from '@/building/model/model'
+import type { WallConstructionArea } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionResult } from '@/construction/results'
+import type { InfillMethod } from '@/construction/walls/types'
 import type { Length } from '@/shared/geometry'
 
 export interface OpeningAssembly<TConfig extends OpeningAssemblyConfigBase> {
-  construct: (roof: Opening, config: TConfig) => Generator<ConstructionResult>
+  construct: (
+    area: WallConstructionArea,
+    openings: Opening[],
+    zOffset: Length,
+    config: TConfig,
+    infill: InfillMethod
+  ) => Generator<ConstructionResult>
 }
 
 export type OpeningAssemblyType = 'simple' | 'empty'

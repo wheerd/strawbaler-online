@@ -4,6 +4,7 @@ import type {
   FloorAreaId,
   FloorAssemblyId,
   FloorOpeningId,
+  OpeningAssemblyId,
   OpeningId,
   PerimeterCornerId,
   PerimeterId,
@@ -41,6 +42,7 @@ export interface Opening {
   width: Length // Finished clear width
   height: Length // Finished clear height
   sillHeight?: Length // Finished floor-to-sill height for windows
+  openingAssemblyId?: OpeningAssemblyId // Optional override for this specific opening
 }
 
 // Floor/level

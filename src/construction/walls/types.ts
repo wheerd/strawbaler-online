@@ -1,10 +1,9 @@
-import type { Perimeter, PerimeterWall } from '@/building/model'
+import type { OpeningAssemblyId, Perimeter, PerimeterWall } from '@/building/model'
 import type { WallConstructionArea } from '@/construction/geometry'
 import type { LayerConfig } from '@/construction/layers/types'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'
 import type { ConstructionModel } from '@/construction/model'
-import type { OpeningConstructionConfig } from '@/construction/openings/openings'
 import type { ConstructionResult } from '@/construction/results'
 import type { Length } from '@/shared/geometry'
 
@@ -25,7 +24,7 @@ export type WallAssemblyType = 'infill' | 'strawhenge' | 'non-strawbale' | 'modu
 export interface WallBaseConfig {
   type: WallAssemblyType
   layers: WallLayersConfig
-  openings: OpeningConstructionConfig
+  openingAssemblyId?: OpeningAssemblyId // Optional override for this wall type
 }
 
 export interface WallLayersConfig {
@@ -87,11 +86,7 @@ const validateLayers = (layers: WallLayersConfig): void => {
   ensureNonNegative(layers.outsideThickness, 'Outside layer thickness cannot be negative')
 }
 
-const validateOpenings = (openings: OpeningConstructionConfig): void => {
-  ensureNonNegative(openings.padding, 'Opening padding cannot be negative')
-  ensurePositive(openings.headerThickness, 'Header thickness must be greater than 0')
-  ensurePositive(openings.sillThickness, 'Sill thickness must be greater than 0')
-}
+// Opening validation moved to OpeningConfig in openings/types.ts
 
 const validatePosts = (posts: PostConfig): void => {
   ensurePositive(posts.width, 'Post width must be greater than 0')
@@ -142,7 +137,7 @@ const validateNonStrawbaleWallConfig = (_config: NonStrawbaleWallConfig): void =
 
 export const validateWallConfig = (config: WallConfig): void => {
   validateLayers(config.layers)
-  validateOpenings(config.openings)
+  // Opening validation is now done on OpeningConfig in openings/types.ts
 
   if (config.type === 'infill') {
     validateInfillWallConfig(config)
