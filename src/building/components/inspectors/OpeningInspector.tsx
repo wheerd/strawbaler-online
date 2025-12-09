@@ -4,9 +4,10 @@ import { Box, Callout, Flex, Grid, IconButton, Kbd, SegmentedControl, Separator,
 import { vec2 } from 'gl-matrix'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import type { OpeningId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
+import type { OpeningAssemblyId, OpeningId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import type { OpeningType } from '@/building/model/model'
 import { useModelActions, usePerimeterById } from '@/building/store'
+import { OpeningAssemblySelect } from '@/construction/config/components/OpeningAssemblySelect'
 import { useWallAssemblyById } from '@/construction/config/store'
 import { resolveOpeningConfig } from '@/construction/openings/resolver'
 import { getStoreyCeilingHeight } from '@/construction/storeyHeight'
@@ -268,6 +269,31 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
               </Tooltip>
             </SegmentedControl.Item>
           </SegmentedControl.Root>
+        </Flex>
+
+        {/* Opening Assembly Override */}
+        <Flex direction="column" gap="1">
+          <Flex gap="1" align="center">
+            <Label.Root>
+              <Text size="1" weight="medium" color="gray">
+                Opening Assembly
+              </Text>
+            </Label.Root>
+            <Tooltip content="Override the opening assembly for this specific opening. Leave as default to inherit from the wall assembly or global default.">
+              <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
+            </Tooltip>
+          </Flex>
+          <OpeningAssemblySelect
+            value={opening.openingAssemblyId}
+            onValueChange={value => {
+              updateOpening(perimeterId, wallId, openingId, {
+                openingAssemblyId: value as OpeningAssemblyId | undefined
+              })
+            }}
+            allowDefault={true}
+            showDefaultIndicator={true}
+            size="1"
+          />
         </Flex>
 
         {/* Dimension Input Mode Toggle - Compact Layout */}

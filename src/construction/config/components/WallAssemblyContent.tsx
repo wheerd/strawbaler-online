@@ -18,12 +18,8 @@ import React, { useCallback, useMemo, useState } from 'react'
 
 import type { OpeningAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import { usePerimeters, useStoreysOrderedByLevel } from '@/building/store'
-import {
-  useConfigActions,
-  useDefaultWallAssemblyId,
-  useOpeningAssemblies,
-  useWallAssemblies
-} from '@/construction/config/store'
+import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
+import { useConfigActions, useDefaultWallAssemblyId, useWallAssemblies } from '@/construction/config/store'
 import type { WallAssemblyConfig } from '@/construction/config/types'
 import { getWallAssemblyUsage } from '@/construction/config/usage'
 import { DEFAULT_WALL_LAYER_SETS } from '@/construction/layers/defaults'
@@ -552,26 +548,18 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
             Opening Assembly
           </Text>
         </Label.Root>
-        <Select.Root
-          value={config.openingAssemblyId || '__default__'}
-          onValueChange={value => {
+        <OpeningAssemblySelectWithEdit
+          value={config.openingAssemblyId}
+          onValueChange={value =>
             updateWallAssemblyConfig(assemblyId, {
-              openingAssemblyId: (value === '__default__' ? undefined : value) as OpeningAssemblyId | undefined
+              openingAssemblyId: value
             })
-          }}
+          }
+          allowDefault
+          showDefaultIndicator
+          placeholder="Select"
           size="1"
-        >
-          <Select.Trigger />
-          <Select.Content>
-            <Select.Item value="__default__">Use global default</Select.Item>
-            <Select.Separator />
-            {Object.values(useOpeningAssemblies()).map(assembly => (
-              <Select.Item key={assembly.id} value={assembly.id}>
-                {assembly.name}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Root>
+        />
       </Flex>
 
       <Separator size="4" />
