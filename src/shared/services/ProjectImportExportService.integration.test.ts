@@ -159,6 +159,9 @@ describe('ProjectImportExportService Integration', () => {
     // 5. Import the exported data
     const importResult = await ProjectImportExportService.importFromString(exportResult.content)
 
+    if (!importResult.success) {
+      console.error('Import failed:', importResult.error)
+    }
     expect(importResult.success).toBe(true)
 
     if (!importResult.success) return

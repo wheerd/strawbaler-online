@@ -7,7 +7,7 @@ export interface OpeningAssembly<TConfig extends OpeningAssemblyConfigBase> {
   construct: (roof: Opening, config: TConfig) => Generator<ConstructionResult>
 }
 
-export type OpeningAssemblyType = 'simple'
+export type OpeningAssemblyType = 'simple' | 'empty'
 
 export interface OpeningAssemblyConfigBase {
   type: OpeningAssemblyType
@@ -24,10 +24,27 @@ export interface SimpleOpeningConfig extends OpeningAssemblyConfigBase {
   headerMaterial: MaterialId
 }
 
-export type OpeningConfig = SimpleOpeningConfig
+export interface EmptyOpeningConfig extends OpeningAssemblyConfigBase {
+  type: 'empty'
+  // Only padding, no sill/header materials or thicknesses
+}
+
+export type OpeningConfig = SimpleOpeningConfig | EmptyOpeningConfig
 
 // Validation
 
-export const validateOpeningConfig = (_config: OpeningConfig): void => {
-  // TODO
+export const validateOpeningConfig = (config: OpeningConfig): void => {
+  if (config.padding < 0) {
+    throw new Error('Padding cannot be negative')
+  }
+
+  if (config.type === 'simple') {
+    if (config.sillThickness <= 0) {
+      throw new Error('Sill thickness must be positive')
+    }
+    if (config.headerThickness <= 0) {
+      throw new Error('Header thickness must be positive')
+    }
+  }
+  // 'empty' type has no additional validation
 }
