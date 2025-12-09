@@ -1,10 +1,22 @@
-import { InfoCircledIcon } from '@radix-ui/react-icons'
+import { CopyIcon, InfoCircledIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { Box, Callout, Flex, Grid, IconButton, SegmentedControl, Separator, Text, Tooltip } from '@radix-ui/themes'
+import {
+  Box,
+  Callout,
+  DropdownMenu,
+  Flex,
+  Grid,
+  IconButton,
+  SegmentedControl,
+  Separator,
+  Text,
+  Tooltip
+} from '@radix-ui/themes'
 import { useCallback, useMemo, useState } from 'react'
 
+import type { OpeningAssemblyId } from '@/building/model'
 import type { OpeningType } from '@/building/model/model'
-import { useActiveStoreyId, useModelActions } from '@/building/store'
+import { useActiveStoreyId, useModelActions, usePerimeters } from '@/building/store'
 import { getStoreyCeilingHeight } from '@/construction/storeyHeight'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
@@ -93,6 +105,15 @@ const ALL_OPENING_PRESETS: PresetConfig[] = [
   }
 ]
 
+interface ExistingConfig {
+  label: string
+  type: OpeningType
+  width: Length // Finished clear width
+  height: Length // Finished clear height
+  sillHeight?: Length // Finished floor-to-sill height for windows
+  assemblyId?: OpeningAssemblyId // Optional override for this specific opening
+}
+
 function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps): React.JSX.Element {
   const { state } = useReactiveTool(tool)
   const [focusedField, setFocusedField] = useState<'width' | 'height' | 'sillHeight' | 'topHeight' | undefined>()
@@ -108,6 +129,30 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
     return activeStorey ? getStoreyCeilingHeight(activeStorey) : 2500
   }, [activeStorey])
 
+  const allPerimeters = usePerimeters()
+  const allOpeningConfigs = useMemo(() => {
+    const existingConfigs: Record<string, ExistingConfig> = {}
+    for (const perimeter of allPerimeters) {
+      for (const wall of perimeter.walls) {
+        for (const opening of wall.openings) {
+          const key = `${opening.openingAssemblyId}:${opening.type}:${opening.width}:${opening.height}:${opening.sillHeight}`
+          if (!(key in existingConfigs)) {
+            const label = `${formatLength(opening.width)} x ${formatLength(opening.height)}${opening.sillHeight ? ` SH ${formatLength(opening.sillHeight)}` : ''}`
+            existingConfigs[key] = {
+              label,
+              assemblyId: opening.openingAssemblyId,
+              type: opening.type,
+              width: opening.width,
+              height: opening.height,
+              sillHeight: opening.sillHeight
+            }
+          }
+        }
+      }
+    }
+    return Object.values(existingConfigs).sort((a, b) => a.label.localeCompare(b.label))
+  }, [allPerimeters])
+
   // Event handlers with stable references
   const handleTypeChange = useCallback(
     (newType: OpeningType) => {
@@ -116,8 +161,8 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
     [tool]
   )
 
-  const handlePresetClick = useCallback(
-    (preset: PresetConfig) => {
+  const handlePresetOrCopyClick = useCallback(
+    (preset: PresetConfig | ExistingConfig) => {
       tool.setOpeningType(preset.type)
       tool.setWidth(preset.width)
       tool.setHeight(preset.height)
@@ -283,6 +328,26 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
         />
       </Grid>
 
+      <Flex align="center" justify="end" gap="2">
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger disabled={allOpeningConfigs.length === 0}>
+            <IconButton size="2" title="Copy existing">
+              <CopyIcon />
+            </IconButton>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content>
+            {allOpeningConfigs.map((config, index) => (
+              <DropdownMenu.Item key={index} onClick={() => handlePresetOrCopyClick(config)}>
+                <Flex align="center" gap="2">
+                  {(config.type === 'window' ? WindowIcon : config.type === 'door' ? DoorIcon : PassageIcon)({})}
+                  <Text>{config.label}</Text>
+                </Flex>
+              </DropdownMenu.Item>
+            ))}
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      </Flex>
+
       <Separator size="4" />
 
       {/* Presets Section */}
@@ -296,7 +361,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
               key={index}
               variant="surface"
               size="3"
-              onClick={() => handlePresetClick(preset)}
+              onClick={() => handlePresetOrCopyClick(preset)}
               title={`${preset.label}: ${formatLength(preset.width)} × ${formatLength(preset.height)}${preset.sillHeight ? `, sill: ${formatLength(preset.sillHeight)}` : ''}`}
             >
               {preset.icon}
