@@ -14,9 +14,12 @@ import {
 } from '@radix-ui/themes'
 import { useCallback, useMemo, useState } from 'react'
 
+import { OpeningPreview } from '@/building/components/inspectors/OpeningPreview'
 import type { OpeningAssemblyId } from '@/building/model'
 import type { OpeningType } from '@/building/model/model'
 import { useActiveStoreyId, useModelActions, usePerimeters } from '@/building/store'
+import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
+import { useDefaultOpeningAssemblyId, useOpeningAssemblyById } from '@/construction/config/store'
 import { getStoreyCeilingHeight } from '@/construction/storeyHeight'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
@@ -36,7 +39,6 @@ import { type Length } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatting'
 
 import type { AddOpeningTool } from './AddOpeningTool'
-import { OpeningPreviewSimple } from './OpeningPreviewSimple'
 
 export function AddOpeningToolInspector({ tool }: ToolInspectorProps<AddOpeningTool>): React.JSX.Element {
   return <AddOpeningToolInspectorImpl tool={tool} />
@@ -129,6 +131,53 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
     return activeStorey ? getStoreyCeilingHeight(activeStorey) : 2500
   }, [activeStorey])
 
+  // Opening assembly hooks
+  const defaultOpeningAssemblyId = useDefaultOpeningAssemblyId()
+  const currentAssemblyId = state.openingAssemblyId ?? defaultOpeningAssemblyId
+  const currentAssembly = useOpeningAssemblyById(currentAssemblyId)
+
+  // Get padding for current tool configuration
+  const currentPadding = useMemo(() => {
+    return currentAssembly?.padding ?? 15 // Default to 15mm if no assembly found
+  }, [currentAssembly])
+
+  // Conversion helper functions (UI layer responsibility)
+  const getDisplayValue = useCallback(
+    (finishedValue: number, type: 'width' | 'height' | 'sillHeight'): number => {
+      if (state.dimensionMode === 'finished') {
+        return finishedValue
+      }
+
+      // In fitting mode, convert from finished to fitting
+      if (type === 'sillHeight') {
+        // Sill: fitting = finished - padding
+        return Math.max(0, finishedValue - currentPadding)
+      }
+
+      // Width/height: fitting = finished + 2*padding
+      return finishedValue + 2 * currentPadding
+    },
+    [state.dimensionMode, currentPadding]
+  )
+
+  const convertInputToFinished = useCallback(
+    (inputValue: number, type: 'width' | 'height' | 'sillHeight'): number => {
+      if (state.dimensionMode === 'finished') {
+        return inputValue
+      }
+
+      // In fitting mode, convert from fitting to finished
+      if (type === 'sillHeight') {
+        // Sill: finished = fitting + padding
+        return inputValue + currentPadding
+      }
+
+      // Width/height: finished = fitting - 2*padding
+      return Math.max(10, inputValue - 2 * currentPadding) // Clamp to minimum 10mm
+    },
+    [state.dimensionMode, currentPadding]
+  )
+
   const allPerimeters = usePerimeters()
   const allOpeningConfigs = useMemo(() => {
     const existingConfigs: Record<string, ExistingConfig> = {}
@@ -164,13 +213,31 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
   const handlePresetOrCopyClick = useCallback(
     (preset: PresetConfig | ExistingConfig) => {
       tool.setOpeningType(preset.type)
-      tool.setWidth(preset.width)
+      tool.setWidth(preset.width) // Presets are in finished dimensions
       tool.setHeight(preset.height)
       if (preset.sillHeight !== undefined) {
         tool.setSillHeight(preset.sillHeight)
       } else {
         tool.setSillHeight(undefined)
       }
+      // If copying from existing opening, also copy its assembly override
+      if ('assemblyId' in preset) {
+        tool.setOpeningAssemblyId(preset.assemblyId)
+      }
+    },
+    [tool]
+  )
+
+  const handleDimensionModeChange = useCallback(
+    (mode: 'fitting' | 'finished') => {
+      tool.setDimensionMode(mode)
+    },
+    [tool]
+  )
+
+  const handleAssemblyChange = useCallback(
+    (assemblyId: OpeningAssemblyId | undefined) => {
+      tool.setOpeningAssemblyId(assemblyId)
     },
     [tool]
   )
@@ -190,9 +257,25 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
         </Callout.Text>
       </Callout.Root>
 
+      {/* Dimension Mode Toggle */}
+      <Flex align="center" justify="between" gap="2">
+        <Flex gap="1" align="center">
+          <Text size="1" weight="medium" color="gray">
+            Dimension Mode
+          </Text>
+          <Tooltip content="Fitting dimensions are the rough opening size. Finished dimensions are the actual door/window size after padding.">
+            <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
+          </Tooltip>
+        </Flex>
+        <SegmentedControl.Root value={state.dimensionMode} onValueChange={handleDimensionModeChange} size="2">
+          <SegmentedControl.Item value="finished">Finished</SegmentedControl.Item>
+          <SegmentedControl.Item value="fitting">Fitting</SegmentedControl.Item>
+        </SegmentedControl.Root>
+      </Flex>
+
       {/* Preview */}
       <Flex direction="column" align="center">
-        <OpeningPreviewSimple
+        <OpeningPreview
           opening={{
             type: state.openingType,
             width: state.width,
@@ -200,6 +283,8 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
             sillHeight: state.sillHeight
           }}
           wallHeight={wallHeight}
+          padding={currentPadding}
+          highlightMode={state.dimensionMode}
           focusedField={focusedField}
         />
       </Flex>
@@ -241,6 +326,15 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
         </SegmentedControl.Root>
       </Flex>
 
+      <Flex align="center" gap="2">
+        <Text size="1" weight="medium" color="gray">
+          Padding
+        </Text>
+        <Text size="1" color="gray">
+          {formatLength(currentPadding)}
+        </Text>
+      </Flex>
+
       {/* Dimension inputs in Radix Grid layout */}
       <Grid columns="auto min-content auto min-content" rows="2" gap="2" gapX="3" align="center">
         {/* Row 1, Column 1: Width Label */}
@@ -252,8 +346,8 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
 
         {/* Row 1, Column 2: Width Input */}
         <LengthField
-          value={state.width}
-          onCommit={value => tool.setWidth(value)}
+          value={getDisplayValue(state.width, 'width')}
+          onCommit={value => tool.setWidth(convertInputToFinished(value, 'width'))}
           unit="cm"
           min={100}
           max={5000}
@@ -273,8 +367,8 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
 
         {/* Row 1, Column 4: Height Input */}
         <LengthField
-          value={state.height}
-          onCommit={value => tool.setHeight(value)}
+          value={getDisplayValue(state.height, 'height')}
+          onCommit={value => tool.setHeight(convertInputToFinished(value, 'height'))}
           unit="cm"
           min={100}
           max={4000}
@@ -294,8 +388,8 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
 
         {/* Row 2, Column 2: Sill Height Input */}
         <LengthField
-          value={state.sillHeight ?? 0}
-          onCommit={value => tool.setSillHeight(value)}
+          value={getDisplayValue(state.sillHeight ?? 0, 'sillHeight')}
+          onCommit={value => tool.setSillHeight(convertInputToFinished(value, 'sillHeight'))}
           unit="cm"
           min={0}
           max={2000}
@@ -315,10 +409,14 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
 
         {/* Row 2, Column 4: Top Height Input */}
         <LengthField
-          value={(state.sillHeight ?? 0) + state.height}
-          onCommit={value => tool.setHeight(value - (state.sillHeight ?? 0))}
+          value={getDisplayValue(state.sillHeight ?? 0, 'sillHeight') + getDisplayValue(state.height, 'height')}
+          onCommit={value =>
+            tool.setHeight(
+              convertInputToFinished(value - getDisplayValue(state.sillHeight ?? 0, 'sillHeight'), 'height')
+            )
+          }
           unit="cm"
-          min={(state.sillHeight ?? 0) + 100}
+          min={getDisplayValue(state.sillHeight ?? 0, 'sillHeight') + 100}
           max={5000}
           step={100}
           size="1"
@@ -368,6 +466,27 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
             </IconButton>
           ))}
         </Grid>
+      </Flex>
+
+      <Separator size="4" />
+
+      {/* Opening Assembly Selector */}
+      <Flex direction="column" gap="1">
+        <Flex gap="1" align="center">
+          <Text size="1" weight="medium" color="gray">
+            Opening Assembly
+          </Text>
+          <Tooltip content="Determines the padding and framing around openings.">
+            <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
+          </Tooltip>
+        </Flex>
+        <OpeningAssemblySelectWithEdit
+          value={state.openingAssemblyId}
+          onValueChange={handleAssemblyChange}
+          allowDefault
+          showDefaultIndicator
+          size="2"
+        />
       </Flex>
     </Flex>
   )

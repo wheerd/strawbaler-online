@@ -8,9 +8,9 @@ import { formatArea, formatLength } from '@/shared/utils/formatting'
 export interface OpeningPreviewProps {
   opening: {
     type: OpeningType
-    width: Length
-    height: Length
-    sillHeight?: Length
+    width: Length // Finished width (clear opening)
+    height: Length // Finished height (clear opening)
+    sillHeight?: Length // Finished sill height (floor to sill)
   }
   wallHeight: Length
   padding: Length
@@ -28,17 +28,20 @@ export function OpeningPreview({
   // Generate unique IDs for clip paths
   const fittingClipId = useId()
   const finishedClipId = useId()
-  // Calculate dimensions
-  const fittingWidth = opening.width
-  const fittingHeight = opening.height
-  const finishedWidthMm = opening.width - 2 * padding
-  const finishedHeightMm = opening.height - 2 * padding
-  const fittingSillHeight = opening.sillHeight || 0
-  const finishedSillHeight = fittingSillHeight > 0 ? fittingSillHeight + padding : 0
+
+  // Opening dimensions are stored as FINISHED (clear opening size)
+  const finishedWidth = opening.width
+  const finishedHeight = opening.height
+  const finishedSillHeight = opening.sillHeight || 0
+
+  // Calculate FITTING dimensions (rough opening size with padding)
+  const fittingWidth = finishedWidth + 2 * padding
+  const fittingHeight = finishedHeight + 2 * padding
+  const fittingSillHeight = finishedSillHeight > 0 ? finishedSillHeight - padding : 0
 
   // Floor to top measurements (when sill exists)
   const fittingFloorToTop = fittingSillHeight > 0 ? fittingSillHeight + fittingHeight : 0
-  const finishedFloorToTop = fittingSillHeight > 0 ? finishedSillHeight + finishedHeightMm : 0
+  const finishedFloorToTop = finishedSillHeight > 0 ? finishedSillHeight + finishedHeight : 0
 
   // SVG viewport dimensions - aim for square preview area
   const svgSize = 200
@@ -69,16 +72,16 @@ export function OpeningPreview({
   const bottomHasSpace = (opening.sillHeight ?? 0) * scale > 16
   const sideHasSpace = (svgWidth - openingWidthSvg) / 2 > 16
 
-  // Finished opening (with padding)
+  // Finished opening (clear opening inside padding)
   const paddingScaled = padding * scale
   const finishedLeft = openingLeft + paddingScaled
   const finishedBottom = openingBottom - paddingScaled
   const finishedTop = openingTop + paddingScaled
-  const finishedWidthSvg = finishedWidthMm * scale
-  const finishedHeightSvg = finishedHeightMm * scale
+  const finishedWidthSvg = finishedWidth * scale
+  const finishedHeightSvg = finishedHeight * scale
   const finishedRight = finishedLeft + finishedWidthSvg
 
-  const area = highlightMode === 'fitting' ? opening.width * opening.height : finishedWidthMm * finishedHeightMm
+  const area = highlightMode === 'fitting' ? fittingWidth * fittingHeight : finishedWidth * finishedHeight
 
   // Styling based on highlight mode and focus
   const getFittingStyle = () => ({
@@ -208,7 +211,7 @@ export function OpeningPreview({
       <SvgMeasurementIndicator
         startPoint={[finishedLeft, finishedBottom]}
         endPoint={[finishedRight, finishedBottom]}
-        label={formatLength(finishedWidthMm)}
+        label={formatLength(finishedWidth)}
         offset={bottomHasSpace ? 8 : -8}
         color={getMeasurementColor('width', 'finished')}
         fontSize={8}
@@ -229,7 +232,7 @@ export function OpeningPreview({
       <SvgMeasurementIndicator
         startPoint={[finishedLeft, finishedTop]}
         endPoint={[finishedLeft, finishedBottom]}
-        label={formatLength(finishedHeightMm)}
+        label={formatLength(finishedHeight)}
         offset={sideHasSpace ? 8 : -8}
         color={getMeasurementColor('height', 'finished')}
         fontSize={8}

@@ -72,7 +72,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
             perimeters,
             Object.values(storeys),
             wallAssemblyArray,
-            defaultId!
+            defaultId
           )
         : { isUsed: false, usedAsGlobalDefault: false, usedByWallAssemblies: [], usedByOpenings: [] },
     [selectedAssembly, perimeters, storeys, wallAssemblyArray, defaultId]

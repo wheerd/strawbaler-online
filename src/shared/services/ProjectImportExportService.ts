@@ -2,6 +2,7 @@ import { vec2 } from 'gl-matrix'
 
 import type {
   FloorAssemblyId,
+  OpeningAssemblyId,
   PerimeterId,
   RingBeamAssemblyId,
   RoofAssemblyId,
@@ -344,7 +345,9 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           // Get padding from opening assembly (via wall assembly or global default)
           const wallAssembly = configStore.wallAssemblyConfigs?.[wallAssemblyId]
           const openingAssemblyId =
-            wallAssembly?.openingAssemblyId || configStore.defaultOpeningAssemblyId || ('oa_simple_default' as any)
+            wallAssembly?.openingAssemblyId ||
+            configStore.defaultOpeningAssemblyId ||
+            ('oa_simple_default' as OpeningAssemblyId)
           const assemblyPadding = configStore.openingAssemblyConfigs?.[openingAssemblyId]?.padding ?? 0
 
           // Basic perimeter creation - auto-computes geometry, outsidePoints, etc.

@@ -31,13 +31,13 @@ export function AddOpeningToolOverlay({ tool }: ToolOverlayComponentProps<AddOpe
         y={0}
         width={state.width}
         height={wall.thickness}
-        fill={state.canPlace ? theme.success : theme.danger}
+        fill={state.canPlace ? (tool.getNeedsConversion() ? theme.warning : theme.success) : theme.danger}
         opacity={0.6}
         stroke={theme.white}
         strokeWidth={3}
       />
       <Text
-        text={getOpeningIcon(state.openingType)}
+        text={tool.getNeedsConversion() ? '⚠' : getOpeningIcon(state.openingType)}
         fontSize={wall.thickness * 0.7}
         x={0}
         y={wall.thickness}

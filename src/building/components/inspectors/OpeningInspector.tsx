@@ -290,8 +290,8 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
                 openingAssemblyId: value as OpeningAssemblyId | undefined
               })
             }}
-            allowDefault={true}
-            showDefaultIndicator={true}
+            allowDefault
+            showDefaultIndicator
             size="1"
           />
         </Flex>
