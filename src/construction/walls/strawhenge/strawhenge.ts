@@ -175,7 +175,7 @@ export class StrawhengeWallAssembly implements WallAssembly<StrawhengeWallConfig
       warnings: aggRes.warnings
     }
 
-    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers, config)
 
     return mergeModels(baseModel, layerModel)
   }

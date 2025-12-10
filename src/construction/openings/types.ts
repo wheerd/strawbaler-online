@@ -3,16 +3,17 @@ import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionResult } from '@/construction/results'
 import type { InfillMethod } from '@/construction/walls/types'
 import type { Length } from '@/shared/geometry'
-import type { OpeningConstructionDimensions } from '@/shared/utils/openingDimensions'
 
 export interface OpeningAssembly<TConfig extends OpeningAssemblyConfigBase> {
   construct: (
     area: WallConstructionArea,
-    openings: OpeningConstructionDimensions[],
-    zOffset: Length,
+    adjustedHeader: Length,
+    adjustedSill: Length,
     config: TConfig,
     infill: InfillMethod
   ) => Generator<ConstructionResult>
+
+  getSegmentationPadding(config: TConfig): Length
 }
 
 export type OpeningAssemblyType = 'simple' | 'empty'

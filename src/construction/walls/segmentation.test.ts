@@ -5,6 +5,8 @@ import { createOpeningId, createPerimeterId, createWallAssemblyId } from '@/buil
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
 import { type OpeningAssemblyConfig, getConfigActions } from '@/construction/config'
 import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
+import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/openings/resolver'
+import type { OpeningAssembly } from '@/construction/openings/types'
 import { aggregateResults, yieldElement } from '@/construction/results'
 import { createCuboid } from '@/construction/shapes'
 import {
@@ -48,6 +50,13 @@ vi.mock('@/shared/utils/formatLength', () => ({
   formatLength: vi.fn((length: Length) => `${length}mm`)
 }))
 
+vi.mock('@/construction/openings/resolver', () => ({
+  resolveOpeningAssembly: vi.fn(),
+  resolveOpeningConfig: vi.fn()
+}))
+
+const mockResolveOpeningAssembly = vi.mocked(resolveOpeningAssembly)
+const mockResolveOpeningConfig = vi.mocked(resolveOpeningConfig)
 const mockGetWallContext = vi.mocked(getWallContext)
 const mockCalculateWallCornerInfo = vi.mocked(calculateWallCornerInfo)
 const mockGetConfigActions = vi.mocked(getConfigActions)
@@ -158,6 +167,7 @@ function createMockStoreyContext(storeyHeight: Length = 2500, ceilingHeight: Len
 describe('segmentedWallConstruction', () => {
   let mockWallConstruction: Mocked<WallSegmentConstruction>
   let mockInfillMethod: Mock<InfillMethod>
+  let mockOpeningConstruction: Mock<OpeningAssembly<any>['construct']>
   let mockGetRingBeamAssemblyById: ReturnType<typeof vi.fn>
   let mockGetOpeningAssemblyById: Mock<() => OpeningAssemblyConfig>
 
@@ -238,15 +248,32 @@ describe('segmentedWallConstruction', () => {
       })
     })
 
-    mockInfillMethod = vi.fn(function* (_area: WallConstructionArea) {
+    mockOpeningConstruction = vi.fn(function* (
+      _area: WallConstructionArea,
+      _adjustedHeader: Length,
+      _adjustedSill: Length,
+      _config: any,
+      _infill: InfillMethod
+    ) {
       yield* yieldElement({
-        id: 'infill-element' as any,
+        id: 'opening-element' as any,
         material: 'material' as any,
         shape: createCuboid(vec3.fromValues(50, 50, 50)),
         transform: IDENTITY,
         bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(50, 50, 50))
       })
     })
+
+    mockInfillMethod = vi.fn()
+
+    mockResolveOpeningAssembly.mockReturnValue({
+      construct: mockOpeningConstruction as any,
+      segmentationPadding: 0
+    })
+
+    mockResolveOpeningConfig.mockReturnValue({
+      padding: 15
+    } as any)
   })
 
   describe('basic functionality', () => {
@@ -294,7 +321,7 @@ describe('segmentedWallConstruction', () => {
       )
 
       // Should not call opening construction
-      expect(mockInfillMethod).not.toHaveBeenCalled()
+      expect(mockOpeningConstruction).not.toHaveBeenCalled()
 
       // Should include wall construction elements
       expect(elements).toHaveLength(1)
@@ -377,7 +404,7 @@ describe('segmentedWallConstruction', () => {
 
   describe('opening handling', () => {
     it('should create segments for wall with single opening in middle', () => {
-      const opening = createMockOpening(1000, 800)
+      const opening = createMockOpening(1400, 800)
       const wall = createMockWall('wall-1', 3000, 300, [opening])
       const perimeter = createMockPerimeter([wall])
       const wallHeight = 2500
@@ -401,7 +428,7 @@ describe('segmentedWallConstruction', () => {
       // First wall segment (before opening)
       expect(mockWallConstruction).toHaveBeenNthCalledWith(
         1,
-        expectArea(vec3.fromValues(0, 30, 60), vec3.fromValues(1000, 220, 2380)),
+        expectArea(vec3.fromValues(0, 30, 60), vec3.fromValues(985, 220, 2380)),
         true,
         true,
         false
@@ -411,8 +438,8 @@ describe('segmentedWallConstruction', () => {
       expect(mockWallConstruction).toHaveBeenNthCalledWith(
         2,
         expectArea(
-          vec3.fromValues(1800, 30, 60), // 1000 + 800
-          vec3.fromValues(1200, 220, 2380) // 3000 - 1800
+          vec3.fromValues(1815, 30, 60), // 1000 + 800
+          vec3.fromValues(1185, 220, 2380) // 3000 - 1800
         ),
         true,
         true,
@@ -420,11 +447,12 @@ describe('segmentedWallConstruction', () => {
       )
 
       // Should call opening construction once
-      expect(mockInfillMethod).toHaveBeenCalledTimes(1)
-      expect(mockInfillMethod).toHaveBeenCalledWith(
-        expectArea(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 2380)),
-        -60,
-        [opening]
+      expect(mockOpeningConstruction).toHaveBeenCalledTimes(1)
+      expect(mockOpeningConstruction).toHaveBeenCalledWith(
+        expectArea(vec3.fromValues(985, 30, 60), vec3.fromValues(830, 220, 2380)),
+        2055,
+        825,
+        mockInfillMethod
       )
 
       // Should generate segment measurements for both wall segments
@@ -433,7 +461,7 @@ describe('segmentedWallConstruction', () => {
     })
 
     it('should handle opening at start of wall', () => {
-      const opening = createMockOpening(0, 800)
+      const opening = createMockOpening(400, 800)
       const wall = createMockWall('wall-1', 3000, 300, [opening])
       const perimeter = createMockPerimeter([wall])
       const wallHeight = 2500
@@ -454,22 +482,23 @@ describe('segmentedWallConstruction', () => {
       // Should call wall construction once (after opening)
       expect(mockWallConstruction).toHaveBeenCalledTimes(1)
       expect(mockWallConstruction).toHaveBeenCalledWith(
-        expectArea(vec3.fromValues(800, 30, 60), vec3.fromValues(2200, 220, 2380)),
+        expectArea(vec3.fromValues(815, 30, 60), vec3.fromValues(2185, 220, 2380)),
         true,
         true,
         true
       )
 
       // Should call opening construction once
-      expect(mockInfillMethod).toHaveBeenCalledWith(
-        expectArea(vec3.fromValues(0, 30, 60), vec3.fromValues(800, 220, 2380)),
-        -60,
-        [opening]
+      expect(mockOpeningConstruction).toHaveBeenCalledWith(
+        expectArea(vec3.fromValues(-15, 30, 60), vec3.fromValues(830, 220, 2380)),
+        2055,
+        825,
+        mockInfillMethod
       )
     })
 
     it('should handle opening at end of wall', () => {
-      const opening = createMockOpening(2200, 800)
+      const opening = createMockOpening(2600, 800)
       const wall = createMockWall('wall-1', 3000, 300, [opening])
       const perimeter = createMockPerimeter([wall])
       const wallHeight = 2500
@@ -490,23 +519,24 @@ describe('segmentedWallConstruction', () => {
       // Should call wall construction once (before opening)
       expect(mockWallConstruction).toHaveBeenCalledTimes(1)
       expect(mockWallConstruction).toHaveBeenCalledWith(
-        expectArea(vec3.fromValues(0, 30, 60), vec3.fromValues(2200, 220, 2380)),
+        expectArea(vec3.fromValues(0, 30, 60), vec3.fromValues(2185, 220, 2380)),
         true,
         true,
         false
       )
 
       // Should call opening construction once
-      expect(mockInfillMethod).toHaveBeenCalledWith(
-        expectArea(vec3.fromValues(2200, 30, 60), vec3.fromValues(800, 220, 2380)),
-        -60,
-        [opening]
+      expect(mockOpeningConstruction).toHaveBeenCalledWith(
+        expectArea(vec3.fromValues(2185, 30, 60), vec3.fromValues(815, 220, 2380)),
+        2055,
+        825,
+        mockInfillMethod
       )
     })
 
     it('should merge adjacent openings with same sill and header heights', () => {
-      const opening1 = createMockOpening(1000, 800, 1200, 900)
-      const opening2 = createMockOpening(1800, 600, 1200, 900)
+      const opening1 = createMockOpening(1400, 800, 1200, 900)
+      const opening2 = createMockOpening(2100, 600, 1200, 900)
       const wall = createMockWall('wall-1', 4000, 300, [opening1, opening2])
       const perimeter = createMockPerimeter([wall])
       const wallHeight = 2500
@@ -525,14 +555,15 @@ describe('segmentedWallConstruction', () => {
       aggregateResults(results)
 
       // Should call opening construction once with both openings merged
-      expect(mockInfillMethod).toHaveBeenCalledTimes(1)
-      expect(mockInfillMethod).toHaveBeenCalledWith(
+      expect(mockOpeningConstruction).toHaveBeenCalledTimes(1)
+      expect(mockOpeningConstruction).toHaveBeenCalledWith(
         expectArea(
-          vec3.fromValues(1000, 30, 60),
-          vec3.fromValues(1400, 220, 2380) // combined width: 800 + 600
+          vec3.fromValues(985, 30, 60),
+          vec3.fromValues(1430, 220, 2380) // combined width: 800 + 600
         ),
-        -60,
-        [opening1, opening2]
+        2055,
+        825,
+        mockInfillMethod
       )
     })
 
@@ -557,19 +588,7 @@ describe('segmentedWallConstruction', () => {
       aggregateResults(results)
 
       // Should call opening construction twice - separate openings
-      expect(mockInfillMethod).toHaveBeenCalledTimes(2)
-      expect(mockInfillMethod).toHaveBeenNthCalledWith(
-        1,
-        expectArea(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 2380)),
-        -60,
-        [opening1]
-      )
-      expect(mockInfillMethod).toHaveBeenNthCalledWith(
-        2,
-        expectArea(vec3.fromValues(1800, 30, 60), vec3.fromValues(600, 220, 2380)),
-        -60,
-        [opening2]
-      )
+      expect(mockOpeningConstruction).toHaveBeenCalledTimes(2)
     })
 
     it('should not merge adjacent openings with different header heights', () => {
@@ -592,8 +611,8 @@ describe('segmentedWallConstruction', () => {
       ]
       aggregateResults(results)
 
-      // Should call opening construction twice - separate openings
-      expect(mockInfillMethod).toHaveBeenCalledTimes(2)
+      // Should call opening construction twice
+      expect(mockOpeningConstruction).toHaveBeenCalledTimes(2)
     })
 
     it('should sort openings by position', () => {
@@ -618,13 +637,19 @@ describe('segmentedWallConstruction', () => {
       aggregateResults(results)
 
       // Should process opening2 first (at position 500), then opening1 (at position 2000)
-      expect(mockInfillMethod).toHaveBeenNthCalledWith(
+      expect(mockOpeningConstruction).toHaveBeenNthCalledWith(
         1,
-        expectArea(vec3.fromValues(485, 30, 2175), vec3.fromValues(830, 220, 265))
+        expectArea(vec3.fromValues(485, 30, 60), vec3.fromValues(830, 220, 2380)),
+        2055,
+        825,
+        mockInfillMethod
       )
-      expect(mockInfillMethod).toHaveBeenNthCalledWith(
+      expect(mockOpeningConstruction).toHaveBeenNthCalledWith(
         2,
-        expectArea(vec3.fromValues(485, 30, 60), vec3.fromValues(600, 220, 2380))
+        expectArea(vec3.fromValues(1985, 30, 60), vec3.fromValues(630, 220, 2380)),
+        2055,
+        825,
+        mockInfillMethod
       )
     })
   })

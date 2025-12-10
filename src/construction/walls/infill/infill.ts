@@ -223,7 +223,7 @@ export class InfillWallAssembly implements WallAssembly<InfillWallConfig> {
       warnings: aggRes.warnings
     }
 
-    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers, config)
 
     return mergeModels(baseModel, layerModel)
   }

@@ -166,6 +166,8 @@ const expectExtrudedPolygon = (element: ConstructionElement): ExtrudedShape => {
 }
 
 describe('constructWallLayers', () => {
+  const wallConfig = { openingAssemblyId: undefined } as any
+
   beforeEach(() => {
     applyAssemblies()
 
@@ -244,7 +246,7 @@ describe('constructWallLayers', () => {
     const wall = createWall()
     const perimeter = createPerimeter(wall)
 
-    const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
+    const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers, wallConfig)
 
     const elements = flattenElements(model.elements)
     expect(elements).toHaveLength(2)
@@ -311,7 +313,7 @@ describe('constructWallLayers', () => {
     const wall = createWall({ openings: [opening] })
     const perimeter = createPerimeter(wall)
 
-    const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
+    const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers, wallConfig)
 
     const elements = flattenElements(model.elements)
     const inside = elements.find(
@@ -331,10 +333,10 @@ describe('constructWallLayers', () => {
     const xs = hole.points.map(point => point[0])
     const ys = hole.points.map(point => point[1])
 
-    expect(Math.min(...xs)).toBeCloseTo(1000)
-    expect(Math.max(...xs)).toBeCloseTo(1000 + 900)
-    expect(Math.min(...ys)).toBeCloseTo(900 + 50)
-    expect(Math.max(...ys)).toBeCloseTo(900 + 1200 + 50)
+    expect(Math.min(...xs)).toBeCloseTo(1000 - 15)
+    expect(Math.max(...xs)).toBeCloseTo(1000 + 900 + 15)
+    expect(Math.min(...ys)).toBeCloseTo(900 + 50 - 15)
+    expect(Math.max(...ys)).toBeCloseTo(900 + 1200 + 50 + 15)
   })
 
   it('extends exterior layers when wall constructs the corner', () => {
@@ -342,7 +344,7 @@ describe('constructWallLayers', () => {
     const perimeter = createPerimeter(wall)
 
     const baselineOutsideStart = (() => {
-      const baselineModel = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
+      const baselineModel = constructWallLayers(wall, perimeter, storeyContext, baseLayers, wallConfig)
       const baselineOutside = flattenElements(baselineModel.elements).find(
         element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 20
       )
@@ -357,7 +359,7 @@ describe('constructWallLayers', () => {
       end: vec2.fromValues(-360, 0)
     }
 
-    const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
+    const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers, wallConfig)
     const elements = flattenElements(model.elements)
     const outside = elements.find(
       element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 20
@@ -378,7 +380,7 @@ describe('constructWallLayers', () => {
     const perimeter = createPerimeter(wall)
 
     const baselineInsideStart = (() => {
-      const baselineModel = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
+      const baselineModel = constructWallLayers(wall, perimeter, storeyContext, baseLayers, wallConfig)
       const baselineInside = flattenElements(baselineModel.elements).find(
         element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 30
       )
@@ -393,7 +395,7 @@ describe('constructWallLayers', () => {
       end: vec2.fromValues(40, 0)
     }
 
-    const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers)
+    const model = constructWallLayers(wall, perimeter, storeyContext, baseLayers, wallConfig)
     const elements = flattenElements(model.elements)
     const inside = elements.find(
       element => element.shape.base?.type === 'extrusion' && element.shape.base.thickness === 30

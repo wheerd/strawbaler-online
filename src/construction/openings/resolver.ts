@@ -5,7 +5,6 @@ import { SimpleOpeningAssembly } from '@/construction/openings/simple'
 import type { ConstructionResult } from '@/construction/results'
 import type { InfillMethod } from '@/construction/walls'
 import type { Length } from '@/shared/geometry'
-import type { OpeningConstructionDimensions } from '@/shared/utils/openingDimensions'
 
 import type { EmptyOpeningConfig, OpeningAssembly, OpeningConfig } from './types'
 
@@ -56,21 +55,19 @@ export function resolveOpeningAssembly(openingAssemblyId?: OpeningAssemblyId): O
 
   if (config.type === 'simple') {
     return {
-      construct: (
-        area: WallConstructionArea,
-        openings: OpeningConstructionDimensions[],
-        zOffset: Length,
-        infill: InfillMethod
-      ) => simpleAssembly.construct(area, openings, zOffset, config, infill)
+      construct: (area: WallConstructionArea, adjustedHeader: Length, adjustedSill: Length, infill: InfillMethod) =>
+        simpleAssembly.construct(area, adjustedHeader, adjustedSill, config, infill),
+      get segmentationPadding() {
+        return simpleAssembly.getSegmentationPadding(config)
+      }
     }
   } else if (config.type === 'empty') {
     return {
-      construct: (
-        area: WallConstructionArea,
-        openings: OpeningConstructionDimensions[],
-        zOffset: Length,
-        infill: InfillMethod
-      ) => emptyAssembly.construct(area, openings, zOffset, config, infill)
+      construct: (area: WallConstructionArea, adjustedHeader: Length, adjustedSill: Length, infill: InfillMethod) =>
+        emptyAssembly.construct(area, adjustedHeader, adjustedSill, config, infill),
+      get segmentationPadding() {
+        return emptyAssembly.getSegmentationPadding(config)
+      }
     }
   }
 
@@ -80,13 +77,15 @@ export function resolveOpeningAssembly(openingAssemblyId?: OpeningAssemblyId): O
 export class EmptyOpeningAssembly implements OpeningAssembly<EmptyOpeningConfig> {
   *construct(
     _area: WallConstructionArea,
-    _openings: OpeningConstructionDimensions[],
-    _zOffset: Length,
+    _adjustedHeader: Length,
+    _adjustedSill: Length,
     _config: EmptyOpeningConfig,
     _infill: InfillMethod
   ): Generator<ConstructionResult> {
     // Intentionally empty
   }
+
+  getSegmentationPadding = (_config: EmptyOpeningConfig) => 0
 }
 
 const simpleAssembly = new SimpleOpeningAssembly()
@@ -95,8 +94,10 @@ const emptyAssembly = new EmptyOpeningAssembly()
 interface OpeningAssemblyInstance {
   construct: (
     area: WallConstructionArea,
-    openings: OpeningConstructionDimensions[],
-    zOffset: Length,
+    adjustedHeader: Length,
+    adjustedSill: Length,
     infill: InfillMethod
   ) => Generator<ConstructionResult>
+
+  get segmentationPadding(): Length
 }

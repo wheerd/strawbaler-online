@@ -80,7 +80,7 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
       roofOffsets
     )
 
-    const structuralPolygons = createWallPolygonWithOpenings(wallArea, wall, storeyContext.floorTopOffset)
+    const structuralPolygons = createWallPolygonWithOpenings(wallArea, wall, storeyContext.floorTopOffset, config)
 
     const structureShapes = structuralPolygons.map(p =>
       createExtrudedPolygon(p, WALL_POLYGON_PLANE, structuralThickness)
@@ -113,7 +113,7 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
       warnings: aggRes.warnings
     }
 
-    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers, config)
 
     return mergeModels(baseModel, layerModel)
   }

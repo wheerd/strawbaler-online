@@ -63,7 +63,7 @@ export class ModulesWallAssembly implements WallAssembly<ModulesWallConfig> {
       warnings: aggRes.warnings
     }
 
-    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers, config)
 
     return mergeModels(baseModel, layerModel)
   }

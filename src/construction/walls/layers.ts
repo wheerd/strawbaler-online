@@ -27,7 +27,7 @@ import { getWallContext } from './corners/corners'
 import { computeLayerSpan, subtractWallOpenings } from './polygons'
 import { type WallTopOffsets, convertHeightLineToWallOffsets, fillNullRegions } from './roofIntegration'
 import type { WallStoreyContext } from './segmentation'
-import type { WallLayersConfig } from './types'
+import type { WallConfig, WallLayersConfig } from './types'
 
 const WALL_LAYER_PLANE: Plane3D = 'xz'
 
@@ -117,7 +117,8 @@ export function constructWallLayers(
   wall: PerimeterWall,
   perimeter: Perimeter,
   storeyContext: WallStoreyContext,
-  layers: WallLayersConfig
+  layers: WallLayersConfig,
+  config: WallConfig
 ): ConstructionModel {
   const context = getWallContext(wall, perimeter)
 
@@ -171,7 +172,8 @@ export function constructWallLayers(
         bottom,
         top,
         wall,
-        storeyContext.floorTopOffset
+        storeyContext.floorTopOffset,
+        config
       )
       const results = polygonsWithHoles.flatMap(p =>
         runLayerConstruction(p, insideOffset, WALL_LAYER_PLANE, layer, layerDirection)
@@ -231,7 +233,8 @@ export function constructWallLayers(
         bottom,
         top,
         wall,
-        storeyContext.floorTopOffset
+        storeyContext.floorTopOffset,
+        config
       )
       const results = polygonsWithHoles.flatMap(p =>
         runLayerConstruction(p, outsideOffset, WALL_LAYER_PLANE, layer, layerDirection)
