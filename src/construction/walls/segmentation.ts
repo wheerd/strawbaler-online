@@ -1,12 +1,13 @@
 import { vec2, vec3 } from 'gl-matrix'
 
-import type { StoreyId } from '@/building/model/ids'
+import type { OpeningAssemblyId, StoreyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
 import { WallConstructionArea } from '@/construction/geometry'
+import { resolveOpeningAssembly } from '@/construction/openings/resolver'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
 import { ROOF_ASSEMBLIES } from '@/construction/roofs'
 import type { HeightLine } from '@/construction/roofs/types'
@@ -18,7 +19,7 @@ import {
   TAG_WALL_HEIGHT,
   TAG_WALL_LENGTH
 } from '@/construction/tags'
-import type { WallLayersConfig } from '@/construction/walls'
+import type { InfillMethod, WallLayersConfig } from '@/construction/walls'
 import {
   convertHeightLineToWallOffsets,
   fillNullRegions,
@@ -270,14 +271,13 @@ export function* segmentedWallConstruction(
   storeyContext: WallStoreyContext,
   layers: WallLayersConfig,
   wallConstruction: WallSegmentConstruction,
-  openingConstruction: OpeningSegmentConstruction,
-  openingPadding: Length
+  infillMethod: InfillMethod,
+  wallOpeningAssemblyId?: OpeningAssemblyId
 ): Generator<ConstructionResult> {
   const wallContext = getWallContext(wall, perimeter)
   const cornerInfo = calculateWallCornerInfo(wall, wallContext)
   const { constructionLength, extensionStart, extensionEnd } = cornerInfo
-  const padding = Number(openingPadding ?? 0) as Length
-  const openingsWithPadding = wall.openings.map(opening => convertOpeningToConstruction(opening, padding))
+  const openingsWithPadding = wall.openings.map(opening => convertOpeningToConstruction(opening, wallOpeningAssemblyId))
 
   const { getRingBeamAssemblyById } = getConfigActions()
   const basePlateAssembly = perimeter.baseRingBeamAssemblyId
@@ -421,7 +421,8 @@ export function* segmentedWallConstruction(
     const groupWidth = groupEnd - groupStart
     const openingArea = overallWallArea.withXAdjustment(groupStart, groupWidth)
 
-    yield* openingConstruction(openingArea, finishedFloorZLevel - openingArea.position[2], openingGroup)
+    const assembly = resolveOpeningAssembly(openingGroup[0].openingAssemblyId ?? wallOpeningAssemblyId)
+    yield* assembly.construct(openingArea, openingGroup, finishedFloorZLevel - openingArea.position[2], infillMethod)
 
     currentX = groupEnd
   }

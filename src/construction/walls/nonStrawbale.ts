@@ -1,6 +1,6 @@
 import { vec2, vec3 } from 'gl-matrix'
 
-import type { Opening, Perimeter, PerimeterWall } from '@/building/model'
+import type { Perimeter, PerimeterWall } from '@/building/model'
 import { getConfigActions } from '@/construction/config'
 import { createConstructionElement } from '@/construction/elements'
 import { WallConstructionArea, translate } from '@/construction/geometry'
@@ -29,11 +29,7 @@ function* noopWallSegment(
   // Intentionally empty - structural wall handled as a single extruded polygon
 }
 
-function* noopOpeningSegment(
-  _area: WallConstructionArea,
-  _zOffset: Length,
-  _openings: Opening[]
-): Generator<ConstructionResult> {
+function* noopInfill(_area: WallConstructionArea): Generator<ConstructionResult> {
   // Intentionally empty - openings are handled by polygon holes
 }
 
@@ -101,14 +97,8 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
         storeyContext,
         config.layers,
         noopWallSegment,
-        noopOpeningSegment,
-        (() => {
-          const wallAssembly = getConfigActions().getWallAssemblyById(wall.wallAssemblyId)
-          if (!wallAssembly) return 15
-          const openingAssemblyId = wallAssembly.openingAssemblyId || getConfigActions().getDefaultOpeningAssemblyId()
-          const openingConfig = getConfigActions().getOpeningAssemblyById(openingAssemblyId)
-          return openingConfig?.padding ?? 15
-        })()
+        noopInfill,
+        config.openingAssemblyId
       )
     )
 

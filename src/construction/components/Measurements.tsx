@@ -77,7 +77,7 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
   )
 
   const directMeasurements = model.measurements
-    .filter((m): m is DirectMeasurement => 'label' in m)
+    .filter((m): m is DirectMeasurement => 'label' in m && m.label != null)
     .map(m => {
       const startProjected = projectPoint(m.startPoint, projection)
       const endProjected = projectPoint(m.endPoint, projection)

@@ -1,13 +1,10 @@
 import { vec3 } from 'gl-matrix'
 
 import type { Perimeter, PerimeterWall } from '@/building/model/model'
-import { getConfigActions } from '@/construction/config'
 import { WallConstructionArea } from '@/construction/geometry'
 import { constructStraw } from '@/construction/materials/straw'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
-import { constructOpeningFrame } from '@/construction/openings/openings'
-import { resolveOpeningConfig } from '@/construction/openings/resolver'
 import type { ConstructionResult } from '@/construction/results'
 import { aggregateResults, yieldMeasurement } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
@@ -163,20 +160,8 @@ export class StrawhengeWallAssembly implements WallAssembly<StrawhengeWallConfig
         config.layers,
         (area, startsWithStand, endsWithStand, startAtEnd) =>
           strawhengeWallArea(area, config, startsWithStand, endsWithStand, startAtEnd),
-
-        (area, zOffset, openings) => {
-          const wallAssembly = getConfigActions().getWallAssemblyById(wall.wallAssemblyId)
-          if (!wallAssembly) throw new Error(`Wall assembly ${wall.wallAssemblyId} not found`)
-          const openingConfig = resolveOpeningConfig(openings[0], wallAssembly)
-          return constructOpeningFrame(area, openings, zOffset, openingConfig, a => infillWallArea(a, config.infill))
-        },
-        (() => {
-          const wallAssembly = getConfigActions().getWallAssemblyById(wall.wallAssemblyId)
-          if (!wallAssembly) return 15
-          const openingAssemblyId = wallAssembly.openingAssemblyId || getConfigActions().getDefaultOpeningAssemblyId()
-          const openingConfig = getConfigActions().getOpeningAssemblyById(openingAssemblyId)
-          return openingConfig?.padding ?? 15
-        })()
+        area => infillWallArea(area, config.infill),
+        config.openingAssemblyId
       )
     )
 

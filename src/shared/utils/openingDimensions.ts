@@ -1,4 +1,6 @@
+import type { OpeningAssemblyId } from '@/building/model'
 import type { Opening } from '@/building/model/model'
+import { resolveOpeningConfig } from '@/construction/openings/resolver'
 import type { Length } from '@/shared/geometry'
 
 const toNumber = (value: Length | undefined): number => Number(value ?? 0)
@@ -35,13 +37,17 @@ export const constructionSillToFinished = (sillHeight: Length | undefined, paddi
 
 export type OpeningConstructionDimensions = Opening
 
-export function convertOpeningToConstruction(opening: Opening, padding: Length): OpeningConstructionDimensions {
+export function convertOpeningToConstruction(
+  opening: Opening,
+  wallOpeningAssemblyId?: OpeningAssemblyId
+): OpeningConstructionDimensions {
+  const config = resolveOpeningConfig(opening, { openingAssemblyId: wallOpeningAssemblyId })
   return {
     ...opening,
-    offsetFromStart: finishedOffsetToConstruction(opening.offsetFromStart, padding),
-    width: finishedWidthToConstruction(opening.width, padding),
-    height: finishedHeightToConstruction(opening.height, padding),
-    sillHeight: finishedSillToConstruction(opening.sillHeight, padding)
+    offsetFromStart: finishedOffsetToConstruction(opening.offsetFromStart, config.padding),
+    width: finishedWidthToConstruction(opening.width, config.padding),
+    height: finishedHeightToConstruction(opening.height, config.padding),
+    sillHeight: finishedSillToConstruction(opening.sillHeight, config.padding)
   }
 }
 
