@@ -366,17 +366,17 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
   }
 
   setWidth(width: Length): void {
-    this.state.width = width // Inspector already converted to finished
+    this.state.width = width
     this.triggerRender()
   }
 
   setHeight(height: Length): void {
-    this.state.height = height // Inspector already converted to finished
+    this.state.height = height
     this.triggerRender()
   }
 
   setSillHeight(sillHeight: Length | undefined): void {
-    this.state.sillHeight = sillHeight // Inspector already converted to finished
+    this.state.sillHeight = sillHeight
     this.triggerRender()
   }
 

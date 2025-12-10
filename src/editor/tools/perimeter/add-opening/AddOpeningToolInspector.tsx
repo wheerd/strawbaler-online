@@ -261,7 +261,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
             <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
           </Tooltip>
         </Flex>
-        <SegmentedControl.Root value={state.dimensionMode} onValueChange={handleDimensionModeChange} size="2">
+        <SegmentedControl.Root value={state.dimensionMode} onValueChange={handleDimensionModeChange} size="1">
           <SegmentedControl.Item value="finished">Finished</SegmentedControl.Item>
           <SegmentedControl.Item value="fitting">Fitting</SegmentedControl.Item>
         </SegmentedControl.Root>

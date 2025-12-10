@@ -219,7 +219,7 @@ describe('ProjectImportExportService', () => {
     it('calls the correct store assemblies on import', async () => {
       // Create simple valid import data
       const validImportData = {
-        version: '1.8.0',
+        version: '1.11.0',
         timestamp: new Date().toISOString(),
         modelStore: {
           storeys: [
