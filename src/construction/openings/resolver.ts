@@ -13,19 +13,19 @@ import type { EmptyOpeningConfig, OpeningAssembly, OpeningConfig } from './types
  * Opening.openingAssemblyId → WallAssembly.openingAssemblyId → Global Default
  */
 export function resolveOpeningConfig(
-  opening: { openingAssemblyId?: OpeningAssemblyId },
-  wallAssembly: { openingAssemblyId?: OpeningAssemblyId }
+  opening?: { openingAssemblyId?: OpeningAssemblyId },
+  wallAssembly?: { openingAssemblyId?: OpeningAssemblyId }
 ): OpeningConfig {
   const configActions = getConfigActions()
 
   // 1. Try opening-specific override
-  if (opening.openingAssemblyId) {
+  if (opening?.openingAssemblyId) {
     const config = configActions.getOpeningAssemblyById(opening.openingAssemblyId)
     if (config) return config
   }
 
   // 2. Try wall assembly's default
-  if (wallAssembly.openingAssemblyId) {
+  if (wallAssembly?.openingAssemblyId) {
     const config = configActions.getOpeningAssemblyById(wallAssembly.openingAssemblyId)
     if (config) return config
   }

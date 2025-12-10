@@ -8,9 +8,9 @@ import { formatArea, formatLength } from '@/shared/utils/formatting'
 export interface OpeningPreviewProps {
   opening: {
     type: OpeningType
-    width: Length // Finished width (clear opening)
-    height: Length // Finished height (clear opening)
-    sillHeight?: Length // Finished sill height (floor to sill)
+    width: Length // Fitting width (rough opening)
+    height: Length // Fitting height (rough opening)
+    sillHeight?: Length // Fitting sill height (floor to rough sill)
   }
   wallHeight: Length
   padding: Length

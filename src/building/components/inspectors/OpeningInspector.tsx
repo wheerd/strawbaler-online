@@ -56,11 +56,10 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   // Get assembly for padding config
   const wallAssembly = wall?.wallAssemblyId && useWallAssemblyById(wall.wallAssemblyId)
 
-  // Resolve opening config using the hierarchy: opening -> wall -> global default
-  const openingConfig = useMemo(() => {
-    if (!wallAssembly || !opening) return null
-    return resolveOpeningConfig(opening, wallAssembly)
-  }, [opening, wallAssembly])
+  const openingConfig = useMemo(
+    () => resolveOpeningConfig(opening, wallAssembly ?? undefined),
+    [opening?.openingAssemblyId, wallAssembly?.openingAssemblyId]
+  )
 
   const viewportActions = useViewportActions()
 
@@ -80,40 +79,38 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   // Helper functions for dimension conversion
   // Model stores FITTED dimensions, UI displays user's choice (finished or fitting)
   const getDisplayValue = useCallback(
-    (fittedValue: number, type: 'width' | 'height' | 'sillHeight') => {
-      if (!openingConfig) return fittedValue
+    (fittingValue: number, type: 'width' | 'height' | 'sillHeight') => {
       const padding = openingConfig.padding
 
       if (dimensionInputMode === 'finished') {
-        // User wants to see finished dimensions - convert fitted to finished
+        // User wants to see finished dimensions - convert fitting to finished
         if (type === 'width' || type === 'height') {
-          return Math.max(10, fittedValue - 2 * padding)
+          return Math.max(10, fittingValue - 2 * padding)
         }
-        // Sill: fitted is lower, finished is higher
-        return fittedValue + padding
+        // Sill: fitting is lower, finished is higher
+        return fittingValue + padding
       }
 
-      // User wants to see fitting dimensions - return as-is (model is fitted)
-      return fittedValue
+      // User wants to see fitting dimensions - return as-is (model is fitting)
+      return fittingValue
     },
     [openingConfig, dimensionInputMode]
   )
 
   const convertToFittedValue = useCallback(
     (inputValue: number, type: 'width' | 'height' | 'sillHeight') => {
-      if (!openingConfig) return inputValue
       const padding = openingConfig.padding
 
       if (dimensionInputMode === 'finished') {
-        // User entered finished dimensions - convert to fitted for model
+        // User entered finished dimensions - convert to fitting for model
         if (type === 'width' || type === 'height') {
           return inputValue + 2 * padding
         }
-        // Sill: finished is higher, fitted is lower
+        // Sill: finished is higher, fitting is lower
         return Math.max(0, inputValue - padding)
       }
 
-      // User entered fitting dimensions - use as-is (model is fitted)
+      // User entered fitting dimensions - use as-is (model is fitting)
       return inputValue
     },
     [openingConfig, dimensionInputMode]
@@ -122,18 +119,18 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   const getTopHeightDisplayValue = useCallback(() => {
     const sill = opening?.sillHeight ?? 0
     const height = opening?.height ?? 0
-    if (!openingConfig || dimensionInputMode === 'finished') {
+    if (dimensionInputMode === 'fitting') {
       return sill + height
     }
-    return sill + height + openingConfig.padding
+    return sill + height - openingConfig.padding
   }, [opening?.sillHeight, opening?.height, openingConfig, dimensionInputMode])
 
   const convertTopHeightInput = useCallback(
     (value: number) => {
-      if (!openingConfig || dimensionInputMode === 'finished') {
+      if (dimensionInputMode === 'fitting') {
         return value
       }
-      return Math.max(0, value - openingConfig.padding)
+      return value + openingConfig.padding
     },
     [openingConfig, dimensionInputMode]
   )
@@ -203,7 +200,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   return (
     <Flex direction="column" gap="4">
       {/* Preview */}
-      {opening && storey && openingConfig && wallHeight !== null && (
+      {storey && wallHeight !== null && (
         <Flex direction="column" align="center">
           <OpeningPreview
             opening={opening}
@@ -259,31 +256,6 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           </SegmentedControl.Root>
         </Flex>
 
-        {/* Opening Assembly Override */}
-        <Flex direction="column" gap="1">
-          <Flex gap="1" align="center">
-            <Label.Root>
-              <Text size="1" weight="medium" color="gray">
-                Opening Assembly
-              </Text>
-            </Label.Root>
-            <Tooltip content="Override the opening assembly for this specific opening. Leave as default to inherit from the wall assembly or global default.">
-              <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
-            </Tooltip>
-          </Flex>
-          <OpeningAssemblySelect
-            value={opening.openingAssemblyId}
-            onValueChange={value => {
-              updateOpening(perimeterId, wallId, openingId, {
-                openingAssemblyId: value as OpeningAssemblyId | undefined
-              })
-            }}
-            allowDefault
-            showDefaultIndicator
-            size="1"
-          />
-        </Flex>
-
         {/* Dimension Input Mode Toggle - Compact Layout */}
         <Flex align="center" justify="between" gap="2">
           <Flex align="center" gap="1">
@@ -294,7 +266,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
               content={
                 dimensionInputMode === 'fitting'
                   ? 'Raw opening size (construction)'
-                  : 'Actual opening size (with fitted frame)'
+                  : 'Actual opening size (with fitting frame)'
               }
             >
               <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
@@ -314,7 +286,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             Padding
           </Text>
           <Text size="1" color="gray">
-            {openingConfig ? `${formatLength(openingConfig.padding)}` : '???'}
+            {formatLength(openingConfig.padding)}
           </Text>
         </Flex>
 
@@ -331,8 +303,8 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           <LengthField
             value={getDisplayValue(opening?.width || 0, 'width')}
             onCommit={value => {
-              const fittedValue = convertToFittedValue(value, 'width')
-              updateOpening(perimeterId, wallId, openingId, { width: fittedValue })
+              const fittingValue = convertToFittedValue(value, 'width')
+              updateOpening(perimeterId, wallId, openingId, { width: fittingValue })
             }}
             unit="cm"
             min={dimensionInputMode === 'fitting' ? 100 : 50}
@@ -355,8 +327,8 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           <LengthField
             value={getDisplayValue(opening?.height || 0, 'height')}
             onCommit={value => {
-              const fittedValue = convertToFittedValue(value, 'height')
-              updateOpening(perimeterId, wallId, openingId, { height: fittedValue })
+              const fittingValue = convertToFittedValue(value, 'height')
+              updateOpening(perimeterId, wallId, openingId, { height: fittingValue })
             }}
             unit="cm"
             min={dimensionInputMode === 'fitting' ? 100 : 50}
@@ -379,9 +351,9 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           <LengthField
             value={getDisplayValue(opening?.sillHeight || 0, 'sillHeight')}
             onCommit={value => {
-              const fittedValue = convertToFittedValue(value, 'sillHeight')
+              const fittingValue = convertToFittedValue(value, 'sillHeight')
               updateOpening(perimeterId, wallId, openingId, {
-                sillHeight: fittedValue === 0 ? undefined : fittedValue
+                sillHeight: fittingValue === 0 ? undefined : fittingValue
               })
             }}
             unit="cm"
@@ -420,6 +392,31 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             onBlur={() => setFocusedField(undefined)}
           />
         </Grid>
+      </Flex>
+
+      {/* Opening Assembly Override */}
+      <Flex direction="column" gap="1">
+        <Flex gap="1" align="center">
+          <Label.Root>
+            <Text size="1" weight="medium" color="gray">
+              Opening Assembly
+            </Text>
+          </Label.Root>
+          <Tooltip content="Override the opening assembly for this specific opening. Leave as default to inherit from the wall assembly or global default.">
+            <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
+          </Tooltip>
+        </Flex>
+        <OpeningAssemblySelect
+          value={opening.openingAssemblyId}
+          onValueChange={value => {
+            updateOpening(perimeterId, wallId, openingId, {
+              openingAssemblyId: value as OpeningAssemblyId | undefined
+            })
+          }}
+          allowDefault
+          showDefaultIndicator
+          size="1"
+        />
       </Flex>
 
       <Separator size="4" />
