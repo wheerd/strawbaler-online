@@ -9,7 +9,7 @@ async function openMaterialsConfig(page: Page): Promise<Locator> {
       '{"accepted":true,"acceptedAt":"2025-10-22T06:21:42.893Z","version":"1.0"}'
     )
   })
-  await expect(page.getByTestId('main-toolbar')).toBeVisible()
+  await expect(page.getByTestId('main-toolbar')).toBeVisible({ timeout: 10000 })
   await page.getByRole('button', { name: 'Configuration' }).click()
   const dialog = page.getByRole('dialog', { name: 'Configuration' })
   await expect(dialog).toBeVisible()

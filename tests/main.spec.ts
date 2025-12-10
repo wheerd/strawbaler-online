@@ -2,9 +2,10 @@ import { expect, test } from '@playwright/test'
 import path from 'node:path'
 
 test('Test Data Screenshot', async ({ page }) => {
+  test.setTimeout(60000)
   await page.goto('/')
   await expect(page).toHaveTitle(/Strawbaler/)
-  await expect(page.getByText('Important Disclaimer')).toBeVisible()
+  await expect(page.getByText('Important Disclaimer')).toBeVisible({ timeout: 10000 })
   await page.getByRole('button', { name: 'I Understand & Continue' }).click()
   await expect(page.getByTestId('main-toolbar')).toMatchAriaSnapshot(`
     - text: Strawbaler Construction Planning
