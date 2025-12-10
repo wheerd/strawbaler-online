@@ -1,14 +1,27 @@
 import type { OpeningAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import type { OpeningAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
-import {
-  constructionHeightToFinished,
-  constructionOffsetToFinished,
-  constructionSillToFinished,
-  constructionWidthToFinished
-} from '@/shared/utils/openingDimensions'
+import type { Length } from '@/shared/geometry'
 
 import type { Migration } from './shared'
 import { getPersistedConfigStoreState, isRecord } from './shared'
+
+const toNumber = (value: Length | undefined): number => Number(value ?? 0)
+
+const clampLength = (value: number): Length => (value > 0 ? value : 0) as Length
+
+const constructionOffsetToFinished = (offset: Length, padding: Length): Length =>
+  clampLength(toNumber(offset) + toNumber(padding))
+
+const constructionSillToFinished = (sillHeight: Length | undefined, padding: Length): Length | undefined => {
+  if (sillHeight == null) return undefined
+  return clampLength(toNumber(sillHeight) + toNumber(padding))
+}
+
+const constructionWidthToFinished = (width: Length, padding: Length): Length =>
+  clampLength(toNumber(width) - 2 * toNumber(padding))
+
+const constructionHeightToFinished = (height: Length, padding: Length): Length =>
+  clampLength(toNumber(height) - 2 * toNumber(padding))
 
 const getPadding = (
   assemblyId: WallAssemblyId | undefined,

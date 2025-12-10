@@ -143,37 +143,31 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
 
   // Conversion helper functions (UI layer responsibility)
   const getDisplayValue = useCallback(
-    (finishedValue: number, type: 'width' | 'height' | 'sillHeight'): number => {
-      if (state.dimensionMode === 'finished') {
-        return finishedValue
+    (value: number, type: 'width' | 'height' | 'sillHeight'): number => {
+      if (state.dimensionMode === 'fitting') {
+        return value
       }
 
-      // In fitting mode, convert from finished to fitting
       if (type === 'sillHeight') {
-        // Sill: fitting = finished - padding
-        return Math.max(0, finishedValue - currentPadding)
+        return value + currentPadding
       }
 
-      // Width/height: fitting = finished + 2*padding
-      return finishedValue + 2 * currentPadding
+      return Math.max(10, value - 2 * currentPadding)
     },
     [state.dimensionMode, currentPadding]
   )
 
-  const convertInputToFinished = useCallback(
+  const convertInputToFitting = useCallback(
     (inputValue: number, type: 'width' | 'height' | 'sillHeight'): number => {
-      if (state.dimensionMode === 'finished') {
+      if (state.dimensionMode === 'fitting') {
         return inputValue
       }
 
-      // In fitting mode, convert from fitting to finished
       if (type === 'sillHeight') {
-        // Sill: finished = fitting + padding
-        return inputValue + currentPadding
+        return inputValue - currentPadding
       }
 
-      // Width/height: finished = fitting - 2*padding
-      return Math.max(10, inputValue - 2 * currentPadding) // Clamp to minimum 10mm
+      return inputValue + 2 * currentPadding
     },
     [state.dimensionMode, currentPadding]
   )
@@ -347,7 +341,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
         {/* Row 1, Column 2: Width Input */}
         <LengthField
           value={getDisplayValue(state.width, 'width')}
-          onCommit={value => tool.setWidth(convertInputToFinished(value, 'width'))}
+          onCommit={value => tool.setWidth(convertInputToFitting(value, 'width'))}
           unit="cm"
           min={100}
           max={5000}
@@ -368,7 +362,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
         {/* Row 1, Column 4: Height Input */}
         <LengthField
           value={getDisplayValue(state.height, 'height')}
-          onCommit={value => tool.setHeight(convertInputToFinished(value, 'height'))}
+          onCommit={value => tool.setHeight(convertInputToFitting(value, 'height'))}
           unit="cm"
           min={100}
           max={4000}
@@ -389,7 +383,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
         {/* Row 2, Column 2: Sill Height Input */}
         <LengthField
           value={getDisplayValue(state.sillHeight ?? 0, 'sillHeight')}
-          onCommit={value => tool.setSillHeight(convertInputToFinished(value, 'sillHeight'))}
+          onCommit={value => tool.setSillHeight(convertInputToFitting(value, 'sillHeight'))}
           unit="cm"
           min={0}
           max={2000}
@@ -412,7 +406,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           value={getDisplayValue(state.sillHeight ?? 0, 'sillHeight') + getDisplayValue(state.height, 'height')}
           onCommit={value =>
             tool.setHeight(
-              convertInputToFinished(value - getDisplayValue(state.sillHeight ?? 0, 'sillHeight'), 'height')
+              convertInputToFitting(value - getDisplayValue(state.sillHeight ?? 0, 'sillHeight'), 'height')
             )
           }
           unit="cm"

@@ -2,7 +2,7 @@ import { InfoCircledIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import { Box, Callout, Flex, Grid, IconButton, Kbd, SegmentedControl, Separator, Text, Tooltip } from '@radix-ui/themes'
 import { vec2 } from 'gl-matrix'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import type { OpeningAssemblyId, OpeningId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import type { OpeningType } from '@/building/model/model'
@@ -18,14 +18,6 @@ import { LengthField } from '@/shared/components/LengthField'
 import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/components/OpeningIcons'
 import { Bounds2D, type Polygon2D, offsetPolygon } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatting'
-import {
-  constructionHeightToFinished,
-  constructionSillToFinished,
-  constructionWidthToFinished,
-  finishedHeightToConstruction,
-  finishedSillToConstruction,
-  finishedWidthToConstruction
-} from '@/shared/utils/openingDimensions'
 
 import { OpeningPreview } from './OpeningPreview'
 
@@ -80,54 +72,49 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   }, [storey])
 
   // Preview state
-  const [highlightMode, setHighlightMode] = useState<'fitting' | 'finished'>('fitting')
   const [focusedField, setFocusedField] = useState<'width' | 'height' | 'sillHeight' | 'topHeight' | undefined>()
 
   // Dimension input mode - whether user is inputting fitting or finished dimensions
-  const [dimensionInputMode, setDimensionInputMode] = useState<'fitting' | 'finished'>('finished')
-
-  // Sync dimension input mode with highlight mode
-  useEffect(() => {
-    setHighlightMode(dimensionInputMode)
-  }, [dimensionInputMode])
+  const [dimensionInputMode, setDimensionInputMode] = useState<'fitting' | 'finished'>('fitting')
 
   // Helper functions for dimension conversion
+  // Model stores FITTED dimensions, UI displays user's choice (finished or fitting)
   const getDisplayValue = useCallback(
-    (value: number, type: 'width' | 'height' | 'sillHeight') => {
-      if (!openingConfig) return value
+    (fittedValue: number, type: 'width' | 'height' | 'sillHeight') => {
+      if (!openingConfig) return fittedValue
       const padding = openingConfig.padding
 
       if (dimensionInputMode === 'finished') {
-        return value
+        // User wants to see finished dimensions - convert fitted to finished
+        if (type === 'width' || type === 'height') {
+          return Math.max(10, fittedValue - 2 * padding)
+        }
+        // Sill: fitted is lower, finished is higher
+        return fittedValue + padding
       }
 
-      if (type === 'width') {
-        return finishedWidthToConstruction(value, padding)
-      }
-      if (type === 'height') {
-        return finishedHeightToConstruction(value, padding)
-      }
-      return finishedSillToConstruction(value, padding) ?? 0
+      // User wants to see fitting dimensions - return as-is (model is fitted)
+      return fittedValue
     },
     [openingConfig, dimensionInputMode]
   )
 
-  const convertToFittingValue = useCallback(
+  const convertToFittedValue = useCallback(
     (inputValue: number, type: 'width' | 'height' | 'sillHeight') => {
       if (!openingConfig) return inputValue
       const padding = openingConfig.padding
 
       if (dimensionInputMode === 'finished') {
-        return inputValue
+        // User entered finished dimensions - convert to fitted for model
+        if (type === 'width' || type === 'height') {
+          return inputValue + 2 * padding
+        }
+        // Sill: finished is higher, fitted is lower
+        return Math.max(0, inputValue - padding)
       }
 
-      if (type === 'width') {
-        return constructionWidthToFinished(inputValue, padding)
-      }
-      if (type === 'height') {
-        return constructionHeightToFinished(inputValue, padding)
-      }
-      return constructionSillToFinished(inputValue, padding) ?? 0
+      // User entered fitting dimensions - use as-is (model is fitted)
+      return inputValue
     },
     [openingConfig, dimensionInputMode]
   )
@@ -222,7 +209,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             opening={opening}
             wallHeight={wallHeight}
             padding={openingConfig.padding}
-            highlightMode={highlightMode}
+            highlightMode={dimensionInputMode}
             focusedField={focusedField}
           />
         </Flex>
@@ -344,8 +331,8 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           <LengthField
             value={getDisplayValue(opening?.width || 0, 'width')}
             onCommit={value => {
-              const fittingValue = convertToFittingValue(value, 'width')
-              updateOpening(perimeterId, wallId, openingId, { width: fittingValue })
+              const fittedValue = convertToFittedValue(value, 'width')
+              updateOpening(perimeterId, wallId, openingId, { width: fittedValue })
             }}
             unit="cm"
             min={dimensionInputMode === 'fitting' ? 100 : 50}
@@ -368,8 +355,8 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           <LengthField
             value={getDisplayValue(opening?.height || 0, 'height')}
             onCommit={value => {
-              const fittingValue = convertToFittingValue(value, 'height')
-              updateOpening(perimeterId, wallId, openingId, { height: fittingValue })
+              const fittedValue = convertToFittedValue(value, 'height')
+              updateOpening(perimeterId, wallId, openingId, { height: fittedValue })
             }}
             unit="cm"
             min={dimensionInputMode === 'fitting' ? 100 : 50}
@@ -392,9 +379,9 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           <LengthField
             value={getDisplayValue(opening?.sillHeight || 0, 'sillHeight')}
             onCommit={value => {
-              const fittingValue = convertToFittingValue(value, 'sillHeight')
+              const fittedValue = convertToFittedValue(value, 'sillHeight')
               updateOpening(perimeterId, wallId, openingId, {
-                sillHeight: fittingValue === 0 ? undefined : fittingValue
+                sillHeight: fittedValue === 0 ? undefined : fittedValue
               })
             }}
             unit="cm"

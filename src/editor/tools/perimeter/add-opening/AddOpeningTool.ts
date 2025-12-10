@@ -72,7 +72,7 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
     width: DEFAULT_OPENING_CONFIG.door.width,
     height: DEFAULT_OPENING_CONFIG.door.height,
     canPlace: false,
-    dimensionMode: 'finished', // Start in finished mode (most common)
+    dimensionMode: 'fitting', // Start in fitting mode (most common)
     openingAssemblyId: undefined // Use wall/global default
   }
 
@@ -139,7 +139,7 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
    * 3. Wall has different padding than global default
    */
   public getNeedsConversion(): boolean {
-    if (this.state.dimensionMode !== 'fitting') {
+    if (this.state.dimensionMode !== 'finished') {
       return false
     }
 
@@ -288,7 +288,7 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
     let finalSillHeight = this.state.sillHeight
 
     // Apply conversion if needed:
-    // - In fitting mode
+    // - In finished mode
     // - Using global default (no explicit override)
     // - Wall has different padding
     if (this.getNeedsConversion()) {
@@ -298,16 +298,16 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
       const defaultAssembly = configActions.getOpeningAssemblyById(defaultAssemblyId)
 
       if (defaultAssembly && wallOpeningPadding) {
-        // Current dimensions are finished for default assembly padding
-        // Convert to fitting, then back to finished for wallPadding
-        const fittingWidth = finalWidth + 2 * defaultAssembly.padding
-        const fittingHeight = finalHeight + 2 * defaultAssembly.padding
-        const fittingSillHeight = finalSillHeight ? finalSillHeight - defaultAssembly.padding : undefined
+        // Current dimensions are fitting for default assembly padding
+        // Convert to finished, then back to fitting for wallPadding
+        const fittingWidth = finalWidth - 2 * defaultAssembly.padding
+        const fittingHeight = finalHeight - 2 * defaultAssembly.padding
+        const fittingSillHeight = finalSillHeight ? finalSillHeight + defaultAssembly.padding : undefined
 
-        // Now convert back to finished using wall padding
-        finalWidth = Math.max(10, fittingWidth - 2 * wallOpeningPadding)
-        finalHeight = Math.max(10, fittingHeight - 2 * wallOpeningPadding)
-        finalSillHeight = fittingSillHeight !== undefined ? fittingSillHeight + wallOpeningPadding : undefined
+        // Now convert back to fitting using wall padding
+        finalWidth = Math.max(10, fittingWidth + 2 * wallOpeningPadding)
+        finalHeight = Math.max(10, fittingHeight + 2 * wallOpeningPadding)
+        finalSillHeight = fittingSillHeight !== undefined ? fittingSillHeight - wallOpeningPadding : undefined
       }
     }
 

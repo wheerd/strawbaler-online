@@ -29,15 +29,15 @@ export function OpeningPreview({
   const fittingClipId = useId()
   const finishedClipId = useId()
 
-  // Opening dimensions are stored as FINISHED (clear opening size)
-  const finishedWidth = opening.width
-  const finishedHeight = opening.height
-  const finishedSillHeight = opening.sillHeight || 0
+  // Opening dimensions are stored as FITTING (rough opening size with padding)
+  const fittingWidth = opening.width
+  const fittingHeight = opening.height
+  const fittingSillHeight = opening.sillHeight || 0
 
-  // Calculate FITTING dimensions (rough opening size with padding)
-  const fittingWidth = finishedWidth + 2 * padding
-  const fittingHeight = finishedHeight + 2 * padding
-  const fittingSillHeight = finishedSillHeight > 0 ? finishedSillHeight - padding : 0
+  // Calculate FINISHED dimensions (clear opening size)
+  const finishedWidth = fittingWidth - 2 * padding
+  const finishedHeight = fittingHeight - 2 * padding
+  const finishedSillHeight = fittingSillHeight + padding
 
   // Floor to top measurements (when sill exists)
   const fittingFloorToTop = fittingSillHeight > 0 ? fittingSillHeight + fittingHeight : 0
