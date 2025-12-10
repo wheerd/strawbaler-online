@@ -85,7 +85,7 @@ describe('ProjectImportExportService Integration', () => {
     // Add a door to the first wall
     modelActions.addPerimeterWallOpening(perimeter.id, wall1.id, {
       type: 'door',
-      offsetFromStart: 1000,
+      centerOffsetFromWallStart: 1000,
       width: 900,
       height: 2100,
       sillHeight: undefined
@@ -94,7 +94,7 @@ describe('ProjectImportExportService Integration', () => {
     // Add a window to the second wall
     modelActions.addPerimeterWallOpening(perimeter.id, wall2.id, {
       type: 'window',
-      offsetFromStart: 2000,
+      centerOffsetFromWallStart: 2000,
       width: 1200,
       height: 1500,
       sillHeight: 800
@@ -159,6 +159,9 @@ describe('ProjectImportExportService Integration', () => {
     // 5. Import the exported data
     const importResult = await ProjectImportExportService.importFromString(exportResult.content)
 
+    if (!importResult.success) {
+      console.error('Import failed:', importResult.error)
+    }
     expect(importResult.success).toBe(true)
 
     if (!importResult.success) return
@@ -243,7 +246,9 @@ describe('ProjectImportExportService Integration', () => {
             const importedOpening = importedWall.openings[l]
 
             expect(importedOpening.type).toBe(originalOpening.type)
-            expect(Number(importedOpening.offsetFromStart)).toBe(Number(originalOpening.offsetFromStart))
+            expect(Number(importedOpening.centerOffsetFromWallStart)).toBe(
+              Number(originalOpening.centerOffsetFromWallStart)
+            )
             expect(Number(importedOpening.width)).toBe(Number(originalOpening.width))
             expect(Number(importedOpening.height)).toBe(Number(originalOpening.height))
 

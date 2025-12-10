@@ -7,6 +7,7 @@ import { MaterialsConfigContent } from '@/construction/materials/components/Mate
 import { BaseModal } from '@/shared/components/BaseModal'
 
 import { FloorAssemblyConfigContent } from './FloorAssemblyConfigContent'
+import { OpeningAssemblyContent } from './OpeningAssemblyContent'
 import { RingBeamAssemblyContent } from './RingBeamAssemblyContent'
 import { RoofAssemblyConfigContent } from './RoofAssemblyConfigContent'
 import { WallAssemblyContent } from './WallAssemblyContent'
@@ -48,6 +49,7 @@ export function ConfigurationModal({
           <Tabs.Trigger value="materials">Materials</Tabs.Trigger>
           <Tabs.Trigger value="ringbeams">Ring Beam Assemblies</Tabs.Trigger>
           <Tabs.Trigger value="walls">Wall Assemblies</Tabs.Trigger>
+          <Tabs.Trigger value="openings">Opening Assemblies</Tabs.Trigger>
           <Tabs.Trigger value="floors">Floor Assemblies</Tabs.Trigger>
           <Tabs.Trigger value="roofs">Roof Assemblies</Tabs.Trigger>
         </Tabs.List>
@@ -67,6 +69,12 @@ export function ConfigurationModal({
         <Tabs.Content value="walls">
           <Flex pt="4" style={{ width: '100%' }}>
             <WallAssemblyContent initialSelectionId={initialSelectionId} />
+          </Flex>
+        </Tabs.Content>
+
+        <Tabs.Content value="openings">
+          <Flex pt="4" style={{ width: '100%' }}>
+            <OpeningAssemblyContent initialSelectionId={initialSelectionId} />
           </Flex>
         </Tabs.Content>
 

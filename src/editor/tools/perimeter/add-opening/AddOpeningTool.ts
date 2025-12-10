@@ -2,6 +2,7 @@ import { vec2 } from 'gl-matrix'
 
 import {
   type EntityType,
+  type OpeningAssemblyId,
   type PerimeterId,
   type PerimeterWallId,
   type SelectableId,
@@ -10,6 +11,7 @@ import {
 } from '@/building/model/ids'
 import type { OpeningType, PerimeterWall } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
+import { getConfigActions } from '@/construction/config/store'
 import { entityHitTestService } from '@/editor/canvas/services/EntityHitTestService'
 import { getSelectionActions } from '@/editor/hooks/useSelectionStore'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
@@ -26,14 +28,19 @@ interface PerimeterWallHit {
   perimeterId: PerimeterId
   wallId: PerimeterWallId
   wall: PerimeterWall
+  wallOpeningPadding?: Length
 }
 
 interface AddOpeningToolState {
   // Tool configuration
   openingType: OpeningType
-  width: Length
-  height: Length
-  sillHeight?: Length
+  width: Length // Stored as FINISHED dimensions
+  height: Length // Stored as FINISHED dimensions
+  sillHeight?: Length // Stored as FINISHED dimensions
+
+  // Opening assembly and dimension mode
+  openingAssemblyId?: OpeningAssemblyId // Optional override
+  dimensionMode: 'fitting' | 'finished' // How user inputs dimensions
 
   // Interactive state
   hoveredPerimeterWall?: PerimeterWallHit
@@ -64,11 +71,13 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
     openingType: 'door',
     width: DEFAULT_OPENING_CONFIG.door.width,
     height: DEFAULT_OPENING_CONFIG.door.height,
-    canPlace: false
+    canPlace: false,
+    dimensionMode: 'fitting', // Start in fitting mode (most common)
+    openingAssemblyId: undefined // Use wall/global default
   }
 
   /**
-   * Extract wall wall information from hit test result
+   * Extract wall information and resolve opening assembly padding from hit test result
    */
   private extractPerimeterWallFromHitResult(
     hitResult: { entityId: SelectableId; entityType: EntityType; parentIds: SelectableId[] } | null
@@ -77,33 +86,82 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
 
     const { getPerimeterWallById } = getModelActions()
 
+    let wall: PerimeterWall | null = null
+    let perimeterId: PerimeterId | null = null
+    let wallId: PerimeterWallId | null = null
+
     // Check if we hit a wall wall directly
     if (hitResult.entityType === 'perimeter-wall') {
-      const wallId = hitResult.entityId as PerimeterWallId
+      wallId = hitResult.entityId as PerimeterWallId
       // Parent should be the perimeter
-      const perimeterId = hitResult.parentIds[0] as PerimeterId
+      perimeterId = hitResult.parentIds[0] as PerimeterId
 
       if (perimeterId && wallId) {
-        const wall = getPerimeterWallById(perimeterId, wallId)
-        if (wall) {
-          return { perimeterId, wallId, wall }
-        }
+        wall = getPerimeterWallById(perimeterId, wallId)
       }
     }
 
     // Check if we hit an opening
     if (hitResult.entityType === 'opening') {
-      const [perimeterId, wallId] = hitResult.parentIds
+      const [pId, wId] = hitResult.parentIds
 
-      if (isPerimeterId(perimeterId) && isPerimeterWallId(wallId)) {
-        const wall = getPerimeterWallById(perimeterId, wallId)
-        if (wall) {
-          return { perimeterId, wallId, wall }
-        }
+      if (isPerimeterId(pId) && isPerimeterWallId(wId)) {
+        perimeterId = pId
+        wallId = wId
+        wall = getPerimeterWallById(perimeterId, wallId)
       }
     }
 
-    return null
+    if (!wall || !perimeterId || !wallId) {
+      return null
+    }
+
+    // Resolve the opening assembly padding for this wall
+    const configActions = getConfigActions()
+    const wallAssembly = configActions.getWallAssemblyById(wall.wallAssemblyId)
+    const openingAssembly = wallAssembly?.openingAssemblyId
+      ? configActions.getOpeningAssemblyById(wallAssembly.openingAssemblyId)
+      : null
+
+    return {
+      perimeterId,
+      wallId,
+      wall,
+      wallOpeningPadding: openingAssembly?.padding
+    }
+  }
+
+  /**
+   * Check if conversion warning should be shown
+   * Only relevant when:
+   * 1. In fitting mode
+   * 2. Using global default (no override)
+   * 3. Wall has different padding than global default
+   */
+  public getNeedsConversion(): boolean {
+    if (this.state.dimensionMode !== 'finished') {
+      return false
+    }
+
+    if (this.state.openingAssemblyId !== undefined) {
+      // Has explicit override, no conversion needed
+      return false
+    }
+
+    if (this.state.hoveredPerimeterWall?.wallOpeningPadding == null) {
+      return false
+    }
+
+    const configActions = getConfigActions()
+
+    const defaultAssemblyId = configActions.getDefaultOpeningAssemblyId()
+    const defaultAssembly = configActions.getOpeningAssemblyById(defaultAssemblyId)
+
+    if (!defaultAssembly) {
+      return false
+    }
+
+    return Math.abs(defaultAssembly?.padding - this.state.hoveredPerimeterWall.wallOpeningPadding) > 0.1
   }
 
   /**
@@ -123,11 +181,10 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
     const startPoint = wall.insideLine.start
     const centerOffset = vec2.distance(startPoint, projectedPoint)
 
-    // Rounded offset of opening start from the start of the wall wall
-    const actualStartOffset = centerOffset - this.state.width / 2
-    const roundedOffset = Math.round(actualStartOffset / 10) * 10
+    // Round center offset to 10mm increments
+    const roundedCenterOffset = Math.round(centerOffset / 10) * 10
 
-    return roundedOffset
+    return roundedCenterOffset
   }
 
   /**
@@ -206,7 +263,9 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
         snappedOffset !== preferredStartOffset ? (snappedOffset > preferredStartOffset ? 'right' : 'left') : undefined
       this.updatePreview(snappedOffset, perimeterWall, true, snapDirection)
     } else {
-      if (preferredStartOffset < 0 || preferredStartOffset > perimeterWall.wall.wallLength - this.state.width) {
+      // Check if center is within valid bounds (at least halfWidth from each end)
+      const halfWidth = this.state.width / 2
+      if (preferredStartOffset < halfWidth || preferredStartOffset > perimeterWall.wall.wallLength - halfWidth) {
         this.clearPreview()
       } else {
         this.updatePreview(preferredStartOffset, perimeterWall, snappedOffset === preferredStartOffset)
@@ -221,15 +280,45 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
       return true
     }
 
-    const { perimeterId, wallId } = this.state.hoveredPerimeterWall
+    const { perimeterId, wallId, wallOpeningPadding } = this.state.hoveredPerimeterWall
+
+    // Stored dimensions are in finished coordinates
+    let finalWidth = this.state.width
+    let finalHeight = this.state.height
+    let finalSillHeight = this.state.sillHeight
+
+    // Apply conversion if needed:
+    // - In finished mode
+    // - Using global default (no explicit override)
+    // - Wall has different padding
+    if (this.getNeedsConversion()) {
+      const configActions = getConfigActions()
+
+      const defaultAssemblyId = configActions.getDefaultOpeningAssemblyId()
+      const defaultAssembly = configActions.getOpeningAssemblyById(defaultAssemblyId)
+
+      if (defaultAssembly && wallOpeningPadding) {
+        // Current dimensions are fitting for default assembly padding
+        // Convert to finished, then back to fitting for wallPadding
+        const fittingWidth = finalWidth - 2 * defaultAssembly.padding
+        const fittingHeight = finalHeight - 2 * defaultAssembly.padding
+        const fittingSillHeight = finalSillHeight ? finalSillHeight + defaultAssembly.padding : undefined
+
+        // Now convert back to fitting using wall padding
+        finalWidth = Math.max(10, fittingWidth + 2 * wallOpeningPadding)
+        finalHeight = Math.max(10, fittingHeight + 2 * wallOpeningPadding)
+        finalSillHeight = fittingSillHeight !== undefined ? fittingSillHeight - wallOpeningPadding : undefined
+      }
+    }
 
     try {
       const openingId = getModelActions().addPerimeterWallOpening(perimeterId, wallId, {
         type: this.state.openingType,
-        offsetFromStart: this.state.offset,
-        width: this.state.width,
-        height: this.state.height,
-        sillHeight: this.state.sillHeight
+        centerOffsetFromWallStart: this.state.offset,
+        width: finalWidth,
+        height: finalHeight,
+        sillHeight: finalSillHeight,
+        openingAssemblyId: this.state.openingAssemblyId
       })
 
       const { clearSelection, pushSelection } = getSelectionActions()
@@ -288,6 +377,16 @@ export class AddOpeningTool extends BaseTool implements ToolImplementation {
 
   setSillHeight(sillHeight: Length | undefined): void {
     this.state.sillHeight = sillHeight
+    this.triggerRender()
+  }
+
+  setDimensionMode(mode: 'fitting' | 'finished'): void {
+    this.state.dimensionMode = mode
+    this.triggerRender()
+  }
+
+  setOpeningAssemblyId(id: OpeningAssemblyId | undefined): void {
+    this.state.openingAssemblyId = id
     this.triggerRender()
   }
 

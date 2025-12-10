@@ -5,7 +5,6 @@ import { WallConstructionArea } from '@/construction/geometry'
 import { constructStraw } from '@/construction/materials/straw'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
-import { constructOpeningFrame } from '@/construction/openings/openings'
 import type { ConstructionResult } from '@/construction/results'
 import { aggregateResults, yieldMeasurement } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
@@ -161,10 +160,8 @@ export class StrawhengeWallAssembly implements WallAssembly<StrawhengeWallConfig
         config.layers,
         (area, startsWithStand, endsWithStand, startAtEnd) =>
           strawhengeWallArea(area, config, startsWithStand, endsWithStand, startAtEnd),
-
-        (area, zOffset, openings) =>
-          constructOpeningFrame(area, openings, zOffset, config.openings, a => infillWallArea(a, config.infill)),
-        config.openings.padding
+        area => infillWallArea(area, config.infill),
+        config.openingAssemblyId
       )
     )
 
@@ -178,7 +175,7 @@ export class StrawhengeWallAssembly implements WallAssembly<StrawhengeWallConfig
       warnings: aggRes.warnings
     }
 
-    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers, config)
 
     return mergeModels(baseModel, layerModel)
   }

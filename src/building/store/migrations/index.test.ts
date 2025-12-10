@@ -116,7 +116,7 @@ describe('model store migrations', () => {
     expect(storeys.b.floorHeight).toBe(2300)
   })
 
-  it('converts wall opening dimensions to finished values', () => {
+  it('preserves opening dimensions as fitting values', () => {
     const storage = (globalThis as { localStorage?: Storage }).localStorage
     storage?.setItem(
       'strawbaler-config',
@@ -160,10 +160,10 @@ describe('model store migrations', () => {
                 {
                   id: 'opening1',
                   type: 'door',
-                  offsetFromStart: 500,
-                  width: 1000,
-                  height: 2100,
-                  sillHeight: 100
+                  centerOffsetFromWallStart: 500,
+                  width: 1000, // Fitted width
+                  height: 2100, // Fitted height
+                  sillHeight: 100 // Fitted sill height
                 }
               ]
             }
@@ -173,9 +173,10 @@ describe('model store migrations', () => {
     }) as Record<string, any>
 
     const opening = migrated.perimeters.perimeter1.walls[0].openings[0]
-    expect(opening.width).toBe(950)
-    expect(opening.height).toBe(2050)
-    expect(opening.offsetFromStart).toBe(525)
-    expect(opening.sillHeight).toBe(125)
+    // Dimensions are stored as fitted and should remain unchanged
+    expect(opening.width).toBe(1000)
+    expect(opening.height).toBe(2100)
+    expect(opening.centerOffsetFromWallStart).toBe(500)
+    expect(opening.sillHeight).toBe(100)
   })
 })

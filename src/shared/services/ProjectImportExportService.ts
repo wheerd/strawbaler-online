@@ -2,6 +2,7 @@ import { vec2 } from 'gl-matrix'
 
 import type {
   FloorAssemblyId,
+  OpeningAssemblyId,
   PerimeterId,
   RingBeamAssemblyId,
   RoofAssemblyId,
@@ -9,7 +10,7 @@ import type {
 } from '@/building/model/ids'
 import type { Storey } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
-import { getConfigState, setConfigState } from '@/construction/config/store'
+import { getConfigActions, getConfigState, setConfigState } from '@/construction/config/store'
 import { applyMigrations } from '@/construction/config/store/migrations'
 import type {
   FloorAssemblyConfig,
@@ -21,13 +22,8 @@ import { FLOOR_ASSEMBLIES } from '@/construction/floors'
 import type { Material, MaterialId } from '@/construction/materials/material'
 import { getMaterialsState, setMaterialsState } from '@/construction/materials/store'
 import { MATERIALS_STORE_VERSION, migrateMaterialsState } from '@/construction/materials/store/migrations'
+import { resolveOpeningConfig } from '@/construction/openings/resolver'
 import type { Polygon2D } from '@/shared/geometry'
-import {
-  constructionHeightToFinished,
-  constructionOffsetToFinished,
-  constructionSillToFinished,
-  constructionWidthToFinished
-} from '@/shared/utils/openingDimensions'
 
 export interface ExportedStorey {
   name: string
@@ -63,10 +59,12 @@ export interface ExportedWall {
 
 export interface ExportedOpening {
   type: 'door' | 'window' | 'passage'
-  offsetFromStart: number
+  centerOffset: number
+  offsetFromStart?: number
   width: number
   height: number
   sillHeight?: number
+  openingAssemblyId?: string
 }
 
 export interface ExportedFloorPolygon {
@@ -136,7 +134,7 @@ export interface IProjectImportExportService {
   importFromString(content: string): Promise<ImportResult | ImportError>
 }
 
-const CURRENT_VERSION = '1.9.0'
+const CURRENT_VERSION = '1.11.0'
 const SUPPORTED_VERSIONS = [
   '1.0.0',
   '1.1.0',
@@ -147,24 +145,26 @@ const SUPPORTED_VERSIONS = [
   '1.6.0',
   '1.7.0',
   '1.8.0',
-  '1.9.0'
+  '1.9.0',
+  '1.10.0',
+  '1.11.0'
 ] as const
+
+const compareVersion = (version1: string, version2: string) => {
+  const v1 = version1.split('.').map(Number)
+  const v2 = version2.split('.').map(Number)
+  for (let i = 0; i < v1.length; i++) {
+    const e1 = v1[i]
+    const e2 = v2[i]
+    if (e1 < e2) return -1
+    if (e1 > e2) return 1
+  }
+  return 0
+}
 
 const polygonToExport = (polygon: Polygon2D): ExportedFloorPolygon => ({
   points: polygon.points.map(point => ({ x: point[0], y: point[1] }))
 })
-
-const compareVersions = (a: string, b: string): number => {
-  const pa = a.split('.').map(v => Number(v) || 0)
-  const pb = b.split('.').map(v => Number(v) || 0)
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const diff = (pa[i] ?? 0) - (pb[i] ?? 0)
-    if (diff !== 0) {
-      return diff > 0 ? 1 : -1
-    }
-  }
-  return 0
-}
 
 const getFloorAssemblyThicknessFromConfig = (
   configs: Record<FloorAssemblyId, FloorAssemblyConfig> | undefined,
@@ -238,10 +238,11 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
             wallAssemblyId: wall.wallAssemblyId,
             openings: wall.openings.map(opening => ({
               type: opening.type,
-              offsetFromStart: Number(opening.offsetFromStart),
+              centerOffset: Number(opening.centerOffsetFromWallStart),
               width: Number(opening.width),
               height: Number(opening.height),
-              sillHeight: opening.sillHeight ? Number(opening.sillHeight) : undefined
+              sillHeight: opening.sillHeight ? Number(opening.sillHeight) : undefined,
+              openingAssemblyId: opening.openingAssemblyId
             }))
           })),
           baseRingBeamAssemblyId: perimeter.baseRingBeamAssemblyId,
@@ -288,6 +289,8 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
 
       const modelActions = getModelActions()
 
+      const migrateOpeningDimensions = compareVersion(importResult.data.version, '1.11.0') < 0
+
       // 1. Import config state with backwards compatibility for floor configs
       const configStore = applyMigrations(importResult.data.configStore) as Parameters<typeof setConfigState>[0]
       setConfigState(configStore)
@@ -307,7 +310,6 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
 
       // 5. Process imported storeys
       const exportedStoreys = importResult.data.modelStore.storeys
-      const needsOpeningConversion = compareVersions(importResult.data.version, '1.8.0') < 0
 
       exportedStoreys.forEach((exportedStorey, index, list) => {
         let targetStorey: Storey
@@ -341,7 +343,6 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
           // Get assembly from first wall or use default
           const wallAssemblyId = exportedPerimeter.walls[0]?.wallAssemblyId as WallAssemblyId
           const thickness = exportedPerimeter.walls[0]?.thickness || 200
-          const assemblyPadding = configStore.wallAssemblyConfigs?.[wallAssemblyId]?.openings.padding ?? 0
 
           // Basic perimeter creation - auto-computes geometry, outsidePoints, etc.
           const perimeter = modelActions.addPerimeter(
@@ -366,24 +367,33 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
               exportedWall.wallAssemblyId as WallAssemblyId
             )
 
-            const wallPadding =
-              configStore.wallAssemblyConfigs?.[exportedWall.wallAssemblyId as WallAssemblyId]?.openings.padding ??
-              assemblyPadding
+            const wallAssembly = getConfigActions().getWallAssemblyById(exportedWall.wallAssemblyId as WallAssemblyId)
 
             // Add openings
             exportedWall.openings.forEach(exportedOpening => {
-              const convertedSillHeight = constructionSillToFinished(exportedOpening.sillHeight, wallPadding)
-              const openingParams = needsOpeningConversion
+              const openingConfig = resolveOpeningConfig(
+                { openingAssemblyId: exportedOpening.openingAssemblyId as OpeningAssemblyId },
+                { openingAssemblyId: wallAssembly?.openingAssemblyId }
+              )
+              const openingParams = migrateOpeningDimensions
                 ? {
                     type: exportedOpening.type,
-                    offsetFromStart: constructionOffsetToFinished(exportedOpening.offsetFromStart, wallPadding),
-                    width: constructionWidthToFinished(exportedOpening.width, wallPadding),
-                    height: constructionHeightToFinished(exportedOpening.height, wallPadding),
-                    sillHeight: convertedSillHeight || undefined
+                    centerOffsetFromWallStart:
+                      exportedOpening.offsetFromStart != null
+                        ? exportedOpening.offsetFromStart + exportedOpening.width / 2 - openingConfig.padding
+                        : exportedOpening.centerOffset,
+                    width: exportedOpening.width + 2 * openingConfig.padding,
+                    height: exportedOpening.height + 2 * openingConfig.padding,
+                    sillHeight: exportedOpening.sillHeight
+                      ? exportedOpening.sillHeight - openingConfig.padding
+                      : undefined
                   }
                 : {
                     type: exportedOpening.type,
-                    offsetFromStart: exportedOpening.offsetFromStart,
+                    centerOffsetFromWallStart:
+                      exportedOpening.offsetFromStart != null
+                        ? exportedOpening.offsetFromStart + exportedOpening.width / 2
+                        : exportedOpening.centerOffset,
                     width: exportedOpening.width,
                     height: exportedOpening.height,
                     sillHeight: exportedOpening.sillHeight ? exportedOpening.sillHeight : undefined
@@ -579,7 +589,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
             typeof (roof as Record<string, unknown>).mainSideIndex !== 'number' ||
             typeof (roof as Record<string, unknown>).slope !== 'number' ||
             typeof (roof as Record<string, unknown>).verticalOffset !== 'number' ||
-            !Array.isArray((roof as Record<string, unknown>).overhang) ||
+            !Array.isArray((roof as Record<string, unknown>).overhangs) ||
             typeof (roof as Record<string, unknown>).assemblyId !== 'string'
           ) {
             return false

@@ -84,13 +84,6 @@ function createMockAssembly(id: string, name: string, layers: WallLayersConfig):
       width: 60,
       material: 'wood' as any
     },
-    openings: {
-      padding: 15,
-      headerThickness: 60,
-      headerMaterial: 'wood' as any,
-      sillThickness: 60,
-      sillMaterial: 'wood' as any
-    },
     layers
   }
 }

@@ -1,6 +1,7 @@
 import { vec2, vec3 } from 'gl-matrix'
 
-import { type Projection, projectPoint } from '@/construction/geometry'
+import { type Projection, WallConstructionArea, projectPoint } from '@/construction/geometry'
+import { type ConstructionResult, yieldMeasurement } from '@/construction/results'
 import {
   type Length,
   type Line2D,
@@ -10,6 +11,7 @@ import {
   perpendicularCCW,
   projectPointOntoLine
 } from '@/shared/geometry'
+import { formatLength } from '@/shared/utils/formatting'
 
 import type { Tag } from './tags'
 
@@ -68,6 +70,69 @@ export interface MeasurementLines {
   direction: vec2
   start: vec2
   lines: LineMeasurement[][]
+}
+
+export type AreaMeasurement = 'minHeight' | 'maxHeight' | 'width' | 'thickness'
+
+export function createMeasurementFromArea(
+  area: WallConstructionArea,
+  type: AreaMeasurement,
+  tags?: Tag[],
+  offset?: Length,
+  useMin = true
+): RawMeasurement | null {
+  if (area.isEmpty) return null
+
+  const bounds = area.bounds
+  const axis = type === 'width' ? 0 : type === 'thickness' ? 1 : 2
+  const base = useMin ? bounds.min : bounds.max
+  const maxZ = type === 'minHeight' ? bounds.min[2] + area.minHeight : bounds.max[2]
+  const startPoint = vec3.fromValues(
+    axis === 0 ? bounds.min[0] : base[0],
+    axis === 1 ? bounds.min[1] : base[1],
+    axis === 2 ? bounds.min[2] : base[2]
+  )
+  const endPoint = vec3.fromValues(
+    axis === 0 ? bounds.max[0] : base[0],
+    axis === 1 ? bounds.max[1] : base[1],
+    axis === 2 ? maxZ : base[2]
+  )
+  const length = type === 'minHeight' ? area.minHeight : bounds.size[axis]
+  return {
+    startPoint,
+    endPoint,
+    size: bounds.size,
+    label: offset ? formatLength(length) : undefined,
+    tags,
+    offset
+  }
+}
+
+export function* yieldMeasurementFromArea(
+  area: WallConstructionArea,
+  type: 'width' | 'thickness' | 'height',
+  tags?: Tag[],
+  offset?: Length,
+  useMin = true
+): Generator<ConstructionResult> {
+  if (area.isEmpty) return
+  if (type === 'height') {
+    if (area.minHeight !== area.size[2]) {
+      const minHeight = createMeasurementFromArea(area, 'minHeight', tags, offset, useMin)
+      if (minHeight) {
+        yield yieldMeasurement(minHeight)
+      }
+    }
+    const maxHeight = createMeasurementFromArea(area, 'maxHeight', tags, offset, useMin)
+    if (maxHeight) {
+      yield yieldMeasurement(maxHeight)
+    }
+  } else {
+    const measurement = createMeasurementFromArea(area, type, tags, offset, useMin)
+    if (measurement) {
+      yield yieldMeasurement(measurement)
+    }
+  }
 }
 
 function normalizeDirection(d: vec2) {

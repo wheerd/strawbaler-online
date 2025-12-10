@@ -2,7 +2,6 @@ import type { Perimeter, PerimeterWall } from '@/building/model/model'
 import { WallConstructionArea } from '@/construction/geometry'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
-import { constructOpeningFrame } from '@/construction/openings/openings'
 import type { ConstructionResult } from '@/construction/results'
 import { aggregateResults } from '@/construction/results'
 import type { ModulesWallConfig, WallAssembly } from '@/construction/walls'
@@ -49,9 +48,8 @@ export class ModulesWallAssembly implements WallAssembly<ModulesWallConfig> {
         config.layers,
         (area, startsWithStand, endsWithStand, startAtEnd) =>
           moduleWallArea(area, config, startsWithStand, endsWithStand, startAtEnd),
-        (area, zOffset, openings) =>
-          constructOpeningFrame(area, openings, zOffset, config.openings, a => infillWallArea(a, config.infill)),
-        config.openings.padding
+        area => infillWallArea(area, config.infill),
+        config.openingAssemblyId
       )
     )
 
@@ -65,7 +63,7 @@ export class ModulesWallAssembly implements WallAssembly<ModulesWallConfig> {
       warnings: aggRes.warnings
     }
 
-    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers, config)
 
     return mergeModels(baseModel, layerModel)
   }

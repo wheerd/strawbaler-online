@@ -357,8 +357,6 @@ describe('ConfigStore', () => {
 
     const createValidWallConfig = (): InfillWallConfig => {
       const postMaterial = createMaterialId()
-      const headerMaterial = createMaterialId()
-      const sillMaterial = createMaterialId()
 
       return {
         type: 'infill',
@@ -369,13 +367,6 @@ describe('ConfigStore', () => {
           type: 'full',
           width: 60,
           material: postMaterial
-        },
-        openings: {
-          padding: 15,
-          headerThickness: 60,
-          headerMaterial,
-          sillThickness: 60,
-          sillMaterial
         },
         layers: {
           insideThickness: 30,

@@ -10,7 +10,6 @@ import { getMaterialById } from '@/construction/materials/store'
 import { constructStraw } from '@/construction/materials/straw'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
-import { constructOpeningFrame } from '@/construction/openings/openings'
 import type { ConstructionResult } from '@/construction/results'
 import { aggregateResults, yieldAndCollectElementIds, yieldMeasurement } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
@@ -209,9 +208,8 @@ export class InfillWallAssembly implements WallAssembly<InfillWallConfig> {
         config.layers,
         (area, startsWithStand, endsWithStand, startAtEnd) =>
           infillWallArea(area, config, startsWithStand, endsWithStand, startAtEnd),
-        (area, zOffset, openings) =>
-          constructOpeningFrame(area, openings, zOffset, config.openings, a => infillWallArea(a, config)),
-        config.openings.padding
+        area => infillWallArea(area, config),
+        config.openingAssemblyId
       )
     )
 
@@ -225,7 +223,7 @@ export class InfillWallAssembly implements WallAssembly<InfillWallConfig> {
       warnings: aggRes.warnings
     }
 
-    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers, config)
 
     return mergeModels(baseModel, layerModel)
   }

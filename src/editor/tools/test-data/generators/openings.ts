@@ -30,22 +30,18 @@ export function addWindows(perimeter: Perimeter, windowSpecs: WindowSpec[]): voi
       const wall = walls[windowSpec.wallIndex]
       const wallLength = wall.wallLength
       const windowWidth = windowSpec.width
-      const offset = Math.floor(wallLength * windowSpec.offset)
+      const offset = Math.floor(wallLength * windowSpec.offset) + windowSpec.width / 2
 
-      // Check if there's enough space for the window
-      const marginNeeded = windowWidth < 800 ? 600 : 800
-      if (wallLength > windowWidth + marginNeeded && offset + windowWidth <= wallLength - 200) {
-        try {
-          modelStore.addPerimeterWallOpening(perimeter.id, wall.id, {
-            type: 'window',
-            offsetFromStart: offset,
-            width: windowWidth,
-            height: windowSpec.height,
-            sillHeight: windowSpec.sillHeight || (windowSpec.height < 900 ? 1000 : 900)
-          })
-        } catch (error) {
-          console.warn(`Window ${index} (${windowSpec.type}) on wall ${windowSpec.wallIndex} failed:`, error)
-        }
+      try {
+        modelStore.addPerimeterWallOpening(perimeter.id, wall.id, {
+          type: 'window',
+          centerOffsetFromWallStart: offset,
+          width: windowWidth,
+          height: windowSpec.height,
+          sillHeight: windowSpec.sillHeight || (windowSpec.height < 900 ? 1000 : 900)
+        })
+      } catch (error) {
+        console.warn(`Window ${index} (${windowSpec.type}) on wall ${windowSpec.wallIndex} failed:`, error)
       }
     }
   })
@@ -63,21 +59,17 @@ export function addDoors(perimeter: Perimeter, doorSpecs: DoorSpec[]): void {
       const wall = walls[doorSpec.wallIndex]
       const wallLength = wall.wallLength
       const doorWidth = doorSpec.width
-      const offset = Math.floor(wallLength * doorSpec.offset)
+      const offset = Math.floor(wallLength * doorSpec.offset) + doorSpec.width / 2
 
-      // Check if there's enough space for the door
-      const marginNeeded = 800
-      if (wallLength > doorWidth + marginNeeded && offset + doorWidth <= wallLength - 200) {
-        try {
-          modelStore.addPerimeterWallOpening(perimeter.id, wall.id, {
-            type: 'door',
-            offsetFromStart: offset,
-            width: doorWidth,
-            height: doorSpec.height
-          })
-        } catch (error) {
-          console.warn(`Door ${index} (${doorSpec.type}) on wall ${doorSpec.wallIndex} failed:`, error)
-        }
+      try {
+        modelStore.addPerimeterWallOpening(perimeter.id, wall.id, {
+          type: 'door',
+          centerOffsetFromWallStart: offset,
+          width: doorWidth,
+          height: doorSpec.height
+        })
+      } catch (error) {
+        console.warn(`Door ${index} (${doorSpec.type}) on wall ${doorSpec.wallIndex} failed:`, error)
       }
     }
   })

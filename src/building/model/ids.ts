@@ -9,6 +9,7 @@ const RING_BEAM_ID_PREFIX = 'ringbeam_'
 const WALL_ASSEMBLY_ID_PREFIX = 'wa_'
 const FLOOR_ASSEMBLY_ID_PREFIX = 'fa_'
 const ROOF_ASSEMBLY_ID_PREFIX = 'ra_'
+const OPENING_ASSEMBLY_ID_PREFIX = 'oa_'
 const FLOOR_AREA_ID_PREFIX = 'floorarea_'
 const FLOOR_OPENING_ID_PREFIX = 'flooropening_'
 const ROOF_ID_PREFIX = 'roof_'
@@ -43,6 +44,7 @@ export type RingBeamAssemblyId = `${typeof RING_BEAM_ID_PREFIX}${string}`
 export type WallAssemblyId = `${typeof WALL_ASSEMBLY_ID_PREFIX}${string}`
 export type FloorAssemblyId = `${typeof FLOOR_ASSEMBLY_ID_PREFIX}${string}`
 export type RoofAssemblyId = `${typeof ROOF_ASSEMBLY_ID_PREFIX}${string}`
+export type OpeningAssemblyId = `${typeof OPENING_ASSEMBLY_ID_PREFIX}${string}`
 
 // ID generation helpers
 export const createStoreyId = (): StoreyId => createId(STOREY_ID_PREFIX)
@@ -62,6 +64,7 @@ export const createRingBeamAssemblyId = (): RingBeamAssemblyId => createId(RING_
 export const createWallAssemblyId = (): WallAssemblyId => createId(WALL_ASSEMBLY_ID_PREFIX)
 export const createFloorAssemblyId = (): FloorAssemblyId => createId(FLOOR_ASSEMBLY_ID_PREFIX)
 export const createRoofAssemblyId = (): RoofAssemblyId => createId(ROOF_ASSEMBLY_ID_PREFIX)
+export const createOpeningAssemblyId = (): OpeningAssemblyId => createId(OPENING_ASSEMBLY_ID_PREFIX)
 
 // Default floor construction config ID constant
 export const DEFAULT_FLOOR_ASSEMBLY_ID = 'fa_clt_default' as FloorAssemblyId
@@ -84,6 +87,7 @@ export const isRingBeamAssemblyId = (id: string): id is RingBeamAssemblyId => id
 export const isWallAssemblyId = (id: string): id is WallAssemblyId => id.startsWith(WALL_ASSEMBLY_ID_PREFIX)
 export const isFloorAssemblyId = (id: string): id is FloorAssemblyId => id.startsWith(FLOOR_ASSEMBLY_ID_PREFIX)
 export const isRoofAssemblyId = (id: string): id is RoofAssemblyId => id.startsWith(ROOF_ASSEMBLY_ID_PREFIX)
+export const isOpeningAssemblyId = (id: string): id is OpeningAssemblyId => id.startsWith(OPENING_ASSEMBLY_ID_PREFIX)
 
 // Entity type definitions for hit testing
 export type EntityType =

@@ -1,39 +1,43 @@
 import { vec2, vec3 } from 'gl-matrix'
 
-import type { StoreyId } from '@/building/model/ids'
+import type { OpeningAssemblyId, StoreyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
-import { WallConstructionArea } from '@/construction/geometry'
+import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
+import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/openings/resolver'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
 import { ROOF_ASSEMBLIES } from '@/construction/roofs'
 import type { HeightLine } from '@/construction/roofs/types'
 import { getStoreyCeilingHeight } from '@/construction/storeyHeight'
 import {
+  TAG_OPENING_DOOR,
   TAG_OPENING_SPACING,
+  TAG_OPENING_WINDOW,
   TAG_RING_BEAM_HEIGHT,
   TAG_WALL_CONSTRUCTION_HEIGHT,
   TAG_WALL_HEIGHT,
   TAG_WALL_LENGTH
 } from '@/construction/tags'
-import type { WallLayersConfig } from '@/construction/walls'
+import type { InfillMethod, WallLayersConfig } from '@/construction/walls'
 import {
   convertHeightLineToWallOffsets,
   fillNullRegions,
   mergeInsideOutsideHeightLines
 } from '@/construction/walls/roofIntegration'
 import type { Length } from '@/shared/geometry'
-import { convertOpeningToConstruction } from '@/shared/utils/openingDimensions'
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
 
 function canMergeOpenings(opening1: Opening, opening2: Opening): boolean {
+  if (opening1.openingAssemblyId !== opening2.openingAssemblyId) return false
+
   // Check if openings are adjacent
-  const opening1End = opening1.offsetFromStart + opening1.width
-  const opening2Start = opening2.offsetFromStart
+  const opening1End = opening1.centerOffsetFromWallStart + opening1.width / 2
+  const opening2Start = opening2.centerOffsetFromWallStart - opening2.width / 2
 
   if (opening1End !== opening2Start) return false
 
@@ -135,12 +139,6 @@ export type WallSegmentConstruction = (
   startsWithStand: boolean,
   endsWithStand: boolean,
   startAtEnd: boolean
-) => Generator<ConstructionResult>
-
-export type OpeningSegmentConstruction = (
-  area: WallConstructionArea,
-  zOffset: Length,
-  openings: Opening[]
 ) => Generator<ConstructionResult>
 
 function* createCornerAreas(
@@ -270,14 +268,12 @@ export function* segmentedWallConstruction(
   storeyContext: WallStoreyContext,
   layers: WallLayersConfig,
   wallConstruction: WallSegmentConstruction,
-  openingConstruction: OpeningSegmentConstruction,
-  openingPadding: Length
+  infillMethod: InfillMethod,
+  wallOpeningAssemblyId?: OpeningAssemblyId
 ): Generator<ConstructionResult> {
   const wallContext = getWallContext(wall, perimeter)
   const cornerInfo = calculateWallCornerInfo(wall, wallContext)
   const { constructionLength, extensionStart, extensionEnd } = cornerInfo
-  const padding = Number(openingPadding ?? 0) as Length
-  const openingsWithPadding = wall.openings.map(opening => convertOpeningToConstruction(opening, padding))
 
   const { getRingBeamAssemblyById } = getConfigActions()
   const basePlateAssembly = perimeter.baseRingBeamAssemblyId
@@ -381,26 +377,34 @@ export function* segmentedWallConstruction(
     roofOffsets
   )
 
-  if (openingsWithPadding.length === 0) {
+  if (wall.openings.length === 0) {
     // No openings - use the overall area directly
     yield* wallConstruction(overallWallArea, standAtWallStart, standAtWallEnd, extensionEnd > 0)
     return
   }
 
-  // Sort openings by position along the wall
-  const sortedOpenings = [...openingsWithPadding].sort((a, b) => a.offsetFromStart - b.offsetFromStart)
-
-  // Group adjacent compatible openings
+  const sortedOpenings = [...wall.openings].sort((a, b) => a.centerOffsetFromWallStart - b.centerOffsetFromWallStart)
   const openingGroups = mergeAdjacentOpenings(sortedOpenings)
 
   let currentX = 0 // Position relative to overallWallArea start
 
+  const zAdjustment = finishedFloorZLevel - z
   for (const openingGroup of openingGroups) {
-    const groupStart = openingGroup[0].offsetFromStart + extensionStart
+    const config = resolveOpeningConfig(openingGroup[0], { openingAssemblyId: wallOpeningAssemblyId })
+    const assembly = resolveOpeningAssembly(openingGroup[0].openingAssemblyId ?? wallOpeningAssemblyId)
+
+    const groupStart =
+      extensionStart +
+      openingGroup[0].centerOffsetFromWallStart -
+      openingGroup[0].width / 2 -
+      config.padding -
+      assembly.segmentationPadding
     const groupEnd =
-      openingGroup[openingGroup.length - 1].offsetFromStart +
-      openingGroup[openingGroup.length - 1].width +
-      extensionStart
+      extensionStart +
+      openingGroup[openingGroup.length - 1].centerOffsetFromWallStart +
+      openingGroup[openingGroup.length - 1].width / 2 +
+      config.padding +
+      assembly.segmentationPadding
 
     // Wall segment before opening (if any)
     if (groupStart > currentX) {
@@ -421,7 +425,29 @@ export function* segmentedWallConstruction(
     const groupWidth = groupEnd - groupStart
     const openingArea = overallWallArea.withXAdjustment(groupStart, groupWidth)
 
-    yield* openingConstruction(openingArea, finishedFloorZLevel - openingArea.position[2], openingGroup)
+    const sillHeight = openingGroup[0].sillHeight ?? 0
+    const adjustedSill = Math.max(sillHeight - config.padding, 0) + zAdjustment
+    const adjustedHeader = adjustedSill + openingGroup[0].height + 2 * config.padding
+    yield* assembly.construct(openingArea, adjustedHeader, adjustedSill, infillMethod)
+
+    for (const opening of openingGroup) {
+      const openingArea = overallWallArea
+        .withXAdjustment(extensionStart + opening.centerOffsetFromWallStart - opening.width / 2, opening.width)
+        .withZAdjustment(adjustedSill + config.padding, opening.height)
+
+      const tags = opening.type === 'door' ? [TAG_OPENING_DOOR] : opening.type === 'window' ? [TAG_OPENING_WINDOW] : []
+      const label = opening.type === 'door' ? 'Door' : opening.type === 'window' ? 'Window' : 'Passage'
+
+      yield yieldArea({
+        type: 'cuboid',
+        areaType: opening.type,
+        label,
+        bounds: openingArea.bounds,
+        transform: IDENTITY,
+        tags,
+        renderPosition: 'bottom'
+      })
+    }
 
     currentX = groupEnd
   }

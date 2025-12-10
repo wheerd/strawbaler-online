@@ -1,8 +1,8 @@
 import { vec2 } from 'gl-matrix'
 
-import type { FloorAssemblyId, WallAssemblyId } from '@/building/model/ids'
+import type { FloorAssemblyId, OpeningAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import type { StoreState } from '@/building/store/types'
-import type { FloorAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
+import type { FloorAssemblyConfig, OpeningAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
 
 export type MigrationState = Partial<StoreState> & Record<string, unknown>
 export type Migration = (state: MigrationState) => void
@@ -24,6 +24,8 @@ const CONFIG_STORAGE_KEY = 'strawbaler-config'
 export interface PersistedConfigStoreState {
   floorAssemblyConfigs?: Record<FloorAssemblyId, FloorAssemblyConfig>
   wallAssemblyConfigs?: Record<WallAssemblyId, WallAssemblyConfig>
+  openingAssemblyConfigs?: Record<OpeningAssemblyId, OpeningAssemblyConfig>
+  defaultOpeningAssemblyId?: OpeningAssemblyId
 }
 
 export const getPersistedConfigStoreState = (): PersistedConfigStoreState | null => {

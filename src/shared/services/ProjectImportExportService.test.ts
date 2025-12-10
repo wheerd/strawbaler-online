@@ -68,7 +68,7 @@ const mockActions = {
             {
               id: 'opening_1',
               type: 'door',
-              offsetFromStart: 500,
+              centerOffsetFromWallStart: 500,
               width: 900,
               height: 2100,
               sillHeight: undefined
@@ -219,7 +219,7 @@ describe('ProjectImportExportService', () => {
     it('calls the correct store assemblies on import', async () => {
       // Create simple valid import data
       const validImportData = {
-        version: '1.8.0',
+        version: '1.11.0',
         timestamp: new Date().toISOString(),
         modelStore: {
           storeys: [

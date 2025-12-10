@@ -386,6 +386,10 @@ export class WallConstructionArea {
     return new WallConstructionArea(newPosition, newSize, newTopOffsets.length > 0 ? newTopOffsets : undefined)
   }
 
+  public splitInZ(offset: Length): [WallConstructionArea, WallConstructionArea] {
+    return [this.withZAdjustment(0, offset), this.withZAdjustment(offset)]
+  }
+
   private findZIntersectionX(x1: number, z1: number, x2: number, z2: number, targetZ: number): number {
     if (Math.abs(z2 - z1) < 0.0001) {
       // Nearly horizontal line

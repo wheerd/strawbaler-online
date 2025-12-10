@@ -4,6 +4,7 @@ import type {
   FloorAreaId,
   FloorAssemblyId,
   FloorOpeningId,
+  OpeningAssemblyId,
   OpeningId,
   PerimeterCornerId,
   PerimeterId,
@@ -37,10 +38,16 @@ export const createStoreyLevel = (value: number): StoreyLevel => {
 export interface Opening {
   id: OpeningId
   type: OpeningType
-  offsetFromStart: Length // Finished offset along the inside wall face
-  width: Length // Finished clear width
-  height: Length // Finished clear height
-  sillHeight?: Length // Finished floor-to-sill height for windows
+
+  // Position (geometrically invariant to padding)
+  centerOffsetFromWallStart: Length // Center position along inside wall face (same for finished/fitted)
+
+  // Dimensions (FITTED - include padding/framing)
+  width: Length // Fitted width (finished width + 2×padding)
+  height: Length // Fitted height (finished height + 2×padding)
+  sillHeight?: Length // Fitted sill height (finished sill - padding) - distance from floor to bottom of rough opening
+
+  openingAssemblyId?: OpeningAssemblyId // Optional override for this specific opening
 }
 
 // Floor/level

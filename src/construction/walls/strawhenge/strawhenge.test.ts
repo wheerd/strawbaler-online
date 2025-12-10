@@ -54,7 +54,6 @@ const createTestConfig = (): StrawhengeWallConfig => ({
       material: 'wood' as any
     }
   },
-  openings: {} as any,
   layers: {
     insideThickness: 0,
     insideLayers: [],

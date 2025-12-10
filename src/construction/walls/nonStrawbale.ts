@@ -1,6 +1,6 @@
 import { vec2, vec3 } from 'gl-matrix'
 
-import type { Opening, Perimeter, PerimeterWall } from '@/building/model'
+import type { Perimeter, PerimeterWall } from '@/building/model'
 import { getConfigActions } from '@/construction/config'
 import { createConstructionElement } from '@/construction/elements'
 import { WallConstructionArea, translate } from '@/construction/geometry'
@@ -29,11 +29,7 @@ function* noopWallSegment(
   // Intentionally empty - structural wall handled as a single extruded polygon
 }
 
-function* noopOpeningSegment(
-  _area: WallConstructionArea,
-  _zOffset: Length,
-  _openings: Opening[]
-): Generator<ConstructionResult> {
+function* noopInfill(_area: WallConstructionArea): Generator<ConstructionResult> {
   // Intentionally empty - openings are handled by polygon holes
 }
 
@@ -84,7 +80,7 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
       roofOffsets
     )
 
-    const structuralPolygons = createWallPolygonWithOpenings(wallArea, wall, storeyContext.floorTopOffset)
+    const structuralPolygons = createWallPolygonWithOpenings(wallArea, wall, storeyContext.floorTopOffset, config)
 
     const structureShapes = structuralPolygons.map(p =>
       createExtrudedPolygon(p, WALL_POLYGON_PLANE, structuralThickness)
@@ -101,8 +97,8 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
         storeyContext,
         config.layers,
         noopWallSegment,
-        noopOpeningSegment,
-        config.openings.padding
+        noopInfill,
+        config.openingAssemblyId
       )
     )
 
@@ -117,7 +113,7 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
       warnings: aggRes.warnings
     }
 
-    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers)
+    const layerModel = constructWallLayers(wall, perimeter, storeyContext, config.layers, config)
 
     return mergeModels(baseModel, layerModel)
   }

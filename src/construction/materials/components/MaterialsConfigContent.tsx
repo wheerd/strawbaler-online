@@ -29,6 +29,7 @@ import React, { useCallback, useState } from 'react'
 import {
   useConfigActions,
   useDefaultStrawMaterialId,
+  useOpeningAssemblies,
   useRingBeamAssemblies,
   useWallAssemblies
 } from '@/construction/config/store'
@@ -69,6 +70,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
   const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial, reset } = useMaterialActions()
   const ringBeamAssemblies = useRingBeamAssemblies()
   const wallAssemblies = useWallAssemblies()
+  const openingAssemblies = useOpeningAssemblies()
   const defaultStrawMaterialId = useDefaultStrawMaterialId()
   const { updateDefaultStrawMaterial } = useConfigActions()
 
@@ -84,9 +86,15 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
   const usage = React.useMemo(
     () =>
       selectedMaterial
-        ? getMaterialUsage(selectedMaterial.id, ringBeamAssemblies, wallAssemblies, defaultStrawMaterialId)
+        ? getMaterialUsage(
+            selectedMaterial.id,
+            ringBeamAssemblies,
+            wallAssemblies,
+            openingAssemblies,
+            defaultStrawMaterialId
+          )
         : { isUsed: false, usedByConfigs: [] },
-    [selectedMaterial, ringBeamAssemblies, wallAssemblies, defaultStrawMaterialId]
+    [selectedMaterial, ringBeamAssemblies, wallAssemblies, openingAssemblies, defaultStrawMaterialId]
   )
 
   const handleAddNew = useCallback(

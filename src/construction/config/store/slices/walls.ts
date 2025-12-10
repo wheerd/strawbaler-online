@@ -18,7 +18,15 @@ import type {
 } from '@/construction/config/types'
 import { DEFAULT_WALL_LAYER_SETS } from '@/construction/layers/defaults'
 import type { LayerConfig } from '@/construction/layers/types'
-import { concrete, limePlasterBase, limePlasterFine, straw, strawbale, wood } from '@/construction/materials/material'
+import {
+  type MaterialId,
+  concrete,
+  limePlasterBase,
+  limePlasterFine,
+  straw,
+  strawbale,
+  wood
+} from '@/construction/materials/material'
 import { type WallConfig, validateWallConfig } from '@/construction/walls/types'
 import '@/shared/geometry'
 
@@ -89,13 +97,7 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
       infillMaterial: straw.id,
       material: wood.id
     },
-    openings: {
-      padding: 15,
-      headerThickness: 60,
-      headerMaterial: wood.id,
-      sillThickness: 60,
-      sillMaterial: wood.id
-    },
+    // No openingAssemblyId - uses global default
     layers: {
       insideThickness: 30,
       insideLayers: DEFAULT_WALL_LAYER_SETS['Clay Plaster'],
@@ -124,13 +126,7 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
         material: wood.id
       }
     },
-    openings: {
-      padding: 15,
-      headerThickness: 60,
-      headerMaterial: wood.id,
-      sillThickness: 60,
-      sillMaterial: wood.id
-    },
+    // No openingAssemblyId - uses global default
     layers: {
       insideThickness: 30,
       insideLayers: DEFAULT_WALL_LAYER_SETS['Clay Plaster'],
@@ -159,13 +155,7 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
         material: wood.id
       }
     },
-    openings: {
-      padding: 15,
-      headerThickness: 60,
-      headerMaterial: wood.id,
-      sillThickness: 60,
-      sillMaterial: wood.id
-    },
+    // No openingAssemblyId - uses global default
     layers: {
       insideThickness: 30,
       insideLayers: DEFAULT_WALL_LAYER_SETS['Clay Plaster'],
@@ -178,19 +168,13 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
     name: 'Concrete Wall',
     type: 'non-strawbale',
     material: concrete.id,
-    openings: {
-      padding: 15,
-      headerThickness: 60,
-      headerMaterial: wood.id,
-      sillThickness: 60,
-      sillMaterial: wood.id
-    },
+    openingAssemblyId: 'oa_empty_default', // Non-strawbale walls use empty opening type
     layers: {
       insideThickness: 30,
       insideLayers: DEFAULT_WALL_LAYER_SETS['Clay Plaster'],
       outsideThickness: 160 + 30,
       outsideLayers: [
-        { type: 'monolithic', name: 'Insulation', material: 'material_invalid', thickness: 160 },
+        { type: 'monolithic', name: 'Insulation', material: 'material_invalid' as MaterialId, thickness: 160 },
         { type: 'monolithic', name: 'Base Plaster (Lime)', material: limePlasterBase.id, thickness: 20 },
         { type: 'monolithic', name: 'Fine Plaster (Lime)', material: limePlasterFine.id, thickness: 10 }
       ]
