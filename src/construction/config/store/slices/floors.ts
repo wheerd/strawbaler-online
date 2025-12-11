@@ -1,6 +1,6 @@
 import { type StateCreator } from 'zustand'
 
-import { DEFAULT_FLOOR_ASSEMBLY_ID, type FloorAssemblyId, createFloorAssemblyId } from '@/building/model'
+import { type FloorAssemblyId, createFloorAssemblyId } from '@/building/model'
 import {
   appendLayer,
   moveLayer,
@@ -11,10 +11,10 @@ import {
 } from '@/construction/config/store/layerUtils'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { type FloorConfig, validateFloorConfig } from '@/construction/floors/types'
-import { DEFAULT_FLOOR_LAYER_SETS } from '@/construction/layers/defaults'
 import type { LayerConfig } from '@/construction/layers/types'
-import { clt, concrete, osb, straw, wood } from '@/construction/materials/material'
 import '@/shared/geometry'
+
+import { DEFAULT_FLOOR_ASSEMBLIES, DEFAULT_FLOOR_ASSEMBLY_ID } from './floors.defaults'
 
 export interface FloorAssembliesState {
   floorAssemblyConfigs: Record<FloorAssemblyId, FloorAssemblyConfig>
@@ -60,69 +60,14 @@ const validateFloorAssemblyName = (name: string): void => {
   }
 }
 
-const createDefaultFloorAssemblies = (): FloorAssemblyConfig[] => [
-  {
-    id: DEFAULT_FLOOR_ASSEMBLY_ID,
-    name: 'CLT 18cm (6cm)',
-    type: 'monolithic',
-    thickness: 180,
-    material: clt.id,
-    layers: {
-      topThickness: 60,
-      topLayers: DEFAULT_FLOOR_LAYER_SETS['Screet'],
-      bottomThickness: 0,
-      bottomLayers: []
-    }
-  },
-  {
-    id: 'fa_concrete_default' as FloorAssemblyId,
-    name: 'Concrete 20cm (6cm)',
-    type: 'monolithic',
-    thickness: 200,
-    material: concrete.id,
-    layers: {
-      topThickness: 60,
-      topLayers: DEFAULT_FLOOR_LAYER_SETS['Screet'],
-      bottomThickness: 0,
-      bottomLayers: []
-    }
-  },
-  {
-    id: 'fa_joist_default' as FloorAssemblyId,
-    name: 'Joist 12x24cm (6cm)',
-    type: 'joist',
-    constructionHeight: 240,
-    joistMaterial: wood.id,
-    joistSpacing: 800,
-    joistThickness: 120,
-    wallBeamThickness: 120,
-    wallBeamMaterial: wood.id,
-    wallBeamInsideOffset: 40,
-    wallInfillMaterial: straw.id,
-    subfloorMaterial: osb.id,
-    subfloorThickness: 22,
-    openingSideMaterial: wood.id,
-    openingSideThickness: 60,
-    layers: {
-      topThickness: 60,
-      topLayers: DEFAULT_FLOOR_LAYER_SETS['Screet'],
-      bottomThickness: 0,
-      bottomLayers: []
-    }
-  }
-]
-
 export const createFloorAssembliesSlice: StateCreator<
   FloorAssembliesSlice,
   [['zustand/immer', never]],
   [],
   FloorAssembliesSlice
 > = (set, get) => {
-  // Initialize with default assemblies
-  const defaultFloorAssemblies = createDefaultFloorAssemblies()
-
   return {
-    floorAssemblyConfigs: Object.fromEntries(defaultFloorAssemblies.map(config => [config.id, config])),
+    floorAssemblyConfigs: Object.fromEntries(DEFAULT_FLOOR_ASSEMBLIES.map(config => [config.id, config])),
     defaultFloorAssemblyId: DEFAULT_FLOOR_ASSEMBLY_ID,
 
     actions: {
