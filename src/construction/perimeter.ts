@@ -28,7 +28,10 @@ import {
   arePolygonsIntersecting,
   calculatePolygonArea,
   calculatePolygonWithHolesArea,
+  direction,
   lineIntersection,
+  perpendicularCCW,
+  perpendicularCW,
   polygonPerimeter,
   subtractPolygons,
   unionPolygons
@@ -37,7 +40,7 @@ import {
 import { getConfigActions } from './config'
 import { type ConstructionModel, mergeModels, transformModel } from './model'
 import { RING_BEAM_ASSEMBLIES } from './ringBeams'
-import { WALL_ASSEMBLIES, createWallStoreyContext } from './walls'
+import { WALL_ASSEMBLIES, type WallStoreyContext, createWallStoreyContext } from './walls'
 
 export function computeFloorConstructionPolygon(
   perimeter: Perimeter,
@@ -174,7 +177,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
 
   const context = computeFloorConstructionContext(perimeter, getFloorOpeningsByStorey(storey.id))
 
-  allModels.push(createPerimeterMeasurementModel(perimeter, context))
+  allModels.push(createPerimeterMeasurementModel(perimeter, context, storeyContext))
 
   if (includeFloor) {
     const finishedFloorPolygon: Polygon2D = {
@@ -327,58 +330,79 @@ export function getPerimeterStats(perimeter: Perimeter): PerimeterStats {
   }
 }
 
-function createPerimeterMeasurementModel(perimeter: Perimeter, context: FloorConstructionContext): ConstructionModel {
+function createPerimeterMeasurementModel(
+  perimeter: Perimeter,
+  floorContext: FloorConstructionContext,
+  storeyContext: WallStoreyContext
+): ConstructionModel {
   const measurements: RawMeasurement[] = []
 
   for (let i = 0; i < perimeter.corners.length; i++) {
     const corner = perimeter.corners[i]
     const nextCorner = perimeter.corners[(i + 1) % perimeter.corners.length]
+    const wall = perimeter.walls[i]
 
     const insideStart = vec3.fromValues(corner.insidePoint[0], corner.insidePoint[1], 0)
     const insideEnd = vec3.fromValues(nextCorner.insidePoint[0], nextCorner.insidePoint[1], 0)
-    const insideSize = vec3.fromValues(
-      Math.abs(corner.insidePoint[0] - nextCorner.insidePoint[0]),
-      Math.abs(corner.insidePoint[1] - nextCorner.insidePoint[1]),
-      1
-    )
+
+    const insideExtend1In2D = vec2.scaleAndAdd(vec2.create(), corner.insidePoint, wall.outsideDirection, wall.thickness)
+    const insideExtend1 = vec3.fromValues(insideExtend1In2D[0], insideExtend1In2D[1], 0)
+    const insideExtend2 = vec3.fromValues(corner.insidePoint[0], corner.insidePoint[1], storeyContext.ceilingHeight)
 
     measurements.push({
       startPoint: insideStart,
       endPoint: insideEnd,
-      size: insideSize,
+      extend1: insideExtend1,
+      extend2: insideExtend2,
       tags: [TAG_WALL_LENGTH_INSIDE]
     })
 
     const outsideStart = vec3.fromValues(corner.outsidePoint[0], corner.outsidePoint[1], 0)
     const outsideEnd = vec3.fromValues(nextCorner.outsidePoint[0], nextCorner.outsidePoint[1], 0)
-    const outsideSize = vec3.fromValues(
-      Math.abs(corner.outsidePoint[0] - nextCorner.outsidePoint[0]),
-      Math.abs(corner.outsidePoint[1] - nextCorner.outsidePoint[1]),
-      1
+
+    const outsideExtend1In2D = vec2.scaleAndAdd(
+      vec2.create(),
+      corner.outsidePoint,
+      wall.outsideDirection,
+      -wall.thickness
     )
+    const outsideExtend1 = vec3.fromValues(outsideExtend1In2D[0], outsideExtend1In2D[1], 0)
+    const outsideExtend2 = vec3.fromValues(corner.outsidePoint[0], corner.outsidePoint[1], storeyContext.ceilingHeight)
 
     measurements.push({
       startPoint: outsideStart,
       endPoint: outsideEnd,
-      size: outsideSize,
+      extend1: outsideExtend1,
+      extend2: outsideExtend2,
       tags: [TAG_WALL_LENGTH_OUTSIDE]
     })
   }
 
-  for (const edge of polygonEdges(context.innerPolygon)) {
+  for (const edge of polygonEdges(floorContext.innerPolygon)) {
+    const outDirection = perpendicularCCW(direction(edge.start, edge.end))
+    const extend1In2D = vec2.scaleAndAdd(vec2.create(), edge.start, outDirection, 10)
+    const extend1 = vec3.fromValues(extend1In2D[0], extend1In2D[1], 0)
+    const extend2 = vec3.fromValues(edge.start[0], edge.start[1], storeyContext.ceilingHeight)
+
     measurements.push({
       startPoint: vec3.fromValues(edge.start[0], edge.start[1], 0),
       endPoint: vec3.fromValues(edge.end[0], edge.end[1], 0),
-      size: vec3.fromValues(Math.abs(edge.start[0] - edge.end[0]), Math.abs(edge.start[1] - edge.end[1]), 1),
+      extend1,
+      extend2,
       tags: [TAG_WALL_CONSTRUCTION_LENGTH_INSIDE]
     })
   }
 
-  for (const edge of polygonEdges(context.outerPolygon)) {
+  for (const edge of polygonEdges(floorContext.outerPolygon)) {
+    const inDirection = perpendicularCW(direction(edge.start, edge.end))
+    const extend1In2D = vec2.scaleAndAdd(vec2.create(), edge.start, inDirection, 10)
+    const extend1 = vec3.fromValues(extend1In2D[0], extend1In2D[1], 0)
+    const extend2 = vec3.fromValues(edge.start[0], edge.start[1], storeyContext.ceilingHeight)
     measurements.push({
       startPoint: vec3.fromValues(edge.start[0], edge.start[1], 0),
       endPoint: vec3.fromValues(edge.end[0], edge.end[1], 0),
-      size: vec3.fromValues(Math.abs(edge.start[0] - edge.end[0]), Math.abs(edge.start[1] - edge.end[1]), 1),
+      extend1,
+      extend2,
       tags: [TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE]
     })
   }

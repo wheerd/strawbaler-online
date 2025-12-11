@@ -8,10 +8,11 @@ import type { StrawbaleMaterial } from '@/construction/materials/material'
 import { constructPost } from '@/construction/materials/posts'
 import { getMaterialById } from '@/construction/materials/store'
 import { constructStraw } from '@/construction/materials/straw'
+import { yieldMeasurementFromArea } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import type { ConstructionResult } from '@/construction/results'
-import { aggregateResults, yieldAndCollectElementIds, yieldMeasurement } from '@/construction/results'
+import { aggregateResults, yieldAndCollectElementIds } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { InfillWallConfig, InfillWallSegmentConfig, WallAssembly } from '@/construction/walls'
 import { constructWallLayers } from '@/construction/walls/layers'
@@ -119,16 +120,7 @@ function* constructInfillRecursive(
       }
     }
 
-    yield yieldMeasurement({
-      startPoint: strawArea.position,
-      endPoint: vec3.fromValues(
-        strawArea.position[0] + strawArea.size[0],
-        strawArea.position[1],
-        strawArea.position[2]
-      ),
-      size: strawArea.size,
-      tags: [TAG_POST_SPACING]
-    })
+    yield* yieldMeasurementFromArea(strawArea, 'width', [TAG_POST_SPACING])
   }
 
   if (baleWidth + config.posts.width <= size[0]) {

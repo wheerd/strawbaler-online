@@ -27,12 +27,14 @@ describe('measurements', () => {
   const createAutoMeasurement = (
     start = vec3.fromValues(0, 0, 0),
     end = vec3.fromValues(100, 0, 0),
-    size = vec3.fromValues(100, 50, 30),
+    extend1 = vec3.fromValues(0, 50, 0),
+    extend2 = vec3.fromValues(0, 0, 30),
     tags: Tag[] = []
   ): AutoMeasurement => ({
     startPoint: start,
     endPoint: end,
-    size,
+    extend1,
+    extend2,
     tags
   })
 
@@ -100,7 +102,8 @@ describe('measurements', () => {
       const measurement = createAutoMeasurement(
         vec3.fromValues(0, 0, 0),
         vec3.fromValues(100, 0, 0),
-        vec3.fromValues(100, 50, 30),
+        vec3.fromValues(0, 50, 0),
+        vec3.fromValues(0, 0, 30),
         [tag]
       )
       const planPoints: vec2[] = [
@@ -298,13 +301,15 @@ describe('measurements', () => {
       const measurement1 = createAutoMeasurement(
         vec3.fromValues(0, 0, 0),
         vec3.fromValues(100, 0, 0),
-        vec3.fromValues(100, 50, 30),
+        vec3.fromValues(0, 50, 0),
+        vec3.fromValues(0, 0, 30),
         [tag]
       )
       const measurement2 = createAutoMeasurement(
         vec3.fromValues(0, 0, 0),
         vec3.fromValues(100, 0, 0),
-        vec3.fromValues(100, 50, 30),
+        vec3.fromValues(0, 50, 0),
+        vec3.fromValues(0, 0, 30),
         [tag]
       )
       const planPoints: vec2[] = [
@@ -403,27 +408,17 @@ describe('measurements', () => {
   })
 
   describe('type unions and interfaces', () => {
-    it('should handle AutoMeasurement type', () => {
-      const auto = createAutoMeasurement()
-      expect('size' in auto).toBe(true)
-      expect('label' in auto).toBe(false)
-    })
-
-    it('should handle DirectMeasurement type', () => {
-      const direct = createDirectMeasurement()
-      expect('size' in direct).toBe(false)
-      expect('label' in direct).toBe(true)
-    })
-
     it('should properly distinguish between measurement types', () => {
       const auto = createAutoMeasurement()
       const direct = createDirectMeasurement()
 
-      // Type guard-like checks
-      if ('size' in auto) {
-        expect(auto.size).toEqual(vec3.fromValues(100, 50, 30))
+      expect('extend1' in auto).toBe(true)
+      if ('extend1' in auto) {
+        expect(auto.extend1).toEqual(vec3.fromValues(0, 50, 0))
+        expect(auto.extend2).toEqual(vec3.fromValues(0, 0, 30))
       }
 
+      expect('label' in direct).toBe(true)
       if ('label' in direct) {
         expect(direct.label).toBe('100mm')
         expect(direct.offset).toBe(0)
@@ -438,13 +433,11 @@ describe('measurements', () => {
         endPointMin: vec2.fromValues(100, 0),
         startPointMax: vec2.fromValues(0, 25),
         endPointMax: vec2.fromValues(100, 25),
-        perpendicularRange: 25,
         length: 100,
         tags: [createMockTag('test')]
       }
 
       expect(projected.startPointMin).toEqual(vec2.fromValues(0, 0))
-      expect(projected.perpendicularRange).toBe(25)
     })
 
     it('should create valid IntervalMeasurement', () => {
@@ -453,7 +446,6 @@ describe('measurements', () => {
         endPointMin: vec2.fromValues(100, 0),
         startPointMax: vec2.fromValues(0, 25),
         endPointMax: vec2.fromValues(100, 25),
-        perpendicularRange: 25,
         length: 100,
         t1: 0,
         t2: 100,

@@ -1,12 +1,11 @@
-import { vec3 } from 'gl-matrix'
-
 import type { Perimeter, PerimeterWall } from '@/building/model/model'
 import { WallConstructionArea } from '@/construction/geometry'
 import { constructStraw } from '@/construction/materials/straw'
+import { yieldMeasurementFromArea } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import type { ConstructionResult } from '@/construction/results'
-import { aggregateResults, yieldMeasurement } from '@/construction/results'
+import { aggregateResults } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { StrawhengeWallConfig, WallAssembly } from '@/construction/walls'
 import { infillWallArea } from '@/construction/walls/infill/infill'
@@ -56,16 +55,7 @@ function* placeStrawhengeSegments(
     }
     const strawArea = area.withXAdjustment(atStart ? 0 : size[0] - strawWidth, strawWidth)
     yield* constructStraw(strawArea, config.infill.strawMaterial)
-    yield yieldMeasurement({
-      startPoint: strawArea.position,
-      endPoint: vec3.fromValues(
-        strawArea.position[0] + strawArea.size[0],
-        strawArea.position[1],
-        strawArea.position[2]
-      ),
-      size: strawArea.size,
-      tags: [TAG_POST_SPACING]
-    })
+    yield* yieldMeasurementFromArea(strawArea, 'width', [TAG_POST_SPACING])
   }
 
   if (strawWidth + module.width <= size[0]) {

@@ -20,7 +20,8 @@ export type RawMeasurement = AutoMeasurement | DirectMeasurement
 export interface AutoMeasurement {
   startPoint: vec3
   endPoint: vec3
-  size: vec3
+  extend1: vec3
+  extend2?: vec3
   tags?: Tag[]
 }
 
@@ -38,7 +39,6 @@ export interface ProjectedMeasurement {
   endPointMin: vec2 // Original measurement line end
   startPointMax: vec2 // Extended rectangle start
   endPointMax: vec2 // Extended rectangle end
-  perpendicularRange: number
   length: Length
   tags?: Tag[]
 }
@@ -74,6 +74,8 @@ export interface MeasurementLines {
 
 export type AreaMeasurement = 'minHeight' | 'maxHeight' | 'width' | 'thickness'
 
+const DIRECTION_TOLERANCE = 1e-5
+
 export function createMeasurementFromArea(
   area: WallConstructionArea,
   type: AreaMeasurement,
@@ -97,11 +99,22 @@ export function createMeasurementFromArea(
     axis === 1 ? bounds.max[1] : base[1],
     axis === 2 ? maxZ : base[2]
   )
+  const extend1 = vec3.fromValues(
+    axis === 1 ? bounds.max[0] : base[0],
+    axis === 2 ? bounds.max[1] : base[1],
+    axis === 0 ? bounds.max[2] : base[2]
+  )
+  const extend2 = vec3.fromValues(
+    axis === 2 ? bounds.max[0] : base[0],
+    axis === 0 ? bounds.max[1] : base[1],
+    axis === 1 ? bounds.max[2] : base[2]
+  )
   const length = type === 'minHeight' ? area.minHeight : bounds.size[axis]
   return {
     startPoint,
     endPoint,
-    size: bounds.size,
+    extend1,
+    extend2,
     label: offset ? formatLength(length) : undefined,
     tags,
     offset
@@ -136,7 +149,7 @@ export function* yieldMeasurementFromArea(
 }
 
 function normalizeDirection(d: vec2) {
-  if (d[0] < 0 || (d[0] === 0 && d[1] < 0)) {
+  if (d[0] < 0 || (Math.abs(d[0]) < DIRECTION_TOLERANCE && d[1] < 0)) {
     return vec2.scale(vec2.create(), d, -1)
   }
   return d
@@ -147,33 +160,42 @@ function projectMeasurements(measurements: AutoMeasurement[], projection: Projec
     .map(m => {
       const startPoint3D = projectPoint(m.startPoint, projection)
       const endPoint3D = projectPoint(m.endPoint, projection)
-      const startPointMin = vec2.fromValues(startPoint3D[0], startPoint3D[1])
-      const endPointMin = vec2.fromValues(endPoint3D[0], endPoint3D[1])
-      const measurementDirection = direction(startPointMin, endPointMin)
+      const startPointBase = vec2.fromValues(startPoint3D[0], startPoint3D[1])
+      const endPointBase = vec2.fromValues(endPoint3D[0], endPoint3D[1])
+      const measurementDirection = direction(startPointBase, endPointBase)
       const normal = perpendicularCCW(measurementDirection)
 
       // Project the 3D size vector and extract perpendicular component only
-      const sizeEnd3D = vec3.add(vec3.create(), m.startPoint, m.size)
-      const sizeEnd3DProjected = projectPoint(sizeEnd3D, projection)
-      const sizeEnd2D = vec2.fromValues(sizeEnd3DProjected[0], sizeEnd3DProjected[1])
-      const size2D = vec2.subtract(vec2.create(), sizeEnd2D, startPointMin)
-      const perpendicularRange = vec2.dot(size2D, normal)
+      const extend1Projected = projectPoint(m.extend1, projection)
+      const extend1Projected2D = vec2.fromValues(extend1Projected[0], extend1Projected[1])
+      const extend1Range = vec2.dot(vec2.subtract(vec2.create(), extend1Projected2D, startPointBase), normal)
+      let extendRangeMin = Math.min(extend1Range, 0)
+      let extendRangeMax = Math.max(extend1Range, 0)
+
+      if (m.extend2) {
+        const extend2Projected = projectPoint(m.extend2, projection)
+        const extend2Projected2D = vec2.fromValues(extend2Projected[0], extend2Projected[1])
+        const extend2Range = vec2.dot(vec2.subtract(vec2.create(), extend2Projected2D, startPointBase), normal)
+        extendRangeMin = Math.min(extend2Range, extendRangeMin)
+        extendRangeMax = Math.max(extend2Range, extendRangeMax)
+      }
 
       // Create rectangle corners using perpendicular offset
-      const startPointMax = vec2.scaleAndAdd(vec2.create(), startPointMin, normal, perpendicularRange)
-      const endPointMax = vec2.scaleAndAdd(vec2.create(), endPointMin, normal, perpendicularRange)
+      const startPointMin = vec2.scaleAndAdd(vec2.create(), startPointBase, normal, extendRangeMin)
+      const endPointMin = vec2.scaleAndAdd(vec2.create(), endPointBase, normal, extendRangeMin)
+      const startPointMax = vec2.scaleAndAdd(vec2.create(), startPointBase, normal, extendRangeMax)
+      const endPointMax = vec2.scaleAndAdd(vec2.create(), endPointBase, normal, extendRangeMax)
 
-      const length = vec2.distance(startPointMin, endPointMin)
+      const length = vec2.distance(startPointBase, endPointBase)
       return {
         startPointMin,
         endPointMin,
         startPointMax,
         endPointMax,
         // Default to min points (will be updated in layout phase)
-        startPoint: startPointMin,
-        endPoint: endPointMin,
+        startPoint: startPointBase,
+        endPoint: endPointBase,
         length,
-        perpendicularRange,
         tags: m.tags
       }
     })
@@ -181,7 +203,6 @@ function projectMeasurements(measurements: AutoMeasurement[], projection: Projec
 }
 
 function groupMeasurements(measurements: ProjectedMeasurement[]) {
-  const DIRECTION_TOLERANCE = 1e-5
   const groupedMeasurements = new Map<vec2, ProjectedMeasurement[]>()
 
   for (const measurement of measurements) {
@@ -235,9 +256,8 @@ function processMeasurementGroup(
       // Use min points for t1/t2 calculation (will be updated in layout)
       const projectedStart = projectPointOntoLine(m.startPointMin, leftLine)
       const projectedEnd = projectPointOntoLine(m.endPointMin, leftLine)
-      const t1 = vec2.distance(projectedStart, left.start)
-      const t2 = vec2.distance(projectedEnd, left.start)
-
+      const t1 = vec2.dot(vec2.sub(vec2.create(), projectedStart, left.start), dir)
+      const t2 = vec2.dot(vec2.sub(vec2.create(), projectedEnd, left.start), dir)
       return {
         ...m,
         startPointMin: t1 < t2 ? m.startPointMin : m.endPointMin,
@@ -372,7 +392,6 @@ function convertToLineMeasurements(
     return {
       startPoint: swapDir ? endPoint : startPoint,
       endPoint: swapDir ? startPoint : endPoint,
-      perpendicularRange: m.perpendicularRange,
       length: m.length,
       tags: m.tags,
       startOnLine: swapDir ? endOnLine : startOnLine,

@@ -278,7 +278,7 @@ describe('infillWallArea', () => {
 
       expect(measurements.length).toBeGreaterThan(0)
       expect(measurements[0].tags).toContain(TAG_POST_SPACING)
-      expect((measurements[0] as any).size[0]).toBe(800) // maxPostSpacing
+      expect(measurements[0].endPoint[0] - measurements[0].startPoint[0]).toBe(800) // maxPostSpacing
     })
   })
 
@@ -436,7 +436,7 @@ describe('infillWallArea', () => {
       const { measurements } = aggregateResults(results)
 
       expect(measurements.length).toBeGreaterThan(0)
-      expect((measurements[0] as any).size[0]).toBe(600) // Updated desiredPostSpacing
+      expect(measurements[0].endPoint[0] - measurements[0].startPoint[0]).toBe(600) // Updated desiredPostSpacing
     })
 
     it('should work with different minStrawSpace', () => {

@@ -95,7 +95,8 @@ function* constructSingleFrameModule(
   yield yieldMeasurement({
     startPoint: position,
     endPoint: [position[0] + size[0], position[1], position[2]],
-    size,
+    extend1: vec3.fromValues(position[0], position[1] + size[1], position[2]),
+    extend2: vec3.fromValues(position[0], position[1], position[2] + size[2]),
     tags: [TAG_MODULE_WIDTH]
   })
 }
@@ -274,7 +275,8 @@ function* constructDoubleFrameModule(
   yield yieldMeasurement({
     startPoint: position,
     endPoint: [position[0] + size[0], position[1], position[2]],
-    size,
+    extend1: vec3.fromValues(position[0], position[1] + size[1], position[2]),
+    extend2: vec3.fromValues(position[0], position[1], position[2] + size[2]),
     tags: [TAG_MODULE_WIDTH]
   })
 }

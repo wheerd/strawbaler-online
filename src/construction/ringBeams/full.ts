@@ -1,4 +1,4 @@
-import { vec2 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 
 import type { Perimeter, PerimeterCorner } from '@/building/model/model'
 import { createConstructionElement } from '@/construction/elements'
@@ -92,13 +92,15 @@ export class FullRingBeamAssembly implements RingBeamAssembly<FullRingBeamConfig
       yield yieldMeasurement({
         startPoint: [...startInside, 0],
         endPoint: [...endInside, 0],
-        size: [1, 1, config.height]
+        extend1: vec3.fromValues(startInside[0] + 1, startInside[1], 0),
+        extend2: vec3.fromValues(startInside[0], startInside[1] + 1, 0)
       })
 
       yield yieldMeasurement({
         startPoint: [...startOutside, 0],
         endPoint: [...endOutside, 0],
-        size: [1, 1, config.height]
+        extend1: vec3.fromValues(startOutside[0] + 1, startOutside[1], 0),
+        extend2: vec3.fromValues(startOutside[0], startOutside[1] + 1, 0)
       })
     }
 

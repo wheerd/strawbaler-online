@@ -362,7 +362,7 @@ describe('segmentedWallConstruction', () => {
       )
 
       // Measurement should reflect construction length
-      expect((measurements[0] as any).size[0]).toBe(3250)
+      expect(measurements[0].endPoint[0] - measurements[0].startPoint[0]).toBe(3250)
     })
 
     it('should calculate positions based on ring beam heights', () => {

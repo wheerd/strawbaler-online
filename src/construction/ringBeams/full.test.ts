@@ -157,13 +157,6 @@ describe('FullRingBeamAssembly', () => {
       const model = assembly.construct(perimeter, defaultConfig)
 
       expect(model.measurements).toHaveLength(simplifiedPolygon.points.length * 2)
-      model.measurements.forEach(measurement => {
-        if ('size' in measurement) {
-          expect(measurement.size[2]).toBe(defaultConfig.height)
-        } else {
-          throw new Error('Expected measurement to include size data')
-        }
-      })
     })
 
     it('creates inside area', () => {

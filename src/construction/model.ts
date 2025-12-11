@@ -176,10 +176,10 @@ export function transformModel(model: ConstructionModel, t: Transform, tags?: Ta
     measurements: model.measurements.map(m => {
       const startPoint = transform(m.startPoint, t)
       const endPoint = transform(m.endPoint, t)
-      if ('size' in m) {
-        const sizeEnd = transform(vec3.add(vec3.create(), m.startPoint, m.size), t)
-        const transformedSize = vec3.subtract(vec3.create(), sizeEnd, startPoint)
-        return { ...m, startPoint, endPoint, size: transformedSize }
+      if ('extend1' in m) {
+        const extend1 = transform(m.extend1, t)
+        const extend2 = m.extend2 ? transform(m.extend2, t) : undefined
+        return { ...m, startPoint, endPoint, extend1, extend2 }
       }
       return { ...m, startPoint, endPoint }
     }),

@@ -53,7 +53,7 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
   }, [model.elements, model.areas, projection])
 
   // Filter only AutoMeasurement from model.measurements
-  const autoMeasurements = model.measurements.filter((m): m is AutoMeasurement => 'size' in m)
+  const autoMeasurements = model.measurements.filter((m): m is AutoMeasurement => 'extend1' in m)
 
   const processedMeasurements = useMemo(() => {
     return Array.from(processMeasurements(autoMeasurements, projection, planPoints))
