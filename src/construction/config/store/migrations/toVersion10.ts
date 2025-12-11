@@ -41,10 +41,12 @@ export function migrateToVersion10(state: MigrationState): void {
     return `empty:${config.padding}`
   }
 
-  if ('openingAssemblyConfigs' in state) return
+  if ('openingAssemblyConfigs' in state) {
+    return
+  }
 
   // Initialize opening assemblies with defaults
-  state.openingAssemblyConfigs = DEFAULT_OPENING_ASSEMBLIES
+  state.openingAssemblyConfigs = Object.fromEntries(DEFAULT_OPENING_ASSEMBLIES.map(assembly => [assembly.id, assembly]))
   state.defaultOpeningAssemblyId = DEFAULT_OPENING_ASSEMBLY_ID
 
   // Track created assemblies for deduplication

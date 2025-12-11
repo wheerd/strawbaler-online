@@ -12,7 +12,8 @@ import { yieldMeasurementFromArea } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import type { ConstructionResult } from '@/construction/results'
-import { aggregateResults, yieldAndCollectElementIds } from '@/construction/results'
+import { aggregateResults, yieldAndCollectElementIds, yieldElement } from '@/construction/results'
+import { createElementFromArea } from '@/construction/shapes'
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { InfillWallConfig, InfillWallSegmentConfig, WallAssembly } from '@/construction/walls'
 import { constructWallLayers } from '@/construction/walls/layers'
@@ -33,7 +34,7 @@ export function* infillWallArea(
   let warning: string | null = null
   const allElementIds: ConstructionElementId[] = []
 
-  if (size[2] < minStrawSpace) {
+  if (size[2] < minStrawSpace && !config.infillMaterial) {
     warning = 'Not enough vertical space to fill with straw'
   }
 
@@ -66,10 +67,23 @@ export function* infillWallArea(
   const strawMaterial = getMaterialById(strawMaterialId)
   const strawbaleMaterial = strawMaterial?.type === 'strawbale' ? strawMaterial : undefined
 
-  yield* yieldAndCollectElementIds(
-    constructInfillRecursive(inbetweenArea, config, !startAtEnd, strawbaleMaterial),
-    allElementIds
-  )
+  if ((inbetweenArea.size[2] < minStrawSpace || inbetweenArea.size[0] < minStrawSpace) && config.infillMaterial) {
+    yield* yieldAndCollectElementIds(
+      yieldElement(createElementFromArea(inbetweenArea, config.infillMaterial)),
+      allElementIds
+    )
+    if (inbetweenArea.size[2] < minStrawSpace) {
+      yield* yieldMeasurementFromArea(inbetweenArea, 'height')
+    }
+    if (inbetweenArea.size[0] < minStrawSpace) {
+      yield* yieldMeasurementFromArea(inbetweenArea, 'width', [TAG_POST_SPACING])
+    }
+  } else {
+    yield* yieldAndCollectElementIds(
+      constructInfillRecursive(inbetweenArea, config, !startAtEnd, strawbaleMaterial),
+      allElementIds
+    )
+  }
 
   // Add warning/error with references to all created elements
   if (warning) {

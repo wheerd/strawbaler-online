@@ -465,6 +465,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
 
       return { success: true, data: importResult.data }
     } catch (error) {
+      console.error(error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to import project'
@@ -661,6 +662,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
         data: parsed
       }
     } catch (error) {
+      console.error(error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to parse file'

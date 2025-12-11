@@ -74,6 +74,7 @@ export function AutoSaveIndicator(): React.JSX.Element {
     } catch (error) {
       if (!(error instanceof FileInputCancelledError)) {
         setImportError(error instanceof Error ? error.message : 'Failed to import file')
+        console.error(error)
       }
     } finally {
       setIsImporting(false)

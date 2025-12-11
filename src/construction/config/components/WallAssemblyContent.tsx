@@ -1,4 +1,4 @@
-import { CircleIcon, CopyIcon, CubeIcon, LayersIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons'
+import { CircleIcon, CopyIcon, CubeIcon, InfoCircledIcon, LayersIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import {
   AlertDialog,
@@ -12,7 +12,8 @@ import {
   Select,
   Separator,
   Text,
-  TextField
+  TextField,
+  Tooltip
 } from '@radix-ui/themes'
 import React, { useCallback, useMemo, useState } from 'react'
 
@@ -117,6 +118,26 @@ function InfillConfigForm({ config, onUpdate }: InfillConfigFormProps): React.JS
             size="1"
           />
         </Flex>
+
+        <Label.Root>
+          <Flex direction="column" gap="1">
+            <Flex gap="1" align="center">
+              <Text size="1" weight="medium" color="gray">
+                Infill Material
+              </Text>
+              <Tooltip content="If configured, will be used for gaps which are too small for straw">
+                <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
+              </Tooltip>
+            </Flex>
+            <MaterialSelectWithEdit
+              value={config.infillMaterial ?? null}
+              allowEmpty
+              emptyLabel="No infill material"
+              onValueChange={infillMaterial => onUpdate({ ...config, infillMaterial: infillMaterial ?? undefined })}
+              size="1"
+            />
+          </Flex>
+        </Label.Root>
       </Grid>
 
       <Separator size="4" />

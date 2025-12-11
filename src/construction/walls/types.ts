@@ -40,6 +40,7 @@ export interface InfillWallSegmentConfig {
   minStrawSpace: Length // Default: 70mm
   posts: PostConfig // Default: full
   strawMaterial?: MaterialId
+  infillMaterial?: MaterialId
 }
 
 export interface InfillWallConfig extends InfillWallSegmentConfig, WallBaseConfig {
