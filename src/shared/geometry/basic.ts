@@ -88,7 +88,7 @@ export class Bounds2D {
   }
 
   get isEmpty(): boolean {
-    return vec2.equals(this.min, this.max)
+    return this.width === 0 || this.height === 0
   }
 
   toBounds3D(plane: Plane3D, minNormal: number, maxNormal: number): Bounds3D {
@@ -257,7 +257,7 @@ export class Bounds3D {
   }
 
   get isEmpty(): boolean {
-    return this.width === 0 && this.depth === 0 && this.height === 0
+    return this.width === 0 || this.depth === 0 || this.height === 0
   }
 
   project(plane: Plane3D): Bounds2D {

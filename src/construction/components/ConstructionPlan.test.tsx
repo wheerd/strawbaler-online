@@ -90,6 +90,7 @@ describe('ConstructionPlan', () => {
       areaType: 'corner',
       label: 'Bottom Area',
       transform: IDENTITY,
+      size: vec3.fromValues(50, 50, 10),
       bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(50, 50, 10)),
       renderPosition: 'bottom'
     }
@@ -98,6 +99,7 @@ describe('ConstructionPlan', () => {
       type: 'cuboid',
       areaType: 'corner',
       label: 'Top Area',
+      size: vec3.fromValues(50, 50, 10),
       transform: translate(vec3.fromValues(60, 0, 0)),
       bounds: Bounds3D.fromMinMax(vec3.fromValues(60, 0, 0), vec3.fromValues(110, 50, 10)),
       renderPosition: 'top'
@@ -121,12 +123,12 @@ describe('ConstructionPlan', () => {
       </Theme>
     )
 
-    // Check that rectangles are rendered for both areas
-    const rectangles = container.querySelectorAll('rect')
-    expect(rectangles.length).toBeGreaterThanOrEqual(2)
+    // Check that paths are rendered for both areas
+    const cuboidPaths = container.querySelectorAll('.area-cuboid path')
+    expect(cuboidPaths.length).toBeGreaterThanOrEqual(2)
 
     // Check that labels are rendered
-    const texts = container.querySelectorAll('text')
+    const texts = container.querySelectorAll('.area-cuboid text')
     const labelTexts = Array.from(texts).filter(
       text => text.textContent === 'Bottom Area' || text.textContent === 'Top Area'
     )

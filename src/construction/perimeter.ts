@@ -365,7 +365,7 @@ function createPerimeterMeasurementModel(perimeter: Perimeter, context: FloorCon
     })
   }
 
-  for (let edge of polygonEdges(context.innerPolygon)) {
+  for (const edge of polygonEdges(context.innerPolygon)) {
     measurements.push({
       startPoint: vec3.fromValues(edge.start[0], edge.start[1], 0),
       endPoint: vec3.fromValues(edge.end[0], edge.end[1], 0),
@@ -374,7 +374,7 @@ function createPerimeterMeasurementModel(perimeter: Perimeter, context: FloorCon
     })
   }
 
-  for (let edge of polygonEdges(context.outerPolygon)) {
+  for (const edge of polygonEdges(context.outerPolygon)) {
     measurements.push({
       startPoint: vec3.fromValues(edge.start[0], edge.start[1], 0),
       endPoint: vec3.fromValues(edge.end[0], edge.end[1], 0),

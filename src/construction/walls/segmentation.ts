@@ -1,4 +1,4 @@
-import { vec2, vec3 } from 'gl-matrix'
+import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { OpeningAssemblyId, StoreyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model/model'
@@ -6,7 +6,7 @@ import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
-import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
+import { WallConstructionArea } from '@/construction/geometry'
 import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/openings/resolver'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
 import { ROOF_ASSEMBLIES } from '@/construction/roofs'
@@ -442,8 +442,9 @@ export function* segmentedWallConstruction(
         type: 'cuboid',
         areaType: opening.type,
         label,
+        size: openingArea.size,
         bounds: openingArea.bounds,
-        transform: IDENTITY,
+        transform: mat4.fromTranslation(mat4.create(), openingArea.position),
         tags,
         renderPosition: 'bottom'
       })

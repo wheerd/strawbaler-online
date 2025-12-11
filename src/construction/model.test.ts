@@ -297,6 +297,7 @@ describe('transformModel', () => {
           areaType: 'corner',
           renderPosition: 'top',
           transform: translate(vec3.fromValues(5, 0, 0)),
+          size: vec3.fromValues(1, 1, 1),
           bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
         }
       ],
@@ -353,6 +354,7 @@ describe('mergeKey functionality', () => {
           areaType: 'floor-level',
           renderPosition: 'bottom',
           transform: IDENTITY,
+          size: vec3.fromValues(10, 10, 1),
           bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 10, 1)),
           mergeKey: 'floor-1'
         }
@@ -371,6 +373,7 @@ describe('mergeKey functionality', () => {
           areaType: 'floor-level',
           renderPosition: 'bottom',
           transform: IDENTITY,
+          size: vec3.fromValues(10, 10, 1),
           bounds: Bounds3D.fromMinMax(vec3.fromValues(10, 0, 0), vec3.fromValues(20, 10, 1)),
           mergeKey: 'floor-1'
         }
@@ -401,6 +404,7 @@ describe('mergeKey functionality', () => {
           areaType: 'floor-level',
           renderPosition: 'bottom',
           transform: IDENTITY,
+          size: vec3.fromValues(10, 10, 1),
           bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 10, 1)),
           mergeKey: 'floor-1'
         }
@@ -419,6 +423,7 @@ describe('mergeKey functionality', () => {
           areaType: 'floor-level',
           renderPosition: 'bottom',
           transform: IDENTITY,
+          size: vec3.fromValues(10, 10, 1),
           bounds: Bounds3D.fromMinMax(vec3.fromValues(10, 0, 0), vec3.fromValues(20, 10, 1)),
           mergeKey: 'floor-2'
         }

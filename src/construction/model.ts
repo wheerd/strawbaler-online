@@ -37,6 +37,7 @@ export interface HighlightedCuboid {
   areaType: HighlightedAreaType
   label?: string
   transform: Transform
+  size: vec3
   bounds: Bounds3D
   tags?: Tag[]
   renderPosition: 'bottom' | 'top'
@@ -192,7 +193,7 @@ export function transformModel(model: ConstructionModel, t: Transform, tags?: Ta
 function transformArea(a: HighlightedArea, t: Transform): HighlightedArea {
   if (a.type === 'cuboid') {
     const composedTransform = composeTransforms(a.transform, t)
-    return { ...a, transform: composedTransform, bounds: a.bounds }
+    return { ...a, transform: composedTransform, bounds: transformBounds(a.bounds, t) }
   }
   if (a.type === 'polygon') {
     const transformedPoints = a.polygon.points.map(p => {
