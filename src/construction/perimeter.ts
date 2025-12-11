@@ -4,11 +4,22 @@ import type { FloorOpening, Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { FLOOR_ASSEMBLIES, type FloorConstructionContext, constructFloorLayerModel } from '@/construction/floors'
 import { IDENTITY, translate } from '@/construction/geometry'
+import { polygonEdges } from '@/construction/helpers'
+import type { RawMeasurement } from '@/construction/measurements'
 import { constructRoof } from '@/construction/roof'
 import { applyWallFaceOffsets, createWallFaceOffsets } from '@/construction/storey'
-import { TAG_BASE_PLATE, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
+import {
+  TAG_BASE_PLATE,
+  TAG_TOP_PLATE,
+  TAG_WALLS,
+  TAG_WALL_CONSTRUCTION_LENGTH_INSIDE,
+  TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE,
+  TAG_WALL_LENGTH_INSIDE,
+  TAG_WALL_LENGTH_OUTSIDE
+} from '@/construction/tags'
 import {
   type Area,
+  Bounds3D,
   type Length,
   type Line2D,
   type Polygon2D,
@@ -161,12 +172,14 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     }
   }
 
+  const context = computeFloorConstructionContext(perimeter, getFloorOpeningsByStorey(storey.id))
+
+  allModels.push(createPerimeterMeasurementModel(perimeter, context))
+
   if (includeFloor) {
     const finishedFloorPolygon: Polygon2D = {
       points: perimeter.corners.map(corner => vec2.fromValues(corner.insidePoint[0], corner.insidePoint[1]))
     }
-    const context = computeFloorConstructionContext(perimeter, getFloorOpeningsByStorey(storey.id))
-
     const floorAssembly = FLOOR_ASSEMBLIES[currentFloorAssembly.type]
     const floorModel = floorAssembly.construct(context, currentFloorAssembly)
     allModels.push(floorModel)
@@ -311,5 +324,71 @@ export function getPerimeterStats(perimeter: Perimeter): PerimeterStats {
     totalVolume,
     storeyHeight,
     ceilingHeight: finishedHeight
+  }
+}
+
+function createPerimeterMeasurementModel(perimeter: Perimeter, context: FloorConstructionContext): ConstructionModel {
+  const measurements: RawMeasurement[] = []
+
+  for (let i = 0; i < perimeter.corners.length; i++) {
+    const corner = perimeter.corners[i]
+    const nextCorner = perimeter.corners[(i + 1) % perimeter.corners.length]
+
+    const insideStart = vec3.fromValues(corner.insidePoint[0], corner.insidePoint[1], 0)
+    const insideEnd = vec3.fromValues(nextCorner.insidePoint[0], nextCorner.insidePoint[1], 0)
+    const insideSize = vec3.fromValues(
+      Math.abs(corner.insidePoint[0] - nextCorner.insidePoint[0]),
+      Math.abs(corner.insidePoint[1] - nextCorner.insidePoint[1]),
+      1
+    )
+
+    measurements.push({
+      startPoint: insideStart,
+      endPoint: insideEnd,
+      size: insideSize,
+      tags: [TAG_WALL_LENGTH_INSIDE]
+    })
+
+    const outsideStart = vec3.fromValues(corner.outsidePoint[0], corner.outsidePoint[1], 0)
+    const outsideEnd = vec3.fromValues(nextCorner.outsidePoint[0], nextCorner.outsidePoint[1], 0)
+    const outsideSize = vec3.fromValues(
+      Math.abs(corner.outsidePoint[0] - nextCorner.outsidePoint[0]),
+      Math.abs(corner.outsidePoint[1] - nextCorner.outsidePoint[1]),
+      1
+    )
+
+    measurements.push({
+      startPoint: outsideStart,
+      endPoint: outsideEnd,
+      size: outsideSize,
+      tags: [TAG_WALL_LENGTH_OUTSIDE]
+    })
+  }
+
+  for (let edge of polygonEdges(context.innerPolygon)) {
+    measurements.push({
+      startPoint: vec3.fromValues(edge.start[0], edge.start[1], 0),
+      endPoint: vec3.fromValues(edge.end[0], edge.end[1], 0),
+      size: vec3.fromValues(Math.abs(edge.start[0] - edge.end[0]), Math.abs(edge.start[1] - edge.end[1]), 1),
+      tags: [TAG_WALL_CONSTRUCTION_LENGTH_INSIDE]
+    })
+  }
+
+  for (let edge of polygonEdges(context.outerPolygon)) {
+    measurements.push({
+      startPoint: vec3.fromValues(edge.start[0], edge.start[1], 0),
+      endPoint: vec3.fromValues(edge.end[0], edge.end[1], 0),
+      size: vec3.fromValues(Math.abs(edge.start[0] - edge.end[0]), Math.abs(edge.start[1] - edge.end[1]), 1),
+      tags: [TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE]
+    })
+  }
+
+  return {
+    measurements,
+    areas: [],
+    bounds: Bounds3D.EMPTY,
+    elements: [],
+    errors: [],
+    warnings: []
   }
 }

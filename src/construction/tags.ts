@@ -277,6 +277,30 @@ export const TAG_MODULE_WIDTH: Tag = {
   category: 'measurement'
 }
 
+export const TAG_WALL_LENGTH_OUTSIDE: Tag = {
+  id: 'measurement_wall-length-outside',
+  label: 'Wall Length Outside',
+  category: 'measurement'
+}
+
+export const TAG_WALL_LENGTH_INSIDE: Tag = {
+  id: 'measurement_wall-length-inside',
+  label: 'Wall Length Inside',
+  category: 'measurement'
+}
+
+export const TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE: Tag = {
+  id: 'measurement_wall-construction-length-outside',
+  label: 'Wall Construction Length Outside',
+  category: 'measurement'
+}
+
+export const TAG_WALL_CONSTRUCTION_LENGTH_INSIDE: Tag = {
+  id: 'measurement_wall-construction-length-inside',
+  label: 'Wall Construction Length Inside',
+  category: 'measurement'
+}
+
 // Area tags
 export const TAG_PERIMETER_INSIDE: Tag = {
   id: 'area_perimeter-inside',
