@@ -17,14 +17,9 @@ import { LengthField } from '@/shared/components/LengthField'
 import { LShape0Icon, LShape90Icon, LShape180Icon, LShape270Icon } from './Icons'
 import { LShapedPreset } from './LShapedPreset'
 import { PolygonReferencePreview } from './PolygonReferencePreview'
-import type { LShapedPresetConfig } from './types'
+import type { LShapedPresetConfig, PresetDialogProps } from './types'
 
-interface LShapedPresetDialogProps {
-  onConfirm: (config: LShapedPresetConfig) => void
-  trigger: React.ReactNode
-}
-
-export function LShapedPresetDialog({ onConfirm, trigger }: LShapedPresetDialogProps): React.JSX.Element {
+export function LShapedPresetDialog({ onConfirm, trigger }: PresetDialogProps): React.JSX.Element {
   const defaultWallAssemblyId = useDefaultWallAssemblyId()
   const defaultBaseRingBeamAssemblyId = useDefaultBaseRingBeamAssemblyId()
   const defaultTopRingBeamAssemblyId = useDefaultTopRingBeamAssemblyId()

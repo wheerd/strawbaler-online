@@ -2,6 +2,8 @@ import { vec2 } from 'gl-matrix'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
+import { LShape0Icon } from '@/editor/tools/perimeter/preset/presets/Icons'
+import { LShapedPresetDialog } from '@/editor/tools/perimeter/preset/presets/LShapedPresetDialog'
 import '@/shared/geometry'
 
 import { LShapedPreset } from './LShapedPreset'
@@ -30,6 +32,8 @@ describe('LShapedPreset', () => {
     it('should have correct type and name', () => {
       expect(preset.type).toBe('l-shaped')
       expect(preset.name).toBe('L-Shaped')
+      expect(preset.icon).toBe(LShape0Icon)
+      expect(preset.dialog).toBe(LShapedPresetDialog)
     })
   })
 

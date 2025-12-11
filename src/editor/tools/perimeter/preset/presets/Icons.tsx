@@ -2,8 +2,8 @@ import React from 'react'
 
 interface IconProps {
   className?: string
-  width?: number
-  height?: number
+  width?: number | string
+  height?: number | string
 }
 
 export function RectIcon({ className, width = 15, height = 15 }: IconProps): React.JSX.Element {

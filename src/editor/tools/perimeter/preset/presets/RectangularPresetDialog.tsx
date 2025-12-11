@@ -16,14 +16,9 @@ import { LengthField } from '@/shared/components/LengthField'
 
 import { PolygonReferencePreview } from './PolygonReferencePreview'
 import { RectangularPreset } from './RectangularPreset'
-import type { RectangularPresetConfig } from './types'
+import type { PresetDialogProps, RectangularPresetConfig } from './types'
 
-interface RectangularPresetDialogProps {
-  onConfirm: (config: RectangularPresetConfig) => void
-  trigger: React.ReactNode
-}
-
-export function RectangularPresetDialog({ onConfirm, trigger }: RectangularPresetDialogProps): React.JSX.Element {
+export function RectangularPresetDialog({ onConfirm, trigger }: PresetDialogProps): React.JSX.Element {
   const defaultWallAssemblyId = useDefaultWallAssemblyId()
   const defaultBaseRingBeamAssemblyId = useDefaultBaseRingBeamAssemblyId()
   const defaultTopRingBeamAssemblyId = useDefaultTopRingBeamAssemblyId()

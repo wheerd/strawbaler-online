@@ -1,5 +1,8 @@
 import { vec2 } from 'gl-matrix'
 
+import { RectIcon } from '@/editor/tools/perimeter/preset/presets/Icons'
+import { RectangularPresetDialog } from '@/editor/tools/perimeter/preset/presets/RectangularPresetDialog'
+
 import type { PerimeterPreset, RectangularPresetConfig } from './types'
 
 /**
@@ -9,6 +12,8 @@ import type { PerimeterPreset, RectangularPresetConfig } from './types'
 export class RectangularPreset implements PerimeterPreset<RectangularPresetConfig> {
   readonly type = 'rectangular'
   readonly name = 'Rectangular'
+  readonly icon = RectIcon
+  readonly dialog = RectangularPresetDialog
 
   /**
    * Generate polygon points for a rectangle centered at origin.

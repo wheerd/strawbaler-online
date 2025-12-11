@@ -34,6 +34,17 @@ export interface LShapedPresetConfig extends BasePresetConfig {
   rotation: 0 | 90 | 180 | 270 // Rotation in degrees
 }
 
+interface IconProps extends React.SVGAttributes<SVGElement> {
+  children?: never
+}
+type IconComponent = React.ComponentType<IconProps>
+
+export interface PresetDialogProps {
+  onConfirm: (config: BasePresetConfig) => void
+  trigger: React.ReactNode
+}
+type DialogComponent = React.ComponentType<PresetDialogProps>
+
 /**
  * Abstract interface for perimeter presets
  * Each preset type provides polygon points for preview and creation
@@ -41,6 +52,8 @@ export interface LShapedPresetConfig extends BasePresetConfig {
 export interface PerimeterPreset<TConfig extends BasePresetConfig = BasePresetConfig> {
   readonly type: string
   readonly name: string
+  readonly icon: IconComponent
+  readonly dialog: DialogComponent
 
   /**
    * Get the polygon points for this preset configuration

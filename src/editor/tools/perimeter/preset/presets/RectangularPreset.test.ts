@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { RectIcon } from '@/editor/tools/perimeter/preset/presets/Icons'
+import { RectangularPresetDialog } from '@/editor/tools/perimeter/preset/presets/RectangularPresetDialog'
 import '@/shared/geometry'
 
 import { RectangularPreset } from './RectangularPreset'
@@ -134,6 +136,8 @@ describe('RectangularPreset', () => {
     it('should have correct type and name', () => {
       expect(preset.type).toBe('rectangular')
       expect(preset.name).toBe('Rectangular')
+      expect(preset.icon).toBe(RectIcon)
+      expect(preset.dialog).toBe(RectangularPresetDialog)
     })
   })
 })

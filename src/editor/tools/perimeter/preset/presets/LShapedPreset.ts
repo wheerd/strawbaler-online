@@ -1,5 +1,7 @@
 import { vec2 } from 'gl-matrix'
 
+import { LShape0Icon } from '@/editor/tools/perimeter/preset/presets/Icons'
+import { LShapedPresetDialog } from '@/editor/tools/perimeter/preset/presets/LShapedPresetDialog'
 import { offsetPolygon } from '@/shared/geometry'
 
 import type { LShapedPresetConfig, PerimeterPreset } from './types'
@@ -11,6 +13,8 @@ import type { LShapedPresetConfig, PerimeterPreset } from './types'
 export class LShapedPreset implements PerimeterPreset<LShapedPresetConfig> {
   readonly type = 'l-shaped'
   readonly name = 'L-Shaped'
+  readonly icon = LShape0Icon
+  readonly dialog = LShapedPresetDialog
 
   /**
    * Generate polygon points for an L-shape centered at origin
