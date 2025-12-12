@@ -10,14 +10,26 @@ export type TagCategoryId = keyof typeof ALL_CATEGORIES
 
 export const ALL_CATEGORIES = {
   straw: { label: 'Straw' },
+
   'wall-wood': { label: 'Wall Wood' },
+  'wall-measurement': { label: 'Wall Measurement' },
   'wall-construction-type': { label: 'Wall Construction Type' },
-  'floor-layer': { label: 'Floor Layers' },
   'wall-layer': { label: 'Wall Layers' },
+
+  opening: { label: 'Opening' },
+  'opening-measurement': { label: 'Opening Measurement' },
+
+  'floor-layer': { label: 'Floor Layers' },
+  'floor-wood': { label: 'Floor Wood' },
+  'floor-measurement': { label: 'Floor Measurement' },
+
   'roof-layer': { label: 'Roof Layers' },
   'roof-side': { label: 'Roof Side' },
-  measurement: { label: 'Measurement' },
-  opening: { label: 'Opening' },
+  'roof-measurement': { label: 'Roof Measurement' },
+
+  'ring-beam-measurement': { label: 'Ring Beam Measurement' },
+  'finished-measurement': { label: 'Finished Measurement' },
+
   area: { label: 'Area' },
   construction: { label: 'Construction' }
 } as const
@@ -194,111 +206,111 @@ export const TAG_OPENING_DOOR: Tag = {
 
 // Measurement tags
 export const TAG_POST_SPACING: Tag = {
-  id: 'measurement_post-spacing',
+  id: 'wall-measurement_post-spacing',
   label: 'Post Spacing',
-  category: 'measurement'
+  category: 'wall-measurement'
 }
 
 export const TAG_OPENING_SPACING: Tag = {
-  id: 'measurement_opening-spacing',
+  id: 'wall-measurement_opening-spacing',
   label: 'Opening Spacing',
-  category: 'measurement'
+  category: 'wall-measurement'
 }
 
 export const TAG_OPENING_WIDTH: Tag = {
-  id: 'measurement_opening-width',
+  id: 'opening-measurement_opening-width',
   label: 'Opening Width',
-  category: 'measurement'
+  category: 'opening-measurement'
 }
 
 export const TAG_SILL_HEIGHT: Tag = {
-  id: 'measurement_sill-height',
+  id: 'opening-measurement_sill-height',
   label: 'Sill Height',
-  category: 'measurement'
+  category: 'opening-measurement'
 }
 
 export const TAG_HEADER_FROM_TOP: Tag = {
-  id: 'measurement_header-from-top',
+  id: 'opening-measurement_header-from-top',
   label: 'Header From Top',
-  category: 'measurement'
+  category: 'opening-measurement'
 }
 
 export const TAG_HEADER_HEIGHT: Tag = {
-  id: 'measurement_header-height',
+  id: 'opening-measurement_header-height',
   label: 'Header Height',
-  category: 'measurement'
+  category: 'opening-measurement'
 }
 
 export const TAG_OPENING_HEIGHT: Tag = {
-  id: 'measurement_opening-height',
+  id: 'opening-measurement_opening-height',
   label: 'Opening Height',
-  category: 'measurement'
+  category: 'opening-measurement'
 }
 
 export const TAG_RING_BEAM_OUTER: Tag = {
-  id: 'measurement_ring-beam-outer',
+  id: 'ring-beam-measurement_ring-beam-outer',
   label: 'Ring Beam Outer',
-  category: 'measurement'
+  category: 'ring-beam-measurement'
 }
 
 export const TAG_RING_BEAM_INNER: Tag = {
-  id: 'measurement_ring-beam-inner',
+  id: 'ring-beam-measurement_ring-beam-inner',
   label: 'Ring Beam Inner',
-  category: 'measurement'
+  category: 'ring-beam-measurement'
 }
 
 export const TAG_WALL_LENGTH: Tag = {
-  id: 'measurement_wall-length',
+  id: 'wall-measurement_wall-length',
   label: 'Wall Length',
-  category: 'measurement'
+  category: 'wall-measurement'
 }
 
 export const TAG_WALL_HEIGHT: Tag = {
-  id: 'measurement_wall-height',
+  id: 'wall-measurement_wall-height',
   label: 'Wall Height',
-  category: 'measurement'
+  category: 'wall-measurement'
 }
 
 export const TAG_WALL_CONSTRUCTION_HEIGHT: Tag = {
-  id: 'measurement_wall-construction-height',
+  id: 'wall-measurement_wall-construction-height',
   label: 'Wall Construction Height',
-  category: 'measurement'
+  category: 'wall-measurement'
 }
 
 export const TAG_RING_BEAM_HEIGHT: Tag = {
-  id: 'measurement_ring-beam-height',
+  id: 'ring-beam-measurement_ring-beam-height',
   label: 'Ring Beam Height',
-  category: 'measurement'
+  category: 'ring-beam-measurement'
 }
 
 export const TAG_MODULE_WIDTH: Tag = {
-  id: 'measurement_module-width',
+  id: 'wall-measurement_module-width',
   label: 'Module Width',
-  category: 'measurement'
+  category: 'wall-measurement'
 }
 
 export const TAG_WALL_LENGTH_OUTSIDE: Tag = {
-  id: 'measurement_wall-length-outside',
+  id: 'finished-measurement_wall-length-outside',
   label: 'Wall Length Outside',
-  category: 'measurement'
+  category: 'finished-measurement'
 }
 
 export const TAG_WALL_LENGTH_INSIDE: Tag = {
-  id: 'measurement_wall-length-inside',
+  id: 'finished-measurement_wall-length-inside',
   label: 'Wall Length Inside',
-  category: 'measurement'
+  category: 'finished-measurement'
 }
 
 export const TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE: Tag = {
-  id: 'measurement_wall-construction-length-outside',
+  id: 'wall-measurement_wall-construction-length-outside',
   label: 'Wall Construction Length Outside',
-  category: 'measurement'
+  category: 'wall-measurement'
 }
 
 export const TAG_WALL_CONSTRUCTION_LENGTH_INSIDE: Tag = {
-  id: 'measurement_wall-construction-length-inside',
+  id: 'wall-measurement_wall-construction-length-inside',
   label: 'Wall Construction Length Inside',
-  category: 'measurement'
+  category: 'wall-measurement'
 }
 
 // Area tags
@@ -361,4 +373,48 @@ export const TAG_LAYERS: Tag = {
   id: 'construction_layers',
   label: 'Layers',
   category: 'construction'
+}
+
+// Floor wood
+export const TAG_JOIST: Tag = {
+  id: 'floor-wood_joist',
+  label: 'Joist',
+  category: 'floor-wood'
+}
+
+export const TAG_FLOOR_FRAME: Tag = {
+  id: 'floor-wood_frame',
+  label: 'Frame',
+  category: 'floor-wood'
+}
+
+export const TAG_FLOOR_OPENING_FRAME: Tag = {
+  id: 'floor-wood_opening-frame',
+  label: 'Opening Frame',
+  category: 'floor-wood'
+}
+
+export const TAG_SUBFLOOR: Tag = {
+  id: 'floor-wood_subfloor',
+  label: 'Subfloor',
+  category: 'floor-wood'
+}
+
+export const TAG_FLOOR_BOTTOM_CLADDING: Tag = {
+  id: 'floor-wood_bottom-cladding',
+  label: 'Bottom Cladding',
+  category: 'floor-wood'
+}
+
+// Floor Measurement tags
+export const TAG_JOIST_SPACING: Tag = {
+  id: 'floor-measurement_joist-spacing',
+  label: 'Joist Spacing',
+  category: 'floor-measurement'
+}
+
+export const TAG_JOIST_LENGTH: Tag = {
+  id: 'floor-measurement_joist-length',
+  label: 'Joist Length',
+  category: 'floor-measurement'
 }

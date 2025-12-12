@@ -20,7 +20,7 @@ export interface FloorConstructionContext {
   openings: Polygon2D[]
 }
 
-export type FloorAssemblyType = 'monolithic' | 'joist'
+export type FloorAssemblyType = 'monolithic' | 'joist' | 'filled'
 
 export interface FloorAssemblyConfigBase {
   type: FloorAssemblyType
@@ -61,7 +61,31 @@ export interface JoistFloorConfig extends FloorAssemblyConfigBase {
   openingSideMaterial: MaterialId
 }
 
-export type FloorConfig = MonolithicFloorConfig | JoistFloorConfig
+export interface FilledFloorConfig extends FloorAssemblyConfigBase {
+  type: 'filled'
+
+  constructionHeight: Length
+
+  joistThickness: Length
+  joistSpacing: Length
+  joistMaterial: MaterialId
+
+  frameThickness: Length
+  frameMaterial: MaterialId
+
+  subfloorThickness: Length
+  subfloorMaterial: MaterialId
+
+  bottomCladdingThickness: Length
+  bottomCladdingMaterial: MaterialId
+
+  openingFrameThickness: Length
+  openingFrameMaterial: MaterialId
+
+  strawMaterial?: MaterialId
+}
+
+export type FloorConfig = MonolithicFloorConfig | JoistFloorConfig | FilledFloorConfig
 
 // Validation
 
@@ -74,6 +98,8 @@ export const validateFloorConfig = (config: FloorConfig): void => {
     validateMonolithicFloorConfig(config)
   } else if (config.type === 'joist') {
     validateJoistFloorConfig(config)
+  } else if (config.type === 'filled') {
+    validateFilledFloorConfig(config)
   } else {
     throw new Error('Invalid floor assembly type')
   }
@@ -94,5 +120,26 @@ const validateJoistFloorConfig = (config: JoistFloorConfig): void => {
   }
   if (config.subfloorThickness <= 0) {
     throw new Error('Subfloor thickness must be greater than 0')
+  }
+}
+
+const validateFilledFloorConfig = (config: FilledFloorConfig): void => {
+  if (config.constructionHeight <= 0 || config.joistThickness <= 0) {
+    throw new Error('Filled floor dimensions must be greater than 0')
+  }
+  if (config.joistSpacing <= 0) {
+    throw new Error('Joist spacing must be greater than 0')
+  }
+  if (config.frameThickness <= 0) {
+    throw new Error('Frame thickness must be greater than 0')
+  }
+  if (config.subfloorThickness <= 0) {
+    throw new Error('Subfloor thickness must be greater than 0')
+  }
+  if (config.bottomCladdingThickness <= 0) {
+    throw new Error('Bottom cladding thickness must be greater than 0')
+  }
+  if (config.openingFrameThickness <= 0) {
+    throw new Error('Opening frame thickness must be greater than 0')
   }
 }

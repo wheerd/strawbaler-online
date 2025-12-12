@@ -22,6 +22,7 @@ import { useConfigActions, useDefaultFloorAssemblyId, useFloorAssemblies } from 
 import { getFloorAssemblyUsage } from '@/construction/config/usage'
 import { FLOOR_ASSEMBLIES } from '@/construction/floors'
 import type {
+  FilledFloorConfig,
   FloorAssemblyType,
   FloorConfig,
   JoistFloorConfig,
@@ -107,7 +108,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
             bottomLayers: []
           }
         }
-      } else {
+      } else if (type === 'joist') {
         name = 'New Joist Floor'
         config = {
           type: 'joist',
@@ -123,6 +124,30 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
           subfloorMaterial: defaultMaterial,
           openingSideThickness: 60,
           openingSideMaterial: defaultMaterial,
+          layers: {
+            topThickness: 0,
+            topLayers: [],
+            bottomThickness: 0,
+            bottomLayers: []
+          }
+        }
+      } else {
+        name = 'New Filled Floor'
+        config = {
+          type: 'filled',
+          constructionHeight: 360,
+          joistThickness: 60,
+          joistSpacing: 500,
+          joistMaterial: defaultMaterial,
+          frameThickness: 60,
+          frameMaterial: defaultMaterial,
+          subfloorThickness: 22,
+          subfloorMaterial: defaultMaterial,
+          bottomCladdingThickness: 22,
+          bottomCladdingMaterial: defaultMaterial,
+          openingFrameThickness: 60,
+          openingFrameMaterial: defaultMaterial,
+          strawMaterial: undefined,
           layers: {
             topThickness: 0,
             topLayers: [],
@@ -213,6 +238,12 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
                   Joist Floor
                 </Flex>
               </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => handleAddNew('filled')}>
+                <Flex align="center" gap="1">
+                  {React.createElement(getFloorAssemblyTypeIcon('filled'))}
+                  Straw Filled Floor
+                </Flex>
+              </DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Root>
 
@@ -293,7 +324,11 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
                 <Flex gap="2" align="center">
                   {React.createElement(getFloorAssemblyTypeIcon(selectedConfig.type))}
                   <Text size="2" color="gray">
-                    {selectedConfig.type === 'monolithic' ? 'Monolithic' : 'Joist'}
+                    {selectedConfig.type === 'monolithic'
+                      ? 'Monolithic'
+                      : selectedConfig.type === 'joist'
+                        ? 'Joist'
+                        : 'Straw Filled'}
                   </Text>
                 </Flex>
               </Flex>
@@ -319,6 +354,10 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
 
           {selectedConfig.type === 'joist' && (
             <JoistConfigFields config={selectedConfig} onUpdate={handleUpdateConfig} />
+          )}
+
+          {selectedConfig.type === 'filled' && (
+            <FilledConfigFields config={selectedConfig} onUpdate={handleUpdateConfig} />
           )}
 
           <Separator size="4" />
@@ -627,6 +666,246 @@ function JoistConfigFields({
           value={config.openingSideThickness}
           onChange={openingSideThickness => onUpdate({ openingSideThickness })}
           unit="mm"
+          size="2"
+        />
+      </Grid>
+    </>
+  )
+}
+
+function FilledConfigFields({
+  config,
+  onUpdate
+}: {
+  config: FilledFloorConfig
+  onUpdate: (updates: Partial<FilledFloorConfig>) => void
+}) {
+  return (
+    <>
+      <Heading size="2">Straw Filled Floor</Heading>
+
+      {/* Construction Height - Full Width */}
+      <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
+        <Flex align="center" gap="1">
+          <Label.Root>
+            <Text size="2" weight="medium" color="gray">
+              Construction Height
+            </Text>
+          </Label.Root>
+          <Tooltip content="Height of the floor structure (joist height).">
+            <IconButton style={{ cursor: 'help' }} color="gray" radius="full" variant="ghost" size="1">
+              <InfoCircledIcon width={12} height={12} />
+            </IconButton>
+          </Tooltip>
+        </Flex>
+        <LengthField
+          value={config.constructionHeight}
+          onChange={constructionHeight => onUpdate({ constructionHeight })}
+          unit="mm"
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      {/* Joists Section */}
+      <Heading size="3">Joists</Heading>
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Joist Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.joistMaterial}
+          onValueChange={joistMaterial => {
+            if (!joistMaterial) return
+            onUpdate({ joistMaterial })
+          }}
+          placeholder="Select joist material..."
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Joist Thickness
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.joistThickness}
+          onChange={joistThickness => onUpdate({ joistThickness })}
+          unit="mm"
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Joist Spacing
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.joistSpacing}
+          onChange={joistSpacing => onUpdate({ joistSpacing })}
+          unit="mm"
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      {/* Frame Section */}
+      <Heading size="3">Perimeter Frame</Heading>
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Frame Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.frameMaterial}
+          onValueChange={frameMaterial => {
+            if (!frameMaterial) return
+            onUpdate({ frameMaterial })
+          }}
+          placeholder="Select frame material..."
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Frame Thickness
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.frameThickness}
+          onChange={frameThickness => onUpdate({ frameThickness })}
+          unit="mm"
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      {/* Subfloor Section */}
+      <Heading size="3">Subfloor</Heading>
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Subfloor Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.subfloorMaterial}
+          onValueChange={subfloorMaterial => {
+            if (!subfloorMaterial) return
+            onUpdate({ subfloorMaterial })
+          }}
+          placeholder="Select subfloor material..."
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Subfloor Thickness
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.subfloorThickness}
+          onChange={subfloorThickness => onUpdate({ subfloorThickness })}
+          unit="mm"
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      {/* Bottom Cladding Section */}
+      <Heading size="3">Bottom Cladding</Heading>
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Bottom Cladding Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.bottomCladdingMaterial}
+          onValueChange={bottomCladdingMaterial => {
+            if (!bottomCladdingMaterial) return
+            onUpdate({ bottomCladdingMaterial })
+          }}
+          placeholder="Select bottom cladding material..."
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Bottom Cladding Thickness
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.bottomCladdingThickness}
+          onChange={bottomCladdingThickness => onUpdate({ bottomCladdingThickness })}
+          unit="mm"
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      {/* Opening Frame Section */}
+      <Heading size="3">Opening Frame</Heading>
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Opening Frame Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.openingFrameMaterial}
+          onValueChange={openingFrameMaterial => {
+            if (!openingFrameMaterial) return
+            onUpdate({ openingFrameMaterial })
+          }}
+          placeholder="Select opening frame material..."
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Opening Frame Thickness
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.openingFrameThickness}
+          onChange={openingFrameThickness => onUpdate({ openingFrameThickness })}
+          unit="mm"
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      {/* Straw Infill Section */}
+      <Heading size="3">Straw Infill</Heading>
+      <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
+        <Flex align="center" gap="1">
+          <Label.Root>
+            <Text size="2" weight="medium" color="gray">
+              Straw Material (Override)
+            </Text>
+          </Label.Root>
+          <Tooltip content="Material used to fill spaces between joists. Leave empty to use global straw settings.">
+            <IconButton style={{ cursor: 'help' }} color="gray" radius="full" variant="ghost" size="1">
+              <InfoCircledIcon width={12} height={12} />
+            </IconButton>
+          </Tooltip>
+        </Flex>
+        <MaterialSelectWithEdit
+          value={config.strawMaterial ?? null}
+          allowEmpty
+          emptyLabel="Use global straw settings"
+          onValueChange={strawMaterial => onUpdate({ strawMaterial: strawMaterial ?? undefined })}
+          placeholder="Select straw material..."
           size="2"
         />
       </Grid>

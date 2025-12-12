@@ -1,11 +1,22 @@
 import { vec3 } from 'gl-matrix'
 
 import { getConfigActions } from '@/construction/config'
+import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
 import type { WallConstructionArea } from '@/construction/geometry'
+import { PolygonWithBoundingRect } from '@/construction/helpers'
 import { getMaterialsActions } from '@/construction/materials/store'
+import { polygonPartInfo } from '@/construction/parts'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
-import { createElementFromArea } from '@/construction/shapes'
-import { TAG_FULL_BALE, TAG_PARTIAL_BALE, TAG_STRAW_FLAKES, TAG_STRAW_STUFFED, type Tag } from '@/construction/tags'
+import { createElementFromArea, createExtrudedPolygon } from '@/construction/shapes'
+import {
+  TAG_FULL_BALE,
+  TAG_PARTIAL_BALE,
+  TAG_STRAW_FLAKES,
+  TAG_STRAW_INFILL,
+  TAG_STRAW_STUFFED,
+  type Tag
+} from '@/construction/tags'
+import { type Length, type Plane3D } from '@/shared/geometry'
 
 import type { MaterialId, StrawbaleMaterial } from './material'
 
@@ -117,4 +128,70 @@ export function* constructStraw(area: WallConstructionArea, materialId?: Materia
     yield* yieldElement(element)
     yield yieldWarning('Wall is too thin for a single strawbale', [element], `strawbale-thin-${strawMaterialId}`)
   }
+}
+
+export function* constructStrawPolygon(
+  polygon: PolygonWithBoundingRect,
+  plane: Plane3D,
+  thickness: Length,
+  materialId?: MaterialId
+): Generator<ConstructionResult> {
+  const strawMaterialId = materialId ?? getConfigActions().getDefaultStrawMaterial()
+  const material = getMaterialsActions().getMaterialById(strawMaterialId)
+
+  const fullElement = (tags: Tag[]): ConstructionElement =>
+    createConstructionElement(
+      strawMaterialId,
+      createExtrudedPolygon(polygon.polygon, plane, thickness),
+      undefined,
+      tags,
+      polygonPartInfo('strawbale', polygon.polygon.outer, plane, thickness)
+    )
+
+  if (material?.type !== 'strawbale') {
+    yield* yieldElement(fullElement([TAG_STRAW_INFILL]))
+    return
+  }
+
+  if (thickness > material.baleWidth) {
+    const element = fullElement([TAG_STRAW_INFILL])
+    yield* yieldElement(element)
+    yield yieldError('Wall is too thick for a single strawbale', [element], `strawbale-thick-${strawMaterialId}`)
+    return
+  } else if (thickness < material.baleWidth) {
+    const element = fullElement([TAG_STRAW_INFILL])
+    yield* yieldElement(element)
+    yield yieldWarning('Wall is too thin for a single strawbale', [element], `strawbale-thin-${strawMaterialId}`)
+    return
+  }
+
+  if (polygon.dirExtent < material.flakeSize || polygon.perpExtent < material.flakeSize) {
+    yield* yieldElement(fullElement([TAG_STRAW_STUFFED]))
+    return
+  }
+
+  // Bale length along dir
+  if (Math.abs(polygon.perpExtent - material.baleHeight) <= material.tolerance) {
+    for (const part of polygon.tiled(material.baleMaxLength, material.baleHeight)) {
+      yield* baleFromPolygon(part, thickness, material, plane)
+    }
+    return
+  }
+
+  // Bale length perpendicular to dir
+  for (const part of polygon.tiled(material.baleHeight, material.baleMaxLength)) {
+    yield* baleFromPolygon(part, thickness, material, plane)
+  }
+}
+
+function* baleFromPolygon(
+  part: PolygonWithBoundingRect,
+  thickness: Length,
+  material: StrawbaleMaterial,
+  plane: Plane3D
+) {
+  const partSize = part.size3D('xz', thickness) // Fake wall dimensions
+  const fillingRatio = part.area / part.rectArea
+  const tags = fillingRatio < 0.8 ? [TAG_STRAW_STUFFED] : getStrawTags(partSize, material)
+  yield* part.extrude(material.id, thickness, plane, tags, 'strawbale')
 }

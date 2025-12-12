@@ -5,7 +5,7 @@ import type {
   RoofAssemblyId,
   WallAssemblyId
 } from '@/building/model'
-import type { JoistFloorConfig, MonolithicFloorConfig } from '@/construction/floors'
+import type { FilledFloorConfig, JoistFloorConfig, MonolithicFloorConfig } from '@/construction/floors'
 import type { EmptyOpeningConfig, PostOpeningConfig, SimpleOpeningConfig } from '@/construction/openings/types'
 import type { DoubleRingBeamConfig, FullRingBeamConfig } from '@/construction/ringBeams'
 import type { MonolithicRoofConfig, PurlinRoofConfig } from '@/construction/roofs'
@@ -102,8 +102,9 @@ export interface FloorAssemblyIdPart {
 
 export type MonolithicFloorAssemblyConfig = MonolithicFloorConfig & FloorAssemblyIdPart
 export type JoistFloorAssemblyConfig = JoistFloorConfig & FloorAssemblyIdPart
+export type FilledFloorAssemblyConfig = FilledFloorConfig & FloorAssemblyIdPart
 
-export type FloorAssemblyConfig = MonolithicFloorAssemblyConfig | JoistFloorAssemblyConfig
+export type FloorAssemblyConfig = MonolithicFloorAssemblyConfig | JoistFloorAssemblyConfig | FilledFloorAssemblyConfig
 
 // Roofs
 
