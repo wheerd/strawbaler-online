@@ -1,6 +1,5 @@
 import { vec2, vec3 } from 'gl-matrix'
 
-import { getConfigActions } from '@/construction/config'
 import { createConstructionElement, createConstructionElementId } from '@/construction/elements'
 import { translate } from '@/construction/geometry'
 import {
@@ -10,15 +9,23 @@ import {
   simplePolygonFrame,
   stripesPolygons
 } from '@/construction/helpers'
+import { constructStrawPolygon } from '@/construction/materials/straw'
 import type { ConstructionModel } from '@/construction/model'
 import { polygonPartInfo } from '@/construction/parts'
 import { type ConstructionResult, aggregateResults } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_STRAW_INFILL } from '@/construction/tags'
+import {
+  TAG_FLOOR_BOTTOM_CLADDING,
+  TAG_FLOOR_FRAME,
+  TAG_FLOOR_OPENING_FRAME,
+  TAG_JOIST,
+  TAG_SUBFLOOR
+} from '@/construction/tags'
 import {
   Bounds2D,
   type Polygon2D,
   direction,
+  ensurePolygonIsClockwise,
   isPointStrictlyInPolygon,
   midpoint,
   minimumAreaBoundingBox,
@@ -58,13 +65,15 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
         config.frameMaterial,
         undefined,
         'floor-frame',
-        undefined,
+        [TAG_FLOOR_FRAME],
         true
       )
     )
 
     const partitions = Array.from(partitionByAlignedEdges(joistArea, joistDirection))
-    const expandedHoles = context.openings.map(h => offsetPolygon(h, config.openingFrameThickness))
+    const expandedHoles = context.openings
+      .map(h => offsetPolygon(h, config.openingFrameThickness))
+      .map(ensurePolygonIsClockwise)
     const joistPolygons = partitions.flatMap(p => {
       const { leftHasBeam, rightHasBeam } = detectBeamEdges(p, joistDirection, wallBeamCheckPoints)
 
@@ -90,27 +99,31 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
             config.joistMaterial,
             createExtrudedPolygon(p, 'xy', config.constructionHeight),
             undefined,
-            undefined,
+            [TAG_JOIST],
             polygonPartInfo('joist', p.outer, 'xy', config.constructionHeight)
           )
         }) satisfies ConstructionResult
     )
 
-    const strawMaterial = config.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
+    const fullJoistPolygons = partitions.flatMap(p => {
+      const { leftHasBeam, rightHasBeam } = detectBeamEdges(p, joistDirection, wallBeamCheckPoints)
 
+      return Array.from(
+        stripesPolygons(
+          { outer: offsetPolygon(p, 1), holes: [] },
+          joistDirection,
+          config.joistThickness,
+          config.joistSpacing,
+          leftHasBeam ? 1 : config.joistSpacing + 1,
+          rightHasBeam ? 1 : config.joistSpacing + 1,
+          3000
+        )
+      )
+    })
     const infillArea = offsetPolygon(context.outerPolygon, -config.frameThickness)
-    const infillPolygons = subtractPolygons([infillArea], [...joistPolygons.map(p => p.outer), ...expandedHoles])
-    const infill = infillPolygons.map(
-      p =>
-        ({
-          type: 'element',
-          element: createConstructionElement(
-            strawMaterial,
-            createExtrudedPolygon(p, 'xy', config.constructionHeight),
-            undefined,
-            [TAG_STRAW_INFILL]
-          )
-        }) satisfies ConstructionResult
+    const infillPolygons = subtractPolygons([infillArea], [...fullJoistPolygons.map(p => p.outer), ...expandedHoles])
+    const infill = infillPolygons.flatMap(p =>
+      Array.from(constructStrawPolygon(p, joistDirection, 'xy', config.constructionHeight, config.strawMaterial))
     )
 
     const openingFrames = context.openings.flatMap(h =>
@@ -122,7 +135,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
           config.openingFrameMaterial,
           joistArea,
           'floor-opening-frame',
-          undefined,
+          [TAG_FLOOR_OPENING_FRAME],
           false
         )
       )
@@ -140,7 +153,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
           config.subfloorMaterial,
           createExtrudedPolygon(p, 'xy', config.subfloorThickness),
           undefined,
-          undefined,
+          [TAG_SUBFLOOR],
           polygonPartInfo('subfloor', p.outer, 'xy', config.subfloorThickness)
         )
       )
@@ -154,7 +167,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
           config.bottomCladdingMaterial,
           createExtrudedPolygon(p, 'xy', config.bottomCladdingThickness),
           undefined,
-          undefined,
+          [TAG_FLOOR_BOTTOM_CLADDING],
           polygonPartInfo('bottom-cladding', p.outer, 'xy', config.bottomCladdingThickness)
         )
       )

@@ -19,7 +19,8 @@ export const ALL_CATEGORIES = {
   measurement: { label: 'Measurement' },
   opening: { label: 'Opening' },
   area: { label: 'Area' },
-  construction: { label: 'Construction' }
+  construction: { label: 'Construction' },
+  'floor-wood': { label: 'Floor Wood' }
 } as const
 
 export const CATEGORIES: Record<TagCategoryId, TagCategory> = ALL_CATEGORIES
@@ -361,4 +362,35 @@ export const TAG_LAYERS: Tag = {
   id: 'construction_layers',
   label: 'Layers',
   category: 'construction'
+}
+
+// Floor wood
+export const TAG_JOIST: Tag = {
+  id: 'floor-wood_joist',
+  label: 'Joist',
+  category: 'floor-wood'
+}
+
+export const TAG_FLOOR_FRAME: Tag = {
+  id: 'floor-wood_frame',
+  label: 'Frame',
+  category: 'floor-wood'
+}
+
+export const TAG_FLOOR_OPENING_FRAME: Tag = {
+  id: 'floor-wood_opening-frame',
+  label: 'Opening Frame',
+  category: 'floor-wood'
+}
+
+export const TAG_SUBFLOOR: Tag = {
+  id: 'floor-wood_subfloor',
+  label: 'Subfloor',
+  category: 'floor-wood'
+}
+
+export const TAG_FLOOR_BOTTOM_CLADDING: Tag = {
+  id: 'floor-wood_bottom-cladding',
+  label: 'Bottom Cladding',
+  category: 'floor-wood'
 }

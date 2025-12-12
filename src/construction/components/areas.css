@@ -99,8 +99,13 @@ g.tag__straw_partial-bale {
   outline-offset: -20px;
 }
 
+g.tag__straw_flakes {
+  outline: solid 20px var(--blue-a8);
+  outline-offset: -20px;
+}
+
 g.tag__straw_stuffed {
   outline: solid 20px var(--red-a8);
   outline-offset: -20px;
 }
-*/
+  */

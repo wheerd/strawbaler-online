@@ -165,6 +165,44 @@ export function* stripesPolygons(
   }
 }
 
+export interface RotatedRect {
+  dir: vec2
+  perpDir: vec2
+  dirExtent: Length
+  perpExtent: Length
+  minPoint: vec2
+}
+
+export function rotatedRectFromPolygon(polygon: Polygon2D, direction: vec2) {
+  const dir = vec2.normalize(vec2.create(), direction)
+  const perpDir = perpendicular(dir)
+
+  const perpDots = polygon.points.map(p => vec2.dot(p, perpDir))
+  const perpMinPoint = polygon.points[perpDots.indexOf(Math.min(...perpDots))]
+  const perpExtent = Math.max(...perpDots) - Math.min(...perpDots)
+
+  const dirDots = polygon.points.map(p => vec2.dot(p, dir))
+  const dirMinPoint = polygon.points[dirDots.indexOf(Math.min(...dirDots))]
+  const extent = Math.max(...dirDots) - Math.min(...dirDots)
+
+  const dirLine: Line2D = { point: perpMinPoint, direction: dir }
+  const perpLine: Line2D = { point: dirMinPoint, direction: perpDir }
+
+  const intersection = lineIntersection(dirLine, perpLine)
+
+  if (!intersection) {
+    throw new Error('Could not determine intersection due to parallel lines.')
+  }
+
+  return {
+    dir,
+    perpDir,
+    dirExtent: extent,
+    perpExtent,
+    minPoint: intersection
+  }
+}
+
 export function* simpleStripes(
   polygon: PolygonWithHoles2D,
   direction: vec2,
@@ -175,47 +213,65 @@ export function* simpleStripes(
   partType?: string,
   tags?: Tag[]
 ): Generator<ConstructionResult> {
-  const perpDir = perpendicular(direction)
+  try {
+    const {
+      dirExtent: stripeLength,
+      perpExtent: totalSpan,
+      perpDir,
+      minPoint
+    } = rotatedRectFromPolygon(polygon.outer, direction)
 
-  const dots = polygon.outer.points.map(p => vec2.dot(p, perpDir))
-  const stripeStart = polygon.outer.points[dots.indexOf(Math.min(...dots))]
-  const totalSpan = Math.max(...dots) - Math.min(...dots)
+    // Used to filter out tiny stripe pieces (which are probably not needed)
+    const minRelevantArea = (thickness * thickness) / 2
 
-  const dots2 = polygon.outer.points.map(p => vec2.dot(p, direction))
-  const stripeMin = polygon.outer.points[dots2.indexOf(Math.min(...dots2))]
-  const stripeLength = Math.max(...dots2) - Math.min(...dots2)
+    const stepWidth = thickness + spacing
+    const end = totalSpan + spacing
+    for (let offset = 0; offset <= end; offset += stepWidth) {
+      const clippedOffset = Math.min(offset, totalSpan - thickness)
+      const p1 = vec2.scaleAndAdd(vec2.create(), minPoint, perpDir, clippedOffset)
+      const p2 = vec2.scaleAndAdd(vec2.create(), p1, perpDir, thickness)
+      const p3 = vec2.scaleAndAdd(vec2.create(), p2, direction, stripeLength)
+      const p4 = vec2.scaleAndAdd(vec2.create(), p1, direction, stripeLength)
 
-  const stripeLine: Line2D = { point: stripeStart, direction }
-  const perpLine: Line2D = { point: stripeMin, direction: perpDir }
+      const stripePolygon: Polygon2D = { points: [p1, p2, p3, p4] }
+      const stripeParts = intersectPolygon(polygon, { outer: stripePolygon, holes: [] })
 
-  const intersection = lineIntersection(stripeLine, perpLine)
-
-  if (!intersection) {
-    yield yieldWarning('Could not determine stripe positions due to parallel lines.', [])
-    return
+      for (const part of stripeParts) {
+        if (calculatePolygonArea(part.outer) < minRelevantArea) continue
+        const partInfo = partType ? polygonPartInfo(partType, part.outer, 'xy', height) : undefined
+        yield* yieldElement(
+          createConstructionElement(material, createExtrudedPolygon(part, 'xy', height), undefined, tags, partInfo)
+        )
+      }
+    }
+  } catch (error) {
+    yield yieldWarning(error instanceof Error ? error.message : String(error), [])
+    
   }
+}
 
-  // Used to filter out tiny stripe pieces (which are probably not needed)
-  const minRelevantArea = (thickness * thickness) / 2
+export function* tiledRectPolygons(
+  basePoint: vec2,
+  direction: vec2,
+  dirExtent: Length,
+  dirStep: Length,
+  perpDir: vec2,
+  perpExtent: Length,
+  perpStep: Length,
+  clipPolygon: PolygonWithHoles2D
+): Generator<PolygonWithHoles2D> {
+  for (let offsetDir = 0; offsetDir < dirExtent; offsetDir += dirStep) {
+    const clippedLengthDir = Math.min(dirStep, dirExtent - offsetDir)
+    const base = vec2.scaleAndAdd(vec2.create(), basePoint, direction, offsetDir)
+    for (let offsetPerp = 0; offsetPerp < perpExtent; offsetPerp += perpStep) {
+      const clippedLengthPerp = Math.min(perpStep, perpExtent - offsetPerp)
+      const p1 = vec2.scaleAndAdd(vec2.create(), base, perpDir, offsetPerp)
+      const p2 = vec2.scaleAndAdd(vec2.create(), p1, perpDir, clippedLengthPerp)
+      const p3 = vec2.scaleAndAdd(vec2.create(), p2, direction, clippedLengthDir)
+      const p4 = vec2.scaleAndAdd(vec2.create(), p1, direction, clippedLengthDir)
 
-  const stepWidth = thickness + spacing
-  const end = totalSpan + spacing
-  for (let offset = 0; offset <= end; offset += stepWidth) {
-    const clippedOffset = Math.min(offset, totalSpan - thickness)
-    const p1 = vec2.scaleAndAdd(vec2.create(), intersection, perpDir, clippedOffset)
-    const p2 = vec2.scaleAndAdd(vec2.create(), p1, perpDir, thickness)
-    const p3 = vec2.scaleAndAdd(vec2.create(), p2, direction, stripeLength)
-    const p4 = vec2.scaleAndAdd(vec2.create(), p1, direction, stripeLength)
-
-    const stripePolygon: Polygon2D = { points: [p1, p2, p3, p4] }
-    const stripeParts = intersectPolygon(polygon, { outer: stripePolygon, holes: [] })
-
-    for (const part of stripeParts) {
-      if (calculatePolygonArea(part.outer) < minRelevantArea) continue
-      const partInfo = partType ? polygonPartInfo(partType, part.outer, 'xy', height) : undefined
-      yield* yieldElement(
-        createConstructionElement(material, createExtrudedPolygon(part, 'xy', height), undefined, tags, partInfo)
-      )
+      const rectPolygon: Polygon2D = { points: [p1, p2, p3, p4] }
+      yield* intersectPolygon(clipPolygon, { outer: rectPolygon, holes: [] })
     }
   }
 }
