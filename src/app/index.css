@@ -17,8 +17,10 @@
   --color-success: var(--green-9);
   --color-success-light: var(--green-a5);
   --color-warning: var(--amber-9);
+  --color-warning-dark: var(--amber-10);
   --color-warning-light: var(--amber-a5);
   --color-danger: var(--red-9);
+  --color-danger-dark: var(--red-11);
   --color-danger-light: var(--red-a5);
   --color-info: var(--blue-9);
   --color-info-light: var(--blue-a5);

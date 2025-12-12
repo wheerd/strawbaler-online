@@ -13,6 +13,7 @@ import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
 import { ConstructionPlan, type ViewOption } from './ConstructionPlan'
 import './ConstructionPlanModal.css'
+import { IssueHoverProvider } from './context/IssueHoverContext'
 import { type TagOrCategory, TagVisibilityProvider } from './context/TagVisibilityContext'
 
 interface PartsData {
@@ -114,34 +115,36 @@ export function ConstructionPlanModal({
         </div>
 
         <Tabs.Content value="plan">
-          <Flex direction="column" gap="3" style={{ flex: 1, minHeight: 0 }} className="overflow-hidden">
-            <div
-              ref={containerRef}
-              className="overflow-hidden border border-gray-6 rounded-2"
-              style={{ flex: '1 1 100%', minHeight: 0, height: '100%' }}
-            >
-              {modelPromise ? (
-                <Suspense fallback={<PlanSkeleton />}>
-                  <TagVisibilityProvider defaultHidden={defaultHiddenTags}>
-                    <ConstructionPlanModalContent
-                      modelPromise={modelPromise}
-                      views={views}
-                      containerSize={containerSize}
-                      midCutActiveDefault={midCutActiveDefault}
-                    />
-                  </TagVisibilityProvider>
-                </Suspense>
-              ) : null}
-            </div>
+          <IssueHoverProvider>
+            <Flex direction="column" gap="3" style={{ flex: 1, minHeight: 0 }} className="overflow-hidden">
+              <div
+                ref={containerRef}
+                className="overflow-hidden border border-gray-6 rounded-2"
+                style={{ flex: '1 1 100%', minHeight: 0, height: '100%' }}
+              >
+                {modelPromise ? (
+                  <Suspense fallback={<PlanSkeleton />}>
+                    <TagVisibilityProvider defaultHidden={defaultHiddenTags}>
+                      <ConstructionPlanModalContent
+                        modelPromise={modelPromise}
+                        views={views}
+                        containerSize={containerSize}
+                        midCutActiveDefault={midCutActiveDefault}
+                      />
+                    </TagVisibilityProvider>
+                  </Suspense>
+                ) : null}
+              </div>
 
-            <Box flexShrink="0" style={{ minHeight: 0 }}>
-              {modelPromise ? (
-                <Suspense fallback={<PlanSkeleton />}>
-                  <IssueDescriptionPanel modelPromise={modelPromise} />
-                </Suspense>
-              ) : null}
-            </Box>
-          </Flex>
+              <Box flexShrink="0" style={{ minHeight: 0 }}>
+                {modelPromise ? (
+                  <Suspense fallback={<PlanSkeleton />}>
+                    <IssueDescriptionPanel modelPromise={modelPromise} />
+                  </Suspense>
+                ) : null}
+              </Box>
+            </Flex>
+          </IssueHoverProvider>
         </Tabs.Content>
 
         <Tabs.Content value="parts">

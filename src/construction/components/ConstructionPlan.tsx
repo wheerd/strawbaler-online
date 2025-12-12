@@ -18,6 +18,7 @@ import { CuboidAreaShape } from './CuboidAreaShape'
 import { PolygonAreaShape } from './PolygonAreaShape'
 import { SVGMaterialStyles } from './SVGMaterialStyles'
 import { TagVisibilityMenu } from './TagVisibilityMenu'
+import { useIssueHover } from './context/IssueHoverContext'
 import { type TagOrCategory, useTagVisibility } from './context/TagVisibilityContext'
 
 export interface View {
@@ -69,6 +70,7 @@ export function ConstructionPlan({
   midCutActiveDefault = false
 }: ConstructionPlanProps): React.JSX.Element {
   const { hiddenTagIds, toggleTagOrCategory, isTagOrCategoryVisible } = useTagVisibility()
+  const { hoveredIssueId } = useIssueHover()
   const viewportRef = useRef<SVGViewportRef>(null)
   const [currentViewIndex, setCurrentViewIndex] = useState(0)
   const [midCutEnabled, setMidCutEnabled] = useState(midCutActiveDefault)
@@ -182,6 +184,24 @@ export function ConstructionPlan({
     .map(cssClass => `.${cssClass} { display: none; }`)
     .join('\n')
 
+  // Generate hover styles for issue highlighting
+  const hoverStyles =
+    hoveredIssueId && !hideIssues
+      ? `
+    .construction-error:not(.issue-${hoveredIssueId}),
+    .construction-warning:not(.issue-${hoveredIssueId}) {
+      stroke-opacity: 0.5;
+      transition: stroke-opacity 0.2s ease;
+    }
+    .construction-error.issue-${hoveredIssueId},
+    .construction-warning.issue-${hoveredIssueId} {
+      animation: pulse-highlight 1.5s ease-in-out infinite;
+    }
+  `
+      : ''
+
+  const allStyles = [visibilityStyles, hoverStyles].filter(Boolean).join('\n')
+
   return (
     <div className="relative w-full h-full">
       <SVGViewport
@@ -195,10 +215,10 @@ export function ConstructionPlan({
         {/* Material styles for proper SVG rendering */}
         <SVGMaterialStyles />
 
-        {/* Dynamic visibility styles */}
-        {visibilityStyles && (
+        {/* Dynamic visibility and hover styles */}
+        {allStyles && (
           <defs>
-            <style>{visibilityStyles}</style>
+            <style>{allStyles}</style>
           </defs>
         )}
 
@@ -235,32 +255,18 @@ export function ConstructionPlan({
 
         {/* Warnings */}
         {warningOutlines.map(({ warning, outline }) => (
-          <g key={`warning-${warning.id}`} className="construction-warning">
+          <g key={`warning-${warning.id}`} className={`construction-warning issue-${warning.id}`}>
             {outline.polygons.map((polygon, polyIndex) => (
-              <path
-                key={polyIndex}
-                d={polygonToSvgPath(polygon)}
-                stroke="var(--color-warning)"
-                strokeWidth={30}
-                fill="var(--color-warning-light)"
-                strokeDasharray="100,100"
-              />
+              <path key={polyIndex} d={polygonToSvgPath(polygon)} />
             ))}
           </g>
         ))}
 
         {/* Errors */}
         {errorOutlines.map(({ error, outline }) => (
-          <g key={`error-${error.id}`} className="construction-error">
+          <g key={`error-${error.id}`} className={`construction-error issue-${error.id}`}>
             {outline.polygons.map((polygon, polyIndex) => (
-              <path
-                key={polyIndex}
-                d={polygonToSvgPath(polygon)}
-                stroke="var(--color-danger)"
-                strokeWidth={50}
-                fill="var(--color-danger-light)"
-                strokeDasharray="100,100"
-              />
+              <path key={polyIndex} d={polygonToSvgPath(polygon)} />
             ))}
           </g>
         ))}

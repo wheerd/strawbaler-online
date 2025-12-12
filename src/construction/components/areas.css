@@ -82,6 +82,35 @@
   display: none;
 }
 
+/* Issue hover highlighting animation */
+@keyframes pulse-highlight {
+  0%,
+  100% {
+    fill-opacity: 0.6;
+    stroke-width: 30;
+  }
+  50% {
+    fill-opacity: 0.8;
+    stroke-width: 50;
+  }
+}
+
+.construction-error {
+  stroke: var(--color-danger-dark);
+  stroke-width: 30;
+  fill: var(--color-danger);
+  fill-opacity: 0.4;
+  stroke-dasharray: 50, 50;
+}
+
+.construction-warning {
+  stroke: var(--color-warning-dark);
+  stroke-width: 30;
+  fill: var(--color-warning);
+  fill-opacity: 0.4;
+  stroke-dasharray: 50, 50;
+}
+
 g.tag__construction_module.minZ-in-group,
 g.tag__construction_module.maxZ-in-group {
   outline: solid 30px var(--accent-a8);

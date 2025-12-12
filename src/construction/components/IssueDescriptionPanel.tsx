@@ -4,12 +4,15 @@ import { use } from 'react'
 
 import type { ConstructionModel } from '@/construction/model'
 
+import { useIssueHover } from './context/IssueHoverContext'
+
 interface IssueDescriptionPanelProps {
   modelPromise: Promise<ConstructionModel | null>
 }
 
 export const IssueDescriptionPanel = ({ modelPromise }: IssueDescriptionPanelProps) => {
   const model = use(modelPromise)
+  const { hoveredIssueId, setHoveredIssueId } = useIssueHover()
 
   return (
     <Flex direction="column" gap="2" p="2" style={{ maxHeight: '120px', overflowY: 'auto' }}>
@@ -25,8 +28,21 @@ export const IssueDescriptionPanel = ({ modelPromise }: IssueDescriptionPanelPro
                   Errors ({model.errors.length})
                 </Text>
                 <Flex direction="column" gap="1">
-                  {model.errors.map((error, index) => (
-                    <Text key={index} size="1">
+                  {model.errors.map(error => (
+                    <Text
+                      key={error.id}
+                      size="1"
+                      onMouseEnter={() => setHoveredIssueId(error.id)}
+                      onMouseLeave={() => setHoveredIssueId(null)}
+                      style={{
+                        cursor: 'pointer',
+                        padding: 'var(--space-1)',
+                        margin: 'calc(-1 * var(--space-1))',
+                        borderRadius: 'var(--radius-1)',
+                        backgroundColor: hoveredIssueId === error.id ? 'var(--red-a3)' : 'transparent',
+                        transition: 'background-color 0.15s ease'
+                      }}
+                    >
                       • {error.description}
                     </Text>
                   ))}
@@ -45,8 +61,21 @@ export const IssueDescriptionPanel = ({ modelPromise }: IssueDescriptionPanelPro
                   Warnings ({model.warnings.length})
                 </Text>
                 <Flex direction="column" gap="1">
-                  {model.warnings.map((warning, index) => (
-                    <Text key={index} size="1">
+                  {model.warnings.map(warning => (
+                    <Text
+                      key={warning.id}
+                      size="1"
+                      onMouseEnter={() => setHoveredIssueId(warning.id)}
+                      onMouseLeave={() => setHoveredIssueId(null)}
+                      style={{
+                        cursor: 'pointer',
+                        padding: 'var(--space-1)',
+                        margin: 'calc(-1 * var(--space-1))',
+                        borderRadius: 'var(--radius-1)',
+                        backgroundColor: hoveredIssueId === warning.id ? 'var(--amber-a3)' : 'transparent',
+                        transition: 'background-color 0.15s ease'
+                      }}
+                    >
                       • {warning.description}
                     </Text>
                   ))}
