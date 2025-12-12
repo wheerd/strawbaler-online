@@ -19,9 +19,9 @@ describe('measurements', () => {
   const mockProjection: Projection = createProjectionMatrix('xy', 1, 1)
 
   const createMockTag = (id: string): Tag => ({
-    id: `measurement_${id}` as const,
+    id: `wall-measurement_${id}` as const,
     label: `${id} Label`,
-    category: 'measurement' as const
+    category: 'wall-measurement' as const
   })
 
   const createAutoMeasurement = (

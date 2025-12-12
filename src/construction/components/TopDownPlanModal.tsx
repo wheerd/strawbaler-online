@@ -24,21 +24,30 @@ export default ({
       {
         view: TOP_VIEW,
         label: 'Walls',
-        alwaysHiddenTags: [TAG_ROOF.id]
+        alwaysHiddenTags: [TAG_ROOF.id, 'roof-measurement', 'floor-measurement']
       },
       {
         view: TOP_VIEW,
-        label: 'Roof'
+        label: 'Roof',
+        alwaysHiddenTags: ['wall-measurement', 'opening-measurement', 'floor-measurement']
       },
       {
         view: TOP_VIEW,
         label: 'Floor',
-        alwaysHiddenTags: [TAG_WALLS.id, TAG_BASE_PLATE.id, TAG_TOP_PLATE.id, TAG_ROOF.id],
+        alwaysHiddenTags: [
+          TAG_WALLS.id,
+          TAG_BASE_PLATE.id,
+          TAG_TOP_PLATE.id,
+          TAG_ROOF.id,
+          'wall-measurement',
+          'roof-measurement',
+          'opening-measurement'
+        ],
         toggleHideTags: [TAG_SUBFLOOR.id]
       }
     ]}
     midCutActiveDefault
-    defaultHiddenTags={['floor-layer', 'wall-layer', 'roof-layer']}
+    defaultHiddenTags={['floor-layer', 'wall-layer', 'roof-layer', 'finished-measurement']}
     refreshKey={refreshKey}
     trigger={trigger}
   />
