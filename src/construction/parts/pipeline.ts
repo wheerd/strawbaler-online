@@ -1,4 +1,4 @@
-import { mat3, vec2, vec3 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import { getFacesFromManifold } from '@/construction/manifold/faces'
@@ -6,51 +6,16 @@ import {
   Bounds2D,
   type Length,
   type Polygon2D,
-  type Polygon3D,
   type PolygonWithHoles2D,
   canonicalPolygonKey,
   ensurePolygonIsClockwise,
   ensurePolygonIsCounterClockwise,
   minimumAreaBoundingBox,
-  simplifyPolygon
+  polygonEdgeCount,
+  simplifyPolygon,
+  simplifyPolygonWithHoles
 } from '@/shared/geometry'
-import { computeTriangleNormal } from '@/shared/geometry/3d'
-
-const TOL = 1e-2
-const INV_TOL = 1 / TOL
-
-// integer quantization
-function q(x: number): number {
-  return Math.round(x * INV_TOL)
-}
-
-function approx(a: number, b: number, eps = TOL): boolean {
-  return Math.abs(a - b) <= eps
-}
-
-function covariance(vertices: vec3[]): mat3 {
-  const m = [
-    [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0]
-  ]
-
-  for (const v of vertices) {
-    m[0][0] += v[0] * v[0]
-    m[0][1] += v[0] * v[1]
-    m[0][2] += v[0] * v[2]
-    m[1][1] += v[1] * v[1]
-    m[1][2] += v[1] * v[2]
-    m[2][2] += v[2] * v[2]
-  }
-
-  // symmetric
-  m[1][0] = m[0][1]
-  m[2][0] = m[0][2]
-  m[2][1] = m[1][2]
-
-  return mat3.fromValues(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2])
-}
+import { buildPlaneBasis, computeTriangleNormal, projectPolygonTo2D } from '@/shared/geometry/3d'
 
 export interface SideFace {
   index: number // The index of the side this is for with respect to boxSize
@@ -66,9 +31,10 @@ export interface PartInfo {
 export function getPartInfoFromManifold(manifold: Manifold): PartInfo {
   const cuboid = isCuboid(manifold)
   if (cuboid != null) {
+    const roundedDims = cuboid.dims.map(Math.round)
     return {
-      id: `cuboid:${cuboid.dims.map(q).join(',')}`,
-      boxSize: vec3.fromValues(cuboid.dims[0], cuboid.dims[1], cuboid.dims[2])
+      id: `cuboid:${roundedDims.join('x')}`,
+      boxSize: vec3.fromValues(roundedDims[0], roundedDims[1], roundedDims[2])
     }
   }
   const extruded = isExtruded(manifold)
@@ -79,13 +45,13 @@ export function getPartInfoFromManifold(manifold: Manifold): PartInfo {
     ]
     const roundedDims = extruded.dims.map(Math.round)
     return {
-      id: `extruded:${roundedDims.join(',')}|outer:${polygonKeys.join('|hole:')}`,
+      id: `extruded:${roundedDims.join('x')}|outer:${polygonKeys.join('|hole:')}`,
       boxSize: vec3.fromValues(roundedDims[0], roundedDims[1], roundedDims[2]),
       sideFaces: [{ index: extruded.dims.indexOf(extruded.thickness), polygon: extruded.polygon }]
     }
   }
   return {
-    id: 'no',
+    id: 'TODO',
     boxSize: vec3.create()
   }
 }
@@ -202,46 +168,6 @@ function isExtruded(manifold: Manifold): { dims: number[]; polygon: PolygonWithH
     }
   }
   return null
-}
-
-function polygonEdgeCount(polygon: Polygon3D) {
-  return vec3.equals(polygon.points[0], polygon.points[polygon.points.length - 1])
-    ? polygon.points.length - 1
-    : polygon.points.length
-}
-
-function simplifyPolygonWithHoles(polygon: PolygonWithHoles2D) {
-  return {
-    outer: simplifyPolygon(polygon.outer, 0.1),
-    holes: polygon.holes.map(h => simplifyPolygon(h, 0.1))
-  }
-}
-
-function buildPlaneBasis(n: vec3): [vec3, vec3] {
-  // pick an arbitrary vector not parallel to n
-  let tmp = Math.abs(n[0]) < 0.9 ? vec3.fromValues(1, 0, 0) : vec3.fromValues(0, 1, 0)
-
-  // u = perpendicular to n
-  const u = vec3.cross(vec3.create(), tmp, n)
-  vec3.normalize(u, u)
-
-  // v = perpendicular to n and u
-  const v = vec3.cross(vec3.create(), n, u)
-  vec3.normalize(v, v)
-
-  return [u, v]
-}
-
-function projectPolygonTo2D(polygon: Polygon2D, u: vec3, v: vec3): Polygon2D {
-  const points: vec2[] = []
-
-  for (const p of polygon.points) {
-    const x = vec3.dot(p, u)
-    const y = vec3.dot(p, v)
-    points.push(vec2.fromValues(x, y))
-  }
-
-  return { points }
 }
 
 function normalizedPolygon(polygon: PolygonWithHoles2D) {

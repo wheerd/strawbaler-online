@@ -1047,3 +1047,16 @@ export function intersectLineSegmentWithPolygon(
 
   return segments.length > 0 ? { segments } : null
 }
+
+export function polygonEdgeCount(polygon: Polygon3D) {
+  return vec3.equals(polygon.points[0], polygon.points[polygon.points.length - 1])
+    ? polygon.points.length - 1
+    : polygon.points.length
+}
+
+export function simplifyPolygonWithHoles(polygon: PolygonWithHoles2D) {
+  return {
+    outer: simplifyPolygon(polygon.outer, 0.1),
+    holes: polygon.holes.map(h => simplifyPolygon(h, 0.1))
+  }
+}
