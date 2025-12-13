@@ -53,8 +53,6 @@ function ConstructionElement3D({ element, parentOpacity = 1 }: ConstructionEleme
 
   if (opacity === 0) return null
 
-  const partId = element.partInfo?.partId
-
   // Get geometry (single path for all shapes)
   const { geometry, edgesGeometry, cacheKey } = getShapeGeometry(element.shape)
 
@@ -63,7 +61,7 @@ function ConstructionElement3D({ element, parentOpacity = 1 }: ConstructionEleme
 
   return (
     <group position={position} rotation={rotation} scale={scale}>
-      <mesh geometry={geometry} userData={{ partId, geometryKey: cacheKey }} dispose={null} material={meshMaterial}>
+      <mesh geometry={geometry} userData={{ geometryKey: cacheKey }} dispose={null} material={meshMaterial}>
         <lineSegments geometry={edgesGeometry} dispose={null} material={lineMaterial} />
       </mesh>
     </group>

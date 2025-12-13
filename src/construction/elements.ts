@@ -5,7 +5,7 @@ import type { Bounds3D } from '@/shared/geometry'
 import { createId } from '@/shared/utils/ids'
 
 import { IDENTITY, type Transform, transformBounds, translate } from './geometry'
-import type { PartInfo } from './parts'
+import type { InitialPartInfo, PartInfo } from './parts'
 import type { ConstructionIssueId } from './results'
 import { type Shape, createCuboid } from './shapes'
 import type { Tag } from './tags'
@@ -20,7 +20,7 @@ export const createConstructionElement = (
   shape: Shape,
   transform: Transform = IDENTITY,
   tags?: Tag[],
-  partInfo?: PartInfo
+  partInfo?: InitialPartInfo
 ): ConstructionElement => ({
   id: createConstructionElementId(),
   material,
@@ -40,7 +40,7 @@ export const createCuboidElement = (
   corner: vec3,
   size: vec3,
   tags?: Tag[],
-  partInfo?: PartInfo
+  partInfo?: InitialPartInfo
 ): ConstructionElement => {
   const shape = createCuboid(size)
   const transform = translate(corner)

@@ -2,6 +2,7 @@ import { vec2, vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import { getFacesFromManifold } from '@/construction/manifold/faces'
+import type { SideFace } from '@/construction/parts'
 import {
   Bounds2D,
   type Length,
@@ -17,18 +18,13 @@ import {
 } from '@/shared/geometry'
 import { buildPlaneBasis, computeTriangleNormal, projectPolygonTo2D } from '@/shared/geometry/3d'
 
-export interface SideFace {
-  index: number // The index of the side this is for with respect to boxSize
-  polygon: PolygonWithHoles2D // Normalized to fit within [0,0] to [side width,side height]
-}
-
-export interface PartInfo {
+export interface ManifoldPartInfo {
   id: string
   boxSize: vec3
   sideFaces?: SideFace[]
 }
 
-export function getPartInfoFromManifold(manifold: Manifold): PartInfo {
+export function getPartInfoFromManifold(manifold: Manifold): ManifoldPartInfo {
   const cuboid = isCuboid(manifold)
   if (cuboid != null) {
     const roundedDims = cuboid.dims.map(Math.round)

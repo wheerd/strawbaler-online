@@ -50,7 +50,7 @@ const formatAvailableCrossSections = (material: DimensionalMaterial): string =>
 
 function* constructFullPost(area: WallConstructionArea, config: FullPostConfig): Generator<ConstructionResult> {
   const { size } = area
-  const postElement = createElementFromArea(area, config.material, [TAG_POST], 'post')
+  const postElement = createElementFromArea(area, config.material, [TAG_POST], { type: 'post' })
 
   yield* yieldElement(postElement)
 
@@ -89,14 +89,16 @@ function* constructDoublePost(area: WallConstructionArea, config: DoublePostConf
     return
   }
 
-  const post1 = createElementFromArea(area.withYAdjustment(0, config.thickness), config.material, [TAG_POST], 'post')
+  const post1 = createElementFromArea(area.withYAdjustment(0, config.thickness), config.material, [TAG_POST], {
+    type: 'post'
+  })
   yield* yieldElement(post1)
 
   const post2 = createElementFromArea(
     area.withYAdjustment(size[1] - config.thickness, config.thickness),
     config.material,
     [TAG_POST],
-    'post'
+    { type: 'post' }
   )
   yield* yieldElement(post2)
 

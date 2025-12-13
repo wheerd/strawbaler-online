@@ -10,7 +10,6 @@ import {
   stripesPolygons
 } from '@/construction/helpers'
 import { type ConstructionModel } from '@/construction/model'
-import { polygonPartInfo } from '@/construction/parts'
 import { type ConstructionResult, aggregateResults } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import {
@@ -168,7 +167,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
             createExtrudedPolygon(p, 'xy', config.constructionHeight),
             undefined,
             undefined,
-            polygonPartInfo('wall-beam', p.outer, 'xy', config.constructionHeight)
+            { type: 'wall-beam' }
           )
         }) satisfies ConstructionResult
     )
@@ -181,7 +180,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
             createExtrudedPolygon(p, 'xy', config.constructionHeight),
             undefined,
             undefined,
-            polygonPartInfo('joist', p.outer, 'xy', config.constructionHeight)
+            { type: 'joist' }
           )
         }) satisfies ConstructionResult
     )
@@ -203,7 +202,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
           config.constructionHeight,
           config.openingSideMaterial,
           holeClip,
-          'floor-opening-frame',
+          { type: 'floor-opening-frame' },
           undefined,
           false
         )
@@ -220,7 +219,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
             createExtrudedPolygon(p, 'xy', config.subfloorThickness),
             translate(vec3.fromValues(0, 0, config.constructionHeight)),
             undefined,
-            polygonPartInfo('subfloor', p.outer, 'xy', config.subfloorThickness)
+            { type: 'subfloor' }
           )
         }) satisfies ConstructionResult
     )

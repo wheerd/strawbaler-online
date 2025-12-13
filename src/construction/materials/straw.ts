@@ -5,7 +5,7 @@ import { type ConstructionElement, createConstructionElement } from '@/construct
 import type { WallConstructionArea } from '@/construction/geometry'
 import { PolygonWithBoundingRect } from '@/construction/helpers'
 import { getMaterialsActions } from '@/construction/materials/store'
-import { polygonPartInfo } from '@/construction/parts'
+import '@/construction/parts'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
 import { createElementFromArea, createExtrudedPolygon } from '@/construction/shapes'
 import {
@@ -62,14 +62,14 @@ export function* constructStraw(area: WallConstructionArea, materialId?: Materia
   const material = getMaterialsActions().getMaterialById(strawMaterialId)
 
   if (material?.type !== 'strawbale') {
-    yield* yieldElement(createElementFromArea(area, strawMaterialId, [TAG_STRAW_STUFFED], 'strawbale'))
+    yield* yieldElement(createElementFromArea(area, strawMaterialId, [TAG_STRAW_STUFFED], { type: 'strawbale' }))
     return
   }
 
   if (size[1] === material.baleWidth) {
     // Gap smaller than a flake: Make it one stuffed fill
     if (size[0] < material.flakeSize || size[2] < material.flakeSize) {
-      yield* yieldElement(createElementFromArea(area, strawMaterialId, [TAG_STRAW_STUFFED], 'strawbale'))
+      yield* yieldElement(createElementFromArea(area, strawMaterialId, [TAG_STRAW_STUFFED], { type: 'strawbale' }))
       return
     }
 
@@ -80,7 +80,7 @@ export function* constructStraw(area: WallConstructionArea, materialId?: Materia
         const baleArea = area.withZAdjustment(z, adjustedHeight)
 
         yield* yieldElement(
-          createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), 'strawbale')
+          createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), { type: 'strawbale' })
         )
       }
       return
@@ -95,7 +95,7 @@ export function* constructStraw(area: WallConstructionArea, materialId?: Materia
         const baleArea = area.withXAdjustment(x, material.baleMaxLength).withZAdjustment(z, material.baleHeight)
 
         yield* yieldElement(
-          createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), 'strawbale')
+          createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), { type: 'strawbale' })
         )
       }
     }
@@ -108,14 +108,16 @@ export function* constructStraw(area: WallConstructionArea, materialId?: Materia
           const baleArea = remainingArea.withXAdjustment(x, material.baleHeight)
 
           yield* yieldElement(
-            createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), 'strawbale')
+            createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), {
+              type: 'strawbale'
+            })
           )
         }
       } else {
         const baleArea = area.withZAdjustment(fullEndZ)
 
         yield* yieldElement(
-          createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), 'strawbale')
+          createElementFromArea(baleArea, strawMaterialId, getStrawTags(baleArea.size, material), { type: 'strawbale' })
         )
       }
     }
@@ -145,7 +147,7 @@ export function* constructStrawPolygon(
       createExtrudedPolygon(polygon.polygon, plane, thickness),
       undefined,
       tags,
-      polygonPartInfo('strawbale', polygon.polygon.outer, plane, thickness)
+      { type: 'strawbale' }
     )
 
   if (material?.type !== 'strawbale') {
@@ -193,5 +195,5 @@ function* baleFromPolygon(
   const partSize = part.size3D('xz', thickness) // Fake wall dimensions
   const fillingRatio = part.area / part.rectArea
   const tags = fillingRatio < 0.8 ? [TAG_STRAW_STUFFED] : getStrawTags(partSize, material)
-  yield* part.extrude(material.id, thickness, plane, tags, 'strawbale')
+  yield* part.extrude(material.id, thickness, plane, tags, { type: 'strawbale' })
 }

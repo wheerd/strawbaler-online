@@ -12,7 +12,6 @@ import {
 } from '@/construction/helpers'
 import { constructStrawPolygon } from '@/construction/materials/straw'
 import type { ConstructionModel } from '@/construction/model'
-import { polygonPartInfo } from '@/construction/parts'
 import { type ConstructionResult, aggregateResults, yieldMeasurement } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import {
@@ -67,7 +66,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
         config.constructionHeight,
         config.frameMaterial,
         undefined,
-        'floor-frame',
+        { type: 'floor-frame' },
         [TAG_FLOOR_FRAME],
         true
       )
@@ -103,7 +102,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
             createExtrudedPolygon(p, 'xy', config.constructionHeight),
             undefined,
             [TAG_JOIST],
-            polygonPartInfo('joist', p.outer, 'xy', config.constructionHeight)
+            { type: 'joist' }
           )
         }) satisfies ConstructionResult
     )
@@ -147,7 +146,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
           config.constructionHeight,
           config.openingFrameMaterial,
           joistArea,
-          'floor-opening-frame',
+          { type: 'floor-opening-frame' },
           [TAG_FLOOR_OPENING_FRAME],
           false
         )
@@ -167,7 +166,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
           createExtrudedPolygon(p, 'xy', config.subfloorThickness),
           undefined,
           [TAG_SUBFLOOR],
-          polygonPartInfo('subfloor', p.outer, 'xy', config.subfloorThickness)
+          { type: 'subfloor' }
         )
       )
     }
@@ -181,7 +180,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
           createExtrudedPolygon(p, 'xy', config.bottomCladdingThickness),
           undefined,
           [TAG_FLOOR_BOTTOM_CLADDING],
-          polygonPartInfo('bottom-cladding', p.outer, 'xy', config.bottomCladdingThickness)
+          { type: 'bottom-cladding' }
         )
       )
     }

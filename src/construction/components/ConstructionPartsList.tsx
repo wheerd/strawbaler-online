@@ -612,8 +612,11 @@ function DimensionalPartsTable({ parts, material }: { parts: MaterialPartItem[];
               <Table.Cell>
                 <Flex align="center" gap="2">
                   <Text>{part.description}</Text>
-                  {part.polygon && part.polygon.points.length >= 3 && (
-                    <Tooltip key="special-cut" content={<SpecialCutTooltip polygon={part.polygon} />}>
+                  {part.sideFaces?.length && part.sideFaces[0].polygon.outer.points.length >= 3 && (
+                    <Tooltip
+                      key="special-cut"
+                      content={<SpecialCutTooltip polygon={part.sideFaces[0].polygon.outer} />}
+                    >
                       <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--amber-9)' }} />
                     </Tooltip>
                   )}
@@ -710,7 +713,7 @@ function SheetPartsTable({ parts, material }: { parts: MaterialPartItem[]; mater
                       <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--red-9)' }} />
                     </Tooltip>
                   )}
-                  {part.polygon && part.polygon.points.length >= 3 && (
+                  {part.sideFaces && (
                     <Tooltip key="special-cut" content="This might have a non-regular shape">
                       <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--amber-9)' }} />
                     </Tooltip>
