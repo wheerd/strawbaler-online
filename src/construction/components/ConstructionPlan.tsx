@@ -48,6 +48,8 @@ interface ConstructionPlanProps {
   views: ViewOption[]
   containerSize: { width: number; height: number }
   midCutActiveDefault?: boolean
+  currentViewIndex: number
+  setCurrentViewIndex: (index: number) => void
 }
 
 function polygonToSvgPath(polygon: Polygon2D) {
@@ -95,12 +97,13 @@ export function ConstructionPlan({
   model,
   views,
   containerSize,
-  midCutActiveDefault = false
+  midCutActiveDefault = false,
+  currentViewIndex,
+  setCurrentViewIndex
 }: ConstructionPlanProps): React.JSX.Element {
   const { hiddenTagIds, toggleTagOrCategory, isTagOrCategoryVisible } = useTagVisibility()
   const { hoveredIssueId, highlightedPartId } = usePlanHighlight()
   const viewportRef = useRef<SVGViewportRef>(null)
-  const [currentViewIndex, setCurrentViewIndex] = useState(0)
   const [midCutEnabled, setMidCutEnabled] = useState(midCutActiveDefault)
   const [hideAreas, setHideAreas] = useState(false)
   const [hideIssues, setHideIssues] = useState(false)

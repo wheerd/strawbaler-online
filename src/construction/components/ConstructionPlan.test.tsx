@@ -38,7 +38,13 @@ describe('ConstructionPlan', () => {
       <Theme>
         <PlanHighlightProvider>
           <TagVisibilityProvider>
-            <ConstructionPlan model={model} views={views} containerSize={{ width: 800, height: 600 }} />
+            <ConstructionPlan
+              model={model}
+              views={views}
+              containerSize={{ width: 800, height: 600 }}
+              currentViewIndex={0}
+              setCurrentViewIndex={() => {}}
+            />
           </TagVisibilityProvider>
         </PlanHighlightProvider>
       </Theme>
@@ -78,7 +84,13 @@ describe('ConstructionPlan', () => {
       <Theme>
         <PlanHighlightProvider>
           <TagVisibilityProvider>
-            <ConstructionPlan model={model} views={views} containerSize={{ width: 800, height: 600 }} />
+            <ConstructionPlan
+              model={model}
+              views={views}
+              containerSize={{ width: 800, height: 600 }}
+              currentViewIndex={0}
+              setCurrentViewIndex={() => {}}
+            />
           </TagVisibilityProvider>
         </PlanHighlightProvider>
       </Theme>
@@ -124,7 +136,13 @@ describe('ConstructionPlan', () => {
       <Theme>
         <PlanHighlightProvider>
           <TagVisibilityProvider>
-            <ConstructionPlan model={model} views={views} containerSize={{ width: 800, height: 600 }} />
+            <ConstructionPlan
+              model={model}
+              views={views}
+              containerSize={{ width: 800, height: 600 }}
+              currentViewIndex={0}
+              setCurrentViewIndex={() => {}}
+            />
           </TagVisibilityProvider>
         </PlanHighlightProvider>
       </Theme>

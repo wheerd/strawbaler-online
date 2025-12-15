@@ -44,12 +44,14 @@ export function ConstructionPlanModal({
   const [modelPromise, setModelPromise] = useState<Promise<ConstructionModel | null> | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'plan' | 'parts' | 'modules'>('plan')
+  const [currentViewIndex, setCurrentViewIndex] = useState(0)
   const [partsDataPromise, setPartsDataPromise] = useState<Promise<PartsData | null> | null>(null)
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open)
     if (!open) {
       setActiveTab('plan')
+      setCurrentViewIndex(0)
       setPartsDataPromise(null)
       return
     }
@@ -106,6 +108,8 @@ export function ConstructionPlanModal({
         <ModalContent
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          currentViewIndex={currentViewIndex}
+          setCurrentViewIndex={setCurrentViewIndex}
           modelPromise={modelPromise}
           views={views}
           containerSize={containerSize}
@@ -122,6 +126,8 @@ export function ConstructionPlanModal({
 function ModalContent({
   activeTab,
   setActiveTab,
+  currentViewIndex,
+  setCurrentViewIndex,
   modelPromise,
   views,
   containerSize,
@@ -132,6 +138,8 @@ function ModalContent({
 }: {
   activeTab: 'plan' | 'parts' | 'modules'
   setActiveTab: (tab: 'plan' | 'parts' | 'modules') => void
+  currentViewIndex: number
+  setCurrentViewIndex: (index: number) => void
   modelPromise: Promise<ConstructionModel | null> | null
   views: ViewOption[]
   containerSize: { width: number; height: number }
@@ -176,6 +184,8 @@ function ModalContent({
                     views={views}
                     containerSize={containerSize}
                     midCutActiveDefault={midCutActiveDefault}
+                    currentViewIndex={currentViewIndex}
+                    setCurrentViewIndex={setCurrentViewIndex}
                   />
                 </TagVisibilityProvider>
               </Suspense>
@@ -224,12 +234,16 @@ function ConstructionPlanModalContent({
   modelPromise,
   views,
   containerSize,
-  midCutActiveDefault
+  midCutActiveDefault,
+  currentViewIndex,
+  setCurrentViewIndex
 }: {
   modelPromise: Promise<ConstructionModel | null>
   views: ViewOption[]
   containerSize: { width: number; height: number }
   midCutActiveDefault?: boolean
+  currentViewIndex: number
+  setCurrentViewIndex: (index: number) => void
 }) {
   const constructionModel = use(modelPromise)
 
@@ -252,6 +266,8 @@ function ConstructionPlanModalContent({
       views={views}
       containerSize={containerSize}
       midCutActiveDefault={midCutActiveDefault}
+      currentViewIndex={currentViewIndex}
+      setCurrentViewIndex={setCurrentViewIndex}
     />
   )
 }
