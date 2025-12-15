@@ -232,8 +232,10 @@ export function ConstructionPlan({
   const partHighlightStyles = highlightedPartId
     ? `
     .part-${sanitizeForCssClass(highlightedPartId)} path {
-      stroke: var(--accent-9);
-      stroke-width: 40;
+      fill: var(--accent-8) !important;
+      stroke: var(--accent-10) !important;
+      outline: var(--accent-9);
+      outline-width: 40;
       filter: drop-shadow(0 0 20px var(--accent-a6));
       animation: pulse-part-highlight 2s ease-in-out infinite;
     }

@@ -99,12 +99,14 @@
 @keyframes pulse-part-highlight {
   0%,
   100% {
-    stroke-width: 40;
+    outline-width: 40;
     filter: drop-shadow(0 0 20px var(--accent-a6));
+    fill: var(--accent-8) !important;
   }
   50% {
-    stroke-width: 50;
+    outline-width: 50;
     filter: drop-shadow(0 0 30px var(--accent-a8));
+    fill: var(--accent-7) !important;
   }
 }
 
@@ -122,12 +124,6 @@
   fill: var(--color-warning);
   fill-opacity: 0.4;
   stroke-dasharray: 50, 50;
-}
-
-g.tag__construction_module.minZ-in-group,
-g.tag__construction_module.maxZ-in-group {
-  outline: solid 30px var(--accent-a8);
-  outline-offset: -30px;
 }
 
 /*
