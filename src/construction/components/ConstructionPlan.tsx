@@ -1,6 +1,6 @@
 import { ExclamationTriangleIcon, GroupIcon, RulerHorizontalIcon } from '@radix-ui/react-icons'
 import { Box, Card, Flex, Grid, IconButton, SegmentedControl } from '@radix-ui/themes'
-import { mat4, vec3 } from 'gl-matrix'
+import { mat4 } from 'gl-matrix'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { CutAreaShape } from '@/construction/components/CutAreaShape'
@@ -15,7 +15,7 @@ import type { ConstructionModel, HighlightedCuboid, HighlightedCut, HighlightedP
 import type { ConstructionIssue } from '@/construction/results'
 import { MidCutXIcon, MidCutYIcon } from '@/shared/components/Icons'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
-import { Bounds3D } from '@/shared/geometry'
+import { Bounds2D } from '@/shared/geometry'
 import { type Plane3D, type Polygon2D, type PolygonWithHoles2D } from '@/shared/geometry'
 
 import { CuboidAreaShape } from './CuboidAreaShape'
@@ -258,23 +258,12 @@ export function ConstructionPlan({
 
       if (matchingElements.length === 0) return
 
-      // Calculate combined bounds of all matching elements in world space
-      const worldBounds = matchingElements.map(({ element, worldTransform }) => {
-        // Transform the element's bounds to world space
-        const min = vec3.transformMat4(vec3.create(), element.bounds.min, worldTransform)
-        const max = vec3.transformMat4(vec3.create(), element.bounds.max, worldTransform)
+      const elementBounds = matchingElements.map(({ element, worldTransform }) =>
+        bounds3Dto2D(element.bounds, mat4.multiply(mat4.create(), projectionMatrix, worldTransform))
+      )
+      const combinedBounds = Bounds2D.merge(...elementBounds)
 
-        // After transformation, min might not be min anymore, so we need to recalculate
-        const actualMin = vec3.fromValues(Math.min(min[0], max[0]), Math.min(min[1], max[1]), Math.min(min[2], max[2]))
-        const actualMax = vec3.fromValues(Math.max(min[0], max[0]), Math.max(min[1], max[1]), Math.max(min[2], max[2]))
-
-        return Bounds3D.fromMinMax(actualMin, actualMax)
-      })
-      const combinedBounds = Bounds3D.merge(...worldBounds)
-
-      // Project to 2D and zoom with padding
-      const bounds2D = bounds3Dto2D(combinedBounds, projectionMatrix)
-      viewportRef.current?.zoomToBounds(bounds2D, { padding: 0.15, animate: false })
+      viewportRef.current?.zoomToBounds(combinedBounds, { padding: 0.15, animate: false })
     }, 100)
 
     return () => clearTimeout(timeoutId)

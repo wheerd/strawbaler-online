@@ -4,7 +4,7 @@ import type { MaterialId } from '@/construction/materials/material'
 import type { Bounds3D } from '@/shared/geometry'
 import { createId } from '@/shared/utils/ids'
 
-import { IDENTITY, type Transform, transformBounds, translate } from './geometry'
+import { IDENTITY, type Transform, translate } from './geometry'
 import type { InitialPartInfo, PartInfo } from './parts'
 import type { ConstructionIssueId } from './results'
 import { type Shape, createCuboid } from './shapes'
@@ -28,7 +28,7 @@ export const createConstructionElement = (
   transform,
   tags,
   partInfo,
-  bounds: transformBounds(shape.bounds, transform)
+  bounds: shape.bounds
 })
 
 /**

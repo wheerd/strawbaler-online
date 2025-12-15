@@ -102,7 +102,7 @@ export function createConstructionGroup(
   tags?: Tag[],
   partInfo?: InitialPartInfo
 ): ConstructionGroup {
-  const childBounds = children.map(child => transformBounds(child.bounds, transform))
+  const childBounds = children.map(child => transformBounds(child.bounds, child.transform))
   const groupBounds = Bounds3D.merge(...childBounds)
 
   return {
