@@ -135,10 +135,15 @@ export function SVGViewport({
   )
 
   // Auto-fit when contentBounds or svgSize changes
+  const lastAutoViewport = useRef('')
   useEffect(() => {
     if (contentBounds.isEmpty || svgSize.width <= 0 || svgSize.height <= 0) return
-    const newViewport = fitBoundsToViewport(contentBounds, svgSize.width, svgSize.height, padding)
-    setViewport(newViewport)
+    const viewportKey = `${contentBounds.min[0]},${contentBounds.min[1]}:${contentBounds.max[0]},${contentBounds.max[1]}:${svgSize.width},${svgSize.height}`
+    if (lastAutoViewport.current !== viewportKey) {
+      lastAutoViewport.current = viewportKey
+      const newViewport = fitBoundsToViewport(contentBounds, svgSize.width, svgSize.height, padding)
+      setViewport(newViewport)
+    }
   }, [contentBounds, svgSize.width, svgSize.height, padding])
 
   // Fixed viewBox based on SVG size

@@ -275,7 +275,7 @@ export function ConstructionPlan({
     }, 100)
 
     return () => clearTimeout(timeoutId)
-  }, [highlightedPartId, model.elements, projectionMatrix])
+  }, [highlightedPartId])
 
   return (
     <div className="relative w-full h-full">
