@@ -1,8 +1,9 @@
 import { Theme } from '@radix-ui/themes'
 import { render } from '@testing-library/react'
 import { vec2, vec3 } from 'gl-matrix'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
+import { PlanHighlightProvider } from '@/construction/components/context/PlanHighlightContext'
 import { IDENTITY, translate } from '@/construction/geometry'
 import type { ConstructionModel, HighlightedCuboid, HighlightedPolygon } from '@/construction/model'
 import { Bounds3D } from '@/shared/geometry'
@@ -35,9 +36,17 @@ describe('ConstructionPlan', () => {
     const views: ViewOption[] = [{ view: TOP_VIEW, label: 'Top' }]
     const { container } = render(
       <Theme>
-        <TagVisibilityProvider>
-          <ConstructionPlan model={model} views={views} containerSize={{ width: 800, height: 600 }} />
-        </TagVisibilityProvider>
+        <PlanHighlightProvider>
+          <TagVisibilityProvider>
+            <ConstructionPlan
+              model={model}
+              views={views}
+              containerSize={{ width: 800, height: 600 }}
+              currentViewIndex={0}
+              setCurrentViewIndex={vi.fn()}
+            />
+          </TagVisibilityProvider>
+        </PlanHighlightProvider>
       </Theme>
     )
 
@@ -73,9 +82,17 @@ describe('ConstructionPlan', () => {
     const views: ViewOption[] = [{ view: TOP_VIEW, label: 'Top' }]
     const { container } = render(
       <Theme>
-        <TagVisibilityProvider>
-          <ConstructionPlan model={model} views={views} containerSize={{ width: 800, height: 600 }} />
-        </TagVisibilityProvider>
+        <PlanHighlightProvider>
+          <TagVisibilityProvider>
+            <ConstructionPlan
+              model={model}
+              views={views}
+              containerSize={{ width: 800, height: 600 }}
+              currentViewIndex={0}
+              setCurrentViewIndex={vi.fn()}
+            />
+          </TagVisibilityProvider>
+        </PlanHighlightProvider>
       </Theme>
     )
 
@@ -117,9 +134,17 @@ describe('ConstructionPlan', () => {
     const views: ViewOption[] = [{ view: TOP_VIEW, label: 'Top' }]
     const { container } = render(
       <Theme>
-        <TagVisibilityProvider>
-          <ConstructionPlan model={model} views={views} containerSize={{ width: 800, height: 600 }} />
-        </TagVisibilityProvider>
+        <PlanHighlightProvider>
+          <TagVisibilityProvider>
+            <ConstructionPlan
+              model={model}
+              views={views}
+              containerSize={{ width: 800, height: 600 }}
+              currentViewIndex={0}
+              setCurrentViewIndex={vi.fn()}
+            />
+          </TagVisibilityProvider>
+        </PlanHighlightProvider>
       </Theme>
     )
 

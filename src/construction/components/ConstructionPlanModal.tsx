@@ -5,15 +5,16 @@ import React, { Suspense, use, useEffect, useState } from 'react'
 import { ConstructionPartsList } from '@/construction/components/ConstructionPartsList'
 import { ConstructionVirtualPartsList } from '@/construction/components/ConstructionVirtualPartsList'
 import { IssueDescriptionPanel } from '@/construction/components/IssueDescriptionPanel'
+import { PartHighlightPanel } from '@/construction/components/PartHighlightPanel'
 import type { ConstructionModel } from '@/construction/model'
-import type { MaterialPartsList, VirtualPartsList } from '@/construction/parts'
+import type { MaterialPartsList, PartId, VirtualPartsList } from '@/construction/parts'
 import { generateMaterialPartsList, generateVirtualPartsList } from '@/construction/parts'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
 import { ConstructionPlan, type ViewOption } from './ConstructionPlan'
 import './ConstructionPlanModal.css'
-import { IssueHoverProvider } from './context/IssueHoverContext'
+import { PlanHighlightProvider, usePlanHighlight } from './context/PlanHighlightContext'
 import { type TagOrCategory, TagVisibilityProvider } from './context/TagVisibilityContext'
 
 interface PartsData {
@@ -43,12 +44,14 @@ export function ConstructionPlanModal({
   const [modelPromise, setModelPromise] = useState<Promise<ConstructionModel | null> | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'plan' | 'parts' | 'modules'>('plan')
+  const [currentViewIndex, setCurrentViewIndex] = useState(0)
   const [partsDataPromise, setPartsDataPromise] = useState<Promise<PartsData | null> | null>(null)
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open)
     if (!open) {
       setActiveTab('plan')
+      setCurrentViewIndex(0)
       setPartsDataPromise(null)
       return
     }
@@ -101,77 +104,129 @@ export function ConstructionPlanModal({
       style={{ overflow: 'hidden' }}
       className="plan-modal"
     >
-      <Tabs.Root
-        value={activeTab}
-        onValueChange={value => setActiveTab(value as 'plan' | 'parts' | 'modules')}
-        style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
-      >
-        <div className="pb-[2px] mr-6">
-          <Tabs.List justify="end">
-            <Tabs.Trigger value="plan">Plan & Issues</Tabs.Trigger>
-            <Tabs.Trigger value="parts">Parts List</Tabs.Trigger>
-            <Tabs.Trigger value="modules">Modules</Tabs.Trigger>
-          </Tabs.List>
-        </div>
-
-        <Tabs.Content value="plan">
-          <IssueHoverProvider>
-            <Flex direction="column" gap="3" style={{ flex: 1, minHeight: 0 }} className="overflow-hidden">
-              <div
-                ref={containerRef}
-                className="overflow-hidden border border-gray-6 rounded-2"
-                style={{ flex: '1 1 100%', minHeight: 0, height: '100%' }}
-              >
-                {modelPromise ? (
-                  <Suspense fallback={<PlanSkeleton />}>
-                    <TagVisibilityProvider defaultHidden={defaultHiddenTags}>
-                      <ConstructionPlanModalContent
-                        modelPromise={modelPromise}
-                        views={views}
-                        containerSize={containerSize}
-                        midCutActiveDefault={midCutActiveDefault}
-                      />
-                    </TagVisibilityProvider>
-                  </Suspense>
-                ) : null}
-              </div>
-
-              <Box flexShrink="0" style={{ minHeight: 0 }}>
-                {modelPromise ? (
-                  <Suspense fallback={<PlanSkeleton />}>
-                    <IssueDescriptionPanel modelPromise={modelPromise} />
-                  </Suspense>
-                ) : null}
-              </Box>
-            </Flex>
-          </IssueHoverProvider>
-        </Tabs.Content>
-
-        <Tabs.Content value="parts">
-          <Box width="100%" height="100%" style={{ overflow: 'auto' }}>
-            {partsDataPromise ? (
-              <Suspense fallback={<PartsSkeleton />}>
-                <PartsTabContent partsDataPromise={partsDataPromise} />
-              </Suspense>
-            ) : (
-              <PartsSkeleton />
-            )}
-          </Box>
-        </Tabs.Content>
-
-        <Tabs.Content value="modules">
-          <Box width="100%" height="100%" style={{ overflow: 'auto' }}>
-            {partsDataPromise ? (
-              <Suspense fallback={<PartsSkeleton />}>
-                <ModulesTabContent partsDataPromise={partsDataPromise} />
-              </Suspense>
-            ) : (
-              <PartsSkeleton />
-            )}
-          </Box>
-        </Tabs.Content>
-      </Tabs.Root>
+      <PlanHighlightProvider>
+        <ModalContent
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          currentViewIndex={currentViewIndex}
+          setCurrentViewIndex={setCurrentViewIndex}
+          modelPromise={modelPromise}
+          views={views}
+          containerSize={containerSize}
+          containerRef={containerRef}
+          defaultHiddenTags={defaultHiddenTags}
+          midCutActiveDefault={midCutActiveDefault}
+          partsDataPromise={partsDataPromise}
+        />
+      </PlanHighlightProvider>
     </BaseModal>
+  )
+}
+
+function ModalContent({
+  activeTab,
+  setActiveTab,
+  currentViewIndex,
+  setCurrentViewIndex,
+  modelPromise,
+  views,
+  containerSize,
+  containerRef,
+  defaultHiddenTags,
+  midCutActiveDefault,
+  partsDataPromise
+}: {
+  activeTab: 'plan' | 'parts' | 'modules'
+  setActiveTab: (tab: 'plan' | 'parts' | 'modules') => void
+  currentViewIndex: number
+  setCurrentViewIndex: (index: number) => void
+  modelPromise: Promise<ConstructionModel | null> | null
+  views: ViewOption[]
+  containerSize: { width: number; height: number }
+  containerRef: React.RefCallback<HTMLDivElement>
+  defaultHiddenTags?: TagOrCategory[]
+  midCutActiveDefault?: boolean
+  partsDataPromise: Promise<PartsData | null> | null
+}) {
+  const { setHighlightedPartId } = usePlanHighlight()
+
+  const handleViewInPlan = (partId: string) => {
+    setHighlightedPartId(partId as PartId)
+    setActiveTab('plan')
+  }
+
+  return (
+    <Tabs.Root
+      value={activeTab}
+      onValueChange={value => setActiveTab(value as 'plan' | 'parts' | 'modules')}
+      style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
+    >
+      <div className="pb-[2px] mr-6">
+        <Tabs.List justify="end">
+          <Tabs.Trigger value="plan">Plan & Issues</Tabs.Trigger>
+          <Tabs.Trigger value="parts">Parts List</Tabs.Trigger>
+          <Tabs.Trigger value="modules">Modules</Tabs.Trigger>
+        </Tabs.List>
+      </div>
+
+      <Tabs.Content value="plan">
+        <Flex direction="column" gap="3" style={{ flex: 1, minHeight: 0 }} className="overflow-hidden">
+          <div
+            ref={containerRef}
+            className="overflow-hidden border border-gray-6 rounded-2"
+            style={{ flex: '1 1 100%', minHeight: 0, height: '100%', position: 'relative' }}
+          >
+            {modelPromise ? (
+              <Suspense fallback={<PlanSkeleton />}>
+                <TagVisibilityProvider defaultHidden={defaultHiddenTags}>
+                  <ConstructionPlanModalContent
+                    modelPromise={modelPromise}
+                    views={views}
+                    containerSize={containerSize}
+                    midCutActiveDefault={midCutActiveDefault}
+                    currentViewIndex={currentViewIndex}
+                    setCurrentViewIndex={setCurrentViewIndex}
+                  />
+                </TagVisibilityProvider>
+              </Suspense>
+            ) : null}
+            <PartHighlightPanel />
+          </div>
+
+          <Box flexShrink="0" style={{ minHeight: 0 }}>
+            {modelPromise ? (
+              <Suspense fallback={<PlanSkeleton />}>
+                <IssueDescriptionPanel modelPromise={modelPromise} />
+              </Suspense>
+            ) : null}
+          </Box>
+        </Flex>
+      </Tabs.Content>
+
+      <Tabs.Content value="parts">
+        <Box width="100%" height="100%" style={{ overflow: 'auto' }}>
+          {partsDataPromise ? (
+            <Suspense fallback={<PartsSkeleton />}>
+              <PartsTabContent partsDataPromise={partsDataPromise} onViewInPlan={handleViewInPlan} />
+            </Suspense>
+          ) : (
+            <PartsSkeleton />
+          )}
+        </Box>
+      </Tabs.Content>
+
+      <Tabs.Content value="modules">
+        <Box width="100%" height="100%" style={{ overflow: 'auto' }}>
+          {partsDataPromise ? (
+            <Suspense fallback={<PartsSkeleton />}>
+              <ModulesTabContent partsDataPromise={partsDataPromise} onViewInPlan={handleViewInPlan} />
+            </Suspense>
+          ) : (
+            <PartsSkeleton />
+          )}
+        </Box>
+      </Tabs.Content>
+    </Tabs.Root>
   )
 }
 
@@ -179,12 +234,16 @@ function ConstructionPlanModalContent({
   modelPromise,
   views,
   containerSize,
-  midCutActiveDefault
+  midCutActiveDefault,
+  currentViewIndex,
+  setCurrentViewIndex
 }: {
   modelPromise: Promise<ConstructionModel | null>
   views: ViewOption[]
   containerSize: { width: number; height: number }
   midCutActiveDefault?: boolean
+  currentViewIndex: number
+  setCurrentViewIndex: (index: number) => void
 }) {
   const constructionModel = use(modelPromise)
 
@@ -207,11 +266,19 @@ function ConstructionPlanModalContent({
       views={views}
       containerSize={containerSize}
       midCutActiveDefault={midCutActiveDefault}
+      currentViewIndex={currentViewIndex}
+      setCurrentViewIndex={setCurrentViewIndex}
     />
   )
 }
 
-function PartsTabContent({ partsDataPromise }: { partsDataPromise: Promise<PartsData | null> }) {
+function PartsTabContent({
+  partsDataPromise,
+  onViewInPlan
+}: {
+  partsDataPromise: Promise<PartsData | null>
+  onViewInPlan: (partId: string) => void
+}) {
   const partsData = use(partsDataPromise)
 
   if (partsData == null) {
@@ -227,10 +294,16 @@ function PartsTabContent({ partsDataPromise }: { partsDataPromise: Promise<Parts
     )
   }
 
-  return <ConstructionPartsList partsList={partsData.material} />
+  return <ConstructionPartsList partsList={partsData.material} onViewInPlan={onViewInPlan} />
 }
 
-function ModulesTabContent({ partsDataPromise }: { partsDataPromise: Promise<PartsData | null> }) {
+function ModulesTabContent({
+  partsDataPromise,
+  onViewInPlan
+}: {
+  partsDataPromise: Promise<PartsData | null>
+  onViewInPlan: (partId: string) => void
+}) {
   const partsData = use(partsDataPromise)
 
   if (partsData == null) {
@@ -246,7 +319,7 @@ function ModulesTabContent({ partsDataPromise }: { partsDataPromise: Promise<Par
     )
   }
 
-  return <ConstructionVirtualPartsList partsList={partsData.virtual} />
+  return <ConstructionVirtualPartsList partsList={partsData.virtual} onViewInPlan={onViewInPlan} />
 }
 
 function PlanSkeleton() {

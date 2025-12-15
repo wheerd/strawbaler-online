@@ -3,7 +3,7 @@ import { vec2 } from 'gl-matrix'
 import type { Perimeter, PerimeterCorner } from '@/building/model/model'
 import { createConstructionElement } from '@/construction/elements'
 import type { ConstructionModel } from '@/construction/model'
-import { polygonPartInfo } from '@/construction/parts'
+import '@/construction/parts'
 import { type ConstructionResult, aggregateResults, yieldArea, yieldElement } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import { TAG_PERIMETER_INSIDE, TAG_PERIMETER_OUTSIDE } from '@/construction/tags'
@@ -79,9 +79,10 @@ export class FullRingBeamAssembly implements RingBeamAssembly<FullRingBeamConfig
 
       const polygon = { outer: { points: [startInside, endInside, endOutside, startOutside] }, holes: [] }
       const shape = createExtrudedPolygon(polygon, 'xy', config.height)
-      const partInfo = polygonPartInfo('ring-beam', polygon.outer, 'xy', config.height)
 
-      yield* yieldElement(createConstructionElement(config.material, shape, undefined, undefined, partInfo))
+      yield* yieldElement(
+        createConstructionElement(config.material, shape, undefined, undefined, { type: 'ring-beam' })
+      )
     }
 
     yield yieldArea({

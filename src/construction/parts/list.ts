@@ -1,6 +1,6 @@
 import { vec2, vec3 } from 'gl-matrix'
 
-import type { ConstructionElement, ConstructionElementId } from '@/construction/elements'
+import type { ConstructionElement, ConstructionElementId, GroupOrElement } from '@/construction/elements'
 import type { CrossSection, DimensionalMaterial, MaterialId, SheetMaterial } from '@/construction/materials/material'
 import { getMaterialById } from '@/construction/materials/store'
 import type { ConstructionModel } from '@/construction/model'
@@ -18,170 +18,20 @@ import {
   TAG_WALL_LAYER_OUTSIDE,
   type Tag
 } from '@/construction/tags'
-import {
-  type Area,
-  Bounds2D,
-  type Length,
-  type Plane3D,
-  type Polygon2D,
-  type Volume,
-  calculatePolygonArea,
-  calculatePolygonWithHolesArea,
-  canonicalPolygonKey,
-  minimumAreaBoundingBox,
-  simplifyPolygon
-} from '@/shared/geometry'
+import { type Area, type Length, type Volume, calculatePolygonWithHolesArea } from '@/shared/geometry'
 
-export type PartId = string & { readonly brand: unique symbol }
-
-export interface PartInfo {
-  partId: PartId
-  type: string
-  description?: string
-  size: vec3 // Dimensions in millimeters, sorted from smallest to largest
-  polygon?: Polygon2D // Normalized within the bounding box defined by width and length
-  polygonPlane?: Plane3D // The plane of the polygon relative to the sorted size
-}
-
-export const dimensionalPartInfo = (type: string, size: vec3, description?: string): PartInfo => {
-  const sortedDimensions = Array.from(size)
-    .map(Math.round)
-    .sort((a, b) => a - b)
-  const partId = sortedDimensions.join('x') as PartId
-  return {
-    partId,
-    type,
-    description,
-    size: vec3.fromValues(sortedDimensions[0], sortedDimensions[1], sortedDimensions[2])
-  }
-}
-
-const isAxisAlignedRect = (polygon: Polygon2D) => {
-  if (polygon.points.length !== 4) return false
-  for (let i = 0; i < 4; i++) {
-    const prev = polygon.points[(i - 1 + 4) % 4]
-    const current = polygon.points[i]
-    const next = polygon.points[(i + 1) % 4]
-    if ((prev[0] !== current[0]) === (current[0] !== next[0])) return false
-    if ((prev[1] !== current[1]) === (current[1] !== next[1])) return false
-    if (prev[0] !== current[0] && prev[1] !== current[1]) return false
-  }
-  return true
-}
-
-export const polygonPartInfo = (
-  type: string,
-  polygon: Polygon2D,
-  plane: Plane3D,
-  thickness: Length,
-  description?: string,
-  simplifyRect = true
-): PartInfo => {
-  const { size, angle } = minimumAreaBoundingBox(polygon)
-  const width = Math.max(Math.round(size[0]), 0)
-  const height = Math.max(Math.round(size[1]), 0)
-  const absoluteThickness = Math.abs(Math.round(thickness))
-
-  const dimensions =
-    plane === 'xy'
-      ? [width, height, absoluteThickness]
-      : plane === 'xz'
-        ? [width, absoluteThickness, height]
-        : [absoluteThickness, width, height]
-  const dimTypes = plane === 'xy' ? 'xyz' : plane === 'xz' ? 'xzy' : 'zxy'
-  const combined: [number, string][] = [
-    [dimensions[0], dimTypes[0]],
-    [dimensions[1], dimTypes[1]],
-    [dimensions[2], dimTypes[2]]
-  ]
-
-  const sorted = combined.sort((a, b) => a[0] - b[0])
-  const sortedSize = sorted.map(s => s[0])
-  const sortedDim = sorted.map(s => s[1])
-  const xIndex = sortedDim.indexOf('x')
-  const yIndex = sortedDim.indexOf('y')
-  // This plane is relative to the sorted dimensions
-  const newPlane = `${'xyz'[Math.min(xIndex, yIndex)]}${'xyz'[Math.max(xIndex, yIndex)]}` as Plane3D
-  // If the axes are swapped in the new plane, we need to swap them in the polygon also
-  const flipXY = yIndex < xIndex
-
-  const sinAngle = Math.sin(-angle)
-  const cosAngle = Math.cos(-angle)
-
-  const rotatePoint = (point: vec2) => {
-    const x = point[0] * cosAngle - point[1] * sinAngle
-    const y = point[0] * sinAngle + point[1] * cosAngle
-    return vec2.fromValues(x, y)
-  }
-
-  const rotatedPoints = polygon.points.map(rotatePoint)
-  const flippedPoints = rotatedPoints.map(p => (flipXY ? vec2.fromValues(p[1], p[0]) : vec2.fromValues(p[0], p[1])))
-  if (flipXY) flippedPoints.reverse()
-  const bounds = Bounds2D.fromPoints(flippedPoints)
-  const normalizedPolygon: Polygon2D = {
-    points: flippedPoints.map(p => vec2.fromValues(Math.round(p[0] - bounds.min[0]), Math.round(p[1] - bounds.min[1])))
-  }
-  const simplifiedPolygon = simplifyPolygon(normalizedPolygon, 0.1)
-
-  const dimStr = sortedSize.join('x')
-  const isRect = isAxisAlignedRect(simplifiedPolygon) && simplifyRect
-  const partId = (isRect ? dimStr : `${dimStr}:${canonicalPolygonKey(simplifiedPolygon.points)}`) as PartId
-
-  return {
-    partId,
-    type,
-    description,
-    size: vec3.fromValues(sortedSize[0], sortedSize[1], sortedSize[2]),
-    polygon: isRect ? undefined : normalizedPolygon,
-    polygonPlane: isRect ? undefined : newPlane
-  }
-}
-
-export interface MaterialParts {
-  material: MaterialId
-  totalQuantity: number
-  totalVolume: Volume
-  totalArea?: Length
-  totalLength?: Length
-  parts: Record<PartId, MaterialPartItem>
-  usages: Record<PartId, MaterialPartItem>
-}
-
-export interface PartItem {
-  partId: PartId
-  type: string
-  description?: string
-  label: string // A, B, C, ...
-  size: vec3
-  elements: ConstructionElementId[]
-  quantity: number
-}
-
-export interface MaterialPartItem extends PartItem {
-  material: MaterialId
-  totalVolume: Volume
-  area?: Length
-  totalArea?: Length
-  length?: Length
-  totalLength?: Length
-  crossSection?: CrossSection
-  thickness?: Length
-  strawCategory?: StrawCategory
-  polygon?: Polygon2D
-  polygonPlane?: Plane3D
-  issue?: PartIssue
-}
-
-export interface MaterialUsage {
-  key: string
-  type: string
-  label: string // A, B, C, ...
-  totalVolume: Volume
-  totalArea?: Area
-}
-
-export type MaterialPartsList = Record<MaterialId, MaterialParts>
-export type VirtualPartsList = Record<PartId, PartItem>
+import { getPartInfoFromManifold } from './pipeline'
+import type {
+  FullPartInfo,
+  MaterialPartItem,
+  MaterialParts,
+  MaterialPartsList,
+  PartId,
+  PartIssue,
+  PartItem,
+  StrawCategory,
+  VirtualPartsList
+} from './types'
 
 const indexToLabel = (index: number): string => {
   const alphabetLength = 26
@@ -198,10 +48,6 @@ const indexToLabel = (index: number): string => {
 }
 
 const computeVolume = (size: vec3): Volume => size[0] * size[1] * size[2]
-
-export type PartIssue = 'CrossSectionMismatch' | 'LengthExceedsAvailable' | 'ThicknessMismatch' | 'SheetSizeExceeded'
-
-type StrawCategory = 'full' | 'partial' | 'flakes' | 'stuffed'
 
 const STRAW_CATEGORY_BY_TAG: Record<string, StrawCategory> = {
   [TAG_FULL_BALE.id]: 'full',
@@ -323,13 +169,15 @@ export const generateMaterialPartsList = (model: ConstructionModel, excludeTypes
       return
     }
 
-    const { material, partInfo, id } = element
+    const { material, id } = element
     const elementTags = [...tags, ...(element.tags ?? [])]
 
-    if (partInfo && excludeTypes?.some(t => t === partInfo.type)) return
+    const partType = element.partInfo?.type
+    if (partType && excludeTypes?.some(t => t === partType)) return
 
     const materialEntry = ensureMaterialEntry(material)
 
+    const partInfo = getFullPartInfo(element)
     if (partInfo) {
       processPart(partInfo, materialEntry, id, labelCounters, elementTags)
     } else {
@@ -344,22 +192,47 @@ export const generateMaterialPartsList = (model: ConstructionModel, excludeTypes
   return partsList
 }
 
+function getFullPartInfo(element: GroupOrElement): FullPartInfo | null {
+  if (!element.partInfo) return null
+  if ('id' in element.partInfo) return element.partInfo
+  const typePrefix = `${element.partInfo.type}${element.partInfo.subtype ? `-${element.partInfo.subtype}` : ''}`
+
+  if ('shape' in element) {
+    const mpi = getPartInfoFromManifold(element.shape.manifold)
+    const id = `${typePrefix}-${element.material}-${mpi.id}` as PartId
+    const fullInfo = element.partInfo as FullPartInfo
+    fullInfo.boxSize = mpi.boxSize
+    fullInfo.sideFaces = mpi.sideFaces
+    fullInfo.id = id
+    return fullInfo
+  }
+
+  const dims = [...element.bounds.size].sort()
+  const id = `${typePrefix}-group:${dims.join('x')}` as PartId
+  const fullInfo = element.partInfo as FullPartInfo
+  fullInfo.boxSize = dims
+  fullInfo.id = id
+  return fullInfo
+}
+
 export const generateVirtualPartsList = (model: ConstructionModel): VirtualPartsList => {
   const partsList: VirtualPartsList = {}
   let labelCounter = 0
 
-  const processElement = (element: ConstructionModel['elements'][number]) => {
+  const processElement = (element: GroupOrElement) => {
     if (!('children' in element)) return
 
     for (const child of element.children) {
       processElement(child)
     }
 
-    const { partInfo, id } = element
+    const { id } = element
+
+    const partInfo = getFullPartInfo(element)
 
     if (!partInfo) return
 
-    const partId = partInfo.partId
+    const partId = partInfo.id
     const existingPart = partsList[partId]
 
     if (existingPart) {
@@ -374,7 +247,7 @@ export const generateVirtualPartsList = (model: ConstructionModel): VirtualParts
       partId,
       type: partInfo.type,
       label,
-      size: vec3.clone(partInfo.size),
+      size: vec3.clone(partInfo.boxSize),
       elements: [id],
       quantity: 1
     }
@@ -390,7 +263,7 @@ export const generateVirtualPartsList = (model: ConstructionModel): VirtualParts
 }
 
 function processPart(
-  partInfo: PartInfo,
+  partInfo: FullPartInfo,
   materialEntry: MaterialParts,
   id: ConstructionElementId,
   labelCounters: Map<MaterialId, number>,
@@ -399,7 +272,7 @@ function processPart(
   const materialDefinition = getMaterialById(materialEntry.material)
   const isStrawbaleMaterial = materialDefinition?.type === 'strawbale'
 
-  let partId: PartId = partInfo.partId
+  let partId: PartId = partInfo.id
   let strawCategory: StrawCategory | undefined
 
   if (isStrawbaleMaterial) {
@@ -409,8 +282,8 @@ function processPart(
 
   const existingPart = materialEntry.parts[partId]
 
-  const size = partInfo.size
-  const volume = computeVolume(size)
+  const size = partInfo.boxSize
+  let volume = computeVolume(size)
 
   if (existingPart) {
     existingPart.quantity += 1
@@ -447,16 +320,18 @@ function processPart(
     crossSection = details.crossSection
   } else if (materialDefinition?.type === 'sheet') {
     const details = computeSheetDetails(size, materialDefinition)
-    if (partInfo.polygon) {
-      area = calculatePolygonArea(partInfo.polygon)
+    if (partInfo.sideFaces) {
+      area = calculatePolygonWithHolesArea(partInfo.sideFaces[0].polygon)
+      const thickness = partInfo.boxSize[partInfo.sideFaces[0].index]
+      volume = thickness * area
     } else {
       area = details.areaSize[0] * details.areaSize[1]
     }
     issue = details.issue
     thickness = details.thickness
   } else if (materialDefinition?.type === 'volume') {
-    if (partInfo.polygon) {
-      area = calculatePolygonArea(partInfo.polygon)
+    if (partInfo.sideFaces) {
+      area = calculatePolygonWithHolesArea(partInfo.sideFaces[0].polygon)
     }
   }
 
@@ -478,8 +353,7 @@ function processPart(
     totalVolume: volume,
     quantity: 1,
     issue,
-    polygon: partInfo.polygon,
-    polygonPlane: partInfo.polygonPlane,
+    sideFaces: partInfo.sideFaces,
     crossSection,
     thickness,
     strawCategory
@@ -540,7 +414,6 @@ function processConstructionElement(
   // Extract polygon info from manifold shape params if it's an extrusion
   const baseShape = element.shape.base?.type === 'extrusion' ? element.shape.base : undefined
   const polygon = baseShape?.polygon
-  const polygonPlane = baseShape?.plane
   const thickness = baseShape?.thickness
 
   let area: Area | undefined
@@ -592,8 +465,7 @@ function processConstructionElement(
     elements: [element.id],
     totalVolume: volume,
     quantity: 1,
-    polygon: polygon?.outer,
-    polygonPlane,
+    sideFaces: polygon ? [{ index: 0, polygon }] : [],
     thickness
   }
 

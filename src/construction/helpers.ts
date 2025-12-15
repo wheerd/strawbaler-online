@@ -25,7 +25,7 @@ import { formatLength } from '@/shared/utils/formatting'
 
 import { createConstructionElement } from './elements'
 import type { MaterialId } from './materials/material'
-import { polygonPartInfo } from './parts'
+import { type InitialPartInfo } from './parts'
 import { type ConstructionResult, yieldElement, yieldWarning } from './results'
 import { createExtrudedPolygon } from './shapes'
 import type { Tag } from './tags'
@@ -77,7 +77,7 @@ export function* infiniteBeam(
   thicknessRight: Length,
   height: Length,
   material: MaterialId,
-  partType?: string,
+  partInfo?: InitialPartInfo,
   tags?: Tag[]
 ): Generator<ConstructionResult> {
   const leftDir = perpendicularCW(line.direction)
@@ -92,7 +92,6 @@ export function* infiniteBeam(
   const beamParts = intersectPolygon(clipPolygon, { outer: beamPolygon, holes: [] })
 
   for (const part of beamParts) {
-    const partInfo = partType ? polygonPartInfo(partType, part.outer, 'xy', height) : undefined
     yield* yieldElement(
       createConstructionElement(material, createExtrudedPolygon(part, 'xy', height), undefined, tags, partInfo)
     )
@@ -106,7 +105,7 @@ export function* beam(
   thicknessRight: Length,
   height: Length,
   material: MaterialId,
-  partType?: string,
+  partInfo?: InitialPartInfo,
   tags?: Tag[]
 ): Generator<ConstructionResult> {
   const leftDir = perpendicularCW(direction(line.start, line.end))
@@ -119,7 +118,6 @@ export function* beam(
   const beamParts = intersectPolygon(clipPolygon, { outer: beamPolygon, holes: [] })
 
   for (const part of beamParts) {
-    const partInfo = partType ? polygonPartInfo(partType, part.outer, 'xy', height) : undefined
     yield* yieldElement(
       createConstructionElement(material, createExtrudedPolygon(part, 'xy', height), undefined, tags, partInfo)
     )
@@ -340,15 +338,11 @@ export class PolygonWithBoundingRect {
     thickness: Length,
     plane: Plane3D,
     tags?: Tag[],
-    partType?: string,
-    partDescription?: string
+    partInfo?: InitialPartInfo
   ): Generator<ConstructionResult> {
     if (this.isEmpty) {
       return
     }
-    const partInfo = partType
-      ? polygonPartInfo(partType, this.polygon.outer, plane, thickness, partDescription)
-      : undefined
     yield* yieldElement(
       createConstructionElement(
         materialId,
@@ -388,7 +382,7 @@ export function* simpleStripes(
   height: Length,
   spacing: Length,
   material: MaterialId,
-  partType?: string,
+  partInfo?: InitialPartInfo,
   tags?: Tag[]
 ): Generator<ConstructionResult> {
   try {
@@ -416,7 +410,6 @@ export function* simpleStripes(
 
       for (const part of stripeParts) {
         if (calculatePolygonArea(part.outer) < minRelevantArea) continue
-        const partInfo = partType ? polygonPartInfo(partType, part.outer, 'xy', height) : undefined
         yield* yieldElement(
           createConstructionElement(material, createExtrudedPolygon(part, 'xy', height), undefined, tags, partInfo)
         )
@@ -459,7 +452,7 @@ export function* simplePolygonFrame(
   height: Length,
   material: MaterialId,
   clipPolygon?: Polygon2D,
-  partType?: string,
+  partInfo?: InitialPartInfo,
   tags?: Tag[],
   inside = true
 ): Generator<ConstructionResult> {
@@ -488,7 +481,6 @@ export function* simplePolygonFrame(
         : [elementPolygon]
 
       for (const clip of clipped) {
-        const partInfo = partType ? polygonPartInfo(partType, clip.outer, 'xy', height) : undefined
         yield* yieldElement(
           createConstructionElement(material, createExtrudedPolygon(clip, 'xy', height), undefined, tags, partInfo)
         )

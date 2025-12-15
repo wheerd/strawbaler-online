@@ -1,8 +1,9 @@
-import { ExclamationTriangleIcon, PinBottomIcon, PinTopIcon } from '@radix-ui/react-icons'
+import { ExclamationTriangleIcon, EyeOpenIcon, PinBottomIcon, PinTopIcon } from '@radix-ui/react-icons'
 import { Badge, Card, Flex, Heading, IconButton, Table, Text, Tooltip } from '@radix-ui/themes'
 import { vec3 } from 'gl-matrix'
 import React, { useCallback, useMemo, useRef } from 'react'
 
+import { PartCutModal } from '@/construction/components/PartCutModal'
 import { getMaterialTypeIcon, getMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
 import type {
   DimensionalMaterial,
@@ -12,7 +13,8 @@ import type {
   VolumeMaterial
 } from '@/construction/materials/material'
 import { useMaterialsMap } from '@/construction/materials/store'
-import type { MaterialPartItem, MaterialParts, MaterialPartsList } from '@/construction/parts'
+import type { MaterialPartItem, MaterialParts, MaterialPartsList, PartId } from '@/construction/parts'
+import { SawIcon } from '@/shared/components/Icons'
 import { Bounds2D, type Polygon2D, type Volume } from '@/shared/geometry'
 import { formatArea, formatLength, formatLengthInMeters, formatVolume } from '@/shared/utils/formatting'
 
@@ -20,7 +22,11 @@ type BadgeColor = React.ComponentProps<typeof Badge>['color']
 
 interface ConstructionPartsListProps {
   partsList: MaterialPartsList
+  onViewInPlan?: (partId: PartId) => void
 }
+
+// Helper to check if part can be highlighted (not auto-generated)
+const canHighlightPart = (partId: PartId): boolean => !partId.startsWith('auto_')
 
 interface RowMetrics {
   totalQuantity: number
@@ -466,6 +472,7 @@ function SpecialCutTooltip({ polygon }: { polygon: Polygon2D }): React.JSX.Eleme
           strokeLinejoin="miter"
         />
       </svg>
+      <Text>Click the "saw" button to see more detailed measurements</Text>
     </Flex>
   )
 }
@@ -535,9 +542,10 @@ interface MaterialGroupCardProps {
   material: Material
   group: MaterialGroup
   onBackToTop: () => void
+  onViewInPlan?: (partId: PartId) => void
 }
 
-function MaterialGroupCard({ material, group, onBackToTop }: MaterialGroupCardProps) {
+function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan }: MaterialGroupCardProps) {
   return (
     <Card variant="surface" size="2">
       <Flex direction="column" gap="3">
@@ -563,17 +571,31 @@ function MaterialGroupCard({ material, group, onBackToTop }: MaterialGroupCardPr
           </IconButton>
         </Flex>
 
-        {material.type === 'dimensional' && <DimensionalPartsTable parts={group.parts} material={material} />}
-        {material.type === 'sheet' && <SheetPartsTable parts={group.parts} material={material} />}
-        {material.type === 'volume' && <VolumePartsTable parts={group.parts} material={material} />}
-        {material.type === 'generic' && <GenericPartsTable parts={group.parts} />}
+        {material.type === 'dimensional' && (
+          <DimensionalPartsTable parts={group.parts} material={material} onViewInPlan={onViewInPlan} />
+        )}
+        {material.type === 'sheet' && (
+          <SheetPartsTable parts={group.parts} material={material} onViewInPlan={onViewInPlan} />
+        )}
+        {material.type === 'volume' && (
+          <VolumePartsTable parts={group.parts} material={material} onViewInPlan={onViewInPlan} />
+        )}
+        {material.type === 'generic' && <GenericPartsTable parts={group.parts} onViewInPlan={onViewInPlan} />}
         {material.type === 'strawbale' && <StrawbalePartsTable parts={group.parts} material={material} />}
       </Flex>
     </Card>
   )
 }
 
-function DimensionalPartsTable({ parts, material }: { parts: MaterialPartItem[]; material: DimensionalMaterial }) {
+function DimensionalPartsTable({
+  parts,
+  material,
+  onViewInPlan
+}: {
+  parts: MaterialPartItem[]
+  material: DimensionalMaterial
+  onViewInPlan?: (partId: PartId) => void
+}) {
   return (
     <Table.Root variant="surface" size="2" className="min-w-full">
       <Table.Header>
@@ -598,6 +620,9 @@ function DimensionalPartsTable({ parts, material }: { parts: MaterialPartItem[];
           <Table.ColumnHeaderCell width="9em" justify="end">
             Total Weight
           </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="3em" justify="center">
+            View
+          </Table.ColumnHeaderCell>
         </Table.Row>
       </Table.Header>
       <Table.Body>
@@ -612,10 +637,23 @@ function DimensionalPartsTable({ parts, material }: { parts: MaterialPartItem[];
               <Table.Cell>
                 <Flex align="center" gap="2">
                   <Text>{part.description}</Text>
-                  {part.polygon && part.polygon.points.length >= 3 && (
-                    <Tooltip key="special-cut" content={<SpecialCutTooltip polygon={part.polygon} />}>
-                      <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--amber-9)' }} />
-                    </Tooltip>
+                  {part.sideFaces?.length && part.sideFaces[0].polygon.outer.points.length >= 3 && (
+                    <>
+                      <Tooltip
+                        key="special-cut"
+                        content={<SpecialCutTooltip polygon={part.sideFaces[0].polygon.outer} />}
+                      >
+                        <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--amber-9)' }} />
+                      </Tooltip>
+                      <PartCutModal
+                        trigger={
+                          <IconButton size="1" variant="outline" radius="full">
+                            <SawIcon />
+                          </IconButton>
+                        }
+                        polygon={part.sideFaces[0].polygon}
+                      />
+                    </>
                   )}
                 </Flex>
               </Table.Cell>
@@ -640,6 +678,13 @@ function DimensionalPartsTable({ parts, material }: { parts: MaterialPartItem[];
               </Table.Cell>
               <Table.Cell justify="end">{formatVolume(part.totalVolume)}</Table.Cell>
               <Table.Cell justify="end">{formatWeight(partWeight)}</Table.Cell>
+              <Table.Cell justify="center">
+                {canHighlightPart(part.partId) && onViewInPlan && (
+                  <IconButton size="1" variant="ghost" onClick={() => onViewInPlan(part.partId)} title="View in plan">
+                    <EyeOpenIcon />
+                  </IconButton>
+                )}
+              </Table.Cell>
             </Table.Row>
           )
         })}
@@ -648,7 +693,15 @@ function DimensionalPartsTable({ parts, material }: { parts: MaterialPartItem[];
   )
 }
 
-function SheetPartsTable({ parts, material }: { parts: MaterialPartItem[]; material: SheetMaterial }) {
+function SheetPartsTable({
+  parts,
+  material,
+  onViewInPlan
+}: {
+  parts: MaterialPartItem[]
+  material: SheetMaterial
+  onViewInPlan?: (partId: PartId) => void
+}) {
   return (
     <Table.Root variant="surface" size="2" className="min-w-full">
       <Table.Header>
@@ -675,6 +728,9 @@ function SheetPartsTable({ parts, material }: { parts: MaterialPartItem[]; mater
           </Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell width="9em" justify="end">
             Total Weight
+          </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="3em" justify="center">
+            View
           </Table.ColumnHeaderCell>
         </Table.Row>
       </Table.Header>
@@ -710,7 +766,7 @@ function SheetPartsTable({ parts, material }: { parts: MaterialPartItem[]; mater
                       <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--red-9)' }} />
                     </Tooltip>
                   )}
-                  {part.polygon && part.polygon.points.length >= 3 && (
+                  {part.sideFaces && (
                     <Tooltip key="special-cut" content="This might have a non-regular shape">
                       <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--amber-9)' }} />
                     </Tooltip>
@@ -723,6 +779,13 @@ function SheetPartsTable({ parts, material }: { parts: MaterialPartItem[]; mater
               <Table.Cell justify="end">{part.totalArea !== undefined ? formatArea(part.totalArea) : '—'}</Table.Cell>
               <Table.Cell justify="end">{formatVolume(part.totalVolume)}</Table.Cell>
               <Table.Cell justify="end">{formatWeight(partWeight)}</Table.Cell>
+              <Table.Cell justify="center">
+                {canHighlightPart(part.partId) && onViewInPlan && (
+                  <IconButton size="1" variant="ghost" onClick={() => onViewInPlan(part.partId)} title="View in plan">
+                    <EyeOpenIcon />
+                  </IconButton>
+                )}
+              </Table.Cell>
             </Table.Row>
           )
         })}
@@ -731,7 +794,15 @@ function SheetPartsTable({ parts, material }: { parts: MaterialPartItem[]; mater
   )
 }
 
-function VolumePartsTable({ parts, material }: { parts: MaterialPartItem[]; material: VolumeMaterial }) {
+function VolumePartsTable({
+  parts,
+  material,
+  onViewInPlan
+}: {
+  parts: MaterialPartItem[]
+  material: VolumeMaterial
+  onViewInPlan?: (partId: PartId) => void
+}) {
   return (
     <Table.Root variant="surface" size="2" className="min-w-full">
       <Table.Header>
@@ -756,6 +827,9 @@ function VolumePartsTable({ parts, material }: { parts: MaterialPartItem[]; mate
           <Table.ColumnHeaderCell width="9em" justify="end">
             Total Weight
           </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="3em" justify="center">
+            View
+          </Table.ColumnHeaderCell>
         </Table.Row>
       </Table.Header>
       <Table.Body>
@@ -773,6 +847,13 @@ function VolumePartsTable({ parts, material }: { parts: MaterialPartItem[]; mate
               <Table.Cell justify="end">{part.totalArea !== undefined ? formatArea(part.totalArea) : '—'}</Table.Cell>
               <Table.Cell justify="end">{formatVolume(part.totalVolume)}</Table.Cell>
               <Table.Cell justify="end">{formatWeight(partWeight)}</Table.Cell>
+              <Table.Cell justify="center">
+                {canHighlightPart(part.partId) && onViewInPlan && (
+                  <IconButton size="1" variant="ghost" onClick={() => onViewInPlan(part.partId)} title="View in plan">
+                    <EyeOpenIcon />
+                  </IconButton>
+                )}
+              </Table.Cell>
             </Table.Row>
           )
         })}
@@ -781,7 +862,13 @@ function VolumePartsTable({ parts, material }: { parts: MaterialPartItem[]; mate
   )
 }
 
-function GenericPartsTable({ parts }: { parts: MaterialPartItem[] }) {
+function GenericPartsTable({
+  parts,
+  onViewInPlan
+}: {
+  parts: MaterialPartItem[]
+  onViewInPlan?: (partId: PartId) => void
+}) {
   return (
     <Table.Root variant="surface" size="2" className="min-w-full">
       <Table.Header>
@@ -794,6 +881,9 @@ function GenericPartsTable({ parts }: { parts: MaterialPartItem[] }) {
           <Table.ColumnHeaderCell width="5em" justify="center">
             Quantity
           </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="3em" justify="center">
+            View
+          </Table.ColumnHeaderCell>
         </Table.Row>
       </Table.Header>
       <Table.Body>
@@ -805,6 +895,13 @@ function GenericPartsTable({ parts }: { parts: MaterialPartItem[] }) {
             <Table.Cell>{part.type}</Table.Cell>
             <Table.Cell>{part.description}</Table.Cell>
             <Table.Cell justify="center">{part.quantity}</Table.Cell>
+            <Table.Cell justify="center">
+              {canHighlightPart(part.partId) && onViewInPlan && (
+                <IconButton size="1" variant="ghost" onClick={() => onViewInPlan(part.partId)} title="View in plan">
+                  <EyeOpenIcon />
+                </IconButton>
+              )}
+            </Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>
@@ -909,7 +1006,7 @@ function StrawbalePartsTable({ parts, material }: { parts: MaterialPartItem[]; m
   )
 }
 
-export function ConstructionPartsList({ partsList }: ConstructionPartsListProps): React.JSX.Element {
+export function ConstructionPartsList({ partsList, onViewInPlan }: ConstructionPartsListProps): React.JSX.Element {
   const materialsMap = useMaterialsMap()
   const topRef = useRef<HTMLDivElement | null>(null)
   const detailRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -1037,7 +1134,12 @@ export function ConstructionPartsList({ partsList }: ConstructionPartsListProps)
             <Flex key={materialId} direction="column" gap="4">
               {groups.map(group => (
                 <div key={group.key} ref={setDetailRef(group.key)}>
-                  <MaterialGroupCard material={material} group={group} onBackToTop={scrollToTop} />
+                  <MaterialGroupCard
+                    material={material}
+                    group={group}
+                    onBackToTop={scrollToTop}
+                    onViewInPlan={onViewInPlan}
+                  />
                 </div>
               ))}
             </Flex>

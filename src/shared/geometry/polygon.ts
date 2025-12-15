@@ -1047,3 +1047,20 @@ export function intersectLineSegmentWithPolygon(
 
   return segments.length > 0 ? { segments } : null
 }
+
+export function polygonEdgeCount(polygon: Polygon3D) {
+  return vec3.equals(polygon.points[0], polygon.points[polygon.points.length - 1])
+    ? polygon.points.length - 1
+    : polygon.points.length
+}
+
+export function simplifyPolygonWithHoles(polygon: PolygonWithHoles2D) {
+  const outer = simplifyPolygon(polygon.outer, 0.1)
+  if (outer.points.length < 3 || calculatePolygonArea(outer) < 10) return null
+  return {
+    outer,
+    holes: polygon.holes
+      .map(h => simplifyPolygon(h, 0.1))
+      .filter(p => p.points.length > 2 && calculatePolygonArea(p) >= 10)
+  }
+}

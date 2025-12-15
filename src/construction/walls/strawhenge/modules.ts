@@ -4,7 +4,7 @@ import { type ConstructionElement, createCuboidElement } from '@/construction/el
 import { WallConstructionArea } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
 import { constructStraw } from '@/construction/materials/straw'
-import { type PartId, type PartInfo, dimensionalPartInfo } from '@/construction/parts'
+import { type InitialPartInfo } from '@/construction/parts'
 import { type ConstructionResult, yieldAsGroup, yieldElement, yieldMeasurement } from '@/construction/results'
 import { TAG_MODULE, TAG_MODULE_WIDTH, TAG_STRAW_INFILL } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
@@ -38,11 +38,7 @@ function* constructSingleFrameModule(
   config: SingleFrameModuleConfig
 ): Generator<ConstructionResult> {
   const { frameThickness, frameMaterial } = config
-  const horizontalFrameSize = vec3.fromValues(size[0], size[1], frameThickness)
-  const horizontalFramePartId = dimensionalPartInfo('module-frame', horizontalFrameSize)
   const verticalFrameLength = size[2] - 2 * frameThickness
-  const verticalFrameSize = vec3.fromValues(frameThickness, size[1], verticalFrameLength)
-  const verticalFramePartId = dimensionalPartInfo('module-frame', verticalFrameSize)
 
   // Calculate straw area (inset by frameThickness on all sides)
   const strawPosition = vec3.fromValues(position[0] + frameThickness, position[1], position[2] + frameThickness)
@@ -55,7 +51,7 @@ function* constructSingleFrameModule(
     [position[0], position[1], position[2] + size[2] - frameThickness],
     [size[0], size[1], frameThickness],
     undefined,
-    horizontalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(topFrame)
 
@@ -65,7 +61,7 @@ function* constructSingleFrameModule(
     position,
     [size[0], size[1], frameThickness],
     undefined,
-    horizontalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(bottomFrame)
 
@@ -75,7 +71,7 @@ function* constructSingleFrameModule(
     [position[0], position[1], position[2] + frameThickness],
     [frameThickness, size[1], verticalFrameLength],
     undefined,
-    verticalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(startFrame)
 
@@ -85,7 +81,7 @@ function* constructSingleFrameModule(
     [position[0] + size[0] - frameThickness, position[1], position[2] + frameThickness],
     [frameThickness, size[1], verticalFrameLength],
     undefined,
-    verticalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(endFrame)
 
@@ -120,11 +116,7 @@ function* constructDoubleFrameModule(
   const strawPosition = vec3.fromValues(position[0] + frameThickness, position[1], position[2] + frameThickness)
   const strawSize = vec3.fromValues(size[0] - 2 * frameThickness, size[1], size[2] - 2 * frameThickness)
   const strawArea = new WallConstructionArea(strawPosition, strawSize)
-  const horizontalFrameSize = vec3.fromValues(size[0], frameWidth, frameThickness)
-  const horizontalFramePartId = dimensionalPartInfo('module-frame', horizontalFrameSize)
   const verticalFrameLength = size[2] - 2 * frameThickness
-  const verticalFrameSize = vec3.fromValues(frameThickness, frameWidth, verticalFrameLength)
-  const verticalFramePartId = dimensionalPartInfo('module-frame', verticalFrameSize)
 
   // Top frame - 2 beams
   const topFrame1: ConstructionElement = createCuboidElement(
@@ -132,7 +124,7 @@ function* constructDoubleFrameModule(
     [position[0], position[1], position[2] + size[2] - frameThickness],
     [size[0], frameWidth, frameThickness],
     undefined,
-    horizontalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(topFrame1)
 
@@ -141,7 +133,7 @@ function* constructDoubleFrameModule(
     [position[0], position[1] + size[1] - frameWidth, position[2] + size[2] - frameThickness],
     [size[0], frameWidth, frameThickness],
     undefined,
-    horizontalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(topFrame2)
 
@@ -151,7 +143,7 @@ function* constructDoubleFrameModule(
     position,
     [size[0], frameWidth, frameThickness],
     undefined,
-    horizontalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(bottomFrame1)
 
@@ -160,7 +152,7 @@ function* constructDoubleFrameModule(
     [position[0], position[1] + size[1] - frameWidth, position[2]],
     [size[0], frameWidth, frameThickness],
     undefined,
-    horizontalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(bottomFrame2)
 
@@ -170,7 +162,7 @@ function* constructDoubleFrameModule(
     [position[0], position[1], position[2] + frameThickness],
     [frameThickness, frameWidth, verticalFrameLength],
     undefined,
-    verticalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(startFrame1)
 
@@ -179,7 +171,7 @@ function* constructDoubleFrameModule(
     [position[0], position[1] + size[1] - frameWidth, position[2] + frameThickness],
     [frameThickness, frameWidth, verticalFrameLength],
     undefined,
-    verticalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(startFrame2)
 
@@ -189,7 +181,7 @@ function* constructDoubleFrameModule(
     [position[0] + size[0] - frameThickness, position[1], position[2] + frameThickness],
     [frameThickness, frameWidth, verticalFrameLength],
     undefined,
-    verticalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(endFrame1)
 
@@ -198,7 +190,7 @@ function* constructDoubleFrameModule(
     [position[0] + size[0] - frameThickness, position[1] + size[1] - frameWidth, position[2] + frameThickness],
     [frameThickness, frameWidth, verticalFrameLength],
     undefined,
-    verticalFramePartId
+    { type: 'module-frame' }
   )
   yield* yieldElement(endFrame2)
 
@@ -240,13 +232,14 @@ function* constructDoubleFrameModule(
 
     const spacerSize = vec3.fromValues(frameThickness, gapWidth, spacerHeight)
     const infillSize = vec3.fromValues(frameThickness, gapWidth, infillHeight)
-    const spacerPartId = dimensionalPartInfo('module-spacer', spacerSize)
 
     let z = verticalStart
     for (let i = spacerCount; i > 0; i--) {
       // Left spacer
       yield* yieldElement(
-        createCuboidElement(spacerMaterial, vec3.fromValues(position[0], y, z), spacerSize, undefined, spacerPartId)
+        createCuboidElement(spacerMaterial, vec3.fromValues(position[0], y, z), spacerSize, undefined, {
+          type: 'module-spacer'
+        })
       )
 
       if (i > 1) {
@@ -258,7 +251,9 @@ function* constructDoubleFrameModule(
 
       // Right spacer
       yield* yieldElement(
-        createCuboidElement(spacerMaterial, vec3.fromValues(rightX, y, z), spacerSize, undefined, spacerPartId)
+        createCuboidElement(spacerMaterial, vec3.fromValues(rightX, y, z), spacerSize, undefined, {
+          type: 'module-spacer'
+        })
       )
 
       if (i > 1) {
@@ -284,11 +279,9 @@ function* constructDoubleFrameModule(
 export function* constructModule(area: WallConstructionArea, config: ModuleConfig): Generator<ConstructionResult> {
   const size = vec3.fromValues(area.size[0], area.size[1], area.minHeight)
   const configStr = JSON.stringify(config, Object.keys(config).sort())
-  const sizeStr = Array.from(size).map(Math.round).join('x')
-  const partInfo: PartInfo = {
-    partId: `module_${configStr}_${sizeStr}` as PartId,
+  const partInfo: InitialPartInfo = {
     type: `module-${config.type}`,
-    size
+    subtype: configStr
   }
   if (config.type === 'single') {
     yield* yieldAsGroup(constructSingleFrameModule(area.position, size, config), [TAG_MODULE], undefined, partInfo)

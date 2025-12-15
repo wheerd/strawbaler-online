@@ -3,7 +3,6 @@ import { mat2, vec2, vec3 } from 'gl-matrix'
 import { createConstructionElement } from '@/construction/elements'
 import { translate } from '@/construction/geometry'
 import type { LayerConstruction, StripedLayerConfig } from '@/construction/layers/types'
-import { polygonPartInfo } from '@/construction/parts'
 import { type ConstructionResult, yieldElement, yieldWarning } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import {
@@ -90,7 +89,7 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
             createExtrudedPolygon(stripe, plane, config.thickness),
             translate(position),
             undefined,
-            polygonPartInfo('stripe', stripe.outer, plane, config.thickness)
+            { type: 'stripe' }
           )
         )
       }

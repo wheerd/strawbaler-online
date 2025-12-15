@@ -1,24 +1,28 @@
 import { ExclamationTriangleIcon, GroupIcon, RulerHorizontalIcon } from '@radix-ui/react-icons'
 import { Box, Card, Flex, Grid, IconButton, SegmentedControl } from '@radix-ui/themes'
+import { mat4 } from 'gl-matrix'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { CutAreaShape } from '@/construction/components/CutAreaShape'
 import { Measurements } from '@/construction/components/Measurements'
+import { sanitizeForCssClass } from '@/construction/components/cssHelpers'
 import { type FaceTree, geometryFaces } from '@/construction/components/faceHelpers'
 import { accumulateIssueWorldManifolds } from '@/construction/components/issueHelpers'
+import type { GroupOrElement } from '@/construction/elements'
 import { bounds3Dto2D, createProjectionMatrix, projectPoint } from '@/construction/geometry'
 import { type ProjectedOutline, projectManifoldToView } from '@/construction/manifoldProjection'
 import type { ConstructionModel, HighlightedCuboid, HighlightedCut, HighlightedPolygon } from '@/construction/model'
 import type { ConstructionIssue } from '@/construction/results'
 import { MidCutXIcon, MidCutYIcon } from '@/shared/components/Icons'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
+import { Bounds2D } from '@/shared/geometry'
 import { type Plane3D, type Polygon2D, type PolygonWithHoles2D } from '@/shared/geometry'
 
 import { CuboidAreaShape } from './CuboidAreaShape'
 import { PolygonAreaShape } from './PolygonAreaShape'
 import { SVGMaterialStyles } from './SVGMaterialStyles'
 import { TagVisibilityMenu } from './TagVisibilityMenu'
-import { useIssueHover } from './context/IssueHoverContext'
+import { usePlanHighlight } from './context/PlanHighlightContext'
 import { type TagOrCategory, useTagVisibility } from './context/TagVisibilityContext'
 
 export interface View {
@@ -44,6 +48,8 @@ interface ConstructionPlanProps {
   views: ViewOption[]
   containerSize: { width: number; height: number }
   midCutActiveDefault?: boolean
+  currentViewIndex: number
+  setCurrentViewIndex: (index: number) => void
 }
 
 function polygonToSvgPath(polygon: Polygon2D) {
@@ -63,16 +69,41 @@ export function FaceTreeElement({ tree }: { tree: FaceTree }): React.JSX.Element
   )
 }
 
+// Helper to recursively collect elements matching a partId with their accumulated transforms
+function collectElementsWithPartId(
+  element: GroupOrElement,
+  partId: string,
+  parentTransform: mat4 = mat4.create()
+): { element: GroupOrElement; worldTransform: mat4 }[] {
+  // Accumulate transform: parent * element
+  const accumulatedTransform = mat4.multiply(mat4.create(), parentTransform, element.transform)
+
+  if ('bounds' in element) {
+    // Check if this element matches the partId
+    if (element.partInfo && 'id' in element.partInfo && element.partInfo.id === partId) {
+      return [{ element, worldTransform: accumulatedTransform }]
+    }
+  }
+
+  // Recursively collect from children
+  if ('children' in element) {
+    return element.children.flatMap(child => collectElementsWithPartId(child, partId, accumulatedTransform))
+  }
+
+  return []
+}
+
 export function ConstructionPlan({
   model,
   views,
   containerSize,
-  midCutActiveDefault = false
+  midCutActiveDefault = false,
+  currentViewIndex,
+  setCurrentViewIndex
 }: ConstructionPlanProps): React.JSX.Element {
   const { hiddenTagIds, toggleTagOrCategory, isTagOrCategoryVisible } = useTagVisibility()
-  const { hoveredIssueId } = useIssueHover()
+  const { hoveredIssueId, highlightedPartId } = usePlanHighlight()
   const viewportRef = useRef<SVGViewportRef>(null)
-  const [currentViewIndex, setCurrentViewIndex] = useState(0)
   const [midCutEnabled, setMidCutEnabled] = useState(midCutActiveDefault)
   const [hideAreas, setHideAreas] = useState(false)
   const [hideIssues, setHideIssues] = useState(false)
@@ -200,7 +231,43 @@ export function ConstructionPlan({
   `
       : ''
 
-  const allStyles = [visibilityStyles, hoverStyles].filter(Boolean).join('\n')
+  // Generate highlighting styles for selected part
+  const partHighlightStyles = highlightedPartId
+    ? `
+    .part-${sanitizeForCssClass(highlightedPartId)} path {
+      fill: var(--accent-8) !important;
+      stroke: var(--accent-10) !important;
+      outline: var(--accent-9);
+      outline-width: 40;
+      filter: drop-shadow(0 0 20px var(--accent-a6));
+      animation: pulse-part-highlight 2s ease-in-out infinite;
+    }
+  `
+    : ''
+
+  const allStyles = [visibilityStyles, hoverStyles, partHighlightStyles].filter(Boolean).join('\n')
+
+  // Auto-zoom to highlighted part
+  useEffect(() => {
+    if (!highlightedPartId) return
+
+    // Use setTimeout to ensure this runs after any viewport resets
+    const timeoutId = setTimeout(() => {
+      // Find all elements with matching partId (filtered during traversal for efficiency)
+      const matchingElements = model.elements.flatMap(el => collectElementsWithPartId(el, highlightedPartId))
+
+      if (matchingElements.length === 0) return
+
+      const elementBounds = matchingElements.map(({ element, worldTransform }) =>
+        bounds3Dto2D(element.bounds, mat4.multiply(mat4.create(), projectionMatrix, worldTransform))
+      )
+      const combinedBounds = Bounds2D.merge(...elementBounds)
+
+      viewportRef.current?.zoomToBounds(combinedBounds, { padding: 0.15, animate: false })
+    }, 100)
+
+    return () => clearTimeout(timeoutId)
+  }, [highlightedPartId])
 
   return (
     <div className="relative w-full h-full">

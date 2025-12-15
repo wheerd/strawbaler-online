@@ -51,10 +51,10 @@ describe('Module Construction', () => {
       const frameElements = group.children.filter(isConstructionElement).filter(el => el.material === 'wood')
 
       // Should have frame elements at the expected positions
-      const hasTopFrame = frameElements.some(el => el.bounds.min[2] >= 1900) // Near top
-      const hasBottomFrame = frameElements.some(el => el.bounds.min[2] === 0) // At bottom
-      const hasLeftFrame = frameElements.some(el => el.bounds.min[0] === 0) // At left
-      const hasRightFrame = frameElements.some(el => el.bounds.min[0] >= 850) // Near right
+      const hasTopFrame = frameElements.some(el => el.transform[14] >= 1900) // Near top
+      const hasBottomFrame = frameElements.some(el => el.transform[14] === 0) // At bottom
+      const hasLeftFrame = frameElements.some(el => el.transform[12] === 0) // At left
+      const hasRightFrame = frameElements.some(el => el.transform[12] >= 850) // Near right
 
       expect(hasTopFrame).toBe(true)
       expect(hasBottomFrame).toBe(true)
@@ -115,8 +115,8 @@ describe('Module Construction', () => {
         .filter(el => el.material === 'spacer-wood')
         .sort((a, b) => a.bounds.min[2] - b.bounds.min[2])
 
-      expect(spacers[0].bounds.min[2]).toBe(60)
-      expect(spacers[spacers.length - 1].bounds.max[2]).toBe(2000 - 60)
+      expect(spacers[0].transform[14]).toBe(60)
+      expect(spacers[spacers.length - 1].transform[14] + spacers[spacers.length - 1].bounds.max[2]).toBe(2000 - 60)
     })
   })
 

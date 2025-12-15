@@ -49,7 +49,7 @@ export class PostOpeningAssembly implements OpeningAssembly<PostOpeningConfig> {
     yield* yieldMeasurementFromArea(rawOpeningArea, 'width', [TAG_OPENING_WIDTH])
 
     if (!headerArea.isEmpty) {
-      const headerElement = createElementFromArea(headerArea, config.headerMaterial, [TAG_HEADER], 'header')
+      const headerElement = createElementFromArea(headerArea, config.headerMaterial, [TAG_HEADER], { type: 'header' })
       yield* yieldElement(headerElement)
 
       yield* yieldMeasurementFromArea(belowHeader, 'height', [TAG_HEADER_HEIGHT], -1)
@@ -64,7 +64,7 @@ export class PostOpeningAssembly implements OpeningAssembly<PostOpeningConfig> {
     }
 
     if (!sillArea.isEmpty) {
-      const sillElement = createElementFromArea(sillArea, config.sillMaterial, [TAG_SILL], 'sill')
+      const sillElement = createElementFromArea(sillArea, config.sillMaterial, [TAG_SILL], { type: 'sill' })
       yield* yieldElement(sillElement)
 
       yield* yieldMeasurementFromArea(bottomPart, 'height', [TAG_SILL_HEIGHT], 1, false)
