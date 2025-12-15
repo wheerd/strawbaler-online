@@ -1,7 +1,7 @@
 import { Theme } from '@radix-ui/themes'
 import { render } from '@testing-library/react'
 import { vec2, vec3 } from 'gl-matrix'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { PlanHighlightProvider } from '@/construction/components/context/PlanHighlightContext'
 import { IDENTITY, translate } from '@/construction/geometry'
@@ -43,7 +43,7 @@ describe('ConstructionPlan', () => {
               views={views}
               containerSize={{ width: 800, height: 600 }}
               currentViewIndex={0}
-              setCurrentViewIndex={() => {}}
+              setCurrentViewIndex={vi.fn()}
             />
           </TagVisibilityProvider>
         </PlanHighlightProvider>
@@ -89,7 +89,7 @@ describe('ConstructionPlan', () => {
               views={views}
               containerSize={{ width: 800, height: 600 }}
               currentViewIndex={0}
-              setCurrentViewIndex={() => {}}
+              setCurrentViewIndex={vi.fn()}
             />
           </TagVisibilityProvider>
         </PlanHighlightProvider>
@@ -141,7 +141,7 @@ describe('ConstructionPlan', () => {
               views={views}
               containerSize={{ width: 800, height: 600 }}
               currentViewIndex={0}
-              setCurrentViewIndex={() => {}}
+              setCurrentViewIndex={vi.fn()}
             />
           </TagVisibilityProvider>
         </PlanHighlightProvider>

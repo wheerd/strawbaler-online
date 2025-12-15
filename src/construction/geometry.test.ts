@@ -20,9 +20,9 @@ describe('createProjectionMatrix', () => {
     const point = vec3.fromValues(10, 20, 30)
     const result = projectPoint(point, projection)
 
-    // X→X, Z→Y, Y→depth
+    // X→X, Z→-Y, Y→depth
     expect(result[0]).toBeCloseTo(10)
-    expect(result[1]).toBeCloseTo(30)
+    expect(result[1]).toBeCloseTo(-30)
     expect(result[2]).toBeCloseTo(20)
   })
 
@@ -33,7 +33,7 @@ describe('createProjectionMatrix', () => {
 
     // Y→X, Z→Y, X→depth
     expect(result[0]).toBeCloseTo(20)
-    expect(result[1]).toBeCloseTo(30)
+    expect(result[1]).toBeCloseTo(-30)
     expect(result[2]).toBeCloseTo(10)
   })
 })

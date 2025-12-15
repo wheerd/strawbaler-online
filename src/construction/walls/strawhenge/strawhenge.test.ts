@@ -107,8 +107,8 @@ function extractSnapshotData(results: any[]) {
   const aggregated = aggregateResults(results)
   return aggregated.elements
     .map(el => ({
-      position_x: el.bounds.min[0],
-      size_x: el.bounds.max[0] - el.bounds.min[0],
+      position_x: el.transform[12],
+      size_x: el.bounds.size[0],
       material: 'material' in el ? el.material : null,
       tags: el.tags?.map(t => t.id)
     }))

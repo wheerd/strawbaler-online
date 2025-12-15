@@ -74,7 +74,7 @@ function collectElementsWithPartId(
   element: GroupOrElement,
   partId: string,
   parentTransform: mat4 = mat4.create()
-): Array<{ element: GroupOrElement; worldTransform: mat4 }> {
+): { element: GroupOrElement; worldTransform: mat4 }[] {
   // Accumulate transform: parent * element
   const accumulatedTransform = mat4.multiply(mat4.create(), parentTransform, element.transform)
 

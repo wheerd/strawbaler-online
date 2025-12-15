@@ -7,7 +7,7 @@ import { ConstructionVirtualPartsList } from '@/construction/components/Construc
 import { IssueDescriptionPanel } from '@/construction/components/IssueDescriptionPanel'
 import { PartHighlightPanel } from '@/construction/components/PartHighlightPanel'
 import type { ConstructionModel } from '@/construction/model'
-import type { MaterialPartsList, VirtualPartsList } from '@/construction/parts'
+import type { MaterialPartsList, PartId, VirtualPartsList } from '@/construction/parts'
 import { generateMaterialPartsList, generateVirtualPartsList } from '@/construction/parts'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
@@ -151,7 +151,7 @@ function ModalContent({
   const { setHighlightedPartId } = usePlanHighlight()
 
   const handleViewInPlan = (partId: string) => {
-    setHighlightedPartId(partId as any)
+    setHighlightedPartId(partId as PartId)
     setActiveTab('plan')
   }
 

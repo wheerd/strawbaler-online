@@ -12,6 +12,7 @@ import { strawbale } from '@/construction/materials/material'
 import { getMaterialsActions } from '@/construction/materials/store'
 import { aggregateResults } from '@/construction/results'
 import { TAG_FULL_BALE, TAG_PARTIAL_BALE, TAG_STRAW_FLAKES, TAG_STRAW_STUFFED } from '@/construction/tags'
+import { Bounds3D } from '@/shared/geometry'
 
 import { constructStraw } from './straw'
 
@@ -119,7 +120,12 @@ function renderStrawLayoutSvg(elements: ConstructionElement[], options?: { paddi
   const strokeWidth = options?.strokeWidth ?? 5
   const strokeColor = '#333333'
 
-  const bounds = elements.filter(element => element.shape.base?.type === 'cuboid').map(element => element.bounds)
+  const bounds = elements
+    .filter(element => element.shape.base?.type === 'cuboid')
+    .map(element => {
+      const position = vec3.fromValues(element.transform[12], element.transform[13], element.transform[14])
+      return Bounds3D.fromCuboid(position, element.bounds.size)
+    })
 
   const minX = Math.min(...bounds.map(b => b.min[0]))
   const maxX = Math.max(...bounds.map(b => b.max[0]))
@@ -134,13 +140,17 @@ function renderStrawLayoutSvg(elements: ConstructionElement[], options?: { paddi
 
   const rectangles = elements
     .filter(element => element.shape.base?.type === 'cuboid')
-    .map(element => ({
-      minX: element.bounds.min[0],
-      maxX: element.bounds.max[0],
-      minZ: element.bounds.min[2],
-      maxZ: element.bounds.max[2],
-      type: element.tags?.[0]?.id
-    }))
+    .map(element => {
+      const x = element.transform[12]
+      const z = element.transform[14]
+      return {
+        minX: x + element.bounds.min[0],
+        maxX: x + element.bounds.max[0],
+        minZ: z + element.bounds.min[2],
+        maxZ: z + element.bounds.max[2],
+        type: element.tags?.[0]?.id
+      }
+    })
     .sort((a, b) => a.minX - b.minX || a.minZ - b.minZ)
     .map(rect => {
       const x = rect.minX - minX + padding
