@@ -2,7 +2,7 @@ import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { Roof } from '@/building/model'
 import { type GroupOrElement, createConstructionElement } from '@/construction/elements'
-import { PolygonWithBoundingRect, partitionByAlignedEdges, polygonEdges, stripesPolygons } from '@/construction/helpers'
+import { PolygonWithBoundingRect, partitionByAlignedEdges, polygonEdges } from '@/construction/helpers'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/roofs/base'
 import { createExtrudedPolygon } from '@/construction/shapes'
@@ -14,6 +14,7 @@ import {
   type Polygon2D,
   degreesToRadians,
   direction,
+  ensurePolygonIsClockwise,
   intersectLineSegmentWithPolygon,
   intersectLineWithPolygon,
   isPointStrictlyInPolygon,
@@ -22,7 +23,8 @@ import {
   midpoint,
   offsetPolygon,
   perpendicular,
-  perpendicularCW
+  perpendicularCW,
+  splitPolygonByLine
 } from '@/shared/geometry'
 
 import type { HeightLine, PurlinRoofConfig } from './types'
@@ -32,37 +34,31 @@ const EPSILON = 1e-5
 export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
   construct = (roof: Roof, config: PurlinRoofConfig): ConstructionModel => {
     const slopeAngleRad = degreesToRadians(roof.slope)
+    const ridgeDirection = direction(roof.ridgeLine.start, roof.ridgeLine.end)
     const ridgeHeight = this.calculateRidgeHeight(roof)
+
+    const allElements: GroupOrElement[] = []
 
     // STEP 1: Split roof polygon ONCE
     const roofSides = this.splitRoofPolygon(roof, ridgeHeight)
 
-    const allElements: GroupOrElement[] = []
+    const edgeRafterMidpoints = this.getRafterMidpoints(roof, config, slopeAngleRad, ridgeDirection)
 
-    const insideCheckPolygon = offsetPolygon(roof.referencePolygon, -1)
-    const ridgeDirection = direction(roof.ridgeLine.start, roof.ridgeLine.end)
-    const purlinCheckPoints = [...polygonEdges(insideCheckPolygon)]
-      .filter(e => 1 - Math.abs(vec2.dot(direction(e.start, e.end), ridgeDirection)) < EPSILON)
-      .map(e => midpoint(e.start, e.end))
-    const purlins = [...this.constructRidgeBeam(roof, config, ridgeHeight)]
+    const purlinArea = this.getPurlinArea(roof)
+    const purlinCheckPoints = this.getPurlinCheckPoints(purlinArea, ridgeDirection)
+    const purlinAreaParts =
+      roof.type === 'gable'
+        ? splitPolygonByLine(purlinArea, lineFromSegment(roof.ridgeLine)).map(s => s.polygon)
+        : [purlinArea]
 
-    const rafterEdgePolygon = this.preparePolygonForConstruction(
-      offsetPolygon(roof.overhangPolygon, -config.rafterWidth / 2),
-      roof.ridgeLine,
-      slopeAngleRad,
-      config.thickness,
-      config.thickness,
-      vec2.create()
-    )
-    const edgeRafterMidpoints = [...polygonEdges(rafterEdgePolygon)]
-      .filter(e => Math.abs(vec2.dot(direction(e.start, e.end), ridgeDirection)) < EPSILON)
-      .map(e => midpoint(e.start, e.end))
+    const purlins = [
+      ...this.constructRidgeBeam(roof, config, ridgeHeight),
+      ...purlinAreaParts.flatMap(p => [...this.constructPurlins(roof, config, ridgeHeight, p, purlinCheckPoints)])
+    ]
 
     // STEP 2: For each side, build all layers
     for (const roofSide of roofSides) {
       const sideElements: GroupOrElement[] = []
-
-      purlins.push(...this.constructPurlins(roof, config, ridgeHeight, roofSide, purlinCheckPoints))
 
       // Main construction
       sideElements.push(...this.constructRafters(roof, config, roofSide, edgeRafterMidpoints))
@@ -194,6 +190,48 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
   getTotalThickness = (config: PurlinRoofConfig) =>
     config.layers.insideThickness + config.thickness + config.layers.topThickness
 
+  private getPurlinCheckPoints(polygon: Polygon2D, ridgeDirection: vec2) {
+    const insideCheckPolygon = offsetPolygon(ensurePolygonIsClockwise(polygon), -5)
+    const purlinCheckPoints = [...polygonEdges(insideCheckPolygon)]
+      .filter(e => 1 - Math.abs(vec2.dot(direction(e.start, e.end), ridgeDirection)) < EPSILON)
+      .map(e => midpoint(e.start, e.end))
+    return purlinCheckPoints
+  }
+
+  private getRafterMidpoints(roof: Roof, config: PurlinRoofConfig, slopeAngleRad: number, ridgeDirection: vec2) {
+    const rafterEdgePolygon = this.preparePolygonForConstruction(
+      offsetPolygon(roof.overhangPolygon, -config.rafterWidth / 2),
+      roof.ridgeLine,
+      slopeAngleRad,
+      config.thickness,
+      config.thickness,
+      vec2.create()
+    )
+    const edgeRafterMidpoints = [...polygonEdges(rafterEdgePolygon)]
+      .filter(e => Math.abs(vec2.dot(direction(e.start, e.end), ridgeDirection)) < EPSILON)
+      .map(e => midpoint(e.start, e.end))
+    return edgeRafterMidpoints
+  }
+
+  private getPurlinArea(roof: Roof): Polygon2D {
+    const ridgeDirection = direction(roof.ridgeLine.start, roof.ridgeLine.end)
+    const innerLines = [...polygonEdges(roof.referencePolygon)].map(lineFromSegment)
+    const outerLines = [...polygonEdges(roof.overhangPolygon)].map(lineFromSegment)
+
+    const polygonLines = outerLines.map((l, i) =>
+      Math.abs(vec2.dot(l.direction, ridgeDirection)) < EPSILON ? l : innerLines[i]
+    )
+    const points = polygonLines
+      .map((line, index) => {
+        const prevIndex = (index - 1 + polygonLines.length) % polygonLines.length
+        const prevLine = polygonLines[prevIndex]
+        return lineIntersection(prevLine, line)
+      })
+      .filter(p => p != null)
+
+    return { points }
+  }
+
   private *constructRidgeBeam(roof: Roof, config: PurlinRoofConfig, ridgeHeight: Length): Generator<GroupOrElement> {
     if (roof.type === 'shed') return // Handled as a normal purlin
 
@@ -225,28 +263,27 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     roof: Roof,
     config: PurlinRoofConfig,
     ridgeHeight: Length,
-    roofSide: RoofSide,
+    polygon: Polygon2D,
     purlinCheckPoints: vec2[]
   ): Generator<GroupOrElement> {
     const tanSlope = Math.tan(degreesToRadians(roof.slope))
     const ridgeDirection = direction(roof.ridgeLine.start, roof.ridgeLine.end)
     const downSlopeDir = perpendicularCW(ridgeDirection)
-    const partitions = Array.from(partitionByAlignedEdges(roofSide.polygon, ridgeDirection))
+    const partitions = Array.from(partitionByAlignedEdges(polygon, ridgeDirection))
 
     const purlinPolygons = partitions.flatMap(p => {
       const { edgeAtStart, edgeAtEnd } = this.detectRoofEdges(p, ridgeDirection, purlinCheckPoints)
 
-      return Array.from(
-        stripesPolygons(
-          { outer: p, holes: [] },
-          ridgeDirection,
-          config.purlinWidth,
-          config.purlinSpacing,
-          edgeAtStart ? 0 : config.purlinSpacing,
-          edgeAtEnd ? 0 : config.purlinSpacing,
-          3000
-        )
-      )
+      const rect = PolygonWithBoundingRect.fromPolygon({ outer: p, holes: [] }, ridgeDirection)
+      return [
+        ...rect.stripes({
+          thickness: config.purlinWidth,
+          spacing: config.purlinSpacing,
+          equalSpacing: true,
+          stripeAtMin: edgeAtStart,
+          stripeAtMax: edgeAtEnd
+        })
+      ].map(p => p.polygon)
     })
 
     const getDistanceToRidge = (point: vec2): number =>

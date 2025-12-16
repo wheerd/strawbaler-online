@@ -353,12 +353,19 @@ export class PolygonWithBoundingRect {
     }
     if (stripeAtMax) {
       const end = this.perpExtent - thickness - halfThickness
-      midpoints = [...midpoints.filter(p => p > end), this.perpExtent - halfThickness]
+      midpoints = [...midpoints.filter(p => p < end), this.perpExtent - halfThickness]
     }
 
     for (let i = 0; i <= midpoints.length; i++) {
       const start = i === 0 ? 0 : midpoints[i - 1] + halfThickness
-      const end = i === midpoints.length ? this.perpExtent : midpoints[i] - halfThickness
+      let end = i === midpoints.length ? this.perpExtent : midpoints[i] - halfThickness
+
+      if (end - start < 1) {
+        if (i > 0) continue
+        else {
+          end = start
+        }
+      }
 
       const offsets = equalSpacing
         ? this.equalOffsets(start, end, spacing, thickness)
