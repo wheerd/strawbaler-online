@@ -224,9 +224,11 @@ export const computeRoofDerivedProperties = (roof: Roof): void => {
   roof.ridgeDirection = direction(roof.ridgeLine.start, roof.ridgeLine.end)
   roof.downSlopeDirection = perpendicularCW(roof.ridgeDirection)
 
-  const projections = roof.referencePolygon.points.map(p => vec2.dot(p, roof.downSlopeDirection))
-  let minProjection = Math.min(...projections)
-  let maxProjection = Math.max(...projections)
+  const projections = roof.referencePolygon.points.map(p =>
+    vec2.dot(vec2.sub(vec2.create(), p, roof.ridgeLine.start), roof.downSlopeDirection)
+  )
+  const minProjection = Math.min(...projections)
+  const maxProjection = Math.max(...projections)
   const maxRun = Math.max(Math.abs(minProjection), Math.abs(maxProjection))
 
   roof.span = maxProjection - minProjection

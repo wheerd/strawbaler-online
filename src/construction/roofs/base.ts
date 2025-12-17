@@ -24,11 +24,8 @@ import {
   type LineSegment2D,
   type Polygon2D,
   type PolygonWithHoles2D,
-  degreesToRadians,
   direction,
-  distanceToInfiniteLine,
   intersectPolygon,
-  lineFromPoints,
   lineFromSegment,
   perpendicularCCW,
   perpendicularCW,
@@ -113,9 +110,8 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
    * Split roof polygon for gable (two sides) or return single side for shed
    */
   protected splitRoofPolygon(roof: Roof, ridgeHeight: Length): RoofSide[] {
-    const ridgeDir = direction(roof.ridgeLine.start, roof.ridgeLine.end)
-    const leftTowardsRidgeDir = perpendicularCCW(ridgeDir)
-    const rightTowardsRidgeDir = perpendicularCW(ridgeDir)
+    const leftTowardsRidgeDir = perpendicularCCW(roof.ridgeDirection)
+    const rightTowardsRidgeDir = perpendicularCW(roof.ridgeDirection)
     if (roof.type === 'shed') {
       return [
         {
@@ -140,12 +136,12 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
    * Calculate rotation transform for a specific roof side
    */
   private calculateRoofSideTransform(roof: Roof, side: 'left' | 'right', ridgeHeight: Length): Transform {
-    const ridgeDir2D = direction(roof.ridgeLine.start, roof.ridgeLine.end)
-    const slopeAngleRad = degreesToRadians(roof.slope)
-
     // Rotation axis along ridge (in 3D)
-    const rotationAxis = vec3.normalize(vec3.create(), vec3.fromValues(ridgeDir2D[0], ridgeDir2D[1], 0))
-    const angle = side === 'left' ? -slopeAngleRad : slopeAngleRad
+    const rotationAxis = vec3.normalize(
+      vec3.create(),
+      vec3.fromValues(roof.ridgeDirection[0], roof.ridgeDirection[1], 0)
+    )
+    const angle = side === 'left' ? -roof.slopeAngleRad : roof.slopeAngleRad
 
     const transform = mat4.rotate(
       mat4.create(),
@@ -180,14 +176,7 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
    * the edges align with the reference polygon at verticalOffset height
    */
   protected calculateRidgeHeight(roof: Roof): Length {
-    const ridgeLine = lineFromPoints(roof.ridgeLine.start, roof.ridgeLine.end)
-    if (!ridgeLine) throw new Error('Invalid ridge line')
-
-    const maxDistance = Math.max(...roof.referencePolygon.points.map(p => distanceToInfiniteLine(p, ridgeLine)))
-    const verticalRise = maxDistance * Math.tan(degreesToRadians(roof.slope))
-
-    // Ridge height = base height + vertical rise
-    return (roof.verticalOffset + verticalRise) as Length
+    return (roof.verticalOffset + roof.rise) as Length
   }
 
   /**
@@ -355,14 +344,13 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
       return elements
     }
 
-    const slopeAngleRad = degreesToRadians(roof.slope)
     let zOffset = (this.getConstructionThickness(config) + this.getTopLayerOffset(config)) as Length
 
     for (const layer of config.layers.topLayers) {
       const preparedPolygon = this.preparePolygonForConstruction(
         roofSide.polygon,
         roof.ridgeLine,
-        slopeAngleRad,
+        roof.slopeAngleRad,
         zOffset + layer.thickness,
         layer.thickness,
         roofSide.dirToRidge
@@ -412,7 +400,6 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
       return elements
     }
 
-    const slopeAngleRad = degreesToRadians(roof.slope)
     let zOffset = (this.getCeilingLayerOffset(config) - config.layers.insideThickness) as Length
 
     // Reverse order: bottom to top
@@ -423,7 +410,7 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
         const preparedOuter = this.preparePolygonForConstruction(
           ceilingPoly.outer,
           roof.ridgeLine,
-          slopeAngleRad,
+          roof.slopeAngleRad,
           zOffset + layer.thickness,
           layer.thickness,
           roofSide.dirToRidge
@@ -432,7 +419,7 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
           this.preparePolygonForConstruction(
             hole,
             roof.ridgeLine,
-            slopeAngleRad,
+            roof.slopeAngleRad,
             zOffset + layer.thickness,
             layer.thickness,
             roofSide.dirToRidge
@@ -477,7 +464,6 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
       return elements
     }
 
-    const slopeAngleRad = degreesToRadians(roof.slope)
     let zOffset = (this.getOverhangLayerOffset(config) - config.layers.overhangThickness) as Length
 
     // Reverse order: bottom to top
@@ -488,7 +474,7 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
         const preparedOuter = this.preparePolygonForConstruction(
           overhangPoly.outer,
           roof.ridgeLine,
-          slopeAngleRad,
+          roof.slopeAngleRad,
           zOffset + layer.thickness,
           layer.thickness,
           roofSide.dirToRidge
@@ -497,7 +483,7 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
           this.preparePolygonForConstruction(
             hole,
             roof.ridgeLine,
-            slopeAngleRad,
+            roof.slopeAngleRad,
             zOffset + layer.thickness,
             layer.thickness,
             roofSide.dirToRidge

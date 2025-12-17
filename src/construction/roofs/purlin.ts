@@ -26,7 +26,6 @@ import {
   type Length,
   type LineSegment2D,
   type Polygon2D,
-  degreesToRadians,
   direction,
   ensurePolygonIsClockwise,
   intersectLineSegmentWithPolygon,
@@ -52,8 +51,6 @@ const EPSILON = 1e-5
 
 export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
   construct = (roof: Roof, config: PurlinRoofConfig): ConstructionModel => {
-    const slopeAngleRad = degreesToRadians(roof.slope)
-    const ridgeDirection = direction(roof.ridgeLine.start, roof.ridgeLine.end)
     const ridgeHeight = this.calculateRidgeHeight(roof)
 
     const allElements: GroupOrElement[] = []
@@ -64,10 +61,10 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     const perimeters = getModelActions().getPerimetersByStorey(roof.storeyId)
     const perimeterContexts = perimeters.map(p => computePerimeterConstructionContext(p, []))
 
-    const edgeRafterMidpoints = this.getRafterMidpoints(roof, config, ridgeDirection, perimeterContexts)
+    const edgeRafterMidpoints = this.getRafterMidpoints(roof, config, roof.ridgeDirection, perimeterContexts)
 
     const purlinArea = this.getPurlinArea(roof)
-    const purlinCheckPoints = this.getPurlinCheckPoints(purlinArea, ridgeDirection)
+    const purlinCheckPoints = this.getPurlinCheckPoints(purlinArea, roof.ridgeDirection)
     const purlinAreaParts =
       roof.type === 'gable'
         ? splitPolygonByLine(purlinArea, lineFromSegment(roof.ridgeLine)).map(s => s.polygon)
@@ -109,7 +106,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         roof.ridgeLine,
         minZ,
         maxZ,
-        slopeAngleRad,
+        roof.slopeAngleRad,
         roofSide.side
       )
 
@@ -165,15 +162,12 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     }
 
     // Step 2: Setup roof geometry calculations
-    const slopeAngleRad = degreesToRadians(roof.slope)
-    const tanSlope = Math.tan(slopeAngleRad)
+    const tanSlope = Math.tan(roof.slopeAngleRad)
     const ridgeHeight = this.calculateRidgeHeight(roof)
-    const ridgeDir = direction(roof.ridgeLine.start, roof.ridgeLine.end)
-    const downSlopeDir = perpendicularCW(ridgeDir)
 
     // Helper to get SIGNED distance from ridge (perpendicular)
     const getSignedDistanceToRidge = (point: vec2): number =>
-      vec2.dot(vec2.sub(vec2.create(), point, roof.ridgeLine.start), downSlopeDir)
+      vec2.dot(vec2.sub(vec2.create(), point, roof.ridgeLine.start), roof.downSlopeDirection)
 
     // Calculate height offset at a point
     const calculateOffset = (signedDist: number): number =>
@@ -262,12 +256,11 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
   }
 
   private getPurlinArea(roof: Roof): Polygon2D {
-    const ridgeDirection = direction(roof.ridgeLine.start, roof.ridgeLine.end)
     const innerLines = [...polygonEdges(roof.referencePolygon)].map(lineFromSegment)
     const outerLines = [...polygonEdges(roof.overhangPolygon)].map(lineFromSegment)
 
     const polygonLines = outerLines.map((l, i) =>
-      Math.abs(vec2.dot(l.direction, ridgeDirection)) < EPSILON ? l : innerLines[i]
+      Math.abs(vec2.dot(l.direction, roof.ridgeDirection)) < EPSILON ? l : innerLines[i]
     )
     const points = polygonLines
       .map((line, index) => {
@@ -320,14 +313,12 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     polygon: Polygon2D,
     purlinCheckPoints: vec2[]
   ): Generator<ConstructionElement> {
-    const tanSlope = Math.tan(degreesToRadians(roof.slope))
-    const ridgeDirection = direction(roof.ridgeLine.start, roof.ridgeLine.end)
-    const downSlopeDir = perpendicularCW(ridgeDirection)
-    const partitions = Array.from(partitionByAlignedEdges(polygon, ridgeDirection))
+    const tanSlope = Math.tan(roof.slopeAngleRad)
+    const partitions = Array.from(partitionByAlignedEdges(polygon, roof.ridgeDirection))
 
     const purlinPolygons = partitions.flatMap(p => {
-      const { edgeAtStart, edgeAtEnd } = this.detectRoofEdges(p, ridgeDirection, purlinCheckPoints)
-      const rect = PolygonWithBoundingRect.fromPolygon({ outer: p, holes: [] }, ridgeDirection)
+      const { edgeAtStart, edgeAtEnd } = this.detectRoofEdges(p, roof.ridgeDirection, purlinCheckPoints)
+      const rect = PolygonWithBoundingRect.fromPolygon({ outer: p, holes: [] }, roof.ridgeDirection)
       return [
         ...rect.stripes({
           thickness: config.purlinWidth,
@@ -340,7 +331,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     })
 
     const getDistanceToRidge = (point: vec2): number =>
-      Math.abs(vec2.dot(vec2.sub(vec2.create(), point, roof.ridgeLine.start), downSlopeDir))
+      Math.abs(vec2.dot(vec2.sub(vec2.create(), point, roof.ridgeLine.start), roof.downSlopeDirection))
 
     for (const purlin of purlinPolygons) {
       const minDist = Math.min(...purlin.outer.points.map(getDistanceToRidge))
@@ -362,20 +353,16 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     rafterMidpoints: vec2[],
     perimeterContexts: PerimeterConstructionContext[]
   ): GroupOrElement[] {
-    const slopeAngleRad = degreesToRadians(roof.slope)
-    const ridgeDirection = direction(roof.ridgeLine.start, roof.ridgeLine.end)
-    const downSlopeDir = perpendicularCW(ridgeDirection)
-
     const preparedRoofSide = this.preparePolygonForConstruction(
       roofSide.polygon,
       roof.ridgeLine,
-      slopeAngleRad,
+      roof.slopeAngleRad,
       config.thickness,
       config.thickness,
       roofSide.dirToRidge
     )
 
-    const rafterPolygons = this.getRafterPolygons(preparedRoofSide, config, downSlopeDir, rafterMidpoints)
+    const rafterPolygons = this.getRafterPolygons(preparedRoofSide, config, roof.downSlopeDirection, rafterMidpoints)
 
     const rafters = rafterPolygons.map(p =>
       createConstructionElement(
@@ -386,27 +373,19 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         { type: 'rafter' }
       )
     )
-    const infill = this.constructInfill(
-      perimeterContexts,
-      roof,
-      slopeAngleRad,
-      config,
-      roofSide,
-      rafterPolygons,
-      downSlopeDir
-    )
+    const infill = this.constructInfill(perimeterContexts, roof, config, roofSide, rafterPolygons)
 
-    const decking = this.constructDecking(roofSide, roof, slopeAngleRad, config)
-    const ceilingSheathing = this.constructCeilingSheathing(roofSide, roof, slopeAngleRad, config, perimeterContexts)
+    const decking = this.constructDecking(roofSide, roof, config)
+    const ceilingSheathing = this.constructCeilingSheathing(roofSide, roof, config, perimeterContexts)
 
     return ceilingSheathing.concat(rafters).concat(infill).concat(decking)
   }
 
-  private constructDecking(roofSide: RoofSide, roof: Roof, slopeAngleRad: number, config: PurlinRoofConfig) {
+  private constructDecking(roofSide: RoofSide, roof: Roof, config: PurlinRoofConfig) {
     const deckingArea = this.preparePolygonForConstruction(
       roofSide.polygon,
       roof.ridgeLine,
-      slopeAngleRad,
+      roof.slopeAngleRad,
       config.thickness + config.deckingThickness,
       config.deckingThickness,
       roofSide.dirToRidge
@@ -426,7 +405,6 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
   private constructCeilingSheathing(
     roofSide: RoofSide,
     roof: Roof,
-    slopeAngleRad: number,
     config: PurlinRoofConfig,
     perimeterContexts: PerimeterConstructionContext[]
   ) {
@@ -435,7 +413,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         this.preparePolygonForConstruction(
           roofSide.polygon,
           roof.ridgeLine,
-          slopeAngleRad,
+          roof.slopeAngleRad,
           -config.ceilingSheathingThickness,
           config.ceilingSheathingThickness,
           roofSide.dirToRidge
@@ -446,7 +424,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
           this.preparePolygonForConstruction(
             c.innerPolygon,
             roof.ridgeLine,
-            slopeAngleRad,
+            roof.slopeAngleRad,
             -config.ceilingSheathingThickness,
             config.ceilingSheathingThickness,
             roofSide.dirToRidge
@@ -469,16 +447,14 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
   private constructInfill(
     perimeterContexts: PerimeterConstructionContext[],
     roof: Roof,
-    slopeAngleRad: number,
     config: PurlinRoofConfig,
     roofSide: RoofSide,
-    rafterPolygons: PolygonWithBoundingRect[],
-    downSlopeDir: vec2
+    rafterPolygons: PolygonWithBoundingRect[]
   ) {
     const preparedRoofSide = this.preparePolygonForConstruction(
       roofSide.polygon,
       roof.ridgeLine,
-      slopeAngleRad,
+      roof.slopeAngleRad,
       config.thickness,
       config.thickness,
       roofSide.dirToRidge
@@ -491,7 +467,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
           this.preparePolygonForConstruction(
             c.outerPolygon,
             roof.ridgeLine,
-            slopeAngleRad,
+            roof.slopeAngleRad,
             config.thickness,
             config.thickness,
             roofSide.dirToRidge
@@ -502,7 +478,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     const infillPolygons = subtractPolygons(
       outerConstructionAreas,
       rafterPolygons.map(p => p.polygon.outer)
-    ).map(p => PolygonWithBoundingRect.fromPolygon(p, downSlopeDir))
+    ).map(p => PolygonWithBoundingRect.fromPolygon(p, roof.downSlopeDirection))
 
     const infill = infillPolygons
       .flatMap(p => Array.from(constructStrawPolygon(p, 'xy', config.thickness, config.strawMaterial)))

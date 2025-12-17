@@ -11,19 +11,15 @@ import {
   Bounds3D,
   type Length,
   type LineSegment2D,
-  degreesToRadians,
-  direction,
   intersectLineSegmentWithPolygon,
   lineFromSegment,
-  lineIntersection,
-  perpendicularCW
+  lineIntersection
 } from '@/shared/geometry'
 
 import type { HeightLine, MonolithicRoofConfig } from './types'
 
 export class MonolithicRoofAssembly extends BaseRoofAssembly<MonolithicRoofConfig> {
   construct = (roof: Roof, config: MonolithicRoofConfig): ConstructionModel => {
-    const slopeAngleRad = degreesToRadians(roof.slope)
     const ridgeHeight = this.calculateRidgeHeight(roof)
 
     // STEP 1: Split roof polygon ONCE
@@ -58,7 +54,7 @@ export class MonolithicRoofAssembly extends BaseRoofAssembly<MonolithicRoofConfi
         roof.ridgeLine,
         minZ,
         maxZ,
-        slopeAngleRad,
+        roof.slopeAngleRad,
         roofSide.side
       )
       const clip = (m: Manifold) => m.intersect(clippingVolume)
@@ -108,15 +104,12 @@ export class MonolithicRoofAssembly extends BaseRoofAssembly<MonolithicRoofConfi
     }
 
     // Step 2: Setup roof geometry calculations
-    const slopeAngleRad = degreesToRadians(roof.slope)
-    const tanSlope = Math.tan(slopeAngleRad)
+    const tanSlope = Math.tan(roof.slopeAngleRad)
     const ridgeHeight = this.calculateRidgeHeight(roof)
-    const ridgeDir = direction(roof.ridgeLine.start, roof.ridgeLine.end)
-    const downSlopeDir = perpendicularCW(ridgeDir)
 
     // Helper to get SIGNED distance from ridge (perpendicular)
     const getSignedDistanceToRidge = (point: vec2): number =>
-      vec2.dot(vec2.sub(vec2.create(), point, roof.ridgeLine.start), downSlopeDir)
+      vec2.dot(vec2.sub(vec2.create(), point, roof.ridgeLine.start), roof.downSlopeDirection)
 
     // Calculate height offset at a point
     const calculateOffset = (signedDist: number): number =>
@@ -165,12 +158,10 @@ export class MonolithicRoofAssembly extends BaseRoofAssembly<MonolithicRoofConfi
     config.layers.insideThickness + config.thickness + config.layers.topThickness
 
   private constructRoofElements(roof: Roof, config: MonolithicRoofConfig, roofSide: RoofSide): GroupOrElement[] {
-    const slopeAngleRad = degreesToRadians(roof.slope)
-
     const preparedPolygon = this.preparePolygonForConstruction(
       roofSide.polygon,
       roof.ridgeLine,
-      slopeAngleRad,
+      roof.slopeAngleRad,
       config.thickness,
       config.thickness,
       roofSide.dirToRidge
