@@ -23,6 +23,7 @@ export const ALL_CATEGORIES = {
   'floor-wood': { label: 'Floor Wood' },
   'floor-measurement': { label: 'Floor Measurement' },
 
+  'roof-part': { label: 'Roof Parts' },
   'roof-layer': { label: 'Roof Layers' },
   'roof-side': { label: 'Roof Side' },
   'roof-measurement': { label: 'Roof Measurement' },
@@ -417,4 +418,35 @@ export const TAG_JOIST_LENGTH: Tag = {
   id: 'floor-measurement_joist-length',
   label: 'Joist Length',
   category: 'floor-measurement'
+}
+
+// Roof parts
+export const TAG_PURLIN: Tag = {
+  id: 'roof-part_purlin',
+  label: 'Purlin',
+  category: 'roof-part'
+}
+
+export const TAG_RAFTER: Tag = {
+  id: 'roof-part_rafter',
+  label: 'Rafter',
+  category: 'roof-part'
+}
+
+export const TAG_DECKING: Tag = {
+  id: 'roof-part_decking',
+  label: 'Decking',
+  category: 'roof-part'
+}
+
+export const TAG_INSIDE_SHEATHING: Tag = {
+  id: 'roof-part_inside-sheathing',
+  label: 'Inside Sheathing',
+  category: 'roof-part'
+}
+
+export const TAG_RIDGE_BEAM: Tag = {
+  id: 'roof-part_ridge-beam',
+  label: 'Ridge Beam',
+  category: 'roof-part'
 }

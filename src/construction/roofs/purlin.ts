@@ -5,15 +5,24 @@ import { getModelActions } from '@/building/store'
 import { computePerimeterConstructionContext } from '@/construction/context'
 import { type ConstructionElement, type GroupOrElement, createConstructionElement } from '@/construction/elements'
 import type { PerimeterConstructionContext } from '@/construction/floors'
+import { IDENTITY } from '@/construction/geometry'
 import { PolygonWithBoundingRect, partitionByAlignedEdges, polygonEdges } from '@/construction/helpers'
 import { transformManifold } from '@/construction/manifold/operations'
 import { constructStrawPolygon } from '@/construction/materials/straw'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/roofs/base'
 import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_ROOF, TAG_ROOF_SIDE_LEFT, TAG_ROOF_SIDE_RIGHT } from '@/construction/tags'
 import {
-  Bounds3D,
+  TAG_DECKING,
+  TAG_INSIDE_SHEATHING,
+  TAG_PURLIN,
+  TAG_RAFTER,
+  TAG_RIDGE_BEAM,
+  TAG_ROOF,
+  TAG_ROOF_SIDE_LEFT,
+  TAG_ROOF_SIDE_RIGHT
+} from '@/construction/tags'
+import {
   type Length,
   type LineSegment2D,
   type Polygon2D,
@@ -125,16 +134,14 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
 
     allElements.push(...purlins)
 
-    // Compute bounds from all elements
-    const bounds = allElements.length > 0 ? Bounds3D.merge(...allElements.map(el => el.bounds)) : Bounds3D.EMPTY
-
+    const roofGroup = createConstructionGroup(allElements, IDENTITY, [TAG_ROOF])
     return {
-      elements: allElements,
+      elements: [roofGroup],
       measurements: [],
       areas: [],
       errors: [],
       warnings: [],
-      bounds
+      bounds: roofGroup.bounds
     }
   }
 
@@ -300,7 +307,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         config.purlinMaterial,
         createExtrudedPolygon({ outer: partPolygon, holes: [] }, 'xy', config.purlinHeight),
         mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, vOffset)),
-        [TAG_ROOF]
+        [TAG_RIDGE_BEAM]
       )
     }
   }
@@ -319,7 +326,6 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
 
     const purlinPolygons = partitions.flatMap(p => {
       const { edgeAtStart, edgeAtEnd } = this.detectRoofEdges(p, ridgeDirection, purlinCheckPoints)
-
       const rect = PolygonWithBoundingRect.fromPolygon({ outer: p, holes: [] }, ridgeDirection)
       return [
         ...rect.stripes({
@@ -338,13 +344,11 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     for (const purlin of purlinPolygons) {
       const minDist = Math.min(...purlin.outer.points.map(getDistanceToRidge))
       const vOffset = ridgeHeight - minDist * tanSlope - config.purlinHeight + config.purlinInset
-      // Helper to get SIGNED distance from ridge (perpendicular)
-
       yield createConstructionElement(
         config.purlinMaterial,
         createExtrudedPolygon(purlin, 'xy', config.purlinHeight),
         mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, vOffset)),
-        [TAG_ROOF]
+        [TAG_PURLIN]
       )
     }
   }
@@ -376,7 +380,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         config.rafterMaterial,
         createExtrudedPolygon(p.polygon, 'xy', config.thickness),
         undefined,
-        undefined,
+        [TAG_RAFTER],
         { type: 'rafter' }
       )
     )
@@ -410,8 +414,8 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         config.topCladdingMaterial,
         createExtrudedPolygon({ outer: topCladdingArea, holes: [] }, 'xy', config.topCladdingThickness),
         mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, config.thickness)),
-        undefined,
-        { type: 'roof-top-cladding' }
+        [TAG_DECKING],
+        { type: 'roof-decking' }
       )
     ]
     return topCladding
@@ -453,8 +457,8 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         config.insideCladdingMaterial,
         createExtrudedPolygon({ outer: p, holes: [] }, 'xy', config.insideCladdingThickness),
         mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, -config.insideCladdingThickness)),
-        undefined,
-        { type: 'roof-bottom-cladding' }
+        [TAG_INSIDE_SHEATHING],
+        { type: 'roof-inside-sheathing' }
       )
     )
     return bottomCladding
