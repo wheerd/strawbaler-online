@@ -288,7 +288,7 @@ export class PolygonWithBoundingRect {
     }
     const offsetEnd = end - thickness - minSpacing
     let offset = start + spacing
-    for (; offset < offsetEnd; offset += spacing) {
+    for (; offset < offsetEnd; offset += spacing + thickness) {
       yield offset
     }
     if (offset < end) {

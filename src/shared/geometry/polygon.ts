@@ -272,6 +272,35 @@ export function intersectPolygon(polygon1: PolygonWithHoles2D, polygon2: Polygon
   }
 }
 
+export function intersectPolygons(subjects: Polygon2D[], clips: Polygon2D[]): Polygon2D[] {
+  const module = getClipperModule()
+  const subjectPaths = createPathsD(subjects.map(s => createPathD(s.points)))
+  const clipPaths = createPathsD(clips.map(c => createPathD(c.points)))
+
+  try {
+    const intersectResult = module.IntersectD(subjectPaths, clipPaths, module.FillRule.NonZero, 2)
+    try {
+      const result: Polygon2D[] = []
+      for (let i = 0; i < intersectResult.size(); i++) {
+        const path = intersectResult.get(i)
+        result.push({ points: pathDToPoints(path) })
+      }
+      return result
+    } finally {
+      intersectResult.delete()
+    }
+  } finally {
+    for (let i = 0; i < subjectPaths.size(); i++) {
+      subjectPaths.get(i).delete()
+    }
+    subjectPaths.delete()
+    for (let i = 0; i < clipPaths.size(); i++) {
+      clipPaths.get(i).delete()
+    }
+    clipPaths.delete()
+  }
+}
+
 export function unionPolygons(polygons: Polygon2D[]): Polygon2D[] {
   if (polygons.length === 0) return []
   if (polygons.length === 1) return polygons
