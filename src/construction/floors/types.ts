@@ -1,7 +1,8 @@
+import type { PerimeterConstructionContext } from '@/construction/context'
 import type { LayerConfig } from '@/construction/layers/types'
 import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
-import type { Length, Line2D, Polygon2D } from '@/shared/geometry'
+import type { Length } from '@/shared/geometry'
 
 export interface FloorAssembly<TConfig extends FloorAssemblyConfigBase> {
   construct: (context: PerimeterConstructionContext, config: TConfig) => ConstructionModel
@@ -10,14 +11,6 @@ export interface FloorAssembly<TConfig extends FloorAssemblyConfigBase> {
   getBottomOffset: (config: TConfig) => Length
   getConstructionThickness: (config: TConfig) => Length
   getTotalThickness: (config: TConfig) => Length
-}
-
-export interface PerimeterConstructionContext {
-  outerLines: Line2D[]
-  innerLines: Line2D[]
-  outerPolygon: Polygon2D
-  innerPolygon: Polygon2D
-  floorOpenings: Polygon2D[]
 }
 
 export type FloorAssemblyType = 'monolithic' | 'joist' | 'filled'

@@ -1,5 +1,6 @@
 import { vec3 } from 'gl-matrix'
 
+import type { PerimeterConstructionContext } from '@/construction/context'
 import { createConstructionElement } from '@/construction/elements'
 import { translate } from '@/construction/geometry'
 import type { ConstructionModel } from '@/construction/model'
@@ -7,7 +8,7 @@ import { createExtrudedPolygon } from '@/construction/shapes'
 import { TAG_FLOOR } from '@/construction/tags'
 
 import { BaseFloorAssembly } from './base'
-import type { MonolithicFloorConfig, PerimeterConstructionContext } from './types'
+import type { MonolithicFloorConfig } from './types'
 
 export class MonolithicFloorAssembly extends BaseFloorAssembly<MonolithicFloorConfig> {
   construct = (context: PerimeterConstructionContext, config: MonolithicFloorConfig) => {

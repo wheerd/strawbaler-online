@@ -95,7 +95,7 @@ function getRoofHeightLineForLayer(
     // Get height line for this layer's line
     // TypeScript can't narrow the roofAssembly type properly, so we use 'as any'
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const line = roofImpl.getBottomOffsets(roof, roofAssembly as any, layerLine)
+    const line = roofImpl.getBottomOffsets(roof, roofAssembly as any, layerLine, []) // TODO: Pass contexts
     heightLine.push(...line)
   }
 

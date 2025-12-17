@@ -1,10 +1,8 @@
 import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { Roof } from '@/building/model'
-import { getModelActions } from '@/building/store'
-import { computePerimeterConstructionContext } from '@/construction/context'
+import type { PerimeterConstructionContext } from '@/construction/context'
 import { type ConstructionElement, type GroupOrElement, createConstructionElement } from '@/construction/elements'
-import type { PerimeterConstructionContext } from '@/construction/floors'
 import { IDENTITY } from '@/construction/geometry'
 import { PolygonWithBoundingRect, partitionByAlignedEdges, polygonEdges } from '@/construction/helpers'
 import { transformManifold } from '@/construction/manifold/operations'
@@ -50,7 +48,7 @@ import type { HeightLine, PurlinRoofConfig } from './types'
 const EPSILON = 1e-5
 
 export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
-  construct = (roof: Roof, config: PurlinRoofConfig): ConstructionModel => {
+  construct = (roof: Roof, config: PurlinRoofConfig, contexts: PerimeterConstructionContext[]): ConstructionModel => {
     const ridgeHeight = this.calculateRidgeHeight(roof)
 
     const allElements: GroupOrElement[] = []
@@ -58,10 +56,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     // STEP 1: Split roof polygon ONCE
     const roofSides = this.splitRoofPolygon(roof, ridgeHeight)
 
-    const perimeters = getModelActions().getPerimetersByStorey(roof.storeyId)
-    const perimeterContexts = perimeters.map(p => computePerimeterConstructionContext(p, []))
-
-    const edgeRafterMidpoints = this.getRafterMidpoints(roof, config, roof.ridgeDirection, perimeterContexts)
+    const edgeRafterMidpoints = this.getRafterMidpoints(roof, config, roof.ridgeDirection, contexts)
 
     const purlinArea = this.getPurlinArea(roof)
     const purlinCheckPoints = this.getPurlinCheckPoints(purlinArea, roof.ridgeDirection)
@@ -84,7 +79,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       const sideElements: GroupOrElement[] = []
 
       // Main construction
-      sideElements.push(...this.constructRoof(roof, config, roofSide, edgeRafterMidpoints, perimeterContexts))
+      sideElements.push(...this.constructRoof(roof, config, roofSide, edgeRafterMidpoints, contexts))
 
       // Top layers
       sideElements.push(...this.constructTopLayers(roof, config, roofSide))

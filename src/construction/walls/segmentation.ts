@@ -108,9 +108,9 @@ export function getRoofHeightLineForWall(
     // Get height lines for construction lines
     // TypeScript can't narrow the roofAssembly type properly, so we use 'as any'
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const insideLine = roofImpl.getBottomOffsets(roof, roofAssembly as any, cornerInfo.constructionInsideLine)
+    const insideLine = roofImpl.getBottomOffsets(roof, roofAssembly as any, cornerInfo.constructionInsideLine, []) // TODO: Pass contexts
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const outsideLine = roofImpl.getBottomOffsets(roof, roofAssembly as any, cornerInfo.constructionOutsideLine)
+    const outsideLine = roofImpl.getBottomOffsets(roof, roofAssembly as any, cornerInfo.constructionOutsideLine, []) // TODO: Pass contexts
 
     insideHeightLine.push(...insideLine)
     outsideHeightLine.push(...outsideLine)

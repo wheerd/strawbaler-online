@@ -2,7 +2,6 @@ import { vec2 } from 'gl-matrix'
 
 import type { FloorOpening, Perimeter } from '@/building/model'
 import { getConfigActions } from '@/construction/config'
-import type { PerimeterConstructionContext } from '@/construction/floors'
 import {
   type Length,
   type Line2D,
@@ -16,6 +15,23 @@ import {
   polygonEdgeOffset,
   unionPolygons
 } from '@/shared/geometry'
+
+export interface PerimeterConstructionContext {
+  outerLines: Line2D[]
+  innerLines: Line2D[]
+  outerPolygon: Polygon2D
+  innerPolygon: Polygon2D
+  floorOpenings: Polygon2D[]
+  wallFaceOffsets: WallFaceOffset[]
+}
+
+export interface WallFaceOffset {
+  line: Line2D
+  segment: LineSegment2D
+  normal: vec2
+  distance: Length
+  length: Length
+}
 
 export function computePerimeterConstructionPolygon(
   perimeter: Perimeter,
@@ -77,7 +93,8 @@ export const computePerimeterConstructionContext = (
     innerPolygon: inner.polygon,
     outerLines: outer.lines,
     outerPolygon: outer.polygon,
-    floorOpenings: mergedHoles
+    floorOpenings: mergedHoles,
+    wallFaceOffsets: wallFaces
   }
 }
 
@@ -137,14 +154,6 @@ export function createWallFaceOffsets(perimeters: Perimeter[]): WallFaceOffset[]
   }
 
   return faces
-}
-
-export interface WallFaceOffset {
-  line: Line2D
-  segment: LineSegment2D
-  normal: vec2
-  distance: Length
-  length: Length
 }
 
 export function applyWallFaceOffsets(polygon: Polygon2D, faces: WallFaceOffset[]): Polygon2D {

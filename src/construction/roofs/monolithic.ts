@@ -2,6 +2,7 @@ import { vec2 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import type { Roof } from '@/building/model'
+import type { PerimeterConstructionContext } from '@/construction/context'
 import { type GroupOrElement, createConstructionElement } from '@/construction/elements'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/roofs/base'
@@ -19,7 +20,11 @@ import {
 import type { HeightLine, MonolithicRoofConfig } from './types'
 
 export class MonolithicRoofAssembly extends BaseRoofAssembly<MonolithicRoofConfig> {
-  construct = (roof: Roof, config: MonolithicRoofConfig): ConstructionModel => {
+  construct = (
+    roof: Roof,
+    config: MonolithicRoofConfig,
+    _contexts: PerimeterConstructionContext[]
+  ): ConstructionModel => {
     const ridgeHeight = this.calculateRidgeHeight(roof)
 
     // STEP 1: Split roof polygon ONCE

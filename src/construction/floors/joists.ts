@@ -1,5 +1,6 @@
 import { vec2, vec3 } from 'gl-matrix'
 
+import type { PerimeterConstructionContext } from '@/construction/context'
 import { createConstructionElement, createConstructionElementId } from '@/construction/elements'
 import { translate } from '@/construction/geometry'
 import {
@@ -30,7 +31,7 @@ import {
 } from '@/shared/geometry'
 
 import { BaseFloorAssembly } from './base'
-import type { JoistFloorConfig, PerimeterConstructionContext } from './types'
+import type { JoistFloorConfig } from './types'
 
 const EPSILON = 1e-5
 

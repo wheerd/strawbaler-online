@@ -95,8 +95,9 @@ export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
   const floorAssembly = FLOOR_ASSEMBLIES[floorAssemblyConfig.type]
   const finishedFloorOffset = (floorAssemblyConfig.layers.topThickness +
     floorAssembly.getTopOffset(floorAssemblyConfig)) as Length
+  const contexts = perimeters.map(p => computePerimeterConstructionContext(p, []))
   const roofModels = roofs.map(r =>
-    transformModel(constructRoof(r), translate(vec3.fromValues(0, 0, storey.floorHeight)))
+    transformModel(constructRoof(r, contexts), translate(vec3.fromValues(0, 0, storey.floorHeight)))
   )
   const perimeterModels = perimeters.map(p => constructPerimeter(p, false, false))
   const floorModels = constructStoreyFloor(storeyId)

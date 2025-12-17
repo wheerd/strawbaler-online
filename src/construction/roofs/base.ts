@@ -3,6 +3,7 @@ import type { Manifold } from 'manifold-3d'
 
 import type { Roof } from '@/building/model'
 import { getModelActions } from '@/building/store'
+import type { PerimeterConstructionContext } from '@/construction/context'
 import { type GroupOrElement } from '@/construction/elements'
 import { IDENTITY, type Transform, transformBounds } from '@/construction/geometry'
 import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
@@ -45,9 +46,15 @@ export interface RoofSide {
 
 export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> implements RoofAssembly<T> {
   abstract getTopOffset: (config: T) => Length
-  abstract getBottomOffsets: (roof: Roof, config: T, line: LineSegment2D) => HeightLine
+  abstract getBottomOffsets: (
+    roof: Roof,
+    config: T,
+    line: LineSegment2D,
+    contexts: PerimeterConstructionContext[]
+  ) => HeightLine
+
   abstract getConstructionThickness: (config: T) => Length
-  abstract construct(roof: Roof, config: T): ConstructionModel
+  abstract construct(roof: Roof, config: T, contexts: PerimeterConstructionContext[]): ConstructionModel
 
   protected abstract getTopLayerOffset: (config: T) => Length
   protected abstract getCeilingLayerOffset: (config: T) => Length

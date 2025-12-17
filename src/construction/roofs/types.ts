@@ -1,15 +1,21 @@
 import type { Roof } from '@/building/model'
 import { sumLayerThickness } from '@/construction/config/store/layerUtils'
+import type { PerimeterConstructionContext } from '@/construction/context'
 import type { LayerConfig } from '@/construction/layers/types'
 import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
 import type { Length, LineSegment2D } from '@/shared/geometry'
 
 export interface RoofAssembly<TConfig extends RoofAssemblyConfigBase> {
-  construct: (roof: Roof, config: TConfig) => ConstructionModel
+  construct: (roof: Roof, config: TConfig, contexts: PerimeterConstructionContext[]) => ConstructionModel
 
   getTopOffset: (config: TConfig) => Length
-  getBottomOffsets: (roof: Roof, config: TConfig, line: LineSegment2D) => HeightLine
+  getBottomOffsets: (
+    roof: Roof,
+    config: TConfig,
+    line: LineSegment2D,
+    contexts: PerimeterConstructionContext[]
+  ) => HeightLine
   getConstructionThickness: (config: TConfig) => Length
   getTotalThickness: (config: TConfig) => Length
 }

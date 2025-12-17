@@ -21,8 +21,13 @@ import {
 } from '@/shared/geometry'
 
 import { getConfigActions } from './config'
-import { applyWallFaceOffsets, computePerimeterConstructionContext, createWallFaceOffsets } from './context'
-import { FLOOR_ASSEMBLIES, type PerimeterConstructionContext, constructFloorLayerModel } from './floors'
+import {
+  type PerimeterConstructionContext,
+  applyWallFaceOffsets,
+  computePerimeterConstructionContext,
+  createWallFaceOffsets
+} from './context'
+import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from './floors'
 import { IDENTITY, translate } from './geometry'
 import { polygonEdges } from './helpers'
 import type { RawMeasurement } from './measurements'
@@ -161,7 +166,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     const relevantRoofs = roofs.filter(r => r.referencePerimeter === perimeter.id)
     allModels.push(
       ...relevantRoofs.map(roof =>
-        transformModel(constructRoof(roof), translate(vec3.fromValues(0, 0, storey.floorHeight)))
+        transformModel(constructRoof(roof, [context]), translate(vec3.fromValues(0, 0, storey.floorHeight)))
       )
     )
   }
