@@ -1,7 +1,7 @@
 import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { Roof } from '@/building/model'
-import type { PerimeterConstructionContext } from '@/construction/context'
+import { type PerimeterConstructionContext, applyWallFaceOffsets } from '@/construction/context'
 import { type ConstructionElement, type GroupOrElement, createConstructionElement } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
 import { PolygonWithBoundingRect, partitionByAlignedEdges, polygonEdges } from '@/construction/helpers'
@@ -58,7 +58,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
 
     const edgeRafterMidpoints = this.getRafterMidpoints(roof, config, roof.ridgeDirection, contexts)
 
-    const purlinArea = this.getPurlinArea(roof)
+    const purlinArea = this.getPurlinArea(roof, contexts)
     const purlinCheckPoints = this.getPurlinCheckPoints(purlinArea, roof.ridgeDirection)
     const purlinAreaParts =
       roof.type === 'gable'
@@ -250,8 +250,13 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       .map(p => vec2.sub(vec2.create(), p, roof.ridgeLine.start))
   }
 
-  private getPurlinArea(roof: Roof): Polygon2D {
-    const innerLines = [...polygonEdges(roof.referencePolygon)].map(lineFromSegment)
+  private getPurlinArea(roof: Roof, contexts: PerimeterConstructionContext[]): Polygon2D {
+    const adjustedPolygon = applyWallFaceOffsets(
+      roof.referencePolygon,
+      contexts.flatMap(c => c.wallFaceOffsets)
+    )
+
+    const innerLines = [...polygonEdges(adjustedPolygon)].map(lineFromSegment)
     const outerLines = [...polygonEdges(roof.overhangPolygon)].map(lineFromSegment)
 
     const polygonLines = outerLines.map((l, i) =>
