@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { newVec2 } from '@/shared/geometry'
-import type { LineSegment2D } from '@/shared/geometry'
+import { type LineSegment2D, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { SnappingService } from './SnappingService'
 import type { SnapConfig, SnappingContext } from './types'
@@ -298,7 +297,7 @@ describe('SnappingService', () => {
       const result = service.findSnapResult(target, context)
 
       expect(result).not.toBeNull()
-      expect(result?.position).toEqual(newVec2(0, 0))
+      expect(result?.position).toEqual(ZERO_VEC2)
       expect(result?.lines).toHaveLength(2)
     })
 

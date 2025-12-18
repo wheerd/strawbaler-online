@@ -28,8 +28,7 @@ import {
   fillNullRegions,
   mergeInsideOutsideHeightLines
 } from '@/construction/walls/roofIntegration'
-import { newVec2 } from '@/shared/geometry'
-import type { Length } from '@/shared/geometry'
+import { type Length, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
@@ -157,7 +156,7 @@ function* createCornerAreas(
           newVec2(-cornerInfo.startCorner.extensionDistance, 0),
           newVec2(-cornerInfo.startCorner.extensionDistance, wallHeight),
           newVec2(0, wallHeight),
-          newVec2(0, 0)
+          ZERO_VEC2
         ]
       },
       cancelKey: `corner-${cornerInfo.startCorner.id}`

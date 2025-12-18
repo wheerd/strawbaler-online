@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createPerimeterId, createPerimeterWallId } from '@/building/model/ids'
 import type { PerimeterWall } from '@/building/model/model'
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { SplitWallTool } from './SplitWallTool'
 
@@ -67,7 +67,7 @@ describe('SplitWallTool', () => {
       outsideLength: 1000,
       wallLength: 1000,
       insideLine: {
-        start: newVec2(0, 0),
+        start: ZERO_VEC2,
         end: newVec2(1000, 0)
       },
       outsideLine: {
@@ -121,7 +121,7 @@ describe('SplitWallTool', () => {
       outsideLength: 2000,
       wallLength: 2000,
       insideLine: {
-        start: newVec2(0, 0),
+        start: ZERO_VEC2,
         end: newVec2(2000, 0)
       },
       outsideLine: {

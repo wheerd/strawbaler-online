@@ -21,21 +21,20 @@ import {
   type Line2D,
   type Polygon2D,
   type Vec2,
+  ZERO_VEC2,
   addVec2,
   copyVec2,
-  distVec2,
-  negVec2,
-  newVec2,
-  scaleAddVec2
-} from '@/shared/geometry'
-import {
   direction,
+  distVec2,
   lineFromPoints,
   lineIntersection,
   midpoint,
+  negVec2,
+  newVec2,
   perpendicularCCW,
   projectPointOntoLine,
-  radiansToDegrees
+  radiansToDegrees,
+  scaleAddVec2
 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
@@ -174,8 +173,8 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         const corners: PerimeterCorner[] = boundary.points.map(point => ({
           id: createPerimeterCornerId(),
           // The other point will be calculated by updatePerimeterGeometry
-          insidePoint: referenceSide === 'inside' ? copyVec2(point) : newVec2(0, 0),
-          outsidePoint: referenceSide === 'outside' ? copyVec2(point) : newVec2(0, 0),
+          insidePoint: referenceSide === 'inside' ? copyVec2(point) : ZERO_VEC2,
+          outsidePoint: referenceSide === 'outside' ? copyVec2(point) : ZERO_VEC2,
           constructedByWall: 'next',
           interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
           exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
@@ -191,8 +190,8 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           insideLength: 0,
           outsideLength: 0,
           wallLength: 0,
-          insideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
-          outsideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
+          insideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
+          outsideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
           direction: newVec2(1, 0),
           outsideDirection: newVec2(0, 1)
         }))
@@ -319,8 +318,8 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         // Create new corner at split position
         const newCorner: PerimeterCorner = {
           id: createPerimeterCornerId(),
-          insidePoint: perimeter.referenceSide === 'inside' ? copyVec2(referenceSplitPoint) : newVec2(0, 0),
-          outsidePoint: perimeter.referenceSide === 'outside' ? copyVec2(referenceSplitPoint) : newVec2(0, 0),
+          insidePoint: perimeter.referenceSide === 'inside' ? copyVec2(referenceSplitPoint) : ZERO_VEC2,
+          outsidePoint: perimeter.referenceSide === 'outside' ? copyVec2(referenceSplitPoint) : ZERO_VEC2,
           constructedByWall: 'next',
           interiorAngle: 0, // Will be calculated by updatePerimeterGeometry
           exteriorAngle: 0 // Will be calculated by updatePerimeterGeometry
@@ -350,8 +349,8 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           insideLength: 0,
           outsideLength: 0,
           wallLength: 0,
-          insideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
-          outsideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
+          insideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
+          outsideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
           direction: newVec2(1, 0),
           outsideDirection: newVec2(0, 1)
         }
@@ -365,8 +364,8 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           insideLength: 0,
           outsideLength: 0,
           wallLength: 0,
-          insideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
-          outsideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
+          insideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
+          outsideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
           direction: newVec2(1, 0),
           outsideDirection: newVec2(0, 1)
         }
@@ -1103,8 +1102,8 @@ const removeCornerAndMergeWalls = (perimeter: Perimeter, cornerIndex: number): v
     insideLength: 0,
     outsideLength: 0,
     wallLength: 0,
-    insideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
-    outsideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
+    insideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
+    outsideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
     direction: newVec2(1, 0),
     outsideDirection: newVec2(0, 1)
   }
@@ -1168,8 +1167,8 @@ const removeWallAndMergeAdjacent = (perimeter: Perimeter, wallIndex: number): vo
     insideLength: 0,
     outsideLength: 0,
     wallLength: 0,
-    insideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
-    outsideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
+    insideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
+    outsideLine: { start: ZERO_VEC2, end: ZERO_VEC2 },
     direction: newVec2(1, 0),
     outsideDirection: newVec2(0, 1)
   }

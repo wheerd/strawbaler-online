@@ -4,7 +4,7 @@ import { vi } from 'vitest'
 import { createWallAssemblyId } from '@/building/model/ids'
 import type { SnapResult } from '@/editor/services/snapping/types'
 import { PerimeterTool } from '@/editor/tools/perimeter/add/PerimeterTool'
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { PolygonToolOverlay } from './PolygonToolOverlay'
 
@@ -32,7 +32,7 @@ describe('PolygonToolOverlay', () => {
     // Reset tool state
     mockTool.state = {
       points: [],
-      pointer: newVec2(0, 0),
+      pointer: ZERO_VEC2,
       snapResult: undefined,
       snapContext: {
         snapPoints: [],
@@ -260,7 +260,7 @@ describe('PolygonToolOverlay', () => {
   describe('edge cases', () => {
     it('handles empty points array gracefully', () => {
       mockTool.state.points = []
-      mockTool.state.pointer = newVec2(0, 0)
+      mockTool.state.pointer = ZERO_VEC2
 
       const { container } = render(<PolygonToolOverlay tool={mockTool} />)
 

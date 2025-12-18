@@ -9,7 +9,7 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { OpeningMovementPreview } from '@/editor/tools/basic/movement/previews/OpeningMovementPreview'
-import { type Length, type Vec2, addVec2, dotVec2, newVec2, scaleVec2, subVec2 } from '@/shared/geometry'
+import { type Length, type Vec2, ZERO_VEC2, dotVec2, newVec2, scaleAddVec2, subVec2 } from '@/shared/geometry'
 
 // Opening movement needs access to the wall, wall, and opening
 export interface OpeningEntityContext {
@@ -52,7 +52,7 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
 
     return {
       newOffset: opening.centerOffsetFromWallStart,
-      movementDelta: newVec2(0, 0) // Store as [1D_change, 0]
+      movementDelta: ZERO_VEC2 // Store as [1D_change, 0]
     }
   }
 
@@ -68,8 +68,8 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
 
     // Calculate new offset along wall (can be negative)
     const wallStart = wall.insideLine.start
-    const currentPosition = addVec2(wallStart, scaleVec2(wall.direction, opening.centerOffsetFromWallStart))
-    const newPosition = addVec2(currentPosition, scaleVec2(wallDirection, projectedDistance))
+    const currentPosition = scaleAddVec2(wallStart, wall.direction, opening.centerOffsetFromWallStart)
+    const newPosition = scaleAddVec2(currentPosition, wallDirection, projectedDistance)
 
     // Use proper signed distance calculation to handle negative offsets
     const deltaFromStart = subVec2(newPosition, wallStart)

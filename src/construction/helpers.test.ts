@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { Bounds2D, type Polygon2D, type Vec2, calculatePolygonArea, distVec2, newVec2 } from '@/shared/geometry'
+import {
+  Bounds2D,
+  type Polygon2D,
+  type Vec2,
+  ZERO_VEC2,
+  calculatePolygonArea,
+  distVec2,
+  newVec2
+} from '@/shared/geometry'
 
 import { partitionByAlignedEdges } from './helpers'
 
@@ -173,7 +181,7 @@ describe('partitionByAlignedEdges', () => {
         newVec2(60, 50),
         newVec2(40, 50),
         newVec2(40, 0),
-        newVec2(0, 0)
+        ZERO_VEC2
       ]
     }
     it('should partition U-shape horizontally', async () => {
@@ -241,7 +249,7 @@ describe('partitionByAlignedEdges', () => {
     //  └──────────┘
     const eShape: Polygon2D = {
       points: [
-        newVec2(0, 0),
+        ZERO_VEC2,
         newVec2(100, 0),
         newVec2(100, 10),
         newVec2(30, 10),

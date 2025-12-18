@@ -10,11 +10,13 @@ import {
   type LineSegment2D,
   type Polygon2D,
   type Vec2,
+  ZERO_VEC2,
+  direction,
   distSqrVec2,
-  newVec2,
-  scaleAddVec2
+  scaleAddVec2,
+  wouldClosingPolygonSelfIntersect,
+  wouldPolygonSelfIntersect
 } from '@/shared/geometry'
-import { direction, wouldClosingPolygonSelfIntersect, wouldPolygonSelfIntersect } from '@/shared/geometry'
 
 export interface PolygonToolStateBase {
   points: Vec2[]
@@ -40,7 +42,7 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
     super()
     this.state = {
       points: [] as Vec2[],
-      pointer: newVec2(0, 0),
+      pointer: ZERO_VEC2,
       snapResult: undefined,
       isCurrentSegmentValid: true,
       isClosingSegmentValid: true,
@@ -320,7 +322,7 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
 
   private resetDrawingState(): void {
     this.state.points = []
-    this.state.pointer = newVec2(0, 0)
+    this.state.pointer = ZERO_VEC2
     this.state.snapResult = undefined
     this.state.isCurrentSegmentValid = true
     this.state.isClosingSegmentValid = true

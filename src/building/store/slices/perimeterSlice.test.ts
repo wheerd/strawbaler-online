@@ -14,6 +14,7 @@ import {
 import {
   type Length,
   type Polygon2D,
+  ZERO_VEC2,
   addVec2,
   copyVec2,
   ensurePolygonIsClockwise,
@@ -87,7 +88,7 @@ describe('perimeterSlice', () => {
   // Helper function to create a shape with reflex angles (like a "C" or "L" shape)
   const createReflexAngleBoundary = (): Polygon2D => ({
     points: [
-      newVec2(0, 0), // Start
+      ZERO_VEC2, // Start
       newVec2(10, 0), // Move right
       newVec2(10, 5), // Move up
       newVec2(5, 5), // Move left (creates reflex angle)
@@ -1249,7 +1250,7 @@ describe('perimeterSlice', () => {
       // Create a shape with acute angles (< 90 degrees)
       const acuteAngleBoundary: Polygon2D = {
         points: [
-          newVec2(0, 0),
+          ZERO_VEC2,
           newVec2(10, 0),
           newVec2(5, 2) // Creates acute angle
         ]
@@ -1484,7 +1485,7 @@ describe('perimeterSlice', () => {
         // Create a concave shape where removing a specific corner would cause self-intersection
         const boundary: Polygon2D = {
           points: [
-            newVec2(0, 0),
+            ZERO_VEC2,
             newVec2(10, 0),
             newVec2(10, 10),
             newVec2(5, 5), // This creates a concave shape
@@ -1593,7 +1594,7 @@ describe('perimeterSlice', () => {
         // Create a shape where removing a specific wall would cause self-intersection
         const boundary: Polygon2D = {
           points: [
-            newVec2(0, 0),
+            ZERO_VEC2,
             newVec2(20, 0),
             newVec2(20, 10),
             newVec2(10, 5), // Creates a potential problem if we remove the wrong wall
@@ -1701,7 +1702,7 @@ describe('perimeterSlice', () => {
         // Create a complex shape where certain deletions would be problematic
         const complexBoundary: Polygon2D = {
           points: [
-            newVec2(0, 0),
+            ZERO_VEC2,
             newVec2(10, 0),
             newVec2(10, 10),
             newVec2(8, 8),

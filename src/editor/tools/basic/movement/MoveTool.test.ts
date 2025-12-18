@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { MoveTool } from './MoveTool'
 
@@ -41,7 +41,7 @@ describe('MoveTool', () => {
       pointerState: {
         startPosition: newVec2(100, 100),
         currentPosition: newVec2(100, 100),
-        delta: newVec2(0, 0)
+        delta: ZERO_VEC2
       },
       currentMovementState: {},
       isValid: true

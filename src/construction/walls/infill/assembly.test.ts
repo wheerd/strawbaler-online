@@ -13,8 +13,7 @@ import { TAG_POST_SPACING } from '@/construction/tags'
 import type { InfillWallConfig, InfillWallSegmentConfig, WallLayersConfig } from '@/construction/walls'
 import { type WallStoreyContext } from '@/construction/walls/segmentation'
 import { segmentedWallConstruction } from '@/construction/walls/segmentation'
-import { newVec2 } from '@/shared/geometry'
-import type { Length } from '@/shared/geometry'
+import { type Length, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { InfillWallAssembly } from './assembly'
 
@@ -157,7 +156,7 @@ function createMockWall(
     outsideLength: wallLength,
     openings,
     insideLine: {
-      start: newVec2(0, 0),
+      start: ZERO_VEC2,
       end: newVec2(wallLength, 0)
     },
     outsideLine: {

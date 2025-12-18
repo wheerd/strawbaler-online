@@ -1,11 +1,11 @@
 import { render } from '@testing-library/react'
 
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { LengthIndicator } from './LengthIndicator'
 
 describe('LengthIndicator', () => {
-  const startPoint = newVec2(0, 0)
+  const startPoint = ZERO_VEC2
   const endPoint = newVec2(1000, 0)
 
   it('renders without crashing', () => {

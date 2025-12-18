@@ -8,7 +8,7 @@ import { LengthIndicator } from '@/editor/canvas/utils/LengthIndicator'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { activateLengthInput } from '@/editor/services/length-input'
-import { type Length, type Vec2, addVec2, midpoint, newVec2, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
+import { type Length, type Vec2, ZERO_VEC2, addVec2, midpoint, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 import { formatLength } from '@/shared/utils/formatting'
@@ -101,7 +101,7 @@ export function OpeningShape({
                     nextOpening.centerOffsetFromWallStart - nextOpening.width / 2
                   )
                 )
-              : newVec2(0, 0)
+              : ZERO_VEC2
 
     const stagePos = viewportActions.worldToStage(worldPosition)
     // Add small offset to position input near the indicator

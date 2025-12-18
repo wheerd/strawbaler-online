@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Roof } from '@/building/model'
 import { computeRoofDerivedProperties } from '@/building/store/slices/roofsSlice'
-import { type Vec2, newVec2 } from '@/shared/geometry'
-import { millimeters } from '@/shared/geometry'
+import { type Vec2, ZERO_VEC2, millimeters, newVec2 } from '@/shared/geometry'
 
 import { MonolithicRoofAssembly } from './monolithic'
 import type { HeightItem, MonolithicRoofConfig } from './types'
@@ -36,8 +35,8 @@ describe('MonolithicRoofAssembly.getBottomOffsets', () => {
       assemblyId: 'test-assembly' as any,
       // Computed properties
       slopeAngleRad: 0,
-      ridgeDirection: newVec2(0, 0),
-      downSlopeDirection: newVec2(0, 0),
+      ridgeDirection: ZERO_VEC2,
+      downSlopeDirection: ZERO_VEC2,
       rise: 0,
       span: 0
     }

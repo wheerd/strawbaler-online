@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Roof } from '@/building/model'
 import { computeRoofDerivedProperties } from '@/building/store/slices/roofsSlice'
-import { type Vec2, newVec2 } from '@/shared/geometry'
-import { millimeters } from '@/shared/geometry'
+import { type Vec2, ZERO_VEC2, millimeters, newVec2 } from '@/shared/geometry'
 
 import { MonolithicRoofAssembly } from './monolithic'
 import type { HeightItem, MonolithicRoofConfig } from './types'
@@ -39,8 +38,8 @@ describe('MonolithicRoofAssembly.getBottomOffsets - Intersection Tests', () => {
       assemblyId: 'test-assembly' as any,
       // Computed properties
       slopeAngleRad: 0,
-      ridgeDirection: newVec2(0, 0),
-      downSlopeDirection: newVec2(0, 0),
+      ridgeDirection: ZERO_VEC2,
+      downSlopeDirection: ZERO_VEC2,
       rise: 0,
       span: 0
     }
@@ -193,7 +192,7 @@ describe('MonolithicRoofAssembly.getBottomOffsets - Intersection Tests', () => {
       // Create L-shaped overhang polygon
       const roof = createTestRoof('shed', newVec2(0, 5000), newVec2(10000, 5000), 30, verticalOffset, {
         points: [
-          newVec2(0, 0),
+          ZERO_VEC2,
           newVec2(5000, 0),
           newVec2(5000, 2000),
           newVec2(2000, 2000),
@@ -228,7 +227,7 @@ describe('MonolithicRoofAssembly.getBottomOffsets - Intersection Tests', () => {
       // Create U-shaped polygon
       const roof = createTestRoof('shed', newVec2(0, 5000), newVec2(10000, 5000), 30, verticalOffset, {
         points: [
-          newVec2(0, 0),
+          ZERO_VEC2,
           newVec2(6000, 0),
           newVec2(6000, 2000),
           newVec2(4000, 2000),
@@ -354,7 +353,7 @@ describe('MonolithicRoofAssembly.getBottomOffsets - Intersection Tests', () => {
       // Create L-shaped polygon for multiple segments
       const roof = createTestRoof('shed', newVec2(0, 5000), newVec2(10000, 5000), 30, verticalOffset, {
         points: [
-          newVec2(0, 0),
+          ZERO_VEC2,
           newVec2(5000, 0),
           newVec2(5000, 2000),
           newVec2(2000, 2000),

@@ -3,7 +3,7 @@ import { Arrow, Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { Roof } from '@/building/model/model'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
-import { type Vec2, addVec2, negVec2, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
+import { type Vec2, midpoint, negVec2, scaleAddVec2 } from '@/shared/geometry'
 import { Bounds2D, direction, perpendicular, perpendicularCW } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
@@ -27,7 +27,7 @@ export function RoofShape({ roof }: RoofShapeProps): React.JSX.Element {
 
   // Calculate arrow positions and directions
   const arrows = useMemo(() => {
-    const ridgeMidpoint = scaleVec2(addVec2(roof.ridgeLine.start, roof.ridgeLine.end), 0.5)
+    const ridgeMidpoint = midpoint(roof.ridgeLine.start, roof.ridgeLine.end)
 
     const bounds = Bounds2D.fromPoints(roof.referencePolygon.points)
     const size = bounds.size

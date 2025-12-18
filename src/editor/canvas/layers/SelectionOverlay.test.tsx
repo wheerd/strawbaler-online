@@ -3,7 +3,7 @@ import { vi } from 'vitest'
 
 import type { Perimeter } from '@/building/model/model'
 import { useFloorAreaById, useFloorOpeningById, usePerimeterById, useRoofById } from '@/building/store'
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { SelectionOverlay } from './SelectionOverlay'
 
@@ -56,7 +56,7 @@ describe('SelectionOverlay', () => {
     const mockWall: Partial<Perimeter> = {
       id: wallId as any,
       corners: [
-        { outsidePoint: newVec2(0, 0) },
+        { outsidePoint: ZERO_VEC2 },
         { outsidePoint: newVec2(100, 0) },
         { outsidePoint: newVec2(100, 100) },
         { outsidePoint: newVec2(0, 100) }
@@ -81,7 +81,7 @@ describe('SelectionOverlay', () => {
       walls: [
         {
           id: wallId,
-          insideLine: { start: newVec2(0, 0), end: newVec2(100, 0) },
+          insideLine: { start: ZERO_VEC2, end: newVec2(100, 0) },
           outsideLine: { start: newVec2(0, 50), end: newVec2(100, 50) }
         }
       ]
@@ -106,7 +106,7 @@ describe('SelectionOverlay', () => {
       walls: [
         {
           id: wallId,
-          insideLine: { start: newVec2(0, 0), end: newVec2(100, 0) },
+          insideLine: { start: ZERO_VEC2, end: newVec2(100, 0) },
           outsideLine: { start: newVec2(0, 50), end: newVec2(100, 50) },
           direction: newVec2(1, 0),
           openings: [

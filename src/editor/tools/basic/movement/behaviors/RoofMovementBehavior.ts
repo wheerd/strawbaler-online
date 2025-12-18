@@ -1,4 +1,3 @@
-
 import type { SelectableId } from '@/building/model/ids'
 import { isRoofId } from '@/building/model/ids'
 import type { Perimeter, Roof } from '@/building/model/model'

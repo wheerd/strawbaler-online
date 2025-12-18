@@ -17,8 +17,7 @@ import type { WallCornerInfo } from '@/construction/walls'
 import type { WallContext } from '@/construction/walls/corners/corners'
 import type { WallStoreyContext } from '@/construction/walls/segmentation'
 import type { WallLayersConfig } from '@/construction/walls/types'
-import { newVec2 } from '@/shared/geometry'
-import type { Polygon2D, PolygonWithHoles2D } from '@/shared/geometry'
+import { type Polygon2D, type PolygonWithHoles2D, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { constructWallLayers } from './layers'
 
@@ -72,7 +71,7 @@ const createWall = (overrides: Partial<PerimeterWall> = {}): PerimeterWall => ({
   outsideLength: 3000,
   wallLength: 3000,
   insideLine: {
-    start: newVec2(0, 0),
+    start: ZERO_VEC2,
     end: newVec2(3000, 0)
   },
   outsideLine: {
@@ -96,7 +95,7 @@ const createPerimeter = (wall: PerimeterWall, overrides: Partial<Perimeter> = {}
 
 const createCorner = (overrides: Partial<PerimeterCorner>): PerimeterCorner => ({
   id: createPerimeterCornerId(),
-  insidePoint: newVec2(0, 0),
+  insidePoint: ZERO_VEC2,
   outsidePoint: newVec2(0, 300),
   constructedByWall: 'next',
   interiorAngle: 90,
@@ -178,7 +177,7 @@ describe('constructWallLayers', () => {
 
     previousWall.insideLine = {
       start: newVec2(0, -3000),
-      end: newVec2(0, 0)
+      end: ZERO_VEC2
     }
     previousWall.outsideLine = {
       start: newVec2(-300, -3000),
@@ -206,7 +205,7 @@ describe('constructWallLayers', () => {
 
     const startCorner = createCorner({
       id: createPerimeterCornerId(),
-      insidePoint: newVec2(0, 0),
+      insidePoint: ZERO_VEC2,
       outsidePoint: newVec2(-300, 300),
       constructedByWall: 'next'
     })

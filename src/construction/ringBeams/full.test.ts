@@ -8,7 +8,7 @@ import type { MaterialId } from '@/construction/materials/material'
 import type { HighlightedPolygon } from '@/construction/model'
 import type { ExtrudedShape } from '@/construction/shapes'
 import { TAG_PERIMETER_INSIDE, TAG_PERIMETER_OUTSIDE } from '@/construction/tags'
-import { type Polygon2D, type Vec2, copyVec2, newVec2 } from '@/shared/geometry'
+import { type Polygon2D, type Vec2, ZERO_VEC2, copyVec2, newVec2 } from '@/shared/geometry'
 import * as geometry from '@/shared/geometry'
 
 import { FullRingBeamAssembly } from './full'
@@ -97,7 +97,7 @@ describe('FullRingBeamAssembly', () => {
     }
     beforeEach(() => {
       corners = [
-        createMockCorner('c1', newVec2(0, 0)),
+        createMockCorner('c1', ZERO_VEC2),
         createMockCorner('c2', newVec2(0, 3000)),
         createMockCorner('c3', newVec2(4000, 3000)),
         createMockCorner('c4', newVec2(4000, 0))
@@ -181,7 +181,7 @@ describe('FullRingBeamAssembly', () => {
 
     it('passes through offset distance variations to the geometry helpers', () => {
       const corners = [
-        createMockCorner('c1', newVec2(0, 0)),
+        createMockCorner('c1', ZERO_VEC2),
         createMockCorner('c2', newVec2(0, 1000)),
         createMockCorner('c3', newVec2(1000, 1000)),
         createMockCorner('c4', newVec2(1000, 0))

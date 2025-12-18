@@ -457,7 +457,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     })
 
     const getDistanceToRidge = (point: Vec2): number =>
-      dotAbsVec2(subVec2(point, roof.ridgeLine.start), roof.downSlopeDirection)
+      Math.abs(projectVec2(roof.ridgeLine.start, point, roof.downSlopeDirection))
 
     const tanSlope = Math.tan(roof.slopeAngleRad)
     for (const purlin of purlinPolygons) {

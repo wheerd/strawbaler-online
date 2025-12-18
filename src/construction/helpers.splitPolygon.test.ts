@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { newVec2 } from '@/shared/geometry'
-import { type Polygon2D, calculatePolygonArea } from '@/shared/geometry'
+import { type Polygon2D, ZERO_VEC2, calculatePolygonArea, newVec2 } from '@/shared/geometry'
 
 import { splitPolygonAtIndices } from './helpers'
 
@@ -108,7 +107,7 @@ describe('splitPolygonAtIndices', () => {
 
       // Cut where both points are exactly at vertices
       const cutStart = newVec2(100, 100) // Exactly at point index 2
-      const cutEnd = newVec2(0, 0) // Exactly at point index 0
+      const cutEnd = ZERO_VEC2 // Exactly at point index 0
 
       const [poly1, poly2] = splitPolygonAtIndices(rectangle, 2, 0, cutStart, cutEnd)
 

@@ -15,7 +15,7 @@ import { getConfigActions } from '@/construction/config'
 import { IDENTITY } from '@/construction/geometry'
 import type { ConstructionModel } from '@/construction/model'
 import { createCuboid } from '@/construction/shapes'
-import { Bounds3D, copyVec2, newVec2 } from '@/shared/geometry'
+import { Bounds3D, ZERO_VEC2, copyVec2, newVec2 } from '@/shared/geometry'
 
 import { constructWall } from './construction'
 import { WALL_ASSEMBLIES } from './index'
@@ -64,7 +64,7 @@ describe('constructWall', () => {
     outsideLength: insideLength,
     wallLength: insideLength,
     insideLine: {
-      start: newVec2(0, 0),
+      start: ZERO_VEC2,
       end: newVec2(insideLength, 0)
     },
     outsideLine: {
@@ -77,8 +77,8 @@ describe('constructWall', () => {
 
   const createMockCorner = (angle: number): PerimeterCorner => ({
     id: createPerimeterCornerId(),
-    insidePoint: newVec2(0, 0),
-    outsidePoint: newVec2(0, 0),
+    insidePoint: ZERO_VEC2,
+    outsidePoint: ZERO_VEC2,
     constructedByWall: 'previous',
     interiorAngle: angle,
     exteriorAngle: 360 - angle

@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type StoreyId, createFloorAreaId, createFloorOpeningId, createStoreyId } from '@/building/model/ids'
-import { newVec2 } from '@/shared/geometry'
 import {
   type Polygon2D,
   ensurePolygonIsClockwise,
   ensurePolygonIsCounterClockwise,
+  newVec2,
   wouldClosingPolygonSelfIntersect
 } from '@/shared/geometry'
 

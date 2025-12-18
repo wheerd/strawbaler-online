@@ -13,7 +13,7 @@ import {
   processMeasurements
 } from '@/construction/measurements'
 import type { Tag } from '@/construction/tags'
-import { type Vec2, newVec2 } from '@/shared/geometry'
+import { type Vec2, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 describe('measurements', () => {
   // Simple orthographic projection (XY plane - top view)
@@ -355,7 +355,7 @@ describe('measurements', () => {
   describe('interface compatibility', () => {
     it('should create valid ProjectedMeasurement', () => {
       const projected: ProjectedMeasurement = {
-        startPointMin: newVec2(0, 0),
+        startPointMin: ZERO_VEC2,
         endPointMin: newVec2(100, 0),
         startPointMax: newVec2(0, 25),
         endPointMax: newVec2(100, 25),
@@ -363,12 +363,12 @@ describe('measurements', () => {
         tags: [createMockTag('test')]
       }
 
-      expect(projected.startPointMin).toEqual(newVec2(0, 0))
+      expect(projected.startPointMin).toEqual(ZERO_VEC2)
     })
 
     it('should create valid IntervalMeasurement', () => {
       const interval: IntervalMeasurement = {
-        startPointMin: newVec2(0, 0),
+        startPointMin: ZERO_VEC2,
         endPointMin: newVec2(100, 0),
         startPointMax: newVec2(0, 25),
         endPointMax: newVec2(100, 25),
@@ -386,15 +386,15 @@ describe('measurements', () => {
 
     it('should create valid LineMeasurement', () => {
       const line: LineMeasurement = {
-        startPoint: newVec2(0, 0),
+        startPoint: ZERO_VEC2,
         endPoint: newVec2(100, 0),
-        startOnLine: newVec2(0, 0),
+        startOnLine: ZERO_VEC2,
         endOnLine: newVec2(100, 0),
         length: 100,
         tags: []
       }
 
-      expect(line.startPoint).toEqual(newVec2(0, 0))
+      expect(line.startPoint).toEqual(ZERO_VEC2)
       expect(line.length).toBe(100)
     })
 
@@ -413,7 +413,7 @@ describe('measurements', () => {
     it('should create valid MeasurementLines', () => {
       const lines: MeasurementLines = {
         direction: newVec2(1, 0),
-        start: newVec2(0, 0),
+        start: ZERO_VEC2,
         lines: []
       }
 

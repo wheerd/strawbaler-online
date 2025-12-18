@@ -1,4 +1,3 @@
-
 import type { RoofAssemblyId, RoofType } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config/store'

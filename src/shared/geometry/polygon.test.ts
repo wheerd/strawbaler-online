@@ -1,7 +1,7 @@
 import type { MainModule, PathD, PathsD } from 'clipper2-wasm'
 import { type Mocked, afterEach, beforeEach, describe, expect, vi } from 'vitest'
 
-import { type Vec2, copyVec2, newVec2, normVec2 } from '@/shared/geometry/basic'
+import { type Vec2, ZERO_VEC2, copyVec2, newVec2, normVec2 } from '@/shared/geometry/basic'
 import {
   createPathD,
   createPathsD,
@@ -62,7 +62,7 @@ describe('convexHullOfPolygonWithHoles', () => {
     const concave = {
       outer: {
         points: [
-          newVec2(0, 0),
+          ZERO_VEC2,
           newVec2(2000, 0),
           newVec2(2000, 500),
           newVec2(1000, 250),
@@ -268,7 +268,7 @@ beforeEach(() => {
   createPointDMock.mockReturnValue({ delete: vi.fn() } as any)
   createPathDMock.mockReturnValue({ delete: vi.fn() } as any)
   createPathsDMock.mockReturnValue({ delete: vi.fn() } as any)
-  pathDToPointsMock.mockReturnValue([newVec2(0, 0)])
+  pathDToPointsMock.mockReturnValue([ZERO_VEC2])
   getClipperModuleMock.mockReturnValue(mockClipperModule())
 })
 
@@ -622,7 +622,7 @@ describe.skip('splitPolygonByLine', () => {
     }
 
     const line = {
-      point: newVec2(0, 0),
+      point: ZERO_VEC2,
       direction: normVec2(newVec2(1, 1))
     }
 
@@ -670,7 +670,7 @@ describe.skip('splitPolygonByLine', () => {
     }
 
     const line = {
-      point: newVec2(0, 0),
+      point: ZERO_VEC2,
       direction: newVec2(0, 1)
     }
 

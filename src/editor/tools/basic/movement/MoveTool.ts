@@ -5,7 +5,7 @@ import { activateLengthInput, deactivateLengthInput } from '@/editor/services/le
 import { defaultSnappingService } from '@/editor/services/snapping/SnappingService'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CanvasEvent, CursorStyle, ToolImplementation } from '@/editor/tools/system/types'
-import { type Length, type Vec2, distSqrVec2, newVec2, normVec2, scaleVec2, subVec2 } from '@/shared/geometry'
+import { type Length, type Vec2, ZERO_VEC2, distSqrVec2, normVec2, scaleVec2, subVec2 } from '@/shared/geometry'
 
 import { MoveToolInspector } from './MoveToolInspector'
 import { MoveToolOverlay } from './MoveToolOverlay'
@@ -89,7 +89,7 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     this.toolState.pointerState = {
       startPosition: event.stageCoordinates,
       currentPosition: event.stageCoordinates,
-      delta: newVec2(0, 0)
+      delta: ZERO_VEC2
     }
 
     this.toolState.isValid = true

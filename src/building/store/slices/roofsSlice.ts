@@ -9,26 +9,23 @@ import {
   type LineSegment2D,
   type Polygon2D,
   type Vec2,
-  addVec2,
+  ZERO_VEC2,
   copyVec2,
-  distVec2,
-  dotVec2,
-  eqVec2,
-  lenVec2,
-  newVec2,
-  projectVec2,
-  scaleVec2,
-  subVec2
-} from '@/shared/geometry'
-import {
   degreesToRadians,
   direction,
+  distVec2,
+  dotVec2,
   ensurePolygonIsClockwise,
+  eqVec2,
+  lenVec2,
   lineIntersection,
+  midpoint,
   perpendicular,
   perpendicularCW,
   polygonEdgeOffset,
+  projectVec2,
   simplifyPolygon,
+  subVec2,
   wouldClosingPolygonSelfIntersect
 } from '@/shared/geometry'
 import { convexHullOfPolygon } from '@/shared/geometry/polygon'
@@ -129,7 +126,7 @@ const computeRidgeLine = (polygon: Polygon2D, mainSideIndex: number, roofType: R
   }
 
   // Gable roof: ridge runs from midpoint of gable side perpendicular to opposite edge
-  const midpoint = scaleVec2(addVec2(mainStart, mainEnd), 0.5)
+  const point = midpoint(mainStart, mainEnd)
 
   // Direction perpendicular to main side
   const mainDirection = direction(mainStart, mainEnd)
@@ -137,7 +134,7 @@ const computeRidgeLine = (polygon: Polygon2D, mainSideIndex: number, roofType: R
 
   // Create infinite line from midpoint in ridge direction
   const ridgeLine = {
-    point: midpoint,
+    point,
     direction: ridgeDirection
   }
 
@@ -177,7 +174,7 @@ const computeRidgeLine = (polygon: Polygon2D, mainSideIndex: number, roofType: R
 
         if (t >= -0.001 && t <= 1.001) {
           // Intersection is within edge bounds
-          const dist = distVec2(midpoint, intersection)
+          const dist = distVec2(point, intersection)
           if (dist > maxDistance) {
             maxDistance = dist
             bestIntersection = intersection
@@ -187,12 +184,7 @@ const computeRidgeLine = (polygon: Polygon2D, mainSideIndex: number, roofType: R
     }
   }
 
-  if (!bestIntersection) {
-    // Fallback: ridge is just a point at the midpoint
-    return { start: copyVec2(midpoint), end: copyVec2(midpoint) }
-  }
-
-  return { start: copyVec2(midpoint), end: bestIntersection }
+  return { start: copyVec2(point), end: bestIntersection ?? copyVec2(point) }
 }
 
 // Helper function to get valid main side indices (edges on convex hull)
@@ -325,8 +317,8 @@ export const createRoofsSlice: StateCreator<RoofsSlice, [['zustand/immer', never
         referencePerimeter,
         // Initialize computed properties (will be set by helper)
         slopeAngleRad: 0,
-        ridgeDirection: newVec2(0, 0),
-        downSlopeDirection: newVec2(0, 0),
+        ridgeDirection: ZERO_VEC2,
+        downSlopeDirection: ZERO_VEC2,
         rise: 0,
         span: 0
       }

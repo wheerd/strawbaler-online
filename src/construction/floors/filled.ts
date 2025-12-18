@@ -29,6 +29,7 @@ import {
   type Polygon2D,
   type Vec2,
   direction,
+  dotAbsVec2,
   dotVec2,
   ensurePolygonIsClockwise,
   isPointStrictlyInPolygon,

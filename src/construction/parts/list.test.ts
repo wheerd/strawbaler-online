@@ -16,14 +16,15 @@ import { setMaterialsState } from '@/construction/materials/store'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { createCuboid, createExtrudedPolygon } from '@/construction/shapes'
 import { TAG_FULL_BALE, TAG_PARTIAL_BALE } from '@/construction/tags'
-import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 import {
   Bounds2D,
   Bounds3D,
   type PolygonWithHoles2D,
+  ZERO_VEC2,
   calculatePolygonWithHolesArea,
   canonicalPolygonKey,
-  minimumAreaBoundingBox
+  minimumAreaBoundingBox,
+  newVec2
 } from '@/shared/geometry'
 
 import { generateMaterialPartsList, generateVirtualPartsList } from './list'

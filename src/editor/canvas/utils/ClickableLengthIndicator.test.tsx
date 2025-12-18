@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { ClickableLengthIndicator } from './ClickableLengthIndicator'
 
@@ -10,7 +10,7 @@ describe('ClickableLengthIndicator', () => {
 
   it('should render without crashing', () => {
     const { container } = render(
-      <ClickableLengthIndicator startPoint={newVec2(0, 0)} endPoint={newVec2(100, 0)} onClick={mockOnClick} />
+      <ClickableLengthIndicator startPoint={ZERO_VEC2} endPoint={newVec2(100, 0)} onClick={mockOnClick} />
     )
 
     expect(container.firstChild).toBeDefined()
@@ -19,7 +19,7 @@ describe('ClickableLengthIndicator', () => {
   it('should render with custom label', () => {
     const { container } = render(
       <ClickableLengthIndicator
-        startPoint={newVec2(0, 0)}
+        startPoint={ZERO_VEC2}
         endPoint={newVec2(100, 0)}
         label="Custom Label"
         onClick={mockOnClick}
@@ -30,14 +30,14 @@ describe('ClickableLengthIndicator', () => {
   })
 
   it('should render without onClick handler (non-clickable)', () => {
-    const { container } = render(<ClickableLengthIndicator startPoint={newVec2(0, 0)} endPoint={newVec2(100, 0)} />)
+    const { container } = render(<ClickableLengthIndicator startPoint={ZERO_VEC2} endPoint={newVec2(100, 0)} />)
 
     expect(container.firstChild).toBeDefined()
   })
 
   it('should handle zero-length measurement', () => {
     const { container } = render(
-      <ClickableLengthIndicator startPoint={newVec2(0, 0)} endPoint={newVec2(0, 0)} onClick={mockOnClick} />
+      <ClickableLengthIndicator startPoint={ZERO_VEC2} endPoint={ZERO_VEC2} onClick={mockOnClick} />
     )
 
     expect(container.firstChild).toBeDefined()
@@ -46,7 +46,7 @@ describe('ClickableLengthIndicator', () => {
   it('should apply visual styling props', () => {
     const { container } = render(
       <ClickableLengthIndicator
-        startPoint={newVec2(0, 0)}
+        startPoint={ZERO_VEC2}
         endPoint={newVec2(100, 0)}
         color="#ff0000"
         fontSize={24}

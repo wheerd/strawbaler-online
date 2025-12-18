@@ -56,6 +56,7 @@ import {
   type Polygon2D,
   type PolygonWithHoles2D,
   type Vec2,
+  ZERO_VEC2,
   addVec2,
   copyVec2,
   direction,
@@ -698,7 +699,7 @@ export class IfcImporter {
 
     const area = areaSum / 2
     if (Math.abs(area) < 1e-6) {
-      const avg = points.reduce((acc, point) => addVec2(acc, point), newVec2(0, 0))
+      const avg = points.reduce((acc, point) => addVec2(acc, point), ZERO_VEC2)
       return scaleVec2(avg, 1 / points.length)
     }
 

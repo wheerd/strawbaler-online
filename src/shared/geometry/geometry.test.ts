@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { type LineSegment2D, distanceToLineSegment } from './index'
 
@@ -8,7 +8,7 @@ describe('distanceToLineSegment', () => {
   it('should return 0 for a point on the line segment', () => {
     const point = newVec2(5, 0)
     const wall: LineSegment2D = {
-      start: newVec2(0, 0),
+      start: ZERO_VEC2,
       end: newVec2(10, 0)
     }
 
@@ -19,7 +19,7 @@ describe('distanceToLineSegment', () => {
   it('should return perpendicular distance to horizontal line', () => {
     const point = newVec2(5, 5)
     const wall: LineSegment2D = {
-      start: newVec2(0, 0),
+      start: ZERO_VEC2,
       end: newVec2(10, 0)
     }
 
@@ -30,7 +30,7 @@ describe('distanceToLineSegment', () => {
   it('should return perpendicular distance to vertical line', () => {
     const point = newVec2(5, 5)
     const wall: LineSegment2D = {
-      start: newVec2(0, 0),
+      start: ZERO_VEC2,
       end: newVec2(0, 10)
     }
 
@@ -41,7 +41,7 @@ describe('distanceToLineSegment', () => {
   it('should return distance to nearest endpoint when point is beyond line segment', () => {
     const point = newVec2(15, 0)
     const wall: LineSegment2D = {
-      start: newVec2(0, 0),
+      start: ZERO_VEC2,
       end: newVec2(10, 0)
     }
 
@@ -52,7 +52,7 @@ describe('distanceToLineSegment', () => {
   it('should return distance to start point when point is before line segment', () => {
     const point = newVec2(-5, 0)
     const wall: LineSegment2D = {
-      start: newVec2(0, 0),
+      start: ZERO_VEC2,
       end: newVec2(10, 0)
     }
 
@@ -63,8 +63,8 @@ describe('distanceToLineSegment', () => {
   it('should handle degenerate line segment (point)', () => {
     const point = newVec2(3, 4)
     const wall: LineSegment2D = {
-      start: newVec2(0, 0),
-      end: newVec2(0, 0) // Same point
+      start: ZERO_VEC2,
+      end: ZERO_VEC2 // Same point
     }
 
     const distance = distanceToLineSegment(point, wall)
@@ -72,7 +72,7 @@ describe('distanceToLineSegment', () => {
   })
 
   it('should handle diagonal line segment', () => {
-    const point = newVec2(0, 0)
+    const point = ZERO_VEC2
     const wall: LineSegment2D = {
       start: newVec2(1, 1),
       end: newVec2(3, 3)
@@ -86,12 +86,12 @@ describe('distanceToLineSegment', () => {
   it('should be symmetric for start and end points', () => {
     const point = newVec2(5, 5)
     const wall1: LineSegment2D = {
-      start: newVec2(0, 0),
+      start: ZERO_VEC2,
       end: newVec2(10, 0)
     }
     const wall2: LineSegment2D = {
       start: newVec2(10, 0),
-      end: newVec2(0, 0)
+      end: ZERO_VEC2
     }
 
     const distance1 = distanceToLineSegment(point, wall1)

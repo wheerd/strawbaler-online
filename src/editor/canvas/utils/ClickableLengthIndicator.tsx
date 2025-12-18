@@ -5,14 +5,16 @@ import { Group, Line, Text } from 'react-konva/lib/ReactKonvaCore'
 import {
   type Length,
   type Vec2,
+  ZERO_VEC2,
+  angle,
   distVec2,
-  newVec2,
+  midpoint,
   normVec2,
+  perpendicularCCW,
   scaleAddVec2,
   scaleVec2,
   subVec2
 } from '@/shared/geometry'
-import { angle, midpoint, perpendicularCCW } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { formatLength } from '@/shared/utils/formatting'
 
@@ -85,7 +87,7 @@ export function ClickableLengthIndicator({
   const actualEndMarkerSize = textSize.height
 
   // Get the perpendicular vector for offset
-  const perpendicular = measurementLength > 0 ? perpendicularCCW(dir) : newVec2(0, 0)
+  const perpendicular = measurementLength > 0 ? perpendicularCCW(dir) : ZERO_VEC2
 
   // Calculate offset positions
   const offsetStartPoint = scaleAddVec2(startPoint, perpendicular, offset)

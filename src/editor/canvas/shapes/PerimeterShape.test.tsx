@@ -10,7 +10,7 @@ import {
   createWallAssemblyId
 } from '@/building/model/ids'
 import type { Perimeter } from '@/building/model/model'
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { PerimeterCornerShape } from './PerimeterCornerShape'
 import { PerimeterShape } from './PerimeterShape'
@@ -31,7 +31,7 @@ describe('PerimeterShape', () => {
         outsideLength: 1000,
         wallLength: 1000,
         insideLine: {
-          start: newVec2(0, 0),
+          start: ZERO_VEC2,
           end: newVec2(1000, 0)
         },
         outsideLine: {
@@ -89,7 +89,7 @@ describe('PerimeterShape', () => {
         wallLength: 1000,
         insideLine: {
           start: newVec2(0, 1000),
-          end: newVec2(0, 0)
+          end: ZERO_VEC2
         },
         outsideLine: {
           start: newVec2(-400, 1000),
@@ -102,7 +102,7 @@ describe('PerimeterShape', () => {
     corners: [
       {
         id: createPerimeterCornerId(),
-        insidePoint: newVec2(0, 0),
+        insidePoint: ZERO_VEC2,
         outsidePoint: newVec2(1400, -400),
         constructedByWall: 'next',
         interiorAngle: 90,

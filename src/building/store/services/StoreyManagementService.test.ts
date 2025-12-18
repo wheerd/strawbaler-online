@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DEFAULT_FLOOR_ASSEMBLY_ID, type PerimeterId, type StoreyId } from '@/building/model/ids'
 import { createStoreyLevel } from '@/building/model/model'
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { StoreyManagementService } from './StoreyManagementService'
 
@@ -244,7 +244,7 @@ describe('StoreyManagementService', () => {
         referenceSide: 'inside' as const,
         referencePolygon: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)],
         corners: [
-          { insidePoint: newVec2(0, 0) },
+          { insidePoint: ZERO_VEC2 },
           { insidePoint: newVec2(10, 0) },
           { insidePoint: newVec2(10, 10) },
           { insidePoint: newVec2(0, 10) }

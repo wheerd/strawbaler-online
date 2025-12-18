@@ -2,8 +2,18 @@ import type Konva from 'konva'
 import { useMemo, useRef } from 'react'
 import { Group, Line, Text } from 'react-konva/lib/ReactKonvaCore'
 
-import { type Vec2, distVec2, newVec2, normVec2, scaleAddVec2, scaleVec2, subVec2 } from '@/shared/geometry'
-import { angle, midpoint, perpendicularCCW } from '@/shared/geometry'
+import {
+  type Vec2,
+  ZERO_VEC2,
+  angle,
+  distVec2,
+  midpoint,
+  normVec2,
+  perpendicularCCW,
+  scaleAddVec2,
+  scaleVec2,
+  subVec2
+} from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { formatLength } from '@/shared/utils/formatting'
 
@@ -74,7 +84,7 @@ export function LengthIndicator({
   const actualEndMarkerSize = textSize.height
 
   // Get the perpendicular vector for offset
-  const perpendicular = measurementLength > 0 ? perpendicularCCW(dir) : newVec2(0, 0)
+  const perpendicular = measurementLength > 0 ? perpendicularCCW(dir) : ZERO_VEC2
 
   // Calculate offset positions
   const offsetStartPoint = scaleAddVec2(startPoint, perpendicular, offset)

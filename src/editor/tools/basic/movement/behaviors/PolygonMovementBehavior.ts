@@ -1,4 +1,3 @@
-
 import type { SelectableId } from '@/building/model'
 import type { StoreActions } from '@/building/store'
 import type { SnapResult, SnappingContext } from '@/editor/services/snapping/types'

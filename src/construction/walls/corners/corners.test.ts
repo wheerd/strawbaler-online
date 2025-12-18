@@ -4,7 +4,7 @@ import { createPerimeterId, createPerimeterWallId, createWallAssemblyId } from '
 import type { Perimeter, PerimeterCorner, PerimeterWall } from '@/building/model/model'
 import { type ConfigActions, type WallAssemblyConfig, getConfigActions } from '@/construction/config'
 import type { WallLayersConfig } from '@/construction/walls'
-import { type Length, type Vec2, copyVec2, newVec2 } from '@/shared/geometry'
+import { type Length, type Vec2, ZERO_VEC2, copyVec2, newVec2 } from '@/shared/geometry'
 
 import { type WallContext, calculateWallCornerInfo, getWallContext } from './corners'
 
@@ -19,7 +19,7 @@ const mockGetConfigActions = vi.mocked(getConfigActions)
 
 // Mock data helpers
 function createMockWall(id: string, wallLength: Length, thickness: Length, wallAssemblyId?: string): PerimeterWall {
-  const startPoint = newVec2(0, 0)
+  const startPoint = ZERO_VEC2
   const endPoint = newVec2(wallLength, 0)
 
   return {

@@ -1,4 +1,3 @@
-
 import type { SelectableId } from '@/building/model/ids'
 import { isFloorOpeningId } from '@/building/model/ids'
 import type { FloorArea, FloorOpening, Perimeter } from '@/building/model/model'

@@ -9,6 +9,7 @@ import {
   type Plane3D,
   type Polygon2D,
   type Vec2,
+  ZERO_VEC2,
   eqVec2,
   intersectPolygon,
   newVec2
@@ -226,11 +227,7 @@ export class WallConstructionArea {
       const adjustedHeight = Math.max(size[2] + maxOffset, 0)
       size = vec3.fromValues(size[0], size[1], adjustedHeight)
       // Simplify flat top by removing offsets
-      if (
-        topOffsets.length === 2 &&
-        eqVec2(topOffsets[0], newVec2(0, 0)) &&
-        eqVec2(topOffsets[1], newVec2(size[0], 0))
-      ) {
+      if (topOffsets.length === 2 && eqVec2(topOffsets[0], ZERO_VEC2) && eqVec2(topOffsets[1], newVec2(size[0], 0))) {
         topOffsets = undefined
       }
     }

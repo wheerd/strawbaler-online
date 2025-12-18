@@ -1,6 +1,7 @@
 import {
   type Line2D,
   type Vec2,
+  ZERO_VEC2,
   distSqrVec2,
   distanceToInfiniteLine,
   lineFromSegment,
@@ -62,7 +63,7 @@ export class SnappingService {
   private generateSnapLines(context: SnappingContext): Line2D[] {
     const snapLines: Line2D[] = []
 
-    const allPoints = [newVec2(0, 0), ...context.snapPoints, ...(context.alignPoints ?? [])]
+    const allPoints = [ZERO_VEC2, ...context.snapPoints, ...(context.alignPoints ?? [])]
 
     // 1. Add horizontal and vertical lines through all points
     for (const point of allPoints) {

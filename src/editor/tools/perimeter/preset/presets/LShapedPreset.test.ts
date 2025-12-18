@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createWallAssemblyId } from '@/building/model/ids'
 import { LShape0Icon } from '@/editor/tools/perimeter/preset/presets/Icons'
 import { LShapedPresetDialog } from '@/editor/tools/perimeter/preset/presets/LShapedPresetDialog'
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { LShapedPreset } from './LShapedPreset'
 import type { LShapedPresetConfig } from './types'
@@ -134,7 +134,7 @@ describe('LShapedPreset', () => {
         newVec2(-4000, -3000), // Bottom-left of main rectangle
         newVec2(4000, -3000), // Bottom-right of main rectangle
         newVec2(4000, 0), // Inner corner (right side)
-        newVec2(0, 0), // Inner corner (top side)
+        ZERO_VEC2, // Inner corner (top side)
         newVec2(0, 3000), // Top-right of extension
         newVec2(-4000, 3000) // Top-left of main rectangle
       ]

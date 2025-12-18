@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { FloorArea, FloorOpening, Perimeter } from '@/building/model/model'
-import { type Vec2, newVec2 } from '@/shared/geometry'
+import { type Vec2, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { FloorOpeningTool } from './FloorOpeningTool'
 
@@ -46,8 +46,8 @@ describe('FloorOpeningTool', () => {
       corners: [
         {
           id: 'corner_a',
-          insidePoint: newVec2(0, 0),
-          outsidePoint: newVec2(0, 0),
+          insidePoint: ZERO_VEC2,
+          outsidePoint: ZERO_VEC2,
           constructedByWall: 'next',
           interiorAngle: 90,
           exteriorAngle: 270
@@ -56,7 +56,7 @@ describe('FloorOpeningTool', () => {
       walls: [
         {
           id: 'wall_a',
-          insideLine: { start: newVec2(0, 0), end: newVec2(100, 0) }
+          insideLine: { start: ZERO_VEC2, end: newVec2(100, 0) }
         }
       ]
     } as unknown as Perimeter

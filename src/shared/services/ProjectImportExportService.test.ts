@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { ProjectImportExportService } from './ProjectImportExportService'
 
@@ -24,7 +24,7 @@ const mockActions = {
       corners: [
         {
           id: 'corner_1',
-          insidePoint: newVec2(0, 0),
+          insidePoint: ZERO_VEC2,
           outsidePoint: newVec2(-200, 0),
           constructedByWall: 'next',
           interiorAngle: 90,

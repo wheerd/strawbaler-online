@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as useViewportStore from '@/editor/hooks/useViewportStore'
 import * as lengthInputService from '@/editor/services/length-input'
 import type { CanvasEvent } from '@/editor/tools/system/types'
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { PerimeterTool } from './PerimeterTool'
 
@@ -163,7 +163,7 @@ describe('PerimeterTool', () => {
 
     it('uses length override in the direction of the pointer for preview', () => {
       const tool = new PerimeterTool()
-      tool.state.points = [newVec2(0, 0)]
+      tool.state.points = [ZERO_VEC2]
       tool.setLengthOverride(100)
       tool.state.pointer = newVec2(0, 50)
 
@@ -174,7 +174,7 @@ describe('PerimeterTool', () => {
 
     it('places new point using length override in pointer direction on click', () => {
       const tool = new PerimeterTool()
-      tool.state.points = [newVec2(0, 0)]
+      tool.state.points = [ZERO_VEC2]
       tool.setLengthOverride(120)
 
       const mockEvent = {

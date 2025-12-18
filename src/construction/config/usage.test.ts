@@ -10,7 +10,7 @@ import {
 } from '@/building/model/ids'
 import type { Perimeter, Storey } from '@/building/model/model'
 import { createStoreyLevel } from '@/building/model/model'
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { getRingBeamAssemblyUsage, getWallAssemblyUsage } from './usage'
 
@@ -142,7 +142,7 @@ describe('Assembly Usage Detection', () => {
             insideLength: 1000,
             outsideLength: 1000,
             wallLength: 1000,
-            insideLine: { start: newVec2(0, 0), end: newVec2(1000, 0) },
+            insideLine: { start: ZERO_VEC2, end: newVec2(1000, 0) },
             outsideLine: { start: newVec2(0, 420), end: newVec2(1000, 420) },
             direction: newVec2(1, 0),
             outsideDirection: newVec2(0, 1)

@@ -17,8 +17,7 @@ import {
   TAG_WALL_LENGTH
 } from '@/construction/tags'
 import type { InfillMethod, WallLayersConfig, WallSegmentConstruction } from '@/construction/walls'
-import { newVec2 } from '@/shared/geometry'
-import { Bounds3D, type Length } from '@/shared/geometry'
+import { Bounds3D, type Length, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
@@ -73,7 +72,7 @@ function createMockWall(id: string, wallLength: Length, thickness: Length, openi
     outsideLength: wallLength,
     openings,
     insideLine: {
-      start: newVec2(0, 0),
+      start: ZERO_VEC2,
       end: newVec2(wallLength, 0)
     },
     outsideLine: {
@@ -196,7 +195,7 @@ describe('segmentedWallConstruction', () => {
     mockGetWallContext.mockReturnValue({
       startCorner: {
         id: 'start' as any,
-        insidePoint: newVec2(0, 0),
+        insidePoint: ZERO_VEC2,
         outsidePoint: newVec2(0, 300),
         constructedByWall: 'next',
         interiorAngle: 90,

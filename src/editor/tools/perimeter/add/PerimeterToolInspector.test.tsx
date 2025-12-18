@@ -4,7 +4,7 @@ import { type Mock, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
 import { ConfigurationModalContext } from '@/construction/config/context/ConfigurationModalContext'
-import { newVec2 } from '@/shared/geometry'
+import { ZERO_VEC2 } from '@/shared/geometry'
 
 import { PerimeterTool } from './PerimeterTool'
 import { PerimeterToolInspector } from './PerimeterToolInspector'
@@ -60,7 +60,7 @@ describe('PerimeterToolInspector', () => {
     // Reset tool state
     mockTool.state = {
       points: [],
-      pointer: newVec2(0, 0),
+      pointer: ZERO_VEC2,
       snapResult: undefined,
       snapContext: {
         snapPoints: [],

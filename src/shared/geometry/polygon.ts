@@ -15,6 +15,7 @@ import {
   Bounds2D,
   type Length,
   type Vec2,
+  ZERO_VEC2,
   direction,
   distSqrVec2,
   distVec2,
@@ -703,9 +704,9 @@ function minimumAreaBoundingBoxFromPoints(points: Vec2[]): MinimumBoundingBox {
   if (hull.length < 3) throw new Error('Convex hull of polygon requires at least 3 points')
 
   let bestArea = Infinity
-  let bestSize = newVec2(0, 0)
+  let bestSize = ZERO_VEC2
   let bestAngle = 0
-  let bestDirection = newVec2(0, 0)
+  let bestDirection = ZERO_VEC2
 
   const rotatePoint = (point: Vec2, sinAngle: number, cosAngle: number) => {
     const x = point[0] * cosAngle - point[1] * sinAngle

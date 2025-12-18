@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { createPerimeterCornerId, createPerimeterWallId } from '@/building/model/ids'
 import type { PerimeterCorner, PerimeterWall } from '@/building/model/model'
-import { type Vec2, newVec2 } from '@/shared/geometry'
+import { type Vec2, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 import '@/shared/geometry'
 
 import { PerimeterCornerShape } from './PerimeterCornerShape'
@@ -30,8 +30,8 @@ describe('PerimeterCornerShape', () => {
     insideLength: 1000,
     outsideLength: 1000,
     wallLength: 1000,
-    insideLine: { start: newVec2(0, 0), end: direction },
-    outsideLine: { start: newVec2(0, 0), end: direction },
+    insideLine: { start: ZERO_VEC2, end: direction },
+    outsideLine: { start: ZERO_VEC2, end: direction },
     direction,
     outsideDirection: newVec2(-direction[1], direction[0])
   })
