@@ -69,7 +69,9 @@ function MonolithicRoofConfigForm({ config, onUpdate }: MonolithicRoofConfigForm
           <LengthField
             value={config.thickness}
             onChange={value => onUpdate({ ...config, thickness: value })}
-            unit="mm"
+            unit="cm"
+            min={0}
+            step={10}
             size="1"
           />
         </Flex>
@@ -100,7 +102,9 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
           <LengthField
             value={config.thickness}
             onChange={value => onUpdate({ ...config, thickness: value })}
-            unit="mm"
+            unit="cm"
+            min={0}
+            step={10}
             size="1"
           />
         </Flex>
@@ -151,7 +155,9 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
           <LengthField
             value={config.purlinHeight}
             onChange={value => onUpdate({ ...config, purlinHeight: value })}
-            unit="mm"
+            unit="cm"
+            min={0}
+            step={10}
             size="1"
           />
         </Flex>
@@ -166,6 +172,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
             value={config.purlinInset}
             onChange={value => onUpdate({ ...config, purlinInset: value })}
             unit="mm"
+            min={0}
             size="1"
           />
         </Flex>
@@ -179,7 +186,9 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
           <LengthField
             value={config.purlinWidth}
             onChange={value => onUpdate({ ...config, purlinWidth: value })}
-            unit="mm"
+            unit="cm"
+            min={0}
+            step={10}
             size="1"
           />
         </Flex>
@@ -193,7 +202,9 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
           <LengthField
             value={config.purlinSpacing}
             onChange={value => onUpdate({ ...config, purlinSpacing: value })}
-            unit="mm"
+            unit="cm"
+            min={0}
+            step={100}
             size="1"
           />
         </Flex>
@@ -229,7 +240,9 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
           <LengthField
             value={config.rafterWidth}
             onChange={value => onUpdate({ ...config, rafterWidth: value })}
-            unit="mm"
+            unit="cm"
+            min={0}
+            step={10}
             size="1"
           />
         </Flex>
@@ -243,7 +256,9 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
           <LengthField
             value={config.rafterSpacingMin}
             onChange={value => onUpdate({ ...config, rafterSpacingMin: value })}
-            unit="mm"
+            unit="cm"
+            min={0}
+            step={10}
             size="1"
           />
         </Flex>
@@ -257,7 +272,9 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
           <LengthField
             value={config.rafterSpacing}
             onChange={value => onUpdate({ ...config, rafterSpacing: value })}
-            unit="mm"
+            unit="cm"
+            min={0}
+            step={100}
             size="1"
           />
         </Flex>
@@ -294,6 +311,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
             value={config.deckingThickness}
             onChange={value => onUpdate({ ...config, deckingThickness: value })}
             unit="mm"
+            min={0}
             size="1"
           />
         </Flex>
@@ -330,6 +348,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
             value={config.ceilingSheathingThickness}
             onChange={value => onUpdate({ ...config, ceilingSheathingThickness: value })}
             unit="mm"
+            min={0}
             size="1"
           />
         </Flex>
