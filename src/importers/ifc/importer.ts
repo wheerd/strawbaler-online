@@ -62,6 +62,7 @@ import {
   distVec2,
   distanceToInfiniteLine,
   distanceToLineSegment,
+  dotAbsVec2,
   dotVec2,
   lenVec2,
   newVec2,
@@ -486,7 +487,7 @@ export class IfcImporter {
       const pairedEdges = wallEdges.filter((edge, i) => {
         return wallEdges.some((other, j) => {
           if (j === i) return false
-          const alignment = Math.abs(dotVec2(edge.direction, other.direction))
+          const alignment = dotAbsVec2(edge.direction, other.direction)
           if (alignment < EDGE_ALIGNMENT_DOT_THRESHOLD) {
             return false
           }
@@ -543,7 +544,7 @@ export class IfcImporter {
       let bestDistance = Number.POSITIVE_INFINITY
 
       for (const edge of wallEdges) {
-        const alignment = Math.abs(dotVec2(dir, edge.direction))
+        const alignment = dotAbsVec2(dir, edge.direction)
         if (alignment < EDGE_ALIGNMENT_DOT_THRESHOLD) continue
         if (!this.segmentsOverlap(start, end, edge)) continue
 

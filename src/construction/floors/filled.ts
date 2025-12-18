@@ -51,12 +51,12 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
     const joistDirection = bbox.smallestDirection
 
     const wallBeamCheckPoints = [...polygonEdges(context.innerPolygon)]
-      .filter(e => 1 - Math.abs(dotVec2(direction(e.start, e.end), joistDirection)) < EPSILON)
+      .filter(e => 1 - dotAbsVec2(direction(e.start, e.end), joistDirection) < EPSILON)
       .map(e => midpoint(e.start, e.end))
 
     const joistArea = polygonFromLineIntersections(
       context.innerLines.map((l, i) =>
-        1 - Math.abs(dotVec2(l.direction, joistDirection)) < EPSILON
+        1 - dotAbsVec2(l.direction, joistDirection) < EPSILON
           ? offsetLine(l, -config.frameThickness)
           : offsetLine(context.outerLines[i], config.frameThickness)
       )

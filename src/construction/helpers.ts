@@ -16,6 +16,7 @@ import {
   direction,
   distSqrVec2,
   distVec2,
+  dotAbsVec2,
   dotVec2,
   ensurePolygonIsClockwise,
   intersectPolygon,
@@ -836,7 +837,7 @@ export function* partitionByAlignedEdges(polygon: Polygon2D, dir: Vec2): Generat
       const edgeDir = direction(start, end)
 
       // Check if edge is aligned with the direction (handles both dir and -dir)
-      if (1 - Math.abs(dotVec2(edgeDir, dir)) > EPSILON) continue
+      if (1 - dotAbsVec2(edgeDir, dir) > EPSILON) continue
 
       const edgeLine: Line2D = { point: start, direction: dir }
       const perpDir = perpendicularCW(edgeDir)

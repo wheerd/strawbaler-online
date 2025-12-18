@@ -22,6 +22,7 @@ export const lenSqrVec2 = (a: Vec2): Length => vec2.sqrLen(a) as Length
 export const distVec2 = (a: Vec2, b: Vec2): Length => vec2.dist(a, b) as Length
 export const distSqrVec2 = (a: Vec2, b: Vec2): number => vec2.sqrDist(a, b) as number
 export const dotVec2 = (a: Vec2, b: Vec2): number => vec2.dot(a, b)
+export const dotAbsVec2 = (a: Vec2, b: Vec2): number => Math.abs(vec2.dot(a, b))
 
 export const vec2To3 = (a: Vec2): vec3 => vec3.fromValues(a[0], a[1], 0)
 export const vec3To2 = (a: vec3): Vec2 => vec2.copy(vec2.create(), a) as Vec2

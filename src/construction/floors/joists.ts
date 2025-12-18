@@ -19,6 +19,7 @@ import {
   type PolygonWithHoles2D,
   type Vec2,
   direction,
+  dotAbsVec2,
   dotVec2,
   ensurePolygonIsClockwise,
   intersectPolygon,
@@ -88,7 +89,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
     const lineCount = context.innerLines.length
     for (let i = 0; i < lineCount; i++) {
       const insideLine = context.innerLines[i]
-      if (1 - Math.abs(dotVec2(insideLine.direction, joistDirection)) > EPSILON) continue
+      if (1 - dotAbsVec2(insideLine.direction, joistDirection) > EPSILON) continue
       const outsideLine = context.outerLines[i]
       const prevClip = context.outerLines[(i - 1 + lineCount) % lineCount]
       const nextClip = context.outerLines[(i + 1) % lineCount]
@@ -119,12 +120,12 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
 
     const joistArea = polygonFromLineIntersections(
       context.innerLines.map((l, i) =>
-        1 - Math.abs(dotVec2(l.direction, joistDirection)) < EPSILON ? l : context.outerLines[i]
+        1 - dotAbsVec2(l.direction, joistDirection) < EPSILON ? l : context.outerLines[i]
       )
     )
     const holeClip = polygonFromLineIntersections(
       context.innerLines.map((l, i) =>
-        1 - Math.abs(dotVec2(l.direction, joistDirection)) < EPSILON
+        1 - dotAbsVec2(l.direction, joistDirection) < EPSILON
           ? offsetLine(l, config.wallBeamInsideOffset)
           : context.outerLines[i]
       )
