@@ -235,7 +235,6 @@ export function* withClipping(item: GroupOrElement, clipping: (m: Manifold) => M
     const decomposed = clippedManifold.decompose()
     if (decomposed.length === 1) {
       if (item.shape.manifold.subtract(decomposed[0]).isEmpty()) {
-        console.log('unchanged!')
         yield item
         return
       }

@@ -2,9 +2,14 @@ import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import type { Roof } from '@/building/model'
 import { type PerimeterConstructionContext, applyWallFaceOffsets } from '@/construction/context'
-import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
+import { createConstructionElement } from '@/construction/elements'
 import { IDENTITY } from '@/construction/geometry'
-import { PolygonWithBoundingRect, partitionByAlignedEdges, polygonEdges } from '@/construction/helpers'
+import {
+  PolygonWithBoundingRect,
+  type StripeOrGap,
+  partitionByAlignedEdges,
+  polygonEdges
+} from '@/construction/helpers'
 import { transformManifold } from '@/construction/manifold/operations'
 import { constructStrawPolygon } from '@/construction/materials/straw'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
@@ -22,7 +27,11 @@ import {
   TAG_DECKING,
   TAG_INSIDE_SHEATHING,
   TAG_PURLIN,
+  TAG_PURLIN_LENGTH,
+  TAG_PURLIN_RISE,
+  TAG_PURLIN_SPACING,
   TAG_RAFTER,
+  TAG_RAFTER_LENGTH,
   TAG_RAFTER_SPACING,
   TAG_RIDGE_BEAM,
   TAG_ROOF,
@@ -63,8 +72,11 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
 
     const edgeRafterMidpoints = this.getRafterMidpoints(roof, config, roof.ridgeDirection, contexts)
 
-    const purlins = this.getAllPurlins(roof, contexts, config, ridgeHeight)
+    const purlins = Array.from(this.constructAllPurlins(roof, contexts, config, ridgeHeight))
     const purlinClippingVolume = purlins
+      .filter(p => p.type === 'element')
+      .map(p => p.element)
+      .filter(p => 'shape' in p)
       .map(p => transformManifold(p.shape.manifold, p.transform))
       .reduce((a, b) => a.add(b))
 
@@ -84,7 +96,8 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
 
     // STEP 2: For each side, build all layers
     const roofModels = roofSides.map(roofSide => {
-      const rafterPolygons = this.getRafterPolygons(roof, roofSide, config, edgeRafterMidpoints)
+      const raftersAndGaps = this.getRafterPolygons(roof, roofSide, config, edgeRafterMidpoints)
+      const rafterPolygons = raftersAndGaps.filter(x => x.type === 'stripe').map(x => x.polygon)
 
       // Create clipping volume from original (unexpanded, unoffset) polygon
       const roofSideVolume = this.createExtrudedVolume(roofSide.polygon, roof.ridgeLine, minZ, maxZ)
@@ -105,7 +118,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
 
       const results = Array.from(
         mergeResults(
-          yieldAndClip(this.construcRafters(rafterPolygons, config), m =>
+          yieldAndClip(this.construcRafters(raftersAndGaps, config), m =>
             m.intersect(roofSideClip).subtract(purlinClip)
           ),
           yieldAndClip(this.constructInfill(contexts, roof, config, roofSide, rafterPolygons), m =>
@@ -127,7 +140,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       return transformModel(resultsToModel(results), roofSide.transform, [sideTag])
     })
 
-    roofModels.push(resultsToModel(purlins.map(element => ({ type: 'element' as const, element }))))
+    roofModels.push(resultsToModel(purlins))
 
     return transformModel(mergeModels(...roofModels), IDENTITY, [TAG_ROOF])
   }
@@ -165,8 +178,11 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       tEnd: number
       offset: Length
     }
-    const purlins = this.getAllPurlins(roof, contexts, config, ridgeHeight)
+    const purlins = Array.from(this.constructAllPurlins(roof, contexts, config, ridgeHeight))
     const purlinIntersections: PurlinIntersection[] = purlins
+      .filter(p => p.type === 'element')
+      .map(p => p.element)
+      .filter(p => 'shape' in p)
       .flatMap(purlin => {
         const purlinPolygon = (purlin.shape.base as ExtrudedShape).polygon.outer
         const intersection = intersectLineSegmentWithPolygon(line, purlinPolygon)
@@ -260,12 +276,12 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
   getTotalThickness = (config: PurlinRoofConfig) =>
     config.layers.insideThickness + config.thickness + config.layers.topThickness
 
-  private getAllPurlins(
+  private *constructAllPurlins(
     roof: Roof,
     contexts: PerimeterConstructionContext[],
     config: PurlinRoofConfig,
     ridgeHeight: number
-  ) {
+  ): Generator<ConstructionResult> {
     const purlinArea = this.getPurlinArea(roof, contexts)
     const purlinCheckPoints = this.getPurlinCheckPoints(purlinArea, roof.ridgeDirection)
     const purlinAreaParts =
@@ -273,11 +289,11 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         ? splitPolygonByLine(purlinArea, lineFromSegment(roof.ridgeLine)).map(s => s.polygon)
         : [purlinArea]
 
-    const purlins = [
-      ...this.constructRidgeBeams(roof, config, ridgeHeight),
-      ...purlinAreaParts.flatMap(p => [...this.constructPurlins(roof, config, ridgeHeight, p, purlinCheckPoints)])
-    ]
-    return purlins
+    yield* this.constructRidgeBeams(roof, config, ridgeHeight)
+
+    for (const area of purlinAreaParts) {
+      yield* this.constructPurlins(roof, config, ridgeHeight, area, purlinCheckPoints)
+    }
   }
 
   private getPurlinCheckPoints(polygon: Polygon2D, ridgeDirection: vec2) {
@@ -347,7 +363,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     roof: Roof,
     config: PurlinRoofConfig,
     ridgeHeight: Length
-  ): Generator<ConstructionElement> {
+  ): Generator<ConstructionResult> {
     if (roof.type === 'shed') return // Handled as a normal purlin
 
     const line = lineFromSegment(roof.ridgeLine)
@@ -366,13 +382,27 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         ]
       }
 
-      yield createConstructionElement(
-        config.purlinMaterial,
-        createExtrudedPolygon({ outer: partPolygon, holes: [] }, 'xy', config.purlinHeight),
-        mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, vOffset)),
-        [TAG_RIDGE_BEAM],
-        { type: 'roof-purlin' }
+      yield* yieldElement(
+        createConstructionElement(
+          config.purlinMaterial,
+          createExtrudedPolygon({ outer: partPolygon, holes: [] }, 'xy', config.purlinHeight),
+          mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, vOffset)),
+          [TAG_RIDGE_BEAM],
+          { type: 'roof-purlin' }
+        )
       )
+
+      const basePoint = partPolygon.points[1]
+      const startPoint = vec3.fromValues(basePoint[0], basePoint[1], 0)
+      const extend1 = vec3.fromValues(partPolygon.points[2][0], partPolygon.points[2][1], 0)
+      const extend2 = vec3.fromValues(partPolygon.points[0][0], partPolygon.points[0][1], 0)
+      yield yieldMeasurement({
+        startPoint,
+        endPoint: vec3.fromValues(basePoint[0], basePoint[1], vOffset),
+        extend1,
+        extend2,
+        tags: [TAG_PURLIN_RISE]
+      })
     }
   }
 
@@ -382,10 +412,10 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     ridgeHeight: Length,
     polygon: Polygon2D,
     purlinCheckPoints: vec2[]
-  ): Generator<ConstructionElement> {
-    const tanSlope = Math.tan(roof.slopeAngleRad)
+  ): Generator<ConstructionResult> {
     const partitions = Array.from(partitionByAlignedEdges(polygon, roof.ridgeDirection))
 
+    const gapPolygons: PolygonWithBoundingRect[] = []
     const purlinPolygons = partitions.flatMap(p => {
       const { edgeAtStart, edgeAtEnd } = this.detectRoofEdges(p, roof.ridgeDirection, purlinCheckPoints)
       const rect = PolygonWithBoundingRect.fromPolygon({ outer: p, holes: [] }, roof.ridgeDirection)
@@ -395,41 +425,69 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
           spacing: config.purlinSpacing,
           equalSpacing: true,
           stripeAtMin: edgeAtStart,
-          stripeAtMax: edgeAtEnd
+          stripeAtMax: edgeAtEnd,
+          gapCallback: gap => gapPolygons.push(gap)
         })
-      ].map(p => p.polygon)
+      ]
     })
 
     const getDistanceToRidge = (point: vec2): number =>
       Math.abs(vec2.dot(vec2.sub(vec2.create(), point, roof.ridgeLine.start), roof.downSlopeDirection))
 
+    const tanSlope = Math.tan(roof.slopeAngleRad)
     for (const purlin of purlinPolygons) {
-      const minDist = Math.min(...purlin.outer.points.map(getDistanceToRidge))
+      const polygon = purlin.polygon.outer
+      const minDist = Math.min(...polygon.points.map(getDistanceToRidge))
       const vOffset = ridgeHeight - minDist * tanSlope - config.purlinHeight + config.purlinInset
-      yield createConstructionElement(
+      yield* purlin.extrude(
         config.purlinMaterial,
-        createExtrudedPolygon(purlin, 'xy', config.purlinHeight),
+        config.purlinHeight,
+        'xy',
         mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, vOffset)),
         [TAG_PURLIN],
         { type: 'roof-purlin' }
       )
+
+      const purlinLength = purlin.dirMeasurement('xy', config.purlinHeight, [TAG_PURLIN_LENGTH])
+      if (purlinLength) {
+        yield yieldMeasurement(purlinLength)
+      }
+
+      const basePoint = polygon.points[1]
+      const startPoint = vec3.fromValues(basePoint[0], basePoint[1], 0)
+      const extend1 = vec3.fromValues(polygon.points[2][0], polygon.points[2][1], 0)
+      const extend2 = vec3.fromValues(polygon.points[0][0], polygon.points[0][1], 0)
+      yield yieldMeasurement({
+        startPoint,
+        endPoint: vec3.fromValues(basePoint[0], basePoint[1], vOffset),
+        extend1,
+        extend2,
+        tags: [TAG_PURLIN_RISE]
+      })
     }
+
+    yield* gapPolygons
+      .map(g => g.perpMeasurement('xy', config.thickness, [TAG_PURLIN_SPACING]))
+      .filter(m => m != null)
+      .map(yieldMeasurement)
   }
 
-  private *construcRafters(
-    rafterPolygons: PolygonWithBoundingRect[],
-    config: PurlinRoofConfig
-  ): Generator<ConstructionResult> {
-    for (const rafter of rafterPolygons) {
-      yield* yieldElement(
-        createConstructionElement(
-          config.rafterMaterial,
-          createExtrudedPolygon(rafter.polygon, 'xy', config.thickness),
-          undefined,
-          [TAG_RAFTER],
-          { type: 'rafter' }
-        )
-      )
+  private *construcRafters(raftersAndGaps: StripeOrGap[], config: PurlinRoofConfig): Generator<ConstructionResult> {
+    for (const rafterOrGap of raftersAndGaps) {
+      if (rafterOrGap.type === 'stripe') {
+        yield* rafterOrGap.polygon.extrude(config.rafterMaterial, config.thickness, 'xy', undefined, [TAG_RAFTER], {
+          type: 'rafter'
+        })
+        const length = rafterOrGap.polygon.dirMeasurement('xy', config.thickness, [TAG_RAFTER_LENGTH])
+        if (length) {
+          yield yieldMeasurement(length)
+        }
+      } else {
+        const spacing = rafterOrGap.polygon.perpMeasurement('xy', config.thickness, [TAG_RAFTER_SPACING])
+        if (spacing) {
+          yield yieldMeasurement(spacing)
+        }
+      }
     }
   }
 
@@ -533,11 +591,6 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     yield* infillPolygons.flatMap(p =>
       Array.from(constructStrawPolygon(p, 'xy', config.thickness, config.strawMaterial))
     )
-
-    yield* infillPolygons
-      .map(p => p.perpMeasurement('xy', config.thickness, [TAG_RAFTER_SPACING]))
-      .filter(m => m != null)
-      .map(yieldMeasurement)
   }
 
   private getRafterPolygons(roof: Roof, roofSide: RoofSide, config: PurlinRoofConfig, rafterMidpoints: vec2[]) {
@@ -554,7 +607,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       roof.downSlopeDirection
     )
     return [
-      ...polygonBox.stripes({
+      ...polygonBox.stripesAndGaps({
         thickness: config.rafterWidth,
         spacing: config.rafterSpacing,
         minSpacing: config.rafterSpacingMin,

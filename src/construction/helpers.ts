@@ -1,4 +1,4 @@
-import { vec2 } from 'gl-matrix'
+import { mat4, vec2 } from 'gl-matrix'
 
 import type { RawMeasurement } from '@/construction/measurements'
 import {
@@ -334,17 +334,9 @@ export class PolygonWithBoundingRect {
     stripeAtMin = true,
     stripeAtMax = true,
     minimumArea = 0,
-    requiredStripeMidpoints
-  }: {
-    thickness: Length
-    spacing: Length
-    equalSpacing?: boolean
-    minSpacing?: Length
-    stripeAtMin?: boolean
-    stripeAtMax?: boolean
-    minimumArea?: Area
-    requiredStripeMidpoints?: vec2[]
-  }): Generator<PolygonWithBoundingRect> {
+    requiredStripeMidpoints,
+    gapCallback
+  }: StripesConfig): Generator<PolygonWithBoundingRect> {
     let midpoints = this.perpProjectionOffsets(requiredStripeMidpoints ?? [])
     const halfThickness = thickness / 2
     if (stripeAtMin) {
@@ -371,6 +363,7 @@ export class PolygonWithBoundingRect {
         ? this.equalOffsets(start, end, spacing, thickness)
         : this.fixedOffsets(start, end, spacing, minSpacing, thickness)
 
+      let lastEnd = start
       for (const offset of offsets) {
         const p1 = vec2.scaleAndAdd(vec2.create(), this.minPoint, this.perpDir, offset)
         const p2 = vec2.scaleAndAdd(vec2.create(), p1, this.perpDir, thickness)
@@ -382,9 +375,54 @@ export class PolygonWithBoundingRect {
         for (const clippedStripe of intersectPolygon(this.polygon, { outer: stripePolygon, holes: [] })) {
           if (calculatePolygonWithHolesArea(clippedStripe) > minimumArea) {
             yield PolygonWithBoundingRect.fromPolygon(clippedStripe, this.dir)
+
+            if (gapCallback && lastEnd < offset) {
+              const pGap1 = vec2.scaleAndAdd(vec2.create(), this.minPoint, this.perpDir, lastEnd)
+              const pGap2 = vec2.scaleAndAdd(vec2.create(), pGap1, this.dir, this.dirExtent)
+              const gapPolygon: Polygon2D = { points: [p1, pGap1, pGap2, p4] }
+              for (const clippedGap of intersectPolygon(this.polygon, { outer: gapPolygon, holes: [] })) {
+                gapCallback(
+                  new PolygonWithBoundingRect(
+                    clippedGap,
+                    this.dir,
+                    this.dirExtent,
+                    this.perpDir,
+                    offset - lastEnd,
+                    pGap1
+                  )
+                )
+              }
+            }
+
+            lastEnd = offset + thickness
           }
         }
       }
+
+      if (gapCallback && lastEnd < end) {
+        const p1 = vec2.scaleAndAdd(vec2.create(), this.minPoint, this.perpDir, lastEnd)
+        const p2 = vec2.scaleAndAdd(vec2.create(), this.minPoint, this.perpDir, end)
+        const p3 = vec2.scaleAndAdd(vec2.create(), p2, this.dir, this.dirExtent)
+        const p4 = vec2.scaleAndAdd(vec2.create(), p1, this.dir, this.dirExtent)
+        const gapPolygon: Polygon2D = { points: [p1, p2, p3, p4] }
+        for (const clippedGap of intersectPolygon(this.polygon, { outer: gapPolygon, holes: [] })) {
+          gapCallback(
+            new PolygonWithBoundingRect(clippedGap, this.dir, this.dirExtent, this.perpDir, end - lastEnd, p1)
+          )
+        }
+      }
+    }
+  }
+
+  public *stripesAndGaps(config: Omit<StripesConfig, 'gapCallback'>): Generator<StripeOrGap> {
+    const gaps: PolygonWithBoundingRect[] = []
+
+    for (const stripe of this.stripes({ ...config, gapCallback: g => gaps.push(g) })) {
+      yield { type: 'stripe', polygon: stripe }
+    }
+
+    for (const gap of gaps) {
+      yield { type: 'gap', polygon: gap }
     }
   }
 
@@ -450,6 +488,7 @@ export class PolygonWithBoundingRect {
     materialId: MaterialId,
     thickness: Length,
     plane: Plane3D,
+    transform?: mat4,
     tags?: Tag[],
     partInfo?: InitialPartInfo
   ): Generator<ConstructionResult> {
@@ -460,7 +499,7 @@ export class PolygonWithBoundingRect {
       createConstructionElement(
         materialId,
         createExtrudedPolygon(this.polygon, plane, thickness),
-        undefined,
+        transform,
         tags,
         partInfo
       )
@@ -486,6 +525,23 @@ export class PolygonWithBoundingRect {
   get isEmpty() {
     return this.dirExtent <= EXTENT_EPSILON || this.perpExtent <= EXTENT_EPSILON || this.polygon.outer.points.length < 3
   }
+}
+
+export interface StripesConfig {
+  thickness: Length
+  spacing: Length
+  equalSpacing?: boolean
+  minSpacing?: Length
+  stripeAtMin?: boolean
+  stripeAtMax?: boolean
+  minimumArea?: Area
+  requiredStripeMidpoints?: vec2[]
+  gapCallback?: (gap: PolygonWithBoundingRect) => void
+}
+
+export interface StripeOrGap {
+  type: 'gap' | 'stripe'
+  polygon: PolygonWithBoundingRect
 }
 
 export function* simpleStripes(
