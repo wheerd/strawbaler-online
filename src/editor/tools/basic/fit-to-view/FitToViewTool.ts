@@ -16,11 +16,12 @@ export class FitToViewTool implements ToolImplementation {
   // Lifecycle methods
   onActivate(): void {
     try {
-      const { getActiveStoreyId, getPerimetersByStorey, getFloorAreasByStorey } = getModelActions()
+      const { getActiveStoreyId, getPerimetersByStorey, getFloorAreasByStorey, getRoofsByStorey } = getModelActions()
 
       const activeStoreyId = getActiveStoreyId()
       const perimeters = getPerimetersByStorey(activeStoreyId)
       const floorAreas = getFloorAreasByStorey(activeStoreyId)
+      const roofs = getRoofsByStorey(activeStoreyId)
 
       if (perimeters.length === 0 && floorAreas.length === 0) {
         console.log('No entities to fit - no bounds available')
@@ -29,7 +30,8 @@ export class FitToViewTool implements ToolImplementation {
 
       const perimeterPoints = perimeters.flatMap(p => p.corners.map(c => c.outsidePoint))
       const floorAreaPoints = floorAreas.flatMap(area => area.area.points)
-      const allPoints = [...perimeterPoints, ...floorAreaPoints]
+      const roofPoints = roofs.flatMap(roof => roof.overhangPolygon.points)
+      const allPoints = [...perimeterPoints, ...floorAreaPoints, ...roofPoints]
       const bounds = Bounds2D.fromPoints(allPoints)
 
       viewportActions().fitToView(bounds)

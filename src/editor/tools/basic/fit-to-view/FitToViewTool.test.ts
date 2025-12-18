@@ -25,6 +25,7 @@ describe('FitToViewTool', () => {
   let fitToViewTool: FitToViewTool
   let mockGetPerimetersByStorey: ReturnType<typeof vi.fn>
   let mockGetFloorAreasByStorey: ReturnType<typeof vi.fn>
+  let mockGetRoofsByStorey: ReturnType<typeof vi.fn>
   let mockFitToView: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
@@ -33,6 +34,7 @@ describe('FitToViewTool', () => {
     // Create only the specific mocks we need for these tests
     mockGetPerimetersByStorey = vi.fn()
     mockGetFloorAreasByStorey = vi.fn()
+    mockGetRoofsByStorey = vi.fn()
     mockFitToView = vi.fn()
 
     // Mock model actions accessor
@@ -40,7 +42,8 @@ describe('FitToViewTool', () => {
     mockedGetModelActions.mockReturnValue({
       getActiveStoreyId: () => 'floor1' as StoreyId,
       getPerimetersByStorey: mockGetPerimetersByStorey,
-      getFloorAreasByStorey: mockGetFloorAreasByStorey
+      getFloorAreasByStorey: mockGetFloorAreasByStorey,
+      getRoofsByStorey: mockGetRoofsByStorey
     } as any)
 
     // Mock viewport actions
@@ -76,11 +79,14 @@ describe('FitToViewTool', () => {
 
     mockGetPerimetersByStorey.mockReturnValue(mockPerimeters)
     mockGetFloorAreasByStorey.mockReturnValue([])
+    mockGetRoofsByStorey.mockReturnValue([])
 
     fitToViewTool.onActivate()
 
     // Should have called getPerimetersByStorey
     expect(mockGetPerimetersByStorey).toHaveBeenCalledWith('floor1')
+    expect(mockGetFloorAreasByStorey).toHaveBeenCalledWith('floor1')
+    expect(mockGetRoofsByStorey).toHaveBeenCalledWith('floor1')
 
     // Should have called fitToView via viewportActions
     expect(mockFitToView).toHaveBeenCalled()
@@ -89,6 +95,7 @@ describe('FitToViewTool', () => {
   it('should handle empty bounds gracefully', () => {
     mockGetPerimetersByStorey.mockReturnValue([])
     mockGetFloorAreasByStorey.mockReturnValue([])
+    mockGetRoofsByStorey.mockReturnValue([])
 
     const consoleSpy = vi.spyOn(console, 'log')
 
@@ -122,6 +129,7 @@ describe('FitToViewTool', () => {
 
     mockGetPerimetersByStorey.mockReturnValue(mockPerimeters)
     mockGetFloorAreasByStorey.mockReturnValue([])
+    mockGetRoofsByStorey.mockReturnValue([])
 
     fitToViewTool.onActivate()
 
@@ -157,6 +165,7 @@ describe('FitToViewTool', () => {
 
     mockGetPerimetersByStorey.mockReturnValue(mockOuterWalls)
     mockGetFloorAreasByStorey.mockReturnValue([])
+    mockGetRoofsByStorey.mockReturnValue([])
 
     fitToViewTool.onActivate()
 
