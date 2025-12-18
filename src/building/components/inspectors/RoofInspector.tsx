@@ -1,4 +1,4 @@
-import { ExclamationTriangleIcon, ReloadIcon, TrashIcon } from '@radix-ui/react-icons'
+import { ExclamationTriangleIcon, ReloadIcon, SquareIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
 import { Box, DataList, Flex, IconButton, Separator, Text, TextField, Tooltip } from '@radix-ui/themes'
 import { useCallback, useMemo } from 'react'
@@ -14,7 +14,8 @@ import { useDefaultRoofAssemblyId } from '@/construction/config/store'
 import { constructRoof } from '@/construction/roof'
 import { TAG_DECKING } from '@/construction/tags'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
-import { popSelection } from '@/editor/hooks/useSelectionStore'
+import { popSelection, replaceSelection } from '@/editor/hooks/useSelectionStore'
+import { useViewModeActions } from '@/editor/hooks/useViewMode'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
@@ -61,6 +62,7 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
   const roof = useRoofById(roofId)
   const { removeRoof, updateRoofProperties, setAllRoofOverhangs, cycleRoofMainSide } = useModelActions()
   const { fitToView } = useViewportActions()
+  const { setMode } = useViewModeActions()
   const defaultAssemblyId = useDefaultRoofAssemblyId()
 
   const perimeterLength = useMemo(() => {
@@ -77,6 +79,12 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
     () => (roof ? detectMixedOverhangs(roof.overhangs) : { isMixed: false, value: null }),
     [roof?.overhangs]
   )
+
+  const handleNavigateToPerimeter = useCallback(() => {
+    if (!roof?.referencePerimeter) return
+    setMode('walls')
+    replaceSelection([roof.referencePerimeter])
+  }, [roof?.referencePerimeter, setMode])
 
   const handleFitToView = useCallback(() => {
     if (!roof) return
@@ -289,6 +297,11 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
 
         {/* Action Buttons */}
         <Flex gap="2" justify="end">
+          {roof.referencePerimeter && (
+            <IconButton size="2" title="View associated perimeter" onClick={handleNavigateToPerimeter}>
+              <SquareIcon />
+            </IconButton>
+          )}
           <Tooltip content="Cycle main side (changes roof direction)">
             <IconButton size="2" onClick={() => cycleRoofMainSide(roofId)}>
               <ReloadIcon />
