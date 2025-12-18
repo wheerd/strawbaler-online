@@ -184,7 +184,7 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
   /**
    * Get ceiling polygon as intersection of perimeter inside polygons with roof reference
    */
-  protected getCeilingPolygons(roof: Roof): Polygon2D[] {
+  protected getCeilingPolygons(roof: Roof, all = false): Polygon2D[] {
     const { getPerimetersByStorey } = getModelActions()
     const perimeters = getPerimetersByStorey(roof.storeyId)
 
@@ -194,7 +194,8 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
       points: p.corners.map(c => vec2.clone(c.insidePoint))
     }))
 
-    return intersectPolygons(unionPolygons(insidePolygons), [roof.referencePolygon])
+    const insides = unionPolygons(insidePolygons)
+    return all ? insides : intersectPolygons(insides, [roof.referencePolygon])
   }
 
   /**

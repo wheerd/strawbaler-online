@@ -78,7 +78,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     const innerConstructionClippingVolume = contexts
       .map(c => this.createExtrudedVolume(c.innerPolygon, roof.ridgeLine, minZ, maxZ))
       .reduce((a, b) => a.add(b))
-    const ceilingClippingVolume = this.getCeilingPolygons(roof)
+    const ceilingClippingVolume = this.getCeilingPolygons(roof, true)
       .map(c => this.createExtrudedVolume(c, roof.ridgeLine, minZ, maxZ))
       .reduce((a, b) => a.add(b))
 
