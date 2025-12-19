@@ -2,13 +2,6 @@ import type { PathsD, PolyPathD } from 'clipper2-wasm'
 import { vec3 } from 'gl-matrix'
 
 import { lineSegmentIntersect, polygonEdges } from '@/construction/helpers'
-import {
-  createPathD,
-  createPathsD,
-  createPointD,
-  getClipperModule,
-  pathDToPoints
-} from '@/shared/geometry/clipperInstance'
 
 import {
   type Vec2,
@@ -27,7 +20,9 @@ import {
   scaleAddVec2,
   subVec2
 } from './2d'
-import { type Area, Bounds2D, type Length, radiansToDegrees } from './basic'
+import { type Area, type Length, radiansToDegrees } from './basic'
+import { Bounds2D } from './bounds'
+import { createPathD, createPathsD, createPointD, getClipperModule, pathDToPoints } from './clipperInstance'
 import { type Line2D, type LineSegment2D, lineIntersection, projectPointOntoLine } from './line'
 
 const COLINEAR_EPSILON = 1e-9
