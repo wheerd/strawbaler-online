@@ -4,7 +4,7 @@ import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionResult } from '@/construction/results'
 import type { Length } from '@/shared/geometry'
 
-export type RingBeamAssemblyType = 'full' | 'double'
+export type RingBeamAssemblyType = 'full' | 'double' | 'brick'
 
 export interface RingBeamAssembly {
   construct: (segment: RingBeamSegment, context: PerimeterConstructionContext) => Generator<ConstructionResult>
@@ -20,25 +20,44 @@ export interface RingBeamSegment {
 
 export interface RingBeamConfigBase {
   type: RingBeamAssemblyType
-  height: Length // Default: 60mm
-  material: MaterialId
 }
 
 export interface FullRingBeamConfig extends RingBeamConfigBase {
   type: 'full'
+  height: Length // Default: 60mm
+  material: MaterialId
   width: Length // Default: 360mm
   offsetFromEdge: Length // From inside construction edge of wall
 }
 
 export interface DoubleRingBeamConfig extends RingBeamConfigBase {
   type: 'double'
+  height: Length // Default: 60mm
+  material: MaterialId
   thickness: Length // Default: 120mm
   infillMaterial: MaterialId // Default: straw
   offsetFromEdge: Length // From inside construction edge of wall
   spacing: Length // In between the two beams
 }
 
-export type RingBeamConfig = FullRingBeamConfig | DoubleRingBeamConfig
+export interface BrickRingBeamConfig extends RingBeamConfigBase {
+  type: 'brick'
+
+  wallHeight: Length // Default: 30cm
+  wallWidth: Length // Default: 25cm
+  wallMaterial: MaterialId // Default: AAC brick
+
+  beamThickness: Length // Default: 6cm
+  beamWidth: Length // Default: 36cm
+  beamMaterial: MaterialId // Default: wood
+
+  waterproofingThickness: Length // Default: 2mm
+  waterproofingMaterial: MaterialId // Default: bitumen
+
+  insulationMaterial: MaterialId // Default: cork
+}
+
+export type RingBeamConfig = FullRingBeamConfig | DoubleRingBeamConfig | BrickRingBeamConfig
 
 // Validation
 
