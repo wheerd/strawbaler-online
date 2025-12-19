@@ -290,7 +290,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(storeyHeight, wallHeight),
           layers,
@@ -344,7 +344,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -386,7 +386,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -420,7 +420,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -477,7 +477,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -514,7 +514,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -552,7 +552,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -585,7 +585,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -609,7 +609,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -634,7 +634,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -678,7 +678,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -714,7 +714,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,
@@ -741,7 +741,7 @@ describe('segmentedWallConstruction', () => {
 
       const results = [
         ...segmentedWallConstruction(
-          wall,
+          perimeter.walls[0],
           perimeter,
           createMockStoreyContext(3000, wallHeight),
           layers,

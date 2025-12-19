@@ -1,6 +1,7 @@
 import type { Perimeter } from '@/building/model'
 import type { RingBeamAssemblyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
+import { resultsToModel } from '@/construction/results'
 import {
   type Area,
   Bounds3D,
@@ -149,14 +150,10 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
 
     const assembly = resolveRingBeamAssembly(assemblyConfig)
 
-    // Create a synthetic perimeter for this segment with only the relevant walls
-    const segmentPerimeter: Perimeter = {
-      ...perimeter,
-      walls: segment.walls
-    }
-
-    const ringBeam = assembly.construct(segmentPerimeter)
-    const transformedModel = transformModel(ringBeam, IDENTITY, [TAG_BASE_PLATE])
+    const ringBeam = Array.from(
+      assembly.construct({ perimeter, startIndex: segment.startIndex, endIndex: segment.endIndex }, perimeterContext)
+    )
+    const transformedModel = transformModel(resultsToModel(ringBeam), IDENTITY, [TAG_BASE_PLATE])
     allModels.push(transformedModel)
   }
 
@@ -169,16 +166,14 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
 
     const assembly = resolveRingBeamAssembly(assemblyConfig)
 
-    // Create a synthetic perimeter for this segment with only the relevant walls
-    const segmentPerimeter: Perimeter = {
-      ...perimeter,
-      walls: segment.walls
-    }
-
-    const ringBeam = assembly.construct(segmentPerimeter)
-    const transformedModel = transformModel(ringBeam, fromTrans(newVec3(0, 0, constructionHeight - assembly.height)), [
-      TAG_TOP_PLATE
-    ])
+    const ringBeam = Array.from(
+      assembly.construct({ perimeter, startIndex: segment.startIndex, endIndex: segment.endIndex }, perimeterContext)
+    )
+    const transformedModel = transformModel(
+      resultsToModel(ringBeam),
+      fromTrans(newVec3(0, 0, constructionHeight - assembly.height)),
+      [TAG_TOP_PLATE]
+    )
     allModels.push(transformedModel)
   }
 

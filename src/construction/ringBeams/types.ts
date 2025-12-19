@@ -1,13 +1,21 @@
 import type { Perimeter } from '@/building/model'
+import type { PerimeterConstructionContext } from '@/construction/context'
 import type { MaterialId } from '@/construction/materials/material'
-import type { ConstructionModel } from '@/construction/model'
+import type { ConstructionResult } from '@/construction/results'
 import type { Length } from '@/shared/geometry'
 
 export type RingBeamAssemblyType = 'full' | 'double'
 
 export interface RingBeamAssembly {
-  construct: (perimeter: Perimeter) => ConstructionModel
+  construct: (segment: RingBeamSegment, context: PerimeterConstructionContext) => Generator<ConstructionResult>
+
   get height(): Length
+}
+
+export interface RingBeamSegment {
+  perimeter: Perimeter
+  startIndex: number
+  endIndex: number
 }
 
 export interface RingBeamConfigBase {
