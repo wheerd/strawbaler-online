@@ -1,10 +1,8 @@
-import { mat4, vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import type { Roof } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import type { PerimeterConstructionContext } from '@/construction/context'
-import { type Transform } from '@/construction/geometry'
 import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
 import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/construction/layers/types'
 import { transformManifold } from '@/construction/manifold/operations'
@@ -23,17 +21,23 @@ import {
   type LineSegment2D,
   type Polygon2D,
   type PolygonWithHoles2D,
+  type Transform,
   type Vec2,
   ZERO_VEC2,
   copyVec2,
   direction,
   dotVec2,
+  fromRot,
+  fromTrans,
   intersectPolygons,
   lenVec2,
   lineFromSegment,
   newVec2,
+  newVec3,
+  normVec3,
   perpendicularCCW,
   perpendicularCW,
+  rotate,
   scaleAddVec2,
   scaleVec2,
   splitPolygonByLine,
@@ -148,18 +152,11 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
    */
   private calculateRoofSideTransform(roof: Roof, side: 'left' | 'right', ridgeHeight: Length): Transform {
     // Rotation axis along ridge (in 3D)
-    const rotationAxis = vec3.normalize(
-      vec3.create(),
-      vec3.fromValues(roof.ridgeDirection[0], roof.ridgeDirection[1], 0)
-    )
+    const rotationAxis = normVec3(newVec3(roof.ridgeDirection[0], roof.ridgeDirection[1], 0))
     const angle = side === 'left' ? -roof.slopeAngleRad : roof.slopeAngleRad
 
-    const transform = mat4.rotate(
-      mat4.create(),
-      mat4.fromTranslation(
-        mat4.create(),
-        vec3.fromValues(roof.ridgeLine.start[0], roof.ridgeLine.start[1], ridgeHeight)
-      ),
+    const transform = rotate(
+      fromTrans(newVec3(roof.ridgeLine.start[0], roof.ridgeLine.start[1], ridgeHeight)),
       angle,
       rotationAxis
     )
@@ -173,9 +170,9 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
     side: 'left' | 'right'
   ): Transform {
     const ridgeDir2D = direction(ridgeLine.start, ridgeLine.end)
-    const rotationAxis = vec3.normalize(vec3.create(), vec3.fromValues(ridgeDir2D[0], ridgeDir2D[1], 0))
+    const rotationAxis = normVec3(newVec3(ridgeDir2D[0], ridgeDir2D[1], 0))
     const angle = side === 'right' ? -slopeAngleRad : slopeAngleRad
-    return mat4.fromRotation(mat4.create(), angle, rotationAxis)
+    return fromRot(angle, rotationAxis)
   }
 
   /**
@@ -231,7 +228,7 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
     const translatedPolygon = this.translatePolygonToOrigin(polygon, ridgeLine)
     const extrusionThickness = (maxZ - minZ) as Length
     const shape = createExtrudedPolygon({ outer: translatedPolygon, holes: [] }, 'xy', extrusionThickness)
-    const translateToMinZ = mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, minZ))
+    const translateToMinZ = fromTrans(newVec3(0, 0, minZ))
     return transformManifold(shape.manifold, translateToMinZ)
   }
 

@@ -1,4 +1,3 @@
-import { vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type ConstructionElement, type GroupOrElement, createCuboidElement } from '@/construction/elements'
@@ -16,7 +15,7 @@ import {
   type Tag
 } from '@/construction/tags'
 import type { InfillMethod } from '@/construction/walls'
-import type { Length } from '@/shared/geometry'
+import { type Length, newVec3 } from '@/shared/geometry'
 
 import { SimpleOpeningAssembly } from './simple'
 import type { SimpleOpeningConfig } from './types'
@@ -38,7 +37,7 @@ const measurementHasTag = (measurement: RawMeasurement, tag: Tag): boolean => {
 }
 
 const createTestArea = (start: Length = 1000, width: Length = 800): WallConstructionArea =>
-  new WallConstructionArea(vec3.fromValues(start, 0, 0), vec3.fromValues(width, 360, 2500))
+  new WallConstructionArea(newVec3(start, 0, 0), newVec3(width, 360, 2500))
 
 const createTestConfig = (overrides: Partial<SimpleOpeningConfig> = {}): SimpleOpeningConfig => ({
   type: 'simple',
@@ -53,8 +52,8 @@ const createTestConfig = (overrides: Partial<SimpleOpeningConfig> = {}): SimpleO
 // Helper to create mock generator for infillWallArea
 const createMockInfillGenerator = function* (numElements = 2): Generator<ConstructionResult> {
   for (let i = 0; i < numElements; i++) {
-    const offset = vec3.fromValues(100 * i, 0, 0)
-    const size = vec3.fromValues(100, 360, 500)
+    const offset = newVec3(100 * i, 0, 0)
+    const size = newVec3(100, 360, 500)
     const element = createCuboidElement(createMaterialId(), offset, size)
     yield* yieldElement(element)
   }
@@ -168,8 +167,8 @@ describe('SimpleOpeningAssembly', () => {
 
       expect(mockInfillMethod).toHaveBeenCalledWith(
         expect.objectContaining({
-          position: vec3.fromValues(area.position[0], area.position[1], 2000 + 60),
-          size: vec3.fromValues(area.size[0], area.size[1], 500 - 60)
+          position: newVec3(area.position[0], area.position[1], 2000 + 60),
+          size: newVec3(area.size[0], area.size[1], 500 - 60)
         })
       )
     })
@@ -186,7 +185,7 @@ describe('SimpleOpeningAssembly', () => {
       expect(mockInfillMethod).toHaveBeenCalledWith(
         expect.objectContaining({
           position: area.position,
-          size: vec3.fromValues(area.size[0], area.size[1], 800 - 60)
+          size: newVec3(area.size[0], area.size[1], 800 - 60)
         })
       )
     })

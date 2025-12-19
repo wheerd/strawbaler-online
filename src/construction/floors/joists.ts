@@ -1,8 +1,5 @@
-import { vec3 } from 'gl-matrix'
-
 import type { PerimeterConstructionContext } from '@/construction/context'
 import { createConstructionElement, createConstructionElementId } from '@/construction/elements'
-import { translate } from '@/construction/geometry'
 import {
   infiniteBeamPolygon,
   partitionByAlignedEdges,
@@ -22,10 +19,12 @@ import {
   dotAbsVec2,
   dotVec2,
   ensurePolygonIsClockwise,
+  fromTrans,
   intersectPolygon,
   isPointStrictlyInPolygon,
   midpoint,
   minimumAreaBoundingBox,
+  newVec3,
   offsetLine,
   offsetPolygon,
   perpendicular,
@@ -221,7 +220,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
           element: createConstructionElement(
             config.subfloorMaterial,
             createExtrudedPolygon(p, 'xy', config.subfloorThickness),
-            translate(vec3.fromValues(0, 0, config.constructionHeight)),
+            fromTrans(newVec3(0, 0, config.constructionHeight)),
             undefined,
             { type: 'subfloor' }
           )
@@ -237,7 +236,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
         {
           id: createConstructionElementId(),
           bounds,
-          transform: translate(vec3.fromValues(0, 0, -config.constructionHeight)),
+          transform: fromTrans(newVec3(0, 0, -config.constructionHeight)),
           children: aggregatedResults.elements
         }
       ],

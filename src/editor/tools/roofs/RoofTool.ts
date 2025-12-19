@@ -6,8 +6,7 @@ import type { SnappingContext } from '@/editor/services/snapping/types'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import { PolygonToolOverlay } from '@/editor/tools/shared/polygon/PolygonToolOverlay'
 import type { ToolImplementation } from '@/editor/tools/system/types'
-import { type Length, type Polygon2D, type Vec2 } from '@/shared/geometry'
-import { polygonIsClockwise } from '@/shared/geometry'
+import { type Length, type Polygon2D, type Vec2, polygonIsClockwise } from '@/shared/geometry'
 
 import { RoofToolInspector } from './RoofToolInspector'
 

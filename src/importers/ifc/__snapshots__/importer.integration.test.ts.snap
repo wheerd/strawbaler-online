@@ -106021,19 +106021,19 @@ exports[`IFC importer integration > parses 'IFC Builder' sample 1`] = `
               ],
               [
                 -5526.8652,
-                -1027.4238,
+                -1027.4237,
               ],
               [
                 -5186.3301,
                 1616.9701,
               ],
               [
-                -1687.6993,
+                -1687.6995,
                 1947.2355,
               ],
               [
                 1574.1665,
-                754.8765,
+                754.8763,
               ],
               [
                 1489.1268,
@@ -106050,10 +106050,10 @@ exports[`IFC importer integration > parses 'IFC Builder' sample 1`] = `
               "openings": [
                 {
                   "height": 800,
-                  "offset": 2373.9784266595234,
+                  "offset": 2373.978410196505,
                   "sill": 615,
                   "type": "door",
-                  "width": 800.0586355295964,
+                  "width": 800.058618390467,
                 },
               ],
               "thickness": 400.0020446777344,
@@ -106062,10 +106062,10 @@ exports[`IFC importer integration > parses 'IFC Builder' sample 1`] = `
               "openings": [
                 {
                   "height": 800,
-                  "offset": 894.7261237273342,
+                  "offset": 894.7260043575661,
                   "sill": 1400,
                   "type": "window",
-                  "width": 800.0238503497094,
+                  "width": 800.0238459613174,
                 },
               ],
               "thickness": 400,
@@ -106090,7 +106090,7 @@ exports[`IFC importer integration > parses 'IFC Builder' sample 1`] = `
               "openings": [
                 {
                   "height": 800,
-                  "offset": 673.5403085639318,
+                  "offset": 673.5401865817457,
                   "sill": 1400,
                   "type": "window",
                   "width": 800.0660270807275,
@@ -112371,11 +112371,11 @@ exports[`IFC importer integration > parses 'IFC Builder' sample 1`] = `
             ],
             "outer": [
               [
-                -2020.7424,
-                -878.0978,
+                -2020.7422,
+                -878.0977,
               ],
               [
-                -3076.0503,
+                -3076.05,
                 -637.6101,
               ],
               [
@@ -112384,11 +112384,11 @@ exports[`IFC importer integration > parses 'IFC Builder' sample 1`] = `
               ],
               [
                 -1687.6907,
-                1947.2076,
+                1947.2075,
               ],
               [
-                581.7082,
-                1116.8862,
+                581.7081,
+                1116.8861,
               ],
             ],
           },
@@ -112401,10 +112401,10 @@ exports[`IFC importer integration > parses 'IFC Builder' sample 1`] = `
               "openings": [
                 {
                   "height": 800,
-                  "offset": 692.3144184231896,
+                  "offset": 692.3144003469888,
                   "sill": 1400,
                   "type": "window",
-                  "width": 800.1233870637952,
+                  "width": 800.1234225640364,
                 },
               ],
               "thickness": 399.9990234375,
@@ -112417,10 +112417,10 @@ exports[`IFC importer integration > parses 'IFC Builder' sample 1`] = `
               "openings": [
                 {
                   "height": 800,
-                  "offset": 649.8656643049253,
+                  "offset": 649.8656133241457,
                   "sill": 1400,
                   "type": "window",
-                  "width": 800.2109379009344,
+                  "width": 800.2109766560607,
                 },
               ],
               "thickness": 399.9993896484375,
@@ -112429,10 +112429,10 @@ exports[`IFC importer integration > parses 'IFC Builder' sample 1`] = `
               "openings": [
                 {
                   "height": 800,
-                  "offset": 1384.6676105115293,
+                  "offset": 1384.6674393655667,
                   "sill": 1400,
                   "type": "window",
-                  "width": 800.0585724376033,
+                  "width": 800.0584755577256,
                 },
               ],
               "thickness": 400.0018310546875,
@@ -114351,7 +114351,7 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
             "holes": [],
             "outer": [
               [
-                6964.123,
+                6964.1226,
                 -8306.0332,
               ],
               [
@@ -114359,7 +114359,7 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
                 -8302.3018,
               ],
               [
-                -1600.4202,
+                -1600.4203,
                 1529.9498,
               ],
               [
@@ -114373,24 +114373,24 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
               "openings": [
                 {
                   "height": 2040,
-                  "offset": 3608.8879254077774,
+                  "offset": 3608.887437110898,
                   "sill": 0,
                   "type": "door",
-                  "width": 1600.278055815339,
+                  "width": 1600.2780558339377,
                 },
                 {
                   "height": 2000,
-                  "offset": 6727.887553594003,
+                  "offset": 6727.8870652971245,
                   "sill": 0,
                   "type": "window",
-                  "width": 800.2781511827707,
+                  "width": 800.2781512013689,
                 },
                 {
                   "height": 2000,
-                  "offset": 1363.8881930326324,
+                  "offset": 1363.8877047357532,
                   "sill": 0,
                   "type": "window",
-                  "width": 800.2781511827707,
+                  "width": 800.2781512013694,
                 },
               ],
               "thickness": 439.953125,
@@ -114399,24 +114399,24 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
               "openings": [
                 {
                   "height": 1200,
-                  "offset": 7928.545689107762,
+                  "offset": 7928.545695896318,
                   "sill": 1000,
                   "type": "window",
-                  "width": 800.80628264196,
+                  "width": 800.8062746877431,
                 },
                 {
                   "height": 1200,
-                  "offset": 4763.547361604199,
+                  "offset": 4763.547368367842,
                   "sill": 1000,
                   "type": "window",
-                  "width": 800.8062826419591,
+                  "width": 800.806274687744,
                 },
                 {
                   "height": 1200,
-                  "offset": 1522.5496009656626,
+                  "offset": 1522.5496076919362,
                   "sill": 1000,
                   "type": "window",
-                  "width": 800.8062826419591,
+                  "width": 800.806274687744,
                 },
               ],
               "thickness": 448.8770751953125,
@@ -114425,21 +114425,21 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
               "openings": [
                 {
                   "height": 1200,
-                  "offset": 3669.566254048223,
+                  "offset": 3669.5664981888335,
                   "sill": 1000,
                   "type": "window",
                   "width": 400.89395999023645,
                 },
                 {
                   "height": 2040,
-                  "offset": 5576.996172136649,
+                  "offset": 5576.99666041787,
                   "sill": 0,
                   "type": "door",
                   "width": 800.4645313789097,
                 },
                 {
                   "height": 2040,
-                  "offset": 6559.4126383539,
+                  "offset": 6559.4131266351205,
                   "sill": 0,
                   "type": "door",
                   "width": 407.4604055407717,
@@ -114451,24 +114451,24 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
               "openings": [
                 {
                   "height": 1200,
-                  "offset": 353.3730287969346,
+                  "offset": 353.3730337949468,
                   "sill": 1000,
                   "type": "window",
-                  "width": 400.4613539138754,
+                  "width": 400.4613220083666,
                 },
                 {
                   "height": 1200,
-                  "offset": 4588.287239867952,
+                  "offset": 4588.287212996917,
                   "sill": 1000,
                   "type": "window",
-                  "width": 800.0855977165702,
+                  "width": 800.0856296484562,
                 },
                 {
                   "height": 1200,
-                  "offset": 7923.287320029738,
+                  "offset": 7923.287293208355,
                   "sill": 1000,
                   "type": "window",
-                  "width": 800.0855977165702,
+                  "width": 800.0856296484571,
                 },
               ],
               "thickness": 443,
@@ -117845,12 +117845,12 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
             "holes": [],
             "outer": [
               [
-                7468.3735,
-                -5133.8633,
+                7468.374,
+                -5133.8628,
               ],
               [
                 -1088.8009,
-                -5130.3223,
+                -5130.3218,
               ],
               [
                 -1085.3336,
@@ -117867,28 +117867,28 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
               "openings": [
                 {
                   "height": 1200,
-                  "offset": 874.5303393404763,
+                  "offset": 874.5308274196432,
                   "sill": 1000,
                   "type": "window",
                   "width": 800.8838478222046,
                 },
                 {
                   "height": 2040,
-                  "offset": 3728.529086219398,
+                  "offset": 3728.529574298565,
                   "sill": 0,
                   "type": "door",
-                  "width": 1600.8834833178225,
+                  "width": 1600.883483317822,
                 },
                 {
                   "height": 1200,
-                  "offset": 7229.1450208513,
+                  "offset": 7229.145508930466,
                   "sill": 1000,
                   "type": "window",
                   "width": 800.2643941213655,
                 },
                 {
                   "height": 2040,
-                  "offset": 6150.572961149176,
+                  "offset": 6150.573449228343,
                   "sill": 0,
                   "type": "door",
                   "width": 397.19820911297575,
@@ -117900,17 +117900,17 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
               "openings": [
                 {
                   "height": 1200,
-                  "offset": 4770.16708560908,
+                  "offset": 4770.166597296065,
                   "sill": 1000,
                   "type": "window",
-                  "width": 801.2030164889493,
+                  "width": 801.2030165261422,
                 },
                 {
                   "height": 1200,
-                  "offset": 1223.1623245908136,
+                  "offset": 1223.1618362780898,
                   "sill": 1000,
                   "type": "window",
-                  "width": 801.210828988018,
+                  "width": 801.2108290252108,
                 },
               ],
               "thickness": 449.94140625,
@@ -117931,17 +117931,17 @@ exports[`IFC importer integration > parses 'Strawbale House' sample 1`] = `
               "openings": [
                 {
                   "height": 1200,
-                  "offset": 4551.806230111264,
+                  "offset": 4551.806270145245,
                   "sill": 1000,
                   "type": "window",
-                  "width": 800.5276564757514,
+                  "width": 800.5276092151653,
                 },
                 {
                   "height": 1200,
-                  "offset": 1231.8076666903048,
+                  "offset": 1231.8077065763223,
                   "sill": 1000,
                   "type": "window",
-                  "width": 800.5276564757514,
+                  "width": 800.5276092151653,
                 },
               ],
               "thickness": 441.94140625,
@@ -120667,7 +120667,7 @@ exports[`IFC importer integration > parses 'strawbaler export' sample 1`] = `
             "outer": [
               [
                 -0.1934,
-                -5384.8569,
+                -5384.8574,
               ],
               [
                 -2.7914,
@@ -120700,10 +120700,10 @@ exports[`IFC importer integration > parses 'strawbaler export' sample 1`] = `
               "openings": [
                 {
                   "height": 2230,
-                  "offset": 112.82456990905307,
+                  "offset": 112.82456990898069,
                   "sill": 0,
                   "type": "void",
-                  "width": 2600.153406674829,
+                  "width": 2600.153406173661,
                 },
               ],
               "thickness": 420,
@@ -123086,7 +123086,7 @@ exports[`IFC importer integration > parses 'strawbaler export' sample 1`] = `
             "outer": [
               [
                 0,
-                -5362.7515,
+                -5362.752,
               ],
               [
                 0,
@@ -123102,7 +123102,7 @@ exports[`IFC importer integration > parses 'strawbaler export' sample 1`] = `
               ],
               [
                 4428.4111,
-                -4559.6621,
+                -4559.6616,
               ],
               [
                 4431.4131,
@@ -123115,7 +123115,7 @@ exports[`IFC importer integration > parses 'strawbaler export' sample 1`] = `
               "openings": [
                 {
                   "height": 2000,
-                  "offset": 1557.75146484375,
+                  "offset": 1557.751953125,
                   "sill": 0,
                   "type": "void",
                   "width": 2920,
@@ -123158,10 +123158,10 @@ exports[`IFC importer integration > parses 'strawbaler export' sample 1`] = `
               "openings": [
                 {
                   "height": 1330,
-                  "offset": 639.6647794356895,
+                  "offset": 639.6647248255335,
                   "sill": 900,
                   "type": "void",
-                  "width": 1970.336081321584,
+                  "width": 1970.3361362789292,
                 },
               ],
               "thickness": 420,
@@ -123174,10 +123174,10 @@ exports[`IFC importer integration > parses 'strawbaler export' sample 1`] = `
               "openings": [
                 {
                   "height": 1330,
-                  "offset": 1581.412179490812,
+                  "offset": 1581.4121794645027,
                   "sill": 900,
                   "type": "void",
-                  "width": 1980.2377938735299,
+                  "width": 1980.2378401521125,
                 },
               ],
               "thickness": 420,
@@ -124520,7 +124520,7 @@ exports[`IFC importer integration > parses 'wellness center' sample 1`] = `
             ],
             "outer": [
               [
-                14244.292,
+                14244.291,
                 -22108.1465,
               ],
               [
@@ -124529,23 +124529,23 @@ exports[`IFC importer integration > parses 'wellness center' sample 1`] = `
               ],
               [
                 -16612.2539,
-                -9203.3604,
+                -9203.3584,
               ],
               [
                 -16428.1914,
-                -7022.2036,
+                -7022.2031,
               ],
               [
                 -12444.9678,
-                -8020.4468,
+                -8020.4463,
               ],
               [
-                -10517.4727,
+                -10517.4717,
                 14149.4297,
               ],
               [
                 18607.1152,
-                3056.9514,
+                3056.9507,
               ],
             ],
           },
@@ -124941,20 +124941,20 @@ exports[`IFC importer integration > parses 'wellness center' sample 1`] = `
             ],
             "outer": [
               [
-                14258.8516,
-                -22113.6738,
+                14258.8525,
+                -22113.6719,
               ],
               [
-                -17451.2773,
-                -13835.4629,
+                -17451.2793,
+                -13835.4619,
               ],
               [
-                -16597.7637,
+                -16597.7656,
                 -9208.876,
               ],
               [
-                -16413.5312,
-                -7025.8735,
+                -16413.5332,
+                -7025.873,
               ],
               [
                 -12444.9678,
@@ -124962,15 +124962,15 @@ exports[`IFC importer integration > parses 'wellness center' sample 1`] = `
               ],
               [
                 -11030.7451,
-                8245.833,
+                8245.832,
               ],
               [
-                -3401.1816,
+                -3401.1819,
                 5631.1279,
               ],
               [
                 -2564.0002,
-                6468.29,
+                6468.2896,
               ],
               [
                 -356.8774,
@@ -124982,7 +124982,7 @@ exports[`IFC importer integration > parses 'wellness center' sample 1`] = `
               ],
               [
                 17851.2949,
-                -1438.9896,
+                -1438.99,
               ],
             ],
           },
@@ -134560,44 +134560,44 @@ exports[`IFC importer integration > parses 'wellness center' sample 1`] = `
                 -13504.5127,
               ],
               [
-                -10433.4844,
-                -8435.2529,
+                -10433.4805,
+                -8435.2549,
               ],
               [
                 -11477.0234,
-                -8098.9507,
+                -8098.9502,
               ],
               [
                 -11128.5234,
-                -1864.2841,
+                -1864.2849,
               ],
               [
                 -9107.4795,
-                156.7598,
+                156.76,
               ],
               [
                 -10865.3389,
-                1914.6196,
+                1914.6199,
               ],
               [
                 -6231.0498,
-                6548.8994,
+                6548.8989,
               ],
               [
-                -1694.8378,
+                -1694.8379,
                 2012.707,
               ],
               [
-                -1466.9781,
-                1951.7083,
+                -1466.9778,
+                1951.7079,
               ],
               [
-                -4273.7695,
-                4758.5098,
+                -4273.769,
+                4758.5093,
               ],
               [
-                -2563.99,
-                6468.2896,
+                -2563.9897,
+                6468.2891,
               ],
               [
                 -356.8775,
@@ -134608,12 +134608,12 @@ exports[`IFC importer integration > parses 'wellness center' sample 1`] = `
                 2346.3811,
               ],
               [
-                6144.4814,
+                6144.481,
                 -85.7674,
               ],
               [
-                12693.4209,
-                -1839.2172,
+                12693.4219,
+                -1839.2174,
               ],
             ],
           },
@@ -137121,23 +137121,23 @@ exports[`IFC importer integration > parses 'wellness center' sample 1`] = `
               ],
               [
                 -11478.1523,
-                -8095.1567,
+                -8095.1572,
               ],
               [
                 -11337.4512,
-                -2073.2224,
+                -2073.2222,
               ],
               [
                 -9126.7754,
-                137.4539,
+                137.454,
               ],
               [
                 -10783.7187,
-                1800.6176,
+                1800.6177,
               ],
               [
-                -6116.1724,
-                6450.6992,
+                -6116.1729,
+                6450.6997,
               ],
               [
                 -1667.8579,
@@ -138521,24 +138521,24 @@ exports[`IFC importer integration > parses 'wellness center' sample 1`] = `
             "holes": [],
             "outer": [
               [
-                8055.9805,
-                -9491.2803,
+                8055.98,
+                -9491.2793,
               ],
               [
-                -1954.3556,
-                -6982.5737,
+                -1954.3564,
+                -6982.5728,
               ],
               [
                 -10858.4492,
                 1921.5099,
               ],
               [
-                -6205.5903,
-                6574.3599,
+                -6205.5898,
+                6574.3589,
               ],
               [
                 2018.854,
-                -1650.0734,
+                -1650.0739,
               ],
               [
                 9611.5859,

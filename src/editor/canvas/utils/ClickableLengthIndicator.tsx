@@ -6,7 +6,7 @@ import {
   type Length,
   type Vec2,
   ZERO_VEC2,
-  angle,
+  dirAngle,
   distVec2,
   midpoint,
   normVec2,
@@ -49,7 +49,7 @@ export function ClickableLengthIndicator({
   let dir = normVec2(measurementVector)
 
   // Calculate text rotation angle
-  const measurementAngle = measurementLength > 0 ? angle(startPoint, endPoint) : 0
+  const measurementAngle = measurementLength > 0 ? dirAngle(startPoint, endPoint) : 0
   let angleDegrees = (measurementAngle * 180) / Math.PI
 
   // Keep text readable (between -90 and +90 degrees)

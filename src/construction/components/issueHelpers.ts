@@ -1,9 +1,9 @@
-import { mat4 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import type { GroupOrElement } from '@/construction/elements'
-import { mat4ToManifoldMat4 } from '@/construction/manifoldUtils'
+import { asManifoldTransform } from '@/construction/manifoldUtils'
 import type { ConstructionIssueId } from '@/construction/results'
+import { IDENTITY, type Transform, composeTransform } from '@/shared/geometry'
 
 /**
  * Accumulates world-space manifolds for each issue by traversing the element tree.
@@ -21,15 +21,15 @@ import type { ConstructionIssueId } from '@/construction/results'
 export function accumulateIssueWorldManifolds(elements: GroupOrElement[]): Map<ConstructionIssueId, Manifold> {
   const issueManifolds = new Map<ConstructionIssueId, Manifold>()
 
-  function traverse(element: GroupOrElement, parentTransform: mat4 = mat4.create()) {
+  function traverse(element: GroupOrElement, parentTransform: Transform = IDENTITY) {
     // Accumulate transforms: parent * element
-    const worldTransform = mat4.multiply(mat4.create(), parentTransform, element.transform)
+    const worldTransform = composeTransform(parentTransform, element.transform)
 
     if ('shape' in element) {
       // Leaf element - accumulate its manifold for each issue
       if (element.issueIds && element.issueIds.length > 0) {
         // Transform manifold to world space
-        const worldManifold = element.shape.manifold.transform(mat4ToManifoldMat4(worldTransform))
+        const worldManifold = element.shape.manifold.transform(asManifoldTransform(worldTransform))
 
         // Add to each issue's manifold
         for (const issueId of element.issueIds) {
@@ -75,12 +75,12 @@ export function accumulateIssueWorldManifolds(elements: GroupOrElement[]): Map<C
  * Recursively collects all child element manifolds in world space.
  * Used when a group has an issue - we need to union all its children's geometry.
  */
-function collectChildManifolds(element: GroupOrElement, parentTransform: mat4, result: Manifold[]) {
-  const worldTransform = mat4.multiply(mat4.create(), parentTransform, element.transform)
+function collectChildManifolds(element: GroupOrElement, parentTransform: Transform, result: Manifold[]) {
+  const worldTransform = composeTransform(parentTransform, element.transform)
 
   if ('shape' in element) {
     // Leaf - add its world-space manifold
-    result.push(element.shape.manifold.transform(mat4ToManifoldMat4(worldTransform)))
+    result.push(element.shape.manifold.transform(asManifoldTransform(worldTransform)))
   } else if ('children' in element) {
     // Group - recurse into children
     for (const child of element.children) {

@@ -1,9 +1,7 @@
-import { mat4, vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
-import { IDENTITY, translate } from '@/construction/geometry'
 import type { ConstructionIssueId } from '@/construction/results'
-import { Bounds3D, newVec2 } from '@/shared/geometry'
+import { Bounds3D, IDENTITY, fromTrans, getPosition, newVec2, newVec3 } from '@/shared/geometry'
 
 import { type ConstructionModel, mergeModels, transformModel } from './model'
 
@@ -24,7 +22,7 @@ describe('mergeModels', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const model2: ConstructionModel = {
@@ -42,7 +40,7 @@ describe('mergeModels', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const merged = mergeModels(model1, model2)
@@ -65,7 +63,7 @@ describe('mergeModels', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const model2: ConstructionModel = {
@@ -82,7 +80,7 @@ describe('mergeModels', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const merged = mergeModels(model1, model2)
@@ -113,7 +111,7 @@ describe('mergeModels', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const model2: ConstructionModel = {
@@ -131,7 +129,7 @@ describe('mergeModels', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const merged = mergeModels(model1, model2)
@@ -157,7 +155,7 @@ describe('mergeModels', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const model2: ConstructionModel = {
@@ -175,7 +173,7 @@ describe('mergeModels', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const merged = mergeModels(model1, model2)
@@ -203,7 +201,7 @@ describe('mergeModels', () => {
       areas: [],
       errors: [],
       warnings: [warningA],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const model2: ConstructionModel = {
@@ -212,7 +210,7 @@ describe('mergeModels', () => {
       areas: [],
       errors: [],
       warnings: [warningB],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(1, 1, 1), vec3.fromValues(2, 2, 2))
+      bounds: Bounds3D.fromMinMax(newVec3(1, 1, 1), newVec3(2, 2, 2))
     }
 
     const merged = mergeModels(model1, model2)
@@ -239,7 +237,7 @@ describe('mergeModels', () => {
       areas: [],
       errors: [errorA],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const model2: ConstructionModel = {
@@ -248,7 +246,7 @@ describe('mergeModels', () => {
       areas: [],
       errors: [errorB],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(1, 1, 1), vec3.fromValues(2, 2, 2))
+      bounds: Bounds3D.fromMinMax(newVec3(1, 1, 1), newVec3(2, 2, 2))
     }
 
     const merged = mergeModels(model1, model2)
@@ -274,10 +272,10 @@ describe('transformModel', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
-    const transformed = transformModel(model, translate(vec3.fromValues(10, 0, 0)))
+    const transformed = transformModel(model, fromTrans(newVec3(10, 0, 0)))
 
     expect(transformed.areas).toHaveLength(1)
     const area = transformed.areas[0]
@@ -296,22 +294,22 @@ describe('transformModel', () => {
           type: 'cuboid',
           areaType: 'corner',
           renderPosition: 'top',
-          transform: translate(vec3.fromValues(5, 0, 0)),
-          size: vec3.fromValues(1, 1, 1),
-          bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+          transform: fromTrans(newVec3(5, 0, 0)),
+          size: newVec3(1, 1, 1),
+          bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
         }
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
-    const transformed = transformModel(model, translate(vec3.fromValues(10, 0, 0)))
+    const transformed = transformModel(model, fromTrans(newVec3(10, 0, 0)))
 
     expect(transformed.areas).toHaveLength(1)
     const area = transformed.areas[0]
     if (area.type === 'cuboid') {
-      expect(mat4.getTranslation(vec3.create(), area.transform)[0]).toBe(15)
+      expect(getPosition(area.transform)[0]).toBe(15)
     }
   })
 
@@ -330,10 +328,10 @@ describe('transformModel', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
-    const transformed = transformModel(model, translate(vec3.fromValues(10, 0, 0)))
+    const transformed = transformModel(model, fromTrans(newVec3(10, 0, 0)))
 
     expect(transformed.areas).toHaveLength(1)
     const area = transformed.areas[0]
@@ -354,14 +352,14 @@ describe('mergeKey functionality', () => {
           areaType: 'floor-level',
           renderPosition: 'bottom',
           transform: IDENTITY,
-          size: vec3.fromValues(10, 10, 1),
-          bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 10, 1)),
+          size: newVec3(10, 10, 1),
+          bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(10, 10, 1)),
           mergeKey: 'floor-1'
         }
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 10, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(10, 10, 1))
     }
 
     const model2: ConstructionModel = {
@@ -373,14 +371,14 @@ describe('mergeKey functionality', () => {
           areaType: 'floor-level',
           renderPosition: 'bottom',
           transform: IDENTITY,
-          size: vec3.fromValues(10, 10, 1),
-          bounds: Bounds3D.fromMinMax(vec3.fromValues(10, 0, 0), vec3.fromValues(20, 10, 1)),
+          size: newVec3(10, 10, 1),
+          bounds: Bounds3D.fromMinMax(newVec3(10, 0, 0), newVec3(20, 10, 1)),
           mergeKey: 'floor-1'
         }
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(10, 0, 0), vec3.fromValues(20, 10, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(10, 0, 0), newVec3(20, 10, 1))
     }
 
     const merged = mergeModels(model1, model2)
@@ -404,14 +402,14 @@ describe('mergeKey functionality', () => {
           areaType: 'floor-level',
           renderPosition: 'bottom',
           transform: IDENTITY,
-          size: vec3.fromValues(10, 10, 1),
-          bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 10, 1)),
+          size: newVec3(10, 10, 1),
+          bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(10, 10, 1)),
           mergeKey: 'floor-1'
         }
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 10, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(10, 10, 1))
     }
 
     const model2: ConstructionModel = {
@@ -423,14 +421,14 @@ describe('mergeKey functionality', () => {
           areaType: 'floor-level',
           renderPosition: 'bottom',
           transform: IDENTITY,
-          size: vec3.fromValues(10, 10, 1),
-          bounds: Bounds3D.fromMinMax(vec3.fromValues(10, 0, 0), vec3.fromValues(20, 10, 1)),
+          size: newVec3(10, 10, 1),
+          bounds: Bounds3D.fromMinMax(newVec3(10, 0, 0), newVec3(20, 10, 1)),
           mergeKey: 'floor-2'
         }
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(10, 0, 0), vec3.fromValues(20, 10, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(10, 0, 0), newVec3(20, 10, 1))
     }
 
     const merged = mergeModels(model1, model2)
@@ -456,7 +454,7 @@ describe('mergeKey functionality', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const model2: ConstructionModel = {
@@ -474,7 +472,7 @@ describe('mergeKey functionality', () => {
       ],
       errors: [],
       warnings: [],
-      bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1))
+      bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1, 1, 1))
     }
 
     const merged = mergeModels(model1, model2)

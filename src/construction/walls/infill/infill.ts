@@ -1,5 +1,3 @@
-import { vec3 } from 'gl-matrix'
-
 import { getConfigActions } from '@/construction/config'
 import type { GroupOrElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
@@ -13,7 +11,7 @@ import { yieldAndCollectElements, yieldElement, yieldError, yieldWarning } from 
 import { createElementFromArea } from '@/construction/shapes'
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { InfillWallSegmentConfig } from '@/construction/walls'
-import { type Length } from '@/shared/geometry'
+import { type Length, type Vec3 } from '@/shared/geometry'
 
 export function* infillWallArea(
   area: WallConstructionArea,
@@ -129,7 +127,7 @@ function* constructInfillRecursive(
 }
 
 function getBaleWidth(
-  availableSpace: vec3,
+  availableSpace: Vec3,
   config: InfillWallSegmentConfig,
   strawbaleMaterial?: StrawbaleMaterial
 ): Length {

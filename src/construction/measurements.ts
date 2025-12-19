@@ -1,16 +1,16 @@
-import { vec3 } from 'gl-matrix'
-
 import { type Projection, WallConstructionArea, projectPoint } from '@/construction/geometry'
 import { type ConstructionResult, yieldMeasurement } from '@/construction/results'
 import {
   type Length,
   type Line2D,
   type Vec2,
+  type Vec3,
   computeBoundsLines,
   direction,
   distVec2,
   distanceToInfiniteLine,
   newVec2,
+  newVec3,
   perpendicularCCW,
   projectPointOntoLine,
   projectVec2,
@@ -24,16 +24,16 @@ import type { Tag } from './tags'
 export type RawMeasurement = AutoMeasurement | DirectMeasurement
 
 export interface AutoMeasurement {
-  startPoint: vec3
-  endPoint: vec3
-  extend1: vec3
-  extend2?: vec3
+  startPoint: Vec3
+  endPoint: Vec3
+  extend1: Vec3
+  extend2?: Vec3
   tags?: Tag[]
 }
 
 export interface DirectMeasurement {
-  startPoint: vec3
-  endPoint: vec3
+  startPoint: Vec3
+  endPoint: Vec3
   label: string
   offset: number
   tags?: Tag[]
@@ -95,22 +95,22 @@ export function createMeasurementFromArea(
   const axis = type === 'width' ? 0 : type === 'thickness' ? 1 : 2
   const base = useMin ? bounds.min : bounds.max
   const maxZ = type === 'minHeight' ? bounds.min[2] + area.minHeight : bounds.max[2]
-  const startPoint = vec3.fromValues(
+  const startPoint = newVec3(
     axis === 0 ? bounds.min[0] : base[0],
     axis === 1 ? bounds.min[1] : base[1],
     axis === 2 ? bounds.min[2] : base[2]
   )
-  const endPoint = vec3.fromValues(
+  const endPoint = newVec3(
     axis === 0 ? bounds.max[0] : base[0],
     axis === 1 ? bounds.max[1] : base[1],
     axis === 2 ? maxZ : base[2]
   )
-  const extend1 = vec3.fromValues(
+  const extend1 = newVec3(
     axis === 1 ? bounds.max[0] : base[0],
     axis === 2 ? bounds.max[1] : base[1],
     axis === 0 ? bounds.max[2] : base[2]
   )
-  const extend2 = vec3.fromValues(
+  const extend2 = newVec3(
     axis === 2 ? bounds.max[0] : base[0],
     axis === 0 ? bounds.max[1] : base[1],
     axis === 1 ? bounds.max[2] : base[2]

@@ -3,7 +3,6 @@ import type { Manifold } from 'manifold-3d'
 import type { Roof } from '@/building/model'
 import type { PerimeterConstructionContext } from '@/construction/context'
 import { createConstructionElement } from '@/construction/elements'
-import { IDENTITY } from '@/construction/geometry'
 import { transformManifold } from '@/construction/manifold/operations'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
 import {
@@ -17,6 +16,7 @@ import { BaseRoofAssembly, type RoofSide } from '@/construction/roofs/base'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import { TAG_ROOF, TAG_ROOF_SIDE_LEFT, TAG_ROOF_SIDE_RIGHT } from '@/construction/tags'
 import {
+  IDENTITY,
   type Length,
   type LineSegment2D,
   type Vec2,

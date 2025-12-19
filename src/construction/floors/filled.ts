@@ -1,8 +1,5 @@
-import { vec3 } from 'gl-matrix'
-
 import type { PerimeterConstructionContext } from '@/construction/context'
 import { createConstructionElement, createConstructionElementId } from '@/construction/elements'
-import { translate } from '@/construction/geometry'
 import {
   PolygonWithBoundingRect,
   partitionByAlignedEdges,
@@ -32,9 +29,11 @@ import {
   dotAbsVec2,
   dotVec2,
   ensurePolygonIsClockwise,
+  fromTrans,
   isPointStrictlyInPolygon,
   midpoint,
   minimumAreaBoundingBox,
+  newVec3,
   offsetLine,
   offsetPolygon,
   perpendicular,
@@ -163,7 +162,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
     const subfloor = {
       id: createConstructionElementId(),
       bounds: bounds2D.toBounds3D('xy', 0, config.subfloorThickness),
-      transform: translate(vec3.fromValues(0, 0, -config.subfloorThickness)),
+      transform: fromTrans(newVec3(0, 0, -config.subfloorThickness)),
       children: floorPolygons.map(p =>
         createConstructionElement(
           config.subfloorMaterial,
@@ -177,7 +176,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
     const ceilingSheathing = {
       id: createConstructionElementId(),
       bounds: bounds2D.toBounds3D('xy', 0, config.ceilingSheathingThickness),
-      transform: translate(vec3.fromValues(0, 0, -totalThickness)),
+      transform: fromTrans(newVec3(0, 0, -totalThickness)),
       children: floorPolygons.map(p =>
         createConstructionElement(
           config.ceilingSheathingMaterial,
@@ -198,7 +197,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
         {
           id: createConstructionElementId(),
           bounds: bounds2D.toBounds3D('xy', 0, config.constructionHeight),
-          transform: translate(vec3.fromValues(0, 0, -config.constructionHeight - config.subfloorThickness)),
+          transform: fromTrans(newVec3(0, 0, -config.constructionHeight - config.subfloorThickness)),
           children: aggregatedResults.elements
         },
         ceilingSheathing

@@ -1,7 +1,7 @@
-import { vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import type { BaseShape } from '@/construction/shapes'
+import { type Vec3 } from '@/shared/geometry'
 
 /**
  * Global cache: ConstructionParams -> Manifold
@@ -72,6 +72,6 @@ function formatNumber(n: number): string {
   return Number.parseFloat(n.toFixed(6)).toString()
 }
 
-function formatVec3(v: vec3): string {
+function formatVec3(v: Vec3): string {
   return `${formatNumber(v[0])},${formatNumber(v[1])},${formatNumber(v[2])}`
 }

@@ -1,12 +1,10 @@
-import { vec2, vec3 } from 'gl-matrix'
-
 import type { StoreyId } from '@/building/model/ids'
 import type { Perimeter, PerimeterWall } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import type { PerimeterConstructionContext } from '@/construction/context'
 import type { GroupOrElement } from '@/construction/elements'
-import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
+import { WallConstructionArea } from '@/construction/geometry'
 import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
 import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/construction/layers/types'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
@@ -16,6 +14,7 @@ import type { HeightLine } from '@/construction/roofs/types'
 import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE, createTag } from '@/construction/tags'
 import {
   Bounds3D,
+  IDENTITY,
   type Length,
   type LineSegment2D,
   type Plane3D,
@@ -23,6 +22,8 @@ import {
   type Vec2,
   ensurePolygonIsClockwise,
   newVec2,
+  newVec3,
+  signedAngleVec2,
   simplifyPolygon
 } from '@/shared/geometry'
 
@@ -132,7 +133,7 @@ export function constructWallLayers(
 
   const layerResults: ConstructionResult[] = []
 
-  const wallDirection = vec2.signedAngle(wall.direction, newVec2(1, 0))
+  const wallDirection = signedAngleVec2(wall.direction, newVec2(1, 0))
   const layerDirection = wallDirection < 0 ? newVec2(0, 1) : newVec2(0, -1)
 
   if (layers.insideLayers.length > 0) {
@@ -160,8 +161,8 @@ export function constructWallLayers(
 
       // Create WallConstructionArea with roof-adjusted top
       const layerArea = new WallConstructionArea(
-        vec3.fromValues(start, 0, bottom),
-        vec3.fromValues(end - start, 0, top - bottom),
+        newVec3(start, 0, bottom),
+        newVec3(end - start, 0, top - bottom),
         layerTopOffsets
       )
 
@@ -222,8 +223,8 @@ export function constructWallLayers(
 
       // Create WallConstructionArea with roof-adjusted top
       const layerArea = new WallConstructionArea(
-        vec3.fromValues(start, 0, bottom),
-        vec3.fromValues(end - start, 0, top - bottom),
+        newVec3(start, 0, bottom),
+        newVec3(end - start, 0, top - bottom),
         layerTopOffsets
       )
 

@@ -1,22 +1,24 @@
-import { mat4, vec3 } from 'gl-matrix'
-
 import type { Perimeter } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import {
   type Area,
   Bounds3D,
+  IDENTITY,
   type Length,
   type Polygon2D,
   type Volume,
-  angle,
   arePolygonsIntersecting,
   calculatePolygonArea,
   calculatePolygonWithHolesArea,
+  dirAngle,
   direction,
+  fromTrans,
   newVec2,
+  newVec3,
   perpendicularCCW,
   perpendicularCW,
   polygonPerimeter,
+  rotateZ,
   scaleAddVec2,
   subtractPolygons,
   unionPolygons
@@ -30,7 +32,6 @@ import {
   createWallFaceOffsets
 } from './context'
 import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from './floors'
-import { IDENTITY, translate } from './geometry'
 import { polygonEdges } from './helpers'
 import type { RawMeasurement } from './measurements'
 import { type ConstructionModel, mergeModels, transformModel } from './model'
@@ -87,7 +88,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
       const ringBeam = RING_BEAM_ASSEMBLIES[assembly.type].construct(perimeter, assembly)
       const transformedModel = transformModel(
         ringBeam,
-        translate(vec3.fromValues(0, 0, constructionHeight - assembly.height)),
+        fromTrans(newVec3(0, 0, constructionHeight - assembly.height)),
         [TAG_TOP_PLATE]
       )
       allModels.push(transformedModel)
@@ -104,14 +105,10 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     }
 
     if (wallModel) {
-      const segmentAngle = angle(wall.insideLine.start, wall.insideLine.end)
+      const segmentAngle = dirAngle(wall.insideLine.start, wall.insideLine.end)
       const transformedModel = transformModel(
         wallModel,
-        mat4.rotateZ(
-          mat4.create(),
-          translate(vec3.fromValues(wall.insideLine.start[0], wall.insideLine.start[1], 0)),
-          segmentAngle
-        ),
+        rotateZ(fromTrans(newVec3(wall.insideLine.start[0], wall.insideLine.start[1], 0)), segmentAngle),
         [TAG_WALLS]
       )
       allModels.push(transformedModel)
@@ -167,7 +164,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     const relevantRoofs = roofs.filter(r => r.referencePerimeter === perimeter.id)
     allModels.push(
       ...relevantRoofs.map(roof =>
-        transformModel(constructRoof(roof, [perimeterContext]), translate(vec3.fromValues(0, 0, storey.floorHeight)))
+        transformModel(constructRoof(roof, [perimeterContext]), fromTrans(newVec3(0, 0, storey.floorHeight)))
       )
     )
   }
@@ -283,12 +280,12 @@ function createPerimeterMeasurementModel(
     const nextCorner = perimeter.corners[(i + 1) % perimeter.corners.length]
     const wall = perimeter.walls[i]
 
-    const insideStart = vec3.fromValues(corner.insidePoint[0], corner.insidePoint[1], 0)
-    const insideEnd = vec3.fromValues(nextCorner.insidePoint[0], nextCorner.insidePoint[1], 0)
+    const insideStart = newVec3(corner.insidePoint[0], corner.insidePoint[1], 0)
+    const insideEnd = newVec3(nextCorner.insidePoint[0], nextCorner.insidePoint[1], 0)
 
     const insideExtend1In2D = scaleAddVec2(corner.insidePoint, wall.outsideDirection, wall.thickness)
-    const insideExtend1 = vec3.fromValues(insideExtend1In2D[0], insideExtend1In2D[1], 0)
-    const insideExtend2 = vec3.fromValues(corner.insidePoint[0], corner.insidePoint[1], storeyContext.ceilingHeight)
+    const insideExtend1 = newVec3(insideExtend1In2D[0], insideExtend1In2D[1], 0)
+    const insideExtend2 = newVec3(corner.insidePoint[0], corner.insidePoint[1], storeyContext.ceilingHeight)
 
     measurements.push({
       startPoint: insideStart,
@@ -298,12 +295,12 @@ function createPerimeterMeasurementModel(
       tags: [TAG_WALL_LENGTH_INSIDE]
     })
 
-    const outsideStart = vec3.fromValues(corner.outsidePoint[0], corner.outsidePoint[1], 0)
-    const outsideEnd = vec3.fromValues(nextCorner.outsidePoint[0], nextCorner.outsidePoint[1], 0)
+    const outsideStart = newVec3(corner.outsidePoint[0], corner.outsidePoint[1], 0)
+    const outsideEnd = newVec3(nextCorner.outsidePoint[0], nextCorner.outsidePoint[1], 0)
 
     const outsideExtend1In2D = scaleAddVec2(corner.outsidePoint, wall.outsideDirection, -wall.thickness)
-    const outsideExtend1 = vec3.fromValues(outsideExtend1In2D[0], outsideExtend1In2D[1], 0)
-    const outsideExtend2 = vec3.fromValues(corner.outsidePoint[0], corner.outsidePoint[1], storeyContext.ceilingHeight)
+    const outsideExtend1 = newVec3(outsideExtend1In2D[0], outsideExtend1In2D[1], 0)
+    const outsideExtend2 = newVec3(corner.outsidePoint[0], corner.outsidePoint[1], storeyContext.ceilingHeight)
 
     measurements.push({
       startPoint: outsideStart,
@@ -317,12 +314,12 @@ function createPerimeterMeasurementModel(
   for (const edge of polygonEdges(floorContext.innerPolygon)) {
     const outDirection = perpendicularCCW(direction(edge.start, edge.end))
     const extend1In2D = scaleAddVec2(edge.start, outDirection, 10)
-    const extend1 = vec3.fromValues(extend1In2D[0], extend1In2D[1], 0)
-    const extend2 = vec3.fromValues(edge.start[0], edge.start[1], storeyContext.ceilingHeight)
+    const extend1 = newVec3(extend1In2D[0], extend1In2D[1], 0)
+    const extend2 = newVec3(edge.start[0], edge.start[1], storeyContext.ceilingHeight)
 
     measurements.push({
-      startPoint: vec3.fromValues(edge.start[0], edge.start[1], 0),
-      endPoint: vec3.fromValues(edge.end[0], edge.end[1], 0),
+      startPoint: newVec3(edge.start[0], edge.start[1], 0),
+      endPoint: newVec3(edge.end[0], edge.end[1], 0),
       extend1,
       extend2,
       tags: [TAG_WALL_CONSTRUCTION_LENGTH_INSIDE]
@@ -332,11 +329,11 @@ function createPerimeterMeasurementModel(
   for (const edge of polygonEdges(floorContext.outerPolygon)) {
     const inDirection = perpendicularCW(direction(edge.start, edge.end))
     const extend1In2D = scaleAddVec2(edge.start, inDirection, 10)
-    const extend1 = vec3.fromValues(extend1In2D[0], extend1In2D[1], 0)
-    const extend2 = vec3.fromValues(edge.start[0], edge.start[1], storeyContext.ceilingHeight)
+    const extend1 = newVec3(extend1In2D[0], extend1In2D[1], 0)
+    const extend2 = newVec3(edge.start[0], edge.start[1], storeyContext.ceilingHeight)
     measurements.push({
-      startPoint: vec3.fromValues(edge.start[0], edge.start[1], 0),
-      endPoint: vec3.fromValues(edge.end[0], edge.end[1], 0),
+      startPoint: newVec3(edge.start[0], edge.start[1], 0),
+      endPoint: newVec3(edge.end[0], edge.end[1], 0),
       extend1,
       extend2,
       tags: [TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE]

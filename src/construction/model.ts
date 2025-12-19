@@ -1,11 +1,21 @@
-import { mat4, vec3 } from 'gl-matrix'
-
 import type { InitialPartInfo } from '@/construction/parts'
-import { type Axis3D, Bounds3D, type Length, type Plane3D, type Polygon2D, newVec2 } from '@/shared/geometry'
+import {
+  type Axis3D,
+  Bounds3D,
+  type Length,
+  type Plane3D,
+  type Polygon2D,
+  type Transform,
+  type Vec3,
+  composeTransform,
+  newVec2,
+  newVec3,
+  transform
+} from '@/shared/geometry'
 import { simplifyPolygon, unionPolygons } from '@/shared/geometry/polygon'
 
 import { type ConstructionGroup, type GroupOrElement, createConstructionElementId } from './elements'
-import { type Transform, transform, transformBounds } from './geometry'
+import { transformBounds } from './geometry'
 import type { RawMeasurement } from './measurements'
 import { type ConstructionIssue, type ConstructionIssueId, mergeConstructionIssues } from './results'
 import type { Tag } from './tags'
@@ -38,7 +48,7 @@ export interface HighlightedCuboid {
   areaType: HighlightedAreaType
   label?: string
   transform: Transform
-  size: vec3
+  size: Vec3
   bounds: Bounds3D
   tags?: Tag[]
   renderPosition: 'bottom' | 'top'
@@ -197,18 +207,18 @@ export function transformModel(model: ConstructionModel, t: Transform, tags?: Ta
 
 function transformArea(a: HighlightedArea, t: Transform): HighlightedArea {
   if (a.type === 'cuboid') {
-    const composedTransform = composeTransforms(a.transform, t)
+    const composedTransform = composeTransform(a.transform, t)
     return { ...a, transform: composedTransform, bounds: transformBounds(a.bounds, t) }
   }
   if (a.type === 'polygon') {
     const transformedPoints = a.polygon.points.map(p => {
-      let p3d: vec3
+      let p3d: Vec3
       if (a.plane === 'xy') {
-        p3d = vec3.fromValues(p[0], p[1], 0)
+        p3d = newVec3(p[0], p[1], 0)
       } else if (a.plane === 'xz') {
-        p3d = vec3.fromValues(p[0], 0, p[1])
+        p3d = newVec3(p[0], 0, p[1])
       } else {
-        p3d = vec3.fromValues(0, p[0], p[1])
+        p3d = newVec3(0, p[0], p[1])
       }
       const transformed = transform(p3d, t)
 
@@ -223,7 +233,7 @@ function transformArea(a: HighlightedArea, t: Transform): HighlightedArea {
     return { ...a, polygon: { points: transformedPoints } }
   }
   if (a.type === 'cut') {
-    const positionVec = vec3.fromValues(
+    const positionVec = newVec3(
       a.axis === 'x' ? a.position : 0,
       a.axis === 'y' ? a.position : 0,
       a.axis === 'z' ? a.position : 0
@@ -233,10 +243,6 @@ function transformArea(a: HighlightedArea, t: Transform): HighlightedArea {
     return { ...a, position: newPosition }
   }
   return a
-}
-
-function composeTransforms(inner: Transform, outer: Transform): Transform {
-  return mat4.multiply(mat4.create(), outer, inner)
 }
 
 function mergeAreaGroup(areas: HighlightedArea[], mergeKey: string): HighlightedArea[] {

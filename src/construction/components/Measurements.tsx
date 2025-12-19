@@ -1,4 +1,3 @@
-import { mat4, vec3 } from 'gl-matrix'
 import { useMemo } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
@@ -6,7 +5,7 @@ import { getTagClasses } from '@/construction/components/cssHelpers'
 import { type Projection, allPoints, bounds3Dto2D, projectPoint } from '@/construction/geometry'
 import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
-import { Bounds2D, distVec2, newVec2 } from '@/shared/geometry'
+import { Bounds2D, IDENTITY, type Vec3, distVec2, newVec2, newVec3 } from '@/shared/geometry'
 import { formatLength } from '@/shared/utils/formatting'
 
 export interface MeasurementsProps {
@@ -16,7 +15,7 @@ export interface MeasurementsProps {
 
 export function Measurements({ model, projection }: MeasurementsProps): React.JSX.Element {
   const planPoints = useMemo(() => {
-    const elementPoints = model.elements.flatMap(e => Array.from(allPoints(e, projection, mat4.create())))
+    const elementPoints = model.elements.flatMap(e => Array.from(allPoints(e, projection, IDENTITY)))
 
     const areaPoints = model.areas
       .filter(area => area.type !== 'cut')
@@ -27,13 +26,13 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
           return [newVec2(min[0], min[1]), newVec2(max[0], min[1]), newVec2(max[0], max[1]), newVec2(min[0], max[1])]
         } else if (area.type === 'polygon') {
           const polygonPoints = area.polygon.points.map(p => {
-            let p3d: vec3
+            let p3d: Vec3
             if (area.plane === 'xy') {
-              p3d = vec3.fromValues(p[0], p[1], 0)
+              p3d = newVec3(p[0], p[1], 0)
             } else if (area.plane === 'xz') {
-              p3d = vec3.fromValues(p[0], 0, p[1])
+              p3d = newVec3(p[0], 0, p[1])
             } else {
-              p3d = vec3.fromValues(0, p[0], p[1])
+              p3d = newVec3(0, p[0], p[1])
             }
             const projected = projectPoint(p3d, projection)
             return newVec2(projected[0], projected[1])

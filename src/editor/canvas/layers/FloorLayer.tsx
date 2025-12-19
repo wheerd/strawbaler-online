@@ -8,8 +8,7 @@ import {
 } from '@/building/store'
 import { FloorOpeningShape } from '@/editor/canvas/shapes/FloorOpeningShape'
 import { useViewMode } from '@/editor/hooks/useViewMode'
-import { type PolygonWithHoles2D, type Vec2 } from '@/shared/geometry'
-import { subtractPolygons } from '@/shared/geometry'
+import { type PolygonWithHoles2D, type Vec2, subtractPolygons } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 
 function polygonWithHolesToPath(polygon: PolygonWithHoles2D): string {

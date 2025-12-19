@@ -2,8 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { RoofAssemblyId, StoreyId } from '@/building/model/ids'
 import { createStoreyId } from '@/building/model/ids'
-import { ensurePolygonIsClockwise, newVec2, wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
-import type { Polygon2D } from '@/shared/geometry'
+import { type Polygon2D, ensurePolygonIsClockwise, newVec2, wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
 
 import type { RoofsSlice } from './roofsSlice'
 import { createRoofsSlice } from './roofsSlice'

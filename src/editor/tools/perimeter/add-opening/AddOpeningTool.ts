@@ -15,8 +15,7 @@ import { getSelectionActions } from '@/editor/hooks/useSelectionStore'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CanvasEvent, CursorStyle, ToolImplementation } from '@/editor/tools/system/types'
-import { type Length, type Vec2, distVec2, newVec2 } from '@/shared/geometry'
-import { lineFromSegment, projectPointOntoLine } from '@/shared/geometry'
+import { type Length, type Vec2, distVec2, lineFromSegment, newVec2, projectPointOntoLine } from '@/shared/geometry'
 
 import { AddOpeningToolInspector } from './AddOpeningToolInspector'
 // import { OpeningInspector } from '@/building/components/inspectors/OpeningInspector' // TODO: Fix interface compatibility

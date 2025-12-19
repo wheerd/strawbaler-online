@@ -1,35 +1,28 @@
-import { type ReadonlyVec3, mat4, vec3 } from 'gl-matrix'
-
 import type { GroupOrElement } from '@/construction/elements'
 import {
   type Axis3D,
   Bounds2D,
   Bounds3D,
+  IDENTITY,
   type Length,
   type Plane3D,
   type Polygon2D,
+  type Transform,
   type Vec2,
+  type Vec3,
   ZERO_VEC2,
+  composeTransform,
   eqVec2,
   intersectPolygon,
-  newVec2
+  newVec2,
+  newVec3,
+  transform,
+  transformFromValues
 } from '@/shared/geometry'
-
-export type Transform = mat4
-
-export const IDENTITY: Transform = mat4.identity(mat4.create())
-
-export const getPosition = (t: Transform) => mat4.getTranslation(vec3.create(), t)
-
-export const translate = (v: vec3) => mat4.fromTranslation(mat4.create(), v)
-
-export function transform(v: vec3, t: Transform): vec3 {
-  return vec3.transformMat4(vec3.create(), v, t)
-}
 
 export function transformBounds(bounds: Bounds3D, t: Transform): Bounds3D {
   // Transform all 8 corner points of the bounding box
-  const corners: vec3[] = [
+  const corners: Vec3[] = [
     [bounds.min[0], bounds.min[1], bounds.min[2]], // min corner
     [bounds.max[0], bounds.min[1], bounds.min[2]],
     [bounds.min[0], bounds.max[1], bounds.min[2]],
@@ -38,7 +31,7 @@ export function transformBounds(bounds: Bounds3D, t: Transform): Bounds3D {
     [bounds.max[0], bounds.min[1], bounds.max[2]],
     [bounds.min[0], bounds.max[1], bounds.max[2]],
     [bounds.max[0], bounds.max[1], bounds.max[2]] // max corner
-  ].map(corner => vec3.fromValues(corner[0], corner[1], corner[2]))
+  ].map(corner => newVec3(corner[0], corner[1], corner[2]))
 
   // Transform all corners
   const transformedCorners = corners.map(corner => transform(corner, t))
@@ -78,7 +71,7 @@ export const createZOrder = (axis: Axis3D, viewOrder: 'ascending' | 'descending'
 
 export const bounds3Dto2D = (bounds: Bounds3D, projection: Projection): Bounds2D => {
   // Project all 8 corners and find 2D bounds
-  const corners: vec3[] = [
+  const corners: Vec3[] = [
     [bounds.min[0], bounds.min[1], bounds.min[2]],
     [bounds.max[0], bounds.min[1], bounds.min[2]],
     [bounds.min[0], bounds.max[1], bounds.min[2]],
@@ -87,7 +80,7 @@ export const bounds3Dto2D = (bounds: Bounds3D, projection: Projection): Bounds2D
     [bounds.max[0], bounds.min[1], bounds.max[2]],
     [bounds.min[0], bounds.max[1], bounds.max[2]],
     [bounds.max[0], bounds.max[1], bounds.max[2]]
-  ].map(corner => vec3.fromValues(corner[0], corner[1], corner[2]))
+  ].map(corner => newVec3(corner[0], corner[1], corner[2]))
 
   // Project all corners to 2D
   const projectedCorners = corners.map(corner => {
@@ -103,7 +96,7 @@ export const bounds3Dto2D = (bounds: Bounds3D, projection: Projection): Bounds2D
  * Projection is now a transformation matrix that converts 3D world coordinates
  * to 2D view coordinates. The z-component of the result is used for depth ordering.
  */
-export type Projection = mat4
+export type Projection = Transform
 
 export type CutFunction = (element: { bounds: Bounds3D; transform?: Transform }) => boolean
 
@@ -116,50 +109,40 @@ export type CutFunction = (element: { bounds: Bounds3D; transform?: Transform })
  * @returns A 4x4 projection matrix
  */
 export const createProjectionMatrix = (plane: Plane3D, z: -1 | 1, x: -1 | 1): Projection => {
-  const projMatrix = mat4.create()
-
   switch (plane) {
     case 'xy':
       // Top view: X→X, Y→Y (inverted), Z→depth
       // prettier-ignore
-      mat4.set(
-        projMatrix,
+      return transformFromValues(
         x,  0,  0,  0,
         0, -1,  0,  0,
         0,  0,  z,  0,
         0,  0,  0,  1 
       )
-      break
 
     case 'xz':
       // Front view: X→X, Z→Y, Y→depth
       // prettier-ignore
-      mat4.set(
-        projMatrix,
+      return transformFromValues(
         x,  0,  0,  0,
         0,  0,  z,  0,
-        0,  -1,  0,  0,
+        0, -1,  0,  0,
         0,  0,  0,  1 
       )
-      break
 
     case 'yz':
       // Side view: Y→X, Z→Y, X→depth
       // prettier-ignore
-      mat4.set(
-        projMatrix,
+      return transformFromValues(
         0,  0,  z,  0,
         x,  0,  0,  0,
-        0,  -1,  0,  0, 
+        0, -1,  0,  0, 
         0,  0,  0,  1  
       )
-      break
 
     default:
       throw new Error(`Unknown plane: ${plane}`)
   }
-
-  return projMatrix
 }
 
 /**
@@ -170,8 +153,8 @@ export const createProjectionMatrix = (plane: Plane3D, z: -1 | 1, x: -1 | 1): Pr
  * @param matrix - The projection matrix (or combined projection + transform matrix)
  * @returns Projected point with depth component
  */
-export const projectPoint = (point: vec3, matrix: mat4): vec3 => {
-  return vec3.transformMat4(vec3.create(), point, matrix)
+export const projectPoint = (point: Vec3, matrix: Projection): Vec3 => {
+  return transform(point, matrix)
 }
 
 /**
@@ -185,21 +168,21 @@ export const projectPoint = (point: vec3, matrix: mat4): vec3 => {
 export function* allPoints(
   element: GroupOrElement,
   projectionMatrix: Projection,
-  parentTransform: mat4 = mat4.create()
+  parentTransform: Transform = IDENTITY
 ): Generator<Vec2> {
   // Accumulate transform: parent * element
-  const accumulatedTransform = mat4.multiply(mat4.create(), parentTransform, element.transform)
+  const accumulatedTransform = composeTransform(parentTransform, element.transform)
 
   if ('shape' in element) {
     // Combine projection with accumulated transform
-    const finalTransform = mat4.multiply(mat4.create(), projectionMatrix, accumulatedTransform)
+    const finalTransform = composeTransform(projectionMatrix, accumulatedTransform)
 
     // Get all 4 corners of the shape bounds (fixing bug: was using element.bounds instead of element.shape.bounds)
-    const corners: vec3[] = [
+    const corners: Vec3[] = [
       element.shape.bounds.min,
-      vec3.fromValues(element.shape.bounds.min[0], element.shape.bounds.max[1], element.shape.bounds.min[2]),
+      newVec3(element.shape.bounds.min[0], element.shape.bounds.max[1], element.shape.bounds.min[2]),
       element.shape.bounds.max,
-      vec3.fromValues(element.shape.bounds.max[0], element.shape.bounds.min[1], element.shape.bounds.max[2])
+      newVec3(element.shape.bounds.max[0], element.shape.bounds.min[1], element.shape.bounds.max[2])
     ]
 
     // Project all corners
@@ -216,16 +199,16 @@ export function* allPoints(
 }
 
 export class WallConstructionArea {
-  public readonly position: ReadonlyVec3
-  public readonly size: ReadonlyVec3
+  public readonly position: Vec3
+  public readonly size: Vec3
   public readonly topOffsets?: readonly Vec2[]
 
-  constructor(position: ReadonlyVec3, size: ReadonlyVec3, topOffsets?: readonly Vec2[]) {
+  constructor(position: Vec3, size: Vec3, topOffsets?: readonly Vec2[]) {
     if (topOffsets) {
       const maxOffset = Math.max(...topOffsets.map(o => o[1]))
       topOffsets = topOffsets.map(o => newVec2(o[0], o[1] - maxOffset))
       const adjustedHeight = Math.max(size[2] + maxOffset, 0)
-      size = vec3.fromValues(size[0], size[1], adjustedHeight)
+      size = newVec3(size[0], size[1], adjustedHeight)
       // Simplify flat top by removing offsets
       if (topOffsets.length === 2 && eqVec2(topOffsets[0], ZERO_VEC2) && eqVec2(topOffsets[1], newVec2(size[0], 0))) {
         topOffsets = undefined
@@ -282,8 +265,8 @@ export class WallConstructionArea {
    */
   public withYAdjustment(yOffset: Length, newDepth?: Length): WallConstructionArea {
     newDepth = Math.min(newDepth ?? this.size[1], this.size[1] - yOffset)
-    const newPosition = vec3.fromValues(this.position[0], this.position[1] + yOffset, this.position[2])
-    const newSize = vec3.fromValues(this.size[0], newDepth, this.size[2])
+    const newPosition = newVec3(this.position[0], this.position[1] + yOffset, this.position[2])
+    const newSize = newVec3(this.size[0], newDepth, this.size[2])
     return new WallConstructionArea(newPosition, newSize, this.topOffsets)
   }
 
@@ -292,8 +275,8 @@ export class WallConstructionArea {
    */
   public withXAdjustment(xOffset: Length, newWidth?: Length): WallConstructionArea {
     newWidth = Math.min(newWidth ?? this.size[0] - xOffset, this.size[0] - xOffset)
-    const newPosition = vec3.fromValues(this.position[0] + xOffset, this.position[1], this.position[2])
-    const newSize = vec3.fromValues(newWidth, this.size[1], this.size[2])
+    const newPosition = newVec3(this.position[0] + xOffset, this.position[1], this.position[2])
+    const newSize = newVec3(newWidth, this.size[1], this.size[2])
 
     if (!this.topOffsets) {
       return new WallConstructionArea(newPosition, newSize)
@@ -322,8 +305,8 @@ export class WallConstructionArea {
    */
   public withZAdjustment(zOffset: Length, newHeight?: Length): WallConstructionArea {
     newHeight = Math.min(newHeight ?? this.size[2], this.size[2] - zOffset)
-    const newPosition = vec3.fromValues(this.position[0], this.position[1], this.position[2] + zOffset)
-    const newSize = vec3.fromValues(this.size[0], this.size[1], newHeight)
+    const newPosition = newVec3(this.position[0], this.position[1], this.position[2] + zOffset)
+    const newSize = newVec3(this.size[0], this.size[1], newHeight)
 
     if (!this.topOffsets || this.topOffsets.length === 0) {
       return new WallConstructionArea(newPosition, newSize)

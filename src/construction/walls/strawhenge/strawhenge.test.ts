@@ -1,4 +1,3 @@
-import { vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createCuboidElement } from '@/construction/elements'
@@ -7,6 +6,7 @@ import { constructStraw } from '@/construction/materials/straw'
 import { aggregateResults, yieldElement } from '@/construction/results'
 import type { StrawhengeWallConfig } from '@/construction/walls'
 import { infillWallArea } from '@/construction/walls/infill/infill'
+import { type Vec3, newVec3 } from '@/shared/geometry'
 
 import { constructModule } from './modules'
 import { strawhengeWallArea } from './strawhenge'
@@ -86,17 +86,17 @@ const WALL_LENGTHS = [
 ]
 
 // Helper to create mock results for testing
-function* createMockStrawResults(position: vec3, size: vec3, material = 'straw') {
+function* createMockStrawResults(position: Vec3, size: Vec3, material = 'straw') {
   const element = createCuboidElement(material as any, position, size)
   yield* yieldElement(element)
 }
 
-function* createMockModuleResults(position: vec3, size: vec3, material = 'module') {
+function* createMockModuleResults(position: Vec3, size: Vec3, material = 'module') {
   const element = createCuboidElement(material as any, position, size)
   yield* yieldElement(element)
 }
 
-function* createMockInfillResults(position: vec3, size: vec3, material = 'infill') {
+function* createMockInfillResults(position: Vec3, size: Vec3, material = 'infill') {
   const element = createCuboidElement(material as any, position, size)
   yield* yieldElement(element)
 }
@@ -128,7 +128,7 @@ describe('Strawhenge Wall Construction', () => {
 
   describe('Fallback to Infill', () => {
     it('should create module when no stands available but size equals module width', () => {
-      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH, 360, 2000))
+      const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(MODULE_WIDTH, 360, 2000))
 
       Array.from(
         strawhengeWallArea(
@@ -147,8 +147,8 @@ describe('Strawhenge Wall Construction', () => {
 
     it('should fall back to infill when no stands and size larger than module', () => {
       const area = new WallConstructionArea(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(MODULE_WIDTH + 100, 360, 2000) // Larger than module but no stands
+        newVec3(0, 0, 0),
+        newVec3(MODULE_WIDTH + 100, 360, 2000) // Larger than module but no stands
       )
 
       Array.from(
@@ -167,8 +167,8 @@ describe('Strawhenge Wall Construction', () => {
 
     it('should fall back to infill when space is too small for module', () => {
       const area = new WallConstructionArea(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(MODULE_WIDTH - 1, 360, 2000) // Just under module width
+        newVec3(0, 0, 0),
+        newVec3(MODULE_WIDTH - 1, 360, 2000) // Just under module width
       )
 
       Array.from(
@@ -189,7 +189,7 @@ describe('Strawhenge Wall Construction', () => {
 
   describe('Single Module Cases', () => {
     it('should create single module when size equals module width', () => {
-      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH, 360, 2000))
+      const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(MODULE_WIDTH, 360, 2000))
 
       Array.from(strawhengeWallArea(area, config, true, true, false))
 
@@ -202,8 +202,8 @@ describe('Strawhenge Wall Construction', () => {
   describe('Multi-Module Patterns', () => {
     it('should handle placement with both starts and ends with stands', () => {
       const area = new WallConstructionArea(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(MODULE_WIDTH + FULL_BALE + MODULE_WIDTH, 360, 2000) // 1400
+        newVec3(0, 0, 0),
+        newVec3(MODULE_WIDTH + FULL_BALE + MODULE_WIDTH, 360, 2000) // 1400
       )
 
       Array.from(strawhengeWallArea(area, config, true, true, false))
@@ -217,7 +217,7 @@ describe('Strawhenge Wall Construction', () => {
   describe('Wall Length Snapshots - startAtEnd=false', () => {
     describe.each(WALL_LENGTHS)('Wall length %s', wallLength => {
       it(`should produce consistent layout for length ${wallLength}`, () => {
-        const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(wallLength, 360, 2000))
+        const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(wallLength, 360, 2000))
 
         const results = Array.from(strawhengeWallArea(area, config, true, true, false))
 
@@ -230,7 +230,7 @@ describe('Strawhenge Wall Construction', () => {
   describe('Wall Length Snapshots - startAtEnd=true', () => {
     describe.each(WALL_LENGTHS)('Wall length %s', wallLength => {
       it(`should produce consistent layout for length ${wallLength}`, () => {
-        const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(wallLength, 360, 2000))
+        const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(wallLength, 360, 2000))
 
         const results = Array.from(strawhengeWallArea(area, config, true, true, true))
 
@@ -242,7 +242,7 @@ describe('Strawhenge Wall Construction', () => {
 
   describe('Stand Placement', () => {
     it('should place modules at start when startsWithStand=true', () => {
-      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH * 2, 360, 2000))
+      const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(MODULE_WIDTH * 2, 360, 2000))
 
       Array.from(
         strawhengeWallArea(
@@ -266,7 +266,7 @@ describe('Strawhenge Wall Construction', () => {
     })
 
     it('should place modules at end when endsWithStand=true', () => {
-      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH * 2, 360, 2000))
+      const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(MODULE_WIDTH * 2, 360, 2000))
 
       Array.from(
         strawhengeWallArea(
@@ -292,11 +292,8 @@ describe('Strawhenge Wall Construction', () => {
 
   describe('Mock Verification', () => {
     it('should call mocked dependencies correctly', () => {
-      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(MODULE_WIDTH, 360, 2000))
-      const smallerArea = new WallConstructionArea(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(MODULE_WIDTH - 1, 360, 2000)
-      )
+      const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(MODULE_WIDTH, 360, 2000))
+      const smallerArea = new WallConstructionArea(newVec3(0, 0, 0), newVec3(MODULE_WIDTH - 1, 360, 2000))
 
       // Test module construction
       Array.from(strawhengeWallArea(area, config, true, true, false))

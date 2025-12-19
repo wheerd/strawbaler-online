@@ -1,5 +1,3 @@
-import { mat4 } from 'gl-matrix'
-
 import type { RawMeasurement } from '@/construction/measurements'
 import {
   type Area,
@@ -9,6 +7,7 @@ import {
   type Plane3D,
   type Polygon2D,
   type PolygonWithHoles2D,
+  type Transform,
   type Vec2,
   calculatePolygonArea,
   calculatePolygonWithHolesArea,
@@ -499,7 +498,7 @@ export class PolygonWithBoundingRect {
     materialId: MaterialId,
     thickness: Length,
     plane: Plane3D,
-    transform?: mat4,
+    transform?: Transform,
     tags?: Tag[],
     partInfo?: InitialPartInfo
   ): Generator<ConstructionResult> {

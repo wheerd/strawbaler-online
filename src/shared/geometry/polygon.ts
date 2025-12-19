@@ -1,7 +1,7 @@
 import type { PathsD, PolyPathD } from 'clipper2-wasm'
-import { vec3 } from 'gl-matrix'
 
 import { lineSegmentIntersect, polygonEdges } from '@/construction/helpers'
+import { type Vec3, eqVec3 } from '@/shared/geometry'
 
 import {
   type Vec2,
@@ -38,7 +38,7 @@ export interface PolygonWithHoles2D {
 }
 
 export interface Polygon3D {
-  points: vec3[]
+  points: Vec3[]
 }
 
 export interface PolygonWithHoles3D {
@@ -1125,7 +1125,7 @@ export function intersectLineWithPolygon(line: Line2D, polygon: Polygon2D): Line
 }
 
 export function polygonEdgeCount(polygon: Polygon3D) {
-  return vec3.equals(polygon.points[0], polygon.points[polygon.points.length - 1])
+  return eqVec3(polygon.points[0], polygon.points[polygon.points.length - 1])
     ? polygon.points.length - 1
     : polygon.points.length
 }

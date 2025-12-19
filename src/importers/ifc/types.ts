@@ -1,7 +1,6 @@
-import { mat4, vec3 } from 'gl-matrix'
 import { IFC4 } from 'web-ifc'
 
-import type { Polygon2D, PolygonWithHoles2D, Vec2 } from '@/shared/geometry'
+import type { Polygon2D, PolygonWithHoles2D, Transform, Vec2, Vec3 } from '@/shared/geometry'
 
 export interface ImportedStorey {
   readonly expressId: number
@@ -9,7 +8,7 @@ export interface ImportedStorey {
   readonly name: string | null
   readonly elevation: number
   readonly height: number | null
-  readonly placement: mat4
+  readonly placement: Transform
   readonly walls: ImportedWall[]
   readonly slabs: ImportedSlab[]
   readonly perimeterCandidates: ImportedPerimeterCandidate[]
@@ -19,11 +18,11 @@ export interface ImportedWall {
   readonly expressId: number
   readonly guid: string | null
   readonly name: string | null
-  readonly placement: mat4
+  readonly placement: Transform
   readonly height: number | null
   readonly thickness: number | null
   readonly profile: ExtrudedProfile | null
-  readonly path: vec3[] | null
+  readonly path: Vec3[] | null
   readonly openings: ImportedOpening[]
 }
 
@@ -32,7 +31,7 @@ export interface ImportedOpening {
   readonly guid: string | null
   readonly type: ImportedOpeningType
   readonly profile: ExtrudedProfile | null
-  readonly placement: mat4
+  readonly placement: Transform
 }
 
 export type ImportedOpeningType = 'door' | 'window' | 'void'
@@ -41,7 +40,7 @@ export interface ImportedSlab {
   readonly expressId: number
   readonly guid: string | null
   readonly name: string | null
-  readonly placement: mat4
+  readonly placement: Transform
   readonly profile: ExtrudedProfile | null
   readonly thickness: number | null
   readonly openings: ImportedOpening[]
@@ -71,8 +70,8 @@ export interface ImportedPerimeterOpening {
 export interface ExtrudedProfile {
   readonly footprint: PolygonWithHoles2D
   readonly localOutline: Polygon2D
-  readonly localToWorld: mat4
-  readonly extrusionDirection: vec3
+  readonly localToWorld: Transform
+  readonly extrusionDirection: Vec3
   readonly extrusionDepth: number
 }
 
@@ -86,7 +85,7 @@ export interface RawIfcStorey {
   readonly guid: string | null
   readonly name: string | null
   readonly elevation: number
-  readonly placement: mat4
+  readonly placement: Transform
   readonly line: IFC4.IfcBuildingStorey
 }
 

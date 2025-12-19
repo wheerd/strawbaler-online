@@ -1,14 +1,13 @@
-import { mat4, vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
-import { newVec2 } from '@/shared/geometry'
+import { IDENTITY, composeTransform, fromTrans, newVec2, newVec3, rotateZ } from '@/shared/geometry'
 
 import { WallConstructionArea, createProjectionMatrix, projectPoint } from './geometry'
 
 describe('createProjectionMatrix', () => {
   it('should create identity matrix for XY plane (top view)', () => {
     const projection = createProjectionMatrix('xy', 1, 1)
-    const point = vec3.fromValues(10, 20, 30)
+    const point = newVec3(10, 20, 30)
     const result = projectPoint(point, projection)
 
     // X→X, Y→-Y (inverted), Z→depth
@@ -19,7 +18,7 @@ describe('createProjectionMatrix', () => {
 
   it('should create correct matrix for XZ plane (front view)', () => {
     const projection = createProjectionMatrix('xz', 1, 1)
-    const point = vec3.fromValues(10, 20, 30)
+    const point = newVec3(10, 20, 30)
     const result = projectPoint(point, projection)
 
     // X→X, Z→-Y, Y→depth
@@ -30,7 +29,7 @@ describe('createProjectionMatrix', () => {
 
   it('should create correct matrix for YZ plane (side view)', () => {
     const projection = createProjectionMatrix('yz', 1, 1)
-    const point = vec3.fromValues(10, 20, 30)
+    const point = newVec3(10, 20, 30)
     const result = projectPoint(point, projection)
 
     // Y→X, Z→Y, X→depth
@@ -43,16 +42,16 @@ describe('createProjectionMatrix', () => {
 describe('projectPoint', () => {
   it('should project point with combined transform + projection', () => {
     // Create a transform: translate by (100, 0, 0)
-    const transform = mat4.fromTranslation(mat4.create(), vec3.fromValues(100, 0, 0))
+    const transform = fromTrans(newVec3(100, 0, 0))
 
     // Create XZ projection (front view)
     const projection = createProjectionMatrix('xz', 1, 1)
 
     // Combine them
-    const combined = mat4.multiply(mat4.create(), projection, transform)
+    const combined = composeTransform(projection, transform)
 
     // Project a point at origin
-    const point = vec3.fromValues(0, 0, 0)
+    const point = newVec3(0, 0, 0)
     const result = projectPoint(point, combined)
 
     // After translation, point is at (100, 0, 0)
@@ -65,16 +64,16 @@ describe('projectPoint', () => {
 
   it('should handle rotation correctly', () => {
     // Create a transform: rotate 90° around Z axis
-    const transform = mat4.fromZRotation(mat4.create(), Math.PI / 2)
+    const transform = rotateZ(IDENTITY, Math.PI / 2)
 
     // XY projection (top view)
     const projection = createProjectionMatrix('xy', 1, 1)
 
     // Combine them
-    const combined = mat4.multiply(mat4.create(), projection, transform)
+    const combined = composeTransform(projection, transform)
 
     // Project a point on the X axis
-    const point = vec3.fromValues(10, 0, 0)
+    const point = newVec3(10, 0, 0)
     const result = projectPoint(point, combined)
 
     // After 90° rotation around Z, point (10, 0, 0) becomes (0, 10, 0)
@@ -87,17 +86,17 @@ describe('projectPoint', () => {
 
 describe('WallConstructionArea.withZAdjustment', () => {
   it('should adjust area without roof offsets', () => {
-    const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(3000, 300, 3000))
+    const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(3000, 300, 3000))
 
     const adjusted = area.withZAdjustment(100, 1000)
 
-    expect(adjusted.position).toEqual(vec3.fromValues(0, 0, 100))
-    expect(adjusted.size).toEqual(vec3.fromValues(3000, 300, 1000))
+    expect(adjusted.position).toEqual(newVec3(0, 0, 100))
+    expect(adjusted.size).toEqual(newVec3(3000, 300, 1000))
     expect(adjusted.topOffsets).toBeUndefined()
   })
 
   it('should add intersection points when roof is partially clipped', () => {
-    const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(3000, 300, 3000), [
+    const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(3000, 300, 3000), [
       newVec2(0, -200), // Roof at Z=2800
       newVec2(3000, -500) // Roof at Z=2500
     ])
@@ -126,7 +125,7 @@ describe('WallConstructionArea.withZAdjustment', () => {
   })
 
   it('should handle fully clipped roof', () => {
-    const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(3000, 300, 3000), [
+    const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(3000, 300, 3000), [
       newVec2(0, -200), // Roof at Z=2800
       newVec2(3000, -500) // Roof at Z=2500
     ])

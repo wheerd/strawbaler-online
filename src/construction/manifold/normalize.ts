@@ -1,6 +1,19 @@
-import { mat3, mat4, quat, vec3 } from 'gl-matrix'
+import { mat3 } from 'gl-matrix'
 import { type Manifold, type Mesh } from 'manifold-3d'
 
+import {
+  type Transform,
+  type Transform3,
+  type Vec3,
+  centroid,
+  fromRotTrans,
+  negVec3,
+  newVec3,
+  subVec3,
+  transform,
+  transform3,
+  transpose3
+} from '@/shared/geometry'
 import { getManifoldModule } from '@/shared/geometry/manifoldInstance'
 
 //
@@ -9,28 +22,15 @@ import { getManifoldModule } from '@/shared/geometry/manifoldInstance'
 // ───────────────────────────────────────────────────────────────
 //
 
-export function extractVertices(m: Manifold): vec3[] {
+export function extractVertices(m: Manifold): Vec3[] {
   const mesh = m.getMesh()
-  const out: vec3[] = []
+  const out: Vec3[] = []
 
   for (let i = 0; i < mesh.vertProperties.length; i += mesh.numProp) {
-    out.push(vec3.fromValues(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
+    out.push(newVec3(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
   }
 
   return out
-}
-
-//
-// ───────────────────────────────────────────────────────────────
-// 2. Compute centroid
-// ───────────────────────────────────────────────────────────────
-//
-
-export function computeCentroid(points: vec3[]): vec3 {
-  const c = vec3.create()
-  for (const p of points) vec3.add(c, c, p)
-  vec3.scale(c, c, 1 / points.length)
-  return c
 }
 
 //
@@ -39,12 +39,12 @@ export function computeCentroid(points: vec3[]): vec3 {
 // ───────────────────────────────────────────────────────────────
 //
 
-export function computeCovariance(points: vec3[]): mat3 {
-  const centroid = computeCentroid(points)
+export function computeCovariance(points: Vec3[]): mat3 {
+  const c = centroid(points)
   const C = mat3.create()
 
   for (const p of points) {
-    const v = vec3.sub(vec3.create(), p, centroid)
+    const v = subVec3(p, c)
     C[0] += v[0] * v[0] // xx
     C[1] += v[0] * v[1] // xy
     C[2] += v[0] * v[2] // xz
@@ -68,7 +68,7 @@ export function computeCovariance(points: vec3[]): mat3 {
 //
 
 export function eigenDecompositionSymmetric3(m: mat3): {
-  eigenvalues: vec3
+  eigenvalues: Vec3
   eigenvectors: mat3 // columns = eigenvectors
 } {
   // Convert to simple JS arrays for easier manipulation.
@@ -135,7 +135,7 @@ export function eigenDecompositionSymmetric3(m: mat3): {
     }
   }
 
-  const eigenvalues = vec3.fromValues(A[0][0], A[1][1], A[2][2])
+  const eigenvalues = newVec3(A[0][0], A[1][1], A[2][2])
   const eigenvectors = mat3.fromValues(V[0][0], V[0][1], V[0][2], V[1][0], V[1][1], V[1][2], V[2][0], V[2][1], V[2][2])
 
   return { eigenvalues, eigenvectors }
@@ -148,12 +148,12 @@ export function eigenDecompositionSymmetric3(m: mat3): {
 // ───────────────────────────────────────────────────────────────
 //
 
-export function canonicalRotationFromPCA(vals: vec3, vecs: mat3): mat3 {
+export function canonicalRotationFromPCA(vals: Vec3, vecs: mat3): Transform3 {
   // Convert eigenpairs into array for sorting
   const eigenPairs = [
-    { value: vals[0], vec: vec3.fromValues(vecs[0], vecs[1], vecs[2]) },
-    { value: vals[1], vec: vec3.fromValues(vecs[3], vecs[4], vecs[5]) },
-    { value: vals[2], vec: vec3.fromValues(vecs[6], vecs[7], vecs[8]) }
+    { value: vals[0], vec: newVec3(vecs[0], vecs[1], vecs[2]) },
+    { value: vals[1], vec: newVec3(vecs[3], vecs[4], vecs[5]) },
+    { value: vals[2], vec: newVec3(vecs[6], vecs[7], vecs[8]) }
   ]
 
   // Sort eigenvectors by eigenvalue descending
@@ -183,7 +183,7 @@ export function canonicalRotationFromPCA(vals: vec3, vecs: mat3): mat3 {
     R[8] *= -1
   }
 
-  return R
+  return R as Transform3
 }
 
 //
@@ -192,20 +192,13 @@ export function canonicalRotationFromPCA(vals: vec3, vecs: mat3): mat3 {
 // ───────────────────────────────────────────────────────────────
 //
 
-export function applyCanonicalTransform(points: vec3[], centroid: vec3, rotation: mat3): vec3[] {
-  const M = mat4.fromRotationTranslation(mat4.create(), mat3ToQuat(rotation), vec3.negate(vec3.create(), centroid))
+export function applyCanonicalTransform(points: Vec3[], centroid: Vec3, rotation: Transform3): Vec3[] {
+  const M = fromRotTrans(rotation, negVec3(centroid))
 
   return points.map(p => {
-    const v4 = vec3.transformMat4(vec3.create(), p, M)
+    const v4 = transform(p, M)
     return v4
   })
-}
-
-// Helper: convert mat3 → quaternion
-function mat3ToQuat(m: mat3): quat {
-  const q = quat.create()
-  quat.fromMat3(q, m)
-  return q
 }
 
 //
@@ -214,7 +207,7 @@ function mat3ToQuat(m: mat3): quat {
 // ───────────────────────────────────────────────────────────────
 //
 
-export function canonicalSort(points: vec3[]): Float64Array {
+export function canonicalSort(points: Vec3[]): Float64Array {
   const arr = points.map(p => [p[0], p[1], p[2]])
   arr.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2])
   return new Float64Array(arr.flat())
@@ -244,12 +237,12 @@ export async function normalizeManifoldGeometry(m: Manifold): Promise<{
   hash: string
 }> {
   let pts = extractVertices(m)
-  const centroid = computeCentroid(pts)
+  const c = centroid(pts)
   const cov = computeCovariance(pts)
   const { eigenvalues, eigenvectors } = eigenDecompositionSymmetric3(cov)
   const R = canonicalRotationFromPCA(eigenvalues, eigenvectors)
 
-  pts = applyCanonicalTransform(pts, centroid, R)
+  pts = applyCanonicalTransform(pts, c, R)
 
   const sorted = canonicalSort(pts)
   const hash = await hashFloat64Array(sorted)
@@ -270,20 +263,10 @@ export async function sameGeometry(a: Manifold, b: Manifold): Promise<boolean> {
 }
 
 /* ----------------------------------------------------------
- *  Convert mat3 → mat4 (rotation only)
- * ---------------------------------------------------------- */
-
-function mat4FromRotationTranslation3(rotation: mat3, translation: vec3): mat4 {
-  const m = mat4.create()
-  mat4.fromRotationTranslation(m, quat.fromMat3(quat.create(), rotation), translation)
-  return m
-}
-
-/* ----------------------------------------------------------
  *  Apply 4×4 transform to all vertex positions of a mesh
  * ---------------------------------------------------------- */
 
-function transformMeshVertices(mesh: ReturnType<Manifold['getMesh']>, transform: mat4): Float32Array {
+function transformMeshVertices(mesh: ReturnType<Manifold['getMesh']>, t: Transform): Float32Array {
   const out: number[] = []
 
   for (let i = 0; i < mesh.vertProperties.length; i += mesh.numProp) {
@@ -291,10 +274,7 @@ function transformMeshVertices(mesh: ReturnType<Manifold['getMesh']>, transform:
     const y = mesh.vertProperties[i + 1]
     const z = mesh.vertProperties[i + 2]
 
-    const p = vec3.fromValues(x, y, z)
-    const t = vec3.transformMat4(vec3.create(), p, transform)
-
-    out.push(t[0], t[1], t[2])
+    out.push(...transform(newVec3(x, y, z), t))
   }
 
   return new Float32Array(out)
@@ -321,11 +301,11 @@ function rebuildManifoldFromMesh(mesh: Mesh, newVertices: Float32Array): Manifol
 export async function normalizeManifoldForReuse(m: Manifold): Promise<{
   canonicalManifold: Manifold
   hash: string
-  toCanonical: mat4
-  fromCanonical: mat4
+  toCanonical: Transform
+  fromCanonical: Transform
 }> {
   const pts = extractVertices(m)
-  const centroid = computeCentroid(pts)
+  const c = centroid(pts)
   const cov = computeCovariance(pts)
 
   const { eigenvalues, eigenvectors } = eigenDecompositionSymmetric3(cov)
@@ -338,13 +318,13 @@ export async function normalizeManifoldForReuse(m: Manifold): Promise<{
    * p   = Rᵀ * p_c + centroid
    * ------------------------------------------------------ */
 
-  const negCentroid = vec3.negate(vec3.create(), centroid)
+  const negCentroid = negVec3(c)
 
-  const toCanonical = mat4FromRotationTranslation3(R, vec3.transformMat3(vec3.create(), negCentroid, R))
+  const toCanonical = fromRotTrans(R, transform3(negCentroid, R))
 
-  const Rt = mat3.transpose(mat3.create(), R)
+  const Rt = transpose3(R)
 
-  const fromCanonical = mat4FromRotationTranslation3(Rt, centroid)
+  const fromCanonical = fromRotTrans(Rt, c)
 
   /* ------------------------------------------------------
    * Create canonical manifold by transforming mesh vertices
@@ -359,9 +339,8 @@ export async function normalizeManifoldForReuse(m: Manifold): Promise<{
    * ------------------------------------------------------ */
 
   const sorted = canonicalSort(
-    canonicalVertices.reduce<vec3[]>((acc, _, i) => {
-      if (i % 3 === 0)
-        acc.push(vec3.fromValues(canonicalVertices[i], canonicalVertices[i + 1], canonicalVertices[i + 2]))
+    canonicalVertices.reduce<Vec3[]>((acc, _, i) => {
+      if (i % 3 === 0) acc.push(newVec3(canonicalVertices[i], canonicalVertices[i + 1], canonicalVertices[i + 2]))
       return acc
     }, [])
   )
@@ -380,7 +359,7 @@ export async function normalizeManifoldForReuse(m: Manifold): Promise<{
  *  Reconstruct original manifold from canonical
  * ---------------------------------------------------------- */
 
-export function reconstructFromCanonical(canonical: Manifold, fromCanonical: mat4): Manifold {
+export function reconstructFromCanonical(canonical: Manifold, fromCanonical: Transform): Manifold {
   const mesh = canonical.getMesh()
   const v = transformMeshVertices(mesh, fromCanonical)
   return rebuildManifoldFromMesh(mesh, v)

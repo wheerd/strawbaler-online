@@ -1,8 +1,20 @@
-import { mat4, vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
-import type { PolygonWithHoles3D } from '@/shared/geometry'
-import { computeTriangleNormal } from '@/shared/geometry/3d'
+import {
+  type PolygonWithHoles3D,
+  type Transform,
+  type Vec3,
+  ZERO_VEC3,
+  addVec3,
+  computeTriangleNormal,
+  crossVec3,
+  distVec3,
+  dotVec3,
+  lenVec3,
+  newVec3,
+  subVec3,
+  transform
+} from '@/shared/geometry'
 
 /**
  * Extract visible polygon faces from a manifold mesh in view space with backface culling.
@@ -14,21 +26,21 @@ import { computeTriangleNormal } from '@/shared/geometry/3d'
  * 4. Merges coplanar front-facing triangles into polygons
  *
  * @param m - The manifold mesh to extract faces from
- * @param transform - Combined transform matrix (projectionMatrix * accumulatedTransform)
+ * @param t - Combined transform matrix (projectionMatrix * accumulatedTransform)
  *                    that transforms from local manifold space to view space
  * @returns Array of polygons in view space (x, y, depth), with backfaces culled
  */
-export function getVisibleFacesInViewSpace(m: Manifold, transform: mat4, cullBackFaces = true): PolygonWithHoles3D[] {
+export function getVisibleFacesInViewSpace(m: Manifold, t: Transform, cullBackFaces = true): PolygonWithHoles3D[] {
   const mesh = m.getMesh()
 
   // Extract vertex positions in local manifold space
-  const localPositions: vec3[] = []
+  const localPositions: Vec3[] = []
   for (let i = 0; i < mesh.vertProperties.length; i += 3) {
-    localPositions.push(vec3.fromValues(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
+    localPositions.push(newVec3(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
   }
 
   // Transform all vertices to view space upfront
-  const viewSpacePositions = localPositions.map(p => vec3.transformMat4(vec3.create(), p, transform))
+  const viewSpacePositions = localPositions.map(p => transform(p, t))
 
   // Extract triangle indices
   const triangles: [number, number, number][] = []
@@ -43,13 +55,13 @@ export function getVisibleFacesInViewSpace(m: Manifold, transform: mat4, cullBac
 
   // Backface culling: filter out triangles not facing the camera
   // In view space, camera always looks down -Z axis, so view direction is (0, 0, -1)
-  const viewDirection = vec3.fromValues(0, 0, -1)
+  const viewDirection = newVec3(0, 0, -1)
   const frontFacingIndices: number[] = []
   const EPSILON = 0.001 // Small tolerance for floating-point precision
 
   if (cullBackFaces) {
     for (let i = 0; i < triangles.length; i++) {
-      const dotProduct = vec3.dot(triangleNormals[i], viewDirection)
+      const dotProduct = dotVec3(triangleNormals[i], viewDirection)
       // Exclude perpendicular and back-facing triangles (> 0, not >= 0)
       if (dotProduct > EPSILON) {
         frontFacingIndices.push(i)
@@ -134,15 +146,15 @@ export function getVisibleFacesInViewSpace(m: Manifold, transform: mat4, cullBac
 
 export interface Face3D {
   polygon: PolygonWithHoles3D
-  normal: vec3
+  normal: Vec3
 }
 
 export function getFacesFromManifold(m: Manifold): Face3D[] {
   const mesh = m.getMesh()
 
-  const vertices: vec3[] = []
+  const vertices: Vec3[] = []
   for (let i = 0; i < mesh.vertProperties.length; i += 3) {
-    vertices.push(vec3.fromValues(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
+    vertices.push(newVec3(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
   }
   // Extract triangle indices
   const triangles: [number, number, number][] = []
@@ -186,7 +198,7 @@ export function getFacesFromManifold(m: Manifold): Face3D[] {
   // Step 3: BFS to find connected components of coplanar triangles
   const visited = new Array(triangles.length).fill(false)
   const components: number[][] = []
-  const compNormals: vec3[] = []
+  const compNormals: Vec3[] = []
 
   for (let i = 0; i < triangles.length; i++) {
     if (visited[i]) continue
@@ -222,36 +234,36 @@ export function getFacesFromManifold(m: Manifold): Face3D[] {
 // ---------------------------------------------------------------
 
 function areCoplanar(
-  n1: vec3,
-  n2: vec3,
-  positions: vec3[],
+  n1: Vec3,
+  n2: Vec3,
+  positions: Vec3[],
   t1: [number, number, number],
   t2: [number, number, number]
 ): boolean {
   const normalEps = 1e-3 // ~0.06 degree tolerance for normals (using 1 - cos(angle))
 
   // Check normals using dot product (more numerically stable than squared distance)
-  const dotProduct = vec3.dot(n1, n2)
+  const dotProduct = dotVec3(n1, n2)
   if (dotProduct < 1 - normalEps) return false
 
   // Compute characteristic length scale from both triangles
   const scale1 = Math.max(
-    vec3.distance(positions[t1[0]], positions[t1[1]]),
-    vec3.distance(positions[t1[1]], positions[t1[2]]),
-    vec3.distance(positions[t1[2]], positions[t1[0]])
+    distVec3(positions[t1[0]], positions[t1[1]]),
+    distVec3(positions[t1[1]], positions[t1[2]]),
+    distVec3(positions[t1[2]], positions[t1[0]])
   )
   const scale2 = Math.max(
-    vec3.distance(positions[t2[0]], positions[t2[1]]),
-    vec3.distance(positions[t2[1]], positions[t2[2]]),
-    vec3.distance(positions[t2[2]], positions[t2[0]])
+    distVec3(positions[t2[0]], positions[t2[1]]),
+    distVec3(positions[t2[1]], positions[t2[2]]),
+    distVec3(positions[t2[2]], positions[t2[0]])
   )
   const scale = Math.max(scale1, scale2)
   const planeEps = scale * 1e-4 // Relative to geometry size
 
   // Check plane equation with average of all vertices for robustness
   // This is more stable for slim triangles with numerical errors
-  const avgD1 = (vec3.dot(n1, positions[t1[0]]) + vec3.dot(n1, positions[t1[1]]) + vec3.dot(n1, positions[t1[2]])) / 3
-  const avgD2 = (vec3.dot(n1, positions[t2[0]]) + vec3.dot(n1, positions[t2[1]]) + vec3.dot(n1, positions[t2[2]])) / 3
+  const avgD1 = (dotVec3(n1, positions[t1[0]]) + dotVec3(n1, positions[t1[1]]) + dotVec3(n1, positions[t1[2]])) / 3
+  const avgD2 = (dotVec3(n1, positions[t2[0]]) + dotVec3(n1, positions[t2[1]]) + dotVec3(n1, positions[t2[2]])) / 3
 
   return Math.abs(avgD1 - avgD2) < planeEps
 }
@@ -263,7 +275,7 @@ function areCoplanar(
 function trianglesToPolygon(
   comp: number[],
   triangles: [number, number, number][],
-  positions: vec3[]
+  positions: Vec3[]
 ): PolygonWithHoles3D {
   // Find boundary edges (those belonging to exactly one triangle in component)
   const countMap = new Map<string, number>()
@@ -360,18 +372,18 @@ function trianglesToPolygon(
 // Compute area of 3D polygon via projecting to plane
 // ---------------------------------------------------------------
 
-function polygonArea3D(points: vec3[]): number {
+function polygonArea3D(points: Vec3[]): number {
   if (points.length < 3) return 0
 
   // Compute normal direction
   const p0 = points[0]
-  const n = vec3.create()
+  let n = ZERO_VEC3
   for (let i = 1; i < points.length; i++) {
-    const v1 = vec3.sub(vec3.create(), points[i], p0)
-    const v2 = vec3.sub(vec3.create(), points[(i + 1) % points.length], p0)
-    const cross = vec3.cross(vec3.create(), v1, v2)
-    vec3.add(n, n, cross)
+    const v1 = subVec3(points[i], p0)
+    const v2 = subVec3(points[(i + 1) % points.length], p0)
+    const cross = crossVec3(v1, v2)
+    n = addVec3(n, cross)
   }
 
-  return vec3.length(n) * 0.5
+  return lenVec3(n) * 0.5
 }

@@ -1,10 +1,10 @@
-import { vec3 } from 'gl-matrix'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { ConstructionElement } from '@/construction/elements'
-import { WallConstructionArea, getPosition } from '@/construction/geometry'
+import { WallConstructionArea } from '@/construction/geometry'
 import { aggregateResults } from '@/construction/results'
 import type { CuboidShape } from '@/construction/shapes'
+import { getPosition, newVec3 } from '@/shared/geometry'
 
 import type { Material, MaterialId } from './material'
 import { wood } from './material'
@@ -34,8 +34,8 @@ describe('constructPost', () => {
     }
 
     it('should create a single full post element without errors', () => {
-      const position = vec3.fromValues(100, 50, 25)
-      const size = vec3.fromValues(60, 360, 3000)
+      const position = newVec3(100, 50, 25)
+      const size = newVec3(60, 360, 3000)
       const area = new WallConstructionArea(position, size)
 
       const results = [...constructPost(area, fullPostConfig)]
@@ -50,13 +50,13 @@ describe('constructPost', () => {
       const postElement = post as ConstructionElement
       expect(postElement.material).toBe(mockWoodMaterial)
       expect(postElement.shape.base?.type).toBe('cuboid')
-      expect(getPosition(postElement.transform)).toEqual(vec3.fromValues(100, 50, 25)) // Corner-based positioning
-      expect((postElement.shape.base as CuboidShape).size).toEqual(vec3.fromValues(60, 360, 3000))
+      expect(getPosition(postElement.transform)).toEqual(newVec3(100, 50, 25)) // Corner-based positioning
+      expect((postElement.shape.base as CuboidShape).size).toEqual(newVec3(60, 360, 3000))
     })
 
     it('should handle zero offset', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(60, 360, 3000)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(60, 360, 3000)
       const area = new WallConstructionArea(position, size)
 
       const results = [...constructPost(area, fullPostConfig)]
@@ -69,13 +69,13 @@ describe('constructPost', () => {
       const post = elements[0]
       expect('material' in post).toBe(true)
       const postElement = post as ConstructionElement
-      expect(getPosition(postElement.transform)).toEqual(vec3.fromValues(0, 0, 0))
-      expect((postElement.shape.base as CuboidShape).size).toEqual(vec3.fromValues(60, 360, 3000))
+      expect(getPosition(postElement.transform)).toEqual(newVec3(0, 0, 0))
+      expect((postElement.shape.base as CuboidShape).size).toEqual(newVec3(60, 360, 3000))
     })
 
     it('should handle different wall dimensions', () => {
-      const position = vec3.fromValues(200, 100, 0)
-      const size = vec3.fromValues(60, 180, 2500)
+      const position = newVec3(200, 100, 0)
+      const size = newVec3(60, 180, 2500)
       const area = new WallConstructionArea(position, size)
 
       const results = [...constructPost(area, fullPostConfig)]
@@ -89,8 +89,8 @@ describe('constructPost', () => {
       expect('material' in post).toBe(true)
       const postElement = post as ConstructionElement
       const postShape = postElement.shape.base as CuboidShape
-      expect(getPosition(postElement.transform)).toEqual(vec3.fromValues(200, 100, 0))
-      expect(postShape.size).toEqual(vec3.fromValues(60, 180, 2500))
+      expect(getPosition(postElement.transform)).toEqual(newVec3(200, 100, 0))
+      expect(postShape.size).toEqual(newVec3(60, 180, 2500))
     })
 
     it('should use correct material from config', () => {
@@ -100,9 +100,7 @@ describe('constructPost', () => {
         material: customMaterial
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(60, 360, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(60, 360, 3000)), config)]
       const { elements } = aggregateResults(results)
 
       expect((elements[0] as ConstructionElement).material).toBe(customMaterial)
@@ -114,29 +112,21 @@ describe('constructPost', () => {
         width: 80
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(80, 360, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(80, 360, 3000)), config)]
       const { elements } = aggregateResults(results)
 
       const post = elements[0]
       expect('material' in post).toBe(true)
       const postElement = post as ConstructionElement
-      expect((postElement.shape.base as CuboidShape).size).toEqual(vec3.fromValues(80, 360, 3000))
+      expect((postElement.shape.base as CuboidShape).size).toEqual(newVec3(80, 360, 3000))
     })
 
     it('should generate unique IDs for multiple posts', () => {
       const results1 = [
-        ...constructPost(
-          new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(60, 360, 3000)),
-          fullPostConfig
-        )
+        ...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(60, 360, 3000)), fullPostConfig)
       ]
       const results2 = [
-        ...constructPost(
-          new WallConstructionArea(vec3.fromValues(100, 0, 0), vec3.fromValues(60, 360, 3000)),
-          fullPostConfig
-        )
+        ...constructPost(new WallConstructionArea(newVec3(100, 0, 0), newVec3(60, 360, 3000)), fullPostConfig)
       ]
       const { elements: elements1 } = aggregateResults(results1)
       const { elements: elements2 } = aggregateResults(results2)
@@ -151,9 +141,7 @@ describe('constructPost', () => {
         width: 80 // Doesn't match material dimensions
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(80, 200, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(80, 200, 3000)), config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(1)
@@ -167,9 +155,7 @@ describe('constructPost', () => {
         width: 120 // Matches material width
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(120, 60, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(120, 60, 3000)), config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(0)
@@ -182,9 +168,7 @@ describe('constructPost', () => {
         width: 60 // Swapped dimension match
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(60, 120, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(60, 120, 3000)), config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(0)
@@ -197,9 +181,7 @@ describe('constructPost', () => {
         width: 120 // Original dimension match
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(120, 60, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(120, 60, 3000)), config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(0)
@@ -216,8 +198,8 @@ describe('constructPost', () => {
     }
 
     it('should create two posts and one infill element without errors', () => {
-      const position = vec3.fromValues(100, 50, 25)
-      const size = vec3.fromValues(60, 360, 3000)
+      const position = newVec3(100, 50, 25)
+      const size = newVec3(60, 360, 3000)
       const area = new WallConstructionArea(position, size)
 
       const results = [...constructPost(area, doublePostConfig)]
@@ -232,29 +214,29 @@ describe('constructPost', () => {
       const firstPost = elements[0] as ConstructionElement
       const firstShape = firstPost.shape.base as CuboidShape
       expect(firstPost.material).toBe(mockWoodMaterial)
-      expect(getPosition(firstPost.transform)).toEqual(vec3.fromValues(100, 50, 25))
-      expect(firstShape.size).toEqual(vec3.fromValues(60, 120, 3000))
+      expect(getPosition(firstPost.transform)).toEqual(newVec3(100, 50, 25))
+      expect(firstShape.size).toEqual(newVec3(60, 120, 3000))
 
       // Second post
       expect('material' in elements[1]).toBe(true)
       const secondPost = elements[1] as ConstructionElement
       const secondShape = secondPost.shape.base as CuboidShape
       expect(secondPost.material).toBe(mockWoodMaterial)
-      expect(getPosition(secondPost.transform)).toEqual(vec3.fromValues(100, 290, 25))
-      expect(secondShape.size).toEqual(vec3.fromValues(60, 120, 3000))
+      expect(getPosition(secondPost.transform)).toEqual(newVec3(100, 290, 25))
+      expect(secondShape.size).toEqual(newVec3(60, 120, 3000))
 
       // Infill
       expect('material' in elements[2]).toBe(true)
       const infillElement = elements[2] as ConstructionElement
       const infillShape = infillElement.shape.base as CuboidShape
       expect(infillElement.material).toBe(mockStrawMaterial)
-      expect(getPosition(infillElement.transform)).toEqual(vec3.fromValues(100, 170, 25))
-      expect(infillShape.size).toEqual(vec3.fromValues(60, 120, 3000))
+      expect(getPosition(infillElement.transform)).toEqual(newVec3(100, 170, 25))
+      expect(infillShape.size).toEqual(newVec3(60, 120, 3000))
     })
 
     it('should handle zero offset', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(60, 360, 3000)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(60, 360, 3000)
       const area = new WallConstructionArea(position, size)
 
       const results = [...constructPost(area, doublePostConfig)]
@@ -267,14 +249,14 @@ describe('constructPost', () => {
       expect('material' in elements[0]).toBe(true)
       expect('material' in elements[1]).toBe(true)
       expect('material' in elements[2]).toBe(true)
-      expect(getPosition(elements[0].transform)).toEqual(vec3.fromValues(0, 0, 0))
-      expect(getPosition(elements[1].transform)).toEqual(vec3.fromValues(0, 240, 0))
-      expect(getPosition(elements[2].transform)).toEqual(vec3.fromValues(0, 120, 0))
+      expect(getPosition(elements[0].transform)).toEqual(newVec3(0, 0, 0))
+      expect(getPosition(elements[1].transform)).toEqual(newVec3(0, 240, 0))
+      expect(getPosition(elements[2].transform)).toEqual(newVec3(0, 120, 0))
     })
 
     it('should handle different wall dimensions', () => {
-      const position = vec3.fromValues(200, 100, 0)
-      const size = vec3.fromValues(60, 400, 2500)
+      const position = newVec3(200, 100, 0)
+      const size = newVec3(60, 400, 2500)
       const area = new WallConstructionArea(position, size)
 
       const results = [...constructPost(area, doublePostConfig)]
@@ -287,9 +269,9 @@ describe('constructPost', () => {
       expect('material' in elements[0]).toBe(true)
       expect('material' in elements[1]).toBe(true)
       expect('material' in elements[2]).toBe(true)
-      expect(getPosition(elements[0].transform)).toEqual(vec3.fromValues(200, 100, 0))
-      expect(getPosition(elements[1].transform)).toEqual(vec3.fromValues(200, 380, 0))
-      expect(getPosition(elements[2].transform)).toEqual(vec3.fromValues(200, 220, 0))
+      expect(getPosition(elements[0].transform)).toEqual(newVec3(200, 100, 0))
+      expect(getPosition(elements[1].transform)).toEqual(newVec3(200, 380, 0))
+      expect(getPosition(elements[2].transform)).toEqual(newVec3(200, 220, 0))
     })
 
     it('should use custom post dimensions', () => {
@@ -299,24 +281,16 @@ describe('constructPost', () => {
         thickness: 150
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(80, 400, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(80, 400, 3000)), config)]
       const { elements } = aggregateResults(results)
 
       // Check element sizes via shape size
       expect('material' in elements[0]).toBe(true)
       expect('material' in elements[1]).toBe(true)
       expect('material' in elements[2]).toBe(true)
-      expect(((elements[0] as ConstructionElement).shape.base as CuboidShape).size).toEqual(
-        vec3.fromValues(80, 150, 3000)
-      )
-      expect(((elements[1] as ConstructionElement).shape.base as CuboidShape).size).toEqual(
-        vec3.fromValues(80, 150, 3000)
-      )
-      expect(((elements[2] as ConstructionElement).shape.base as CuboidShape).size).toEqual(
-        vec3.fromValues(80, 100, 3000)
-      )
+      expect(((elements[0] as ConstructionElement).shape.base as CuboidShape).size).toEqual(newVec3(80, 150, 3000))
+      expect(((elements[1] as ConstructionElement).shape.base as CuboidShape).size).toEqual(newVec3(80, 150, 3000))
+      expect(((elements[2] as ConstructionElement).shape.base as CuboidShape).size).toEqual(newVec3(80, 100, 3000))
     })
 
     it('should use correct materials from config', () => {
@@ -328,9 +302,7 @@ describe('constructPost', () => {
         infillMaterial: customStraw
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(60, 360, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(60, 360, 3000)), config)]
       const { elements } = aggregateResults(results)
 
       expect((elements[0] as ConstructionElement).material).toBe(customWood)
@@ -340,10 +312,7 @@ describe('constructPost', () => {
 
     it('should generate unique IDs for all elements', () => {
       const results = [
-        ...constructPost(
-          new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(60, 360, 3000)),
-          doublePostConfig
-        )
+        ...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(60, 360, 3000)), doublePostConfig)
       ]
       const { elements } = aggregateResults(results)
 
@@ -352,8 +321,8 @@ describe('constructPost', () => {
     })
 
     it('should not create infill when wall thickness equals exactly 2 * post thickness', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(60, 240, 3000) // Exactly 2 * 120
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(60, 240, 3000) // Exactly 2 * 120
       const area = new WallConstructionArea(position, size)
 
       const results = [...constructPost(area, doublePostConfig)]
@@ -366,8 +335,8 @@ describe('constructPost', () => {
     })
 
     it('should generate error when wall is too narrow for double posts', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(60, 200, 3000) // Less than 2 * 120
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(60, 200, 3000) // Less than 2 * 120
       const area = new WallConstructionArea(position, size)
 
       const results = [...constructPost(area, doublePostConfig)]
@@ -387,9 +356,7 @@ describe('constructPost', () => {
         thickness: 100
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(80, 300, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(80, 300, 3000)), config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(1)
@@ -404,9 +371,7 @@ describe('constructPost', () => {
         thickness: 120
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(60, 300, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(60, 300, 3000)), config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(0)
@@ -420,9 +385,7 @@ describe('constructPost', () => {
         thickness: 60
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(120, 200, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(120, 200, 3000)), config)]
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(0)
@@ -437,9 +400,7 @@ describe('constructPost', () => {
         material: mockWoodMaterial
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 1, 1)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(1, 1, 1)), config)]
       const { elements, errors, warnings } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -454,9 +415,7 @@ describe('constructPost', () => {
         material: mockWoodMaterial
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 5000, 10000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(1000, 5000, 10000)), config)]
       const { elements, errors, warnings } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -468,12 +427,7 @@ describe('constructPost', () => {
       const invalidConfig = { type: 'invalid' } as any
 
       expect(() => {
-        return [
-          ...constructPost(
-            new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(60, 360, 3000)),
-            invalidConfig
-          )
-        ]
+        return [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(60, 360, 3000)), invalidConfig)]
       }).toThrow('Invalid post type')
     })
   })
@@ -486,9 +440,7 @@ describe('constructPost', () => {
         material: mockWoodMaterial
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(60, 360, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(60, 360, 3000)), config)]
       const { elements } = aggregateResults(results)
 
       expect('material' in elements[0]).toBe(true)
@@ -509,9 +461,7 @@ describe('constructPost', () => {
         infillMaterial: mockStrawMaterial
       }
 
-      const results = [
-        ...constructPost(new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(60, 360, 3000)), config)
-      ]
+      const results = [...constructPost(new WallConstructionArea(newVec3(0, 0, 0), newVec3(60, 360, 3000)), config)]
       const { elements } = aggregateResults(results)
 
       elements.forEach(element => {
@@ -527,8 +477,8 @@ describe('constructPost', () => {
 
   describe('coordinate system consistency', () => {
     it('should maintain consistent coordinate system for full post', () => {
-      const position = vec3.fromValues(100, 200, 300)
-      const size = vec3.fromValues(60, 180, 2400)
+      const position = newVec3(100, 200, 300)
+      const size = newVec3(60, 180, 2400)
       const area = new WallConstructionArea(position, size)
       const config: FullPostConfig = {
         type: 'full',
@@ -550,8 +500,8 @@ describe('constructPost', () => {
     })
 
     it('should maintain consistent coordinate system for double post', () => {
-      const position = vec3.fromValues(100, 200, 300)
-      const size = vec3.fromValues(60, 360, 2400)
+      const position = newVec3(100, 200, 300)
+      const size = newVec3(60, 360, 2400)
       const area = new WallConstructionArea(position, size)
       const config: DoublePostConfig = {
         type: 'double',
@@ -565,13 +515,13 @@ describe('constructPost', () => {
       const { elements } = aggregateResults(results)
 
       // First post should be at original position
-      expect(getPosition(elements[0].transform)).toEqual(vec3.fromValues(100, 200, 300))
+      expect(getPosition(elements[0].transform)).toEqual(newVec3(100, 200, 300))
 
       // Second post should be at the far end
-      expect(getPosition(elements[1].transform)).toEqual(vec3.fromValues(100, 440, 300))
+      expect(getPosition(elements[1].transform)).toEqual(newVec3(100, 440, 300))
 
       // Infill should be in between
-      expect(getPosition(elements[2].transform)).toEqual(vec3.fromValues(100, 320, 300))
+      expect(getPosition(elements[2].transform)).toEqual(newVec3(100, 320, 300))
     })
   })
 })

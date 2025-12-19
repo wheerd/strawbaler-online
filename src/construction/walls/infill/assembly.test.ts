@@ -1,9 +1,8 @@
-import { vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createOpeningId, createPerimeterId, createWallAssemblyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
-import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
+import { WallConstructionArea } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'
 import { constructPost } from '@/construction/materials/posts'
@@ -13,7 +12,7 @@ import { TAG_POST_SPACING } from '@/construction/tags'
 import type { InfillWallConfig, InfillWallSegmentConfig, WallLayersConfig } from '@/construction/walls'
 import { type WallStoreyContext } from '@/construction/walls/segmentation'
 import { segmentedWallConstruction } from '@/construction/walls/segmentation'
-import { type Length, ZERO_VEC2, newVec2 } from '@/shared/geometry'
+import { IDENTITY, type Length, type Vec3, ZERO_VEC2, newVec2, newVec3 } from '@/shared/geometry'
 
 import { InfillWallAssembly } from './assembly'
 
@@ -68,8 +67,8 @@ vi.mock('@/construction/walls/layers', () => ({
     errors: [],
     warnings: [],
     bounds: {
-      min: vec3.fromValues(0, 0, 0),
-      max: vec3.fromValues(0, 0, 0)
+      min: newVec3(0, 0, 0),
+      max: newVec3(0, 0, 0)
     }
   }))
 }))
@@ -86,7 +85,7 @@ const mockSegmentedWallConstruction = vi.mocked(segmentedWallConstruction)
 const mockWoodMaterial = 'wood-material' as MaterialId
 const mockStrawMaterial = 'straw-material' as MaterialId
 
-function createMockElement(id: string, position: vec3, size: vec3, material: MaterialId) {
+function createMockElement(id: string, position: Vec3, size: Vec3, material: MaterialId) {
   return {
     id: id as any,
     material,
@@ -195,13 +194,13 @@ describe('assembly.construct', () => {
     // Mock segmentedWallConstruction to call our wall and opening construction functions
     mockSegmentedWallConstruction.mockImplementation(
       function* (wall, _perimeter, _storeyContext, _layers, wallConstruction, infill, _padding) {
-        const wallArea = new WallConstructionArea(vec3.fromValues(0, 30, 60), vec3.fromValues(3000, 220, 2380))
+        const wallArea = new WallConstructionArea(newVec3(0, 30, 60), newVec3(3000, 220, 2380))
         // Simulate calling wall construction
         yield* wallConstruction(wallArea, true, true, false)
 
         // Simulate calling opening construction if there are openings
         if (wall.openings.length > 0) {
-          const openingArea = new WallConstructionArea(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 900))
+          const openingArea = new WallConstructionArea(newVec3(1000, 30, 60), newVec3(800, 220, 900))
           yield* infill(openingArea)
         }
       }
@@ -209,14 +208,10 @@ describe('assembly.construct', () => {
 
     // Mock the construction functions
     mockConstructPost.mockReturnValue(
-      createMockGenerator([
-        createMockElement('post', vec3.fromValues(0, 0, 0), vec3.fromValues(60, 300, 2500), mockWoodMaterial)
-      ])()
+      createMockGenerator([createMockElement('post', newVec3(0, 0, 0), newVec3(60, 300, 2500), mockWoodMaterial)])()
     )
     mockConstructStraw.mockReturnValue(
-      createMockGenerator([
-        createMockElement('straw', vec3.fromValues(0, 0, 0), vec3.fromValues(800, 300, 2500), mockStrawMaterial)
-      ])()
+      createMockGenerator([createMockElement('straw', newVec3(0, 0, 0), newVec3(800, 300, 2500), mockStrawMaterial)])()
     )
   })
 
@@ -281,12 +276,7 @@ describe('assembly.construct', () => {
       // Mock segmented construction to return errors/warnings
       const mockError = 'Test error'
       const mockWarning = 'Test warning'
-      const mockElement = createMockElement(
-        'test',
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(100, 100, 100),
-        mockWoodMaterial
-      )
+      const mockElement = createMockElement('test', newVec3(0, 0, 0), newVec3(100, 100, 100), mockWoodMaterial)
 
       mockSegmentedWallConstruction.mockReturnValue(
         createMockGenerator([mockElement], [], [mockError], [mockWarning])()
@@ -306,20 +296,15 @@ describe('assembly.construct', () => {
       const floorHeight = 2500
 
       const mockMeasurement = {
-        startPoint: vec3.fromValues(0, 0, 0),
-        endPoint: vec3.fromValues(800, 0, 0),
+        startPoint: newVec3(0, 0, 0),
+        endPoint: newVec3(800, 0, 0),
         label: '800mm',
         tags: [TAG_POST_SPACING],
         groupKey: 'post-spacing',
         offset: 1
       }
 
-      const mockElement = createMockElement(
-        'test',
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(100, 100, 100),
-        mockWoodMaterial
-      )
+      const mockElement = createMockElement('test', newVec3(0, 0, 0), newVec3(100, 100, 100), mockWoodMaterial)
       mockSegmentedWallConstruction.mockReturnValue(createMockGenerator([mockElement], [mockMeasurement])())
 
       const result = assembly.construct(wall, perimeter, createMockStoreyContext(floorHeight), config)
@@ -348,7 +333,7 @@ describe('assembly.construct', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
       const floorHeight = 2500
-      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500))
+      const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(1000, 300, 2500))
 
       assembly.construct(wall, perimeter, createMockStoreyContext(floorHeight), config)
 
@@ -364,7 +349,7 @@ describe('assembly.construct', () => {
       const wall = createMockWall()
       const perimeter = createMockPerimeter([wall])
       const floorHeight = 2500
-      const area = new WallConstructionArea(vec3.fromValues(1000, 30, 60), vec3.fromValues(800, 220, 2380))
+      const area = new WallConstructionArea(newVec3(1000, 30, 60), newVec3(800, 220, 2380))
 
       assembly.construct(wall, perimeter, createMockStoreyContext(floorHeight), config)
 

@@ -1,4 +1,3 @@
-import { vec3 } from 'gl-matrix'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PerimeterId } from '@/building/model/ids'
@@ -8,7 +7,7 @@ import type { MaterialId } from '@/construction/materials/material'
 import type { HighlightedPolygon } from '@/construction/model'
 import type { ExtrudedShape } from '@/construction/shapes'
 import { TAG_PERIMETER_INSIDE, TAG_PERIMETER_OUTSIDE } from '@/construction/tags'
-import { type Polygon2D, type Vec2, ZERO_VEC2, copyVec2, newVec2 } from '@/shared/geometry'
+import { type Polygon2D, type Vec2, ZERO_VEC2, copyVec2, newVec2, newVec3 } from '@/shared/geometry'
 import * as geometry from '@/shared/geometry'
 
 import { FullRingBeamAssembly } from './full'
@@ -175,8 +174,8 @@ describe('FullRingBeamAssembly', () => {
     it('model has bounds', () => {
       const model = assembly.construct(perimeter, defaultConfig)
 
-      expect(model.bounds.min).toEqual(vec3.fromValues(0, 0, 0))
-      expect(model.bounds.max).toEqual(vec3.fromValues(4000, 3000, defaultConfig.height))
+      expect(model.bounds.min).toEqual(newVec3(0, 0, 0))
+      expect(model.bounds.max).toEqual(newVec3(4000, 3000, defaultConfig.height))
     })
 
     it('passes through offset distance variations to the geometry helpers', () => {

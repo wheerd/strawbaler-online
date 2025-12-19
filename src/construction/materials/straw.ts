@@ -1,5 +1,3 @@
-import { vec3 } from 'gl-matrix'
-
 import { getConfigActions } from '@/construction/config'
 import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
 import type { WallConstructionArea } from '@/construction/geometry'
@@ -16,11 +14,11 @@ import {
   TAG_STRAW_STUFFED,
   type Tag
 } from '@/construction/tags'
-import { type Length, type Plane3D } from '@/shared/geometry'
+import { type Length, type Plane3D, type Vec3 } from '@/shared/geometry'
 
 import type { MaterialId, StrawbaleMaterial } from './material'
 
-function getStrawTags(size: vec3, material: StrawbaleMaterial): Tag[] {
+function getStrawTags(size: Vec3, material: StrawbaleMaterial): Tag[] {
   if (Math.abs(size[1] - material.baleWidth) > material.tolerance) {
     return [TAG_STRAW_STUFFED]
   }

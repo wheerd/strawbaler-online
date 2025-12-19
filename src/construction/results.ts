@@ -1,11 +1,10 @@
-import { mat4 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
-import { IDENTITY, type Transform, transformBounds } from '@/construction/geometry'
+import { transformBounds } from '@/construction/geometry'
 import { getBoundsFromManifold, transformManifold } from '@/construction/manifold/operations'
 import type { PartInfo } from '@/construction/parts'
 import type { Tag } from '@/construction/tags'
-import { Bounds3D } from '@/shared/geometry'
+import { Bounds3D, IDENTITY, type Transform, invertTransform } from '@/shared/geometry'
 
 import {
   type ConstructionElement,
@@ -227,7 +226,7 @@ export function* yieldAndClip(
 export function* withClipping(item: GroupOrElement, clipping: (m: Manifold) => Manifold): Generator<GroupOrElement> {
   if ('shape' in item) {
     // This is an element - apply clipping
-    const invertedTransform = mat4.invert(mat4.create(), item.transform)
+    const invertedTransform = invertTransform(item.transform)
     const clippedManifold = invertedTransform
       ? transformManifold(clipping(transformManifold(item.shape.manifold, item.transform)), invertedTransform)
       : clipping(item.shape.manifold)

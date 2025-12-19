@@ -1,11 +1,16 @@
-import { mat4, vec3 } from 'gl-matrix'
-
 import { getConstructionElementClasses } from '@/construction/components/cssHelpers'
 import type { GroupOrElement } from '@/construction/elements'
 import { type Projection, projectPoint } from '@/construction/geometry'
 import { getVisibleFacesInViewSpace } from '@/construction/manifold/faces'
-import { newVec2 } from '@/shared/geometry'
-import { Bounds2D, type PolygonWithHoles2D } from '@/shared/geometry'
+import {
+  Bounds2D,
+  IDENTITY,
+  type PolygonWithHoles2D,
+  type Transform,
+  composeTransform,
+  newVec2,
+  transform
+} from '@/shared/geometry'
 
 export type FaceTree = Face | FaceGroup
 
@@ -34,19 +39,19 @@ const EPSILON = 0.0001
 export function* geometryFaces(
   groupOrElement: GroupOrElement,
   projectionMatrix: Projection,
-  parentTransform: mat4 = mat4.create()
+  parentTransform: Transform = IDENTITY
 ): Generator<FaceTree> {
   // Accumulate transform: parent * element
-  const accumulatedTransform = mat4.multiply(mat4.create(), parentTransform, groupOrElement.transform)
+  const accumulatedTransform = composeTransform(parentTransform, groupOrElement.transform)
 
   if ('shape' in groupOrElement) {
     const combinedClassName = getConstructionElementClasses(groupOrElement, undefined)
 
     // Combine projection with accumulated transform
-    const finalTransform = mat4.multiply(mat4.create(), projectionMatrix, accumulatedTransform)
+    const finalTransform = composeTransform(projectionMatrix, accumulatedTransform)
 
     // Get element center in world space for z-ordering
-    const worldCenter = vec3.transformMat4(vec3.create(), groupOrElement.bounds.center, accumulatedTransform)
+    const worldCenter = transform(groupOrElement.bounds.center, accumulatedTransform)
     const centerDepth = projectPoint(worldCenter, projectionMatrix)[2]
 
     // Get visible faces in view space with backface culling applied

@@ -4,8 +4,7 @@ import type { RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getConfigState, setConfigState } from '@/construction/config/store'
 import { getMaterialsState, setMaterialsState } from '@/construction/materials/store'
-import { newVec2 } from '@/shared/geometry'
-import type { Polygon2D } from '@/shared/geometry'
+import { type Polygon2D, newVec2 } from '@/shared/geometry'
 
 import { ProjectImportExportService } from './ProjectImportExportService'
 

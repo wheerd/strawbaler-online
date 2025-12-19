@@ -1,8 +1,6 @@
-import { vec3 } from 'gl-matrix'
-
 import { WallConstructionArea } from '@/construction/geometry'
 import type { HeightItem, HeightJumpItem, HeightLine } from '@/construction/roofs/types'
-import { type Length, type Vec2, copyVec2, newVec2 } from '@/shared/geometry'
+import { type Length, type Vec2, type Vec3, copyVec2, newVec2, newVec3 } from '@/shared/geometry'
 
 // Use smaller epsilon for position comparisons
 const POSITION_EPSILON = 0.0001
@@ -223,8 +221,8 @@ function isHeightItem(item: HeightJumpItem | HeightItem): item is HeightItem {
  */
 export function mergeWallSegments(
   segments: WallConstructionArea[],
-  fullPosition: vec3,
-  fullSize: vec3
+  fullPosition: Vec3,
+  fullSize: Vec3
 ): WallConstructionArea {
   if (segments.length === 0) {
     return new WallConstructionArea(fullPosition, fullSize)
@@ -306,8 +304,8 @@ export function splitAtHeightJumps(area: WallConstructionArea): WallConstruction
       const end = current[0]
       segments.push(
         new WallConstructionArea(
-          vec3.fromValues(area.position[0] + start, area.position[1], area.position[2]),
-          vec3.fromValues(end - start, area.size[1], area.size[2]),
+          newVec3(area.position[0] + start, area.position[1], area.position[2]),
+          newVec3(end - start, area.size[1], area.size[2]),
           segmentOffsets.map(o => newVec2(o[0] - start, o[1]))
         )
       )
@@ -319,8 +317,8 @@ export function splitAtHeightJumps(area: WallConstructionArea): WallConstruction
   if (segmentOffsets.length > 0) {
     segments.push(
       new WallConstructionArea(
-        vec3.fromValues(area.position[0] + start, area.position[1], area.position[2]),
-        vec3.fromValues(area.size[0] - start, area.size[1], area.size[2]),
+        newVec3(area.position[0] + start, area.position[1], area.position[2]),
+        newVec3(area.size[0] - start, area.size[1], area.size[2]),
         segmentOffsets.map(o => newVec2(o[0] - start, o[1]))
       )
     )

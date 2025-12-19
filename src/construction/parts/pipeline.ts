@@ -1,4 +1,3 @@
-import { vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import { type Face3D, getFacesFromManifold } from '@/construction/manifold/faces'
@@ -10,11 +9,15 @@ import {
   type PolygonWithHoles2D,
   type PolygonWithHoles3D,
   type Vec2,
+  type Vec3,
   canonicalPolygonKey,
+  dotAbsVec3,
+  dotVec3,
   ensurePolygonIsClockwise,
   ensurePolygonIsCounterClockwise,
   minimumAreaBoundingBox,
   newVec2,
+  newVec3,
   polygonEdgeCount,
   simplifyPolygon,
   simplifyPolygonWithHoles
@@ -24,7 +27,7 @@ import { createId } from '@/shared/utils/ids'
 
 export interface ManifoldPartInfo {
   id: string
-  boxSize: vec3
+  boxSize: Vec3
   sideFaces?: SideFace[]
 }
 
@@ -34,7 +37,7 @@ export function getPartInfoFromManifold(manifold: Manifold): ManifoldPartInfo {
     const roundedDims = cuboid.dims.map(Math.round)
     return {
       id: `cuboid:${roundedDims.join('x')}`,
-      boxSize: vec3.fromValues(roundedDims[0], roundedDims[1], roundedDims[2])
+      boxSize: newVec3(roundedDims[0], roundedDims[1], roundedDims[2])
     }
   }
   const extruded = isExtruded(manifold)
@@ -46,7 +49,7 @@ export function getPartInfoFromManifold(manifold: Manifold): ManifoldPartInfo {
     const roundedDims = extruded.dims.map(Math.round)
     return {
       id: `extruded:${roundedDims.join('x')}|outer:${polygonKeys.join('|hole:')}`,
-      boxSize: vec3.fromValues(roundedDims[0], roundedDims[1], roundedDims[2]),
+      boxSize: newVec3(roundedDims[0], roundedDims[1], roundedDims[2]),
       sideFaces: [{ index: extruded.dims.indexOf(extruded.thickness), polygon: extruded.polygon }]
     }
   }
@@ -57,17 +60,17 @@ export function getPartInfoFromManifold(manifold: Manifold): ManifoldPartInfo {
   // TODO: Still try to extract faces
   return {
     id: createId('unknown-'),
-    boxSize: vec3.fromValues(roundedDims[0], roundedDims[1], roundedDims[2])
+    boxSize: newVec3(roundedDims[0], roundedDims[1], roundedDims[2])
   }
 }
 
 function isCuboid(manifold: Manifold): { dims: number[] } | null {
   const mesh = manifold.getMesh()
-  const normals: vec3[] = []
+  const normals: Vec3[] = []
 
-  const vertices: vec3[] = []
+  const vertices: Vec3[] = []
   for (let i = 0; i < mesh.vertProperties.length; i += 3) {
-    vertices.push(vec3.fromValues(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
+    vertices.push(newVec3(mesh.vertProperties[i], mesh.vertProperties[i + 1], mesh.vertProperties[i + 2]))
   }
 
   for (let i = 0; i < mesh.triVerts.length; i += 3) {
@@ -79,7 +82,7 @@ function isCuboid(manifold: Manifold): { dims: number[] } | null {
 
     let found = false
     for (const m of normals) {
-      if (Math.abs(vec3.dot(n, m)) > 0.999) {
+      if (dotAbsVec3(n, m) > 0.999) {
         found = true
         break
       }
@@ -92,7 +95,7 @@ function isCuboid(manifold: Manifold): { dims: number[] } | null {
   // orthogonality
   for (let i = 0; i < 3; i++) {
     for (let j = i + 1; j < 3; j++) {
-      if (Math.abs(vec3.dot(normals[i], normals[j])) > 1e-3) return null
+      if (dotAbsVec3(normals[i], normals[j]) > 1e-3) return null
     }
   }
 
@@ -101,7 +104,7 @@ function isCuboid(manifold: Manifold): { dims: number[] } | null {
     let min = Infinity
     let max = -Infinity
     for (const v of vertices) {
-      const d = vec3.dot(v, n)
+      const d = dotVec3(v, n)
       min = Math.min(min, d)
       max = Math.max(max, d)
     }
@@ -121,7 +124,7 @@ function isExtruded(manifold: Manifold): { dims: number[]; polygon: PolygonWithH
   const capPairs = []
   for (let i = 0; i < faces.length; i++) {
     for (let j = i + 1; j < faces.length; j++) {
-      const areOpposite = vec3.dot(faces[i].normal, faces[j].normal) < -0.999
+      const areOpposite = dotVec3(faces[i].normal, faces[j].normal) < -0.999
       if (areOpposite) {
         capPairs.push([i, j])
       }
@@ -136,8 +139,8 @@ function isExtruded(manifold: Manifold): { dims: number[]; polygon: PolygonWithH
     if (!checkFaceCounts(p1, p2, faces)) continue
     if (!checkFacesPerpendiular(c1, c2, faces)) continue
 
-    const d1 = vec3.dot(p1.outer.points[0], n)
-    const d2 = vec3.dot(p2.outer.points[0], n)
+    const d1 = dotVec3(p1.outer.points[0], n)
+    const d2 = dotVec3(p2.outer.points[0], n)
     const thickness = Math.abs(d1 - d2)
     const [u, v] = buildPlaneBasis(n)
     const polygon2D: PolygonWithHoles2D = {
@@ -178,7 +181,7 @@ function checkFaceCounts(p1: PolygonWithHoles3D, p2: PolygonWithHoles3D, faces: 
 function checkFacesPerpendiular(c1: number, c2: number, faces: Face3D[]) {
   for (let i = 0; i < faces.length; i++) {
     if (i === c1 || i === c2) continue
-    const faceIsNotPerpendicular = Math.abs(vec3.dot(faces[i].normal, faces[c1].normal)) > 0.001
+    const faceIsNotPerpendicular = dotAbsVec3(faces[i].normal, faces[c1].normal) > 0.001
     if (faceIsNotPerpendicular) {
       return false
     }

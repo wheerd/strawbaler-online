@@ -1,5 +1,3 @@
-import { mat4, vec3 } from 'gl-matrix'
-
 import type { OpeningAssemblyId, StoreyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
@@ -28,7 +26,7 @@ import {
   fillNullRegions,
   mergeInsideOutsideHeightLines
 } from '@/construction/walls/roofIntegration'
-import { type Length, ZERO_VEC2, newVec2 } from '@/shared/geometry'
+import { type Length, ZERO_VEC2, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
@@ -322,45 +320,45 @@ export function* segmentedWallConstruction(
   })
 
   yield yieldMeasurement({
-    startPoint: vec3.fromValues(-extensionStart, y, z),
-    endPoint: vec3.fromValues(-extensionStart + constructionLength, y, z),
-    extend1: vec3.fromValues(-extensionStart, y + sizeY, z),
-    extend2: vec3.fromValues(-extensionStart, y, z + sizeZ),
+    startPoint: newVec3(-extensionStart, y, z),
+    endPoint: newVec3(-extensionStart + constructionLength, y, z),
+    extend1: newVec3(-extensionStart, y + sizeY, z),
+    extend2: newVec3(-extensionStart, y, z + sizeZ),
     tags: [TAG_WALL_LENGTH]
   })
 
   yield yieldMeasurement({
-    startPoint: vec3.fromValues(-extensionStart, y, 0),
-    endPoint: vec3.fromValues(-extensionStart, y, totalConstructionHeight),
-    extend1: vec3.fromValues(-extensionStart + constructionLength, y, 0),
-    extend2: vec3.fromValues(-extensionStart, y + sizeY, 0),
+    startPoint: newVec3(-extensionStart, y, 0),
+    endPoint: newVec3(-extensionStart, y, totalConstructionHeight),
+    extend1: newVec3(-extensionStart + constructionLength, y, 0),
+    extend2: newVec3(-extensionStart, y + sizeY, 0),
     tags: [TAG_WALL_HEIGHT]
   })
 
   yield yieldMeasurement({
-    startPoint: vec3.fromValues(-extensionStart, y, z),
-    endPoint: vec3.fromValues(-extensionStart, y, sizeZ),
-    extend1: vec3.fromValues(-extensionStart + constructionLength, y, z),
-    extend2: vec3.fromValues(-extensionStart, y + sizeY, z),
+    startPoint: newVec3(-extensionStart, y, z),
+    endPoint: newVec3(-extensionStart, y, sizeZ),
+    extend1: newVec3(-extensionStart + constructionLength, y, z),
+    extend2: newVec3(-extensionStart, y + sizeY, z),
     tags: [TAG_WALL_CONSTRUCTION_HEIGHT]
   })
 
   if (basePlateHeight > 0) {
     yield yieldMeasurement({
-      startPoint: vec3.fromValues(-extensionStart, y, 0),
-      endPoint: vec3.fromValues(-extensionStart, y, basePlateHeight),
-      extend1: vec3.fromValues(-extensionStart + constructionLength, y, 0),
-      extend2: vec3.fromValues(-extensionStart, y + sizeY, 0),
+      startPoint: newVec3(-extensionStart, y, 0),
+      endPoint: newVec3(-extensionStart, y, basePlateHeight),
+      extend1: newVec3(-extensionStart + constructionLength, y, 0),
+      extend2: newVec3(-extensionStart, y + sizeY, 0),
       tags: [TAG_RING_BEAM_HEIGHT]
     })
   }
 
   if (topPlateHeight > 0) {
     yield yieldMeasurement({
-      startPoint: vec3.fromValues(-extensionStart, y, totalConstructionHeight - topPlateHeight),
-      endPoint: vec3.fromValues(-extensionStart, y, totalConstructionHeight),
-      extend1: vec3.fromValues(-extensionStart + constructionLength, y, totalConstructionHeight - topPlateHeight),
-      extend2: vec3.fromValues(-extensionStart, y + sizeY, totalConstructionHeight - topPlateHeight),
+      startPoint: newVec3(-extensionStart, y, totalConstructionHeight - topPlateHeight),
+      endPoint: newVec3(-extensionStart, y, totalConstructionHeight),
+      extend1: newVec3(-extensionStart + constructionLength, y, totalConstructionHeight - topPlateHeight),
+      extend2: newVec3(-extensionStart, y + sizeY, totalConstructionHeight - topPlateHeight),
       tags: [TAG_RING_BEAM_HEIGHT]
     })
   }
@@ -383,8 +381,8 @@ export function* segmentedWallConstruction(
 
   // Create overall wall construction area ONCE with roof offsets
   const overallWallArea = new WallConstructionArea(
-    vec3.fromValues(-extensionStart, y, z),
-    vec3.fromValues(constructionLength, sizeY, storeyContext.storeyHeight - z - topPlateHeight),
+    newVec3(-extensionStart, y, z),
+    newVec3(constructionLength, sizeY, storeyContext.storeyHeight - z - topPlateHeight),
     roofOffsets
   )
 
@@ -427,10 +425,10 @@ export function* segmentedWallConstruction(
 
       const x = overallWallArea.position[0] + currentX
       yield yieldMeasurement({
-        startPoint: vec3.fromValues(x, y, z),
-        endPoint: vec3.fromValues(x + wallSegmentWidth, y, z),
-        extend1: vec3.fromValues(x, y, z + sizeZ),
-        extend2: vec3.fromValues(x, y + sizeY, z),
+        startPoint: newVec3(x, y, z),
+        endPoint: newVec3(x + wallSegmentWidth, y, z),
+        extend1: newVec3(x, y, z + sizeZ),
+        extend2: newVec3(x, y + sizeY, z),
         tags: [TAG_OPENING_SPACING]
       })
     }
@@ -460,7 +458,7 @@ export function* segmentedWallConstruction(
         label,
         size: openingArea.size,
         bounds: openingArea.bounds,
-        transform: mat4.fromTranslation(mat4.create(), openingArea.position),
+        transform: fromTrans(openingArea.position),
         tags,
         renderPosition: 'bottom'
       })
@@ -478,10 +476,10 @@ export function* segmentedWallConstruction(
 
     const x = overallWallArea.position[0] + currentX
     yield yieldMeasurement({
-      startPoint: vec3.fromValues(x, y, z),
-      endPoint: vec3.fromValues(overallWallArea.position[0] + constructionLength, y, z),
-      extend1: vec3.fromValues(x, y, z + sizeZ),
-      extend2: vec3.fromValues(x, y + sizeY, z),
+      startPoint: newVec3(x, y, z),
+      endPoint: newVec3(overallWallArea.position[0] + constructionLength, y, z),
+      extend1: newVec3(x, y, z + sizeZ),
+      extend2: newVec3(x, y + sizeY, z),
       tags: [TAG_OPENING_SPACING]
     })
   }

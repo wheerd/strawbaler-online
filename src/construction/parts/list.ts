@@ -1,5 +1,3 @@
-import { vec3 } from 'gl-matrix'
-
 import type { ConstructionElement, ConstructionElementId, GroupOrElement } from '@/construction/elements'
 import type { CrossSection, DimensionalMaterial, MaterialId, SheetMaterial } from '@/construction/materials/material'
 import { getMaterialById } from '@/construction/materials/store'
@@ -22,8 +20,12 @@ import {
   type Area,
   type Length,
   type Vec2,
+  type Vec3,
   type Volume,
+  ZERO_VEC3,
+  arrayToVec3,
   calculatePolygonWithHolesArea,
+  copyVec3,
   newVec2
 } from '@/shared/geometry'
 
@@ -54,7 +56,7 @@ const indexToLabel = (index: number): string => {
   return label
 }
 
-const computeVolume = (size: vec3): Volume => size[0] * size[1] * size[2]
+const computeVolume = (size: Vec3): Volume => size[0] * size[1] * size[2]
 
 const STRAW_CATEGORY_BY_TAG: Record<string, StrawCategory> = {
   [TAG_FULL_BALE.id]: 'full',
@@ -79,7 +81,7 @@ const getStrawCategoryFromTags = (tags?: Tag[]): StrawCategory => {
   return 'stuffed'
 }
 
-const computeDimensionalDetails = (size: vec3, material: DimensionalMaterial) => {
+const computeDimensionalDetails = (size: Vec3, material: DimensionalMaterial) => {
   const dimensions = [Math.round(size[0]), Math.round(size[1]), Math.round(size[2])] as [number, number, number]
   let issue: PartIssue | undefined
   let length = dimensions[2]
@@ -120,7 +122,7 @@ const computeDimensionalDetails = (size: vec3, material: DimensionalMaterial) =>
   return { length, issue, crossSection }
 }
 
-const computeSheetDetails = (size: vec3, material: SheetMaterial) => {
+const computeSheetDetails = (size: Vec3, material: SheetMaterial) => {
   let issue: PartIssue | undefined
   const dimensions = [Math.round(size[0]), Math.round(size[1]), Math.round(size[2])] as [number, number, number]
 
@@ -217,7 +219,7 @@ function getFullPartInfo(element: GroupOrElement): FullPartInfo | null {
   const dims = [...element.bounds.size].sort()
   const id = `${typePrefix}-group:${dims.join('x')}` as PartId
   const fullInfo = element.partInfo as FullPartInfo
-  fullInfo.boxSize = dims
+  fullInfo.boxSize = arrayToVec3(dims)
   fullInfo.id = id
   return fullInfo
 }
@@ -254,7 +256,7 @@ export const generateVirtualPartsList = (model: ConstructionModel): VirtualParts
       partId,
       type: partInfo.type,
       label,
-      size: vec3.clone(partInfo.boxSize),
+      size: copyVec3(partInfo.boxSize),
       elements: [id],
       quantity: 1
     }
@@ -355,7 +357,7 @@ function processPart(
     description,
     label,
     material: materialEntry.material,
-    size: vec3.clone(size),
+    size: copyVec3(size),
     elements: [id],
     totalVolume: volume,
     quantity: 1,
@@ -430,7 +432,7 @@ function processConstructionElement(
     if (polygon) {
       area = calculatePolygonWithHolesArea(polygon)
     } else {
-      const details = computeSheetDetails(size, materialDefinition)
+      const details = computeSheetDetails(arrayToVec3(size), materialDefinition)
       area = details.areaSize[0] * details.areaSize[1]
     }
   } else if (materialDefinition?.type === 'volume') {
@@ -441,7 +443,8 @@ function processConstructionElement(
 
   const existingPart = materialEntry.parts[partId]
 
-  const volume = polygon && thickness ? calculatePolygonWithHolesArea(polygon) * thickness : computeVolume(size)
+  const volume =
+    polygon && thickness ? calculatePolygonWithHolesArea(polygon) * thickness : computeVolume(arrayToVec3(size))
 
   if (existingPart) {
     existingPart.quantity += 1
@@ -468,7 +471,7 @@ function processConstructionElement(
     description,
     label,
     material: materialEntry.material,
-    size: vec3.zero(vec3.create()),
+    size: ZERO_VEC3,
     elements: [element.id],
     totalVolume: volume,
     quantity: 1,

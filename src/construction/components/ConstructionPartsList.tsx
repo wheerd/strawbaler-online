@@ -1,6 +1,5 @@
 import { ExclamationTriangleIcon, EyeOpenIcon, PinBottomIcon, PinTopIcon } from '@radix-ui/react-icons'
 import { Badge, Card, Flex, Heading, IconButton, Table, Text, Tooltip } from '@radix-ui/themes'
-import { vec3 } from 'gl-matrix'
 import React, { useCallback, useMemo, useRef } from 'react'
 
 import { PartCutModal } from '@/construction/components/PartCutModal'
@@ -15,7 +14,7 @@ import type {
 import { useMaterialsMap } from '@/construction/materials/store'
 import type { MaterialPartItem, MaterialParts, MaterialPartsList, PartId } from '@/construction/parts'
 import { SawIcon } from '@/shared/components/Icons'
-import { Bounds2D, type Polygon2D, type Volume } from '@/shared/geometry'
+import { Bounds2D, type Polygon2D, type Vec3, type Volume, isZeroVec3 } from '@/shared/geometry'
 import { formatArea, formatLength, formatLengthInMeters, formatVolume } from '@/shared/utils/formatting'
 
 type BadgeColor = React.ComponentProps<typeof Badge>['color']
@@ -60,7 +59,7 @@ const STRAW_CATEGORY_LABELS: Record<StrawCategory, string> = {
 const formatCrossSection = ([first, second]: [number, number]) =>
   `${formatLengthInMeters(first)} × ${formatLengthInMeters(second)}`
 
-const formatDimensions = (size: vec3) =>
+const formatDimensions = (size: Vec3) =>
   `${formatLengthInMeters(size[0])} × ${formatLengthInMeters(size[1])} × ${formatLengthInMeters(size[2])}`
 
 const formatWeight = (weight?: number) => {
@@ -771,7 +770,7 @@ function SheetPartsTable({
                       <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--amber-9)' }} />
                     </Tooltip>
                   )}
-                  <Text>{vec3.equals(part.size, [0, 0, 0]) ? '' : formatDimensions(part.size)}</Text>
+                  <Text>{isZeroVec3(part.size) ? '' : formatDimensions(part.size)}</Text>
                 </Flex>
               </Table.Cell>
               <Table.Cell justify="center">{part.quantity}</Table.Cell>

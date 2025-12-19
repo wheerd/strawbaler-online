@@ -1,9 +1,7 @@
-import { vec3 } from 'gl-matrix'
-
 import type { Perimeter, PerimeterWall } from '@/building/model'
 import { getConfigActions } from '@/construction/config'
 import { createConstructionElement } from '@/construction/elements'
-import { WallConstructionArea, translate } from '@/construction/geometry'
+import { WallConstructionArea } from '@/construction/geometry'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
@@ -18,8 +16,7 @@ import {
   getRoofHeightLineForWall,
   segmentedWallConstruction
 } from '@/construction/walls/segmentation'
-import { newVec2 } from '@/shared/geometry'
-import { Bounds3D, type Length } from '@/shared/geometry'
+import { Bounds3D, type Length, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 function* noopWallSegment(
   _area: WallConstructionArea,
@@ -81,8 +78,8 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
     }
 
     const wallArea = new WallConstructionArea(
-      vec3.fromValues(-cornerInfo.extensionStart, 0, basePlateHeight),
-      vec3.fromValues(cornerInfo.constructionLength, 0, storeyContext.storeyHeight - basePlateHeight - topPlateHeight),
+      newVec3(-cornerInfo.extensionStart, 0, basePlateHeight),
+      newVec3(cornerInfo.constructionLength, 0, storeyContext.storeyHeight - basePlateHeight - topPlateHeight),
       roofOffsets
     )
 
@@ -91,7 +88,7 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
     const structureShapes = structuralPolygons.map(p =>
       createExtrudedPolygon(p, WALL_POLYGON_PLANE, structuralThickness)
     )
-    const structureTransform = translate(vec3.fromValues(0, config.layers.insideThickness, 0))
+    const structureTransform = fromTrans(newVec3(0, config.layers.insideThickness, 0))
     const structureElements = structureShapes.map(s =>
       createConstructionElement(config.material, s, structureTransform)
     )

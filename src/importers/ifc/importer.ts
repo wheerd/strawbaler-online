@@ -1,4 +1,3 @@
-import { mat4, vec3 } from 'gl-matrix'
 import {
   Handle,
   IFC4,
@@ -48,17 +47,21 @@ import type {
   ParsedIfcModel,
   RawIfcStorey
 } from '@/importers/ifc/types'
-import { createIdentityMatrix } from '@/importers/ifc/utils'
 import {
   Bounds2D,
   Bounds3D,
+  IDENTITY,
   type LineSegment2D,
   type Polygon2D,
   type PolygonWithHoles2D,
+  type Transform,
   type Vec2,
+  type Vec3,
   ZERO_VEC2,
   addVec2,
+  composeTransform,
   copyVec2,
+  crossVec3,
   direction,
   distVec2,
   distanceToInfiniteLine,
@@ -67,11 +70,18 @@ import {
   dotVec2,
   lenVec2,
   newVec2,
+  newVec3,
   normVec2,
+  normVec3,
   roundVec2,
   scaleAddVec2,
+  scaleAddVec3,
   scaleVec2,
+  scaleVec3,
   subVec2,
+  transform,
+  transformFromArray,
+  transformFromValues,
   vec3To2
 } from '@/shared/geometry'
 import {
@@ -333,7 +343,7 @@ export class IfcImporter {
     const results: { bounds: Bounds3D; polygons: Polygon2D[] }[] = []
     for (let j = 0; j < mesh.geometries.size(); j++) {
       const placedGeometry = mesh.geometries.get(j)
-      const matrix = mat4.copy(mat4.create(), placedGeometry.flatTransformation)
+      const matrix = transformFromArray(placedGeometry.flatTransformation)
       const geometry = this.api.GetGeometry(context.modelID, placedGeometry.geometryExpressID)
 
       const idx = this.api.GetIndexArray(geometry.GetIndexData(), geometry.GetIndexDataSize()) as Uint32Array
@@ -343,10 +353,10 @@ export class IfcImporter {
       const indices = Array.from(idx)
       geometry.delete()
 
-      const points = rawPoints.map(p => vec3.scale(vec3.create(), vec3.transformMat4(vec3.create(), p, matrix), 1000))
+      const points = rawPoints.map(p => scaleVec3(transform(p, matrix), 1000))
 
       // --- Project triangles to XY and collect as polygons ---
-      const usedPoints: vec3[] = []
+      const usedPoints: Vec3[] = []
       const triPolys: Polygon2D[] = []
       for (let t = 0; t < indices.length; t += 3) {
         const i0 = indices[t]
@@ -390,10 +400,10 @@ export class IfcImporter {
     return posFloats
   }
 
-  private posArrayToVec2(posFloats: Float32Array): vec3[] {
-    const points: vec3[] = []
+  private posArrayToVec2(posFloats: Float32Array): Vec3[] {
+    const points: Vec3[] = []
     for (let i = 0; i < posFloats.length; i += 3) {
-      points.push(vec3.fromValues(posFloats[i], posFloats[i + 1], posFloats[i + 2]))
+      points.push(newVec3(posFloats[i], posFloats[i + 1], posFloats[i + 2]))
     }
     return points
   }
@@ -743,9 +753,9 @@ export class IfcImporter {
               profiles.push({
                 footprint: { outer: polygon, holes: [] },
                 extrusionDepth: height,
-                extrusionDirection: vec3.fromValues(0, 0, 1),
+                extrusionDirection: newVec3(0, 0, 1),
                 localOutline: polygon,
-                localToWorld: mat4.identity(mat4.create())
+                localToWorld: IDENTITY
               })
             })
           })
@@ -855,7 +865,7 @@ export class IfcImporter {
   private extractExtrudedProfiles(
     context: CachedModelContext,
     product: IFC4.IfcProduct,
-    productPlacement: mat4
+    productPlacement: Transform
   ): ExtrudedProfile[] {
     const representationRef = product.Representation
     const representation = this.dereferenceLine(context, representationRef)
@@ -892,7 +902,7 @@ export class IfcImporter {
   private extractExtrudedProfilesFromShape(
     context: CachedModelContext,
     shape: IFC4.IfcShapeRepresentation,
-    productPlacement: mat4
+    productPlacement: Transform
   ): ExtrudedProfile[] {
     const profiles = []
     for (const itemRef of this.toArray(shape.Items)) {
@@ -914,7 +924,7 @@ export class IfcImporter {
   private buildExtrudedProfile(
     context: CachedModelContext,
     solid: IFC4.IfcExtrudedAreaSolid,
-    productPlacement: mat4
+    productPlacement: Transform
   ): ExtrudedProfile | null {
     const profilePolygon = this.extractProfilePolygon(context, solid.SweptArea)
     const endPolygon =
@@ -923,12 +933,10 @@ export class IfcImporter {
       return null
     }
 
-    const positionMatrix = solid.Position
-      ? this.resolveAxis2Placement3D(context, solid.Position)
-      : createIdentityMatrix()
-    const localToWorld = mat4.mul(mat4.create(), productPlacement, positionMatrix)
+    const positionMatrix = solid.Position ? this.resolveAxis2Placement3D(context, solid.Position) : IDENTITY
+    const localToWorld = composeTransform(productPlacement, positionMatrix)
 
-    const extrusionDirectionLocal = this.getDirection3(context, solid.ExtrudedDirection) ?? vec3.fromValues(0, 0, 1)
+    const extrusionDirectionLocal = this.getDirection3(context, solid.ExtrudedDirection) ?? newVec3(0, 0, 1)
     const extrusionDirection = this.transformDirection(localToWorld, extrusionDirectionLocal)
     const extrusionDepth = Math.abs(this.getNumberValue(solid.Depth)) * context.unitScale
 
@@ -940,25 +948,14 @@ export class IfcImporter {
         const end = endPolygon.outer.points[index]
         const nextStart = profilePolygon.outer.points[(index + 1) % pointCount]
         const nextEnd = endPolygon.outer.points[(index + 1) % pointCount]
-        const start3 = vec3.transformMat4(vec3.create(), vec3.fromValues(start[0], start[1], 0), localToWorld)
-        const nextStart3 = vec3.transformMat4(
-          vec3.create(),
-          vec3.fromValues(nextStart[0], nextStart[1], 0),
+        const start3 = transform(newVec3(start[0], start[1], 0), localToWorld)
+        const nextStart3 = transform(newVec3(nextStart[0], nextStart[1], 0), localToWorld)
+        const end3 = transform(
+          scaleAddVec3(newVec3(end[0], end[1], 0), extrusionDirectionLocal, extrusionDepth),
           localToWorld
         )
-        const end3 = vec3.transformMat4(
-          vec3.create(),
-          vec3.scaleAndAdd(vec3.create(), vec3.fromValues(end[0], end[1], 0), extrusionDirectionLocal, extrusionDepth),
-          localToWorld
-        )
-        const nextEnd3 = vec3.transformMat4(
-          vec3.create(),
-          vec3.scaleAndAdd(
-            vec3.create(),
-            vec3.fromValues(nextEnd[0], nextEnd[1], 0),
-            extrusionDirectionLocal,
-            extrusionDepth
-          ),
+        const nextEnd3 = transform(
+          scaleAddVec3(newVec3(nextEnd[0], nextEnd[1], 0), extrusionDirectionLocal, extrusionDepth),
           localToWorld
         )
         footprintPolygons.push(
@@ -984,14 +981,12 @@ export class IfcImporter {
   private buildProfileFromPolygonFaceset(
     context: CachedModelContext,
     set: IFC4.IfcPolygonalFaceSet,
-    productPlacement: mat4
+    productPlacement: Transform
   ): ExtrudedProfile | null {
     const coordinates = this.dereferenceLine(context, set.Coordinates)
     if (!this.isCartesianPointList3D(coordinates)) return null
 
-    const points = coordinates.CoordList.map(l => this.getPoint3(context, l)).map(p =>
-      vec3.transformMat4(vec3.create(), p, productPlacement)
-    )
+    const points = coordinates.CoordList.map(l => this.getPoint3(context, l)).map(p => transform(p, productPlacement))
     const pnIndex = set.PnIndex?.map(i => i.value as number)
 
     const bounds = Bounds3D.fromPoints(points)
@@ -1015,8 +1010,8 @@ export class IfcImporter {
     return {
       footprint,
       localOutline: union[0],
-      localToWorld: mat4.identity(mat4.create()),
-      extrusionDirection: vec3.fromValues(0, 0, 1),
+      localToWorld: IDENTITY,
+      extrusionDirection: newVec3(0, 0, 1),
       extrusionDepth: height
     }
   }
@@ -1024,7 +1019,7 @@ export class IfcImporter {
   extractFaces(
     context: CachedModelContext,
     faceRefs: (IFC4.IfcIndexedPolygonalFace | Handle<IFC4.IfcIndexedPolygonalFace>)[],
-    points: vec3[],
+    points: Vec3[],
     pnIndex: number[] | undefined
   ): PolygonWithHoles3D[] {
     const faces = faceRefs
@@ -1052,31 +1047,31 @@ export class IfcImporter {
     })
   }
 
-  private transformPolygonWithMatrix(matrix: mat4, polygon: PolygonWithHoles2D): PolygonWithHoles2D {
+  private transformPolygonWithMatrix(matrix: Transform, polygon: PolygonWithHoles2D): PolygonWithHoles2D {
     return {
       outer: this.transformPolygon(matrix, polygon.outer),
       holes: polygon.holes.map(hole => this.transformPolygon(matrix, hole))
     }
   }
 
-  private transformPolygon(matrix: mat4, polygon: Polygon2D): Polygon2D {
+  private transformPolygon(matrix: Transform, polygon: Polygon2D): Polygon2D {
     const points = polygon.points.map(point => this.transformPoint(matrix, point))
     return { points }
   }
 
-  private transformPoint(matrix: mat4, point: Vec2): Vec2 {
-    const vector = vec3.fromValues(point[0], point[1], 0)
-    const transformed = vec3.transformMat4(vec3.create(), vector, matrix)
+  private transformPoint(matrix: Transform, point: Vec2): Vec2 {
+    const vector = newVec3(point[0], point[1], 0)
+    const transformed = transform(vector, matrix)
     return newVec2(transformed[0], transformed[1])
   }
 
-  private transformDirection(matrix: mat4, direction: vec3): vec3 {
-    const result = vec3.fromValues(
+  private transformDirection(matrix: Transform, direction: Vec3): Vec3 {
+    const result = newVec3(
       matrix[0] * direction[0] + matrix[4] * direction[1] + matrix[8] * direction[2],
       matrix[1] * direction[0] + matrix[5] * direction[1] + matrix[9] * direction[2],
       matrix[2] * direction[0] + matrix[6] * direction[1] + matrix[10] * direction[2]
     )
-    return vec3.normalize(result, result)
+    return normVec3(result)
   }
 
   private extractProfilePolygon(context: CachedModelContext, profileRef: unknown): PolygonWithHoles2D | null {
@@ -1314,100 +1309,81 @@ export class IfcImporter {
     return metreScale
   }
 
-  private resolveObjectPlacement(context: CachedModelContext, product: IFC4.IfcProduct): mat4 {
+  private resolveObjectPlacement(context: CachedModelContext, product: IFC4.IfcProduct): Transform {
     const placementReference = product.ObjectPlacement ?? null
     if (placementReference == null) {
-      return createIdentityMatrix()
+      return IDENTITY
     }
 
     return this.resolvePlacementRecursive(context, placementReference)
   }
 
-  private resolvePlacementRecursive(context: CachedModelContext, reference: unknown): mat4 {
+  private resolvePlacementRecursive(context: CachedModelContext, reference: unknown): Transform {
     const placement = this.dereferenceLine(context, reference)
     if (!this.isLocalPlacement(placement)) {
-      return createIdentityMatrix()
+      return IDENTITY
     }
 
     const relativeReference = placement.RelativePlacement ?? null
     const parentReference = placement.PlacementRelTo ?? null
 
     const relativeMatrix =
-      relativeReference != null ? this.resolveAxis2Placement3D(context, relativeReference) : createIdentityMatrix()
-    const parentMatrix =
-      parentReference != null ? this.resolvePlacementRecursive(context, parentReference) : createIdentityMatrix()
+      relativeReference != null ? this.resolveAxis2Placement3D(context, relativeReference) : IDENTITY
+    const parentMatrix = parentReference != null ? this.resolvePlacementRecursive(context, parentReference) : IDENTITY
 
-    return mat4.mul(mat4.create(), parentMatrix, relativeMatrix)
+    return composeTransform(parentMatrix, relativeMatrix)
   }
 
-  private resolveAxis2Placement3D(context: CachedModelContext, reference: unknown): mat4 {
+  private resolveAxis2Placement3D(context: CachedModelContext, reference: unknown): Transform {
     const placement = this.dereferenceLine(context, reference)
     if (!this.isAxis2Placement3D(placement)) {
-      return createIdentityMatrix()
+      return IDENTITY
     }
 
-    const matrix = mat4.create()
-    mat4.identity(matrix)
-
     const location = this.getPoint3(context, placement.Location)
-    const axis = this.getDirection3(context, placement.Axis) ?? vec3.fromValues(0, 0, 1)
-    const refDirection = this.getDirection3(context, placement.RefDirection) ?? vec3.fromValues(1, 0, 0)
+    const axis = this.getDirection3(context, placement.Axis) ?? newVec3(0, 0, 1)
+    const refDirection = this.getDirection3(context, placement.RefDirection) ?? newVec3(1, 0, 0)
 
-    const localX = vec3.normalize(vec3.create(), refDirection)
-    const localZ = vec3.normalize(vec3.create(), axis)
-    const localY = vec3.cross(vec3.create(), localZ, localX)
-    vec3.normalize(localY, localY)
+    const localX = normVec3(refDirection)
+    const localZ = normVec3(axis)
+    const localY = normVec3(crossVec3(localZ, localX))
 
-    matrix[0] = localX[0]
-    matrix[1] = localX[1]
-    matrix[2] = localX[2]
-
-    matrix[4] = localY[0]
-    matrix[5] = localY[1]
-    matrix[6] = localY[2]
-
-    matrix[8] = localZ[0]
-    matrix[9] = localZ[1]
-    matrix[10] = localZ[2]
-
-    matrix[12] = location[0]
-    matrix[13] = location[1]
-    matrix[14] = location[2]
-
-    return matrix
+    // prettier-ignore
+    return transformFromValues(
+      localX[0],    localX[1],    localX[2],    0, 
+      localY[0],    localY[1],    localY[2],    0, 
+      localZ[0],    localZ[1],    localZ[2],    0, 
+      location[0],  location[1],  location[2],  1
+    )
   }
 
-  private getPoint3(context: CachedModelContext, reference: unknown): vec3 {
+  private getPoint3(context: CachedModelContext, reference: unknown): Vec3 {
     let coords: IFC4.IfcLengthMeasure[]
     if (Array.isArray(reference)) {
       coords = reference as IFC4.IfcLengthMeasure[]
     } else {
       const pointLine = this.dereferenceLine(context, reference)
       if (!this.isCartesianPoint(pointLine)) {
-        return vec3.fromValues(0, 0, 0)
+        return newVec3(0, 0, 0)
       }
 
       coords = pointLine.Coordinates ?? []
     }
-    return vec3.fromValues(
+    return newVec3(
       this.getNumberValue(coords[0]) * context.unitScale,
       this.getNumberValue(coords[1]) * context.unitScale,
       this.getNumberValue(coords[2] ?? 0) * context.unitScale
     )
   }
 
-  private getDirection3(context: CachedModelContext, reference: unknown): vec3 | null {
+  private getDirection3(context: CachedModelContext, reference: unknown): Vec3 | null {
     const directionLine = this.dereferenceLine(context, reference)
     if (!this.isDirection(directionLine)) {
       return null
     }
 
     const ratios = directionLine.DirectionRatios ?? []
-    return vec3.fromValues(
-      this.getNumberValue(ratios[0]),
-      this.getNumberValue(ratios[1]),
-      this.getNumberValue(ratios[2] ?? 0)
-    )
+    return newVec3(this.getNumberValue(ratios[0]), this.getNumberValue(ratios[1]), this.getNumberValue(ratios[2] ?? 0))
   }
 
   private isRelContainedInSpatialStructure(

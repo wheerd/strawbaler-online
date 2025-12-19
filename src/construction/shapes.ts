@@ -1,19 +1,28 @@
-import { vec3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
 import { type ConstructionElement, createConstructionElement, createCuboidElement } from '@/construction/elements'
-import { type WallConstructionArea, translate } from '@/construction/geometry'
+import { type WallConstructionArea } from '@/construction/geometry'
 import { buildAndCacheManifold } from '@/construction/manifold/builders'
 import type { MaterialId } from '@/construction/materials/material'
 import type { InitialPartInfo } from '@/construction/parts'
 import type { Tag } from '@/construction/tags'
-import { Bounds2D, Bounds3D, type Length, type Plane3D, type PolygonWithHoles2D } from '@/shared/geometry'
+import {
+  Bounds2D,
+  Bounds3D,
+  type Length,
+  type Plane3D,
+  type PolygonWithHoles2D,
+  type Vec3,
+  copyVec3,
+  fromTrans,
+  newVec3
+} from '@/shared/geometry'
 
 export type BaseShape = CuboidShape | ExtrudedShape
 
 export interface CuboidShape {
   type: 'cuboid'
-  size: vec3 // Width, height, depth
+  size: Vec3 // Width, height, depth
 }
 
 export interface ExtrudedShape {
@@ -33,15 +42,15 @@ export interface Shape {
  * Create a cuboid shape with corner at origin
  * Use element transform to position it
  */
-export function createCuboid(size: vec3): Shape {
+export function createCuboid(size: Vec3): Shape {
   const base: CuboidShape = {
     type: 'cuboid',
-    size: vec3.clone(size)
+    size: copyVec3(size)
   }
   return {
     manifold: buildAndCacheManifold(base),
     base,
-    bounds: Bounds3D.fromCuboid(vec3.fromValues(0, 0, 0), size)
+    bounds: Bounds3D.fromCuboid(newVec3(0, 0, 0), size)
   }
 }
 
@@ -95,7 +104,7 @@ export function createElementFromArea(
   const shape = createExtrudedPolygon(polygon, 'xz', area.size[1])
 
   // Create transform to position at area's Y position
-  const transform = translate(vec3.fromValues(0, area.position[1], 0))
+  const transform = fromTrans(newVec3(0, area.position[1], 0))
 
   return createConstructionElement(materialId, shape, transform, tags, partInfo)
 }

@@ -1,12 +1,12 @@
 import { EyeOpenIcon } from '@radix-ui/react-icons'
 import { Card, Flex, Heading, IconButton, Table, Text } from '@radix-ui/themes'
-import type { vec3 } from 'gl-matrix'
 import React, { useMemo } from 'react'
 
 import type { PartId, VirtualPartsList } from '@/construction/parts'
+import { type Vec3 } from '@/shared/geometry'
 import { formatLengthInMeters } from '@/shared/utils/formatting'
 
-const formatDimensions = (size: vec3): string =>
+const formatDimensions = (size: Vec3): string =>
   `${formatLengthInMeters(size[0])} × ${formatLengthInMeters(size[1])} × ${formatLengthInMeters(size[2])}`
 
 // Helper to check if part can be highlighted (not auto-generated)

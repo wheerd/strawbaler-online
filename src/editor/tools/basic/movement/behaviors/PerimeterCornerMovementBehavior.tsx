@@ -10,8 +10,7 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { PerimeterCornerMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterCornerMovementPreview'
-import { type LineSegment2D, type Vec2, addVec2, copyVec2 } from '@/shared/geometry'
-import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
+import { type LineSegment2D, type Vec2, addVec2, copyVec2, wouldClosingPolygonSelfIntersect } from '@/shared/geometry'
 
 // Corner movement needs access to the wall to update the boundary
 export interface CornerEntityContext {

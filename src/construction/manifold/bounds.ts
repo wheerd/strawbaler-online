@@ -1,51 +1,57 @@
-import { mat3, vec3 } from 'gl-matrix'
+import { mat3 } from 'gl-matrix'
 import type { Manifold } from 'manifold-3d'
 
+import {
+  type Transform3,
+  type Vec3,
+  ZERO_VEC3,
+  copyVec3,
+  crossVec3,
+  dotVec3,
+  lenSqrVec3,
+  lenVec3,
+  newVec3,
+  normVec3,
+  scaleAddVec3,
+  scaleVec3,
+  subVec3
+} from '@/shared/geometry'
+
 export interface OBB {
-  center: vec3
-  axes: [vec3, vec3, vec3]
-  halfSizes: vec3
+  center: Vec3
+  axes: [Vec3, Vec3, Vec3]
+  halfSizes: Vec3
   volume: number
   /** 8 corners in world coordinates (useful for visualization) */
-  corners: vec3[]
+  corners: Vec3[]
   /** rotation matrix (columns are axes): mat3.fromValues(x.x, y.x, z.x, x.y, y.y, z.y, x.z, y.z, z.z) */
-  rotation: mat3
+  rotation: Transform3
 }
 
-/**
- * Compute the minimum-volume oriented bounding box (approx / practical method)
- * for a Manifold-like object. The function expects the manifold to either:
- *  - expose a .convexHull() method returning another manifold (preferred), or
- *  - at least expose .getMesh() that returns { vertProperties: number[], triVerts: number[] }
- *
- * If the input doesn't have convexHull, this still runs on the original mesh.
- *
- * @param manifold - the manifold object
- */
 export function computeMinimumVolumeOBB(manifold: Manifold): OBB {
   const hull = manifold.hull()
   const mesh = hull.getMesh()
 
   // Expect mesh.vertProperties as flat array [x0,y0,z0, x1,y1,z1, ...]
-  const verts: vec3[] = []
+  const verts: Vec3[] = []
   const vprops = mesh.vertProperties
   for (let i = 0; i + 2 < vprops.length; i += 3) {
-    verts.push(vec3.fromValues(vprops[i], vprops[i + 1], vprops[i + 2]))
+    verts.push(newVec3(vprops[i], vprops[i + 1], vprops[i + 2]))
   }
 
   const triVerts = mesh.triVerts
 
   // helper: compute triangle normal
-  const triNormal = (i0: number, i1: number, i2: number, out: vec3) => {
+  const triNormal = (i0: number, i1: number, i2: number): Vec3 => {
     const a = verts[i0]
     const b = verts[i1]
     const c = verts[i2]
-    const ab = vec3.sub(vec3.create(), b, a)
-    const ac = vec3.sub(vec3.create(), c, a)
-    vec3.cross(out, ab, ac)
-    const len = vec3.length(out)
-    if (len > 0) vec3.scale(out, out, 1 / len)
-    else vec3.set(out, 0, 0, 0)
+    const ab = subVec3(b, a)
+    const ac = subVec3(c, a)
+    const n = crossVec3(ab, ac)
+    const len = lenVec3(n)
+    if (len > 0) return scaleVec3(n, 1 / len)
+    else return ZERO_VEC3
   }
 
   // iterate every triangle as candidate orientation
@@ -58,27 +64,25 @@ export function computeMinimumVolumeOBB(manifold: Manifold): OBB {
     const i2 = triVerts[3 * ti + 2]
 
     // compute normal (Z axis)
-    const z = vec3.create()
-    triNormal(i0, i1, i2, z)
-    if (vec3.squaredLength(z) < 1e-12) continue // degenerate face
+    const z = triNormal(i0, i1, i2)
+    if (lenSqrVec3(z) < 1e-12) continue // degenerate face
 
     // choose an edge direction as initial X (try edge i1-i0)
-    const edge = vec3.sub(vec3.create(), verts[i1], verts[i0])
+    const edge = subVec3(verts[i1], verts[i0])
     // orthogonalize edge to z: x = normalize(edge - (edge·z) z)
-    const proj = vec3.scale(vec3.create(), z, vec3.dot(edge, z))
-    const x = vec3.sub(vec3.create(), edge, proj)
-    if (vec3.squaredLength(x) < 1e-12) {
+    const proj = scaleVec3(z, dotVec3(edge, z))
+    let x = subVec3(edge, proj)
+    if (lenSqrVec3(x) < 1e-12) {
       // if that edge is parallel to normal, try another edge i2-i0
-      const edge2 = vec3.sub(vec3.create(), verts[i2], verts[i0])
-      const proj2 = vec3.scale(vec3.create(), z, vec3.dot(edge2, z))
-      vec3.sub(x, edge2, proj2)
-      if (vec3.squaredLength(x) < 1e-12) continue // can't form basis here
+      const edge2 = subVec3(verts[i2], verts[i0])
+      const proj2 = scaleVec3(z, dotVec3(edge2, z))
+      x = subVec3(edge2, proj2)
+      if (lenSqrVec3(x) < 1e-12) continue // can't form basis here
     }
-    vec3.normalize(x, x)
+    x = normVec3(x)
 
     // y = z cross x (ensures right-handed orthonormal frame)
-    const y = vec3.cross(vec3.create(), z, x)
-    vec3.normalize(y, y)
+    const y = normVec3(crossVec3(z, x))
 
     // build rotation axes (columns)
     // We will compute coordinates by dot(p, axis) for each axis
@@ -93,9 +97,9 @@ export function computeMinimumVolumeOBB(manifold: Manifold): OBB {
     let maxZ = Number.NEGATIVE_INFINITY
 
     for (const p of verts) {
-      const px = vec3.dot(p, x)
-      const py = vec3.dot(p, y)
-      const pz = vec3.dot(p, z)
+      const px = dotVec3(p, x)
+      const py = dotVec3(p, y)
+      const pz = dotVec3(p, z)
 
       if (px < minX) minX = px
       if (px > maxX) maxX = px
@@ -121,33 +125,23 @@ export function computeMinimumVolumeOBB(manifold: Manifold): OBB {
       const cz = (minZ + maxZ) * 0.5
 
       // worldCenter = x*cx + y*cy + z*cz
-      const center = vec3.create()
-      const tmp = vec3.create()
-      vec3.scale(tmp, x, cx)
-      vec3.add(center, center, tmp)
-      vec3.scale(tmp, y, cy)
-      vec3.add(center, center, tmp)
-      vec3.scale(tmp, z, cz)
-      vec3.add(center, center, tmp)
+      const center = scaleAddVec3(scaleAddVec3(scaleVec3(x, cx), y, cy), z, cz)
 
-      const halfSizes = vec3.fromValues(sizeX * 0.5, sizeY * 0.5, sizeZ * 0.5)
+      const halfSizes = newVec3(sizeX * 0.5, sizeY * 0.5, sizeZ * 0.5)
 
       // rotation matrix: columns are axes x,y,z
-      const rotation = mat3.fromValues(x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2])
+      const rotation = mat3.fromValues(x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]) as Transform3
 
       // compute 8 corners in world coords: ±halfSizes along axes added to center
-      const corners: vec3[] = []
+      const corners: Vec3[] = []
       for (let sx = -1; sx <= 1; sx += 2) {
         for (let sy = -1; sy <= 1; sy += 2) {
           for (let sz = -1; sz <= 1; sz += 2) {
-            const offset = vec3.create()
-            vec3.scale(tmp, x, sx * halfSizes[0])
-            vec3.add(offset, offset, tmp)
-            vec3.scale(tmp, y, sy * halfSizes[1])
-            vec3.add(offset, offset, tmp)
-            vec3.scale(tmp, z, sz * halfSizes[2])
-            vec3.add(offset, offset, tmp)
-            const corner = vec3.add(vec3.create(), center, offset)
+            const corner = scaleAddVec3(
+              scaleAddVec3(scaleAddVec3(center, x, sx * halfSizes[0]), y, sy * halfSizes[1]),
+              z,
+              sz * halfSizes[2]
+            )
             corners.push(corner)
           }
         }
@@ -155,7 +149,7 @@ export function computeMinimumVolumeOBB(manifold: Manifold): OBB {
 
       best = {
         center,
-        axes: [vec3.clone(x), vec3.clone(y), vec3.clone(z)],
+        axes: [copyVec3(x), copyVec3(y), copyVec3(z)],
         halfSizes,
         volume,
         corners,

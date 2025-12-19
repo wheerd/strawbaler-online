@@ -1,7 +1,6 @@
-import { vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { IDENTITY, WallConstructionArea } from '@/construction/geometry'
+import { WallConstructionArea } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'
 import { constructPost } from '@/construction/materials/posts'
@@ -9,7 +8,7 @@ import { constructStraw } from '@/construction/materials/straw'
 import { aggregateResults, yieldElement, yieldError, yieldMeasurement, yieldWarning } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { InfillWallSegmentConfig } from '@/construction/walls'
-import type { Length } from '@/shared/geometry'
+import { IDENTITY, type Length, type Vec3, newVec3 } from '@/shared/geometry'
 
 import { infillWallArea } from './infill'
 
@@ -33,7 +32,7 @@ const mockConstructStraw = vi.mocked(constructStraw)
 const mockWoodMaterial = 'wood-material' as MaterialId
 const mockStrawMaterial = 'straw-material' as MaterialId
 
-function createMockElement(id: string, position: vec3, size: vec3, material: MaterialId) {
+function createMockElement(id: string, position: Vec3, size: Vec3, material: MaterialId) {
   return {
     id: id as any,
     material,
@@ -96,14 +95,12 @@ describe('infillWallArea', () => {
 
     // Default mock implementations
     mockConstructPost.mockReturnValue(
-      createMockGenerator([
-        createMockElement('post-1', vec3.fromValues(0, 0, 0), vec3.fromValues(60, 300, 2500), mockWoodMaterial)
-      ])()
+      createMockGenerator([createMockElement('post-1', newVec3(0, 0, 0), newVec3(60, 300, 2500), mockWoodMaterial)])()
     )
 
     mockConstructStraw.mockReturnValue(
       createMockGenerator([
-        createMockElement('straw-1', vec3.fromValues(0, 0, 0), vec3.fromValues(800, 300, 2500), mockStrawMaterial)
+        createMockElement('straw-1', newVec3(0, 0, 0), newVec3(800, 300, 2500), mockStrawMaterial)
       ])()
     )
 
@@ -112,8 +109,8 @@ describe('infillWallArea', () => {
 
   describe('basic functionality', () => {
     it('should create straw infill when no stands are specified', () => {
-      const position = vec3.fromValues(100, 0, 0)
-      const size = vec3.fromValues(800, 300, 2500)
+      const position = newVec3(100, 0, 0)
+      const size = newVec3(800, 300, 2500)
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config)]
@@ -127,8 +124,8 @@ describe('infillWallArea', () => {
     })
 
     it('should create start post when startsWithStand is true', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1000, 300, 2500)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(1000, 300, 2500)
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config, true)]
@@ -141,8 +138,8 @@ describe('infillWallArea', () => {
     })
 
     it('should create end post when endsWithStand is true', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1000, 300, 2500)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(1000, 300, 2500)
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config, false, true)]
@@ -155,8 +152,8 @@ describe('infillWallArea', () => {
     })
 
     it('should create both start and end posts when both stands are true', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1600, 300, 2500)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(1600, 300, 2500)
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config, true, true)]
@@ -169,8 +166,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate measurements for post spacing', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1000, 300, 2500)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(1000, 300, 2500)
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config)]
@@ -184,8 +181,8 @@ describe('infillWallArea', () => {
 
   describe('error conditions', () => {
     it('should generate error when not enough space for a post with start stand', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(30, 300, 2500) // Less than post width
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(30, 300, 2500) // Less than post width
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config, true)]
@@ -196,8 +193,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate error when not enough space for a post with end stand', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(30, 300, 2500) // Less than post width
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(30, 300, 2500) // Less than post width
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config, false, true)]
@@ -208,8 +205,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate error when space for more than one post but not enough for two', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(100, 300, 2500) // More than one post width but less than 2
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(100, 300, 2500) // More than one post width but less than 2
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config, true, true)]
@@ -220,8 +217,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate warning when not enough vertical space for straw', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(800, 300, 50) // Less than minStrawSpace
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(800, 300, 50) // Less than minStrawSpace
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config)]
@@ -232,8 +229,8 @@ describe('infillWallArea', () => {
     })
 
     it('should generate warning when not enough space for infilling straw', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(50, 300, 2500) // Less than minStrawSpace for bale width
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(50, 300, 2500) // Less than minStrawSpace for bale width
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config)]
@@ -246,8 +243,8 @@ describe('infillWallArea', () => {
 
   describe('edge cases', () => {
     it('should handle exactly post width with start stand', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(60, 300, 2500) // Exactly post width
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(60, 300, 2500) // Exactly post width
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config, true)]
@@ -259,8 +256,8 @@ describe('infillWallArea', () => {
     })
 
     it('should handle exactly post width with end stand', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(60, 300, 2500) // Exactly post width
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(60, 300, 2500) // Exactly post width
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config, false, true)]
@@ -272,8 +269,8 @@ describe('infillWallArea', () => {
     })
 
     it('should handle zero dimensions gracefully', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(0, 0, 0)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(0, 0, 0)
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config)]
@@ -284,8 +281,8 @@ describe('infillWallArea', () => {
     })
 
     it('should handle startAtEnd parameter correctly', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1000, 300, 2500)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(1000, 300, 2500)
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config, false, false, true)]
@@ -310,7 +307,7 @@ describe('infillWallArea', () => {
         posts: doublePostConfig
       })
 
-      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500))
+      const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(1000, 300, 2500))
 
       const results = [...infillWallArea(area, config, true)]
       const { errors } = aggregateResults(results)
@@ -318,8 +315,8 @@ describe('infillWallArea', () => {
       expect(errors).toHaveLength(0)
       expect(mockConstructPost).toHaveBeenCalledWith(
         expect.objectContaining({
-          position: vec3.fromValues(0, 0, 0),
-          size: vec3.fromValues(60, 300, 2500)
+          position: newVec3(0, 0, 0),
+          size: newVec3(60, 300, 2500)
         }),
         doublePostConfig
       )
@@ -330,7 +327,7 @@ describe('infillWallArea', () => {
         desiredPostSpacing: 600
       })
 
-      const area = new WallConstructionArea(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 300, 2500))
+      const area = new WallConstructionArea(newVec3(0, 0, 0), newVec3(1000, 300, 2500))
 
       const results = [...infillWallArea(area, config)]
       const { measurements } = aggregateResults(results)
@@ -344,8 +341,8 @@ describe('infillWallArea', () => {
         minStrawSpace: 100
       })
 
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(800, 300, 90) // Between old and new minStrawSpace
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(800, 300, 90) // Between old and new minStrawSpace
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config)]
@@ -358,19 +355,17 @@ describe('infillWallArea', () => {
 
   describe('recursive infill behavior', () => {
     it('should create multiple posts and straw sections for large areas', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(2000, 300, 2500) // Large enough for multiple sections
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(2000, 300, 2500) // Large enough for multiple sections
       const area = new WallConstructionArea(position, size)
 
       // Mock multiple calls to constructPost and constructStraw
       mockConstructPost.mockReturnValue(
-        createMockGenerator([
-          createMockElement('post', vec3.fromValues(0, 0, 0), vec3.fromValues(60, 300, 2500), mockWoodMaterial)
-        ])()
+        createMockGenerator([createMockElement('post', newVec3(0, 0, 0), newVec3(60, 300, 2500), mockWoodMaterial)])()
       )
       mockConstructStraw.mockReturnValue(
         createMockGenerator([
-          createMockElement('straw', vec3.fromValues(0, 0, 0), vec3.fromValues(800, 300, 2500), mockStrawMaterial)
+          createMockElement('straw', newVec3(0, 0, 0), newVec3(800, 300, 2500), mockStrawMaterial)
         ])()
       )
 
@@ -383,8 +378,8 @@ describe('infillWallArea', () => {
     })
 
     it('should alternate straw placement based on atStart parameter', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1500, 300, 2500)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(1500, 300, 2500)
       const area = new WallConstructionArea(position, size)
 
       const results = [...infillWallArea(area, config)]

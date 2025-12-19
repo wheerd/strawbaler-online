@@ -1,4 +1,3 @@
-import { vec3 } from 'gl-matrix'
 import { existsSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -12,7 +11,7 @@ import { strawbale } from '@/construction/materials/material'
 import { getMaterialsActions } from '@/construction/materials/store'
 import { aggregateResults } from '@/construction/results'
 import { TAG_FULL_BALE, TAG_PARTIAL_BALE, TAG_STRAW_FLAKES, TAG_STRAW_STUFFED } from '@/construction/tags'
-import { Bounds3D } from '@/shared/geometry'
+import { Bounds3D, newVec3 } from '@/shared/geometry'
 
 import { constructStraw } from './straw'
 
@@ -74,8 +73,8 @@ const fixturesDir = path.resolve(process.cwd(), 'src', 'construction', 'material
 
 describe.each(scenarios)('constructStraw visual regression - $length x $height', ({ length, height }) => {
   it('matches the expected SVG snapshot', async () => {
-    const position = vec3.fromValues(0, 0, 0)
-    const size = vec3.fromValues(length, defaultMaterial.baleWidth, height)
+    const position = newVec3(0, 0, 0)
+    const size = newVec3(length, defaultMaterial.baleWidth, height)
 
     const results = [...constructStraw(new WallConstructionArea(position, size))]
     const { elements, errors } = aggregateResults(results)
@@ -123,7 +122,7 @@ function renderStrawLayoutSvg(elements: ConstructionElement[], options?: { paddi
   const bounds = elements
     .filter(element => element.shape.base?.type === 'cuboid')
     .map(element => {
-      const position = vec3.fromValues(element.transform[12], element.transform[13], element.transform[14])
+      const position = newVec3(element.transform[12], element.transform[13], element.transform[14])
       return Bounds3D.fromCuboid(position, element.bounds.size)
     })
 

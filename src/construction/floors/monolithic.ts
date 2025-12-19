@@ -1,11 +1,9 @@
-import { vec3 } from 'gl-matrix'
-
 import type { PerimeterConstructionContext } from '@/construction/context'
 import { createConstructionElement } from '@/construction/elements'
-import { translate } from '@/construction/geometry'
 import type { ConstructionModel } from '@/construction/model'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import { TAG_FLOOR } from '@/construction/tags'
+import { fromTrans, newVec3 } from '@/shared/geometry'
 
 import { BaseFloorAssembly } from './base'
 import type { MonolithicFloorConfig } from './types'
@@ -15,7 +13,7 @@ export class MonolithicFloorAssembly extends BaseFloorAssembly<MonolithicFloorCo
     const floor = createConstructionElement(
       config.material,
       createExtrudedPolygon({ outer: context.outerPolygon, holes: context.floorOpenings }, 'xy', config.thickness),
-      translate(vec3.fromValues(0, 0, -config.thickness)),
+      fromTrans(newVec3(0, 0, -config.thickness)),
       [TAG_FLOOR]
     )
     return {

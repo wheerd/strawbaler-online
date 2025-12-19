@@ -1,7 +1,7 @@
-import { mat4 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
 import { createProjectionMatrix } from '@/construction/geometry'
+import { IDENTITY, composeTransform, rotateZ } from '@/shared/geometry'
 import { getManifoldModule } from '@/shared/geometry/manifoldInstance'
 
 import { getVisibleFacesInViewSpace } from './faces'
@@ -66,14 +66,13 @@ describe('getVisibleFacesInViewSpace', () => {
     const cube = module.Manifold.cube([100, 100, 100], false)
 
     // Rotate 45° around Z axis
-    const rotateTransform = mat4.create()
-    mat4.rotateZ(rotateTransform, rotateTransform, Math.PI / 4)
+    const rotateTransform = rotateZ(IDENTITY, Math.PI / 4)
 
     // Top view projection
     const projection = createProjectionMatrix('xy', 1, 1)
 
     // Combine transforms
-    const finalTransform = mat4.multiply(mat4.create(), projection, rotateTransform)
+    const finalTransform = composeTransform(projection, rotateTransform)
 
     // Get visible faces
     const faces = getVisibleFacesInViewSpace(cube, finalTransform)

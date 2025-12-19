@@ -1,4 +1,3 @@
-import { vec3 } from 'gl-matrix'
 import { describe, expect, it } from 'vitest'
 
 import { type Projection, createProjectionMatrix } from '@/construction/geometry'
@@ -13,7 +12,7 @@ import {
   processMeasurements
 } from '@/construction/measurements'
 import type { Tag } from '@/construction/tags'
-import { type Vec2, ZERO_VEC2, newVec2 } from '@/shared/geometry'
+import { type Vec2, ZERO_VEC2, newVec2, newVec3 } from '@/shared/geometry'
 
 describe('measurements', () => {
   // Simple orthographic projection (XY plane - top view)
@@ -26,10 +25,10 @@ describe('measurements', () => {
   })
 
   const createAutoMeasurement = (
-    start = vec3.fromValues(0, 0, 0),
-    end = vec3.fromValues(100, 0, 0),
-    extend1 = vec3.fromValues(0, 50, 0),
-    extend2 = vec3.fromValues(0, 0, 30),
+    start = newVec3(0, 0, 0),
+    end = newVec3(100, 0, 0),
+    extend1 = newVec3(0, 50, 0),
+    extend2 = newVec3(0, 0, 30),
     tags: Tag[] = []
   ): AutoMeasurement => ({
     startPoint: start,
@@ -40,8 +39,8 @@ describe('measurements', () => {
   })
 
   const createDirectMeasurement = (
-    start = vec3.fromValues(0, 0, 0),
-    end = vec3.fromValues(100, 0, 0),
+    start = newVec3(0, 0, 0),
+    end = newVec3(100, 0, 0),
     label = '100mm',
     offset = 0,
     tags: Tag[] = []
@@ -60,14 +59,14 @@ describe('measurements', () => {
     })
 
     it('should filter out zero-length measurements', () => {
-      const measurement = createAutoMeasurement(vec3.fromValues(0, 0, 0), vec3.fromValues(0, 0, 0)) // Same start/end points
+      const measurement = createAutoMeasurement(newVec3(0, 0, 0), newVec3(0, 0, 0)) // Same start/end points
       const results = Array.from(processMeasurements([measurement], mockProjection, []))
 
       expect(results).toEqual([])
     })
 
     it('should process single horizontal measurement', () => {
-      const measurement = createAutoMeasurement(vec3.fromValues(0, 0, 0), vec3.fromValues(100, 0, 0))
+      const measurement = createAutoMeasurement(newVec3(0, 0, 0), newVec3(100, 0, 0))
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement], mockProjection, planPoints))
@@ -78,7 +77,7 @@ describe('measurements', () => {
     })
 
     it('should process single vertical measurement', () => {
-      const measurement = createAutoMeasurement(vec3.fromValues(0, 0, 0), vec3.fromValues(0, 100, 0))
+      const measurement = createAutoMeasurement(newVec3(0, 0, 0), newVec3(0, 100, 0))
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement], mockProjection, planPoints))
@@ -91,10 +90,10 @@ describe('measurements', () => {
     it('should handle measurements with tags', () => {
       const tag = createMockTag('test-tag')
       const measurement = createAutoMeasurement(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(100, 0, 0),
-        vec3.fromValues(0, 50, 0),
-        vec3.fromValues(0, 0, 30),
+        newVec3(0, 0, 0),
+        newVec3(100, 0, 0),
+        newVec3(0, 50, 0),
+        newVec3(0, 0, 30),
         [tag]
       )
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
@@ -109,12 +108,7 @@ describe('measurements', () => {
     })
 
     it('should handle measurements with no tags', () => {
-      const measurement = createAutoMeasurement(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(100, 0, 0),
-        vec3.fromValues(100, 50, 30),
-        undefined
-      )
+      const measurement = createAutoMeasurement(newVec3(0, 0, 0), newVec3(100, 0, 0), newVec3(100, 50, 30), undefined)
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement], mockProjection, planPoints))
@@ -126,7 +120,7 @@ describe('measurements', () => {
 
     it('should normalize negative directions', () => {
       // Measurement going from right to left (negative direction)
-      const measurement = createAutoMeasurement(vec3.fromValues(100, 0, 0), vec3.fromValues(0, 0, 0))
+      const measurement = createAutoMeasurement(newVec3(100, 0, 0), newVec3(0, 0, 0))
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement], mockProjection, planPoints))
@@ -141,7 +135,7 @@ describe('measurements', () => {
 
     it('should normalize negative y direction when x is zero', () => {
       // Measurement going from top to bottom (negative y direction)
-      const measurement = createAutoMeasurement(vec3.fromValues(0, 100, 0), vec3.fromValues(0, 0, 0))
+      const measurement = createAutoMeasurement(newVec3(0, 100, 0), newVec3(0, 0, 0))
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement], mockProjection, planPoints))
@@ -155,8 +149,8 @@ describe('measurements', () => {
     })
 
     it('should group measurements with similar directions', () => {
-      const measurement1 = createAutoMeasurement(vec3.fromValues(0, 0, 0), vec3.fromValues(100, 0, 0)) // horizontal
-      const measurement2 = createAutoMeasurement(vec3.fromValues(0, 50, 0), vec3.fromValues(100, 50, 0)) // also horizontal
+      const measurement1 = createAutoMeasurement(newVec3(0, 0, 0), newVec3(100, 0, 0)) // horizontal
+      const measurement2 = createAutoMeasurement(newVec3(0, 50, 0), newVec3(100, 50, 0)) // also horizontal
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement1, measurement2], mockProjection, planPoints))
@@ -168,8 +162,8 @@ describe('measurements', () => {
     })
 
     it('should create separate groups for different directions', () => {
-      const measurement1 = createAutoMeasurement(vec3.fromValues(0, 0, 0), vec3.fromValues(100, 0, 0)) // horizontal
-      const measurement2 = createAutoMeasurement(vec3.fromValues(0, 0, 0), vec3.fromValues(0, 100, 0)) // vertical
+      const measurement1 = createAutoMeasurement(newVec3(0, 0, 0), newVec3(100, 0, 0)) // horizontal
+      const measurement2 = createAutoMeasurement(newVec3(0, 0, 0), newVec3(0, 100, 0)) // vertical
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement1, measurement2], mockProjection, planPoints))
@@ -184,7 +178,7 @@ describe('measurements', () => {
 
     it('should assign measurements to appropriate sides based on distance', () => {
       // Create a measurement that should clearly go to one side
-      const measurement = createAutoMeasurement(vec3.fromValues(50, 10, 0), vec3.fromValues(150, 10, 0)) // horizontal, closer to bottom
+      const measurement = createAutoMeasurement(newVec3(50, 10, 0), newVec3(150, 10, 0)) // horizontal, closer to bottom
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)] // rectangle
 
       const results = Array.from(processMeasurements([measurement], mockProjection, planPoints))
@@ -202,9 +196,9 @@ describe('measurements', () => {
     })
 
     it('should handle overlapping measurements by placing them in different rows', () => {
-      const measurement1 = createAutoMeasurement(vec3.fromValues(0, 0, 0), vec3.fromValues(50, 0, 0)) // 0-50
-      const measurement2 = createAutoMeasurement(vec3.fromValues(25, 0, 0), vec3.fromValues(75, 0, 0)) // 25-75 (overlaps)
-      const measurement3 = createAutoMeasurement(vec3.fromValues(80, 0, 0), vec3.fromValues(130, 0, 0)) // 80-130 (no overlap)
+      const measurement1 = createAutoMeasurement(newVec3(0, 0, 0), newVec3(50, 0, 0)) // 0-50
+      const measurement2 = createAutoMeasurement(newVec3(25, 0, 0), newVec3(75, 0, 0)) // 25-75 (overlaps)
+      const measurement3 = createAutoMeasurement(newVec3(80, 0, 0), newVec3(130, 0, 0)) // 80-130 (no overlap)
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(
@@ -222,8 +216,8 @@ describe('measurements', () => {
     })
 
     it('should place non-overlapping measurements in the same row', () => {
-      const measurement1 = createAutoMeasurement(vec3.fromValues(0, 0, 0), vec3.fromValues(50, 0, 0)) // 0-50
-      const measurement2 = createAutoMeasurement(vec3.fromValues(60, 0, 0), vec3.fromValues(110, 0, 0)) // 60-110 (no overlap)
+      const measurement1 = createAutoMeasurement(newVec3(0, 0, 0), newVec3(50, 0, 0)) // 0-50
+      const measurement2 = createAutoMeasurement(newVec3(60, 0, 0), newVec3(110, 0, 0)) // 60-110 (no overlap)
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement1, measurement2], mockProjection, planPoints))
@@ -245,17 +239,17 @@ describe('measurements', () => {
       const tag = createMockTag('duplicate-tag')
       // Two identical measurements
       const measurement1 = createAutoMeasurement(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(100, 0, 0),
-        vec3.fromValues(0, 50, 0),
-        vec3.fromValues(0, 0, 30),
+        newVec3(0, 0, 0),
+        newVec3(100, 0, 0),
+        newVec3(0, 50, 0),
+        newVec3(0, 0, 30),
         [tag]
       )
       const measurement2 = createAutoMeasurement(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(100, 0, 0),
-        vec3.fromValues(0, 50, 0),
-        vec3.fromValues(0, 0, 30),
+        newVec3(0, 0, 0),
+        newVec3(100, 0, 0),
+        newVec3(0, 50, 0),
+        newVec3(0, 0, 30),
         [tag]
       )
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
@@ -271,16 +265,8 @@ describe('measurements', () => {
     })
 
     it('should deduplicate measurements with same start/end points but different sizes', () => {
-      const measurement1 = createAutoMeasurement(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(100, 0, 0),
-        vec3.fromValues(100, 20, 30)
-      ) // smaller perpendicular
-      const measurement2 = createAutoMeasurement(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(100, 0, 0),
-        vec3.fromValues(100, 80, 30)
-      ) // larger perpendicular
+      const measurement1 = createAutoMeasurement(newVec3(0, 0, 0), newVec3(100, 0, 0), newVec3(100, 20, 30)) // smaller perpendicular
+      const measurement2 = createAutoMeasurement(newVec3(0, 0, 0), newVec3(100, 0, 0), newVec3(100, 80, 30)) // larger perpendicular
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement1, measurement2], mockProjection, planPoints))
@@ -296,11 +282,7 @@ describe('measurements', () => {
     })
 
     it('should handle 3D measurements with z-component in size', () => {
-      const measurement = createAutoMeasurement(
-        vec3.fromValues(0, 0, 0),
-        vec3.fromValues(100, 0, 0),
-        vec3.fromValues(100, 50, 100)
-      ) // significant z component
+      const measurement = createAutoMeasurement(newVec3(0, 0, 0), newVec3(100, 0, 0), newVec3(100, 50, 100)) // significant z component
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement], mockProjection, planPoints))
@@ -316,11 +298,7 @@ describe('measurements', () => {
     })
 
     it('should correctly project 3D measurements to 2D', () => {
-      const measurement = createAutoMeasurement(
-        vec3.fromValues(0, 0, 50),
-        vec3.fromValues(100, 0, 150),
-        vec3.fromValues(100, 50, 30)
-      ) // 3D measurement
+      const measurement = createAutoMeasurement(newVec3(0, 0, 50), newVec3(100, 0, 150), newVec3(100, 50, 30)) // 3D measurement
       const planPoints: Vec2[] = [newVec2(0, 0), newVec2(200, 0), newVec2(200, 100), newVec2(0, 100)]
 
       const results = Array.from(processMeasurements([measurement], mockProjection, planPoints))
@@ -340,8 +318,8 @@ describe('measurements', () => {
 
       expect('extend1' in auto).toBe(true)
       if ('extend1' in auto) {
-        expect(auto.extend1).toEqual(vec3.fromValues(0, 50, 0))
-        expect(auto.extend2).toEqual(vec3.fromValues(0, 0, 30))
+        expect(auto.extend1).toEqual(newVec3(0, 50, 0))
+        expect(auto.extend2).toEqual(newVec3(0, 0, 30))
       }
 
       expect('label' in direct).toBe(true)

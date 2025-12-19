@@ -1,8 +1,8 @@
-import { vec3 } from 'gl-matrix'
 import { useId } from 'react'
 
 import { type Projection, projectPoint } from '@/construction/geometry'
 import type { HighlightedPolygon } from '@/construction/model'
+import { type Vec3, newVec3 } from '@/shared/geometry'
 
 import './areas.css'
 
@@ -19,16 +19,16 @@ export function PolygonAreaShape({ polygon, projection }: PolygonAreaShapeProps)
     // Project polygon points to 2D
     const projectedPoints = polygon.polygon.points.map(point => {
       // Convert 2D polygon point to 3D point on the specified plane for projection
-      let point3D: vec3
+      let point3D: Vec3
       switch (polygon.plane) {
         case 'xy':
-          point3D = vec3.fromValues(point[0], point[1], 0)
+          point3D = newVec3(point[0], point[1], 0)
           break
         case 'xz':
-          point3D = vec3.fromValues(point[0], 0, point[1])
+          point3D = newVec3(point[0], 0, point[1])
           break
         case 'yz':
-          point3D = vec3.fromValues(0, point[0], point[1])
+          point3D = newVec3(0, point[0], point[1])
           break
         default:
           throw new Error(`Unsupported plane: ${polygon.plane}`)

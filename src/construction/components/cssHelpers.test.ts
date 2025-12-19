@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import type { ConstructionElement, ConstructionGroup } from '@/construction/elements'
-import { IDENTITY } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
-import { Bounds3D } from '@/shared/geometry'
+import { Bounds3D, IDENTITY } from '@/shared/geometry'
 
 import { getConstructionElementClasses } from './cssHelpers'
 

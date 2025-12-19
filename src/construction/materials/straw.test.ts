@@ -1,11 +1,11 @@
-import { vec3 } from 'gl-matrix'
 import { describe, expect, it, vi } from 'vitest'
 
 import { type ConfigActions, getConfigActions } from '@/construction/config'
 import type { ConstructionElement } from '@/construction/elements'
-import { WallConstructionArea, getPosition } from '@/construction/geometry'
+import { WallConstructionArea } from '@/construction/geometry'
 import { aggregateResults } from '@/construction/results'
 import type { CuboidShape } from '@/construction/shapes'
+import { getPosition, newVec3 } from '@/shared/geometry'
 
 import type { MaterialId, StrawbaleMaterial } from './material'
 import { strawbale } from './material'
@@ -48,8 +48,8 @@ describe('constructStraw', () => {
 
   describe('perfect fit scenarios', () => {
     it('should create a single full strawbale when dimensions match exactly', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(800, 360, 500)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(800, 360, 500)
 
       const results = [...constructStraw(new WallConstructionArea(position, size))]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -63,13 +63,13 @@ describe('constructStraw', () => {
       const baleElement = bale as ConstructionElement
       expect(baleElement.material).toBe(mockMaterialId)
       expect(baleElement.shape.base?.type).toBe('cuboid')
-      expect(getPosition(baleElement.transform)).toEqual(vec3.fromValues(0, 0, 0))
-      expect((baleElement.shape.base as CuboidShape).size).toEqual(vec3.fromValues(800, 360, 500))
+      expect(getPosition(baleElement.transform)).toEqual(newVec3(0, 0, 0))
+      expect((baleElement.shape.base as CuboidShape).size).toEqual(newVec3(800, 360, 500))
     })
 
     it('should create multiple bales in a horizontal row', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1800, 360, 500) // 2 bales wide
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(1800, 360, 500) // 2 bales wide
 
       const results = [...constructStraw(new WallConstructionArea(position, size))]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -82,8 +82,8 @@ describe('constructStraw', () => {
 
   describe('error conditions', () => {
     it('should generate error when wall is too thick for single strawbale', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(800, 400, 500) // Thicker than bale width
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(800, 400, 500) // Thicker than bale width
 
       const results = [...constructStraw(new WallConstructionArea(position, size))]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -98,8 +98,8 @@ describe('constructStraw', () => {
     })
 
     it('should generate warning when wall is too thin for single strawbale', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(800, 300, 500) // Thinner than bale width
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(800, 300, 500) // Thinner than bale width
 
       const results = [...constructStraw(new WallConstructionArea(position, size))]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -125,8 +125,8 @@ describe('constructStraw', () => {
         })
       )
 
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1000, 300, 400)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(1000, 300, 400)
 
       const results = [...constructStraw(new WallConstructionArea(position, size))]
       const { elements, errors, warnings } = aggregateResults(results)
@@ -136,15 +136,15 @@ describe('constructStraw', () => {
       expect(elements).toHaveLength(1)
 
       const bale = elements[0] as ConstructionElement
-      expect((bale.shape.base as CuboidShape).size).toEqual(vec3.fromValues(1000, 300, 400))
+      expect((bale.shape.base as CuboidShape).size).toEqual(newVec3(1000, 300, 400))
     })
 
     it('should use provided material ID', () => {
       const customMaterialId = 'custom-straw-material' as MaterialId
       mockGetMaterialById.mockImplementation(id => createMaterial({ id }))
 
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(800, 360, 500)
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(800, 360, 500)
 
       const results = [...constructStraw(new WallConstructionArea(position, size), customMaterialId)]
       const { elements } = aggregateResults(results)
@@ -156,8 +156,8 @@ describe('constructStraw', () => {
 
   describe('construction element properties', () => {
     it('should generate unique IDs for each bale', () => {
-      const position = vec3.fromValues(0, 0, 0)
-      const size = vec3.fromValues(1600, 360, 500) // 2 bales
+      const position = newVec3(0, 0, 0)
+      const size = newVec3(1600, 360, 500) // 2 bales
 
       const results = [...constructStraw(new WallConstructionArea(position, size))]
       const { elements } = aggregateResults(results)

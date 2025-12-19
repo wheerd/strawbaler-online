@@ -1,6 +1,5 @@
 import { ExclamationTriangleIcon, GroupIcon, RulerHorizontalIcon } from '@radix-ui/react-icons'
 import { Box, Card, Flex, Grid, IconButton, SegmentedControl } from '@radix-ui/themes'
-import { mat4 } from 'gl-matrix'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { CutAreaShape } from '@/construction/components/CutAreaShape'
@@ -15,8 +14,15 @@ import type { ConstructionModel, HighlightedCuboid, HighlightedCut, HighlightedP
 import type { ConstructionIssue } from '@/construction/results'
 import { MidCutXIcon, MidCutYIcon } from '@/shared/components/Icons'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
-import { Bounds2D } from '@/shared/geometry'
-import { type Plane3D, type Polygon2D, type PolygonWithHoles2D } from '@/shared/geometry'
+import {
+  Bounds2D,
+  IDENTITY,
+  type Plane3D,
+  type Polygon2D,
+  type PolygonWithHoles2D,
+  type Transform,
+  composeTransform
+} from '@/shared/geometry'
 
 import { CuboidAreaShape } from './CuboidAreaShape'
 import { PolygonAreaShape } from './PolygonAreaShape'
@@ -73,10 +79,10 @@ export function FaceTreeElement({ tree }: { tree: FaceTree }): React.JSX.Element
 function collectElementsWithPartId(
   element: GroupOrElement,
   partId: string,
-  parentTransform: mat4 = mat4.create()
-): { element: GroupOrElement; worldTransform: mat4 }[] {
+  parentTransform: Transform = IDENTITY
+): { element: GroupOrElement; worldTransform: Transform }[] {
   // Accumulate transform: parent * element
-  const accumulatedTransform = mat4.multiply(mat4.create(), parentTransform, element.transform)
+  const accumulatedTransform = composeTransform(parentTransform, element.transform)
 
   if ('bounds' in element) {
     // Check if this element matches the partId
@@ -259,7 +265,7 @@ export function ConstructionPlan({
       if (matchingElements.length === 0) return
 
       const elementBounds = matchingElements.map(({ element, worldTransform }) =>
-        bounds3Dto2D(element.bounds, mat4.multiply(mat4.create(), projectionMatrix, worldTransform))
+        bounds3Dto2D(element.bounds, composeTransform(projectionMatrix, worldTransform))
       )
       const combinedBounds = Bounds2D.merge(...elementBounds)
 

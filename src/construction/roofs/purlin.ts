@@ -1,9 +1,6 @@
-import { mat4, vec3 } from 'gl-matrix'
-
 import type { Roof } from '@/building/model'
 import { type PerimeterConstructionContext, applyWallFaceOffsets } from '@/construction/context'
 import { createConstructionElement } from '@/construction/elements'
-import { IDENTITY } from '@/construction/geometry'
 import {
   PolygonWithBoundingRect,
   type StripeOrGap,
@@ -39,6 +36,7 @@ import {
   TAG_ROOF_SIDE_RIGHT
 } from '@/construction/tags'
 import {
+  IDENTITY,
   type Length,
   type LineSegment2D,
   type Polygon2D,
@@ -48,14 +46,17 @@ import {
   dotAbsVec2,
   dotVec2,
   ensurePolygonIsClockwise,
+  fromTrans,
   intersectLineSegmentWithPolygon,
   intersectLineWithPolygon,
   intersectPolygons,
+  invertTransform,
   isPointStrictlyInPolygon,
   lerpVec2,
   lineFromSegment,
   lineIntersection,
   midpoint,
+  newVec3,
   offsetPolygon,
   perpendicular,
   perpendicularCCW,
@@ -123,8 +124,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       )
       const roofSideClip = transformManifold(roofSideVolume, roofSideInverseRotate)
 
-      const inverseTransform = mat4.create()
-      mat4.invert(inverseTransform, roofSide.transform)
+      const inverseTransform = invertTransform(roofSide.transform) ?? IDENTITY
       const purlinClip = transformManifold(purlinClippingVolume, inverseTransform)
 
       const infillClip = transformManifold(outerConstructionClippingVolume, roofSideInverseRotate)
@@ -411,19 +411,19 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         createConstructionElement(
           this.config.purlinMaterial,
           createExtrudedPolygon({ outer: partPolygon, holes: [] }, 'xy', this.config.purlinHeight),
-          mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, vOffset)),
+          fromTrans(newVec3(0, 0, vOffset)),
           [TAG_RIDGE_BEAM],
           { type: 'roof-purlin' }
         )
       )
 
       const basePoint = partPolygon.points[1]
-      const startPoint = vec3.fromValues(basePoint[0], basePoint[1], 0)
-      const extend1 = vec3.fromValues(partPolygon.points[2][0], partPolygon.points[2][1], 0)
-      const extend2 = vec3.fromValues(partPolygon.points[0][0], partPolygon.points[0][1], 0)
+      const startPoint = newVec3(basePoint[0], basePoint[1], 0)
+      const extend1 = newVec3(partPolygon.points[2][0], partPolygon.points[2][1], 0)
+      const extend2 = newVec3(partPolygon.points[0][0], partPolygon.points[0][1], 0)
       yield yieldMeasurement({
         startPoint,
-        endPoint: vec3.fromValues(basePoint[0], basePoint[1], vOffset),
+        endPoint: newVec3(basePoint[0], basePoint[1], vOffset),
         extend1,
         extend2,
         tags: [TAG_PURLIN_RISE]
@@ -468,7 +468,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         this.config.purlinMaterial,
         this.config.purlinHeight,
         'xy',
-        mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, vOffset)),
+        fromTrans(newVec3(0, 0, vOffset)),
         [TAG_PURLIN],
         { type: 'roof-purlin' }
       )
@@ -479,12 +479,12 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       }
 
       const basePoint = polygon.points[1]
-      const startPoint = vec3.fromValues(basePoint[0], basePoint[1], 0)
-      const extend1 = vec3.fromValues(polygon.points[2][0], polygon.points[2][1], 0)
-      const extend2 = vec3.fromValues(polygon.points[0][0], polygon.points[0][1], 0)
+      const startPoint = newVec3(basePoint[0], basePoint[1], 0)
+      const extend1 = newVec3(polygon.points[2][0], polygon.points[2][1], 0)
+      const extend2 = newVec3(polygon.points[0][0], polygon.points[0][1], 0)
       yield yieldMeasurement({
         startPoint,
-        endPoint: vec3.fromValues(basePoint[0], basePoint[1], vOffset),
+        endPoint: newVec3(basePoint[0], basePoint[1], vOffset),
         extend1,
         extend2,
         tags: [TAG_PURLIN_RISE]
@@ -536,7 +536,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       createConstructionElement(
         this.config.deckingMaterial,
         createExtrudedPolygon({ outer: deckingArea, holes: [] }, 'xy', this.config.deckingThickness),
-        mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, this.config.thickness)),
+        fromTrans(newVec3(0, 0, this.config.thickness)),
         [TAG_DECKING],
         { type: 'roof-decking' }
       )
@@ -575,7 +575,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         createConstructionElement(
           this.config.ceilingSheathingMaterial,
           createExtrudedPolygon({ outer: area, holes: [] }, 'xy', this.config.ceilingSheathingThickness),
-          mat4.fromTranslation(mat4.create(), vec3.fromValues(0, 0, -this.config.ceilingSheathingThickness)),
+          fromTrans(newVec3(0, 0, -this.config.ceilingSheathingThickness)),
           [TAG_INSIDE_SHEATHING],
           { type: 'roof-inside-sheathing' }
         )

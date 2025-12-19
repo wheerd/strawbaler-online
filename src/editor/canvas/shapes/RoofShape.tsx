@@ -3,8 +3,16 @@ import { Arrow, Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { Roof } from '@/building/model/model'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
-import { type Vec2, midpoint, negVec2, scaleAddVec2 } from '@/shared/geometry'
-import { Bounds2D, direction, perpendicular, perpendicularCW } from '@/shared/geometry'
+import {
+  Bounds2D,
+  type Vec2,
+  direction,
+  midpoint,
+  negVec2,
+  perpendicular,
+  perpendicularCW,
+  scaleAddVec2
+} from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 

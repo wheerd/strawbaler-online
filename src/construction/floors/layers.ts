@@ -4,7 +4,6 @@ import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/c
 import { type ConstructionModel } from '@/construction/model'
 import { type ConstructionResult, aggregateResults, yieldAsGroup } from '@/construction/results'
 import { TAG_FLOOR_LAYER_BOTTOM, TAG_FLOOR_LAYER_TOP, TAG_LAYERS, createTag } from '@/construction/tags'
-import { newVec2 } from '@/shared/geometry'
 import {
   Bounds3D,
   type Length,
@@ -12,6 +11,7 @@ import {
   type PolygonWithHoles2D,
   ensurePolygonIsClockwise,
   ensurePolygonIsCounterClockwise,
+  newVec2,
   simplifyPolygon,
   subtractPolygons
 } from '@/shared/geometry'

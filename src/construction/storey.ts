@@ -1,11 +1,7 @@
-import { vec3 } from 'gl-matrix'
-
 import type { StoreyId } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { translate } from '@/construction/geometry'
 import { constructRoof } from '@/construction/roof'
-import { newVec2 } from '@/shared/geometry'
-import { type Length, type Polygon2D, unionPolygons } from '@/shared/geometry'
+import { type Length, type Polygon2D, fromTrans, newVec2, newVec3, unionPolygons } from '@/shared/geometry'
 
 import { getConfigActions } from './config'
 import { applyWallFaceOffsets, computePerimeterConstructionContext, createWallFaceOffsets } from './context'
@@ -103,7 +99,7 @@ export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
     floorAssembly.getTopOffset(floorAssemblyConfig)) as Length
   const contexts = perimeters.map(p => computePerimeterConstructionContext(p, []))
   const roofModels = roofs.map(r =>
-    transformModel(constructRoof(r, contexts), translate(vec3.fromValues(0, 0, storey.floorHeight)))
+    transformModel(constructRoof(r, contexts), fromTrans(newVec3(0, 0, storey.floorHeight)))
   )
   const perimeterModels = perimeters.map(p => constructPerimeter(p, false, false))
   const floorModels = constructStoreyFloor(storeyId)
@@ -111,7 +107,7 @@ export function constructStorey(storeyId: StoreyId): ConstructionModel | null {
   if (finishedFloorOffset === 0) {
     return storeyModel
   }
-  return transformModel(storeyModel, translate(vec3.fromValues(0, 0, -finishedFloorOffset)))
+  return transformModel(storeyModel, fromTrans(newVec3(0, 0, -finishedFloorOffset)))
 }
 
 export function constructModel(): ConstructionModel | null {
@@ -121,7 +117,7 @@ export function constructModel(): ConstructionModel | null {
   for (const storey of getStoreysOrderedByLevel()) {
     const model = constructStorey(storey.id)
     if (model) {
-      models.push(transformModel(model, translate(vec3.fromValues(0, 0, finishedFloorElevation)), [TAG_STOREY]))
+      models.push(transformModel(model, fromTrans(newVec3(0, 0, finishedFloorElevation)), [TAG_STOREY]))
     }
     finishedFloorElevation += storey.floorHeight
   }

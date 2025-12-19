@@ -1,6 +1,4 @@
-import { vec3 } from 'gl-matrix'
-
-import { type Vec2, newVec2 } from '@/shared/geometry'
+import { type Vec2, type Vec3, newVec2 } from '@/shared/geometry'
 
 export type ViewType = 'outside' | 'inside'
 
@@ -13,8 +11,8 @@ export interface SvgCoordinates {
  * Convert construction element coordinates to SVG coordinates
  */
 export const convertConstructionToSvg = (
-  position: vec3,
-  size: vec3,
+  position: Vec3,
+  size: Vec3,
   wallHeight: number,
   wallLength: number,
   view: ViewType

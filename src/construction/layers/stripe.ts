@@ -1,7 +1,4 @@
-import { mat2, vec2, vec3 } from 'gl-matrix'
-
 import { createConstructionElement } from '@/construction/elements'
-import { translate } from '@/construction/geometry'
 import type { LayerConstruction, StripedLayerConfig } from '@/construction/layers/types'
 import { type ConstructionResult, yieldElement, yieldWarning } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
@@ -12,12 +9,16 @@ import {
   type Polygon2D,
   type PolygonWithHoles2D,
   type Vec2,
+  ZERO_VEC2,
   dotVec2,
+  fromTrans,
   intersectPolygon,
   lineIntersection,
   newVec2,
+  newVec3,
   normVec2,
   perpendicular,
+  rotateVec2,
   scaleAddVec2
 } from '@/shared/geometry'
 
@@ -31,7 +32,7 @@ function rotate45(v: Vec2): Vec2 {
   //  -1 for lower half-plane
   const s = v[1] > 0 || (v[1] === 0 && v[0] >= 0) ? 1 : -1
   const angle = (s * Math.PI) / 4
-  return normVec2(vec2.transformMat2(vec2.create(), v, mat2.fromRotation(mat2.create(), angle)) as Vec2)
+  return normVec2(rotateVec2(v, ZERO_VEC2, angle))
 }
 
 export class StripedLayerConstruction implements LayerConstruction<StripedLayerConfig> {
@@ -43,11 +44,7 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
     supportDirection?: Vec2
   ): Generator<ConstructionResult> {
     const position =
-      plane === 'xy'
-        ? vec3.fromValues(0, 0, offset)
-        : plane === 'xz'
-          ? vec3.fromValues(0, offset, 0)
-          : vec3.fromValues(offset, 0, 0)
+      plane === 'xy' ? newVec3(0, 0, offset) : plane === 'xz' ? newVec3(0, offset, 0) : newVec3(offset, 0, 0)
 
     const baseDir = supportDirection ?? newVec2(1, 0)
     const stripeDir =
@@ -92,7 +89,7 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
           createConstructionElement(
             config.stripeMaterial,
             createExtrudedPolygon(stripe, plane, config.thickness),
-            translate(position),
+            fromTrans(position),
             undefined,
             { type: 'stripe' }
           )
@@ -118,7 +115,7 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
               createConstructionElement(
                 config.gapMaterial,
                 createExtrudedPolygon(gap, plane, config.thickness),
-                translate(position),
+                fromTrans(position),
                 undefined
               )
             )

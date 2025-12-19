@@ -1,8 +1,7 @@
-import { mat4 } from 'gl-matrix'
 import { useMemo } from 'react'
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three'
 
-import type { Transform } from '@/construction/geometry'
+import { type Transform, transformFromValues } from '@/shared/geometry'
 
 interface Decomposition {
   position: [number, number, number]
@@ -27,7 +26,7 @@ export function decompose(matrix: Matrix4): Decomposition {
 }
 
 // prettier-ignore
-export const matAppToThree = mat4.fromValues(
+export const matAppToThree = transformFromValues(
   1,  0,  0,  0,
   0,  0, -1,  0,
   0,  1,  0,  0,
@@ -36,7 +35,7 @@ export const matAppToThree = mat4.fromValues(
 
 export const toThreeTransform = (t: Transform) =>
   useMemo(() => {
-    // const threeSrc = mat4.multiply(mat4.create(), t, matAppToThree)
+    // const threeSrc = composeTransform(t, matAppToThree)
     const threeMat = new Matrix4()
     threeMat.fromArray(t)
     return decompose(threeMat)

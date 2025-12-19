@@ -1,13 +1,19 @@
 import { Grid } from '@radix-ui/themes'
-import { mat4, vec3 } from 'gl-matrix'
 import React, { useMemo, useRef } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { type AutoMeasurement, processMeasurements } from '@/construction/measurements'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
-import { distVec2, newVec2 } from '@/shared/geometry'
-import { Bounds2D, type Polygon2D, type PolygonWithHoles2D } from '@/shared/geometry'
+import {
+  Bounds2D,
+  IDENTITY,
+  type Polygon2D,
+  type PolygonWithHoles2D,
+  distVec2,
+  newVec2,
+  newVec3
+} from '@/shared/geometry'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 import { formatLength } from '@/shared/utils/formatting'
 
@@ -88,13 +94,13 @@ function Measurements({ bounds, polygon }: { bounds: Bounds2D; polygon: PolygonW
   const measurements = useMemo(() => {
     const fullLength: AutoMeasurement = {
       startPoint: bounds3D.min,
-      endPoint: vec3.fromValues(bounds3D.max[0], bounds3D.min[1], 0),
-      extend1: vec3.fromValues(bounds3D.min[0], bounds3D.max[1], 0)
+      endPoint: newVec3(bounds3D.max[0], bounds3D.min[1], 0),
+      extend1: newVec3(bounds3D.min[0], bounds3D.max[1], 0)
     }
     const fullHeight: AutoMeasurement = {
       startPoint: bounds3D.min,
-      endPoint: vec3.fromValues(bounds3D.min[0], bounds3D.max[1], 0),
-      extend1: vec3.fromValues(bounds3D.max[0], bounds3D.min[1], 0)
+      endPoint: newVec3(bounds3D.min[0], bounds3D.max[1], 0),
+      extend1: newVec3(bounds3D.max[0], bounds3D.min[1], 0)
     }
 
     const allPoints = polygon.outer.points.concat(polygon.holes.flatMap(h => h.points))
@@ -113,16 +119,16 @@ function Measurements({ bounds, polygon }: { bounds: Bounds2D; polygon: PolygonW
       const maxY = Math.max(...ys)
       if (i === 0 || (percentile > 0.2 && percentile < 0.8)) {
         autoMeasurements.push({
-          startPoint: vec3.fromValues(bounds3D.min[0], minY, 0),
-          endPoint: vec3.fromValues(ps[0][0], minY, 0),
-          extend1: vec3.fromValues(bounds3D.min[0], maxY, 0)
+          startPoint: newVec3(bounds3D.min[0], minY, 0),
+          endPoint: newVec3(ps[0][0], minY, 0),
+          extend1: newVec3(bounds3D.min[0], maxY, 0)
         })
       }
       if (i === orderedHorizontal.length - 1 || (percentile > 0.2 && percentile < 0.8)) {
         autoMeasurements.push({
-          startPoint: vec3.fromValues(bounds3D.max[0], minY, 0),
-          endPoint: vec3.fromValues(ps[0][0], minY, 0),
-          extend1: vec3.fromValues(bounds3D.max[0], maxY, 0)
+          startPoint: newVec3(bounds3D.max[0], minY, 0),
+          endPoint: newVec3(ps[0][0], minY, 0),
+          extend1: newVec3(bounds3D.max[0], maxY, 0)
         })
       }
       if (i > 0) {
@@ -132,9 +138,9 @@ function Measurements({ bounds, polygon }: { bounds: Bounds2D; polygon: PolygonW
         const prevMinY = Math.min(...prevYs, minY)
         const prevMaxY = Math.max(...prevYs, maxY)
         autoMeasurements.push({
-          startPoint: vec3.fromValues(prevX, prevMinY, 0),
-          endPoint: vec3.fromValues(ps[0][0], prevMinY, 0),
-          extend1: vec3.fromValues(prevX, prevMaxY, 0)
+          startPoint: newVec3(prevX, prevMinY, 0),
+          endPoint: newVec3(ps[0][0], prevMinY, 0),
+          extend1: newVec3(prevX, prevMaxY, 0)
         })
       }
     })
@@ -144,25 +150,23 @@ function Measurements({ bounds, polygon }: { bounds: Bounds2D; polygon: PolygonW
       const minX = Math.min(...xs)
       const maxX = Math.max(...xs)
       autoMeasurements.push({
-        startPoint: vec3.fromValues(minX, bounds3D.min[1], 0),
-        endPoint: vec3.fromValues(minX, ps[0][1], 0),
-        extend1: vec3.fromValues(maxX, bounds3D.min[1], 0)
+        startPoint: newVec3(minX, bounds3D.min[1], 0),
+        endPoint: newVec3(minX, ps[0][1], 0),
+        extend1: newVec3(maxX, bounds3D.min[1], 0)
       })
       autoMeasurements.push({
-        startPoint: vec3.fromValues(minX, bounds3D.max[1], 0),
-        endPoint: vec3.fromValues(minX, ps[0][1], 0),
-        extend1: vec3.fromValues(maxX, bounds3D.max[1], 0)
+        startPoint: newVec3(minX, bounds3D.max[1], 0),
+        endPoint: newVec3(minX, ps[0][1], 0),
+        extend1: newVec3(maxX, bounds3D.max[1], 0)
       })
     })
 
     return autoMeasurements
   }, [bounds3D, polygon])
 
-  const projection = mat4.create()
-  mat4.identity(projection)
   const processedMeasurements = useMemo(() => {
-    return Array.from(processMeasurements(measurements, projection, cornerPoints))
-  }, [measurements, projection, cornerPoints])
+    return Array.from(processMeasurements(measurements, IDENTITY, cornerPoints))
+  }, [measurements, cornerPoints])
 
   const renderableMeasurements = processedMeasurements.flatMap(group =>
     group.lines.flatMap((line, rowIndex) =>

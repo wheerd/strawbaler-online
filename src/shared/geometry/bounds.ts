@@ -1,6 +1,5 @@
-import { vec3 } from 'gl-matrix'
-
 import { type Vec2, ZERO_VEC2, copyVec2, newVec2 } from './2d'
+import { type Vec3, ZERO_VEC3, addVec3, copyVec3, newVec3 } from './3d'
 import type { Plane3D } from './basic'
 
 export class Bounds2D {
@@ -91,18 +90,18 @@ export class Bounds2D {
     switch (plane) {
       case 'xy':
         return Bounds3D.fromMinMax(
-          vec3.fromValues(this.min[0], this.min[1], minNormal),
-          vec3.fromValues(this.max[0], this.max[1], maxNormal)
+          newVec3(this.min[0], this.min[1], minNormal),
+          newVec3(this.max[0], this.max[1], maxNormal)
         )
       case 'xz':
         return Bounds3D.fromMinMax(
-          vec3.fromValues(this.min[0], minNormal, this.min[1]),
-          vec3.fromValues(this.max[0], maxNormal, this.max[1])
+          newVec3(this.min[0], minNormal, this.min[1]),
+          newVec3(this.max[0], maxNormal, this.max[1])
         )
       case 'yz':
         return Bounds3D.fromMinMax(
-          vec3.fromValues(minNormal, this.min[0], this.min[1]),
-          vec3.fromValues(maxNormal, this.max[0], this.max[1])
+          newVec3(minNormal, this.min[0], this.min[1]),
+          newVec3(maxNormal, this.max[0], this.max[1])
         )
     }
   }
@@ -122,9 +121,9 @@ export class Bounds2D {
 }
 
 export class Bounds3D {
-  static readonly EMPTY = new Bounds3D(vec3.create(), vec3.create())
+  static readonly EMPTY = new Bounds3D(ZERO_VEC3, ZERO_VEC3)
 
-  static fromPoints(points: readonly vec3[]): Bounds3D {
+  static fromPoints(points: readonly Vec3[]): Bounds3D {
     if (points.length === 0) {
       return Bounds3D.EMPTY
     }
@@ -145,19 +144,19 @@ export class Bounds3D {
       if (point[2] > maxZ) maxZ = point[2]
     }
 
-    return new Bounds3D(vec3.fromValues(minX, minY, minZ), vec3.fromValues(maxX, maxY, maxZ))
+    return new Bounds3D(newVec3(minX, minY, minZ), newVec3(maxX, maxY, maxZ))
   }
 
-  static fromMinMax(min: vec3, max: vec3): Bounds3D {
+  static fromMinMax(min: Vec3, max: Vec3): Bounds3D {
     if (min[0] >= max[0] && min[1] >= max[1] && min[2] >= max[2]) {
       return Bounds3D.EMPTY
     }
 
-    return new Bounds3D(vec3.clone(min), vec3.clone(max))
+    return new Bounds3D(copyVec3(min), copyVec3(max))
   }
 
-  static fromCuboid(position: vec3, size: vec3): Bounds3D {
-    return Bounds3D.fromMinMax(position, vec3.add(vec3.create(), position, size))
+  static fromCuboid(position: Vec3, size: Vec3): Bounds3D {
+    return Bounds3D.fromMinMax(position, addVec3(position, size))
   }
 
   static merge(...bounds: readonly Bounds3D[]): Bounds3D {
@@ -182,13 +181,13 @@ export class Bounds3D {
       if (bound.max[2] > maxZ) maxZ = bound.max[2]
     }
 
-    return new Bounds3D(vec3.fromValues(minX, minY, minZ), vec3.fromValues(maxX, maxY, maxZ))
+    return new Bounds3D(newVec3(minX, minY, minZ), newVec3(maxX, maxY, maxZ))
   }
 
-  readonly min: vec3
-  readonly max: vec3
+  readonly min: Vec3
+  readonly max: Vec3
 
-  private constructor(min: vec3, max: vec3) {
+  private constructor(min: Vec3, max: Vec3) {
     this.min = min
     this.max = max
   }
@@ -205,16 +204,12 @@ export class Bounds3D {
     return this.max[2] - this.min[2]
   }
 
-  get size(): vec3 {
-    return vec3.fromValues(this.width, this.depth, this.height)
+  get size(): Vec3 {
+    return newVec3(this.width, this.depth, this.height)
   }
 
-  get center(): vec3 {
-    return vec3.fromValues(
-      (this.min[0] + this.max[0]) / 2,
-      (this.min[1] + this.max[1]) / 2,
-      (this.min[2] + this.max[2]) / 2
-    )
+  get center(): Vec3 {
+    return newVec3((this.min[0] + this.max[0]) / 2, (this.min[1] + this.max[1]) / 2, (this.min[2] + this.max[2]) / 2)
   }
 
   get isEmpty(): boolean {
@@ -236,18 +231,18 @@ export class Bounds3D {
     }
   }
 
-  pad(amount: number | vec3): Bounds3D {
+  pad(amount: number | Vec3): Bounds3D {
     const padX = typeof amount === 'number' ? amount : amount[0]
     const padY = typeof amount === 'number' ? amount : amount[1]
     const padZ = typeof amount === 'number' ? amount : amount[2]
 
     return Bounds3D.fromMinMax(
-      vec3.fromValues(this.min[0] - padX, this.min[1] - padY, this.min[2] - padZ),
-      vec3.fromValues(this.max[0] + padX, this.max[1] + padY, this.max[2] + padZ)
+      newVec3(this.min[0] - padX, this.min[1] - padY, this.min[2] - padZ),
+      newVec3(this.max[0] + padX, this.max[1] + padY, this.max[2] + padZ)
     )
   }
 
-  contains(point: vec3): boolean {
+  contains(point: Vec3): boolean {
     return (
       point[0] >= this.min[0] &&
       point[0] <= this.max[0] &&

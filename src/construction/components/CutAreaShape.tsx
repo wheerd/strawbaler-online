@@ -1,8 +1,6 @@
-import { vec3 } from 'gl-matrix'
-
 import { type Projection, projectPoint } from '@/construction/geometry'
 import type { HighlightedCut } from '@/construction/model'
-import type { Bounds2D } from '@/shared/geometry'
+import { type Bounds2D, newVec3 } from '@/shared/geometry'
 
 import './areas.css'
 
@@ -17,16 +15,16 @@ const EXTENSION = 500
 export function CutAreaShape({ cut, projection, viewportBounds }: CutAreaShapeProps): React.JSX.Element {
   const start =
     cut.axis === 'x'
-      ? vec3.fromValues(cut.position, viewportBounds.min[1] - EXTENSION, viewportBounds.min[1] - EXTENSION)
+      ? newVec3(cut.position, viewportBounds.min[1] - EXTENSION, viewportBounds.min[1] - EXTENSION)
       : cut.axis === 'y'
-        ? vec3.fromValues(viewportBounds.min[0] - EXTENSION, cut.position, viewportBounds.min[1] - EXTENSION)
-        : vec3.fromValues(viewportBounds.min[0] - EXTENSION, viewportBounds.min[0] - EXTENSION, cut.position)
+        ? newVec3(viewportBounds.min[0] - EXTENSION, cut.position, viewportBounds.min[1] - EXTENSION)
+        : newVec3(viewportBounds.min[0] - EXTENSION, viewportBounds.min[0] - EXTENSION, cut.position)
   const end =
     cut.axis === 'x'
-      ? vec3.fromValues(cut.position, viewportBounds.max[1] + EXTENSION, viewportBounds.max[1] + EXTENSION)
+      ? newVec3(cut.position, viewportBounds.max[1] + EXTENSION, viewportBounds.max[1] + EXTENSION)
       : cut.axis === 'y'
-        ? vec3.fromValues(viewportBounds.max[0] + EXTENSION, cut.position, viewportBounds.max[1] + EXTENSION)
-        : vec3.fromValues(viewportBounds.max[0] + EXTENSION, viewportBounds.max[0] + EXTENSION, cut.position)
+        ? newVec3(viewportBounds.max[0] + EXTENSION, cut.position, viewportBounds.max[1] + EXTENSION)
+        : newVec3(viewportBounds.max[0] + EXTENSION, viewportBounds.max[0] + EXTENSION, cut.position)
 
   const projectedStart = projectPoint(start, projection)
   const projectedEnd = projectPoint(end, projection)

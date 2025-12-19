@@ -4,11 +4,11 @@ import type { FloorAreaId, FloorOpeningId, StoreyId } from '@/building/model/ids
 import { createFloorAreaId, createFloorOpeningId } from '@/building/model/ids'
 import type { FloorArea, FloorOpening } from '@/building/model/model'
 import {
+  type Polygon2D,
   ensurePolygonIsClockwise,
   ensurePolygonIsCounterClockwise,
   wouldClosingPolygonSelfIntersect
 } from '@/shared/geometry'
-import type { Polygon2D } from '@/shared/geometry'
 
 export interface FloorsState {
   floorAreas: Record<FloorAreaId, FloorArea>

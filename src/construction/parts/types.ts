@@ -1,8 +1,6 @@
-import type { vec3 } from 'gl-matrix'
-
 import type { ConstructionElementId } from '@/construction/elements'
 import type { CrossSection, MaterialId } from '@/construction/materials/material'
-import type { Area, Length, PolygonWithHoles2D, Volume } from '@/shared/geometry'
+import type { Area, Length, PolygonWithHoles2D, Vec3, Volume } from '@/shared/geometry'
 
 export type PartId = string & { readonly brand: unique symbol }
 
@@ -15,7 +13,7 @@ export interface FullPartInfo {
   id: PartId
   type: string
   description?: string
-  boxSize: vec3
+  boxSize: Vec3
   sideFaces?: SideFace[]
 }
 
@@ -42,7 +40,7 @@ export interface PartItem {
   type: string
   description?: string
   label: string // A, B, C, ...
-  size: vec3
+  size: Vec3
   elements: ConstructionElementId[]
   quantity: number
 }

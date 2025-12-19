@@ -25,8 +25,7 @@ import type { Perimeter, Roof } from '@/building/model/model'
 import { useFloorAreaById, useFloorOpeningById, usePerimeterById, useRoofById } from '@/building/store'
 import { SelectionOutline } from '@/editor/canvas/utils/SelectionOutline'
 import { useCurrentSelection, useSelectionPath } from '@/editor/hooks/useSelectionStore'
-import { type Vec2, addVec2, eqVec2, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
-import { direction, perpendicular } from '@/shared/geometry'
+import { type Vec2, addVec2, direction, eqVec2, perpendicular, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
 
 /**
  * Selection Path Structure Documentation:

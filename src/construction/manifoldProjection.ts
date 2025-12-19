@@ -3,7 +3,7 @@ import type { Manifold } from 'manifold-3d'
 import { type Polygon2D, newVec2 } from '@/shared/geometry'
 
 import type { Projection } from './geometry'
-import { mat4ToManifoldMat4 } from './manifoldUtils'
+import { asManifoldTransform } from './manifoldUtils'
 
 export interface ProjectedOutline {
   polygons: Polygon2D[]
@@ -28,7 +28,7 @@ export function projectManifoldToView(worldManifold: Manifold, projectionMatrix:
   try {
     // Apply projection to bring manifold into view space
     // where the view plane is aligned with XY
-    const viewManifold = worldManifold.transform(mat4ToManifoldMat4(projectionMatrix))
+    const viewManifold = worldManifold.transform(asManifoldTransform(projectionMatrix))
 
     // Project onto XY plane to get 2D outline
     const crossSection = viewManifold.project()

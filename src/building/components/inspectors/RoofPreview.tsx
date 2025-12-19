@@ -1,6 +1,5 @@
 import type { RoofType } from '@/building/model'
-import { type Vec2, newVec2 } from '@/shared/geometry'
-import { Bounds2D, degreesToRadians } from '@/shared/geometry'
+import { Bounds2D, type Vec2, degreesToRadians, newVec2 } from '@/shared/geometry'
 
 function toPath(points: Vec2[]): string {
   if (points.length === 0) return ''

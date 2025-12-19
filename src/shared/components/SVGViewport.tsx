@@ -2,7 +2,7 @@ import { AllSidesIcon } from '@radix-ui/react-icons'
 import { IconButton } from '@radix-ui/themes'
 import React, { type RefAttributes, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
-import type { Bounds2D } from '@/shared/geometry'
+import { type Bounds2D } from '@/shared/geometry'
 
 export interface SVGViewportRef {
   fitToContent: () => void

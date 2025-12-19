@@ -1,4 +1,3 @@
-import { vec3 } from 'gl-matrix'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -12,10 +11,9 @@ import {
 import type { Perimeter, PerimeterCorner, PerimeterWall, Storey } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
-import { IDENTITY } from '@/construction/geometry'
 import type { ConstructionModel } from '@/construction/model'
 import { createCuboid } from '@/construction/shapes'
-import { Bounds3D, ZERO_VEC2, copyVec2, newVec2 } from '@/shared/geometry'
+import { Bounds3D, IDENTITY, ZERO_VEC2, copyVec2, newVec2, newVec3 } from '@/shared/geometry'
 
 import { constructWall } from './construction'
 import { WALL_ASSEMBLIES } from './index'
@@ -106,16 +104,16 @@ describe('constructWall', () => {
       {
         id: `element-${id}` as any,
         transform: IDENTITY,
-        bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 400, 3000)),
+        bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1000, 400, 3000)),
         material: 'wood' as any,
-        shape: createCuboid(vec3.fromValues(1000, 400, 3000))
+        shape: createCuboid(newVec3(1000, 400, 3000))
       }
     ],
     measurements: [],
     areas: [],
     errors: [],
     warnings: [],
-    bounds: Bounds3D.fromMinMax(vec3.fromValues(0, 0, 0), vec3.fromValues(1000, 400, 3000))
+    bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(1000, 400, 3000))
   })
 
   let mockModelActions: any

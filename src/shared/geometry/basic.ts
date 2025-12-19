@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix'
+import { type Vec3, newVec3 } from '@/shared/geometry'
 
 import { type Vec2 } from './2d'
 
@@ -18,12 +18,12 @@ export type Axis3D = 'x' | 'y' | 'z'
 
 export const complementaryAxis = (plane: Plane3D): Axis3D => (plane === 'xy' ? 'z' : plane === 'xz' ? 'y' : 'x')
 
-export const point2DTo3D = (point: Vec2, plane: Plane3D, offset: Length): vec3 =>
+export const point2DTo3D = (point: Vec2, plane: Plane3D, offset: Length): Vec3 =>
   plane === 'xy'
-    ? vec3.fromValues(point[0], point[1], offset)
+    ? newVec3(point[0], point[1], offset)
     : plane === 'xz'
-      ? vec3.fromValues(point[0], offset, point[1])
-      : vec3.fromValues(offset, point[0], point[1])
+      ? newVec3(point[0], offset, point[1])
+      : newVec3(offset, point[0], point[1])
 
 export function degreesToRadians(degrees: number): number {
   return (degrees * Math.PI) / 180
