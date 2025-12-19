@@ -8,6 +8,7 @@ import {
   DropdownMenu,
   Flex,
   Grid,
+  Heading,
   IconButton,
   Separator,
   Text,
@@ -33,7 +34,7 @@ import { LengthField } from '@/shared/components/LengthField/LengthField'
 import { getRingBeamTypeIcon } from './Icons'
 import { RingBeamAssemblySelect } from './RingBeamAssemblySelect'
 
-type RingBeamType = 'full' | 'double'
+type RingBeamType = 'full' | 'double' | 'brick'
 
 export interface RingBeamAssemblyContentProps {
   initialSelectionId?: string
@@ -85,7 +86,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           width: 360,
           offsetFromEdge: 0
         }
-      } else {
+      } else if (type === 'double') {
         config = {
           type: 'double',
           height: 60,
@@ -94,6 +95,19 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           infillMaterial: defaultMaterial,
           offsetFromEdge: 0,
           spacing: 100
+        }
+      } else {
+        config = {
+          type: 'brick',
+          wallHeight: 300,
+          wallWidth: 250,
+          wallMaterial: 'material_aac_brick' as MaterialId,
+          beamThickness: 60,
+          beamWidth: 360,
+          beamMaterial: 'material_wood' as MaterialId,
+          waterproofingThickness: 2,
+          waterproofingMaterial: 'material_bitumen' as MaterialId,
+          insulationMaterial: 'material_cork' as MaterialId
         }
       }
 
@@ -176,6 +190,12 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
                   Double Ring Beam
                 </Flex>
               </DropdownMenu.Item>
+              <DropdownMenu.Item onSelect={() => handleAddNew('brick')}>
+                <Flex align="center" gap="1">
+                  {React.createElement(getRingBeamTypeIcon('brick'))}
+                  Brick Ring Beam
+                </Flex>
+              </DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Root>
 
@@ -244,7 +264,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
             <Flex gap="2" align="center">
               {React.createElement(getRingBeamTypeIcon(selectedAssembly.type))}
               <Text size="2" color="gray">
-                {selectedAssembly.type === 'full' ? 'Full' : 'Double'}
+                {selectedAssembly.type === 'full' ? 'Full' : selectedAssembly.type === 'double' ? 'Double' : 'Brick'}
               </Text>
             </Flex>
           </Grid>
@@ -255,6 +275,10 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
 
           {selectedAssembly.type === 'double' && (
             <DoubleRingBeamFields config={selectedAssembly} onUpdate={handleUpdateConfig} />
+          )}
+
+          {selectedAssembly.type === 'brick' && (
+            <BrickRingBeamFields config={selectedAssembly} onUpdate={handleUpdateConfig} />
           )}
         </Flex>
       )}
@@ -469,6 +493,167 @@ function DoubleRingBeamFields({
           value={config.offsetFromEdge}
           onChange={offsetFromEdge => onUpdate({ offsetFromEdge })}
           unit="mm"
+          size="2"
+        />
+      </Grid>
+    </>
+  )
+}
+
+function BrickRingBeamFields({
+  config,
+  onUpdate
+}: {
+  config: RingBeamConfig & { type: 'brick' }
+  onUpdate: (updates: Partial<RingBeamConfig>) => void
+}) {
+  return (
+    <>
+      <Callout.Root color="amber">
+        <Callout.Text>
+          Brick ring beam construction is not yet supported. Configuration is available for planning purposes.
+        </Callout.Text>
+      </Callout.Root>
+
+      <Separator size="4" />
+
+      <Heading size="2">Stem Wall</Heading>
+
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Height
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.wallHeight}
+          onChange={wallHeight => onUpdate({ wallHeight })}
+          unit="cm"
+          min={0}
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Width
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.wallWidth}
+          onChange={wallWidth => onUpdate({ wallWidth })}
+          unit="cm"
+          min={0}
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.wallMaterial}
+          onValueChange={wallMaterial => {
+            if (!wallMaterial) return
+            onUpdate({ wallMaterial })
+          }}
+          placeholder="Select wall material..."
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Insulation Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.insulationMaterial}
+          onValueChange={insulationMaterial => {
+            if (!insulationMaterial) return
+            onUpdate({ insulationMaterial })
+          }}
+          placeholder="Select insulation material..."
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      <Heading size="2">Beam</Heading>
+
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Thickness
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.beamThickness}
+          onChange={beamThickness => onUpdate({ beamThickness })}
+          unit="cm"
+          min={0}
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Width
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.beamWidth}
+          onChange={beamWidth => onUpdate({ beamWidth })}
+          unit="cm"
+          min={0}
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.beamMaterial}
+          onValueChange={beamMaterial => {
+            if (!beamMaterial) return
+            onUpdate({ beamMaterial })
+          }}
+          placeholder="Select beam material..."
+          size="2"
+        />
+      </Grid>
+
+      <Separator size="4" />
+
+      <Heading size="2">Waterproofing</Heading>
+
+      <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Thickness
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={config.waterproofingThickness}
+          onChange={waterproofingThickness => onUpdate({ waterproofingThickness })}
+          unit="mm"
+          min={0}
+          size="2"
+        />
+
+        <Label.Root>
+          <Text size="2" weight="medium" color="gray">
+            Material
+          </Text>
+        </Label.Root>
+        <MaterialSelectWithEdit
+          value={config.waterproofingMaterial}
+          onValueChange={waterproofingMaterial => {
+            if (!waterproofingMaterial) return
+            onUpdate({ waterproofingMaterial })
+          }}
+          placeholder="Select waterproofing material..."
           size="2"
         />
       </Grid>

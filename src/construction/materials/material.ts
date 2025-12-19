@@ -261,5 +261,8 @@ export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [limePlasterFine.id]: limePlasterFine,
   [cementScreed.id]: cementScreed,
   [impactSoundInsulation.id]: impactSoundInsulation,
-  [osb.id]: osb
+  [osb.id]: osb,
+  [brick.id]: brick,
+  [bitumen.id]: bitumen,
+  [cork.id]: cork
 }

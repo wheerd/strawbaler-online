@@ -62,15 +62,18 @@ export type RingBeamConfig = FullRingBeamConfig | DoubleRingBeamConfig | BrickRi
 // Validation
 
 export const validateRingBeamConfig = (config: RingBeamConfig): void => {
-  // Validate common fields
-  if (Number(config.height) <= 0) {
-    throw new Error('Ring beam height must be greater than 0')
-  }
-
   if (config.type === 'full') {
+    if (Number(config.height) <= 0) {
+      throw new Error('Ring beam height must be greater than 0')
+    }
     validateFullRingBeamConfig(config)
   } else if (config.type === 'double') {
+    if (Number(config.height) <= 0) {
+      throw new Error('Ring beam height must be greater than 0')
+    }
     validateDoubleRingBeamConfig(config)
+  } else if (config.type === 'brick') {
+    validateBrickRingBeamConfig(config)
   } else {
     throw new Error('Invalid ring beam type')
   }
@@ -91,4 +94,22 @@ const validateDoubleRingBeamConfig = (config: DoubleRingBeamConfig): void => {
     throw new Error('Ring beam spacing cannot be negative')
   }
   // offsetFromEdge can be any value (positive, negative, or zero)
+}
+
+const validateBrickRingBeamConfig = (config: BrickRingBeamConfig): void => {
+  if (Number(config.wallHeight) <= 0) {
+    throw new Error('Brick wall height must be greater than 0')
+  }
+  if (Number(config.wallWidth) <= 0) {
+    throw new Error('Brick wall width must be greater than 0')
+  }
+  if (Number(config.beamThickness) <= 0) {
+    throw new Error('Beam thickness must be greater than 0')
+  }
+  if (Number(config.beamWidth) <= 0) {
+    throw new Error('Beam width must be greater than 0')
+  }
+  if (Number(config.waterproofingThickness) < 0) {
+    throw new Error('Waterproofing thickness cannot be negative')
+  }
 }
