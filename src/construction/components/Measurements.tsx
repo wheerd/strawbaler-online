@@ -82,7 +82,7 @@ export function Measurements({ model, projection }: MeasurementsProps): React.JS
         ...m,
         startPoint: newVec2(startProjected[0], startProjected[1]),
         endPoint: newVec2(endProjected[0], endProjected[1]),
-        offset: m.offset * (projection[0] < 0 && startProjected[0] === endProjected[0] ? -60 : 60)
+        offset: m.offset * (projection[0] > 0 && startProjected[0] === endProjected[0] ? -60 : 60)
       }
     })
 
