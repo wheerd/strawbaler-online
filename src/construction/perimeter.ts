@@ -166,7 +166,11 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     const assembly = resolveRingBeamAssembly(assemblyConfig)
 
     const ringBeam = Array.from(
-      assembly.construct({ perimeter, startIndex: segment.startIndex, endIndex: segment.endIndex }, perimeterContext)
+      assembly.construct(
+        { perimeter, startIndex: segment.startIndex, endIndex: segment.endIndex },
+        perimeterContext,
+        storeyContext
+      )
     )
     const transformedModel = transformModel(
       resultsToModel(ringBeam),

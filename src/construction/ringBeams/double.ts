@@ -14,7 +14,11 @@ export class DoubleRingBeamAssembly implements RingBeamAssembly {
     return this.config.height
   }
 
-  *construct(_segment: RingBeamSegment, _context: PerimeterConstructionContext): Generator<ConstructionResult> {
+  *construct(
+    _segment: RingBeamSegment,
+    _context: PerimeterConstructionContext,
+    _storeyContext?: import('@/construction/walls/segmentation').WallStoreyContext
+  ): Generator<ConstructionResult> {
     yield yieldError('Double ring beam construction is not yet supported.', [], 'unsupported-ring-beam-double')
   }
 }

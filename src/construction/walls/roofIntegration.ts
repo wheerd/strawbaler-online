@@ -1,6 +1,11 @@
+import type { StoreyId } from '@/building/model/ids'
+import { getModelActions } from '@/building/store'
+import { getConfigActions } from '@/construction/config'
+import type { PerimeterConstructionContext } from '@/construction/context'
 import { WallConstructionArea } from '@/construction/geometry'
+import { resolveRoofAssembly } from '@/construction/roofs'
 import type { HeightItem, HeightJumpItem, HeightLine } from '@/construction/roofs/types'
-import { type Length, type Vec2, type Vec3, copyVec2, newVec2, newVec3 } from '@/shared/geometry'
+import { type Length, type LineSegment2D, type Vec2, type Vec3, copyVec2, newVec2, newVec3 } from '@/shared/geometry'
 
 // Use smaller epsilon for position comparisons
 const POSITION_EPSILON = 0.0001
@@ -9,6 +14,54 @@ const POSITION_EPSILON = 0.0001
  * Result of converting height line to wall offsets
  */
 export type WallTopOffsets = readonly Vec2[] | undefined
+
+/**
+ * Query roofs for height line along any line segment
+ * Generalized from getRoofHeightLineForLayer in walls/layers.ts
+ *
+ * @param storeyId - ID of the storey to query roofs from
+ * @param line - Line segment to query along
+ * @param lineLength - Length of the line segment
+ * @param ceilingBottomOffset - Offset for ceiling (when no roof coverage)
+ * @param perimeterContexts - Perimeter contexts for roof queries
+ * @returns Wall top offsets representing the height line
+ */
+export function getRoofHeightLineForLine(
+  storeyId: StoreyId,
+  line: LineSegment2D,
+  lineLength: Length,
+  ceilingBottomOffset: Length,
+  perimeterContexts: PerimeterConstructionContext[]
+): WallTopOffsets | undefined {
+  const { getRoofsByStorey } = getModelActions()
+  const { getRoofAssemblyById } = getConfigActions()
+
+  const roofs = getRoofsByStorey(storeyId)
+  const heightLine: HeightLine = []
+
+  // Query each roof
+  for (const roof of roofs) {
+    const roofAssembly = getRoofAssemblyById(roof.assemblyId)
+    if (!roofAssembly) continue
+
+    const roofImpl = resolveRoofAssembly(roofAssembly)
+    const roofLine = roofImpl.getBottomOffsets(roof, line, perimeterContexts)
+    heightLine.push(...roofLine)
+  }
+
+  if (heightLine.length === 0) {
+    return [newVec2(0, -ceilingBottomOffset), newVec2(lineLength, -ceilingBottomOffset)]
+  }
+
+  // STEP 1: Merge (sort by position)
+  heightLine.sort((a, b) => a.position - b.position)
+
+  // STEP 2: Fill null regions with ceiling offset
+  const filled = fillNullRegions(heightLine, ceilingBottomOffset)
+
+  // Convert to wall offsets
+  return convertHeightLineToWallOffsets(filled, lineLength)
+}
 
 /**
  * Convert a HeightLine (from roof) to wall top offsets array

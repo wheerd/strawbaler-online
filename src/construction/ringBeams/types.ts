@@ -7,7 +7,11 @@ import type { Length } from '@/shared/geometry'
 export type RingBeamAssemblyType = 'full' | 'double' | 'brick'
 
 export interface RingBeamAssembly {
-  construct: (segment: RingBeamSegment, context: PerimeterConstructionContext) => Generator<ConstructionResult>
+  construct: (
+    segment: RingBeamSegment,
+    context: PerimeterConstructionContext,
+    storeyContext?: import('@/construction/walls/segmentation').WallStoreyContext
+  ) => Generator<ConstructionResult>
 
   get height(): Length
 }

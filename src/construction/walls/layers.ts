@@ -1,7 +1,5 @@
 import type { StoreyId } from '@/building/model/ids'
 import type { Perimeter, PerimeterWall } from '@/building/model/model'
-import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/construction/config'
 import type { PerimeterConstructionContext } from '@/construction/context'
 import type { GroupOrElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
@@ -9,8 +7,6 @@ import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
 import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/construction/layers/types'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { type ConstructionResult, aggregateResults } from '@/construction/results'
-import { resolveRoofAssembly } from '@/construction/roofs'
-import type { HeightLine } from '@/construction/roofs/types'
 import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE, createTag } from '@/construction/tags'
 import {
   Bounds3D,
@@ -29,7 +25,7 @@ import {
 
 import { getWallContext } from './corners/corners'
 import { computeLayerSpan, subtractWallOpenings } from './polygons'
-import { type WallTopOffsets, convertHeightLineToWallOffsets, fillNullRegions } from './roofIntegration'
+import { type WallTopOffsets, getRoofHeightLineForLine } from './roofIntegration'
 import type { WallStoreyContext } from './segmentation'
 import type { WallLayersConfig } from './types'
 
@@ -82,37 +78,8 @@ function getRoofHeightLineForLayer(
   ceilingBottomOffset: Length,
   perimeterContexts: PerimeterConstructionContext[]
 ): WallTopOffsets | undefined {
-  const { getRoofsByStorey } = getModelActions()
-  const { getRoofAssemblyById } = getConfigActions()
-
-  const roofs = getRoofsByStorey(storeyId)
-
-  const heightLine: HeightLine = []
-
-  // Query each roof
-  for (const roof of roofs) {
-    const roofAssembly = getRoofAssemblyById(roof.assemblyId)
-    if (!roofAssembly) continue
-
-    const roofImpl = resolveRoofAssembly(roofAssembly)
-
-    // Get height line for this layer's line
-    const line = roofImpl.getBottomOffsets(roof, layerLine, perimeterContexts)
-    heightLine.push(...line)
-  }
-
-  if (heightLine.length === 0) {
-    return [newVec2(0, -ceilingBottomOffset), newVec2(wallLength, -ceilingBottomOffset)]
-  }
-
-  // STEP 1: Merge (sort by position)
-  heightLine.sort((a, b) => a.position - b.position)
-
-  // STEP 2: Fill null regions with ceiling offset
-  const filled = fillNullRegions(heightLine, ceilingBottomOffset)
-
-  // Convert to wall offsets
-  return convertHeightLineToWallOffsets(filled, wallLength)
+  // Delegate to shared function
+  return getRoofHeightLineForLine(storeyId, layerLine, wallLength, ceilingBottomOffset, perimeterContexts)
 }
 
 export function constructWallLayers(

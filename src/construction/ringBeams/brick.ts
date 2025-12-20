@@ -14,7 +14,11 @@ export class BrickRingBeamAssembly extends BaseRingBeamAssembly<BrickRingBeamCon
     return this.config.wallHeight + this.config.beamThickness + this.config.waterproofingThickness
   }
 
-  *construct(segment: RingBeamSegment, context: PerimeterConstructionContext): Generator<ConstructionResult> {
+  *construct(
+    segment: RingBeamSegment,
+    context: PerimeterConstructionContext,
+    _storeyContext?: import('@/construction/walls/segmentation').WallStoreyContext
+  ): Generator<ConstructionResult> {
     yield* this.constructWallWithWaterproofing(segment, context)
     yield* this.constructInsulation(segment, context)
     yield* this.constructBeam(segment, context)

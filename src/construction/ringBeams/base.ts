@@ -21,6 +21,14 @@ import {
 
 import type { RingBeamAssembly, RingBeamConfigBase, RingBeamSegment } from './types'
 
+export interface ColinearPart {
+  startCorner: PerimeterCorner
+  endCorner: PerimeterCorner
+  wall: PerimeterWall
+  prevWallIndex: number
+  nextWallIndex: number
+}
+
 export abstract class BaseRingBeamAssembly<T extends RingBeamConfigBase> implements RingBeamAssembly {
   protected readonly config: T
 
@@ -32,13 +40,7 @@ export abstract class BaseRingBeamAssembly<T extends RingBeamConfigBase> impleme
 
   abstract construct(segment: RingBeamSegment, context: PerimeterConstructionContext): Generator<ConstructionResult>
 
-  protected *colinearParts(segment: RingBeamSegment): Generator<{
-    startCorner: PerimeterCorner
-    endCorner: PerimeterCorner
-    wall: PerimeterWall
-    prevWallIndex: number
-    nextWallIndex: number
-  }> {
+  protected *colinearParts(segment: RingBeamSegment): Generator<ColinearPart> {
     const { perimeter, startIndex, endIndex } = segment
     const total = perimeter.walls.length
 
