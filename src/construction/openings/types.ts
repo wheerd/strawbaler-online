@@ -63,8 +63,8 @@ export const validateOpeningConfig = (config: OpeningConfig): void => {
   }
 
   if (config.type !== 'empty') {
-    if (config.sillThickness <= 0) {
-      throw new Error('Sill thickness must be positive')
+    if (config.sillThickness < 0) {
+      throw new Error('Sill thickness must not be negative')
     }
     if (config.headerThickness <= 0) {
       throw new Error('Header thickness must be positive')

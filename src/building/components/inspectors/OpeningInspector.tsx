@@ -6,7 +6,7 @@ import { useCallback, useMemo, useState } from 'react'
 import type { OpeningAssemblyId, OpeningId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import type { OpeningType } from '@/building/model/model'
 import { useModelActions, usePerimeterById } from '@/building/store'
-import { OpeningAssemblySelect } from '@/construction/config/components/OpeningAssemblySelect'
+import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
 import { useWallAssemblyById } from '@/construction/config/store'
 import { resolveOpeningConfig } from '@/construction/openings/resolver'
 import { getStoreyCeilingHeight } from '@/construction/storeyHeight'
@@ -405,7 +405,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
           </Tooltip>
         </Flex>
-        <OpeningAssemblySelect
+        <OpeningAssemblySelectWithEdit
           value={opening.openingAssemblyId}
           onValueChange={value => {
             updateOpening(perimeterId, wallId, openingId, {
