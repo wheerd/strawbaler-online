@@ -66,9 +66,7 @@ export class FullRingBeamAssembly extends BaseRingBeamAssembly<FullRingBeamConfi
         continue
       }
 
-      const totalConstructionHeight =
-        storeyContext.ceilingHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
-      const ceilingOffset = storeyContext.storeyHeight - totalConstructionHeight
+      const ceilingOffset = storeyContext.roofBottom - storeyContext.wallTop
 
       const { heightLine, boundingRect } = this.getHeightLineForBeamPolygon(
         polygon,

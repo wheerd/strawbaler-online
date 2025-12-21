@@ -16,7 +16,7 @@ import {
 
 import { computePerimeterConstructionPolygon } from './context'
 
-vi.mock('./config', () => ({
+vi.mock('@/construction/config', () => ({
   getConfigActions: vi.fn()
 }))
 

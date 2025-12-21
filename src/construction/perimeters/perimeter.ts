@@ -2,7 +2,6 @@ import type { Perimeter, PerimeterWall } from '@/building/model'
 import type { RingBeamAssemblyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
-import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from '@/construction/floors'
 import { polygonEdges } from '@/construction/helpers'
 import type { RawMeasurement } from '@/construction/measurements'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
@@ -23,17 +22,14 @@ import { WALL_ASSEMBLIES } from '@/construction/walls'
 import {
   type Area,
   Bounds3D,
-  IDENTITY,
   type Length,
   type Polygon2D,
   type Volume,
-  arePolygonsIntersecting,
   calculatePolygonArea,
   calculatePolygonWithHolesArea,
   dirAngle,
   direction,
   fromTrans,
-  newVec2,
   newVec3,
   perpendicularCCW,
   perpendicularCW,
@@ -52,28 +48,16 @@ import {
 } from './context'
 
 export function constructPerimeter(perimeter: Perimeter, includeFloor = true, includeRoof = true): ConstructionModel {
-  const { getStoreyById, getStoreyAbove, getFloorOpeningsByStorey, getPerimetersByStorey, getRoofsByStorey } =
-    getModelActions()
+  const { getStoreyById, getFloorOpeningsByStorey, getPerimetersByStorey, getRoofsByStorey } = getModelActions()
   const storey = getStoreyById(perimeter.storeyId)
   if (!storey) {
     throw new Error('Invalid storey on perimeter')
   }
 
-  const { getRingBeamAssemblyById, getWallAssemblyById, getFloorAssemblyById } = getConfigActions()
-
-  const currentFloorAssembly = getFloorAssemblyById(storey.floorAssemblyId)
-  if (!currentFloorAssembly) {
-    throw new Error(`Floor assembly ${storey.floorAssemblyId} not found for storey ${storey.id}`)
-  }
-
-  const nextStorey = getStoreyAbove(storey.id)
-
-  const nextFloorAssembly = nextStorey ? getFloorAssemblyById(nextStorey.floorAssemblyId) : null
+  const { getRingBeamAssemblyById, getWallAssemblyById } = getConfigActions()
 
   const perimeterContext = computePerimeterConstructionContext(perimeter, getFloorOpeningsByStorey(storey.id))
-  const storeyContext = createWallStoreyContext(storey, currentFloorAssembly, nextFloorAssembly, [perimeterContext])
-  const constructionHeight =
-    storeyContext.ceilingHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
+  const storeyContext = createWallStoreyContext(perimeter.storeyId, [perimeterContext])
 
   const allModels: ConstructionModel[] = []
 
@@ -89,7 +73,11 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     const ringBeam = Array.from(
       assembly.construct({ perimeter, startIndex: segment.startIndex, endIndex: segment.endIndex }, perimeterContext)
     )
-    const transformedModel = transformModel(resultsToModel(ringBeam), IDENTITY, [TAG_BASE_PLATE])
+    const transformedModel = transformModel(
+      resultsToModel(ringBeam),
+      fromTrans(newVec3(0, 0, storeyContext.wallBottom)),
+      [TAG_BASE_PLATE]
+    )
     allModels.push(transformedModel)
   }
 
@@ -111,7 +99,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     )
     const transformedModel = transformModel(
       resultsToModel(ringBeam),
-      fromTrans(newVec3(0, 0, constructionHeight - assembly.height)),
+      fromTrans(newVec3(0, 0, storeyContext.wallTop - assembly.height)),
       [TAG_TOP_PLATE]
     )
     allModels.push(transformedModel)
@@ -130,7 +118,10 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
       const segmentAngle = dirAngle(wall.insideLine.start, wall.insideLine.end)
       const transformedModel = transformModel(
         wallModel,
-        rotateZ(fromTrans(newVec3(wall.insideLine.start[0], wall.insideLine.start[1], 0)), segmentAngle),
+        rotateZ(
+          fromTrans(newVec3(wall.insideLine.start[0], wall.insideLine.start[1], storeyContext.wallBottom)),
+          segmentAngle
+        ),
         [TAG_WALLS]
       )
       allModels.push(transformedModel)
@@ -140,44 +131,31 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
   allModels.push(createPerimeterMeasurementModel(perimeter, perimeterContext, storeyContext))
 
   if (includeFloor) {
-    const finishedFloorPolygon: Polygon2D = {
-      points: perimeter.corners.map(corner => newVec2(corner.insidePoint[0], corner.insidePoint[1]))
+    const innerPolygons = [perimeterContext.innerFinishedPolygon]
+    const floorModel = storeyContext.floorAssembly.construct(perimeterContext)
+    allModels.push(transformModel(floorModel, fromTrans(newVec3(0, 0, storeyContext.wallBottom))))
+
+    const floorHoles = perimeterContext.floorOpenings
+    const floorPolygons = subtractPolygons(innerPolygons, floorHoles)
+    if (floorPolygons.length > 0) {
+      const floorLayerResults = Array.from(storeyContext.floorAssembly.constructFloorLayers(floorPolygons))
+      const floorLayersModel = resultsToModel(floorLayerResults)
+      allModels.push(transformModel(floorLayersModel, fromTrans(newVec3(0, 0, storeyContext.floorConstructionTop))))
     }
-    const floorAssembly = FLOOR_ASSEMBLIES[currentFloorAssembly.type]
-    const floorModel = floorAssembly.construct(perimeterContext, currentFloorAssembly)
-    allModels.push(floorModel)
 
-    const topHoles = perimeterContext.floorOpenings
-
-    let ceilingHoles: Polygon2D[] = []
-    if (nextStorey && nextFloorAssembly) {
-      const nextPerimeters = getPerimetersByStorey(nextStorey.id)
-      if (nextPerimeters.length > 0) {
-        const nextWallFaces = createWallFaceOffsets(nextPerimeters)
-        const nextFloorPolygon: Polygon2D = {
-          points: finishedFloorPolygon.points.map(point => newVec2(point[0], point[1]))
-        }
-        const nextHolesRaw = getFloorOpeningsByStorey(nextStorey.id).map(opening => opening.area)
-        const nextRelevantHoles = nextHolesRaw.filter(hole => arePolygonsIntersecting(nextFloorPolygon, hole))
-        const nextAdjustedHoles = nextRelevantHoles.map(hole => applyWallFaceOffsets(hole, nextWallFaces))
-        ceilingHoles = unionPolygons(nextAdjustedHoles)
+    if (storeyContext.nextStoreyId && storeyContext.ceilingAssembly) {
+      let ceilingHoles: Polygon2D[] = []
+      const rawOpenings = getFloorOpeningsByStorey(storeyContext.nextStoreyId)
+      if (rawOpenings.length > 0) {
+        const nextWallFaces = createWallFaceOffsets(getPerimetersByStorey(storeyContext.nextStoreyId))
+        ceilingHoles = unionPolygons(rawOpenings.map(opening => applyWallFaceOffsets(opening.area, nextWallFaces)))
       }
-    }
-
-    const floorLayerModel = constructFloorLayerModel({
-      finishedPolygon: finishedFloorPolygon,
-      topHoles,
-      ceilingHoles,
-      currentFloorConfig: currentFloorAssembly,
-      nextFloorConfig: nextFloorAssembly ?? null,
-      floorTopOffset: storeyContext.floorTopOffset,
-      ceilingStartHeight: (storeyContext.ceilingHeight +
-        storeyContext.floorTopOffset +
-        storeyContext.ceilingBottomOffset) as Length
-    })
-
-    if (floorLayerModel) {
-      allModels.push(floorLayerModel)
+      const ceilingPolygons = subtractPolygons(innerPolygons, ceilingHoles)
+      if (ceilingPolygons.length > 0) {
+        const ceilingLayerResults = Array.from(storeyContext.ceilingAssembly.constructCeilingLayers(ceilingPolygons))
+        const ceilingLayerModel = resultsToModel(ceilingLayerResults)
+        allModels.push(transformModel(ceilingLayerModel, fromTrans(newVec3(0, 0, storeyContext.finishedCeilingBottom))))
+      }
     }
   }
 
@@ -186,7 +164,7 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     const relevantRoofs = roofs.filter(r => r.referencePerimeter === perimeter.id)
     allModels.push(
       ...relevantRoofs.map(roof =>
-        transformModel(constructRoof(roof, [perimeterContext]), fromTrans(newVec3(0, 0, storeyContext.storeyHeight)))
+        transformModel(constructRoof(roof, [perimeterContext]), fromTrans(newVec3(0, 0, storeyContext.roofBottom)))
       )
     )
   }
@@ -274,34 +252,12 @@ export interface PerimeterStats {
 }
 
 export function getPerimeterStats(perimeter: Perimeter): PerimeterStats {
-  const { getStoreyById, getStoreyAbove, getFloorOpeningsByStorey } = getModelActions()
-  const storey = getStoreyById(perimeter.storeyId)
-  if (!storey) {
-    throw new Error('Invalid storey on perimeter')
-  }
+  const { getFloorOpeningsByStorey } = getModelActions()
 
-  const { getFloorAssemblyById } = getConfigActions()
-  const floorAssemblyConfig = getFloorAssemblyById(storey.floorAssemblyId)
-  if (!floorAssemblyConfig) {
-    throw new Error(`Floor assembly ${storey.floorAssemblyId} not found for storey ${storey.id}`)
-  }
-
-  const nextStorey = getStoreyAbove(storey.id)
-  const nextFloorAssemblyConfig = nextStorey ? getFloorAssemblyById(nextStorey.floorAssemblyId) : null
-
-  const floorAssembly = FLOOR_ASSEMBLIES[floorAssemblyConfig.type]
-
-  const storeyContext = createWallStoreyContext(storey, floorAssemblyConfig, nextFloorAssemblyConfig, [])
-  const storeyHeight =
-    storeyContext.ceilingHeight +
-    storeyContext.floorTopOffset +
-    storeyContext.ceilingBottomOffset +
-    floorAssembly.getConstructionThickness(floorAssemblyConfig)
-  const constructionHeight =
-    storeyContext.ceilingHeight +
-    floorAssemblyConfig.layers.topThickness +
-    (nextFloorAssemblyConfig?.layers.bottomThickness ?? 0)
-  const finishedHeight = storeyContext.ceilingHeight
+  const storeyContext = createWallStoreyContext(perimeter.storeyId, [])
+  const storeyHeight = storeyContext.wallTop - storeyContext.floorBottom
+  const constructionHeight = storeyContext.ceilingConstructionBottom - storeyContext.floorConstructionTop
+  const finishedHeight = storeyContext.finishedCeilingBottom - storeyContext.finishedFloorTop
 
   const footprintPolygon: Polygon2D = { points: perimeter.corners.map(corner => corner.outsidePoint) }
   const footprint = calculatePolygonArea(footprintPolygon)
@@ -365,12 +321,12 @@ function createPerimeterMeasurementModel(
     const nextCorner = perimeter.corners[(i + 1) % perimeter.corners.length]
     const wall = perimeter.walls[i]
 
-    const insideStart = newVec3(corner.insidePoint[0], corner.insidePoint[1], 0)
-    const insideEnd = newVec3(nextCorner.insidePoint[0], nextCorner.insidePoint[1], 0)
+    const insideStart = newVec3(corner.insidePoint[0], corner.insidePoint[1], storeyContext.finishedFloorTop)
+    const insideEnd = newVec3(nextCorner.insidePoint[0], nextCorner.insidePoint[1], storeyContext.finishedFloorTop)
 
     const insideExtend1In2D = scaleAddVec2(corner.insidePoint, wall.outsideDirection, wall.thickness)
-    const insideExtend1 = newVec3(insideExtend1In2D[0], insideExtend1In2D[1], 0)
-    const insideExtend2 = newVec3(corner.insidePoint[0], corner.insidePoint[1], storeyContext.ceilingHeight)
+    const insideExtend1 = newVec3(insideExtend1In2D[0], insideExtend1In2D[1], storeyContext.finishedFloorTop)
+    const insideExtend2 = newVec3(corner.insidePoint[0], corner.insidePoint[1], storeyContext.finishedCeilingBottom)
 
     measurements.push({
       startPoint: insideStart,
@@ -380,12 +336,12 @@ function createPerimeterMeasurementModel(
       tags: [TAG_WALL_LENGTH_INSIDE]
     })
 
-    const outsideStart = newVec3(corner.outsidePoint[0], corner.outsidePoint[1], 0)
-    const outsideEnd = newVec3(nextCorner.outsidePoint[0], nextCorner.outsidePoint[1], 0)
+    const outsideStart = newVec3(corner.outsidePoint[0], corner.outsidePoint[1], storeyContext.floorBottom)
+    const outsideEnd = newVec3(nextCorner.outsidePoint[0], nextCorner.outsidePoint[1], storeyContext.floorBottom)
 
     const outsideExtend1In2D = scaleAddVec2(corner.outsidePoint, wall.outsideDirection, -wall.thickness)
-    const outsideExtend1 = newVec3(outsideExtend1In2D[0], outsideExtend1In2D[1], 0)
-    const outsideExtend2 = newVec3(corner.outsidePoint[0], corner.outsidePoint[1], storeyContext.ceilingHeight)
+    const outsideExtend1 = newVec3(outsideExtend1In2D[0], outsideExtend1In2D[1], storeyContext.floorBottom)
+    const outsideExtend2 = newVec3(corner.outsidePoint[0], corner.outsidePoint[1], storeyContext.wallTop)
 
     measurements.push({
       startPoint: outsideStart,
@@ -399,12 +355,12 @@ function createPerimeterMeasurementModel(
   for (const edge of polygonEdges(floorContext.innerPolygon)) {
     const outDirection = perpendicularCCW(direction(edge.start, edge.end))
     const extend1In2D = scaleAddVec2(edge.start, outDirection, 10)
-    const extend1 = newVec3(extend1In2D[0], extend1In2D[1], 0)
-    const extend2 = newVec3(edge.start[0], edge.start[1], storeyContext.ceilingHeight)
+    const extend1 = newVec3(extend1In2D[0], extend1In2D[1], storeyContext.wallBottom)
+    const extend2 = newVec3(edge.start[0], edge.start[1], storeyContext.wallTop)
 
     measurements.push({
-      startPoint: newVec3(edge.start[0], edge.start[1], 0),
-      endPoint: newVec3(edge.end[0], edge.end[1], 0),
+      startPoint: newVec3(edge.start[0], edge.start[1], storeyContext.wallBottom),
+      endPoint: newVec3(edge.end[0], edge.end[1], storeyContext.wallBottom),
       extend1,
       extend2,
       tags: [TAG_WALL_CONSTRUCTION_LENGTH_INSIDE]
@@ -414,11 +370,11 @@ function createPerimeterMeasurementModel(
   for (const edge of polygonEdges(floorContext.outerPolygon)) {
     const inDirection = perpendicularCW(direction(edge.start, edge.end))
     const extend1In2D = scaleAddVec2(edge.start, inDirection, 10)
-    const extend1 = newVec3(extend1In2D[0], extend1In2D[1], 0)
-    const extend2 = newVec3(edge.start[0], edge.start[1], storeyContext.ceilingHeight)
+    const extend1 = newVec3(extend1In2D[0], extend1In2D[1], storeyContext.wallBottom)
+    const extend2 = newVec3(edge.start[0], edge.start[1], storeyContext.wallTop)
     measurements.push({
-      startPoint: newVec3(edge.start[0], edge.start[1], 0),
-      endPoint: newVec3(edge.end[0], edge.end[1], 0),
+      startPoint: newVec3(edge.start[0], edge.start[1], storeyContext.wallBottom),
+      endPoint: newVec3(edge.end[0], edge.end[1], storeyContext.wallBottom),
       extend1,
       extend2,
       tags: [TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE]

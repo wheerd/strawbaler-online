@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createOpeningId, createPerimeterId, createWallAssemblyId } from '@/building/model/ids'
+import { type StoreyId, createOpeningId, createPerimeterId, createWallAssemblyId } from '@/building/model/ids'
 import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
+import type { FloorAssembly } from '@/construction/floors'
 import { WallConstructionArea } from '@/construction/geometry'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'
@@ -18,13 +19,17 @@ import { InfillWallAssembly } from './assembly'
 
 function createMockStoreyContext(storeyHeight: Length = 2500): StoreyContext {
   return {
-    storeyHeight: 0,
-    floorConstructionThickness: 0,
-    ceilingHeight: storeyHeight,
-    floorTopOffset: 0,
-    ceilingBottomOffset: 0,
-    ceilingBottomConstructionOffset: 0,
-    floorTopConstructionOffset: 0,
+    storeyId: 'storey-id' as StoreyId,
+    storeyHeight,
+    roofBottom: 0,
+    wallTop: 0,
+    ceilingConstructionBottom: 0,
+    finishedCeilingBottom: 0,
+    finishedFloorTop: 0,
+    floorConstructionTop: 0,
+    wallBottom: 0,
+    floorBottom: 0,
+    floorAssembly: {} as FloorAssembly,
     perimeterContexts: []
   }
 }

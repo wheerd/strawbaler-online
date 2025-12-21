@@ -298,8 +298,6 @@ export class WallConstructionArea {
       newVec2(newWidth, this.getOffsetsAt(xOffset + newWidth)[1])
     ]
 
-    console.log(newTopOffsets)
-
     return new WallConstructionArea(newPosition, newSize, newTopOffsets)
   }
 

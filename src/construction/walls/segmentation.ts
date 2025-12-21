@@ -182,9 +182,8 @@ export function* segmentedWallConstruction(
   const topPlateAssembly = wall.topRingBeamAssemblyId ? getRingBeamAssemblyById(wall.topRingBeamAssemblyId) : null
   const topPlateHeight = topPlateAssembly ? resolveRingBeamAssembly(topPlateAssembly).height : 0
 
-  const totalConstructionHeight =
-    storeyContext.ceilingHeight + storeyContext.floorTopOffset + storeyContext.ceilingBottomOffset
-  const ceilingOffset = storeyContext.storeyHeight - totalConstructionHeight
+  const totalConstructionHeight = storeyContext.wallTop - storeyContext.wallBottom
+  const ceilingOffset = storeyContext.roofBottom - storeyContext.wallTop
 
   yield* createCornerAreas(cornerInfo, wall.wallLength, totalConstructionHeight)
 
@@ -202,7 +201,7 @@ export function* segmentedWallConstruction(
     perimeter.id
   )
 
-  const finishedFloorZLevel = storeyContext.floorTopOffset
+  const finishedFloorZLevel = storeyContext.finishedFloorTop - storeyContext.wallBottom
 
   const standAtWallStart = wallContext.startCorner.exteriorAngle !== 180 || cornerInfo.startCorner.constructedByThisWall
   const standAtWallEnd = wallContext.endCorner.exteriorAngle !== 180 || cornerInfo.endCorner.constructedByThisWall
@@ -280,7 +279,7 @@ export function* segmentedWallConstruction(
   // Create overall wall construction area ONCE with roof offsets
   const overallWallArea = new WallConstructionArea(
     newVec3(-extensionStart, y, z),
-    newVec3(constructionLength, sizeY, storeyContext.storeyHeight - z - topPlateHeight),
+    newVec3(constructionLength, sizeY, sizeZ),
     roofOffsets
   )
 

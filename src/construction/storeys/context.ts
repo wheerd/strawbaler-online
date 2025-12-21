@@ -1,41 +1,95 @@
-import type { Storey } from '@/building/model'
-import type { FloorAssemblyConfig } from '@/construction/config'
-import { FLOOR_ASSEMBLIES } from '@/construction/floors'
+import type { StoreyId } from '@/building/model'
+import { getModelActions } from '@/building/store'
+import { getConfigActions } from '@/construction/config'
+import { type FloorAssembly, resolveFloorAssembly } from '@/construction/floors'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
-import { getStoreyCeilingHeight } from '@/construction/storeys/storeyHeight'
 import type { Length } from '@/shared/geometry'
 
+export type ZOffset = number
+
 export interface StoreyContext {
-  floorConstructionThickness: Length
-  ceilingBottomOffset: Length
-  ceilingBottomConstructionOffset: Length
+  storeyId: StoreyId
+  nextStoreyId?: StoreyId
   storeyHeight: Length
-  ceilingHeight: Length
-  floorTopOffset: Length
-  floorTopConstructionOffset: Length
+
+  roofBottom: ZOffset
+  wallTop: ZOffset
+  ceilingConstructionBottom: ZOffset
+  finishedCeilingBottom: ZOffset
+  finishedFloorTop: ZOffset
+  floorConstructionTop: ZOffset
+  wallBottom: ZOffset
+  floorBottom: ZOffset
+
+  floorAssembly: FloorAssembly
+  ceilingAssembly?: FloorAssembly
   perimeterContexts: PerimeterConstructionContext[]
 }
 
 export function createWallStoreyContext(
-  currentStorey: Storey,
-  currentFloorAssembly: FloorAssemblyConfig,
-  nextFloorAssembly: FloorAssemblyConfig | null,
+  storeyId: StoreyId,
   perimeterContexts: PerimeterConstructionContext[]
 ): StoreyContext {
-  const currentFloorFloorAssembly = FLOOR_ASSEMBLIES[currentFloorAssembly.type]
-  const nextFloorFloorAssembly = nextFloorAssembly ? FLOOR_ASSEMBLIES[nextFloorAssembly.type] : null
+  const { getStoreyById, getStoreyAbove } = getModelActions()
+  const { getFloorAssemblyById } = getConfigActions()
+  const storey = getStoreyById(storeyId)
+  if (!storey) {
+    throw new Error('Invalid storey')
+  }
 
-  const topOffset = currentFloorFloorAssembly.getTopOffset(currentFloorAssembly)
-  const bottomOffset = nextFloorFloorAssembly?.getBottomOffset(nextFloorAssembly) ?? 0
+  const floorAssemblyConfig = getFloorAssemblyById(storey.floorAssemblyId)
+  if (!floorAssemblyConfig) {
+    throw new Error('Invalid floor assembly')
+  }
+  const floorAssembly = resolveFloorAssembly(floorAssemblyConfig)
+
+  const nextStorey = getStoreyAbove(storey.id)
+  const nextFloorConfig = nextStorey ? getFloorAssemblyById(nextStorey.floorAssemblyId) : null
+  const ceilingAssembly = nextFloorConfig ? resolveFloorAssembly(nextFloorConfig) : null
+
+  const finishedFloorTop = 0
+
+  const floorConstructionTop = finishedFloorTop - floorAssembly.topLayersThickness
+  const wallBottom = floorConstructionTop - floorAssembly.topOffset
+  const floorBottom = wallBottom - floorAssembly.constructionThickness
+
+  if (ceilingAssembly) {
+    const finishedCeilingBottom = finishedFloorTop + storey.floorHeight - ceilingAssembly.totalThickness
+    const ceilingConstructionBottom = finishedCeilingBottom + ceilingAssembly.bottomLayersThickness
+    const wallTop = ceilingConstructionBottom + ceilingAssembly.bottomOffset
+
+    return {
+      storeyId,
+      nextStoreyId: nextStorey?.id,
+      storeyHeight: storey.floorHeight,
+      roofBottom: wallTop,
+      wallTop,
+      ceilingConstructionBottom,
+      finishedCeilingBottom,
+      finishedFloorTop,
+      floorConstructionTop,
+      wallBottom,
+      floorBottom,
+      floorAssembly,
+      ceilingAssembly,
+      perimeterContexts
+    }
+  }
+
+  const wallTop = finishedFloorTop + storey.floorHeight
 
   return {
-    storeyHeight: currentStorey.floorHeight,
-    floorConstructionThickness: currentFloorFloorAssembly.getConstructionThickness(currentFloorAssembly),
-    ceilingHeight: getStoreyCeilingHeight(currentStorey, nextFloorAssembly),
-    floorTopConstructionOffset: topOffset,
-    floorTopOffset: currentFloorAssembly.layers.topThickness + topOffset,
-    ceilingBottomConstructionOffset: bottomOffset,
-    ceilingBottomOffset: (nextFloorAssembly?.layers.bottomThickness ?? 0) + bottomOffset,
+    storeyId,
+    storeyHeight: storey.floorHeight,
+    roofBottom: wallTop,
+    wallTop,
+    ceilingConstructionBottom: wallTop,
+    finishedCeilingBottom: wallTop,
+    finishedFloorTop,
+    floorConstructionTop,
+    wallBottom,
+    floorBottom,
+    floorAssembly,
     perimeterContexts
   }
 }

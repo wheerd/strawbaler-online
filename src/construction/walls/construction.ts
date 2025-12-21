@@ -72,29 +72,16 @@ export function constructWall(
   wallId: PerimeterWallId,
   includeColinear = false
 ): ConstructionModel {
-  const { getPerimeterById, getStoreyById, getStoreyAbove } = getModelActions()
-  const { getWallAssemblyById, getFloorAssemblyById } = getConfigActions()
+  const { getPerimeterById } = getModelActions()
+  const { getWallAssemblyById } = getConfigActions()
 
   const perimeter = getPerimeterById(perimeterId)
   if (!perimeter) {
     throw new Error(`Perimeter with ID ${perimeterId} not found`)
   }
 
-  const storey = getStoreyById(perimeter.storeyId)
-  if (!storey) {
-    throw new Error(`Storey with ID ${perimeter.storeyId} not found for perimeter ${perimeterId}`)
-  }
-
-  const currentFloorAssembly = getFloorAssemblyById(storey.floorAssemblyId)
-  if (!currentFloorAssembly) {
-    throw new Error(`Floor assembly with ID ${storey.floorAssemblyId} not found for storey ${storey.id}`)
-  }
-
-  const nextStorey = getStoreyAbove(storey.id)
-  const nextFloorAssembly = nextStorey ? getFloorAssemblyById(nextStorey.floorAssemblyId) : null
-
   const perimeterContext = computePerimeterConstructionContext(perimeter, [])
-  const storeyContext = createWallStoreyContext(storey, currentFloorAssembly, nextFloorAssembly, [perimeterContext])
+  const storeyContext = createWallStoreyContext(perimeter.storeyId, [perimeterContext])
 
   const wallIds = includeColinear ? findColinearWalls(perimeter, wallId) : [wallId]
 
