@@ -4,10 +4,10 @@ import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
 import { computePerimeterConstructionContext } from '@/construction/perimeters/context'
+import { createWallStoreyContext } from '@/construction/storeys/context'
 import { type Length, type LineSegment2D, fromTrans, newVec3 } from '@/shared/geometry'
 
 import { WALL_ASSEMBLIES } from './index'
-import { createWallStoreyContext } from './segmentation'
 
 export interface WallCornerInfo {
   startCorner: {

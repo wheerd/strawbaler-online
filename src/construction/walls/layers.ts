@@ -5,6 +5,7 @@ import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
 import type { LayerConfig, MonolithicLayerConfig, StripedLayerConfig } from '@/construction/layers/types'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { type ConstructionResult, aggregateResults } from '@/construction/results'
+import type { StoreyContext } from '@/construction/storeys/context'
 import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE, createTag } from '@/construction/tags'
 import {
   Bounds3D,
@@ -23,7 +24,6 @@ import {
 import { getWallContext } from './corners/corners'
 import { computeLayerSpan, subtractWallOpenings } from './polygons'
 import { convertHeightLineToWallOffsets, getRoofHeightLineForLines } from './roofIntegration'
-import type { WallStoreyContext } from './segmentation'
 import type { WallLayersConfig } from './types'
 
 const WALL_LAYER_PLANE: Plane3D = 'xz'
@@ -67,7 +67,7 @@ const aggregateLayerResults = (results: ConstructionResult[]): ConstructionModel
 export function constructWallLayers(
   wall: PerimeterWall,
   perimeter: Perimeter,
-  storeyContext: WallStoreyContext,
+  storeyContext: StoreyContext,
   layers: WallLayersConfig
 ): ConstructionModel {
   const context = getWallContext(wall, perimeter)

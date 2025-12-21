@@ -8,15 +8,15 @@ import type { PostConfig } from '@/construction/materials/posts'
 import { constructPost } from '@/construction/materials/posts'
 import { constructStraw } from '@/construction/materials/straw'
 import { yieldElement, yieldError, yieldMeasurement, yieldWarning } from '@/construction/results'
+import type { StoreyContext } from '@/construction/storeys/context'
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { InfillWallConfig, InfillWallSegmentConfig, WallLayersConfig } from '@/construction/walls'
-import { type WallStoreyContext } from '@/construction/walls/segmentation'
 import { segmentedWallConstruction } from '@/construction/walls/segmentation'
 import { IDENTITY, type Length, type Vec3, ZERO_VEC2, newVec2, newVec3 } from '@/shared/geometry'
 
 import { InfillWallAssembly } from './assembly'
 
-function createMockStoreyContext(storeyHeight: Length = 2500): WallStoreyContext {
+function createMockStoreyContext(storeyHeight: Length = 2500): StoreyContext {
   return {
     storeyHeight: 0,
     floorConstructionThickness: 0,

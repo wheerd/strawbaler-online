@@ -1,14 +1,11 @@
 import type { OpeningAssemblyId } from '@/building/model/ids'
-import type { Opening, Perimeter, PerimeterWall, Storey } from '@/building/model/model'
+import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
 import { getConfigActions } from '@/construction/config'
-import type { FloorAssemblyConfig } from '@/construction/config/types'
-import { FLOOR_ASSEMBLIES } from '@/construction/floors'
 import { WallConstructionArea } from '@/construction/geometry'
 import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/openings/resolver'
-import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
 import { resolveRingBeamAssembly } from '@/construction/ringBeams'
-import { getStoreyCeilingHeight } from '@/construction/storeys/storeyHeight'
+import type { StoreyContext } from '@/construction/storeys/context'
 import {
   TAG_OPENING_DOOR,
   TAG_OPENING_SPACING,
@@ -165,45 +162,10 @@ function* createPlateAreas(
   }
 }
 
-export interface WallStoreyContext {
-  floorConstructionThickness: Length
-  ceilingBottomOffset: Length
-  ceilingBottomConstructionOffset: Length
-  storeyHeight: Length
-  ceilingHeight: Length
-  floorTopOffset: Length
-  floorTopConstructionOffset: Length
-  perimeterContexts: PerimeterConstructionContext[]
-}
-
-export function createWallStoreyContext(
-  currentStorey: Storey,
-  currentFloorAssembly: FloorAssemblyConfig,
-  nextFloorAssembly: FloorAssemblyConfig | null,
-  perimeterContexts: PerimeterConstructionContext[]
-): WallStoreyContext {
-  const currentFloorFloorAssembly = FLOOR_ASSEMBLIES[currentFloorAssembly.type]
-  const nextFloorFloorAssembly = nextFloorAssembly ? FLOOR_ASSEMBLIES[nextFloorAssembly.type] : null
-
-  const topOffset = currentFloorFloorAssembly.getTopOffset(currentFloorAssembly)
-  const bottomOffset = nextFloorFloorAssembly?.getBottomOffset(nextFloorAssembly) ?? 0
-
-  return {
-    storeyHeight: currentStorey.floorHeight,
-    floorConstructionThickness: currentFloorFloorAssembly.getConstructionThickness(currentFloorAssembly),
-    ceilingHeight: getStoreyCeilingHeight(currentStorey, nextFloorAssembly),
-    floorTopConstructionOffset: topOffset,
-    floorTopOffset: currentFloorAssembly.layers.topThickness + topOffset,
-    ceilingBottomConstructionOffset: bottomOffset,
-    ceilingBottomOffset: (nextFloorAssembly?.layers.bottomThickness ?? 0) + bottomOffset,
-    perimeterContexts
-  }
-}
-
 export function* segmentedWallConstruction(
   wall: PerimeterWall,
   perimeter: Perimeter,
-  storeyContext: WallStoreyContext,
+  storeyContext: StoreyContext,
   layers: WallLayersConfig,
   wallConstruction: WallSegmentConstruction,
   infillMethod: InfillMethod,

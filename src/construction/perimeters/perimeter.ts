@@ -1,7 +1,25 @@
 import type { Perimeter, PerimeterWall } from '@/building/model'
 import type { RingBeamAssemblyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
+import { getConfigActions } from '@/construction/config'
+import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from '@/construction/floors'
+import { polygonEdges } from '@/construction/helpers'
+import type { RawMeasurement } from '@/construction/measurements'
+import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
 import { resultsToModel } from '@/construction/results'
+import { resolveRingBeamAssembly } from '@/construction/ringBeams'
+import { constructRoof } from '@/construction/roofs'
+import { type StoreyContext, createWallStoreyContext } from '@/construction/storeys/context'
+import {
+  TAG_BASE_PLATE,
+  TAG_TOP_PLATE,
+  TAG_WALLS,
+  TAG_WALL_CONSTRUCTION_LENGTH_INSIDE,
+  TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE,
+  TAG_WALL_LENGTH_INSIDE,
+  TAG_WALL_LENGTH_OUTSIDE
+} from '@/construction/tags'
+import { WALL_ASSEMBLIES } from '@/construction/walls'
 import {
   type Area,
   Bounds3D,
@@ -26,23 +44,6 @@ import {
   unionPolygons
 } from '@/shared/geometry'
 
-import { getConfigActions } from '../config'
-import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from '../floors'
-import { polygonEdges } from '../helpers'
-import type { RawMeasurement } from '../measurements'
-import { type ConstructionModel, mergeModels, transformModel } from '../model'
-import { resolveRingBeamAssembly } from '../ringBeams'
-import { constructRoof } from '../roofs/roof'
-import {
-  TAG_BASE_PLATE,
-  TAG_TOP_PLATE,
-  TAG_WALLS,
-  TAG_WALL_CONSTRUCTION_LENGTH_INSIDE,
-  TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE,
-  TAG_WALL_LENGTH_INSIDE,
-  TAG_WALL_LENGTH_OUTSIDE
-} from '../tags'
-import { WALL_ASSEMBLIES, type WallStoreyContext, createWallStoreyContext } from '../walls'
 import {
   type PerimeterConstructionContext,
   applyWallFaceOffsets,
@@ -355,7 +356,7 @@ export function getPerimeterStats(perimeter: Perimeter): PerimeterStats {
 function createPerimeterMeasurementModel(
   perimeter: Perimeter,
   floorContext: PerimeterConstructionContext,
-  storeyContext: WallStoreyContext
+  storeyContext: StoreyContext
 ): ConstructionModel {
   const measurements: RawMeasurement[] = []
 

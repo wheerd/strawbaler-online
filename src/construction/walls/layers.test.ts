@@ -12,10 +12,10 @@ import type { Opening, Perimeter, PerimeterCorner, PerimeterWall } from '@/build
 import type { ConstructionElement, GroupOrElement } from '@/construction/elements'
 import { clayPlasterBase, limePlasterBase } from '@/construction/materials/material'
 import type { ExtrudedShape } from '@/construction/shapes'
+import type { StoreyContext } from '@/construction/storeys/context'
 import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE } from '@/construction/tags'
 import type { WallCornerInfo } from '@/construction/walls'
 import type { WallContext } from '@/construction/walls/corners/corners'
-import type { WallStoreyContext } from '@/construction/walls/segmentation'
 import type { WallLayersConfig } from '@/construction/walls/types'
 import { type Polygon2D, type PolygonWithHoles2D, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
@@ -103,7 +103,7 @@ const createCorner = (overrides: Partial<PerimeterCorner>): PerimeterCorner => (
   ...overrides
 })
 
-const storeyContext: WallStoreyContext = {
+const storeyContext: StoreyContext = {
   storeyHeight: 3500,
   ceilingHeight: 3000,
   floorTopOffset: 50,

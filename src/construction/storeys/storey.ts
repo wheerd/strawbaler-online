@@ -1,15 +1,18 @@
 import type { StoreyId } from '@/building/model'
 import { getModelActions } from '@/building/store'
+import { getConfigActions } from '@/construction/config'
+import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from '@/construction/floors'
+import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
+import {
+  applyWallFaceOffsets,
+  computePerimeterConstructionContext,
+  createWallFaceOffsets
+} from '@/construction/perimeters/context'
+import { constructPerimeter } from '@/construction/perimeters/perimeter'
 import { constructRoof } from '@/construction/roofs'
+import { createWallStoreyContext } from '@/construction/storeys/context'
+import { TAG_STOREY } from '@/construction/tags'
 import { type Length, type Polygon2D, fromTrans, newVec2, newVec3, unionPolygons } from '@/shared/geometry'
-
-import { getConfigActions } from '../config'
-import { FLOOR_ASSEMBLIES, constructFloorLayerModel } from '../floors'
-import { type ConstructionModel, mergeModels, transformModel } from '../model'
-import { applyWallFaceOffsets, computePerimeterConstructionContext, createWallFaceOffsets } from '../perimeters/context'
-import { constructPerimeter } from '../perimeters/perimeter'
-import { TAG_STOREY } from '../tags'
-import { createWallStoreyContext } from '../walls'
 
 export function constructStoreyFloor(storeyId: StoreyId): ConstructionModel[] {
   const { getPerimetersByStorey, getFloorOpeningsByStorey, getStoreyById, getStoreyAbove } = getModelActions()

@@ -6,10 +6,10 @@ import type { PerimeterConstructionContext } from '@/construction/perimeters/con
 import { type ConstructionResult, yieldAndClip, yieldElement } from '@/construction/results'
 import type { HeightLine } from '@/construction/roofs/types'
 import { createExtrudedPolygon } from '@/construction/shapes'
+import type { StoreyContext } from '@/construction/storeys/context'
 import { TAG_PLATE } from '@/construction/tags'
 import type { Tag } from '@/construction/tags'
 import { type WallTopOffsets, getRoofHeightLineForLines } from '@/construction/walls/roofIntegration'
-import type { WallStoreyContext } from '@/construction/walls/segmentation'
 import {
   type Length,
   type LineSegment2D,
@@ -34,7 +34,7 @@ export class FullRingBeamAssembly extends BaseRingBeamAssembly<FullRingBeamConfi
   *construct(
     segment: RingBeamSegment,
     context: PerimeterConstructionContext,
-    storeyContext?: WallStoreyContext
+    storeyContext?: StoreyContext
   ): Generator<ConstructionResult> {
     for (const part of this.colinearParts(segment)) {
       const polygon = this.createBeamPolygon(

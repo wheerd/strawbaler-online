@@ -7,12 +7,13 @@ import { mergeModels } from '@/construction/model'
 import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
 import { resolveRingBeamAssembly } from '@/construction/ringBeams'
 import { createExtrudedPolygon } from '@/construction/shapes'
+import type { StoreyContext } from '@/construction/storeys/context'
 import type { NonStrawbaleWallConfig, WallAssembly } from '@/construction/walls'
 import { calculateWallCornerInfo, getWallContext } from '@/construction/walls/corners/corners'
 import { constructWallLayers } from '@/construction/walls/layers'
 import { WALL_POLYGON_PLANE, createWallPolygonWithOpenings } from '@/construction/walls/polygons'
 import { convertHeightLineToWallOffsets, getRoofHeightLineForLines } from '@/construction/walls/roofIntegration'
-import { type WallStoreyContext, segmentedWallConstruction } from '@/construction/walls/segmentation'
+import { segmentedWallConstruction } from '@/construction/walls/segmentation'
 import { Bounds3D, type Length, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 function* noopWallSegment(
@@ -32,7 +33,7 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
   construct(
     wall: PerimeterWall,
     perimeter: Perimeter,
-    storeyContext: WallStoreyContext,
+    storeyContext: StoreyContext,
     config: NonStrawbaleWallConfig
   ): ConstructionModel {
     const wallContext = getWallContext(wall, perimeter)

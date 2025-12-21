@@ -9,6 +9,7 @@ import type { OpeningAssembly } from '@/construction/openings/types'
 import { aggregateResults, yieldElement } from '@/construction/results'
 import { resolveRingBeamAssembly } from '@/construction/ringBeams'
 import { createCuboid } from '@/construction/shapes'
+import type { StoreyContext } from '@/construction/storeys/context'
 import {
   TAG_OPENING_SPACING,
   TAG_RING_BEAM_HEIGHT,
@@ -21,7 +22,7 @@ import { Bounds3D, IDENTITY, type Length, type Vec3, ZERO_VEC2, newVec2, newVec3
 
 import type { WallCornerInfo } from './construction'
 import { calculateWallCornerInfo, getWallContext } from './corners/corners'
-import { type WallStoreyContext, segmentedWallConstruction } from './segmentation'
+import { segmentedWallConstruction } from './segmentation'
 
 // Mock dependencies
 vi.mock('./corners/corners', () => ({
@@ -160,7 +161,7 @@ function createMockLayers(): WallLayersConfig {
   }
 }
 
-function createMockStoreyContext(storeyHeight: Length = 2500, ceilingHeight: Length = 2000): WallStoreyContext {
+function createMockStoreyContext(storeyHeight: Length = 2500, ceilingHeight: Length = 2000): StoreyContext {
   return {
     storeyHeight,
     floorConstructionThickness: 0,
