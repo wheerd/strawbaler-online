@@ -30,7 +30,7 @@ interface AddPostToolState {
   type: WallPostType
   width: Length // Default: 60mm
   thickness: Length // Default: 360mm
-  position: 'center' | 'inside' | 'outside' // Default: 'center'
+  replacesPosts: boolean
   material: MaterialId // Default: wood
   infillMaterial: MaterialId // Default: woodwool
 
@@ -44,10 +44,10 @@ interface AddPostToolState {
 
 // Default post configuration
 const DEFAULT_POST_CONFIG = {
-  type: 'single' as WallPostType,
+  type: 'center' as WallPostType,
   width: 60, // 6cm
   thickness: 360, // 36cm
-  position: 'center' as const,
+  replacesPosts: true,
   material: wood.id,
   infillMaterial: woodwool.id
 }
@@ -61,7 +61,7 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
     type: DEFAULT_POST_CONFIG.type,
     width: DEFAULT_POST_CONFIG.width,
     thickness: DEFAULT_POST_CONFIG.thickness,
-    position: DEFAULT_POST_CONFIG.position,
+    replacesPosts: DEFAULT_POST_CONFIG.replacesPosts,
     material: DEFAULT_POST_CONFIG.material,
     infillMaterial: DEFAULT_POST_CONFIG.infillMaterial,
     canPlace: false
@@ -206,7 +206,7 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
       this.state.width
     )
 
-    const maxSnapDistance = this.state.width * 0.4
+    const maxSnapDistance = Math.max(this.state.width, 200)
     if (snappedOffset !== null && Math.abs(snappedOffset - preferredStartOffset) <= maxSnapDistance) {
       // Determine snap direction
       const snapDirection: 'left' | 'right' | undefined =
@@ -238,7 +238,7 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
         centerOffsetFromWallStart: this.state.offset,
         width: this.state.width,
         thickness: this.state.thickness,
-        position: this.state.position,
+        replacesPosts: this.state.replacesPosts,
         material: this.state.material,
         infillMaterial: this.state.infillMaterial
       })
@@ -290,8 +290,8 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
     this.triggerRender()
   }
 
-  setPosition(position: 'center' | 'inside' | 'outside'): void {
-    this.state.position = position
+  setReplacesPosts(replacesPosts: boolean): void {
+    this.state.replacesPosts = replacesPosts
     this.triggerRender()
   }
 

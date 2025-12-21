@@ -50,15 +50,13 @@ export interface Opening {
   openingAssemblyId?: OpeningAssemblyId // Optional override for this specific opening
 }
 
-export type WallPostType = 'single' | 'double'
+export type WallPostType = 'center' | 'inside' | 'outside' | 'double'
 
 export interface WallPost {
   id: WallPostId
   type: WallPostType
-
   centerOffsetFromWallStart: Length
-  position: 'center' | 'inside' | 'outside'
-
+  replacesPosts: boolean
   width: Length
   thickness: Length
   material: MaterialId

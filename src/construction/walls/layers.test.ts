@@ -69,7 +69,7 @@ const createWall = (overrides: Partial<PerimeterWall> = {}): PerimeterWall => ({
   thickness: 300,
   wallAssemblyId: baseAssemblyId,
   openings: [],
-      posts: [],
+  posts: [],
   insideLength: 3000,
   outsideLength: 3000,
   wallLength: 3000,

@@ -457,7 +457,7 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
             points: exportedRoof.referencePolygon.points.map(point => newVec2(point.x, point.y))
           }
           // Map the old perimeter ID to the new one
-          let referencePerimeter: PerimeterId | undefined = undefined
+          let referencePerimeter: PerimeterId | undefined
           if (exportedRoof.referencePerimeter) {
             const oldPerimeterId = exportedRoof.referencePerimeter as PerimeterId
             referencePerimeter = perimeterIdMap.get(oldPerimeterId) ?? undefined

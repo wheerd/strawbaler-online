@@ -1,6 +1,18 @@
 import { InfoCircledIcon, TrashIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { Box, Callout, Flex, Grid, IconButton, Kbd, SegmentedControl, Select, Separator, Text } from '@radix-ui/themes'
+import {
+  Box,
+  Callout,
+  Flex,
+  Grid,
+  IconButton,
+  Kbd,
+  SegmentedControl,
+  Select,
+  Separator,
+  Switch,
+  Text
+} from '@radix-ui/themes'
 import { useCallback, useMemo } from 'react'
 
 import type { PerimeterId, PerimeterWallId, WallPostId } from '@/building/model/ids'
@@ -67,9 +79,9 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
     [updatePost, perimeterId, wallId, postId]
   )
 
-  const handlePositionChange = useCallback(
-    (newPosition: 'center' | 'inside' | 'outside') => {
-      updatePost(perimeterId, wallId, postId, { position: newPosition })
+  const handleReplacesPostsChange = useCallback(
+    (replacesPosts: boolean) => {
+      updatePost(perimeterId, wallId, postId, { replacesPosts: !replacesPosts })
     },
     [updatePost, perimeterId, wallId, postId]
   )
@@ -134,20 +146,26 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
             Type
           </Text>
           <SegmentedControl.Root value={post.type} onValueChange={handleTypeChange} size="1">
-            <SegmentedControl.Item value="single">Single</SegmentedControl.Item>
+            <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
+            <SegmentedControl.Item value="center">Center</SegmentedControl.Item>
+            <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
             <SegmentedControl.Item value="double">Double</SegmentedControl.Item>
           </SegmentedControl.Root>
         </Flex>
 
         <Flex align="center" justify="between" gap="2">
           <Text size="1" weight="medium" color="gray">
-            Position
+            Behavior
           </Text>
-          <SegmentedControl.Root value={post.position} onValueChange={handlePositionChange} size="1">
-            <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
-            <SegmentedControl.Item value="center">Center</SegmentedControl.Item>
-            <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
-          </SegmentedControl.Root>
+          <Flex align="center" gap="2">
+            <Text size="1" color="gray">
+              Acts as Post
+            </Text>
+            <Switch checked={!post.replacesPosts} size="1" onCheckedChange={handleReplacesPostsChange} />
+            <Text size="1" color="gray">
+              Flanked by Posts
+            </Text>
+          </Flex>
         </Flex>
 
         {/* Dimension inputs in Radix Grid layout */}

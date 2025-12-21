@@ -1,6 +1,6 @@
 import { InfoCircledIcon } from '@radix-ui/react-icons'
 import * as Label from '@radix-ui/react-label'
-import { Button, Callout, Flex, Grid, SegmentedControl, Select, Separator, Text } from '@radix-ui/themes'
+import { Button, Callout, Flex, Grid, SegmentedControl, Select, Separator, Switch, Text } from '@radix-ui/themes'
 import { useCallback } from 'react'
 
 import type { WallPostType } from '@/building/model/model'
@@ -35,9 +35,9 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
     [tool]
   )
 
-  const handlePositionChange = useCallback(
-    (newPosition: 'center' | 'inside' | 'outside') => {
-      tool.setPosition(newPosition)
+  const handleReplacesPostsChange = useCallback(
+    (flankedByPosts: boolean) => {
+      tool.setReplacesPosts(!flankedByPosts)
     },
     [tool]
   )
@@ -76,21 +76,26 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
           Type
         </Text>
         <SegmentedControl.Root value={state.type} onValueChange={handleTypeChange} size="1">
-          <SegmentedControl.Item value="single">Single</SegmentedControl.Item>
+          <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
+          <SegmentedControl.Item value="center">Center</SegmentedControl.Item>
+          <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
           <SegmentedControl.Item value="double">Double</SegmentedControl.Item>
         </SegmentedControl.Root>
       </Flex>
 
-      {/* Position Selection */}
       <Flex align="center" justify="between" gap="2">
         <Text size="1" weight="medium" color="gray">
-          Position
+          Behavior
         </Text>
-        <SegmentedControl.Root value={state.position} onValueChange={handlePositionChange} size="1">
-          <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
-          <SegmentedControl.Item value="center">Center</SegmentedControl.Item>
-          <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
-        </SegmentedControl.Root>
+        <Flex align="center" gap="2">
+          <Text size="1" color="gray">
+            Acts as Post
+          </Text>
+          <Switch checked={!state.replacesPosts} size="1" onCheckedChange={handleReplacesPostsChange} />
+          <Text size="1" color="gray">
+            Flanked by Posts
+          </Text>
+        </Flex>
       </Flex>
 
       {/* Dimension inputs */}
@@ -180,7 +185,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
             size="1"
             variant="surface"
             onClick={() => {
-              tool.setPostType('single')
+              tool.setPostType('center')
               tool.setWidth(60)
               tool.setThickness(360)
             }}
@@ -202,7 +207,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
             size="1"
             variant="surface"
             onClick={() => {
-              tool.setPostType('single')
+              tool.setPostType('outside')
               tool.setWidth(140)
               tool.setThickness(140)
             }}

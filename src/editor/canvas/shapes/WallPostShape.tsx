@@ -1,4 +1,4 @@
-import { Circle, Group, Line } from 'react-konva/lib/ReactKonvaCore'
+import { Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
 import type { PerimeterId } from '@/building/model/ids'
 import type { PerimeterWall, WallPost } from '@/building/model/model'
@@ -8,8 +8,18 @@ import { LengthIndicator } from '@/editor/canvas/utils/LengthIndicator'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { activateLengthInput } from '@/editor/services/length-input'
-import { type Length, type Vec2, ZERO_VEC2, addVec2, midpoint, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
+import {
+  type Length,
+  type Vec2,
+  ZERO_VEC2,
+  addVec2,
+  lerpVec2,
+  midpoint,
+  scaleAddVec2,
+  scaleVec2
+} from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
+import { MATERIAL_COLORS } from '@/shared/theme/colors'
 import { formatLength } from '@/shared/utils/formatting'
 
 interface WallPostShapeProps {
@@ -23,8 +33,6 @@ interface WallPostShapeProps {
   outsideStartCorner: Vec2
   outsideEndCorner: Vec2
 }
-
-const POST_COLOR = '#8B4513' // Brown color for posts
 
 export function WallPostShape({
   post,
@@ -47,7 +55,6 @@ export function WallPostShape({
 
   // Calculate left edge from center position
   const offsetDistance = post.centerOffsetFromWallStart - post.width / 2
-  const centerStart = midpoint(insideStart, outsideStart)
   const offsetStart = scaleVec2(wallVector, offsetDistance)
   const offsetEnd = scaleAddVec2(offsetStart, wallVector, post.width)
 
@@ -58,26 +65,30 @@ export function WallPostShape({
   const outsidePostEnd = addVec2(outsideStart, offsetEnd)
 
   const postPolygon = [insidePostStart, insidePostEnd, outsidePostEnd, outsidePostStart]
+  const insidePolygon = [
+    insidePostStart,
+    insidePostEnd,
+    lerpVec2(insidePostEnd, outsidePostEnd, 1 / 3),
+    lerpVec2(insidePostStart, outsidePostStart, 1 / 3)
+  ]
+  const centerPolygon = [
+    lerpVec2(insidePostStart, outsidePostStart, 1 / 3),
+    lerpVec2(insidePostEnd, outsidePostEnd, 1 / 3),
+    lerpVec2(insidePostEnd, outsidePostEnd, 2 / 3),
+    lerpVec2(insidePostStart, outsidePostStart, 2 / 3)
+  ]
+  const outsidePolygon = [
+    outsidePostStart,
+    outsidePostEnd,
+    lerpVec2(insidePostEnd, outsidePostEnd, 2 / 3),
+    lerpVec2(insidePostStart, outsidePostStart, 2 / 3)
+  ]
   const postPolygonArray = postPolygon.flatMap(point => [point[0], point[1]])
+  const insidePolygonArray = insidePolygon.flatMap(point => [point[0], point[1]])
+  const centerPolygonArray = centerPolygon.flatMap(point => [point[0], point[1]])
+  const outsidePolygonArray = outsidePolygon.flatMap(point => [point[0], point[1]])
 
   const isPostSelected = select.isCurrentSelection(post.id)
-
-  // Calculate post center point for position indicator
-  const postCenter = scaleAddVec2(centerStart, wallVector, post.centerOffsetFromWallStart)
-
-  // Calculate position indicator point based on post position
-  let positionIndicatorPoint: Vec2
-  const outsideDirection = wall.outsideDirection
-  if (post.position === 'inside') {
-    // Point towards inside (negative outside direction)
-    positionIndicatorPoint = scaleAddVec2(postCenter, outsideDirection, -wall.thickness / 4)
-  } else if (post.position === 'outside') {
-    // Point towards outside
-    positionIndicatorPoint = scaleAddVec2(postCenter, outsideDirection, wall.thickness / 4)
-  } else {
-    // Center - use the center point itself
-    positionIndicatorPoint = postCenter
-  }
 
   // Calculate post-to-post and post-to-opening distances
   const sortedPosts = [...wall.posts].sort((a, b) => a.centerOffsetFromWallStart - b.centerOffsetFromWallStart)
@@ -176,7 +187,7 @@ export function WallPostShape({
       {/* Post rectangle - render as brown colored shape */}
       <Line
         points={postPolygonArray}
-        fill={POST_COLOR}
+        fill={theme.bgCanvas80A}
         stroke={theme.border}
         strokeWidth={10}
         lineCap="butt"
@@ -184,16 +195,42 @@ export function WallPostShape({
         listening
       />
 
-      {/* Position indicator - small circle showing inside/outside/center position */}
-      <Circle
-        x={positionIndicatorPoint[0]}
-        y={positionIndicatorPoint[1]}
-        radius={30}
-        fill={theme.primary}
-        stroke={theme.border}
-        strokeWidth={5}
-        listening
-      />
+      {/* Position indicators */}
+      {(post.type === 'inside' || post.type === 'double') && (
+        <Line
+          points={insidePolygonArray}
+          fill={MATERIAL_COLORS.woodSupport}
+          stroke={theme.border}
+          strokeWidth={5}
+          lineCap="butt"
+          closed
+          listening
+        />
+      )}
+
+      {post.type === 'center' && (
+        <Line
+          points={centerPolygonArray}
+          fill={MATERIAL_COLORS.woodSupport}
+          stroke={theme.border}
+          strokeWidth={5}
+          lineCap="butt"
+          closed
+          listening
+        />
+      )}
+
+      {(post.type === 'outside' || post.type === 'double') && (
+        <Line
+          points={outsidePolygonArray}
+          fill={MATERIAL_COLORS.woodSupport}
+          stroke={theme.border}
+          strokeWidth={5}
+          lineCap="butt"
+          closed
+          listening
+        />
+      )}
 
       {/* Length indicators when selected */}
       {isPostSelected && (

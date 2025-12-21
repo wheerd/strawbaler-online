@@ -1,14 +1,11 @@
-import { Circle, Group, Line } from 'react-konva/lib/ReactKonvaCore'
+import { Circle, Group, Rect } from 'react-konva/lib/ReactKonvaCore'
 
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolOverlayComponentProps } from '@/editor/tools/system/types'
-import { addVec2, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
+import { MATERIAL_COLORS } from '@/shared/theme/colors'
 
 import type { AddPostTool } from './AddPostTool'
-
-const POST_COLOR = '#8B4513' // Brown color for posts
-const PREVIEW_OPACITY = 0.6
 
 export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTool>): React.JSX.Element | null {
   const { state } = useReactiveTool(tool)
@@ -19,82 +16,77 @@ export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTo
   }
 
   const wall = state.hoveredPerimeterWall.wall
-  const insideStart = wall.insideLine.start
-  const outsideStart = wall.outsideLine.start
-  const wallVector = wall.direction
-  const outsideDirection = wall.outsideDirection
+  const wallDirection = wall.direction
+  const wallAngle = (Math.atan2(wallDirection[1], wallDirection[0]) * 180) / Math.PI
 
-  // Calculate post position
-  const offsetDistance = state.offset - state.width / 2
-  const offsetStart = scaleVec2(wallVector, offsetDistance)
-  const offsetEnd = scaleAddVec2(offsetStart, wallVector, state.width)
+  const halfWidth = state.width / 2
 
-  // Calculate post polygon corners
-  const insidePostStart = addVec2(insideStart, offsetStart)
-  const insidePostEnd = addVec2(insideStart, offsetEnd)
-  const outsidePostStart = addVec2(outsideStart, offsetStart)
-  const outsidePostEnd = addVec2(outsideStart, offsetEnd)
-
-  const postPolygon = [insidePostStart, insidePostEnd, outsidePostEnd, outsidePostStart]
-  const postPolygonArray = postPolygon.flatMap(point => [point[0], point[1]])
-
-  // Calculate position indicator point
-  const centerPoint = scaleAddVec2(insideStart, wallVector, state.offset)
-  const outsideCenterPoint = scaleAddVec2(outsideStart, wallVector, state.offset)
-  const midPointX = (centerPoint[0] + outsideCenterPoint[0]) / 2
-  const midPointY = (centerPoint[1] + outsideCenterPoint[1]) / 2
-
-  let positionIndicatorX: number
-  let positionIndicatorY: number
-  if (state.position === 'inside') {
-    positionIndicatorX = midPointX + outsideDirection[0] * (-wall.thickness / 4)
-    positionIndicatorY = midPointY + outsideDirection[1] * (-wall.thickness / 4)
-  } else if (state.position === 'outside') {
-    positionIndicatorX = midPointX + outsideDirection[0] * (wall.thickness / 4)
-    positionIndicatorY = midPointY + outsideDirection[1] * (wall.thickness / 4)
-  } else {
-    positionIndicatorX = midPointX
-    positionIndicatorY = midPointY
-  }
-
-  const strokeColor = state.canPlace ? theme.primary : theme.textSecondary
-  const fillColor = state.canPlace ? POST_COLOR : theme.textSecondary
+  const fillColor = state.canPlace ? theme.white : theme.danger
 
   return (
-    <Group listening={false}>
+    <Group x={state.previewPosition[0]} y={state.previewPosition[1]} rotation={wallAngle} listening={false}>
       {/* Post preview */}
-      <Line
-        points={postPolygonArray}
+      <Rect
+        x={-halfWidth}
+        y={0}
+        opacity={0.6}
+        width={state.width}
+        height={wall.thickness}
         fill={fillColor}
-        opacity={PREVIEW_OPACITY}
-        stroke={strokeColor}
-        strokeWidth={10}
-        lineCap="butt"
-        closed
-        listening={false}
+        stroke={theme.border}
+        strokeWidth={3}
       />
 
-      {/* Position indicator */}
-      <Circle
-        x={positionIndicatorX}
-        y={positionIndicatorY}
-        radius={30}
-        fill={strokeColor}
-        opacity={PREVIEW_OPACITY}
-        stroke={theme.border}
-        strokeWidth={5}
-        listening={false}
-      />
+      {/* Position indicators */}
+      {(tool.state.type === 'inside' || tool.state.type === 'double') && (
+        <Rect
+          x={-halfWidth}
+          y={0}
+          width={state.width}
+          height={wall.thickness / 3}
+          fill={MATERIAL_COLORS.woodSupport}
+          stroke={theme.border}
+          strokeWidth={2}
+          listening={false}
+        />
+      )}
+
+      {tool.state.type === 'center' && (
+        <Rect
+          x={-halfWidth}
+          y={wall.thickness / 3}
+          width={state.width}
+          height={wall.thickness / 3}
+          fill={MATERIAL_COLORS.woodSupport}
+          stroke={theme.border}
+          strokeWidth={2}
+          listening={false}
+        />
+      )}
+
+      {(tool.state.type === 'outside' || tool.state.type === 'double') && (
+        <Rect
+          x={-halfWidth}
+          y={(wall.thickness * 2) / 3}
+          width={state.width}
+          height={wall.thickness / 3}
+          fill={MATERIAL_COLORS.woodSupport}
+          stroke={theme.border}
+          strokeWidth={2}
+          listening={false}
+        />
+      )}
 
       {/* Snap direction indicator */}
       {state.snapDirection && (
         <Circle
-          x={state.previewPosition[0]}
-          y={state.previewPosition[1]}
-          radius={15}
-          fill={theme.warning}
-          opacity={0.8}
-          listening={false}
+          x={state.snapDirection === 'right' ? -halfWidth : halfWidth}
+          y={wall.thickness / 2}
+          radius={wall.thickness * 0.15}
+          fill={theme.primary}
+          stroke={theme.white}
+          strokeWidth={2}
+          opacity={0.9}
         />
       )}
     </Group>
