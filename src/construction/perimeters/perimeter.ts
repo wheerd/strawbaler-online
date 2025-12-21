@@ -255,7 +255,7 @@ export function getPerimeterStats(perimeter: Perimeter): PerimeterStats {
   const { getFloorOpeningsByStorey } = getModelActions()
 
   const storeyContext = createWallStoreyContext(perimeter.storeyId, [])
-  const storeyHeight = storeyContext.wallTop - storeyContext.floorBottom
+  const storeyConstructionHeight = storeyContext.wallTop - storeyContext.floorBottom
   const constructionHeight = storeyContext.ceilingConstructionBottom - storeyContext.floorConstructionTop
   const finishedHeight = storeyContext.finishedCeilingBottom - storeyContext.finishedFloorTop
 
@@ -291,7 +291,7 @@ export function getPerimeterStats(perimeter: Perimeter): PerimeterStats {
 
   const totalConstructionWallArea = Math.max(totalConstructionLength * constructionHeight - totalOpeningArea, 0)
   const totalFinishedWallArea = Math.max(totalInsideLength * finishedHeight - totalOpeningArea, 0)
-  const totalExteriorWallArea = Math.max(totalOutsideLength * storeyHeight - totalOpeningArea, 0)
+  const totalExteriorWallArea = Math.max(totalOutsideLength * storeyConstructionHeight - totalOpeningArea, 0)
 
   const totalVolume = innerArea * finishedHeight
 
@@ -304,7 +304,7 @@ export function getPerimeterStats(perimeter: Perimeter): PerimeterStats {
     totalWindowArea,
     totalDoorArea,
     totalVolume,
-    storeyHeight,
+    storeyHeight: storeyContext.storeyHeight,
     ceilingHeight: finishedHeight
   }
 }
