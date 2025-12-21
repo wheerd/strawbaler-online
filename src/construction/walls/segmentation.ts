@@ -16,7 +16,11 @@ import {
   TAG_WALL_LENGTH
 } from '@/construction/tags'
 import type { InfillMethod, WallLayersConfig } from '@/construction/walls'
-import { convertHeightLineToWallOffsets, getRoofHeightLineForLines } from '@/construction/walls/roofIntegration'
+import {
+  convertHeightLineToWallOffsets,
+  getRoofHeightLineForLines,
+  splitAtHeightJumps
+} from '@/construction/walls/roofIntegration'
 import { type Length, ZERO_VEC2, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 import type { WallCornerInfo } from './construction'
@@ -316,7 +320,15 @@ export function* segmentedWallConstruction(
       const wallSegmentWidth = groupStart - currentX
       const wallSegmentArea = overallWallArea.withXAdjustment(currentX, wallSegmentWidth)
 
-      yield* wallConstruction(wallSegmentArea, startWithStand, assembly.needsWallStands, currentX > 0)
+      const parts = splitAtHeightJumps(wallSegmentArea)
+      for (let i = 0; i < parts.length; i++) {
+        const standAtStart = i === 0 ? startWithStand : parts[i - 1].getHeightAtEnd() < parts[i].getHeightAtStart()
+        const standAtEnd =
+          i === parts.length - 1
+            ? assembly.needsWallStands
+            : parts[i + 1].getHeightAtStart() < parts[i].getHeightAtEnd()
+        yield* wallConstruction(parts[i], standAtStart, standAtEnd, currentX > 0)
+      }
 
       const x = overallWallArea.position[0] + currentX
       yield yieldMeasurement({
@@ -370,7 +382,13 @@ export function* segmentedWallConstruction(
     const finalSegmentWidth = constructionLength - currentX
     const finalWallArea = overallWallArea.withXAdjustment(currentX, finalSegmentWidth)
 
-    yield* wallConstruction(finalWallArea, startWithStand, standAtWallEnd, true)
+    const parts = splitAtHeightJumps(finalWallArea)
+    for (let i = 0; i < parts.length; i++) {
+      const standAtStart = i === 0 ? startWithStand : parts[i - 1].getHeightAtEnd() < parts[i].getHeightAtStart()
+      const standAtEnd =
+        i === parts.length - 1 ? standAtWallEnd : parts[i + 1].getHeightAtStart() < parts[i].getHeightAtEnd()
+      yield* wallConstruction(parts[i], standAtStart, standAtEnd, true)
+    }
 
     const x = overallWallArea.position[0] + currentX
     yield yieldMeasurement({

@@ -5,7 +5,7 @@ import { WallConstructionArea } from '@/construction/geometry'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import { resolveRoofAssembly } from '@/construction/roofs'
 import type { HeightItem, HeightJumpItem, HeightLine } from '@/construction/roofs/types'
-import { type Length, type LineSegment2D, type Vec2, newVec2, newVec3 } from '@/shared/geometry'
+import { type Length, type LineSegment2D, type Vec2, newVec2 } from '@/shared/geometry'
 
 // Use smaller epsilon for position comparisons
 const POSITION_EPSILON = 0.0001
@@ -250,36 +250,25 @@ export function splitAtHeightJumps(area: WallConstructionArea): WallConstruction
 
   const segments: WallConstructionArea[] = []
   let start = 0
-  const segmentOffsets: Vec2[] = []
 
   // Find positions where jumps occur (same X position, different offsets)
   for (let i = 0; i < area.topOffsets.length - 1; i++) {
-    segmentOffsets.push(area.topOffsets[i])
     const current = area.topOffsets[i]
     const next = area.topOffsets[i + 1]
     if (Math.abs(current[0] - next[0]) < POSITION_EPSILON) {
       const end = current[0]
-      segments.push(
-        new WallConstructionArea(
-          newVec3(area.position[0] + start, area.position[1], area.position[2]),
-          newVec3(end - start, area.size[1], area.size[2]),
-          segmentOffsets.map(o => newVec2(o[0] - start, o[1]))
-        )
-      )
+      const subArea = area.withXAdjustment(start, end - start)
+      if (!subArea.isEmpty) segments.push(subArea)
       start = end
-      segmentOffsets.length = 0
     }
   }
 
-  if (segmentOffsets.length > 0) {
-    segments.push(
-      new WallConstructionArea(
-        newVec3(area.position[0] + start, area.position[1], area.position[2]),
-        newVec3(area.size[0] - start, area.size[1], area.size[2]),
-        segmentOffsets.map(o => newVec2(o[0] - start, o[1]))
-      )
-    )
+  if (segments.length === 0) {
+    return [area]
   }
+
+  const subArea = area.withXAdjustment(start)
+  if (!subArea.isEmpty) segments.push(subArea)
 
   return segments
 }

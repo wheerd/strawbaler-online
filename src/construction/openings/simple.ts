@@ -24,8 +24,7 @@ export class SimpleOpeningAssembly implements OpeningAssembly<SimpleOpeningConfi
     config: SimpleOpeningConfig,
     infill: InfillMethod
   ): Generator<ConstructionResult> {
-    const wallBottom = area.position[2]
-    const wallTop = area.bounds.max[2]
+    const wallTop = area.size[2]
 
     const sillBottom = adjustedSill - config.sillThickness
     const headerTop = adjustedHeader + config.headerThickness
@@ -68,9 +67,9 @@ export class SimpleOpeningAssembly implements OpeningAssembly<SimpleOpeningConfi
         yield* yieldMeasurementFromArea(rawOpeningArea, 'height', [TAG_OPENING_HEIGHT], 1, false)
       }
 
-      if (sillBottom < wallBottom) {
+      if (sillBottom < 0) {
         yield yieldError(
-          `Sill does not fit: needs ${formatLength(config.sillThickness)} but only ${formatLength(adjustedSill)} available`,
+          `Sill does not fit: needs ${formatLength(config.sillThickness)} but only ${formatLength(sillArea.minHeight)} available`,
           [sillElement]
         )
       }

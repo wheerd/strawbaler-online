@@ -266,6 +266,14 @@ export class WallConstructionArea {
     return [interpolated, interpolated]
   }
 
+  public getHeightAtStart(): Length {
+    return this.size[2] + this.getOffsetsAt(0)[1]
+  }
+
+  public getHeightAtEnd(): Length {
+    return this.size[2] + this.getOffsetsAt(this.size[0])[0]
+  }
+
   /**
    * Create a copy with adjusted Y position/size (depth adjustment)
    */
@@ -293,9 +301,9 @@ export class WallConstructionArea {
       .filter(offset => offset[0] > 0 && offset[0] < newWidth)
 
     const newTopOffsets = [
-      newVec2(0, this.getOffsetsAt(xOffset)[0]),
+      newVec2(0, this.getOffsetsAt(xOffset)[1]),
       ...inbetweenOffsets,
-      newVec2(newWidth, this.getOffsetsAt(xOffset + newWidth)[1])
+      newVec2(newWidth, this.getOffsetsAt(xOffset + newWidth)[0])
     ]
 
     return new WallConstructionArea(newPosition, newSize, newTopOffsets)
