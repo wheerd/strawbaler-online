@@ -137,11 +137,12 @@ function getItemBounds(item: WallItem, extensionStart: Length): { start: Length;
       item.assembly.segmentationPadding
     return { start: groupStart, end: groupEnd }
   } else {
-    // Posts have NO padding - use exact width
     const postCenter = extensionStart + item.post.centerOffsetFromWallStart
+    // Clamp to valid wall area, might be outside because of outside layers
+    const start = Math.max(postCenter - item.post.width / 2, 0)
     return {
-      start: postCenter - item.post.width / 2,
-      end: postCenter + item.post.width / 2
+      start,
+      end: start + item.post.width
     }
   }
 }

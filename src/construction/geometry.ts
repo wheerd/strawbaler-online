@@ -304,6 +304,7 @@ export class WallConstructionArea {
    * Create a copy with adjusted X position (horizontal offset along wall)
    */
   public withXAdjustment(xOffset: Length, newWidth?: Length): WallConstructionArea {
+    xOffset = Math.max(xOffset, 0)
     newWidth = Math.min(newWidth ?? this.size[0] - xOffset, this.size[0] - xOffset)
     const newPosition = newVec3(this.position[0] + xOffset, this.position[1], this.position[2])
     const newSize = newVec3(newWidth, this.size[1], this.size[2])

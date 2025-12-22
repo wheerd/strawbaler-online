@@ -53,6 +53,25 @@ export function PerimeterShape({ perimeter }: PerimeterShapeProps): React.JSX.El
     <Group name={`perimeter-${perimeter.id}`} entityId={perimeter.id} entityType="perimeter" parentIds={[]} listening>
       <Line points={innerPoints} fill="none" opacity={0} closed listening />
 
+      {/* Render corner shapes */}
+      {perimeter.corners.map((corner, cornerIndex) => {
+        const prevWallIndex = (cornerIndex - 1 + perimeter.walls.length) % perimeter.walls.length
+        const nextWallIndex = cornerIndex
+
+        const previousWall = perimeter.walls[prevWallIndex]
+        const nextWall = perimeter.walls[nextWallIndex]
+
+        return (
+          <PerimeterCornerShape
+            key={`corner-${cornerIndex}`}
+            corner={corner}
+            previousWall={previousWall}
+            nextWall={nextWall}
+            perimeterId={perimeter.id}
+          />
+        )
+      })}
+
       {/* Render each wall */}
       {perimeter.walls.map((wall, index) => {
         const nextIndex = (index + 1) % perimeter.corners.length
@@ -69,25 +88,6 @@ export function PerimeterShape({ perimeter }: PerimeterShapeProps): React.JSX.El
             insideEndCorner={insideEndCorner}
             outsideStartCorner={outsideStartCorner}
             outsideEndCorner={outsideEndCorner}
-          />
-        )
-      })}
-
-      {/* Render corner shapes */}
-      {perimeter.corners.map((corner, cornerIndex) => {
-        const prevWallIndex = (cornerIndex - 1 + perimeter.walls.length) % perimeter.walls.length
-        const nextWallIndex = cornerIndex
-
-        const previousWall = perimeter.walls[prevWallIndex]
-        const nextWall = perimeter.walls[nextWallIndex]
-
-        return (
-          <PerimeterCornerShape
-            key={`corner-${cornerIndex}`}
-            corner={corner}
-            previousWall={previousWall}
-            nextWall={nextWall}
-            perimeterId={perimeter.id}
           />
         )
       })}

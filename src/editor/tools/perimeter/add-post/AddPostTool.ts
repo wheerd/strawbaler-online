@@ -1,8 +1,10 @@
 import {
   type EntityType,
+  type PerimeterCornerId,
   type PerimeterId,
   type PerimeterWallId,
   type SelectableId,
+  isPerimeterCornerId,
   isPerimeterId,
   isPerimeterWallId
 } from '@/building/model/ids'
@@ -14,7 +16,7 @@ import { getSelectionActions } from '@/editor/hooks/useSelectionStore'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CanvasEvent, CursorStyle, ToolImplementation } from '@/editor/tools/system/types'
-import { type Length, type Vec2, distVec2, lineFromSegment, newVec2, projectPointOntoLine } from '@/shared/geometry'
+import { type Length, type Vec2, newVec2, projectVec2 } from '@/shared/geometry'
 
 import { AddPostToolInspector } from './AddPostToolInspector'
 import { AddPostToolOverlay } from './AddPostToolOverlay'
@@ -103,6 +105,35 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
       }
     }
 
+    // Check if we hit a corner - extract the constructing wall
+    if (hitResult.entityType === 'perimeter-corner') {
+      const cornerId = hitResult.entityId as PerimeterCornerId
+      perimeterId = hitResult.parentIds[0] as PerimeterId
+
+      if (perimeterId && isPerimeterCornerId(cornerId)) {
+        const { getPerimeterById } = getModelActions()
+        const perimeter = getPerimeterById(perimeterId)
+
+        if (perimeter) {
+          // Find the corner
+          const cornerIndex = perimeter.corners.findIndex(c => c.id === cornerId)
+          if (cornerIndex !== -1) {
+            const corner = perimeter.corners[cornerIndex]
+
+            // Determine which wall constructs this corner
+            const constructingWallIndex =
+              corner.constructedByWall === 'previous'
+                ? (cornerIndex - 1 + perimeter.walls.length) % perimeter.walls.length
+                : cornerIndex
+
+            const constructingWall = perimeter.walls[constructingWallIndex]
+            wall = constructingWall
+            wallId = constructingWall.id
+          }
+        }
+      }
+    }
+
     if (!wall || !perimeterId || !wallId) {
       return null
     }
@@ -118,18 +149,7 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
    * Calculate center offset from pointer position projected onto wall
    */
   private calculateCenterOffsetFromPointerPosition(pointerPos: Vec2, wall: PerimeterWall): Length {
-    // Convert LineSegment2D to Line2D for projection
-    const line = lineFromSegment(wall.insideLine)
-    if (!line) {
-      throw new Error('Cannot create line from wall')
-    }
-
-    // Project pointer position onto wall's inside line
-    const projectedPoint = projectPointOntoLine(pointerPos, line)
-
-    // Calculate offset from wall start to CENTER of post
-    const startPoint = wall.insideLine.start
-    const centerOffset = distVec2(startPoint, projectedPoint)
+    const centerOffset = projectVec2(wall.insideLine.start, pointerPos, wall.direction)
 
     // Round center offset to 10mm increments
     const roundedCenterOffset = Math.round(centerOffset / 10) * 10

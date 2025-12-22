@@ -436,7 +436,8 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
                     height: exportedOpening.height + 2 * openingConfig.padding,
                     sillHeight: exportedOpening.sillHeight
                       ? Math.max(exportedOpening.sillHeight - openingConfig.padding, 0)
-                      : undefined
+                      : undefined,
+                    openingAssemblyId: exportedOpening.openingAssemblyId as OpeningAssemblyId
                   }
                 : {
                     type: exportedOpening.type,
@@ -446,7 +447,8 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
                         : exportedOpening.centerOffset,
                     width: exportedOpening.width,
                     height: exportedOpening.height,
-                    sillHeight: exportedOpening.sillHeight ? exportedOpening.sillHeight : undefined
+                    sillHeight: exportedOpening.sillHeight ? exportedOpening.sillHeight : undefined,
+                    openingAssemblyId: exportedOpening.openingAssemblyId as OpeningAssemblyId
                   }
 
               try {

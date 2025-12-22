@@ -18,8 +18,11 @@ interface PerimeterCornerInspectorProps {
 
 export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCornerInspectorProps): React.JSX.Element {
   // Get model store functions - use specific selectors for stable references
-  const { updatePerimeterCornerConstructedByWall: updateCornerConstructedByWall, removePerimeterCorner } =
-    useModelActions()
+  const {
+    updatePerimeterCornerConstructedByWall: updateCornerConstructedByWall,
+    removePerimeterCorner,
+    canSwitchCornerConstructedByWall
+  } = useModelActions()
   const { getWallAssemblyById } = useConfigActions()
   const viewportActions = useViewportActions()
 
@@ -60,6 +63,11 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
       nextWall: outerWall.walls[nextIndex]
     }
   }, [outerWall.walls, cornerIndex])
+
+  // Check if we can switch which wall constructs the corner
+  const canSwitchWall = useMemo(() => {
+    return canSwitchCornerConstructedByWall(perimeterId, cornerId)
+  }, [canSwitchCornerConstructedByWall, perimeterId, cornerId])
 
   // Event handlers with stable references
   const handleToggleConstructedByWall = useCallback(() => {
@@ -154,12 +162,34 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
         </Callout.Root>
       )}
 
+      {/* Corner switching locked warning */}
+      {!canSwitchWall && (
+        <Callout.Root color="blue">
+          <Callout.Icon>
+            <ExclamationTriangleIcon />
+          </Callout.Icon>
+          <Callout.Text>
+            <Text weight="bold">Corner Locked</Text>
+            <br />
+            <Text size="1">
+              Cannot switch which wall constructs this corner because the current constructing wall has posts extending
+              into the corner area. Remove those posts first to unlock corner switching.
+            </Text>
+          </Callout.Text>
+        </Callout.Root>
+      )}
+
       <Separator size="4" />
 
       {/* Actions */}
       <Flex direction="column" gap="2">
         <Flex gap="2" justify="end">
-          <IconButton size="2" onClick={handleToggleConstructedByWall} title="Switch main wall">
+          <IconButton
+            size="2"
+            onClick={handleToggleConstructedByWall}
+            disabled={!canSwitchWall}
+            title={canSwitchWall ? 'Switch main wall' : 'Cannot switch - wall has posts in corner area'}
+          >
             {corner.constructedByWall === 'next' ? <PinLeftIcon /> : <PinRightIcon />}
           </IconButton>
           <IconButton size="2" title="Fit to view" onClick={handleFitToView}>
