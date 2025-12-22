@@ -339,9 +339,11 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
 
         // 6. Recreate perimeters - let store auto-compute all geometry
         exportedStorey.perimeters.forEach(exportedPerimeter => {
+          const referencePoints = exportedPerimeter.referencePolygon?.points
           const boundaryPoints =
-            exportedPerimeter.referencePolygon?.points?.map(point => newVec2(point.x, point.y)) ??
-            exportedPerimeter.corners.map(c => newVec2(c.insideX, c.insideY))
+            referencePoints && referencePoints.length > 0
+              ? referencePoints.map(point => newVec2(point.x, point.y))
+              : exportedPerimeter.corners.map(c => newVec2(c.insideX, c.insideY))
           const boundary: Polygon2D = {
             points: boundaryPoints
           }
@@ -423,7 +425,11 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
                     sillHeight: exportedOpening.sillHeight ? exportedOpening.sillHeight : undefined
                   }
 
-              modelActions.addPerimeterWallOpening(perimeter.id, wallId, openingParams)
+              try {
+                modelActions.addPerimeterWallOpening(perimeter.id, wallId, openingParams)
+              } catch (error) {
+                console.error(error)
+              }
             })
           })
 

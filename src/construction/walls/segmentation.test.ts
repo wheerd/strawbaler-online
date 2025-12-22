@@ -1,10 +1,17 @@
 import { type Mock, type Mocked, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { type StoreyId, createOpeningId, createPerimeterId, createWallAssemblyId } from '@/building/model/ids'
-import type { Opening, Perimeter, PerimeterWall } from '@/building/model/model'
+import {
+  type StoreyId,
+  createOpeningId,
+  createPerimeterId,
+  createWallAssemblyId,
+  createWallPostId
+} from '@/building/model/ids'
+import type { Opening, Perimeter, PerimeterWall, WallPost } from '@/building/model/model'
 import { type OpeningAssemblyConfig, getConfigActions } from '@/construction/config'
 import type { FloorAssembly } from '@/construction/floors'
 import { WallConstructionArea } from '@/construction/geometry'
+import { constructWallPost } from '@/construction/materials/posts'
 import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/openings/resolver'
 import type { OpeningAssembly } from '@/construction/openings/types'
 import { aggregateResults, yieldElement } from '@/construction/results'
@@ -61,12 +68,17 @@ vi.mock('@/construction/ringBeams', () => ({
   resolveRingBeamAssembly: vi.fn()
 }))
 
+vi.mock('@/construction/materials/posts', () => ({
+  constructWallPost: vi.fn()
+}))
+
 const mockResolveOpeningAssembly = vi.mocked(resolveOpeningAssembly)
 const mockResolveOpeningConfig = vi.mocked(resolveOpeningConfig)
 const mockGetWallContext = vi.mocked(getWallContext)
 const mockCalculateWallCornerInfo = vi.mocked(calculateWallCornerInfo)
 const mockGetConfigActions = vi.mocked(getConfigActions)
 const mockResolveRingBeamAssembly = vi.mocked(resolveRingBeamAssembly)
+const mockConstructWallPost = vi.mocked(constructWallPost)
 
 // Test data helpers
 function createMockWall(id: string, wallLength: Length, thickness: Length, openings: Opening[] = []): PerimeterWall {
@@ -121,6 +133,24 @@ function createMockOpening(
     width,
     height,
     sillHeight
+  }
+}
+
+function createMockPost(
+  centerOffsetFromWallStart: Length,
+  width: Length = 60,
+  thickness: Length = 360,
+  replacesPosts = true
+): WallPost {
+  return {
+    id: createWallPostId(),
+    type: 'single' as any,
+    centerOffsetFromWallStart,
+    width,
+    thickness,
+    replacesPosts,
+    material: 'wood' as any,
+    infillMaterial: 'woodwool' as any
   }
 }
 
@@ -795,6 +825,243 @@ describe('segmentedWallConstruction', () => {
         },
         cancelKey: 'corner-end-corner'
       })
+    })
+  })
+
+  describe('post handling', () => {
+    beforeEach(() => {
+      // Mock post construction to yield a simple element
+      mockConstructWallPost.mockImplementation(function* () {
+        yield* yieldElement({
+          id: 'post-element' as any,
+          material: 'wood' as any,
+          shape: createCuboid(newVec3(60, 220, 2380)),
+          transform: IDENTITY,
+          bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(60, 220, 2380))
+        })
+      })
+    })
+
+    it('should create segments for wall with single post in middle', () => {
+      const post = createMockPost(1500, 60, 360, true)
+      const wall = { ...createMockWall('wall-1', 3000, 300), posts: [post] }
+      const perimeter = createMockPerimeter([wall])
+      const wallHeight = 2500
+      const layers = createMockLayers()
+
+      const results = [
+        ...segmentedWallConstruction(
+          perimeter.walls[0],
+          perimeter,
+          createMockStoreyContext(3000, wallHeight),
+          layers,
+          mockWallConstruction,
+          mockInfillMethod
+        )
+      ]
+      const { measurements } = aggregateResults(results)
+
+      // Should call wall construction twice (before and after post)
+      expect(mockWallConstruction).toHaveBeenCalledTimes(2)
+
+      // First wall segment (before post)
+      expect(mockWallConstruction).toHaveBeenNthCalledWith(
+        1,
+        expectArea(newVec3(0, 30, 60), newVec3(1470, 220, 2380)), // 1500 - 30 (half of 60mm post width)
+        true,
+        false, // post replacesPosts=true, so no stand needed
+        false
+      )
+
+      // Second wall segment (after post)
+      expect(mockWallConstruction).toHaveBeenNthCalledWith(
+        2,
+        expectArea(
+          newVec3(1530, 30, 60), // 1500 + 30 (half of 60mm post width)
+          newVec3(1470, 220, 2380) // 3000 - 1530
+        ),
+        false, // post replacesPosts=true, so no stand needed
+        true,
+        true
+      )
+
+      // Should call post construction once
+      expect(mockConstructWallPost).toHaveBeenCalledTimes(1)
+      expect(mockConstructWallPost).toHaveBeenCalledWith(
+        expectArea(newVec3(1470, 30, 60), newVec3(60, 220, 2380)),
+        post
+      )
+
+      // Should generate segment measurements for overall wall
+      const segmentMeasurements = measurements.filter(m => m.tags?.includes(TAG_OPENING_SPACING))
+      expect(segmentMeasurements).toHaveLength(1)
+    })
+
+    it('should handle post with replacesPosts=false (requires wall stands)', () => {
+      const post = createMockPost(1500, 60, 360, false) // replacesPosts=false
+      const wall = { ...createMockWall('wall-1', 3000, 300), posts: [post] }
+      const perimeter = createMockPerimeter([wall])
+      const wallHeight = 2500
+      const layers = createMockLayers()
+
+      const results = [
+        ...segmentedWallConstruction(
+          perimeter.walls[0],
+          perimeter,
+          createMockStoreyContext(3000, wallHeight),
+          layers,
+          mockWallConstruction,
+          mockInfillMethod
+        )
+      ]
+      aggregateResults(results)
+
+      // Should call wall construction twice with stands at post position
+      expect(mockWallConstruction).toHaveBeenCalledTimes(2)
+
+      // First segment should END with stand (replacesPosts=false means stand needed)
+      expect(mockWallConstruction).toHaveBeenNthCalledWith(
+        1,
+        expectArea(newVec3(0, 30, 60), newVec3(1470, 220, 2380)),
+        true,
+        true, // replacesPosts=false, so stand needed
+        false
+      )
+
+      // Second segment should START with stand
+      expect(mockWallConstruction).toHaveBeenNthCalledWith(
+        2,
+        expectArea(newVec3(1530, 30, 60), newVec3(1470, 220, 2380)),
+        true, // replacesPosts=false, so stand needed
+        true,
+        true
+      )
+    })
+
+    it('should handle wall with post and opening (post before opening)', () => {
+      const post = createMockPost(900, 60, 360, true)
+      const opening = createMockOpening(2000, 800)
+      const wall = { ...createMockWall('wall-1', 4000, 300), posts: [post], openings: [opening] }
+      const perimeter = createMockPerimeter([wall])
+      const wallHeight = 2500
+      const layers = createMockLayers()
+
+      const results = [
+        ...segmentedWallConstruction(
+          perimeter.walls[0],
+          perimeter,
+          createMockStoreyContext(3000, wallHeight),
+          layers,
+          mockWallConstruction,
+          mockInfillMethod
+        )
+      ]
+      const aggregated = aggregateResults(results)
+
+      // Should call wall construction 3 times (before post, between post and opening, after opening)
+      expect(mockWallConstruction).toHaveBeenCalledTimes(3)
+
+      // Should call post construction once
+      expect(mockConstructWallPost).toHaveBeenCalledTimes(1)
+
+      // Should call opening construction once
+      expect(mockOpeningConstruction).toHaveBeenCalledTimes(1)
+
+      // One opening spacing measurements on each side of opening
+      const segmentMeasurements = aggregated.measurements.filter(m => m.tags?.includes(TAG_OPENING_SPACING))
+      expect(segmentMeasurements).toHaveLength(2)
+    })
+
+    it('should handle wall with post and opening (post after opening)', () => {
+      const opening = createMockOpening(1000, 800)
+      const post = createMockPost(2500, 60, 360, true)
+      const wall = { ...createMockWall('wall-1', 4000, 300), posts: [post], openings: [opening] }
+      const perimeter = createMockPerimeter([wall])
+      const wallHeight = 2500
+      const layers = createMockLayers()
+
+      const results = [
+        ...segmentedWallConstruction(
+          perimeter.walls[0],
+          perimeter,
+          createMockStoreyContext(3000, wallHeight),
+          layers,
+          mockWallConstruction,
+          mockInfillMethod
+        )
+      ]
+      const aggregated = aggregateResults(results)
+
+      // Should call wall construction 3 times
+      expect(mockWallConstruction).toHaveBeenCalledTimes(3)
+
+      // Should call opening construction once
+      expect(mockOpeningConstruction).toHaveBeenCalledTimes(1)
+
+      // Should call post construction once
+      expect(mockConstructWallPost).toHaveBeenCalledTimes(1)
+
+      // One opening spacing measurements on each side of opening
+      const segmentMeasurements = aggregated.measurements.filter(m => m.tags?.includes(TAG_OPENING_SPACING))
+      expect(segmentMeasurements).toHaveLength(2)
+    })
+
+    it('should handle multiple posts on wall', () => {
+      const post1 = createMockPost(1000, 60, 360, true)
+      const post2 = createMockPost(2000, 60, 360, true)
+      const wall = { ...createMockWall('wall-1', 3000, 300), posts: [post1, post2] }
+      const perimeter = createMockPerimeter([wall])
+      const wallHeight = 2500
+      const layers = createMockLayers()
+
+      const results = [
+        ...segmentedWallConstruction(
+          perimeter.walls[0],
+          perimeter,
+          createMockStoreyContext(3000, wallHeight),
+          layers,
+          mockWallConstruction,
+          mockInfillMethod
+        )
+      ]
+      aggregateResults(results)
+
+      // Should call wall construction 3 times (before first post, between posts, after second post)
+      expect(mockWallConstruction).toHaveBeenCalledTimes(3)
+
+      // Should call post construction twice
+      expect(mockConstructWallPost).toHaveBeenCalledTimes(2)
+    })
+
+    it('should process posts and openings in correct position order', () => {
+      // Create items in intentionally wrong order to test sorting
+      const opening = createMockOpening(2500, 600)
+      const post = createMockPost(1000, 60)
+      const wall = { ...createMockWall('wall-1', 4000, 300), posts: [post], openings: [opening] }
+      const perimeter = createMockPerimeter([wall])
+      const wallHeight = 2500
+      const layers = createMockLayers()
+
+      const results = [
+        ...segmentedWallConstruction(
+          perimeter.walls[0],
+          perimeter,
+          createMockStoreyContext(3000, wallHeight),
+          layers,
+          mockWallConstruction,
+          mockInfillMethod
+        )
+      ]
+      aggregateResults(results)
+
+      // Should process post first (at 1000), then opening (at 2500)
+      // Wall construction should be called 3 times: before post, between post and opening, after opening
+      expect(mockWallConstruction).toHaveBeenCalledTimes(3)
+
+      // Verify post is constructed before opening
+      const postCallIndex = mockConstructWallPost.mock.invocationCallOrder[0]
+      const openingCallIndex = mockOpeningConstruction.mock.invocationCallOrder[0]
+      expect(postCallIndex).toBeLessThan(openingCallIndex)
     })
   })
 })
