@@ -1,5 +1,13 @@
+import type { WallPost } from '@/building/model'
+import type { GroupOrElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
-import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
+import {
+  type ConstructionResult,
+  yieldAndCollectElements,
+  yieldElement,
+  yieldError,
+  yieldWarning
+} from '@/construction/results'
 import { createElementFromArea } from '@/construction/shapes'
 import { TAG_POST } from '@/construction/tags'
 import { type Length } from '@/shared/geometry'
@@ -151,5 +159,82 @@ export const validatePosts = (posts: PostConfig): void => {
   ensurePositive(posts.width, 'Post width must be greater than 0')
   if (posts.type === 'double') {
     ensurePositive(posts.thickness, 'Double post thickness must be greater than 0')
+  }
+}
+
+export function* constructWallPost(area: WallConstructionArea, post: WallPost): Generator<ConstructionResult> {
+  const wallThickness = area.size[1]
+  const postElements: GroupOrElement[] = []
+  switch (post.type) {
+    case 'double':
+      {
+        const infillThickness = wallThickness - 2 * post.thickness
+        const insideArea = area.withYAdjustment(0, post.thickness)
+        yield* yieldAndCollectElements(
+          yieldElement(createElementFromArea(insideArea, post.material, [TAG_POST], { type: 'post' })),
+          postElements
+        )
+        const infillArea = area.withYAdjustment(post.thickness, infillThickness)
+        yield* yieldElement(createElementFromArea(infillArea, post.infillMaterial))
+        const outsideArea = area.withYAdjustment(wallThickness - post.thickness)
+        yield* yieldAndCollectElements(
+          yieldElement(createElementFromArea(outsideArea, post.material, [TAG_POST], { type: 'post' })),
+          postElements
+        )
+      }
+      break
+
+    case 'center':
+      {
+        const infillThickness = (wallThickness - post.thickness) / 2
+        const infillInside = area.withYAdjustment(0, infillThickness)
+        yield* yieldElement(createElementFromArea(infillInside, post.infillMaterial))
+        const centerArea = area.withYAdjustment(infillThickness, post.thickness)
+        yield* yieldAndCollectElements(
+          yieldElement(createElementFromArea(centerArea, post.material, [TAG_POST], { type: 'post' })),
+          postElements
+        )
+        const infillOutside = area.withYAdjustment(wallThickness - infillThickness)
+        yield* yieldElement(createElementFromArea(infillOutside, post.infillMaterial))
+      }
+      break
+    case 'inside':
+      {
+        const insideArea = area.withYAdjustment(0, post.thickness)
+        yield* yieldAndCollectElements(
+          yieldElement(createElementFromArea(insideArea, post.material, [TAG_POST], { type: 'post' })),
+          postElements
+        )
+        const infillArea = area.withYAdjustment(post.thickness)
+        yield* yieldElement(createElementFromArea(infillArea, post.infillMaterial))
+      }
+      break
+    case 'outside':
+      {
+        const infillThickness = wallThickness - post.thickness
+        const infillArea = area.withYAdjustment(0, infillThickness)
+        yield* yieldElement(createElementFromArea(infillArea, post.infillMaterial))
+        const outsideArea = area.withYAdjustment(infillThickness)
+        yield* yieldAndCollectElements(
+          yieldElement(createElementFromArea(outsideArea, post.material, [TAG_POST], { type: 'post' })),
+          postElements
+        )
+      }
+      break
+  }
+
+  // Check if material is dimensional and dimensions match
+  const material = getMaterialById(post.material)
+  if (material && material.type === 'dimensional') {
+    const dimensionalMaterial = material as DimensionalMaterial
+    const postDimensions = { width: post.width, thickness: post.thickness }
+
+    if (!materialSupportsCrossSection(dimensionalMaterial, postDimensions)) {
+      yield yieldWarning(
+        `Post dimensions (${formatLength(postDimensions.width)}x${formatLength(postDimensions.thickness)}) don't match available cross sections (${formatAvailableCrossSections(dimensionalMaterial)})`,
+        postElements,
+        `post-cross-section-${dimensionalMaterial.id}`
+      )
+    }
   }
 }
