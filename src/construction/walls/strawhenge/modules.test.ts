@@ -14,7 +14,8 @@ describe('Module Construction', () => {
   describe('Single Frame Module', () => {
     const config: SingleFrameModuleConfig = {
       type: 'single',
-      width: 920,
+      minWidth: 920,
+      maxWidth: 920,
       frameThickness: 60,
       frameMaterial: 'wood' as any,
       strawMaterial: 'straw' as any
@@ -66,7 +67,8 @@ describe('Module Construction', () => {
   describe('Double Frame Module', () => {
     const config: DoubleFrameModuleConfig = {
       type: 'double',
-      width: 920,
+      minWidth: 920,
+      maxWidth: 920,
       frameThickness: 60,
       frameWidth: 120,
       frameMaterial: 'wood' as any,
@@ -127,7 +129,8 @@ describe('Module Construction', () => {
       const area = new WallConstructionArea(position, size)
       const invalidConfig = {
         type: 'invalid' as any,
-        width: 920,
+        minWidth: 920,
+        maxWidth: 920,
         frameThickness: 60,
         frameMaterial: 'wood' as any,
         strawMaterial: 'straw' as any

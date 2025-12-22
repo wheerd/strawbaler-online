@@ -23,8 +23,8 @@ export function* moduleWallArea(
   const { module, infill } = config
 
   let remainingArea = area
-  while (remainingArea.size[0] >= module.width) {
-    const [a, b] = remainingArea.splitInX(startAtEnd ? remainingArea.size[0] - module.width : module.width)
+  while (remainingArea.size[0] >= module.minWidth) {
+    const [a, b] = remainingArea.splitInX(startAtEnd ? remainingArea.size[0] - module.maxWidth : module.maxWidth)
     remainingArea = startAtEnd ? a : b
     const moduleArea = startAtEnd ? b : a
     yield* constructModule(moduleArea, module)

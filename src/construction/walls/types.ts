@@ -99,8 +99,13 @@ const validateInfillSegment = (
 }
 
 const validateModule = (module: ModuleConfig): void => {
-  ensurePositive(module.width, 'Module width must be greater than 0')
+  ensurePositive(module.minWidth, 'Module width must be greater than 0')
+  ensurePositive(module.maxWidth, 'Module width must be greater than 0')
   ensurePositive(module.frameThickness, 'Module frame thickness must be greater than 0')
+
+  if (module.maxWidth < module.minWidth) {
+    throw new Error('Minimum module width must not be bigger than maximum module width')
+  }
 
   if (module.type === 'double') {
     ensurePositive(module.frameWidth, 'Double module frame width must be greater than 0')

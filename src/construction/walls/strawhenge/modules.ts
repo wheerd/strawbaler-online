@@ -9,7 +9,8 @@ import { type Length, type Vec3, newVec3 } from '@/shared/geometry'
 
 export interface BaseModuleConfig {
   type: 'single' | 'double'
-  width: Length // Default: 920mm
+  minWidth: Length // Default: 920mm
+  maxWidth: Length // Default: 920mm
   frameThickness: Length // Default: 60mm
   frameMaterial: MaterialId
   strawMaterial?: MaterialId

@@ -109,7 +109,8 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
     name: 'Strawhenge Module',
     type: 'strawhenge',
     module: {
-      width: 920,
+      minWidth: 920,
+      maxWidth: 920,
       type: 'single',
       frameThickness: 60,
       frameMaterial: wood.id,
@@ -138,7 +139,8 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
     name: 'Default Module',
     type: 'modules',
     module: {
-      width: 920,
+      minWidth: 920,
+      maxWidth: 920,
       type: 'single',
       frameThickness: 60,
       frameMaterial: wood.id,

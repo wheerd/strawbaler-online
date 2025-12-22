@@ -76,7 +76,8 @@ describe('Material Usage Detection', () => {
         name: 'Test Strawhenge',
         type: 'strawhenge',
         module: {
-          width: 920,
+          minWidth: 920,
+          maxWidth: 920,
           type: 'single',
           frameThickness: 60,
           frameMaterial: wood.id,
@@ -113,7 +114,8 @@ describe('Material Usage Detection', () => {
         name: 'Double Module Wall',
         type: 'strawhenge',
         module: {
-          width: 920,
+          minWidth: 920,
+          maxWidth: 920,
           type: 'double',
           frameThickness: 60,
           frameWidth: 120,

@@ -18,23 +18,24 @@ import { constructModule } from './modules'
 
 function getStrawWidth(availableWidth: Length, config: StrawhengeWallConfig): Length {
   const { module, infill } = config
-  const oneModule = module.width
+  const oneMinModule = module.minWidth
+  const oneFullModule = module.maxWidth
   const maxFilling = infill.maxPostSpacing
   const desiredFilling = infill.desiredPostSpacing
   const minFilling = infill.minStrawSpace
-  const moduleAndFullFilling = oneModule + maxFilling
-  const moduleAndMinFilling = oneModule + minFilling
+  const moduleAndFullFilling = oneFullModule + maxFilling
+  const moduleAndMinFilling = oneFullModule + minFilling
 
-  if (availableWidth < oneModule) {
+  if (availableWidth < oneMinModule) {
     return availableWidth
-  } else if (availableWidth === oneModule) {
+  } else if (availableWidth >= oneMinModule && availableWidth <= oneFullModule) {
     return 0
   } else if (availableWidth < moduleAndFullFilling + minFilling && availableWidth > moduleAndFullFilling) {
     return availableWidth - moduleAndMinFilling
   } else if (availableWidth < moduleAndFullFilling) {
-    return availableWidth - oneModule
+    return availableWidth - oneFullModule
   } else if (availableWidth <= maxFilling) {
-    return maxFilling
+    return availableWidth
   } else {
     return desiredFilling
   }
@@ -45,27 +46,32 @@ function* placeStrawhengeSegments(
   config: StrawhengeWallConfig,
   atStart: boolean
 ): Generator<ConstructionResult> {
-  const { size } = area
-  const strawWidth = getStrawWidth(size[0], config)
+  const strawWidth = getStrawWidth(area.size[0], config)
   const { module } = config
 
-  if (strawWidth > 0) {
-    if (strawWidth < config.infill.minStrawSpace) {
+  let strawArea, restArea, moduleArea, remainingArea
+  if (atStart) {
+    ;[strawArea, restArea] = area.splitInX(strawWidth)
+    ;[moduleArea, remainingArea] = restArea.splitInX(module.maxWidth)
+  } else {
+    ;[restArea, strawArea] = area.splitInX(area.size[0] - strawWidth)
+    ;[remainingArea, moduleArea] = restArea.splitInX(restArea.size[0] - module.maxWidth)
+  }
+
+  if (!strawArea.isEmpty) {
+    if (strawArea.size[0] < config.infill.minStrawSpace) {
       yield* infillWallArea(area, config.infill, false, false, atStart)
       return
     }
-    const strawArea = area.withXAdjustment(atStart ? 0 : size[0] - strawWidth, strawWidth)
     yield* constructStraw(strawArea, config.infill.strawMaterial)
     yield* yieldMeasurementFromArea(strawArea, 'width', [TAG_POST_SPACING])
   }
 
-  if (strawWidth + module.width <= size[0]) {
-    const moduleArea = area.withXAdjustment(atStart ? strawWidth : size[0] - strawWidth - module.width, module.width)
+  if (!moduleArea.isEmpty) {
     yield* constructModule(moduleArea, module)
+  }
 
-    const remainingArea = atStart
-      ? area.withXAdjustment(strawWidth + module.width)
-      : area.withXAdjustment(0, size[0] - strawWidth - module.width)
+  if (!remainingArea.isEmpty) {
     yield* placeStrawhengeSegments(remainingArea, config, !atStart)
   }
 }
@@ -79,35 +85,45 @@ export function* strawhengeWallArea(
 ): Generator<ConstructionResult> {
   const { size } = area
   const { module, infill } = config
-  const oneModule = module.width
-  const twoModules = 2 * module.width + infill.minStrawSpace
-  const moduleAndMinFilling = module.width + infill.minStrawSpace
+  const twoModules = 2 * module.maxWidth + infill.minStrawSpace
+  const moduleAndMinFilling = module.minWidth + infill.minStrawSpace
   const postWidth = infill.posts.width
 
-  // Check if strawhenge is possible
-  if (size[0] < oneModule) {
+  // No space for a module -> fallback to infill
+  if (size[0] < module.minWidth) {
     yield* infillWallArea(area, infill, startsWithStand, endsWithStand, startAtEnd)
     return
   }
 
-  if (size[0] === oneModule) {
+  // Single module
+  if (size[0] >= module.minWidth && size[0] <= module.maxWidth) {
     yield* constructModule(area, module)
     return
   }
 
+  // Not enough space for module + minmal infill -> fallback to infill
   if (size[0] < moduleAndMinFilling + postWidth) {
     yield* infillWallArea(area, infill, startsWithStand, endsWithStand, startAtEnd)
     return
   }
 
-  if (startsWithStand && endsWithStand && size[0] !== 2 * module.width && size[0] < twoModules) {
-    // Single module plus remaining space
-    if (startAtEnd) {
-      const [infillArea, moduleArea] = area.splitInX(size[0] - oneModule)
+  // Need stands at both ends, but not enough space for two modules + minimal infill
+  // -> Fit either two modules without gap or one module + infill
+  const bothStands = startsWithStand && endsWithStand
+  if (bothStands && size[0] !== 2 * module.minWidth && size[0] < twoModules) {
+    if (size[0] >= 2 * module.minWidth && size[0] <= 2 * module.maxWidth) {
+      // Two modules without gap
+      const [module1, module2] = area.splitInX(size[0] / 2)
+      yield* constructModule(module1, module)
+      yield* constructModule(module2, module)
+    } else if (startAtEnd) {
+      // Single module plus remaining space
+      const [infillArea, moduleArea] = area.splitInX(size[0] - module.minWidth)
       yield* infillWallArea(infillArea, infill, true, false, false)
       yield* constructModule(moduleArea, module)
     } else {
-      const [moduleArea, infillArea] = area.splitInX(oneModule)
+      // Single module plus remaining space
+      const [moduleArea, infillArea] = area.splitInX(module.minWidth)
       yield* constructModule(moduleArea, module)
       yield* infillWallArea(infillArea, infill, false, true, true)
     }
@@ -115,6 +131,7 @@ export function* strawhengeWallArea(
   }
 
   let inbetweenArea = area
+  const oneModule = Math.min(module.maxWidth, size[0] - infill.minStrawSpace)
 
   // Place start module if starts with stand
   if (startsWithStand) {

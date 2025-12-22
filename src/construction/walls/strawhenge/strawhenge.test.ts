@@ -38,7 +38,8 @@ const createTestConfig = (): StrawhengeWallConfig => ({
   type: 'strawhenge',
   module: {
     type: 'single',
-    width: MODULE_WIDTH,
+    minWidth: MODULE_WIDTH,
+    maxWidth: MODULE_WIDTH,
     frameThickness: 60,
     frameMaterial: 'wood' as any,
     strawMaterial: 'straw' as any
@@ -108,8 +109,7 @@ function extractSnapshotData(results: any[]) {
     .map(el => ({
       position_x: el.transform[12],
       size_x: el.bounds.size[0],
-      material: 'material' in el ? el.material : null,
-      tags: el.tags?.map(t => t.id)
+      material: 'material' in el ? el.material : null
     }))
     .sort((a, b) => a.position_x - b.position_x)
 }

@@ -276,7 +276,8 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
             if (value === 'single') {
               onUpdate({
                 type: 'single',
-                width: module.width,
+                minWidth: module.minWidth,
+                maxWidth: module.maxWidth,
                 frameThickness: module.frameThickness,
                 frameMaterial: module.frameMaterial,
                 strawMaterial: module.strawMaterial
@@ -284,7 +285,8 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
             } else {
               onUpdate({
                 type: 'double',
-                width: module.width,
+                minWidth: module.minWidth,
+                maxWidth: module.maxWidth,
                 frameThickness: module.frameThickness,
                 frameMaterial: module.frameMaterial,
                 strawMaterial: module.strawMaterial,
@@ -309,12 +311,24 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
       <Grid columns="6em 1fr 6em 1fr" gap="2" gapX="3">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            Width
+            Min Width
           </Text>
         </Label.Root>
         <LengthField
-          value={module.width}
-          onChange={value => onUpdate({ ...module, width: value })}
+          value={module.minWidth}
+          onChange={value => onUpdate({ ...module, minWidth: value })}
+          unit="mm"
+          size="1"
+        />
+
+        <Label.Root>
+          <Text size="1" weight="medium" color="gray">
+            Max Width
+          </Text>
+        </Label.Root>
+        <LengthField
+          value={module.maxWidth}
+          onChange={value => onUpdate({ ...module, maxWidth: value })}
           unit="mm"
           size="1"
         />
@@ -802,7 +816,8 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
             type: 'strawhenge',
             module: {
               type: 'single',
-              width: 920,
+              minWidth: 920,
+              maxWidth: 920,
               frameThickness: 60,
               frameMaterial: defaultMaterial,
               strawMaterial: defaultMaterial
@@ -825,7 +840,8 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
             type: 'modules',
             module: {
               type: 'single',
-              width: 920,
+              minWidth: 920,
+              maxWidth: 920,
               frameThickness: 60,
               frameMaterial: defaultMaterial,
               strawMaterial: defaultMaterial
