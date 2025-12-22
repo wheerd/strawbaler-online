@@ -219,8 +219,24 @@ export class WallConstructionArea {
     this.topOffsets = topOffsets
   }
 
-  public getOffsetsAt(position: Length): [Length, Length] {
+  public getOffsetsAt(position: Length, tolerance: Length = 0): [Length, Length] {
     if (!this.topOffsets || this.topOffsets.length === 0) return [0, 0]
+
+    // To avoid artifacts at the boundaries when there are height jumps, support tolerance
+    if (tolerance > 0) {
+      const filtered = this.topOffsets.filter(o => o[0] >= position && o[0] < position + tolerance)
+      if (filtered.length > 0) {
+        const lastOffset = filtered.reverse()[0][1]
+        return [lastOffset, lastOffset]
+      }
+    }
+    if (tolerance < 0) {
+      const filtered = this.topOffsets.filter(o => o[0] <= position && o[0] > position + tolerance)
+      if (filtered.length > 0) {
+        const firstOffset = filtered[0][1]
+        return [firstOffset, firstOffset]
+      }
+    }
 
     // Find the offset range containing this position
     let beforeIndex = -1
@@ -267,11 +283,11 @@ export class WallConstructionArea {
   }
 
   public getHeightAtStart(): Length {
-    return this.size[2] + this.getOffsetsAt(0)[1]
+    return this.size[2] + this.getOffsetsAt(0, 1)[1]
   }
 
   public getHeightAtEnd(): Length {
-    return this.size[2] + this.getOffsetsAt(this.size[0])[0]
+    return this.size[2] + this.getOffsetsAt(this.size[0], -1)[0]
   }
 
   /**
@@ -288,6 +304,7 @@ export class WallConstructionArea {
    * Create a copy with adjusted X position (horizontal offset along wall)
    */
   public withXAdjustment(xOffset: Length, newWidth?: Length): WallConstructionArea {
+    xOffset = Math.max(xOffset, 0)
     newWidth = Math.min(newWidth ?? this.size[0] - xOffset, this.size[0] - xOffset)
     const newPosition = newVec3(this.position[0] + xOffset, this.position[1], this.position[2])
     const newSize = newVec3(newWidth, this.size[1], this.size[2])
@@ -298,12 +315,12 @@ export class WallConstructionArea {
 
     const inbetweenOffsets = this.topOffsets
       .map(offset => newVec2(offset[0] - xOffset, offset[1]))
-      .filter(offset => offset[0] > 0 && offset[0] < newWidth)
+      .filter(offset => offset[0] > 0.5 && offset[0] < newWidth - 0.5)
 
     const newTopOffsets = [
-      newVec2(0, this.getOffsetsAt(xOffset)[1]),
+      newVec2(0, this.getOffsetsAt(xOffset, 1)[1]),
       ...inbetweenOffsets,
-      newVec2(newWidth, this.getOffsetsAt(xOffset + newWidth)[0])
+      newVec2(newWidth, this.getOffsetsAt(xOffset + newWidth, -1)[0])
     ]
 
     return new WallConstructionArea(newPosition, newSize, newTopOffsets)

@@ -69,7 +69,8 @@ const mockActions = {
               height: 2100,
               sillHeight: undefined
             }
-          ]
+          ],
+          posts: []
         }
       ],
       baseRingBeamAssemblyId: 'beam_1',

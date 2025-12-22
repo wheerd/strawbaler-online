@@ -9,6 +9,7 @@ import {
   sumLayerThickness,
   updateLayerAt
 } from '@/construction/config/store/layerUtils'
+import { DEFAULT_EMPTY_ASSEMBLY } from '@/construction/config/store/slices/opening.defaults'
 import type {
   InfillWallAssemblyConfig,
   ModulesWallAssemblyConfig,
@@ -166,7 +167,7 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
     name: 'Concrete Wall',
     type: 'non-strawbale',
     material: concrete.id,
-    openingAssemblyId: 'oa_empty_default', // Non-strawbale walls use empty opening type
+    openingAssemblyId: DEFAULT_EMPTY_ASSEMBLY.id, // Non-strawbale walls use empty opening type
     layers: {
       insideThickness: 30,
       insideLayers: DEFAULT_WALL_LAYER_SETS['Clay Plaster'],

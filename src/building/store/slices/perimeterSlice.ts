@@ -7,15 +7,24 @@ import type {
   PerimeterWallId,
   RingBeamAssemblyId,
   StoreyId,
-  WallAssemblyId
+  WallAssemblyId,
+  WallPostId
 } from '@/building/model/ids'
 import {
   createOpeningId,
   createPerimeterCornerId,
   createPerimeterId,
-  createPerimeterWallId
+  createPerimeterWallId,
+  createWallPostId
 } from '@/building/model/ids'
-import type { Opening, Perimeter, PerimeterCorner, PerimeterReferenceSide, PerimeterWall } from '@/building/model/model'
+import type {
+  Opening,
+  Perimeter,
+  PerimeterCorner,
+  PerimeterReferenceSide,
+  PerimeterWall,
+  WallPost
+} from '@/building/model/model'
 import {
   type Length,
   type Line2D,
@@ -80,6 +89,7 @@ export interface PerimetersActions {
     cornerId: PerimeterCornerId,
     constructedByWall: 'previous' | 'next'
   ) => void
+  canSwitchCornerConstructedByWall: (perimeterId: PerimeterId, cornerId: PerimeterCornerId) => boolean
 
   // Updated opening actions with ID-based approach and auto-ID generation
   addPerimeterWallOpening: (
@@ -111,6 +121,36 @@ export interface PerimetersActions {
     excludedOpening?: OpeningId
   ) => Length | null
 
+  // Wall post actions with ID-based approach and auto-ID generation
+  addPerimeterWallPost: (
+    perimeterId: PerimeterId,
+    wallId: PerimeterWallId,
+    postParams: Omit<WallPost, 'id'>
+  ) => WallPostId
+  removePerimeterWallPost: (perimeterId: PerimeterId, wallId: PerimeterWallId, postId: WallPostId) => void
+  updatePerimeterWallPost: (
+    perimeterId: PerimeterId,
+    wallId: PerimeterWallId,
+    postId: WallPostId,
+    updates: Partial<Omit<WallPost, 'id'>>
+  ) => void
+
+  // Wall post validation methods
+  isPerimeterWallPostPlacementValid: (
+    perimeterId: PerimeterId,
+    wallId: PerimeterWallId,
+    centerOffsetFromWallStart: Length,
+    width: Length,
+    excludedPost?: WallPostId
+  ) => boolean
+  findNearestValidPerimeterWallPostPosition: (
+    perimeterId: PerimeterId,
+    wallId: PerimeterWallId,
+    preferredCenterOffset: Length,
+    width: Length,
+    excludedPost?: WallPostId
+  ) => Length | null
+
   // Updated getters
   getPerimeterById: (perimeterId: PerimeterId) => Perimeter | null
   getPerimeterWallById: (perimeterId: PerimeterId, wallId: PerimeterWallId) => PerimeterWall | null
@@ -120,6 +160,7 @@ export interface PerimetersActions {
     wallId: PerimeterWallId,
     openingId: OpeningId
   ) => Opening | null
+  getPerimeterWallPostById: (perimeterId: PerimeterId, wallId: PerimeterWallId, postId: WallPostId) => WallPost | null
   getPerimetersByStorey: (storeyId: StoreyId) => Perimeter[]
 
   // Movement operations for MoveTool
@@ -192,6 +233,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           thickness: wallThickness,
           wallAssemblyId,
           openings: [],
+          posts: [],
           // Geometry properties will be set by updatePerimeterGeometry
           insideLength: 0,
           outsideLength: 0,
@@ -324,6 +366,13 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           if (splitPosition > openingStart && splitPosition < openingEnd) return
         }
 
+        // Check post intersections
+        for (const post of originalWall.posts) {
+          const postStart = post.centerOffsetFromWallStart - post.width / 2
+          const postEnd = post.centerOffsetFromWallStart + post.width / 2
+          if (splitPosition > postStart && splitPosition < postEnd) return
+        }
+
         // Calculate split points in world coordinates based on the reference side
         const wallDirection = originalWall.direction
         const referenceLine = perimeter.referenceSide === 'inside' ? originalWall.insideLine : originalWall.outsideLine
@@ -353,12 +402,27 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           }
         }
 
+        // Redistribute posts
+        const firstWallPosts = []
+        const secondWallPosts = []
+        for (const post of originalWall.posts) {
+          if (post.centerOffsetFromWallStart < splitPosition) {
+            firstWallPosts.push(post)
+          } else {
+            secondWallPosts.push({
+              ...post,
+              centerOffsetFromWallStart: post.centerOffsetFromWallStart - splitPosition
+            })
+          }
+        }
+
         // Create two new walls
         const firstWall: PerimeterWall = {
           id: createPerimeterWallId(),
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId,
           openings: firstWallOpenings,
+          posts: firstWallPosts,
           // Geometry will be set by updatePerimeterGeometry
           insideLength: 0,
           outsideLength: 0,
@@ -374,6 +438,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId,
           openings: secondWallOpenings,
+          posts: secondWallPosts,
           // Geometry will be set by updatePerimeterGeometry
           insideLength: 0,
           outsideLength: 0,
@@ -461,11 +526,58 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       })
     },
 
+    canSwitchCornerConstructedByWall: (perimeterId: PerimeterId, cornerId: PerimeterCornerId): boolean => {
+      const perimeter = get().perimeters[perimeterId]
+      if (!perimeter) return false
+
+      const cornerIndex = perimeter.corners.findIndex(c => c.id === cornerId)
+      if (cornerIndex === -1) return false
+
+      const corner = perimeter.corners[cornerIndex]
+
+      // Determine which wall is currently constructing this corner
+      const constructingWallIndex =
+        corner.constructedByWall === 'previous'
+          ? (cornerIndex - 1 + perimeter.walls.length) % perimeter.walls.length
+          : cornerIndex
+
+      const constructingWall = perimeter.walls[constructingWallIndex]
+
+      // Determine which corner position (start or end) this is for the constructing wall
+      const cornerPosition = corner.constructedByWall === 'previous' ? 'end' : 'start'
+
+      // Check if this wall has posts in the corner area
+      return !hasPostsInCornerArea(constructingWall, cornerPosition)
+    },
+
     updatePerimeterCornerConstructedByWall: (
       perimeterId: PerimeterId,
       cornerId: PerimeterCornerId,
       constructedByWall: 'previous' | 'next'
     ) => {
+      const perimeter = get().perimeters[perimeterId]
+      if (!perimeter) return
+
+      const cornerIndex = perimeter.corners.findIndex(c => c.id === cornerId)
+      if (cornerIndex === -1) return
+
+      const corner = perimeter.corners[cornerIndex]
+
+      // Determine which wall is currently constructing this corner
+      const constructingWallIndex =
+        corner.constructedByWall === 'previous'
+          ? (cornerIndex - 1 + perimeter.walls.length) % perimeter.walls.length
+          : cornerIndex
+
+      const constructingWall = perimeter.walls[constructingWallIndex]
+      const cornerPosition = corner.constructedByWall === 'previous' ? 'end' : 'start'
+
+      // Check if this wall has posts in the corner area - if so, prevent switching
+      if (hasPostsInCornerArea(constructingWall, cornerPosition)) {
+        console.warn('Cannot switch corner: wall has posts in corner area')
+        return
+      }
+
       set(state => {
         const perimeter = state.perimeters[perimeterId]
         if (perimeter == null) return
@@ -711,6 +823,227 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         const noPrevCollision =
           !previousOpening ||
           Math.abs(shiftedCenter - previousOpening.centerOffsetFromWallStart) >= (width + previousOpening.width) / 2
+
+        if (validBounds && noPrevCollision && shiftDistance < bestDistance) {
+          bestCenter = shiftedCenter
+          bestDistance = shiftDistance
+        }
+      }
+
+      return bestCenter
+    },
+
+    // Wall post operations
+    addPerimeterWallPost: (perimeterId: PerimeterId, wallId: PerimeterWallId, postParams: Omit<WallPost, 'id'>) => {
+      if (postParams.width <= 0) {
+        throw new Error('Post width must be greater than 0')
+      }
+      if (postParams.thickness <= 0) {
+        throw new Error('Post thickness must be greater than 0')
+      }
+
+      // Basic validation checks
+      const perimeter = get().perimeters[perimeterId]
+      if (!perimeter) {
+        throw new Error('Perimeter does not exist')
+      }
+
+      const wall = perimeter.walls.find((wall: PerimeterWall) => wall.id === wallId) ?? null
+      if (!wall) {
+        throw new Error('Wall does not exist')
+      }
+
+      if (!validatePostOnWall(wall, perimeter, postParams.centerOffsetFromWallStart, postParams.width)) {
+        throw new Error('Post placement is not valid')
+      }
+
+      // Auto-generate ID for the new post
+      const postId = createWallPostId()
+      const newPost: WallPost = {
+        id: postId,
+        ...postParams
+      }
+
+      set(state => {
+        const perimeter = state.perimeters[perimeterId]
+        if (perimeter == null) return
+
+        const wallIndex = perimeter.walls.findIndex((wall: PerimeterWall) => wall.id === wallId)
+        if (wallIndex !== -1) {
+          perimeter.walls[wallIndex].posts.push(newPost)
+        }
+      })
+
+      return postId
+    },
+
+    removePerimeterWallPost: (perimeterId: PerimeterId, wallId: PerimeterWallId, postId: WallPostId) => {
+      set(state => {
+        const perimeter = state.perimeters[perimeterId]
+        if (perimeter == null) return
+
+        const wallIndex = perimeter.walls.findIndex((wall: PerimeterWall) => wall.id === wallId)
+        if (wallIndex !== -1) {
+          const wall = perimeter.walls[wallIndex]
+          const postIndex = wall.posts.findIndex((p: WallPost) => p.id === postId)
+          if (postIndex !== -1) {
+            wall.posts.splice(postIndex, 1)
+          }
+        }
+      })
+    },
+
+    updatePerimeterWallPost: (
+      perimeterId: PerimeterId,
+      wallId: PerimeterWallId,
+      postId: WallPostId,
+      updates: Partial<Omit<WallPost, 'id'>>
+    ) => {
+      set(state => {
+        const perimeter = state.perimeters[perimeterId]
+        if (perimeter == null) return
+
+        const wallIndex = perimeter.walls.findIndex((wall: PerimeterWall) => wall.id === wallId)
+        if (wallIndex !== -1) {
+          const wall = perimeter.walls[wallIndex]
+          const postIndex = wall.posts.findIndex((p: WallPost) => p.id === postId)
+          if (postIndex !== -1) {
+            const post = wall.posts[postIndex]
+            if (
+              validatePostOnWall(
+                wall,
+                perimeter,
+                updates.centerOffsetFromWallStart ?? post.centerOffsetFromWallStart,
+                updates.width ?? post.width,
+                postId
+              )
+            ) {
+              Object.assign(post, updates)
+            }
+          }
+        }
+      })
+    },
+
+    getPerimeterWallPostById: (perimeterId: PerimeterId, wallId: PerimeterWallId, postId: WallPostId) => {
+      const perimeter = get().perimeters[perimeterId]
+      if (perimeter == null) return null
+
+      const wall = perimeter.walls.find((wall: PerimeterWall) => wall.id === wallId)
+      if (wall == null) return null
+
+      return wall.posts.find((post: WallPost) => post.id === postId) ?? null
+    },
+
+    // Wall post validation methods implementation
+    isPerimeterWallPostPlacementValid: (
+      perimeterId: PerimeterId,
+      wallId: PerimeterWallId,
+      centerOffsetFromWallStart: Length,
+      width: Length,
+      excludedPost?: WallPostId
+    ) => {
+      const perimeter = get().perimeters[perimeterId]
+      if (!perimeter) {
+        throw new Error(`Perimeter not found: ${perimeterId}`)
+      }
+
+      const wall = perimeter.walls.find((wall: PerimeterWall) => wall.id === wallId) ?? null
+      if (!wall) {
+        throw new Error(`Wall not found: perimeter ${perimeterId}, wall ${wallId}`)
+      }
+
+      // Validate width
+      if (width <= 0) {
+        throw new Error(`Post width must be greater than 0, got ${width}`)
+      }
+
+      return validatePostOnWall(wall, perimeter, centerOffsetFromWallStart, width, excludedPost)
+    },
+
+    findNearestValidPerimeterWallPostPosition: (
+      perimeterId: PerimeterId,
+      wallId: PerimeterWallId,
+      preferredCenterOffset: Length,
+      width: Length,
+      excludedPost?: WallPostId
+    ): Length | null => {
+      const perimeter = get().perimeters[perimeterId]
+      if (!perimeter) return null
+
+      const wall = perimeter.walls.find((wall: PerimeterWall) => wall.id === wallId) ?? null
+      if (!wall) return null
+
+      // Get extended bounds for posts (includes corner extensions)
+      const bounds = getWallPostPlacementBounds(wall, perimeter, width)
+
+      // Check if the post can fit within the available space
+      if (bounds.maxOffset - bounds.minOffset < width) return null
+
+      // Snap center to extended bounds
+      let center = Math.max(preferredCenterOffset, bounds.minOffset)
+      center = Math.min(center, bounds.maxOffset)
+
+      // Get all obstacles (openings and posts)
+      const obstacles = [
+        ...wall.openings.map(o => ({ center: o.centerOffsetFromWallStart, width: o.width })),
+        ...wall.posts
+          .filter(p => p.id !== excludedPost)
+          .map(p => ({ center: p.centerOffsetFromWallStart, width: p.width }))
+      ].sort((a, b) => a.center - b.center)
+
+      if (obstacles.length === 0) return center
+
+      // Find previous and next obstacles relative to preferred center
+      const afterIndex = obstacles.findIndex(o => o.center >= center)
+
+      const previousObstacle =
+        afterIndex > 0 ? obstacles[afterIndex - 1] : afterIndex === -1 ? obstacles[obstacles.length - 1] : null
+      const nextObstacle = afterIndex !== -1 ? obstacles[afterIndex] : null
+
+      // Check collisions using center-based distance
+      const intersectsPrevious =
+        previousObstacle && Math.abs(center - previousObstacle.center) < (width + previousObstacle.width) / 2
+      const intersectsNext = nextObstacle && Math.abs(center - nextObstacle.center) < (width + nextObstacle.width) / 2
+
+      if (!intersectsPrevious && !intersectsNext) {
+        return center
+      }
+
+      // If we intersect with both, the gap is too small
+      if (intersectsPrevious && intersectsNext) {
+        return null
+      }
+
+      // Otherwise find the shortest shift
+      let bestCenter: Length | null = null
+      let bestDistance = Infinity
+
+      // If we intersect with previous obstacle, try shifting right (after previous)
+      if (intersectsPrevious && previousObstacle) {
+        const shiftedCenter = previousObstacle.center + (previousObstacle.width + width) / 2
+        const shiftDistance = Math.abs(shiftedCenter - preferredCenterOffset)
+
+        // Check if shift is within the extended bounds and doesn't intersect with next
+        const validBounds = shiftedCenter <= bounds.maxOffset
+        const noNextCollision =
+          !nextObstacle || Math.abs(shiftedCenter - nextObstacle.center) >= (width + nextObstacle.width) / 2
+
+        if (validBounds && noNextCollision) {
+          bestCenter = shiftedCenter
+          bestDistance = shiftDistance
+        }
+      }
+
+      // If we intersect with next obstacle, try shifting left (before next)
+      if (intersectsNext && nextObstacle) {
+        const shiftedCenter = nextObstacle.center - (nextObstacle.width + width) / 2
+        const shiftDistance = Math.abs(shiftedCenter - preferredCenterOffset)
+
+        // Check if shift is within the extended bounds and doesn't intersect with previous
+        const validBounds = shiftedCenter >= bounds.minOffset
+        const noPrevCollision =
+          !previousObstacle || Math.abs(shiftedCenter - previousObstacle.center) >= (width + previousObstacle.width) / 2
 
         if (validBounds && noPrevCollision && shiftDistance < bestDistance) {
           bestCenter = shiftedCenter
@@ -1169,6 +1502,7 @@ const removeCornerAndMergeWalls = (perimeter: Perimeter, cornerIndex: number): v
     thickness: mergedThickness,
     wallAssemblyId: wall1.wallAssemblyId,
     openings: isExactlyStraight ? mergeOpeningsForStraightCorner(wall1, wall2) : [], // Keep current behavior for non-straight corners
+    posts: [],
     // Geometry properties will be set by updatePerimeterGeometry
     insideLength: 0,
     outsideLength: 0,
@@ -1234,6 +1568,7 @@ const removeWallAndMergeAdjacent = (perimeter: Perimeter, wallIndex: number): vo
     thickness: mergedThickness,
     wallAssemblyId: prevWall.wallAssemblyId,
     openings: [], // Openings are deleted
+    posts: [], // Posts are deleted
     // Geometry properties will be set by updatePerimeterGeometry
     insideLength: 0,
     outsideLength: 0,
@@ -1249,27 +1584,104 @@ const removeWallAndMergeAdjacent = (perimeter: Perimeter, wallIndex: number): vo
   updatePerimeterGeometry(perimeter)
 }
 
-// Private helper function to validate opening placement on a wall
-const validateOpeningOnWall = (
+/**
+ * Calculate valid placement range for posts, including corner extensions
+ * Returns [minOffset, maxOffset]
+ */
+export const getWallPostPlacementBounds = (
+  wall: PerimeterWall,
+  perimeter: Perimeter,
+  postWidth: Length
+): { minOffset: Length; maxOffset: Length } => {
+  const halfWidth = postWidth / 2
+
+  // Find wall index to get corners
+  const wallIndex = perimeter.walls.findIndex(w => w.id === wall.id)
+  if (wallIndex === -1) {
+    // Fallback to strict wall bounds
+    return { minOffset: halfWidth, maxOffset: wall.wallLength - halfWidth }
+  }
+
+  const startCorner = perimeter.corners[wallIndex]
+  const endCorner = perimeter.corners[(wallIndex + 1) % perimeter.corners.length]
+
+  let startExtension = 0
+  if (startCorner.exteriorAngle !== 180 && startCorner.constructedByWall === 'next') {
+    const outerStartExtension = Math.round(distVec2(wall.outsideLine.start, startCorner.outsidePoint))
+    const innerStartExtension = Math.round(distVec2(wall.insideLine.start, startCorner.insidePoint))
+    startExtension = Math.max(outerStartExtension, innerStartExtension)
+  }
+
+  let endExtension = 0
+  if (endCorner.exteriorAngle !== 180 && endCorner.constructedByWall === 'previous') {
+    const outerEndExtension = Math.round(distVec2(wall.outsideLine.end, endCorner.outsidePoint))
+    const innerEndExtension = Math.round(distVec2(wall.insideLine.end, endCorner.insidePoint))
+    endExtension = Math.max(outerEndExtension, innerEndExtension)
+  }
+
+  return {
+    minOffset: -startExtension + halfWidth,
+    maxOffset: wall.wallLength + endExtension - halfWidth
+  }
+}
+
+/**
+ * Check if a wall has posts in its corner extension area
+ * Assumes posts are sorted by centerOffsetFromWallStart
+ */
+const hasPostsInCornerArea = (wall: PerimeterWall, cornerPosition: 'start' | 'end'): boolean => {
+  if (wall.posts.length === 0) return false
+
+  if (cornerPosition === 'start') {
+    // Check first post - is it in the corner (negative offset)?
+    const firstPost = wall.posts[0]
+    const postStart = firstPost.centerOffsetFromWallStart - firstPost.width / 2
+    return postStart < 0
+  } else {
+    // Check last post - is it in the corner (beyond wall length)?
+    const lastPost = wall.posts[wall.posts.length - 1]
+    const postEnd = lastPost.centerOffsetFromWallStart + lastPost.width / 2
+    return postEnd > wall.wallLength
+  }
+}
+
+// Private helper function to validate wall item (opening or post) placement on a wall
+// This checks against BOTH openings and posts to ensure they don't overlap
+const validateWallItemPlacement = (
   wall: PerimeterWall,
   centerOffsetFromWallStart: Length,
   width: Length,
-  excludedOpening?: OpeningId | undefined
+  minBounds: Length,
+  maxBounds: Length,
+  excludedOpeningId?: OpeningId | undefined,
+  excludedPostId?: WallPostId | undefined
 ): boolean => {
   // Validate width
   if (width <= 0) {
     return false
   }
 
-  // Check bounds - center must be at least halfWidth from each end
-  const halfWidth = width / 2
-  if (centerOffsetFromWallStart < halfWidth || centerOffsetFromWallStart > wall.wallLength - halfWidth) {
+  if (centerOffsetFromWallStart < minBounds || centerOffsetFromWallStart > maxBounds) {
     return false
   }
 
   // Check overlap with existing openings using center-based collision
   for (const existing of wall.openings) {
-    if (existing.id === excludedOpening) continue
+    if (existing.id === excludedOpeningId) continue
+
+    // Distance between centers
+    const centerDistance = Math.abs(centerOffsetFromWallStart - existing.centerOffsetFromWallStart)
+    // Minimum distance needed to avoid overlap
+    const minDistance = (width + existing.width) / 2
+
+    if (centerDistance < minDistance) {
+      return false
+    }
+  }
+
+  // Check overlap with existing posts using center-based collision
+  for (const existing of wall.posts) {
+    if (existing.id === excludedPostId) continue
 
     // Distance between centers
     const centerDistance = Math.abs(centerOffsetFromWallStart - existing.centerOffsetFromWallStart)
@@ -1282,4 +1694,43 @@ const validateOpeningOnWall = (
   }
 
   return true
+}
+
+// Helper wrapper for opening validation (for backward compatibility)
+const validateOpeningOnWall = (
+  wall: PerimeterWall,
+  centerOffsetFromWallStart: Length,
+  width: Length,
+  excludedOpening?: OpeningId | undefined
+): boolean => {
+  const halfWidth = width / 2
+  return validateWallItemPlacement(
+    wall,
+    centerOffsetFromWallStart,
+    width,
+    halfWidth,
+    wall.wallLength - halfWidth,
+    excludedOpening,
+    undefined
+  )
+}
+
+// Helper wrapper for post validation
+const validatePostOnWall = (
+  wall: PerimeterWall,
+  perimeter: Perimeter,
+  centerOffsetFromWallStart: Length,
+  width: Length,
+  excludedPost?: WallPostId | undefined
+): boolean => {
+  const bounds = getWallPostPlacementBounds(wall, perimeter, width)
+  return validateWallItemPlacement(
+    wall,
+    centerOffsetFromWallStart,
+    width,
+    bounds.minOffset,
+    bounds.maxOffset,
+    undefined,
+    excludedPost
+  )
 }
