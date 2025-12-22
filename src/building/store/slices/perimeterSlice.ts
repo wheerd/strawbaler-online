@@ -1588,7 +1588,7 @@ const removeWallAndMergeAdjacent = (perimeter: Perimeter, wallIndex: number): vo
  * Calculate valid placement range for posts, including corner extensions
  * Returns [minOffset, maxOffset]
  */
-const getWallPostPlacementBounds = (
+export const getWallPostPlacementBounds = (
   wall: PerimeterWall,
   perimeter: Perimeter,
   postWidth: Length

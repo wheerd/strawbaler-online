@@ -1,6 +1,7 @@
 import type { SelectableId } from '@/building/model/ids'
 import { isPerimeterId, isPerimeterWallId, isWallPostId } from '@/building/model/ids'
 import type { Perimeter, PerimeterWall, WallPost } from '@/building/model/model'
+import { getWallPostPlacementBounds } from '@/building/store/slices/perimeterSlice'
 import type { StoreActions } from '@/building/store/types'
 import type {
   MovementBehavior,
@@ -9,7 +10,7 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/MovementBehavior'
 import { WallPostMovementPreview } from '@/editor/tools/basic/movement/previews/WallPostMovementPreview'
-import { type Length, type Vec2, ZERO_VEC2, dotVec2, newVec2, scaleAddVec2, subVec2 } from '@/shared/geometry'
+import { type Length, type Vec2, ZERO_VEC2, dotVec2, newVec2, projectVec2, scaleAddVec2 } from '@/shared/geometry'
 
 // Wall post movement needs access to the wall, wall, and post
 export interface WallPostEntityContext {
@@ -73,8 +74,7 @@ export class WallPostMovementBehavior implements MovementBehavior<WallPostEntity
     const newPosition = scaleAddVec2(currentPosition, wallDirection, projectedDistance)
 
     // Use proper signed distance calculation to handle negative offsets
-    const deltaFromStart = subVec2(newPosition, wallStart)
-    const signedOffset = dotVec2(deltaFromStart, wallDirection)
+    const signedOffset = projectVec2(wallStart, newPosition, wallDirection)
 
     // Try to snap to nearest valid position
     const snappedOffset = context.store.findNearestValidPerimeterWallPostPosition(
@@ -85,12 +85,14 @@ export class WallPostMovementBehavior implements MovementBehavior<WallPostEntity
       post.id
     )
 
+    const bounds = getWallPostPlacementBounds(wall, perimeter, post.width)
+
     // Use snapped position if available and within reasonable distance
-    const maxSnapDistance = post.width * 0.4
+    const maxSnapDistance = post.width * 3
     const finalOffset =
       snappedOffset !== null && Math.abs(snappedOffset - signedOffset) <= maxSnapDistance
         ? snappedOffset
-        : Math.max(0, signedOffset) // Clamp to non-negative only if no snap
+        : Math.max(bounds.minOffset, Math.min(signedOffset, bounds.maxOffset)) // Clamp only if no snap
 
     return {
       newOffset: finalOffset,
