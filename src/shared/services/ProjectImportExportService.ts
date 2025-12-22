@@ -56,6 +56,7 @@ export interface ExportedWall {
   baseRingBeamAssemblyId?: string
   topRingBeamAssemblyId?: string
   openings: ExportedOpening[]
+  posts?: ExportedPost[]
 }
 
 export interface ExportedOpening {
@@ -66,6 +67,16 @@ export interface ExportedOpening {
   height: number
   sillHeight?: number
   openingAssemblyId?: string
+}
+
+export interface ExportedPost {
+  type: 'center' | 'inside' | 'outside' | 'double'
+  centerOffset: number
+  width: number
+  thickness: number
+  replacesPosts: boolean
+  material: string
+  infillMaterial: string
 }
 
 export interface ExportedFloorPolygon {
@@ -135,7 +146,7 @@ export interface IProjectImportExportService {
   importFromString(content: string): Promise<ImportResult | ImportError>
 }
 
-const CURRENT_VERSION = '1.12.0'
+const CURRENT_VERSION = '1.13.0'
 const SUPPORTED_VERSIONS = [
   '1.0.0',
   '1.1.0',
@@ -149,7 +160,8 @@ const SUPPORTED_VERSIONS = [
   '1.9.0',
   '1.10.0',
   '1.11.0',
-  '1.12.0'
+  '1.12.0',
+  '1.13.0'
 ] as const
 
 const compareVersion = (version1: string, version2: string) => {
@@ -248,7 +260,19 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
               height: Number(opening.height),
               sillHeight: opening.sillHeight ? Number(opening.sillHeight) : undefined,
               openingAssemblyId: opening.openingAssemblyId
-            }))
+            })),
+            posts:
+              wall.posts.length > 0
+                ? wall.posts.map(post => ({
+                    type: post.type,
+                    centerOffset: Number(post.centerOffsetFromWallStart),
+                    width: Number(post.width),
+                    thickness: Number(post.thickness),
+                    replacesPosts: post.replacesPosts,
+                    material: post.material,
+                    infillMaterial: post.infillMaterial
+                  }))
+                : undefined
           }))
         }))
 
@@ -431,6 +455,27 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
                 console.error(error)
               }
             })
+
+            // Add posts (with backwards compatibility - posts may not exist in old files)
+            if (exportedWall.posts) {
+              exportedWall.posts.forEach(exportedPost => {
+                const postParams = {
+                  type: exportedPost.type,
+                  centerOffsetFromWallStart: exportedPost.centerOffset,
+                  width: exportedPost.width,
+                  thickness: exportedPost.thickness,
+                  replacesPosts: exportedPost.replacesPosts,
+                  material: exportedPost.material as MaterialId,
+                  infillMaterial: exportedPost.infillMaterial as MaterialId
+                }
+
+                try {
+                  modelActions.addPerimeterWallPost(perimeter.id, wallId, postParams)
+                } catch (error) {
+                  console.error(error)
+                }
+              })
+            }
           })
 
           // 8. Update corner properties - auto-recomputes outsidePoints
