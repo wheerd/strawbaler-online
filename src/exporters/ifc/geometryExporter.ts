@@ -2,6 +2,7 @@ import type { Manifold } from 'manifold-3d'
 import { Handle, IFC4, IfcAPI, type IfcLineObject } from 'web-ifc'
 import wasmUrl from 'web-ifc/web-ifc.wasm?url'
 
+import { isOpeningId } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import type { ConstructionElement, ConstructionGroup, GroupOrElement } from '@/construction/elements'
 import type { MaterialId } from '@/construction/materials/material'
@@ -716,8 +717,13 @@ export class GeometryIfcExporter {
       return
     }
 
+    if (!isOpeningId(opening.sourceId)) {
+      console.warn('Opening with invalid sourceId, skipping:', opening.sourceId)
+      return
+    }
+
     const { getWallByOpeningId } = getModelActions()
-    const wallInfo = getWallByOpeningId(opening.sourceId as any)
+    const wallInfo = getWallByOpeningId(opening.sourceId)
 
     if (!wallInfo) {
       console.warn('No wall found for opening:', opening.sourceId)
@@ -856,11 +862,15 @@ export class GeometryIfcExporter {
 
     // Part info
     if (constructionElement.partInfo) {
-      const partInfo = constructionElement.partInfo!
-      if ('type' in partInfo && partInfo.type) {
+      if ('type' in constructionElement.partInfo && constructionElement.partInfo.type) {
         properties.push(
           this.writeEntity(
-            new IFC4.IfcPropertySingleValue(this.identifier('PartType'), null, this.label(partInfo.type), null)
+            new IFC4.IfcPropertySingleValue(
+              this.identifier('PartType'),
+              null,
+              this.label(constructionElement.partInfo.type),
+              null
+            )
           )
         )
       }
@@ -868,9 +878,8 @@ export class GeometryIfcExporter {
 
     // Tags
     if (constructionElement.tags) {
-      const tags = constructionElement.tags!
-      if (tags.length > 0) {
-        const tagLabels = tags.map(t => t.label).join(', ')
+      if (constructionElement.tags.length > 0) {
+        const tagLabels = constructionElement.tags.map(t => t.label).join(', ')
         properties.push(
           this.writeEntity(new IFC4.IfcPropertySingleValue(this.identifier('Tags'), null, this.label(tagLabels), null))
         )
