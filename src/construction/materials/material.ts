@@ -219,7 +219,7 @@ export const brick: DimensionalMaterial = {
   name: 'AAC Brick',
   type: 'dimensional',
   color: '#b2b2af',
-  crossSections: [{ smallerLength: 24, biggerLength: 30 }],
+  crossSections: [{ smallerLength: 240, biggerLength: 300 }],
   lengths: [600],
   density: 750
 }
