@@ -2,12 +2,12 @@ import { Theme } from '@radix-ui/themes'
 import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { PlanHighlightProvider } from '@/construction/components/context/PlanHighlightContext'
+import { PlanHighlightProvider } from '@/construction/components/plan/PlanHighlightContext'
 import type { ConstructionModel, HighlightedCuboid, HighlightedPolygon } from '@/construction/model'
 import { Bounds3D, IDENTITY, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 import { ConstructionPlan, TOP_VIEW, type ViewOption } from './ConstructionPlan'
-import { TagVisibilityProvider } from './context/TagVisibilityContext'
+import { TagVisibilityProvider } from './TagVisibilityContext'
 
 describe('ConstructionPlan', () => {
   it('should render polygon areas correctly', () => {

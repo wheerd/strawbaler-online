@@ -10,8 +10,8 @@ import {
   usePerimetersOfActiveStorey,
   useStoreysOrderedByLevel
 } from '@/building/store'
-import { ConstructionPartsListModal } from '@/construction/components/ConstructionPartsListModal'
 import TopDownPlanModal from '@/construction/components/TopDownPlanModal'
+import { ConstructionPartsListModal } from '@/construction/components/parts/ConstructionPartsListModal'
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 import { constructModel, constructStorey } from '@/construction/storeys/storey'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'

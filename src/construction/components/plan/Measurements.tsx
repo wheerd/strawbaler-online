@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
-import { getTagClasses } from '@/construction/components/cssHelpers'
+import { getTagClasses } from '@/construction/components/plan/cssHelpers'
 import { type Projection, allPoints, bounds3Dto2D, projectPoint } from '@/construction/geometry'
 import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'

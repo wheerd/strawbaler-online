@@ -3,8 +3,8 @@ import type React from 'react'
 import type { ConstructionModel } from '@/construction/model'
 import { TAG_BASE_PLATE, TAG_DECKING, TAG_ROOF, TAG_SUBFLOOR, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
 
-import { TOP_VIEW } from './ConstructionPlan'
 import { ConstructionPlanModal } from './ConstructionPlanModal'
+import { TOP_VIEW } from './plan/ConstructionPlan'
 
 export default ({
   title,

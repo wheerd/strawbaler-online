@@ -2,7 +2,7 @@ import { ExclamationTriangleIcon, EyeOpenIcon, PinBottomIcon, PinTopIcon } from 
 import { Badge, Card, Flex, Heading, IconButton, Table, Text, Tooltip } from '@radix-ui/themes'
 import React, { useCallback, useMemo, useRef } from 'react'
 
-import { PartCutModal } from '@/construction/components/PartCutModal'
+import { PartCutModal } from '@/construction/components/parts/PartCutModal'
 import { getMaterialTypeIcon, getMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
 import type {
   DimensionalMaterial,

@@ -1,4 +1,4 @@
-import { getConstructionElementClasses } from '@/construction/components/cssHelpers'
+import { getConstructionElementClasses } from '@/construction/components/plan/cssHelpers'
 import type { GroupOrElement } from '@/construction/elements'
 import { type Projection, projectPoint } from '@/construction/geometry'
 import { getVisibleFacesInViewSpace } from '@/construction/manifold/faces'

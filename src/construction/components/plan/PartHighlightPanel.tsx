@@ -1,7 +1,7 @@
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { Box, Card, Flex, IconButton, Text } from '@radix-ui/themes'
 
-import { usePlanHighlight } from './context/PlanHighlightContext'
+import { usePlanHighlight } from './PlanHighlightContext'
 
 export function PartHighlightPanel() {
   const { highlightedPartId, setHighlightedPartId } = usePlanHighlight()

@@ -2,11 +2,11 @@ import { ExclamationTriangleIcon, GroupIcon, RulerHorizontalIcon } from '@radix-
 import { Box, Card, Flex, Grid, IconButton, SegmentedControl } from '@radix-ui/themes'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
-import { CutAreaShape } from '@/construction/components/CutAreaShape'
-import { Measurements } from '@/construction/components/Measurements'
-import { sanitizeForCssClass } from '@/construction/components/cssHelpers'
-import { type FaceTree, geometryFaces } from '@/construction/components/faceHelpers'
-import { accumulateIssueWorldManifolds } from '@/construction/components/issueHelpers'
+import { CutAreaShape } from '@/construction/components/plan/CutAreaShape'
+import { Measurements } from '@/construction/components/plan/Measurements'
+import { sanitizeForCssClass } from '@/construction/components/plan/cssHelpers'
+import { type FaceTree, geometryFaces } from '@/construction/components/plan/faceHelpers'
+import { accumulateIssueWorldManifolds } from '@/construction/components/plan/issueHelpers'
 import type { GroupOrElement } from '@/construction/elements'
 import { bounds3Dto2D, createProjectionMatrix, projectPoint } from '@/construction/geometry'
 import { type ProjectedOutline, projectManifoldToView } from '@/construction/manifoldProjection'
@@ -25,11 +25,11 @@ import {
 } from '@/shared/geometry'
 
 import { CuboidAreaShape } from './CuboidAreaShape'
+import { usePlanHighlight } from './PlanHighlightContext'
 import { PolygonAreaShape } from './PolygonAreaShape'
 import { SVGMaterialStyles } from './SVGMaterialStyles'
+import { type TagOrCategory, useTagVisibility } from './TagVisibilityContext'
 import { TagVisibilityMenu } from './TagVisibilityMenu'
-import { usePlanHighlight } from './context/PlanHighlightContext'
-import { type TagOrCategory, useTagVisibility } from './context/TagVisibilityContext'
 
 export interface View {
   plane: Plane3D

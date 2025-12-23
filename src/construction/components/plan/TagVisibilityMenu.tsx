@@ -6,7 +6,7 @@ import type { GroupOrElement } from '@/construction/elements'
 import type { ConstructionModel } from '@/construction/model'
 import { CATEGORIES, type Tag, type TagCategoryId, type TagId } from '@/construction/tags'
 
-import { useTagVisibility } from './context/TagVisibilityContext'
+import { useTagVisibility } from './TagVisibilityContext'
 
 export interface TagVisibilityMenuProps {
   model: ConstructionModel

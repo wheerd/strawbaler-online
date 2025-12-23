@@ -4,7 +4,7 @@ import { use } from 'react'
 
 import type { ConstructionModel } from '@/construction/model'
 
-import { usePlanHighlight } from './context/PlanHighlightContext'
+import { usePlanHighlight } from './PlanHighlightContext'
 
 interface IssueDescriptionPanelProps {
   modelPromise: Promise<ConstructionModel | null>

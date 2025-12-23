@@ -2,20 +2,20 @@ import { CrossCircledIcon } from '@radix-ui/react-icons'
 import { Box, Callout, Flex, Skeleton, Spinner, Tabs } from '@radix-ui/themes'
 import React, { Suspense, use, useEffect, useState } from 'react'
 
-import { ConstructionPartsList } from '@/construction/components/ConstructionPartsList'
-import { ConstructionVirtualPartsList } from '@/construction/components/ConstructionVirtualPartsList'
-import { IssueDescriptionPanel } from '@/construction/components/IssueDescriptionPanel'
-import { PartHighlightPanel } from '@/construction/components/PartHighlightPanel'
+import { ConstructionPartsList } from '@/construction/components/parts/ConstructionPartsList'
+import { ConstructionVirtualPartsList } from '@/construction/components/parts/ConstructionVirtualPartsList'
+import { IssueDescriptionPanel } from '@/construction/components/plan/IssueDescriptionPanel'
+import { PartHighlightPanel } from '@/construction/components/plan/PartHighlightPanel'
 import type { ConstructionModel } from '@/construction/model'
 import type { MaterialPartsList, PartId, VirtualPartsList } from '@/construction/parts'
 import { generateMaterialPartsList, generateVirtualPartsList } from '@/construction/parts'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
-import { ConstructionPlan, type ViewOption } from './ConstructionPlan'
 import './ConstructionPlanModal.css'
-import { PlanHighlightProvider, usePlanHighlight } from './context/PlanHighlightContext'
-import { type TagOrCategory, TagVisibilityProvider } from './context/TagVisibilityContext'
+import { ConstructionPlan, type ViewOption } from './plan/ConstructionPlan'
+import { PlanHighlightProvider, usePlanHighlight } from './plan/PlanHighlightContext'
+import { type TagOrCategory, TagVisibilityProvider } from './plan/TagVisibilityContext'
 
 interface PartsData {
   material: MaterialPartsList
