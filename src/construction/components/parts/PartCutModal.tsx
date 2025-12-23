@@ -6,6 +6,8 @@ import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewpor
 import { Bounds2D, type Polygon2D, type PolygonWithHoles2D, newVec2 } from '@/shared/geometry'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
+import { PolygonAngleIndicators } from './AngleIndicators'
+import { DiagonalEdgeMeasurements } from './DiagonalEdgeMeasurements'
 import { GridMeasurementSystem } from './GridMeasurementSystem'
 import { calculateBeamSegments } from './utils/calculateBeamSegments'
 import { CoordinateMapper } from './utils/coordinateMapper'
@@ -198,6 +200,12 @@ export function PartCutModal({
               displayBounds={displayBounds}
               coordinateMapper={coordinateMapper}
             />
+
+            {/* Render angle indicators */}
+            <PolygonAngleIndicators polygon={flippedPolygon} coordinateMapper={coordinateMapper} />
+
+            {/* Render diagonal edge measurements */}
+            <DiagonalEdgeMeasurements polygon={flippedPolygon} coordinateMapper={coordinateMapper} />
           </SVGViewport>
         </div>
       </Grid>
