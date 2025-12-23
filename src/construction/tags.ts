@@ -428,7 +428,7 @@ export const TAG_SUBFLOOR: Tag = {
   category: 'floor-wood'
 }
 
-export const TAG_FLOOR_CEAILING_SHEATHING: Tag = {
+export const TAG_FLOOR_CEILING_SHEATHING: Tag = {
   id: 'floor-wood_ceiling-sheathing',
   label: 'Ceiling Sheathing',
   category: 'floor-wood'

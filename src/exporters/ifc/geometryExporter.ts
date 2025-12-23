@@ -13,14 +13,14 @@ import {
   TAG_BASE_PLATE,
   TAG_DECKING,
   TAG_FLOOR,
-  TAG_FLOOR_CEAILING_SHEATHING,
+  TAG_FLOOR_CEILING_SHEATHING,
   TAG_FLOOR_LAYER_BOTTOM,
   TAG_FLOOR_LAYER_TOP,
   TAG_FRAME,
   TAG_FULL_BALE,
   TAG_HEADER,
+  TAG_INSIDE_SHEATHING,
   TAG_JOIST,
-  TAG_LAYERS,
   TAG_PARTIAL_BALE,
   TAG_POST,
   TAG_PURLIN,
@@ -39,7 +39,7 @@ import {
   TAG_WALL_LAYER_INSIDE,
   TAG_WALL_LAYER_OUTSIDE
 } from '@/construction/tags'
-import { type Transform, getPosition, getXAxis, getZAxis } from '@/shared/geometry'
+import { IDENTITY, type Transform, getPosition, getXAxis, getZAxis } from '@/shared/geometry'
 import { downloadFile } from '@/shared/utils/downloadFile'
 import { getVersionString } from '@/shared/utils/version'
 
@@ -97,10 +97,6 @@ export class GeometryIfcExporter {
   private siteId!: Handle<IFC4.IfcSite>
   private buildingId!: Handle<IFC4.IfcBuilding>
   private buildingPlacement!: Handle<IFC4.IfcLocalPlacement>
-  private storeyIds = new Map<
-    number,
-    { storey: Handle<IFC4.IfcBuildingStorey>; placement: Handle<IFC4.IfcLocalPlacement> }
-  >()
 
   // Caches
   private shapeRepCache = new WeakMap<Manifold, Handle<IFC4.IfcShapeRepresentation>>()
@@ -137,6 +133,7 @@ export class GeometryIfcExporter {
     this.initialiseContext()
 
     const model = constructModel()
+    console.log('model', model)
     if (!model) {
       throw new Error('No construction model to export')
     }
@@ -315,13 +312,13 @@ export class GeometryIfcExporter {
     // Structural beams
     if (hasTag(tags, TAG_JOIST)) return { elementType: 'IfcBeam', predefinedType: 'JOIST' }
     if (hasTag(tags, TAG_HEADER)) return { elementType: 'IfcBeam', predefinedType: 'LINTEL' }
-    if (hasTag(tags, TAG_SILL)) return { elementType: 'IfcBeam', predefinedType: 'HOLLOWCORE' }
-    if (hasTag(tags, TAG_PURLIN)) return { elementType: 'IfcBeam', predefinedType: 'PURLIN' }
-    if (hasTag(tags, TAG_RAFTER)) return { elementType: 'IfcBeam', predefinedType: 'RAFTER' }
-    if (hasTag(tags, TAG_RIDGE_BEAM)) return { elementType: 'IfcBeam', predefinedType: 'RIDGE' }
+    if (hasTag(tags, TAG_SILL)) return { elementType: 'IfcBeam', predefinedType: 'BEAM' }
+    if (hasTag(tags, TAG_PURLIN)) return { elementType: 'IfcBeam', predefinedType: 'JOIST' }
+    if (hasTag(tags, TAG_RAFTER)) return { elementType: 'IfcBeam', predefinedType: 'JOIST' }
+    if (hasTag(tags, TAG_RIDGE_BEAM)) return { elementType: 'IfcBeam', predefinedType: 'JOIST' }
     if (hasTag(tags, TAG_FRAME)) return { elementType: 'IfcBeam', predefinedType: 'BEAM' }
-    if (hasTag(tags, TAG_BASE_PLATE)) return { elementType: 'IfcBeam', predefinedType: 'PLATE' }
-    if (hasTag(tags, TAG_TOP_PLATE)) return { elementType: 'IfcBeam', predefinedType: 'PLATE' }
+    if (hasTag(tags, TAG_BASE_PLATE)) return { elementType: 'IfcBeam', predefinedType: 'BEAM' }
+    if (hasTag(tags, TAG_TOP_PLATE)) return { elementType: 'IfcBeam', predefinedType: 'BEAM' }
 
     // Columns/Posts
     if (hasTag(tags, TAG_POST)) return { elementType: 'IfcColumn' }
@@ -332,11 +329,12 @@ export class GeometryIfcExporter {
     // Floors
     if (hasTag(tags, TAG_FLOOR)) return { elementType: 'IfcSlab', predefinedType: 'FLOOR' }
     if (hasTag(tags, TAG_SUBFLOOR)) return { elementType: 'IfcSlab', predefinedType: 'FLOOR' }
-    if (hasTag(tags, TAG_FLOOR_CEAILING_SHEATHING)) return { elementType: 'IfcSlab', predefinedType: 'FLOOR' }
+    if (hasTag(tags, TAG_FLOOR_CEILING_SHEATHING)) return { elementType: 'IfcSlab', predefinedType: 'FLOOR' }
 
     // Roofs
     if (hasTag(tags, TAG_ROOF)) return { elementType: 'IfcRoof' }
     if (hasTag(tags, TAG_DECKING)) return { elementType: 'IfcSlab', predefinedType: 'ROOF' }
+    if (hasTag(tags, TAG_INSIDE_SHEATHING)) return { elementType: 'IfcSlab', predefinedType: 'ROOF' }
 
     // Coverings (surface layers)
     if (hasTag(tags, TAG_WALL_LAYER_INSIDE)) return { elementType: 'IfcCovering', predefinedType: 'CLADDING' }
@@ -385,16 +383,10 @@ export class GeometryIfcExporter {
 
   private processStoreyGroup(storeyGroup: ConstructionGroup): void {
     const storeyLevel = this.extractStoreyLevel(storeyGroup)
-    let storeyInfo = this.storeyIds.get(storeyLevel)
 
-    if (!storeyInfo) {
-      // Create storey on demand - extract elevation from transform
-      const elevation = storeyGroup.transform[14] // Z translation from 4x4 matrix
-      storeyInfo = this.createStorey(storeyLevel, elevation)
-      this.storeyIds.set(storeyLevel, storeyInfo)
-    }
-
-    const { storey, placement: storeyPlacement } = storeyInfo
+    // Create storey on demand - extract elevation from transform
+    const elevation = storeyGroup.transform[14] // Z translation from 4x4 matrix
+    const { storey, placement: storeyPlacement } = this.createStorey(storeyLevel, elevation)
 
     const elements: Handle<IFC4.IfcElement>[] = []
     for (const child of storeyGroup.children) {
@@ -449,19 +441,6 @@ export class GeometryIfcExporter {
   ): Handle<IFC4.IfcElement>[] {
     const typeMapping = this.determineIfcType(group)
 
-    // Check if this is a layer group - always flatten
-    if (hasTag(group.tags, TAG_LAYERS)) {
-      const elements: Handle<IFC4.IfcElement>[] = []
-      for (const child of group.children) {
-        if (isGroup(child)) {
-          elements.push(...this.processGroup(child, storeyHandle, parentPlacement))
-        } else {
-          elements.push(this.processElement(child, storeyHandle, parentPlacement))
-        }
-      }
-      return elements
-    }
-
     // Check if this should be a decomposable element
     if (this.shouldDecompose(group, typeMapping)) {
       return [this.processDecomposableGroup(group, typeMapping, storeyHandle, parentPlacement)]
@@ -469,6 +448,9 @@ export class GeometryIfcExporter {
 
     // Otherwise, flatten
     const elements: Handle<IFC4.IfcElement>[] = []
+    if (group.transform !== IDENTITY) {
+      parentPlacement = this.createPlacementFromTransform(group.transform, parentPlacement)
+    }
     for (const child of group.children) {
       if (isGroup(child)) {
         elements.push(...this.processGroup(child, storeyHandle, parentPlacement))
@@ -599,7 +581,7 @@ export class GeometryIfcExporter {
             placement,
             productDef,
             null,
-            (predefinedType as IFC4.IfcWallTypeEnum) ?? IFC4.IfcWallTypeEnum.STANDARD
+            IFC4.IfcWallTypeEnum[(predefinedType as keyof IFC4.IfcWallTypeEnum) ?? 'NOTDEFINED']
           )
         )
 
@@ -614,7 +596,7 @@ export class GeometryIfcExporter {
             placement,
             productDef,
             null,
-            (predefinedType as IFC4.IfcBeamTypeEnum) ?? IFC4.IfcBeamTypeEnum.NOTDEFINED
+            IFC4.IfcBeamTypeEnum[(predefinedType as keyof IFC4.IfcBeamTypeEnum) ?? 'NOTDEFINED']
           )
         )
 
@@ -629,7 +611,7 @@ export class GeometryIfcExporter {
             placement,
             productDef,
             null,
-            (predefinedType as IFC4.IfcColumnTypeEnum) ?? IFC4.IfcColumnTypeEnum.NOTDEFINED
+            IFC4.IfcColumnTypeEnum[(predefinedType as keyof IFC4.IfcColumnTypeEnum) ?? 'NOTDEFINED']
           )
         )
 
@@ -644,7 +626,7 @@ export class GeometryIfcExporter {
             placement,
             productDef,
             null,
-            (predefinedType as IFC4.IfcSlabTypeEnum) ?? IFC4.IfcSlabTypeEnum.NOTDEFINED
+            IFC4.IfcSlabTypeEnum[(predefinedType as keyof IFC4.IfcSlabTypeEnum) ?? 'NOTDEFINED']
           )
         )
 
@@ -659,7 +641,7 @@ export class GeometryIfcExporter {
             placement,
             productDef,
             null,
-            (predefinedType as IFC4.IfcRoofTypeEnum) ?? IFC4.IfcRoofTypeEnum.NOTDEFINED
+            IFC4.IfcRoofTypeEnum[(predefinedType as keyof IFC4.IfcRoofTypeEnum) ?? 'NOTDEFINED']
           )
         )
 
@@ -674,7 +656,7 @@ export class GeometryIfcExporter {
             placement,
             productDef,
             null,
-            (predefinedType as IFC4.IfcCoveringTypeEnum) ?? IFC4.IfcCoveringTypeEnum.NOTDEFINED
+            IFC4.IfcCoveringTypeEnum[(predefinedType as keyof IFC4.IfcCoveringTypeEnum) ?? 'NOTDEFINED']
           )
         )
 
@@ -689,7 +671,9 @@ export class GeometryIfcExporter {
             placement,
             productDef,
             null,
-            (predefinedType as IFC4.IfcBuildingElementPartTypeEnum) ?? IFC4.IfcBuildingElementPartTypeEnum.NOTDEFINED
+            IFC4.IfcBuildingElementPartTypeEnum[
+              (predefinedType as keyof IFC4.IfcBuildingElementPartTypeEnum) ?? 'NOTDEFINED'
+            ]
           )
         )
 
@@ -704,7 +688,9 @@ export class GeometryIfcExporter {
             placement,
             productDef,
             null,
-            IFC4.IfcBuildingElementProxyTypeEnum.NOTDEFINED
+            IFC4.IfcBuildingElementProxyTypeEnum[
+              (predefinedType as keyof IFC4.IfcBuildingElementProxyTypeEnum) ?? 'NOTDEFINED'
+            ]
           )
         )
     }
