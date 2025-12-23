@@ -43,10 +43,8 @@ export function GridMeasurementSystem({
 
   // Calculate display bounds accounting for all segments
   const totalDisplayWidth = useMemo(() => {
-    const segments = coordinateMapper.getSegments()
-    if (segments.length === 0) return displayBounds.size[0]
-    return segments[segments.length - 1].displayEnd
-  }, [coordinateMapper, displayBounds])
+    return coordinateMapper.getTotalDisplayWidth()
+  }, [coordinateMapper])
 
   // Generate grid lines and measurements
   const gridElements = useMemo(() => {
@@ -93,7 +91,7 @@ export function GridMeasurementSystem({
     if (displayXCoords.length > 2) {
       elements.horizontalMeasurements.push(
         <SvgMeasurementIndicator
-          key={`hmeas-bottom`}
+          key="hmeas-bottom"
           startPoint={newVec2(displayBounds.min[0], displayBounds.max[1])}
           endPoint={newVec2(displayBounds.max[0], displayBounds.max[1])}
           label={formatLength(totalWidth)}
@@ -104,7 +102,7 @@ export function GridMeasurementSystem({
         />,
 
         <SvgMeasurementIndicator
-          key={`hmeas-bottom`}
+          key="hmeas-bottom"
           startPoint={newVec2(displayBounds.min[0], displayBounds.min[1])}
           endPoint={newVec2(displayBounds.max[0], displayBounds.min[1])}
           label={formatLength(totalWidth)}
@@ -157,7 +155,7 @@ export function GridMeasurementSystem({
     if (yCoords.length > 2) {
       elements.horizontalMeasurements.push(
         <SvgMeasurementIndicator
-          key={`vmeas-left`}
+          key="vmeas-left"
           startPoint={newVec2(displayBounds.min[0], displayBounds.min[1])}
           endPoint={newVec2(displayBounds.min[0], displayBounds.max[1])}
           label={formatLength(totalHeight)}
@@ -168,7 +166,7 @@ export function GridMeasurementSystem({
         />,
 
         <SvgMeasurementIndicator
-          key={`vmeas-right`}
+          key="vmeas-right"
           startPoint={newVec2(displayBounds.max[0], displayBounds.min[1])}
           endPoint={newVec2(displayBounds.max[0], displayBounds.max[1])}
           label={formatLength(totalHeight)}

@@ -1,14 +1,17 @@
 import { Grid } from '@radix-ui/themes'
 import React, { useMemo, useRef } from 'react'
 
-import { GridMeasurementSystem } from '@/construction/components/GridMeasurementSystem'
-import { ZigzagBreakIndicator } from '@/construction/components/ZigzagBreakIndicator'
 import { calculateBeamSegments } from '@/construction/utils/calculateBeamSegments'
 import { CoordinateMapper } from '@/construction/utils/coordinateMapper'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
 import { Bounds2D, type Polygon2D, type PolygonWithHoles2D, newVec2 } from '@/shared/geometry'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
+
+import { GridMeasurementSystem } from './GridMeasurementSystem'
+import { ZigzagBreakIndicator } from './ZigzagBreakIndicator'
+import { BEAM_CUT_CONFIG } from './beamCutConfig'
+import { generateSegmentClipPath } from './zigzagPath'
 
 function polygonToSvgPath(polygon: Polygon2D) {
   return `M${polygon.points.map(([px, py]) => `${px},${py}`).join(' L')} Z`
@@ -38,24 +41,29 @@ export function PartCutModal({
 
   const contentBounds = useMemo(() => Bounds2D.fromPoints(flippedPolygon.outer.points), [flippedPolygon])
 
-  // Calculate beam segments and gaps
-  const { segments, gaps } = useMemo(
-    () => calculateBeamSegments(flippedPolygon, contentBounds, 50, 500),
+  // Calculate beam segments (virtual coordinates only)
+  const { segments } = useMemo(
+    () =>
+      calculateBeamSegments(
+        flippedPolygon,
+        contentBounds,
+        BEAM_CUT_CONFIG.segmentation.bufferDistance,
+        BEAM_CUT_CONFIG.segmentation.minGapSize
+      ),
     [flippedPolygon, contentBounds]
   )
 
-  // Create coordinate mapper
-  const coordinateMapper = useMemo(() => new CoordinateMapper(segments, gaps), [segments, gaps])
+  // Create coordinate mapper with display gap width
+  const coordinateMapper = useMemo(() => new CoordinateMapper(segments, BEAM_CUT_CONFIG.display.gapWidth), [segments])
 
   // Calculate display bounds (including gap spacing)
   const displayBounds = useMemo(() => {
     if (segments.length === 0) {
       return contentBounds
     }
-    // Total width is from start of first segment to end of last segment (includes gap widths)
-    const displayWidth = segments[segments.length - 1].displayEnd
+    const displayWidth = coordinateMapper.getTotalDisplayWidth()
     return Bounds2D.fromMinMax(newVec2(0, contentBounds.min[1]), newVec2(displayWidth, contentBounds.max[1]))
-  }, [segments, contentBounds])
+  }, [segments, contentBounds, coordinateMapper])
 
   // Generate the full polygon path once (no clipping or transformation)
   const fullPolygonPath = useMemo(() => polygonWithHolesToSvgPath(flippedPolygon), [flippedPolygon])
@@ -64,7 +72,7 @@ export function PartCutModal({
 
   // Generate unique clip path IDs for each segment
   const clipPathIds = useMemo(
-    () => segments.map((_, index) => `segment-clip-${index}-${Math.random().toString(36).substr(2, 9)}`),
+    () => segments.map((_, index) => `segment-clip-${index}-${Math.random().toString(36).substring(2, 11)}`),
     [segments]
   )
 
@@ -81,49 +89,25 @@ export function PartCutModal({
           >
             <defs>
               {/* Create clip paths for each segment with zigzag edges */}
-              {segments.map((segment, index) => {
+              {segments.map((_, index) => {
                 const isFirst = index === 0
                 const isLast = index === segments.length - 1
-                const zigzagWidth = 8
-                const peaks = 4
-                const peakHeight = (displayBounds.max[1] - displayBounds.min[1]) / peaks
-                const gapWidth = 0
 
-                // Create zigzag path for left edge (if not first segment)
-                let leftEdgePath = ''
-                if (!isFirst) {
-                  const leftX = segment.displayStart - gapWidth / 2
-                  leftEdgePath = `M ${leftX} ${displayBounds.min[1]}`
-                  for (let i = 0; i < peaks; i++) {
-                    const y1 = displayBounds.min[1] + i * peakHeight + peakHeight / 2
-                    const y2 = displayBounds.min[1] + (i + 1) * peakHeight
-                    // Zigzag pointing right
-                    leftEdgePath += ` L ${leftX + zigzagWidth} ${y1} L ${leftX} ${y2}`
+                const displayStart = coordinateMapper.getSegmentDisplayStart(index)
+                const displayEnd = coordinateMapper.getSegmentDisplayEnd(index)
+
+                // Generate clip path with zigzag edges only where there are gaps
+                const clipPath = generateSegmentClipPath(
+                  displayStart,
+                  displayEnd,
+                  displayBounds.min[1],
+                  displayBounds.max[1],
+                  BEAM_CUT_CONFIG.zigzag,
+                  {
+                    leftZigzag: !isFirst, // Zigzag on left only if not first segment
+                    rightZigzag: !isLast // Zigzag on right only if not last segment
                   }
-                  leftEdgePath += ` L ${leftX} ${displayBounds.max[1]}`
-                } else {
-                  leftEdgePath = `M ${segment.displayStart} ${displayBounds.min[1]} L ${segment.displayStart} ${displayBounds.max[1]}`
-                }
-
-                // Create zigzag path for right edge (if not last segment)
-                let rightEdgePath = ''
-                if (!isLast) {
-                  const rightX = segment.displayEnd + gapWidth / 2
-                  rightEdgePath = `L ${rightX} ${displayBounds.max[1]}`
-                  // Go backwards from top to bottom
-                  for (let i = peaks - 1; i >= 0; i--) {
-                    const y1 = displayBounds.min[1] + i * peakHeight + peakHeight / 2
-                    const y2 = displayBounds.min[1] + i * peakHeight
-                    // Zigzag pointing right (same direction as left - parallel)
-                    rightEdgePath += ` L ${rightX + zigzagWidth} ${y1} L ${rightX} ${y2}`
-                  }
-                  rightEdgePath += ` L ${rightX} ${displayBounds.min[1]}`
-                } else {
-                  rightEdgePath = `L ${segment.displayEnd} ${displayBounds.max[1]} L ${segment.displayEnd} ${displayBounds.min[1]}`
-                }
-
-                // Create closed path for clip
-                const clipPath = `${leftEdgePath} ${rightEdgePath} Z`
+                )
 
                 return (
                   <clipPath key={clipPathIds[index]} id={clipPathIds[index]}>
@@ -136,37 +120,33 @@ export function PartCutModal({
             {/* Render each segment with clipping - reusing the same polygon with offsets */}
             {segments.map((segment, index) => {
               // Calculate X offset to position this segment at its display location
-              // but render the polygon at its virtual position
-              const xOffset = segment.displayStart - segment.virtualStart
+              const displayStart = coordinateMapper.getSegmentDisplayStart(index)
+              const xOffset = displayStart - segment.start
 
               return (
-                <g key={`segment-${index}`}>
-                  <g clipPath={`url(#${clipPathIds[index]})`}>
-                    <g transform={`translate(${xOffset}, 0)`}>
-                      <path
-                        d={fullPolygonPath}
-                        stroke="var(--accent-9)"
-                        strokeWidth="1"
-                        fill="var(--accent-9)"
-                        fillOpacity="0.5"
-                        strokeLinejoin="miter"
-                      />
-                    </g>
+                <g key={`segment-${index}`} clipPath={`url(#${clipPathIds[index]})`}>
+                  <g transform={`translate(${xOffset}, 0)`}>
+                    <path
+                      d={fullPolygonPath}
+                      stroke="var(--accent-9)"
+                      strokeWidth="1"
+                      fill="var(--accent-9)"
+                      fillOpacity="0.5"
+                      strokeLinejoin="miter"
+                    />
                   </g>
-                  <use x={0} y={0} href={`url(#${clipPathIds[index]})`} stroke="red" strokeWidth="10" />
                 </g>
               )
             })}
 
             {/* Render zigzag break indicators */}
-            {gaps.map((gap, index) => (
+            {Array.from({ length: coordinateMapper.getGapCount() }).map((_, gapIndex) => (
               <ZigzagBreakIndicator
-                key={`gap-${index}`}
-                displayX={gap.displayPosition}
+                key={`gap-${gapIndex}`}
+                displayX={coordinateMapper.getGapDisplayCenter(gapIndex)}
                 yMin={displayBounds.min[1]}
                 yMax={displayBounds.max[1]}
-                omittedLength={gap.omittedLength}
-                gapWidth={60}
+                omittedLength={coordinateMapper.getGapVirtualLength(gapIndex)}
               />
             ))}
 
