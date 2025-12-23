@@ -63,33 +63,3 @@ export function pointsToSvgPath(points: Vec2[], close = false): string {
 
   return pathParts.join(' ')
 }
-
-/**
- * Generate a clip path for a beam segment with optional zigzag edges.
- * Creates a closed polygon going clockwise: left edge (bottom to top), top edge, right edge (top to bottom), bottom edge.
- */
-export function generateSegmentClipPath(
-  leftX: number,
-  rightX: number,
-  yMin: number,
-  yMax: number,
-  config: ZigzagConfig,
-  options: { leftZigzag: boolean; rightZigzag: boolean }
-): string {
-  const extend = config.extend ?? 0
-  const points: Vec2[] = []
-
-  // Left edge (bottom to top)
-  const leftEdge = options.leftZigzag
-    ? generateZigzagEdgePoints(leftX, yMin, yMax, config)
-    : generateStraightEdgePoints(leftX, yMin, yMax, extend)
-  points.push(...leftEdge)
-
-  // Right edge (top to bottom) - need to reverse order
-  const rightEdge = options.rightZigzag
-    ? generateZigzagEdgePoints(rightX, yMin, yMax, config)
-    : generateStraightEdgePoints(rightX, yMin, yMax, extend)
-  points.push(...rightEdge.reverse())
-
-  return pointsToSvgPath(points, true)
-}

@@ -16,6 +16,7 @@ interface SVGViewportProps extends RefAttributes<SVGViewportRef> {
   className?: string
   resetButtonPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   padding?: number // Padding around content (default: 0.1 = 10%)
+  paddingAbsolute?: number
   minZoom?: number // Minimum zoom level (default: 0.01)
   maxZoom?: number // Maximum zoom level (default: 50)
 }
@@ -36,15 +37,16 @@ function fitBoundsToViewport(
   bounds: Bounds2D,
   viewportWidth: number,
   viewportHeight: number,
-  padding: number
+  padding: number,
+  paddingAbsolute?: number | undefined
 ): ViewportState {
   if (bounds.isEmpty || viewportWidth <= 0 || viewportHeight <= 0 || bounds.width <= 0 || bounds.height <= 0) {
     return { zoom: 1, panX: 0, panY: 0 }
   }
 
   // Calculate padded dimensions
-  const paddedWidth = bounds.width * (1 + padding * 2)
-  const paddedHeight = bounds.height * (1 + padding * 2)
+  const paddedWidth = paddingAbsolute != null ? bounds.width + 2 * paddingAbsolute : bounds.width * (1 + padding * 2)
+  const paddedHeight = paddingAbsolute != null ? bounds.height + 2 * paddingAbsolute : bounds.height * (1 + padding * 2)
 
   // Calculate zoom to fit content in viewport
   const zoomX = viewportWidth / paddedWidth
@@ -90,6 +92,7 @@ export function SVGViewport({
   className = 'w-full h-full',
   resetButtonPosition = 'top-right',
   padding = DEFAULT_PADDING,
+  paddingAbsolute,
   minZoom = DEFAULT_MIN_ZOOM,
   maxZoom = DEFAULT_MAX_ZOOM
 }: SVGViewportProps): React.JSX.Element {
@@ -98,7 +101,7 @@ export function SVGViewport({
   const [viewport, setViewport] = useState<ViewportState>(() => {
     // Initialize with correct viewport if bounds are available
     if (!contentBounds.isEmpty && svgSize.width > 0 && svgSize.height > 0) {
-      return fitBoundsToViewport(contentBounds, svgSize.width, svgSize.height, padding)
+      return fitBoundsToViewport(contentBounds, svgSize.width, svgSize.height, padding, paddingAbsolute)
     }
     return { zoom: 1, panX: 0, panY: 0 }
   })
@@ -107,7 +110,7 @@ export function SVGViewport({
   // Reset to initial viewport and recalculate viewBox
   const fitToContent = useCallback(() => {
     if (contentBounds.isEmpty || svgSize.width <= 0 || svgSize.height <= 0) return
-    const newViewport = fitBoundsToViewport(contentBounds, svgSize.width, svgSize.height, padding)
+    const newViewport = fitBoundsToViewport(contentBounds, svgSize.width, svgSize.height, padding, paddingAbsolute)
     setViewport(newViewport)
   }, [contentBounds, svgSize.width, svgSize.height, padding])
 
@@ -141,7 +144,7 @@ export function SVGViewport({
     const viewportKey = `${contentBounds.min[0]},${contentBounds.min[1]}:${contentBounds.max[0]},${contentBounds.max[1]}:${svgSize.width},${svgSize.height}`
     if (lastAutoViewport.current !== viewportKey) {
       lastAutoViewport.current = viewportKey
-      const newViewport = fitBoundsToViewport(contentBounds, svgSize.width, svgSize.height, padding)
+      const newViewport = fitBoundsToViewport(contentBounds, svgSize.width, svgSize.height, padding, paddingAbsolute)
       setViewport(newViewport)
     }
   }, [contentBounds, svgSize.width, svgSize.height, padding])

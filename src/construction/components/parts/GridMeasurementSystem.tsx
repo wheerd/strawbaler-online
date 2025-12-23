@@ -1,15 +1,17 @@
 import React, { useMemo } from 'react'
 
-import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
-import { type CoordinateMapper } from '@/construction/utils/coordinateMapper'
+import { type LabelOrientation, SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { type Bounds2D, type PolygonWithHoles2D, newVec2 } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatting'
+
+import { type CoordinateMapper } from './utils/coordinateMapper'
 
 interface GridMeasurementSystemProps {
   polygon: PolygonWithHoles2D
   displayBounds: Bounds2D
   coordinateMapper: CoordinateMapper
 }
+
+const SIZE_LABEL_THRESHOLD = 20
 
 export function GridMeasurementSystem({
   polygon,
@@ -27,6 +29,7 @@ export function GridMeasurementSystem({
       yCoords: Array.from(ySet).sort((a, b) => a - b)
     }
   }, [polygon])
+
   const totalWidth = xCoords[xCoords.length - 1] - xCoords[0]
   const totalHeight = yCoords[yCoords.length - 1] - yCoords[0]
 
@@ -40,11 +43,6 @@ export function GridMeasurementSystem({
       })
       .filter((item): item is { virtualX: number; displayX: number } => item !== null)
   }, [xCoords, coordinateMapper])
-
-  // Calculate display bounds accounting for all segments
-  const totalDisplayWidth = useMemo(() => {
-    return coordinateMapper.getTotalDisplayWidth()
-  }, [coordinateMapper])
 
   // Generate grid lines and measurements
   const gridElements = useMemo(() => {
@@ -64,9 +62,10 @@ export function GridMeasurementSystem({
           y1={displayBounds.min[1]}
           x2={coord.displayX}
           y2={displayBounds.max[1]}
-          stroke="rgba(0, 0, 0, 0.3)"
-          strokeWidth="0.5"
+          stroke="var(--gray-11)"
+          strokeWidth="1"
           strokeDasharray="2 2"
+          opacity={0.5}
         />
       )
     })
@@ -76,13 +75,14 @@ export function GridMeasurementSystem({
       elements.horizontalLines.push(
         <line
           key={`hline-${index}`}
-          x1={0}
+          x1={displayBounds.min[0]}
           y1={y}
-          x2={totalDisplayWidth}
+          x2={displayBounds.max[0]}
           y2={y}
-          stroke="rgba(0, 0, 0, 0.3)"
-          strokeWidth="0.5"
+          stroke="var(--gray-11)"
+          strokeWidth="1"
           strokeDasharray="2 2"
+          opacity={0.5}
         />
       )
     })
@@ -94,9 +94,9 @@ export function GridMeasurementSystem({
           key="hmeas-bottom"
           startPoint={newVec2(displayBounds.min[0], displayBounds.max[1])}
           endPoint={newVec2(displayBounds.max[0], displayBounds.max[1])}
-          label={formatLength(totalWidth)}
+          label={totalWidth.toFixed(0)}
           offset={25}
-          color="rgba(0, 0, 0, 0.7)"
+          color="var(--gray-11)"
           fontSize={10}
           strokeWidth={1}
         />,
@@ -105,9 +105,9 @@ export function GridMeasurementSystem({
           key="hmeas-bottom"
           startPoint={newVec2(displayBounds.min[0], displayBounds.min[1])}
           endPoint={newVec2(displayBounds.max[0], displayBounds.min[1])}
-          label={formatLength(totalWidth)}
+          label={totalWidth.toFixed(0)}
           offset={-25}
-          color="rgba(0, 0, 0, 0.7)"
+          color="var(--gray-11)"
           fontSize={10}
           strokeWidth={1}
         />
@@ -122,17 +122,24 @@ export function GridMeasurementSystem({
       // Calculate the actual distance in virtual space
       const distance = next.virtualX - current.virtualX
 
+      let labelOrientation: LabelOrientation = 'parallel'
+      if (distance < SIZE_LABEL_THRESHOLD) {
+        const prevSpace = i > 0 ? current.virtualX - displayXCoords[i - 1].virtualX : 0
+        labelOrientation = prevSpace < 30 ? 'outside-end' : 'outside-start'
+      }
+
       // Top measurement
       elements.horizontalMeasurements.push(
         <SvgMeasurementIndicator
           key={`hmeas-top-${i}`}
           startPoint={newVec2(current.displayX, displayBounds.min[1])}
           endPoint={newVec2(next.displayX, displayBounds.min[1])}
-          label={formatLength(distance)}
+          label={distance.toFixed(0)}
           offset={-15}
-          color="rgba(0, 0, 0, 0.7)"
+          color="var(--gray-11)"
           fontSize={10}
           strokeWidth={1}
+          labelOrientation={labelOrientation}
         />
       )
 
@@ -142,11 +149,12 @@ export function GridMeasurementSystem({
           key={`hmeas-bottom-${i}`}
           startPoint={newVec2(current.displayX, displayBounds.max[1])}
           endPoint={newVec2(next.displayX, displayBounds.max[1])}
-          label={formatLength(distance)}
+          label={distance.toFixed(0)}
           offset={15}
-          color="rgba(0, 0, 0, 0.7)"
+          color="var(--gray-11)"
           fontSize={10}
           strokeWidth={1}
+          labelOrientation={labelOrientation}
         />
       )
     }
@@ -158,9 +166,9 @@ export function GridMeasurementSystem({
           key="vmeas-left"
           startPoint={newVec2(displayBounds.min[0], displayBounds.min[1])}
           endPoint={newVec2(displayBounds.min[0], displayBounds.max[1])}
-          label={formatLength(totalHeight)}
+          label={totalHeight.toFixed(0)}
           offset={25}
-          color="rgba(0, 0, 0, 0.7)"
+          color="var(--gray-11)"
           fontSize={10}
           strokeWidth={1}
         />,
@@ -169,9 +177,9 @@ export function GridMeasurementSystem({
           key="vmeas-right"
           startPoint={newVec2(displayBounds.max[0], displayBounds.min[1])}
           endPoint={newVec2(displayBounds.max[0], displayBounds.max[1])}
-          label={formatLength(totalHeight)}
+          label={totalHeight.toFixed(0)}
           offset={-25}
-          color="rgba(0, 0, 0, 0.7)"
+          color="var(--gray-11)"
           fontSize={10}
           strokeWidth={1}
         />
@@ -184,17 +192,24 @@ export function GridMeasurementSystem({
       const nextY = yCoords[i + 1]
       const distance = nextY - currentY
 
+      let labelOrientation: LabelOrientation = 'parallel'
+      if (distance < SIZE_LABEL_THRESHOLD) {
+        const prevSpace = i > 0 ? currentY - yCoords[i - 1] : 0
+        labelOrientation = prevSpace < 30 ? 'outside-end' : 'outside-start'
+      }
+
       // Left measurement
       elements.verticalMeasurements.push(
         <SvgMeasurementIndicator
           key={`vmeas-left-${i}`}
-          startPoint={newVec2(0, currentY)}
-          endPoint={newVec2(0, nextY)}
-          label={formatLength(distance)}
+          startPoint={newVec2(displayBounds.min[0], currentY)}
+          endPoint={newVec2(displayBounds.min[0], nextY)}
+          label={distance.toFixed(0)}
           offset={15}
-          color="rgba(0, 0, 0, 0.7)"
+          color="var(--gray-11)"
           fontSize={10}
           strokeWidth={1}
+          labelOrientation={labelOrientation}
         />
       )
 
@@ -202,19 +217,20 @@ export function GridMeasurementSystem({
       elements.verticalMeasurements.push(
         <SvgMeasurementIndicator
           key={`vmeas-right-${i}`}
-          startPoint={newVec2(totalDisplayWidth, currentY)}
-          endPoint={newVec2(totalDisplayWidth, nextY)}
-          label={formatLength(distance)}
+          startPoint={newVec2(displayBounds.max[0], currentY)}
+          endPoint={newVec2(displayBounds.max[0], nextY)}
+          label={distance.toFixed(0)}
           offset={-15}
-          color="rgba(0, 0, 0, 0.7)"
+          color="var(--gray-11)"
           fontSize={10}
           strokeWidth={1}
+          labelOrientation={labelOrientation}
         />
       )
     }
 
     return elements
-  }, [displayXCoords, yCoords, displayBounds, coordinateMapper, totalDisplayWidth])
+  }, [displayXCoords, yCoords, displayBounds, coordinateMapper])
 
   return (
     <g className="grid-measurement-system">

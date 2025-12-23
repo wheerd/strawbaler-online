@@ -2,12 +2,14 @@ import React from 'react'
 
 import { type Vec2 } from '@/shared/geometry'
 
-interface SvgMeasurementIndicatorProps {
+export type LabelOrientation = 'parallel' | 'perpendicular' | 'outside-start' | 'outside-end'
+
+export interface SvgMeasurementIndicatorProps {
   startPoint: Vec2 // SVG coordinates [x, y]
   endPoint: Vec2 // SVG coordinates [x, y]
   label: string
   offset?: number // SVG units offset
-  labelOrientation?: 'parallel' | 'perpendicular'
+  labelOrientation?: LabelOrientation
   color?: string
   fontSize?: number
   strokeWidth?: number
@@ -71,8 +73,18 @@ export function SvgMeasurementIndicator({
   const textAngle = (textAngleRad * 180) / Math.PI
 
   // Calculate text position (middle of offset line)
-  const textX = (offsetStartX + offsetEndX) / 2
-  const textY = (offsetStartY + offsetEndY) / 2
+  const textX =
+    labelOrientation === 'outside-start'
+      ? offsetStartX
+      : labelOrientation === 'outside-end'
+        ? offsetEndX
+        : (offsetStartX + offsetEndX) / 2
+  const textY =
+    labelOrientation === 'outside-start'
+      ? offsetStartY
+      : labelOrientation === 'outside-end'
+        ? offsetEndY
+        : (offsetStartY + offsetEndY) / 2
 
   // Calculate end marker size and positions
   const endMarkerSize = fontSize / 2
@@ -102,9 +114,14 @@ export function SvgMeasurementIndicator({
 
   let actualFontSize = fontSize
   let gapHalfWidth = computeGapHalfWidth(actualFontSize)
-  while (gapHalfWidth >= length / 3) {
-    actualFontSize *= 0.9
-    gapHalfWidth = computeGapHalfWidth(actualFontSize)
+  if (labelOrientation !== 'outside-start' && labelOrientation !== 'outside-end') {
+    while (gapHalfWidth >= length / 3) {
+      actualFontSize *= 0.9
+      gapHalfWidth = computeGapHalfWidth(actualFontSize)
+    }
+  } else {
+    actualFontSize = fontSize * 0.8
+    gapHalfWidth = 0
   }
 
   // Calculate left and right endpoints for line gap
@@ -183,23 +200,36 @@ export function SvgMeasurementIndicator({
       />
 
       {/* Label text */}
-      <g className="text" transform={`translate( ${textX} ${textY}) rotate(${textAngle})`}>
+      <g className="text" transform={`translate(${textX} ${textY}) rotate(${textAngle})`}>
         <text
-          x={0}
           y={0}
           fontSize={actualFontSize}
           fontFamily="Arial"
           fontWeight="bold"
           fill={color}
-          textAnchor="middle"
-          dominantBaseline="central"
+          textAnchor={
+            labelOrientation === 'outside-start' ? 'end' : labelOrientation === 'outside-end' ? 'start' : 'middle'
+          }
+          dominantBaseline={
+            labelOrientation === 'outside-start' || labelOrientation === 'outside-end' ? 'text-after-edge' : 'central'
+          }
           transform={`translate(0 ${-verticalOffset})`}
           style={{
             filter: 'drop-shadow(0 0 0.1em var(--gray-1))'
           }}
         >
           {lines.map((line, index) => (
-            <tspan key={`line-${index}`} x={0} dy={index === 0 ? 0 : `${LINE_HEIGHT_FACTOR}em`}>
+            <tspan
+              key={`line-${index}`}
+              x={
+                labelOrientation === 'outside-start'
+                  ? -strokeWidth
+                  : labelOrientation === 'outside-end'
+                    ? strokeWidth
+                    : 0
+              }
+              dy={index === 0 ? 0 : `${LINE_HEIGHT_FACTOR}em`}
+            >
               {line}
             </tspan>
           ))}
