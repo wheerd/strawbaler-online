@@ -1,21 +1,14 @@
 import { Grid } from '@radix-ui/themes'
 import React, { useMemo, useRef } from 'react'
 
-import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
-import { type AutoMeasurement, processMeasurements } from '@/construction/measurements'
+import { GridMeasurementSystem } from '@/construction/components/GridMeasurementSystem'
+import { ZigzagBreakIndicator } from '@/construction/components/ZigzagBreakIndicator'
+import { calculateBeamSegments } from '@/construction/utils/calculateBeamSegments'
+import { CoordinateMapper } from '@/construction/utils/coordinateMapper'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
-import {
-  Bounds2D,
-  IDENTITY,
-  type Polygon2D,
-  type PolygonWithHoles2D,
-  distVec2,
-  newVec2,
-  newVec3
-} from '@/shared/geometry'
+import { Bounds2D, type Polygon2D, type PolygonWithHoles2D, newVec2 } from '@/shared/geometry'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
-import { formatLength } from '@/shared/utils/formatting'
 
 function polygonToSvgPath(polygon: Polygon2D) {
   return `M${polygon.points.map(([px, py]) => `${px},${py}`).join(' L')} Z`
@@ -34,186 +27,158 @@ export function PartCutModal({
 }): React.JSX.Element {
   const viewportRef = useRef<SVGViewportRef>(null)
 
-  const flippedPolygon: PolygonWithHoles2D = {
-    outer: { points: polygon.outer.points.map(p => newVec2(p[1], p[0])) },
-    holes: polygon.holes.map(h => ({ points: h.points.map(p => newVec2(p[1], p[0])) }))
-  }
+  // Flip coordinates (swap X and Y)
+  const flippedPolygon: PolygonWithHoles2D = useMemo(
+    () => ({
+      outer: { points: polygon.outer.points.map(p => newVec2(p[1], p[0])) },
+      holes: polygon.holes.map(h => ({ points: h.points.map(p => newVec2(p[1], p[0])) }))
+    }),
+    [polygon]
+  )
 
-  const polygonPath = useMemo(() => polygonWithHolesToSvgPath(flippedPolygon), [flippedPolygon])
+  const contentBounds = useMemo(() => Bounds2D.fromPoints(flippedPolygon.outer.points), [flippedPolygon])
 
-  const contentBounds = Bounds2D.fromPoints(flippedPolygon.outer.points)
+  // Calculate beam segments and gaps
+  const { segments, gaps } = useMemo(
+    () => calculateBeamSegments(flippedPolygon, contentBounds, 50, 500),
+    [flippedPolygon, contentBounds]
+  )
+
+  // Create coordinate mapper
+  const coordinateMapper = useMemo(() => new CoordinateMapper(segments, gaps), [segments, gaps])
+
+  // Calculate display bounds (including gap spacing)
+  const displayBounds = useMemo(() => {
+    if (segments.length === 0) {
+      return contentBounds
+    }
+    // Total width is from start of first segment to end of last segment (includes gap widths)
+    const displayWidth = segments[segments.length - 1].displayEnd
+    return Bounds2D.fromMinMax(newVec2(0, contentBounds.min[1]), newVec2(displayWidth, contentBounds.max[1]))
+  }, [segments, contentBounds])
+
+  // Generate the full polygon path once (no clipping or transformation)
+  const fullPolygonPath = useMemo(() => polygonWithHolesToSvgPath(flippedPolygon), [flippedPolygon])
+
   const [containerSize, containerRef] = elementSizeRef()
 
+  // Generate unique clip path IDs for each segment
+  const clipPathIds = useMemo(
+    () => segments.map((_, index) => `segment-clip-${index}-${Math.random().toString(36).substr(2, 9)}`),
+    [segments]
+  )
+
   return (
-    <BaseModal height="80vh" width="80vw" maxHeight="80vh" maxWidth="80vw" title="Part Cut Diagram" trigger={trigger}>
+    <BaseModal height="80vh" width="95vw" maxHeight="80vh" maxWidth="95vw" title="Part Cut Diagram" trigger={trigger}>
       <Grid rows="1fr" p="0">
         <div className="p0 m0" style={{ maxHeight: '400px' }} ref={containerRef}>
           <SVGViewport
             ref={viewportRef}
-            contentBounds={contentBounds}
+            contentBounds={displayBounds}
             padding={0.05}
             resetButtonPosition="top-right"
             svgSize={containerSize}
           >
-            <rect
-              x={0}
-              y={0}
-              width={contentBounds.size[0]}
-              height={contentBounds.size[1]}
-              fill="none"
-              stroke="var(--gray-10)"
-              strokeDasharray="3 1"
-              strokeWidth="1"
-            />
-            <path
-              d={polygonPath}
-              stroke="var(--accent-9)"
-              strokeWidth="1"
-              fill="var(--accent-9)"
-              fillOpacity="0.5"
-              strokeLinejoin="miter"
-            />
+            <defs>
+              {/* Create clip paths for each segment with zigzag edges */}
+              {segments.map((segment, index) => {
+                const isFirst = index === 0
+                const isLast = index === segments.length - 1
+                const zigzagWidth = 8
+                const peaks = 4
+                const peakHeight = (displayBounds.max[1] - displayBounds.min[1]) / peaks
+                const gapWidth = 0
 
-            <Measurements bounds={contentBounds} polygon={flippedPolygon} />
+                // Create zigzag path for left edge (if not first segment)
+                let leftEdgePath = ''
+                if (!isFirst) {
+                  const leftX = segment.displayStart - gapWidth / 2
+                  leftEdgePath = `M ${leftX} ${displayBounds.min[1]}`
+                  for (let i = 0; i < peaks; i++) {
+                    const y1 = displayBounds.min[1] + i * peakHeight + peakHeight / 2
+                    const y2 = displayBounds.min[1] + (i + 1) * peakHeight
+                    // Zigzag pointing right
+                    leftEdgePath += ` L ${leftX + zigzagWidth} ${y1} L ${leftX} ${y2}`
+                  }
+                  leftEdgePath += ` L ${leftX} ${displayBounds.max[1]}`
+                } else {
+                  leftEdgePath = `M ${segment.displayStart} ${displayBounds.min[1]} L ${segment.displayStart} ${displayBounds.max[1]}`
+                }
+
+                // Create zigzag path for right edge (if not last segment)
+                let rightEdgePath = ''
+                if (!isLast) {
+                  const rightX = segment.displayEnd + gapWidth / 2
+                  rightEdgePath = `L ${rightX} ${displayBounds.max[1]}`
+                  // Go backwards from top to bottom
+                  for (let i = peaks - 1; i >= 0; i--) {
+                    const y1 = displayBounds.min[1] + i * peakHeight + peakHeight / 2
+                    const y2 = displayBounds.min[1] + i * peakHeight
+                    // Zigzag pointing right (same direction as left - parallel)
+                    rightEdgePath += ` L ${rightX + zigzagWidth} ${y1} L ${rightX} ${y2}`
+                  }
+                  rightEdgePath += ` L ${rightX} ${displayBounds.min[1]}`
+                } else {
+                  rightEdgePath = `L ${segment.displayEnd} ${displayBounds.max[1]} L ${segment.displayEnd} ${displayBounds.min[1]}`
+                }
+
+                // Create closed path for clip
+                const clipPath = `${leftEdgePath} ${rightEdgePath} Z`
+
+                return (
+                  <clipPath key={clipPathIds[index]} id={clipPathIds[index]}>
+                    <path d={clipPath} />
+                  </clipPath>
+                )
+              })}
+            </defs>
+
+            {/* Render each segment with clipping - reusing the same polygon with offsets */}
+            {segments.map((segment, index) => {
+              // Calculate X offset to position this segment at its display location
+              // but render the polygon at its virtual position
+              const xOffset = segment.displayStart - segment.virtualStart
+
+              return (
+                <g key={`segment-${index}`}>
+                  <g clipPath={`url(#${clipPathIds[index]})`}>
+                    <g transform={`translate(${xOffset}, 0)`}>
+                      <path
+                        d={fullPolygonPath}
+                        stroke="var(--accent-9)"
+                        strokeWidth="1"
+                        fill="var(--accent-9)"
+                        fillOpacity="0.5"
+                        strokeLinejoin="miter"
+                      />
+                    </g>
+                  </g>
+                  <use x={0} y={0} href={`url(#${clipPathIds[index]})`} stroke="red" strokeWidth="10" />
+                </g>
+              )
+            })}
+
+            {/* Render zigzag break indicators */}
+            {gaps.map((gap, index) => (
+              <ZigzagBreakIndicator
+                key={`gap-${index}`}
+                displayX={gap.displayPosition}
+                yMin={displayBounds.min[1]}
+                yMax={displayBounds.max[1]}
+                omittedLength={gap.omittedLength}
+                gapWidth={60}
+              />
+            ))}
+
+            {/* Render grid and measurements */}
+            <GridMeasurementSystem
+              polygon={flippedPolygon}
+              displayBounds={displayBounds}
+              coordinateMapper={coordinateMapper}
+            />
           </SVGViewport>
         </div>
       </Grid>
     </BaseModal>
-  )
-}
-
-function Measurements({ bounds, polygon }: { bounds: Bounds2D; polygon: PolygonWithHoles2D }): React.JSX.Element {
-  const cornerPoints = [
-    bounds.min,
-    bounds.max,
-    newVec2(bounds.min[0], bounds.max[1]),
-    newVec2(bounds.max[0], bounds.min[1])
-  ]
-  const bounds3D = bounds.toBounds3D('xy', 0, 1)
-
-  const measurements = useMemo(() => {
-    const fullLength: AutoMeasurement = {
-      startPoint: bounds3D.min,
-      endPoint: newVec3(bounds3D.max[0], bounds3D.min[1], 0),
-      extend1: newVec3(bounds3D.min[0], bounds3D.max[1], 0)
-    }
-    const fullHeight: AutoMeasurement = {
-      startPoint: bounds3D.min,
-      endPoint: newVec3(bounds3D.min[0], bounds3D.max[1], 0),
-      extend1: newVec3(bounds3D.max[0], bounds3D.min[1], 0)
-    }
-
-    const allPoints = polygon.outer.points.concat(polygon.holes.flatMap(h => h.points))
-    const horizontalPoints = allPoints.filter(p => p[0] > bounds.min[0] && p[0] < bounds.max[0])
-    const verticalPoints = allPoints.filter(p => p[1] > bounds.min[1] && p[1] < bounds.max[1])
-
-    const autoMeasurements = [fullLength, fullHeight]
-
-    const orderedHorizontal = Object.values(groupBy(horizontalPoints, p => p[0])).sort((a, b) => a[0][0] - b[0][0])
-
-    orderedHorizontal.forEach((ps, i) => {
-      const x = ps[0][0]
-      const percentile = (x - bounds.min[0]) / bounds.size[0]
-      const ys = ps.map(p => p[1])
-      const minY = Math.min(...ys)
-      const maxY = Math.max(...ys)
-      if (i === 0 || (percentile > 0.2 && percentile < 0.8)) {
-        autoMeasurements.push({
-          startPoint: newVec3(bounds3D.min[0], minY, 0),
-          endPoint: newVec3(ps[0][0], minY, 0),
-          extend1: newVec3(bounds3D.min[0], maxY, 0)
-        })
-      }
-      if (i === orderedHorizontal.length - 1 || (percentile > 0.2 && percentile < 0.8)) {
-        autoMeasurements.push({
-          startPoint: newVec3(bounds3D.max[0], minY, 0),
-          endPoint: newVec3(ps[0][0], minY, 0),
-          extend1: newVec3(bounds3D.max[0], maxY, 0)
-        })
-      }
-      if (i > 0) {
-        const previous = orderedHorizontal[i - 1]
-        const prevX = previous[0][0]
-        const prevYs = previous.map(p => p[1])
-        const prevMinY = Math.min(...prevYs, minY)
-        const prevMaxY = Math.max(...prevYs, maxY)
-        autoMeasurements.push({
-          startPoint: newVec3(prevX, prevMinY, 0),
-          endPoint: newVec3(ps[0][0], prevMinY, 0),
-          extend1: newVec3(prevX, prevMaxY, 0)
-        })
-      }
-    })
-
-    Object.values(groupBy(verticalPoints, p => p[1])).forEach(ps => {
-      const xs = ps.map(p => p[0])
-      const minX = Math.min(...xs)
-      const maxX = Math.max(...xs)
-      autoMeasurements.push({
-        startPoint: newVec3(minX, bounds3D.min[1], 0),
-        endPoint: newVec3(minX, ps[0][1], 0),
-        extend1: newVec3(maxX, bounds3D.min[1], 0)
-      })
-      autoMeasurements.push({
-        startPoint: newVec3(minX, bounds3D.max[1], 0),
-        endPoint: newVec3(minX, ps[0][1], 0),
-        extend1: newVec3(maxX, bounds3D.max[1], 0)
-      })
-    })
-
-    return autoMeasurements
-  }, [bounds3D, polygon])
-
-  const processedMeasurements = useMemo(() => {
-    return Array.from(processMeasurements(measurements, IDENTITY, cornerPoints))
-  }, [measurements, cornerPoints])
-
-  const renderableMeasurements = processedMeasurements.flatMap(group =>
-    group.lines.flatMap((line, rowIndex) =>
-      line.map(measurement => {
-        // Calculate distance-based offset: distance from chosen point to its projection on line + row offset
-        const baseOffset = distVec2(measurement.startPoint, measurement.startOnLine)
-        const rowOffset = 10 * (rowIndex + 1.2)
-        const totalOffset = baseOffset + rowOffset
-
-        return {
-          startPoint: measurement.startPoint,
-          endPoint: measurement.endPoint,
-          label: formatLength(measurement.length),
-          offset: totalOffset,
-          tags: measurement.tags
-        }
-      })
-    )
-  )
-
-  return (
-    <g>
-      {renderableMeasurements.map((measurement, index) => (
-        <SvgMeasurementIndicator
-          key={`measurement-${index}`}
-          startPoint={measurement.startPoint}
-          endPoint={measurement.endPoint}
-          label={measurement.label}
-          offset={measurement.offset}
-          color="var(--color-text)"
-          fontSize={10}
-          strokeWidth={2}
-        />
-      ))}
-    </g>
-  )
-}
-
-const groupBy = function <T, K extends PropertyKey>(
-  xs: T[],
-  keySelector: (item: T, index: number) => K
-): Record<K, T[]> {
-  return xs.reduce(
-    (rv, x, i) => {
-      ;(rv[keySelector(x, i)] ??= []).push(x)
-      return rv
-    },
-    {} as Record<K, T[]>
   )
 }
