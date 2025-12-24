@@ -246,6 +246,36 @@ export const cork: SheetMaterial = {
   density: 110
 }
 
+export const gypsum: SheetMaterial = {
+  id: 'material_gypsum' as MaterialId,
+  name: 'Gypsum Board',
+  sizes: [
+    { smallerLength: 1200, biggerLength: 2000 },
+    { smallerLength: 1200, biggerLength: 2400 },
+    { smallerLength: 1200, biggerLength: 2600 },
+    { smallerLength: 1200, biggerLength: 3000 }
+  ],
+  thicknesses: [9.5, 12.5, 15],
+  sheetType: 'solid',
+  type: 'sheet',
+  color: '#d9d9d9',
+  density: 850
+}
+
+export const reed: SheetMaterial = {
+  id: 'material_reed' as MaterialId,
+  name: 'Reed Mat',
+  sizes: [
+    { smallerLength: 180, biggerLength: 10000 },
+    { smallerLength: 200, biggerLength: 5000 }
+  ],
+  thicknesses: [9],
+  sheetType: 'flexible',
+  type: 'sheet',
+  color: '#a78952',
+  density: 100 // Need to be checked
+}
+
 export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [wood.id]: wood,
   [woodPlanking.id]: woodPlanking,
@@ -264,5 +294,7 @@ export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [osb.id]: osb,
   [brick.id]: brick,
   [bitumen.id]: bitumen,
-  [cork.id]: cork
+  [cork.id]: cork,
+  [gypsum.id]: gypsum,
+  [reed.id]: reed
 }
