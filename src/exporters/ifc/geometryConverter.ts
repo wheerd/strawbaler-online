@@ -1,20 +1,29 @@
 import type { Manifold } from 'manifold-3d'
 import { type Handle, IFC4, type IfcLineObject } from 'web-ifc'
 
-import { type Face3D, getFacesFromManifold } from '@/construction/manifold/faces'
-import type { Polygon3D } from '@/shared/geometry'
+import { getFacesFromManifoldIndexed } from '@/construction/manifold/faces'
 
 /**
  * Converts Manifold geometry to IFC geometric representations
- * Supports two strategies:
- * 1. IfcFacetedBrep (preferred) - Preserves planar face information
- * 2. IfcTriangulatedFaceSet (fallback) - Raw triangle mesh
+ * Uses IfcFacetedBrep with proper topology (shared vertices and edges)
  */
 export class ManifoldToIfcConverter {
   private exporter: {
     writeEntity: <T extends IfcLineObject>(entity: T) => Handle<T>
     createCartesianPoint: (coords: [number, number, number]) => Handle<IFC4.IfcCartesianPoint>
   }
+
+  // Topology tracking for proper B-Rep construction
+  private edgeCache = new Map<
+    string,
+    {
+      edge: Handle<IFC4.IfcEdgeCurve>
+      v1: number // vertex index
+      v2: number // vertex index
+    }
+  >()
+  private vertexPoints: Handle<IFC4.IfcVertexPoint>[] = []
+  private cartesianPoints: Handle<IFC4.IfcCartesianPoint>[] = []
 
   constructor(exporter: {
     writeEntity: <T extends IfcLineObject>(entity: T) => Handle<T>
@@ -24,76 +33,111 @@ export class ManifoldToIfcConverter {
   }
 
   /**
-   * Main conversion entry point with automatic fallback
+   * Main conversion entry point
+   * Uses IfcFacetedBrep with proper topology to satisfy IFC validation rules
    */
-  convert(manifold: Manifold): Handle<IFC4.IfcFacetedBrep> | Handle<IFC4.IfcTriangulatedFaceSet> {
-    try {
-      return this.toFacetedBrep(manifold)
-    } catch (error) {
-      console.warn('B-Rep conversion failed, using triangulated mesh:', error)
-      return this.toTriangulatedFaceSet(manifold)
-    }
+  convert(manifold: Manifold): Handle<IFC4.IfcFacetedBrep> {
+    this.resetCache()
+    return this.toFacetedBrepWithTopology(manifold)
   }
 
   /**
-   * Primary strategy: Convert manifold to IfcFacetedBrep
-   * Preserves planar face information from manifold
+   * Reset caches between conversions
    */
-  private toFacetedBrep(manifold: Manifold): Handle<IFC4.IfcFacetedBrep> {
-    const faces3D = getFacesFromManifold(manifold)
+  private resetCache(): void {
+    this.edgeCache.clear()
+    this.vertexPoints = []
+  }
 
-    if (faces3D.length === 0) {
-      throw new Error('No faces extracted from manifold')
+  /**
+   * Convert manifold to IfcFacetedBrep with proper edge and vertex topology
+   */
+  private toFacetedBrepWithTopology(manifold: Manifold): Handle<IFC4.IfcFacetedBrep> {
+    // Get indexed faces with deduplicated vertices
+    const { vertices, faces } = getFacesFromManifoldIndexed(manifold)
+
+    // Create IfcCartesianPoint and IfcVertexPoint for each unique vertex
+    this.cartesianPoints = vertices.map(v => this.exporter.createCartesianPoint([v[0], v[1], v[2]]))
+    this.vertexPoints = this.cartesianPoints.map(point => this.exporter.writeEntity(new IFC4.IfcVertexPoint(point)))
+
+    // Create faces with edge loops
+    const ifcFaces: Handle<IFC4.IfcFace>[] = []
+
+    for (const face of faces) {
+      const outerBound = this.createEdgeLoopBound(face.outer, true)
+      const innerBounds = face.holes.map(hole => this.createEdgeLoopBound(hole, false))
+
+      const ifcFace = this.exporter.writeEntity(new IFC4.IfcFace([outerBound, ...innerBounds]))
+      ifcFaces.push(ifcFace)
     }
 
-    const ifcFaces = faces3D.map(face3d => this.createIfcFace(face3d))
+    // Assemble closed shell and B-Rep
     const closedShell = this.exporter.writeEntity(new IFC4.IfcClosedShell(ifcFaces))
-
     return this.exporter.writeEntity(new IFC4.IfcFacetedBrep(closedShell))
   }
 
   /**
-   * Fallback strategy: Convert manifold to IfcTriangulatedFaceSet
-   * For cases where B-Rep conversion fails
+   * Create a face bound using IfcEdgeLoop with shared edges
    */
-  private toTriangulatedFaceSet(manifold: Manifold): Handle<IFC4.IfcTriangulatedFaceSet> {
-    const mesh = manifold.getMesh()
+  private createEdgeLoopBound(loop: number[], isOuter: boolean): Handle<IFC4.IfcFaceBound> {
+    const orientedEdges: Handle<IFC4.IfcOrientedEdge>[] = []
 
-    // Extract coordinates (convert to IFC types)
-    const coords: IFC4.IfcLengthMeasure[][] = []
-    for (let i = 0; i < mesh.vertProperties.length; i += mesh.numProp) {
-      coords.push([
-        new IFC4.IfcLengthMeasure(mesh.vertProperties[i]),
-        new IFC4.IfcLengthMeasure(mesh.vertProperties[i + 1]),
-        new IFC4.IfcLengthMeasure(mesh.vertProperties[i + 2])
-      ])
-    }
-    const coordList = this.exporter.writeEntity(new IFC4.IfcCartesianPointList3D(coords))
+    for (let i = 0; i < loop.length; i++) {
+      const v1 = loop[i]
+      const v2 = loop[(i + 1) % loop.length]
 
-    // Extract triangle indices (1-based for IFC, convert to IFC types)
-    const coordIndex: IFC4.IfcPositiveInteger[][] = []
-    for (let i = 0; i < mesh.triVerts.length; i += 3) {
-      coordIndex.push([
-        new IFC4.IfcPositiveInteger(mesh.triVerts[i] + 1),
-        new IFC4.IfcPositiveInteger(mesh.triVerts[i + 1] + 1),
-        new IFC4.IfcPositiveInteger(mesh.triVerts[i + 2] + 1)
-      ])
+      // Get or create edge (ensuring shared edges between faces)
+      const { orientedEdge } = this.getOrCreateEdge(v1, v2)
+      orientedEdges.push(orientedEdge)
     }
 
-    return this.exporter.writeEntity(new IFC4.IfcTriangulatedFaceSet(coordList, null, null, coordIndex, null))
+    const edgeLoop = this.exporter.writeEntity(new IFC4.IfcEdgeLoop(orientedEdges))
+
+    if (isOuter) {
+      return this.exporter.writeEntity(new IFC4.IfcFaceOuterBound(edgeLoop, new IFC4.IfcBoolean(true)))
+    } else {
+      return this.exporter.writeEntity(new IFC4.IfcFaceBound(edgeLoop, new IFC4.IfcBoolean(false)))
+    }
   }
 
-  private createIfcFace(face3d: Face3D): Handle<IFC4.IfcFace> {
-    const outerBound = this.createFaceBound(face3d.polygon.outer, true)
-    const innerBounds = face3d.polygon.holes.map(hole => this.createFaceBound(hole, false))
+  /**
+   * Get or create an edge, ensuring edges are shared between adjacent faces
+   */
+  private getOrCreateEdge(v1: number, v2: number): { orientedEdge: Handle<IFC4.IfcOrientedEdge> } {
+    // Normalize edge key (always smaller index first)
+    const [minV, maxV] = v1 < v2 ? [v1, v2] : [v2, v1]
+    const key = `${minV}_${maxV}`
+    const isReversed = v1 > v2
 
-    return this.exporter.writeEntity(new IFC4.IfcFace([outerBound, ...innerBounds]))
-  }
+    // Check cache
+    let cached = this.edgeCache.get(key)
 
-  private createFaceBound(polygon: Polygon3D, isOuter: boolean): Handle<IFC4.IfcFaceBound> {
-    const points = polygon.points.map(p => this.exporter.createCartesianPoint([p[0], p[1], p[2]]))
-    const polyLoop = this.exporter.writeEntity(new IFC4.IfcPolyLoop(points))
+    if (!cached) {
+      // Create new edge curve (line segment between two vertices)
+      const edgeCurve = this.exporter.writeEntity(
+        new IFC4.IfcPolyline([this.cartesianPoints[minV], this.cartesianPoints[maxV]])
+      )
 
-    return this.exporter.writeEntity(new IFC4.IfcFaceBound(polyLoop, new IFC4.IfcBoolean(isOuter)))
+      // Create edge curve (edge with geometry)
+      const edge = this.exporter.writeEntity(
+        new IFC4.IfcEdgeCurve(
+          this.vertexPoints[minV],
+          this.vertexPoints[maxV],
+          edgeCurve,
+          new IFC4.IfcBoolean(true) // SameSense
+        )
+      )
+
+      cached = { edge, v1: minV, v2: maxV }
+      this.edgeCache.set(key, cached)
+    }
+
+    // Create oriented edge with correct orientation
+    // If we reversed the vertices to normalize, flip the orientation
+    const orientedEdge = this.exporter.writeEntity(
+      new IFC4.IfcOrientedEdge(cached.edge, new IFC4.IfcBoolean(!isReversed))
+    )
+
+    return { orientedEdge }
   }
 }
