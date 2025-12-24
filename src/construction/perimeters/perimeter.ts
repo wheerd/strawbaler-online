@@ -11,6 +11,7 @@ import { constructRoof } from '@/construction/roofs'
 import { type StoreyContext, createWallStoreyContext } from '@/construction/storeys/context'
 import {
   TAG_BASE_PLATE,
+  TAG_FLOOR,
   TAG_TOP_PLATE,
   TAG_WALLS,
   TAG_WALL_CONSTRUCTION_LENGTH_INSIDE,
@@ -22,6 +23,7 @@ import { WALL_ASSEMBLIES } from '@/construction/walls'
 import {
   type Area,
   Bounds3D,
+  IDENTITY,
   type Length,
   type Polygon2D,
   type Volume,
@@ -142,17 +144,21 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
   allModels.push(createPerimeterMeasurementModel(perimeter, perimeterContext, storeyContext))
 
   if (includeFloor) {
+    const floorModels = []
+
     const innerPolygons = [perimeterContext.innerFinishedPolygon]
     const floorModel = storeyContext.floorAssembly.construct(perimeterContext)
-    allModels.push(transformModel(floorModel, fromTrans(newVec3(0, 0, storeyContext.wallBottom))))
+    floorModels.push(transformModel(floorModel, fromTrans(newVec3(0, 0, storeyContext.wallBottom))))
 
     const floorHoles = perimeterContext.floorOpenings
     const floorPolygons = subtractPolygons(innerPolygons, floorHoles)
     if (floorPolygons.length > 0) {
       const floorLayerResults = Array.from(storeyContext.floorAssembly.constructFloorLayers(floorPolygons))
       const floorLayersModel = resultsToModel(floorLayerResults)
-      allModels.push(transformModel(floorLayersModel, fromTrans(newVec3(0, 0, storeyContext.floorConstructionTop))))
+      floorModels.push(transformModel(floorLayersModel, fromTrans(newVec3(0, 0, storeyContext.floorConstructionTop))))
     }
+
+    allModels.push(transformModel(mergeModels(...floorModels), IDENTITY, [TAG_FLOOR]))
 
     if (storeyContext.nextStoreyId && storeyContext.ceilingAssembly) {
       let ceilingHoles: Polygon2D[] = []
@@ -165,7 +171,9 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
       if (ceilingPolygons.length > 0) {
         const ceilingLayerResults = Array.from(storeyContext.ceilingAssembly.constructCeilingLayers(ceilingPolygons))
         const ceilingLayerModel = resultsToModel(ceilingLayerResults)
-        allModels.push(transformModel(ceilingLayerModel, fromTrans(newVec3(0, 0, storeyContext.finishedCeilingBottom))))
+        allModels.push(
+          transformModel(ceilingLayerModel, fromTrans(newVec3(0, 0, storeyContext.finishedCeilingBottom)), [TAG_FLOOR])
+        )
       }
     }
   }

@@ -17,15 +17,20 @@ import {
   TAG_FLOOR_CEILING_SHEATHING,
   TAG_FLOOR_LAYER_BOTTOM,
   TAG_FLOOR_LAYER_TOP,
-  TAG_FRAME,
   TAG_FULL_BALE,
   TAG_HEADER,
+  TAG_INFILL,
   TAG_INSIDE_SHEATHING,
   TAG_JOIST,
+  TAG_MODULE_FRAME,
+  TAG_MODULE_INFILL,
+  TAG_MODULE_SPACER,
   TAG_PARTIAL_BALE,
+  TAG_PLATE,
   TAG_POST,
   TAG_PURLIN,
   TAG_RAFTER,
+  TAG_RB_INSULATION,
   TAG_RIDGE_BEAM,
   TAG_ROOF,
   TAG_ROOF_LAYER_INSIDE,
@@ -34,13 +39,15 @@ import {
   TAG_STRAW_FLAKES,
   TAG_STRAW_INFILL,
   TAG_STRAW_STUFFED,
+  TAG_STUD_WALL,
   TAG_SUBFLOOR,
   TAG_TOP_PLATE,
   TAG_WALLS,
   TAG_WALL_LAYER_INSIDE,
-  TAG_WALL_LAYER_OUTSIDE
+  TAG_WALL_LAYER_OUTSIDE,
+  TAG_WATERPROOFING
 } from '@/construction/tags'
-import { type Transform, getPosition, getXAxis, getZAxis } from '@/shared/geometry'
+import { type Transform, composeTransform, getPosition, getXAxis, getZAxis } from '@/shared/geometry'
 import { downloadFile } from '@/shared/utils/downloadFile'
 import { getVersionString } from '@/shared/utils/version'
 
@@ -53,6 +60,7 @@ type IfcElementType =
   | 'IfcSlab'
   | 'IfcRoof'
   | 'IfcCovering'
+  | 'IfcMember'
   | 'IfcBuildingElementPart'
   | 'IfcBuildingElementProxy'
   | 'IfcElementAssembly'
@@ -305,24 +313,38 @@ export class GeometryIfcExporter {
 
   // --- Type Mapping ---
 
-  private determineIfcType(element: GroupOrElement): IfcTypeMapping {
+  private determineIfcType(element: GroupOrElement, fallback?: IfcTypeMapping): IfcTypeMapping {
     const tags = element.tags ?? []
 
-    // Straw infill -> IfcBuildingElementPart
-    if (hasAnyTag(tags, [TAG_STRAW_INFILL, TAG_FULL_BALE, TAG_PARTIAL_BALE, TAG_STRAW_FLAKES, TAG_STRAW_STUFFED])) {
-      return { elementType: 'IfcBuildingElementPart' }
+    // (Straw) infill -> IfcBuildingElementPart
+    if (
+      hasAnyTag(tags, [
+        TAG_STRAW_INFILL,
+        TAG_FULL_BALE,
+        TAG_PARTIAL_BALE,
+        TAG_STRAW_FLAKES,
+        TAG_STRAW_STUFFED,
+        TAG_INFILL,
+        TAG_MODULE_INFILL
+      ])
+    ) {
+      return { elementType: 'IfcBuildingElementPart', predefinedType: 'INSULATION' }
+    }
+
+    // Module parts
+    if (hasAnyTag(tags, [TAG_MODULE_FRAME, TAG_MODULE_SPACER])) {
+      return { elementType: 'IfcMember' }
     }
 
     // Structural beams
     if (hasTag(tags, TAG_JOIST)) return { elementType: 'IfcBeam', predefinedType: 'JOIST' }
     if (hasTag(tags, TAG_HEADER)) return { elementType: 'IfcBeam', predefinedType: 'LINTEL' }
-    if (hasTag(tags, TAG_SILL)) return { elementType: 'IfcBeam', predefinedType: 'BEAM' }
-    if (hasTag(tags, TAG_PURLIN)) return { elementType: 'IfcBeam', predefinedType: 'JOIST' }
-    if (hasTag(tags, TAG_RAFTER)) return { elementType: 'IfcBeam', predefinedType: 'JOIST' }
-    if (hasTag(tags, TAG_RIDGE_BEAM)) return { elementType: 'IfcBeam', predefinedType: 'JOIST' }
-    if (hasTag(tags, TAG_FRAME)) return { elementType: 'IfcBeam', predefinedType: 'BEAM' }
-    if (hasTag(tags, TAG_BASE_PLATE)) return { elementType: 'IfcBeam', predefinedType: 'BEAM' }
-    if (hasTag(tags, TAG_TOP_PLATE)) return { elementType: 'IfcBeam', predefinedType: 'BEAM' }
+    if (hasTag(tags, TAG_SILL)) return { elementType: 'IfcMember', predefinedType: 'PLATE' }
+    if (hasTag(tags, TAG_PURLIN)) return { elementType: 'IfcMember', predefinedType: 'PURLIN' }
+    if (hasTag(tags, TAG_RAFTER)) return { elementType: 'IfcMember', predefinedType: 'RAFTER' }
+    if (hasTag(tags, TAG_RIDGE_BEAM)) return { elementType: 'IfcMember', predefinedType: 'PURLIN' }
+    if (hasTag(tags, TAG_BASE_PLATE)) return { elementType: 'IfcMember', predefinedType: 'PLATE' }
+    if (hasTag(tags, TAG_TOP_PLATE)) return { elementType: 'IfcMember', predefinedType: 'PLATE' }
 
     // Columns/Posts
     if (hasTag(tags, TAG_POST)) return { elementType: 'IfcColumn' }
@@ -340,6 +362,12 @@ export class GeometryIfcExporter {
     if (hasTag(tags, TAG_DECKING)) return { elementType: 'IfcSlab', predefinedType: 'ROOF' }
     if (hasTag(tags, TAG_INSIDE_SHEATHING)) return { elementType: 'IfcSlab', predefinedType: 'ROOF' }
 
+    // Ring beam
+    if (hasTag(tags, TAG_PLATE)) return { elementType: 'IfcMember', predefinedType: 'PLATE' }
+    if (hasTag(tags, TAG_RB_INSULATION)) return { elementType: 'IfcCovering', predefinedType: 'INSULATION' }
+    if (hasTag(tags, TAG_STUD_WALL)) return { elementType: 'IfcBuildingElementPart' }
+    if (hasTag(tags, TAG_WATERPROOFING)) return { elementType: 'IfcCovering', predefinedType: 'MEMBRANE' }
+
     // Coverings (surface layers)
     if (hasTag(tags, TAG_WALL_LAYER_INSIDE)) return { elementType: 'IfcCovering', predefinedType: 'CLADDING' }
     if (hasTag(tags, TAG_WALL_LAYER_OUTSIDE)) return { elementType: 'IfcCovering', predefinedType: 'CLADDING' }
@@ -347,6 +375,10 @@ export class GeometryIfcExporter {
     if (hasTag(tags, TAG_FLOOR_LAYER_BOTTOM)) return { elementType: 'IfcCovering', predefinedType: 'CEILING' }
     if (hasTag(tags, TAG_ROOF_LAYER_TOP)) return { elementType: 'IfcCovering', predefinedType: 'ROOFING' }
     if (hasTag(tags, TAG_ROOF_LAYER_INSIDE)) return { elementType: 'IfcCovering', predefinedType: 'CEILING' }
+
+    if (fallback) {
+      return fallback
+    }
 
     if ('children' in element) {
       return { elementType: 'IfcElementAssembly' }
@@ -507,6 +539,18 @@ export class GeometryIfcExporter {
   ): Handle<IFC4.IfcElement> {
     const typeMapping = this.determineIfcType(group)
 
+    if (group.children.length === 1) {
+      const child = group.children[0]
+      if (!('children' in child)) {
+        const childType = this.determineIfcType(group, typeMapping)
+        const combinedTransform = composeTransform(group.transform, child.transform)
+        const element = this.processElement(child, storeyHandle, parentPlacement, childType, combinedTransform)
+        if (element != null) {
+          return element
+        }
+      }
+    }
+
     const groupPlacement = this.createPlacementFromTransform(group.transform, parentPlacement)
 
     const groupElement = this.createIfcElementByType(typeMapping, group.id, groupPlacement, null)
@@ -539,9 +583,11 @@ export class GeometryIfcExporter {
   private processElement(
     element: ConstructionElement,
     _storeyHandle: Handle<IFC4.IfcBuildingStorey>,
-    parentPlacement: Handle<IFC4.IfcLocalPlacement>
+    parentPlacement: Handle<IFC4.IfcLocalPlacement>,
+    typeOverride?: IfcTypeMapping,
+    transformOverride?: Transform
   ): Handle<IFC4.IfcElement> | null {
-    const typeMapping = this.determineIfcType(element)
+    const typeMapping = typeOverride ?? this.determineIfcType(element)
 
     // Get or create geometry (with instancing)
     const shapeRep = this.getOrCreateShapeRepresentation(element.shape)
@@ -554,7 +600,7 @@ export class GeometryIfcExporter {
     const productDef = this.writeEntity(new IFC4.IfcProductDefinitionShape(null, null, [shapeRep]))
 
     // Create placement relative to parent
-    const placement = this.createPlacementFromTransform(element.transform, parentPlacement)
+    const placement = this.createPlacementFromTransform(transformOverride ?? element.transform, parentPlacement)
 
     // Create IFC element
     const ifcElement = this.createIfcElementByType(typeMapping, element.id, placement, productDef)
@@ -678,6 +724,21 @@ export class GeometryIfcExporter {
             productDef,
             null,
             IFC4.IfcCoveringTypeEnum[(predefinedType as keyof IFC4.IfcCoveringTypeEnum) ?? 'NOTDEFINED']
+          )
+        )
+
+      case 'IfcMember':
+        return this.writeEntity(
+          new IFC4.IfcMember(
+            this.globalId(),
+            this.ownerHistory,
+            this.label(elementId),
+            null,
+            null,
+            placement,
+            productDef,
+            null,
+            IFC4.IfcMemberTypeEnum[(predefinedType as keyof IFC4.IfcMemberTypeEnum) ?? 'NOTDEFINED']
           )
         )
 
