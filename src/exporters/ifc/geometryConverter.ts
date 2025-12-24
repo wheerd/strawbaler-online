@@ -5,7 +5,7 @@ import { getFacesFromManifoldIndexed } from '@/construction/manifold/faces'
 
 /**
  * Converts Manifold geometry to IFC geometric representations
- * Uses IfcFacetedBrep with proper topology (shared vertices and edges)
+ * Uses IfcFacetedBrep with IfcPolyLoop for maximum viewer compatibility
  */
 export class ManifoldToIfcConverter {
   private exporter: {
@@ -13,16 +13,7 @@ export class ManifoldToIfcConverter {
     createCartesianPoint: (coords: [number, number, number]) => Handle<IFC4.IfcCartesianPoint>
   }
 
-  // Topology tracking for proper B-Rep construction
-  private edgeCache = new Map<
-    string,
-    {
-      edge: Handle<IFC4.IfcEdgeCurve>
-      v1: number // vertex index
-      v2: number // vertex index
-    }
-  >()
-  private vertexPoints: Handle<IFC4.IfcVertexPoint>[] = []
+  // Cached cartesian points for vertices
   private cartesianPoints: Handle<IFC4.IfcCartesianPoint>[] = []
 
   constructor(exporter: {
@@ -34,27 +25,19 @@ export class ManifoldToIfcConverter {
 
   /**
    * Main conversion entry point
-   * Uses IfcFacetedBrep with proper topology to satisfy IFC validation rules
+   * Uses IfcFacetedBrep with IfcPolyLoop for maximum viewer compatibility
    * Returns null if manifold has no valid faces (e.g., after filtering artifacts)
    */
   convert(manifold: Manifold): Handle<IFC4.IfcFacetedBrep> | null {
-    this.resetCache()
-    return this.toFacetedBrepWithTopology(manifold)
+    this.cartesianPoints = []
+    return this.toFacetedBrep(manifold)
   }
 
   /**
-   * Reset caches between conversions
-   */
-  private resetCache(): void {
-    this.edgeCache.clear()
-    this.vertexPoints = []
-  }
-
-  /**
-   * Convert manifold to IfcFacetedBrep with proper edge and vertex topology
+   * Convert manifold to IfcFacetedBrep using IfcPolyLoop
    * Returns null if there are no valid faces after filtering
    */
-  private toFacetedBrepWithTopology(manifold: Manifold): Handle<IFC4.IfcFacetedBrep> | null {
+  private toFacetedBrep(manifold: Manifold): Handle<IFC4.IfcFacetedBrep> | null {
     // Get indexed faces with deduplicated vertices
     const { vertices, faces } = getFacesFromManifoldIndexed(manifold)
 
@@ -63,15 +46,14 @@ export class ManifoldToIfcConverter {
       return null
     }
 
-    // Create IfcCartesianPoint and IfcVertexPoint for each unique vertex
+    // Create IfcCartesianPoint for each unique vertex
     this.cartesianPoints = vertices.map(v => this.exporter.createCartesianPoint([v[0], v[1], v[2]]))
-    this.vertexPoints = this.cartesianPoints.map(point => this.exporter.writeEntity(new IFC4.IfcVertexPoint(point)))
 
-    // Create faces with edge loops
+    // Create faces with poly loops
     const ifcFaces: Handle<IFC4.IfcFace>[] = []
 
     for (const face of faces) {
-      const outerBound = this.createEdgeLoopBound(face.outer, true)
+      const outerBound = this.createFaceBound(face.outer, true)
 
       // Skip face if outer bound is invalid
       if (!outerBound) {
@@ -80,7 +62,7 @@ export class ManifoldToIfcConverter {
 
       // Filter out invalid hole bounds
       const innerBounds = face.holes
-        .map(hole => this.createEdgeLoopBound(hole, false))
+        .map(hole => this.createFaceBound(hole, false))
         .filter((bound): bound is Handle<IFC4.IfcFaceBound> => bound !== null)
 
       const ifcFace = this.exporter.writeEntity(new IFC4.IfcFace([outerBound, ...innerBounds]))
@@ -98,83 +80,25 @@ export class ManifoldToIfcConverter {
   }
 
   /**
-   * Create a face bound using IfcEdgeLoop with shared edges
+   * Create a face bound using IfcPolyLoop
    * Returns null if loop is invalid (< 3 vertices)
    */
-  private createEdgeLoopBound(loop: number[], isOuter: boolean): Handle<IFC4.IfcFaceBound> | null {
+  private createFaceBound(loop: number[], isOuter: boolean): Handle<IFC4.IfcFaceBound> | null {
     // Validate loop has at least 3 vertices
     if (loop.length < 3) {
       return null
     }
 
-    const orientedEdges: Handle<IFC4.IfcOrientedEdge>[] = []
+    // Map vertex indices to IfcCartesianPoint handles
+    const points = loop.map(vertexIdx => this.cartesianPoints[vertexIdx])
 
-    for (let i = 0; i < loop.length; i++) {
-      const v1 = loop[i]
-      const v2 = loop[(i + 1) % loop.length]
-
-      // Skip degenerate edges (same vertex)
-      if (v1 === v2) {
-        continue
-      }
-
-      // Get or create edge (ensuring shared edges between faces)
-      const { orientedEdge } = this.getOrCreateEdge(v1, v2)
-      orientedEdges.push(orientedEdge)
-    }
-
-    // Validate we have at least 3 edges
-    if (orientedEdges.length < 3) {
-      return null
-    }
-
-    const edgeLoop = this.exporter.writeEntity(new IFC4.IfcEdgeLoop(orientedEdges))
+    // Create IfcPolyLoop
+    const polyLoop = this.exporter.writeEntity(new IFC4.IfcPolyLoop(points))
 
     if (isOuter) {
-      return this.exporter.writeEntity(new IFC4.IfcFaceOuterBound(edgeLoop, new IFC4.IfcBoolean(true)))
+      return this.exporter.writeEntity(new IFC4.IfcFaceOuterBound(polyLoop, new IFC4.IfcBoolean(true)))
     } else {
-      return this.exporter.writeEntity(new IFC4.IfcFaceBound(edgeLoop, new IFC4.IfcBoolean(false)))
+      return this.exporter.writeEntity(new IFC4.IfcFaceBound(polyLoop, new IFC4.IfcBoolean(false)))
     }
-  }
-
-  /**
-   * Get or create an edge, ensuring edges are shared between adjacent faces
-   */
-  private getOrCreateEdge(v1: number, v2: number): { orientedEdge: Handle<IFC4.IfcOrientedEdge> } {
-    // Normalize edge key (always smaller index first)
-    const [minV, maxV] = v1 < v2 ? [v1, v2] : [v2, v1]
-    const key = `${minV}_${maxV}`
-    const isReversed = v1 > v2
-
-    // Check cache
-    let cached = this.edgeCache.get(key)
-
-    if (!cached) {
-      // Create new edge curve (line segment between two vertices)
-      const edgeCurve = this.exporter.writeEntity(
-        new IFC4.IfcPolyline([this.cartesianPoints[minV], this.cartesianPoints[maxV]])
-      )
-
-      // Create edge curve (edge with geometry)
-      const edge = this.exporter.writeEntity(
-        new IFC4.IfcEdgeCurve(
-          this.vertexPoints[minV],
-          this.vertexPoints[maxV],
-          edgeCurve,
-          new IFC4.IfcBoolean(true) // SameSense
-        )
-      )
-
-      cached = { edge, v1: minV, v2: maxV }
-      this.edgeCache.set(key, cached)
-    }
-
-    // Create oriented edge with correct orientation
-    // If we reversed the vertices to normalize, flip the orientation
-    const orientedEdge = this.exporter.writeEntity(
-      new IFC4.IfcOrientedEdge(cached.edge, new IFC4.IfcBoolean(!isReversed))
-    )
-
-    return { orientedEdge }
   }
 }
