@@ -821,7 +821,7 @@ export class GeometryIfcExporter {
         new IFC4.IfcPropertySingleValue(
           this.identifier('Volume'),
           this.label('Volume of the element'),
-          this.real(volume / (1000 * 1000 * 1000), true),
+          this.volumeMeasure(volume / (1000 * 1000 * 1000), true),
           this.volumeUnit
         )
       )
@@ -964,9 +964,18 @@ export class GeometryIfcExporter {
     if (force) {
       // To actually get a value like IFCPOSITIVELENGTHMEASURE(42.0) we need to do this:
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return { type: 2, label: 'REAL', valueType: 4, internalValue: value } as any
+      return { type: 2, label: 'IFCREAL', valueType: 4, internalValue: value } as any
     }
     return new IFC4.IfcReal(value)
+  }
+
+  private volumeMeasure(value: number, force = false): IFC4.IfcVolumeMeasure {
+    if (force) {
+      // To actually get a value like IFCVOLUMEMEASURE(42.0) we need to do this:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return { type: 2, label: 'IFCVOLUMEMEASURE', valueType: 4, internalValue: value } as any
+    }
+    return new IFC4.IfcVolumeMeasure(value)
   }
 
   private lengthMeasure(value: number, force = false): IFC4.IfcLengthMeasure {
