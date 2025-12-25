@@ -419,7 +419,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
           createExtrudedPolygon({ outer: partPolygon, holes: [] }, 'xy', this.config.purlinHeight),
           fromTrans(newVec3(0, 0, vOffset)),
           [TAG_RIDGE_BEAM],
-          { type: 'roof-purlin' }
+          { type: 'roof-purlin', requiresSinglePiece: true }
         )
       )
 
@@ -476,7 +476,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         'xy',
         fromTrans(newVec3(0, 0, vOffset)),
         [TAG_PURLIN],
-        { type: 'roof-purlin' }
+        { type: 'roof-purlin', requiresSinglePiece: true }
       )
 
       const purlinLength = purlin.dirMeasurement('xy', this.config.purlinHeight, [TAG_PURLIN_LENGTH])
@@ -513,7 +513,8 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
           undefined,
           [TAG_RAFTER],
           {
-            type: 'rafter'
+            type: 'rafter',
+            requiresSinglePiece: true
           }
         )
         const length = rafterOrGap.polygon.dirMeasurement('xy', this.config.thickness, [TAG_RAFTER_LENGTH])

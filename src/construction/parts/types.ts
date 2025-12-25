@@ -15,12 +15,14 @@ export interface FullPartInfo {
   description?: string
   boxSize: Vec3
   sideFaces?: SideFace[]
+  requiresSinglePiece?: boolean
 }
 
 export interface InitialPartInfo {
   type: string
   subtype?: string
   description?: string
+  requiresSinglePiece?: boolean
 }
 
 export type PartInfo = InitialPartInfo | FullPartInfo
@@ -61,6 +63,7 @@ export interface MaterialPartItem extends PartItem {
   strawCategory?: StrawCategory
   sideFaces?: SideFace[]
   issue?: PartIssue
+  requiresSinglePiece?: boolean
 }
 
 export interface MaterialUsage {

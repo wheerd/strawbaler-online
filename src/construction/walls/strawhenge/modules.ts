@@ -56,7 +56,7 @@ function* constructSingleFrameModule(
     newVec3(position[0], position[1], position[2] + size[2] - frameThickness),
     newVec3(size[0], size[1], frameThickness),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(topFrame)
 
@@ -66,7 +66,7 @@ function* constructSingleFrameModule(
     position,
     newVec3(size[0], size[1], frameThickness),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(bottomFrame)
 
@@ -76,7 +76,7 @@ function* constructSingleFrameModule(
     newVec3(position[0], position[1], position[2] + frameThickness),
     newVec3(frameThickness, size[1], verticalFrameLength),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(startFrame)
 
@@ -86,7 +86,7 @@ function* constructSingleFrameModule(
     newVec3(position[0] + size[0] - frameThickness, position[1], position[2] + frameThickness),
     newVec3(frameThickness, size[1], verticalFrameLength),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(endFrame)
 
@@ -129,7 +129,7 @@ function* constructDoubleFrameModule(
     newVec3(position[0], position[1], position[2] + size[2] - frameThickness),
     newVec3(size[0], frameWidth, frameThickness),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(topFrame1)
 
@@ -138,7 +138,7 @@ function* constructDoubleFrameModule(
     newVec3(position[0], position[1] + size[1] - frameWidth, position[2] + size[2] - frameThickness),
     newVec3(size[0], frameWidth, frameThickness),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(topFrame2)
 
@@ -148,7 +148,7 @@ function* constructDoubleFrameModule(
     position,
     newVec3(size[0], frameWidth, frameThickness),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(bottomFrame1)
 
@@ -157,7 +157,7 @@ function* constructDoubleFrameModule(
     newVec3(position[0], position[1] + size[1] - frameWidth, position[2]),
     newVec3(size[0], frameWidth, frameThickness),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(bottomFrame2)
 
@@ -167,7 +167,7 @@ function* constructDoubleFrameModule(
     newVec3(position[0], position[1], position[2] + frameThickness),
     newVec3(frameThickness, frameWidth, verticalFrameLength),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(startFrame1)
 
@@ -176,7 +176,7 @@ function* constructDoubleFrameModule(
     newVec3(position[0], position[1] + size[1] - frameWidth, position[2] + frameThickness),
     newVec3(frameThickness, frameWidth, verticalFrameLength),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(startFrame2)
 
@@ -186,7 +186,7 @@ function* constructDoubleFrameModule(
     newVec3(position[0] + size[0] - frameThickness, position[1], position[2] + frameThickness),
     newVec3(frameThickness, frameWidth, verticalFrameLength),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(endFrame1)
 
@@ -195,7 +195,7 @@ function* constructDoubleFrameModule(
     newVec3(position[0] + size[0] - frameThickness, position[1] + size[1] - frameWidth, position[2] + frameThickness),
     newVec3(frameThickness, frameWidth, verticalFrameLength),
     [TAG_MODULE_FRAME],
-    { type: 'module-frame' }
+    { type: 'module-frame', requiresSinglePiece: true }
   )
   yield* yieldElement(endFrame2)
 

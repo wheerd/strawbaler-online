@@ -105,7 +105,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
             createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
             undefined,
             [TAG_JOIST],
-            { type: 'joist' }
+            { type: 'joist', requiresSinglePiece: true }
           )
         }) satisfies ConstructionResult
     )

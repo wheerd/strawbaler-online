@@ -183,7 +183,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
             createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
             undefined,
             undefined,
-            { type: 'joist' }
+            { type: 'joist', requiresSinglePiece: true }
           )
         }) satisfies ConstructionResult
     )

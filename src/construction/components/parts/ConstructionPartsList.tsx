@@ -94,6 +94,18 @@ const formatWeight = (weight?: number) => {
   return `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(weight)} kg`
 }
 
+const getIssueSeverity = (part: MaterialPartItem): 'error' | 'warning' | undefined => {
+  if (!part.issue) return undefined
+
+  // Size-related issues can be warnings if multiple pieces are allowed
+  if (part.issue === 'LengthExceedsAvailable' || part.issue === 'SheetSizeExceeded') {
+    return part.requiresSinglePiece ? 'error' : 'warning'
+  }
+
+  // Other issues (CrossSectionMismatch, ThicknessMismatch) are always errors
+  return 'error'
+}
+
 const calculateWeight = (volume: Volume, material: Material): number | undefined => {
   if (material.density == null) return undefined
   return (volume * material.density) / 1_000_000_000
@@ -661,8 +673,9 @@ function DimensionalPartsTable({
       <Table.Body>
         {parts.map(part => {
           const partWeight = calculateWeight(part.totalVolume, material)
+          const severity = getIssueSeverity(part)
           return (
-            <Table.Row key={part.partId} style={{ background: part.issue ? 'var(--red-3)' : undefined }}>
+            <Table.Row key={part.partId} style={{ background: severity === 'error' ? 'var(--red-3)' : undefined }}>
               <Table.RowHeaderCell justify="center">
                 <Text weight="medium">{part.label}</Text>
               </Table.RowHeaderCell>
@@ -693,17 +706,25 @@ function DimensionalPartsTable({
               <Table.Cell justify="center">{part.quantity}</Table.Cell>
               <Table.Cell justify="end">
                 <Flex align="center" gap="2" justify="end">
-                  <Text>{part.length !== undefined ? formatLengthInMeters(part.length) : '—'}</Text>
                   {part.issue === 'LengthExceedsAvailable' && material.lengths.length > 0 && (
                     <Tooltip
                       key="length-exceeds-available"
-                      content={`Part length ${
-                        part.length !== undefined ? formatLengthInMeters(part.length) : 'Unknown'
-                      } exceeds material maximum available length ${formatLengthInMeters(Math.max(...material.lengths))}`}
+                      content={
+                        part.requiresSinglePiece
+                          ? `Part length ${
+                              part.length !== undefined ? formatLengthInMeters(part.length) : 'Unknown'
+                            } exceeds material maximum available length ${formatLengthInMeters(Math.max(...material.lengths))}`
+                          : `Part length ${
+                              part.length !== undefined ? formatLengthInMeters(part.length) : 'Unknown'
+                            } exceeds material maximum available length ${formatLengthInMeters(Math.max(...material.lengths))}. This part will require multiple pieces.`
+                      }
                     >
-                      <ExclamationTriangleIcon style={{ color: 'var(--red-9)' }} />
+                      <ExclamationTriangleIcon
+                        style={{ color: part.requiresSinglePiece ? 'var(--red-9)' : 'var(--amber-9)' }}
+                      />
                     </Tooltip>
                   )}
+                  <Text>{part.length !== undefined ? formatLengthInMeters(part.length) : '—'}</Text>
                 </Flex>
               </Table.Cell>
               <Table.Cell justify="end">
@@ -770,8 +791,9 @@ function SheetPartsTable({
       <Table.Body>
         {parts.map(part => {
           const partWeight = calculateWeight(part.totalVolume, material)
+          const severity = getIssueSeverity(part)
           return (
-            <Table.Row key={part.partId} style={{ background: part.issue ? 'var(--red-3)' : undefined }}>
+            <Table.Row key={part.partId} style={{ background: severity === 'error' ? 'var(--red-3)' : undefined }}>
               <Table.RowHeaderCell justify="center">
                 <Text weight="medium">{part.label}</Text>
               </Table.RowHeaderCell>
@@ -792,16 +814,20 @@ function SheetPartsTable({
                   {part.issue === 'SheetSizeExceeded' && (
                     <Tooltip
                       key="sheet-size-exceeded"
-                      content={`Dimensions ${formatDimensions(part.size)} exceed available sheet sizes (${material.sizes
-                        .map(size => formatCrossSection([size.smallerLength, size.biggerLength]))
-                        .join(', ')})`}
+                      content={
+                        part.requiresSinglePiece
+                          ? `Dimensions ${formatDimensions(part.size)} exceed available sheet sizes (${material.sizes
+                              .map(size => formatCrossSection([size.smallerLength, size.biggerLength]))
+                              .join(', ')})`
+                          : `Dimensions ${formatDimensions(part.size)} exceed available sheet sizes (${material.sizes
+                              .map(size => formatCrossSection([size.smallerLength, size.biggerLength]))
+                              .join(', ')}). This part will require multiple sheets.`
+                      }
                     >
-                      <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--red-9)' }} />
-                    </Tooltip>
-                  )}
-                  {part.sideFaces && (
-                    <Tooltip key="special-cut" content="This might have a non-regular shape">
-                      <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--amber-9)' }} />
+                      <ExclamationTriangleIcon
+                        aria-hidden
+                        style={{ color: part.requiresSinglePiece ? 'var(--red-9)' : 'var(--amber-9)' }}
+                      />
                     </Tooltip>
                   )}
                   <Text>{isZeroVec3(part.size) ? '' : formatSheetDimensions(part.size, part.thickness)}</Text>
@@ -868,8 +894,9 @@ function VolumePartsTable({
       <Table.Body>
         {parts.map(part => {
           const partWeight = calculateWeight(part.totalVolume, material)
+          const severity = getIssueSeverity(part)
           return (
-            <Table.Row key={part.partId} style={{ background: part.issue ? 'var(--red-3)' : undefined }}>
+            <Table.Row key={part.partId} style={{ background: severity === 'error' ? 'var(--red-3)' : undefined }}>
               <Table.RowHeaderCell justify="center">
                 <Text weight="medium">{part.label}</Text>
               </Table.RowHeaderCell>

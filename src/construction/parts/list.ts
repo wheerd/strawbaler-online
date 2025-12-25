@@ -371,7 +371,8 @@ function processPart(
     sideFaces: partInfo.sideFaces,
     crossSection,
     thickness,
-    strawCategory
+    strawCategory,
+    requiresSinglePiece: partInfo.requiresSinglePiece
   }
 
   if (length !== undefined) {

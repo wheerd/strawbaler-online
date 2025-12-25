@@ -41,7 +41,10 @@ export class SimpleOpeningAssembly implements OpeningAssembly<SimpleOpeningConfi
     yield* yieldMeasurementFromArea(rawOpeningArea, 'width', [TAG_OPENING_WIDTH])
 
     if (!headerArea.isEmpty) {
-      const headerElement = createElementFromArea(headerArea, config.headerMaterial, [TAG_HEADER], { type: 'header' })
+      const headerElement = createElementFromArea(headerArea, config.headerMaterial, [TAG_HEADER], {
+        type: 'header',
+        requiresSinglePiece: true
+      })
       yield* yieldElement(headerElement)
 
       yield* yieldMeasurementFromArea(belowHeader, 'height', [TAG_HEADER_HEIGHT], -1)
