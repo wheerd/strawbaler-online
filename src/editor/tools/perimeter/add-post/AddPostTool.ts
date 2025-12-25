@@ -10,7 +10,7 @@ import {
 } from '@/building/model/ids'
 import type { PerimeterWall, WallPostType } from '@/building/model/model'
 import { getModelActions } from '@/building/store'
-import { type MaterialId, wood, woodwool } from '@/construction/materials/material'
+import { type MaterialId, roughWood, woodwool } from '@/construction/materials/material'
 import { entityHitTestService } from '@/editor/canvas/services/EntityHitTestService'
 import { getSelectionActions } from '@/editor/hooks/useSelectionStore'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
@@ -50,7 +50,7 @@ const DEFAULT_POST_CONFIG = {
   width: 60, // 6cm
   thickness: 360, // 36cm
   replacesPosts: true,
-  material: wood.id,
+  material: roughWood.id,
   infillMaterial: woodwool.id
 }
 

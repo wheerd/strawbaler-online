@@ -1,7 +1,7 @@
 import { DEFAULT_FLOOR_ASSEMBLY_ID, type FloorAssemblyId } from '@/building/model/ids'
 import type { FloorAssemblyConfig } from '@/construction/config/types'
 import { DEFAULT_FLOOR_LAYER_SETS } from '@/construction/layers/defaults'
-import { clt, concrete, osb, strawbale, wood } from '@/construction/materials/material'
+import { clt, concrete, glt, osb, roughWood, strawbale } from '@/construction/materials/material'
 
 const cltAssembly: FloorAssemblyConfig = {
   id: DEFAULT_FLOOR_ASSEMBLY_ID,
@@ -36,16 +36,16 @@ const joistAssembly: FloorAssemblyConfig = {
   name: 'Joist 12x24cm (6cm)',
   type: 'joist',
   constructionHeight: 240,
-  joistMaterial: wood.id,
+  joistMaterial: glt.id,
   joistSpacing: 800,
-  joistThickness: 120,
+  joistThickness: 80,
   wallBeamThickness: 120,
-  wallBeamMaterial: wood.id,
+  wallBeamMaterial: glt.id,
   wallBeamInsideOffset: 40,
   wallInfillMaterial: strawbale.id,
   subfloorMaterial: osb.id,
   subfloorThickness: 22,
-  openingSideMaterial: wood.id,
+  openingSideMaterial: roughWood.id,
   openingSideThickness: 60,
   layers: {
     topThickness: 60,
@@ -60,17 +60,17 @@ const filledAssembly: FloorAssemblyConfig = {
   name: 'Filled Joist 12x24cm (6cm)',
   type: 'filled',
   constructionHeight: 360,
-  joistThickness: 60,
-  joistSpacing: 500,
-  joistMaterial: wood.id,
+  joistThickness: 80,
+  joistSpacing: 800,
+  joistMaterial: glt.id,
   frameThickness: 60,
-  frameMaterial: wood.id,
+  frameMaterial: roughWood.id,
   subfloorThickness: 22,
   subfloorMaterial: osb.id,
   ceilingSheathingThickness: 22,
   ceilingSheathingMaterial: osb.id,
   openingFrameThickness: 60,
-  openingFrameMaterial: wood.id,
+  openingFrameMaterial: roughWood.id,
   strawMaterial: undefined,
   layers: {
     topThickness: 60,

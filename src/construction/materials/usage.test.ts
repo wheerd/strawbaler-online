@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createRingBeamAssemblyId, createWallAssemblyId } from '@/building/model/ids'
 import type { RingBeamAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
 
-import { createMaterialId, strawbale, wood, woodwool } from './material'
+import { createMaterialId, roughWood, strawbale, woodwool } from './material'
 import { getMaterialUsage } from './usage'
 
 const defaultStrawMaterialId = strawbale.id
@@ -11,7 +11,7 @@ const defaultStrawMaterialId = strawbale.id
 describe('Material Usage Detection', () => {
   describe('getMaterialUsage', () => {
     it('detects material not in use', () => {
-      const usage = getMaterialUsage(wood.id, [], [], [], defaultStrawMaterialId)
+      const usage = getMaterialUsage(roughWood.id, [], [], [], defaultStrawMaterialId)
 
       expect(usage.isUsed).toBe(false)
       expect(usage.usedByConfigs).toEqual([])
@@ -29,13 +29,13 @@ describe('Material Usage Detection', () => {
         id: createRingBeamAssemblyId(),
         name: 'Test Ring Beam',
         type: 'full',
-        material: wood.id,
+        material: roughWood.id,
         height: 60,
         width: 360,
         offsetFromEdge: 30
       }
 
-      const usage = getMaterialUsage(wood.id, [ringBeamAssembly], [], [], defaultStrawMaterialId)
+      const usage = getMaterialUsage(roughWood.id, [ringBeamAssembly], [], [], defaultStrawMaterialId)
 
       expect(usage.isUsed).toBe(true)
       expect(usage.usedByConfigs).toEqual(['Ring Beam: Test Ring Beam (beam)'])
@@ -53,7 +53,7 @@ describe('Material Usage Detection', () => {
           type: 'double',
           width: 60,
           thickness: 120,
-          material: wood.id,
+          material: roughWood.id,
           infillMaterial: strawbale.id
         },
         layers: {
@@ -64,7 +64,7 @@ describe('Material Usage Detection', () => {
         }
       }
 
-      const usage = getMaterialUsage(wood.id, [], [wallAssembly], [], defaultStrawMaterialId)
+      const usage = getMaterialUsage(roughWood.id, [], [wallAssembly], [], defaultStrawMaterialId)
 
       expect(usage.isUsed).toBe(true)
       expect(usage.usedByConfigs).toEqual(['Wall: Test Infill (posts)'])
@@ -80,7 +80,7 @@ describe('Material Usage Detection', () => {
           maxWidth: 920,
           type: 'single',
           frameThickness: 60,
-          frameMaterial: wood.id,
+          frameMaterial: roughWood.id,
           strawMaterial: strawbale.id
         },
         infill: {
@@ -90,7 +90,7 @@ describe('Material Usage Detection', () => {
           posts: {
             type: 'full',
             width: 60,
-            material: wood.id
+            material: roughWood.id
           }
         },
         layers: {
@@ -101,7 +101,7 @@ describe('Material Usage Detection', () => {
         }
       }
 
-      const usage = getMaterialUsage(wood.id, [], [wallAssembly], [], defaultStrawMaterialId)
+      const usage = getMaterialUsage(roughWood.id, [], [wallAssembly], [], defaultStrawMaterialId)
 
       expect(usage.isUsed).toBe(true)
       expect(usage.usedByConfigs).toEqual(['Wall: Test Strawhenge (module frame, infill posts)'])
@@ -119,7 +119,7 @@ describe('Material Usage Detection', () => {
           type: 'double',
           frameThickness: 60,
           frameWidth: 120,
-          frameMaterial: wood.id,
+          frameMaterial: roughWood.id,
           strawMaterial: strawbale.id,
           spacerSize: 120,
           spacerCount: 3,
@@ -133,7 +133,7 @@ describe('Material Usage Detection', () => {
           posts: {
             type: 'full',
             width: 60,
-            material: wood.id
+            material: roughWood.id
           }
         },
         layers: {
@@ -158,7 +158,7 @@ describe('Material Usage Detection', () => {
         id: createRingBeamAssemblyId(),
         name: 'Test Ring Beam',
         type: 'full',
-        material: wood.id,
+        material: roughWood.id,
         height: 60,
         width: 360,
         offsetFromEdge: 30
@@ -174,7 +174,7 @@ describe('Material Usage Detection', () => {
         posts: {
           type: 'full',
           width: 60,
-          material: wood.id
+          material: roughWood.id
         },
         layers: {
           insideThickness: 30,
@@ -184,7 +184,7 @@ describe('Material Usage Detection', () => {
         }
       }
 
-      const usage = getMaterialUsage(wood.id, [ringBeamAssembly], [wallAssembly], [], defaultStrawMaterialId)
+      const usage = getMaterialUsage(roughWood.id, [ringBeamAssembly], [wallAssembly], [], defaultStrawMaterialId)
 
       expect(usage.isUsed).toBe(true)
       expect(usage.usedByConfigs).toHaveLength(2)

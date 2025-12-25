@@ -7,7 +7,7 @@ import type {
   FullRingBeamAssemblyConfig,
   RingBeamAssemblyConfig
 } from '@/construction/config/types'
-import { bitumen, brick, cork, wood } from '@/construction/materials/material'
+import { bitumen, brick, cork, roughWood } from '@/construction/materials/material'
 import { type RingBeamConfig, validateRingBeamConfig } from '@/construction/ringBeams/types'
 
 export interface RingBeamAssembliesState {
@@ -50,7 +50,7 @@ const createDefaultRingBeamAssembly = (): FullRingBeamAssemblyConfig => ({
   id: 'ringbeam_default' as RingBeamAssemblyId,
   name: 'Full 36x6cm',
   type: 'full',
-  material: wood.id,
+  material: roughWood.id,
   height: 60,
   width: 360,
   offsetFromEdge: 0
@@ -66,7 +66,7 @@ const createDefaultBrickRingBeamAssembly = (): BrickRingBeamAssemblyConfig => ({
   wallMaterial: brick.id,
   beamThickness: 60,
   beamWidth: 360,
-  beamMaterial: wood.id,
+  beamMaterial: roughWood.id,
   waterproofingThickness: 2,
   waterproofingMaterial: bitumen.id,
   insulationThickness: 100,

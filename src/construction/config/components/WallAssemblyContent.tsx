@@ -26,7 +26,7 @@ import { getWallAssemblyUsage } from '@/construction/config/usage'
 import { DEFAULT_WALL_LAYER_SETS } from '@/construction/layers/defaults'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
-import { wood, woodwool } from '@/construction/materials/material'
+import { roughWood, woodwool } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'
 import { useMaterialActions } from '@/construction/materials/store'
 import type {
@@ -293,7 +293,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
                 frameWidth: 'frameWidth' in module ? module.frameWidth : 120,
                 spacerSize: 'spacerSize' in module ? module.spacerSize : 120,
                 spacerCount: 'spacerCount' in module ? module.spacerCount : 3,
-                spacerMaterial: 'spacerMaterial' in module ? module.spacerMaterial : wood.id,
+                spacerMaterial: 'spacerMaterial' in module ? module.spacerMaterial : roughWood.id,
                 infillMaterial: 'infillMaterial' in module ? module.infillMaterial : woodwool.id
               })
             }

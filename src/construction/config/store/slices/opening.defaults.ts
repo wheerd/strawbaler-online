@@ -3,7 +3,7 @@ import type {
   PostOpeningAssemblyConfig,
   SimpleOpeningAssemblyConfig
 } from '@/construction/config/types'
-import { wood, woodwool } from '@/construction/materials/material'
+import { roughWood, woodwool } from '@/construction/materials/material'
 
 export const DEFAULT_SIMPLE_ASSEMBLY: SimpleOpeningAssemblyConfig = {
   id: 'oa_simple_default',
@@ -11,9 +11,9 @@ export const DEFAULT_SIMPLE_ASSEMBLY: SimpleOpeningAssemblyConfig = {
   type: 'simple',
   padding: 15,
   sillThickness: 60,
-  sillMaterial: wood.id,
+  sillMaterial: roughWood.id,
   headerThickness: 60,
-  headerMaterial: wood.id
+  headerMaterial: roughWood.id
 }
 
 const postAssembly: PostOpeningAssemblyConfig = {
@@ -22,13 +22,13 @@ const postAssembly: PostOpeningAssemblyConfig = {
   type: 'post',
   padding: 15,
   sillThickness: 60,
-  sillMaterial: wood.id,
+  sillMaterial: roughWood.id,
   headerThickness: 140,
-  headerMaterial: wood.id,
+  headerMaterial: roughWood.id,
   posts: {
     type: 'double',
     infillMaterial: woodwool.id,
-    material: wood.id,
+    material: roughWood.id,
     thickness: 140,
     width: 100
   },

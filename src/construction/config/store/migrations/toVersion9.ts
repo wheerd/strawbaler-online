@@ -1,4 +1,4 @@
-import { strawbale, wood } from '@/construction/materials/material'
+import { roughWood, strawbale } from '@/construction/materials/material'
 
 import type { MigrationState } from './shared'
 
@@ -44,7 +44,7 @@ export function migrateToVersion9(state: MigrationState): void {
     }
 
     if (!('wallBeamMaterial' in assemblyConfig)) {
-      assemblyConfig.wallBeamMaterial = wood.id
+      assemblyConfig.wallBeamMaterial = roughWood.id
     }
 
     if (!('wallBeamInsideOffset' in assemblyConfig)) {
@@ -61,7 +61,7 @@ export function migrateToVersion9(state: MigrationState): void {
     }
 
     if (!('openingSideMaterial' in assemblyConfig)) {
-      assemblyConfig.openingSideMaterial = wood.id
+      assemblyConfig.openingSideMaterial = roughWood.id
     }
   }
 }

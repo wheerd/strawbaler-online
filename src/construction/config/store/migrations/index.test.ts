@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { strawbale, wood, woodwool } from '@/construction/materials/material'
+import { roughWood, strawbale, woodwool } from '@/construction/materials/material'
 
 import { applyMigrations } from './index'
 
@@ -24,7 +24,7 @@ describe('config migrations', () => {
     const module = migrated.wallAssemblyConfigs.missingFields.module
     expect(module.spacerSize).toBe(120)
     expect(module.spacerCount).toBe(3)
-    expect(module.spacerMaterial).toBe(wood.id)
+    expect(module.spacerMaterial).toBe(roughWood.id)
     expect(module.infillMaterial).toBe(woodwool.id)
   })
 

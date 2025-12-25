@@ -1,4 +1,4 @@
-import { wood, woodwool } from '@/construction/materials/material'
+import { roughWood, woodwool } from '@/construction/materials/material'
 
 import type { MigrationState } from './shared'
 
@@ -46,7 +46,7 @@ function ensureDoubleModuleDefaults(module: unknown): void {
   moduleConfig.spacerCount = Number.isFinite(parsedSpacerCount) && parsedSpacerCount >= 2 ? parsedSpacerCount : 3
 
   if (moduleConfig.spacerMaterial == null) {
-    moduleConfig.spacerMaterial = wood.id
+    moduleConfig.spacerMaterial = roughWood.id
   }
 
   if (moduleConfig.infillMaterial == null) {

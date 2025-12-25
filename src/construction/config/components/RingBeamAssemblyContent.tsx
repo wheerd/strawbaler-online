@@ -27,7 +27,7 @@ import {
 } from '@/construction/config/store'
 import { getRingBeamAssemblyUsage } from '@/construction/config/usage'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
-import { bitumen, brick, cork, wood, woodwool } from '@/construction/materials/material'
+import { bitumen, brick, cork, roughWood, woodwool } from '@/construction/materials/material'
 import { type RingBeamConfig, resolveRingBeamAssembly } from '@/construction/ringBeams'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
@@ -77,7 +77,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
         config = {
           type: 'full',
           height: 60,
-          material: wood.id,
+          material: roughWood.id,
           width: 360,
           offsetFromEdge: 0
         }
@@ -85,7 +85,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
         config = {
           type: 'double',
           height: 60,
-          material: wood.id,
+          material: roughWood.id,
           thickness: 120,
           infillMaterial: woodwool.id,
           offsetFromEdge: 0,
@@ -99,7 +99,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           wallMaterial: brick.id,
           beamThickness: 60,
           beamWidth: 360,
-          beamMaterial: wood.id,
+          beamMaterial: roughWood.id,
           waterproofingThickness: 2,
           waterproofingMaterial: bitumen.id,
           insulationThickness: 100,

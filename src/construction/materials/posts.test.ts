@@ -7,18 +7,18 @@ import type { CuboidShape } from '@/construction/shapes'
 import { getPosition, newVec3 } from '@/shared/geometry'
 
 import type { Material, MaterialId } from './material'
-import { wood } from './material'
+import { roughWood } from './material'
 import { type DoublePostConfig, type FullPostConfig, constructPost } from './posts'
 
 const mockWoodMaterial = 'wood-material' as MaterialId
 const mockStrawMaterial = 'straw-material' as MaterialId
 
-const dimensionalMaterialId = wood.id
+const dimensionalMaterialId = roughWood.id
 
 vi.mock('./store', () => ({
   getMaterialById: vi.fn().mockImplementation((materialId: MaterialId): Material | undefined => {
     if (materialId === dimensionalMaterialId) {
-      return wood
+      return roughWood
     }
     // Return undefined for mock materials (no warnings)
     return undefined

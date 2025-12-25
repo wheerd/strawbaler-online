@@ -1,12 +1,12 @@
 import {
+  battens,
+  boards,
   cementScreed,
   clayPlasterBase,
   clayPlasterFine,
   impactSoundInsulation,
   limePlasterBase,
-  limePlasterFine,
-  wood,
-  woodPlanking
+  limePlasterFine
 } from '@/construction/materials/material'
 import type { MaterialId } from '@/construction/materials/material'
 import type { Length } from '@/shared/geometry'
@@ -30,7 +30,7 @@ export const DEFAULT_WALL_LAYER_SETS = {
       type: 'striped',
       name: 'Diagonal Bracing',
       direction: 'diagonal',
-      stripeMaterial: wood.id,
+      stripeMaterial: boards.id,
       stripeWidth: 150,
       gapMaterial: clayPlasterBase.id,
       gapWidth: 50,
@@ -47,7 +47,7 @@ export const DEFAULT_WALL_LAYER_SETS = {
       type: 'striped',
       name: 'Diagonal Bracing',
       direction: 'diagonal',
-      stripeMaterial: wood.id,
+      stripeMaterial: boards.id,
       stripeWidth: 150,
       gapMaterial: limePlasterBase.id,
       gapWidth: 50,
@@ -60,7 +60,7 @@ export const DEFAULT_WALL_LAYER_SETS = {
       type: 'striped',
       name: 'Battens',
       direction: 'perpendicular',
-      stripeMaterial: wood.id,
+      stripeMaterial: battens.id,
       stripeWidth: 48,
       gapMaterial: clayPlasterBase.id,
       gapWidth: 500,
@@ -70,12 +70,12 @@ export const DEFAULT_WALL_LAYER_SETS = {
       type: 'striped',
       name: 'Counter Battens',
       direction: 'colinear',
-      stripeMaterial: wood.id,
+      stripeMaterial: battens.id,
       stripeWidth: 48,
       gapWidth: 500,
       thickness: 24
     } satisfies LayerConfig,
-    createMonolithicLayer(woodPlanking.id, 25, 'Wood Planking')
+    createMonolithicLayer(boards.id, 25, 'Wood Planking')
   ]
 } satisfies Record<string, LayerConfig[]>
 
@@ -105,8 +105,8 @@ export const DEFAULT_ROOF_LAYER_SETS = {
       direction: 'colinear',
       name: 'Battens',
       gapWidth: 500,
-      thickness: 60,
-      stripeMaterial: wood.id,
+      thickness: 40,
+      stripeMaterial: battens.id,
       stripeWidth: 60
     },
     {
@@ -115,8 +115,8 @@ export const DEFAULT_ROOF_LAYER_SETS = {
       name: 'Counter Battens',
       gapWidth: 300,
       thickness: 30,
-      stripeMaterial: wood.id,
-      stripeWidth: 40
+      stripeMaterial: battens.id,
+      stripeWidth: 50
     },
     createMonolithicLayer('material_invalid' as MaterialId, 35, 'Tiles')
   ]

@@ -5,9 +5,9 @@ import {
   DEFAULT_MATERIALS,
   clt,
   osb,
+  roughWood,
   strawbale,
-  window as windowMaterial,
-  wood
+  window as windowMaterial
 } from '@/construction/materials/material'
 import type { MaterialId } from '@/construction/materials/material'
 import { setMaterialsState } from '@/construction/materials/store'
@@ -52,7 +52,7 @@ const createModel = (elements: ConstructionModel['elements']): ConstructionModel
   }
 }
 
-const woodMaterialId = wood.id
+const woodMaterialId = roughWood.id
 const cltMaterialId = clt.id
 const strawbaleMaterialId = strawbale.id
 

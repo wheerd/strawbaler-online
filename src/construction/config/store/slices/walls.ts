@@ -24,8 +24,8 @@ import {
   concrete,
   limePlasterBase,
   limePlasterFine,
-  strawbale,
-  wood
+  roughWood,
+  strawbale
 } from '@/construction/materials/material'
 import { type WallConfig, validateWallConfig } from '@/construction/walls/types'
 
@@ -94,7 +94,7 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
       width: 60,
       thickness: 120,
       infillMaterial: strawbale.id,
-      material: wood.id
+      material: roughWood.id
     },
     // No openingAssemblyId - uses global default
     layers: {
@@ -113,7 +113,7 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
       maxWidth: 920,
       type: 'single',
       frameThickness: 60,
-      frameMaterial: wood.id,
+      frameMaterial: roughWood.id,
       strawMaterial: strawbale.id
     },
     infill: {
@@ -123,7 +123,7 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
       posts: {
         type: 'full',
         width: 60,
-        material: wood.id
+        material: roughWood.id
       }
     },
     // No openingAssemblyId - uses global default
@@ -143,7 +143,7 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
       maxWidth: 920,
       type: 'single',
       frameThickness: 60,
-      frameMaterial: wood.id,
+      frameMaterial: roughWood.id,
       strawMaterial: strawbale.id
     },
     infill: {
@@ -153,7 +153,7 @@ const createDefaultWallAssemblies = (): WallAssemblyConfig[] => [
       posts: {
         type: 'full',
         width: 60,
-        material: wood.id
+        material: roughWood.id
       }
     },
     // No openingAssemblyId - uses global default
