@@ -1,15 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createConstructionElement } from '@/construction/elements'
-import {
-  DEFAULT_MATERIALS,
-  clt,
-  osb,
-  roughWood,
-  strawbale,
-  window as windowMaterial
-} from '@/construction/materials/material'
-import type { MaterialId } from '@/construction/materials/material'
+import { DEFAULT_MATERIALS, clt, osb, roughWood, strawbale } from '@/construction/materials/material'
+import type { GenericMaterial, MaterialId } from '@/construction/materials/material'
 import { setMaterialsState } from '@/construction/materials/store'
 import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
 import { createCuboid, createExtrudedPolygon } from '@/construction/shapes'
@@ -52,10 +45,6 @@ const createModel = (elements: ConstructionModel['elements']): ConstructionModel
   }
 }
 
-const woodMaterialId = roughWood.id
-const cltMaterialId = clt.id
-const strawbaleMaterialId = strawbale.id
-
 const createElement = (materialId: MaterialId, partInfo: InitialPartInfo, size: Vec3) =>
   createConstructionElement(materialId, createCuboid(size), undefined, undefined, partInfo)
 
@@ -71,20 +60,27 @@ beforeEach(() => {
   minimumAreaBoundingBoxMock.mockClear()
 })
 
+const genericMaterial: GenericMaterial = {
+  type: 'generic',
+  id: 'generic_material' as MaterialId,
+  name: 'Generic',
+  color: 'red'
+}
+
 describe('generateMaterialPartsList', () => {
   beforeEach(() => {
-    setMaterialsState({ materials: { ...DEFAULT_MATERIALS } })
+    setMaterialsState({ materials: { ...DEFAULT_MATERIALS, [genericMaterial.id]: genericMaterial } })
   })
 
   it('aggregates identical dimensional parts', () => {
-    const elementA = createElement(woodMaterialId, { type: 'post' }, newVec3(5000, 360, 60))
-    const elementB = createElement(woodMaterialId, { type: 'post' }, newVec3(5000, 360, 60))
+    const elementA = createElement(roughWood.id, { type: 'post' }, newVec3(5000, 360, 60))
+    const elementB = createElement(roughWood.id, { type: 'post' }, newVec3(5000, 360, 60))
     const model = createModel([elementA, elementB])
 
     const partsList = generateMaterialPartsList(model)
 
     const partInfo = elementA.partInfo as FullPartInfo
-    const materialParts = partsList[woodMaterialId]
+    const materialParts = partsList[roughWood.id]
     const part = materialParts.parts[partInfo.id]
 
     expect(materialParts.totalQuantity).toBe(2)
@@ -101,26 +97,26 @@ describe('generateMaterialPartsList', () => {
   })
 
   it('stores cross section metadata for dimensional parts', () => {
-    const element = createElement(woodMaterialId, { type: 'stud' }, newVec3(4000, 120, 60))
+    const element = createElement(roughWood.id, { type: 'stud' }, newVec3(4000, 120, 60))
     const model = createModel([element])
 
     const list = generateMaterialPartsList(model)
 
     const partInfo = element.partInfo as FullPartInfo
-    const part = list[woodMaterialId].parts[partInfo.id]
+    const part = list[roughWood.id].parts[partInfo.id]
     expect(part.crossSection).toEqual({ smallerLength: 60, biggerLength: 120 })
   })
 
   it('assigns sequential labels per material when parts differ', () => {
-    const elementA = createElement(woodMaterialId, { type: 'post' }, newVec3(5000, 360, 60))
-    const elementB = createElement(woodMaterialId, { type: 'post' }, newVec3(3000, 360, 60))
+    const elementA = createElement(roughWood.id, { type: 'post' }, newVec3(5000, 360, 60))
+    const elementB = createElement(roughWood.id, { type: 'post' }, newVec3(3000, 360, 60))
 
     const model = createModel([elementA, elementB])
     generateMaterialPartsList(model)
 
     const partInfoA = elementA.partInfo as FullPartInfo
     const partInfoB = elementB.partInfo as FullPartInfo
-    const { parts, totalQuantity } = generateMaterialPartsList(model)[woodMaterialId]
+    const { parts, totalQuantity } = generateMaterialPartsList(model)[roughWood.id]
 
     expect(totalQuantity).toBe(2)
     expect(parts[partInfoA.id].label).toBe('A')
@@ -130,13 +126,13 @@ describe('generateMaterialPartsList', () => {
   })
 
   it('stores thickness metadata for sheet parts', () => {
-    const element = createElement(cltMaterialId, { type: 'sheet' }, newVec3(160, 16500, 3500))
+    const element = createElement(clt.id, { type: 'sheet' }, newVec3(160, 16500, 3500))
 
     const model = createModel([element])
     generateMaterialPartsList(model) // Populates partInfo
     const partInfo = element.partInfo as FullPartInfo
     const list = generateMaterialPartsList(model)
-    const part = list[cltMaterialId].parts[partInfo.id]
+    const part = list[clt.id].parts[partInfo.id]
     expect(part.thickness).toBe(160)
   })
 
@@ -145,7 +141,7 @@ describe('generateMaterialPartsList', () => {
     const partialSize = newVec3(strawbale.baleMaxLength / 2, strawbale.baleWidth, strawbale.baleHeight)
 
     const fullElement = createConstructionElement(
-      strawbaleMaterialId,
+      strawbale.id,
       createCuboid(copyVec3(fullSize)),
       undefined,
       [TAG_FULL_BALE],
@@ -153,7 +149,7 @@ describe('generateMaterialPartsList', () => {
     )
 
     const partialElement = createConstructionElement(
-      strawbaleMaterialId,
+      strawbale.id,
       createCuboid(copyVec3(partialSize)),
       undefined,
       [TAG_PARTIAL_BALE],
@@ -161,7 +157,7 @@ describe('generateMaterialPartsList', () => {
     )
 
     const model = createModel([fullElement, partialElement])
-    const strawParts = generateMaterialPartsList(model)[strawbaleMaterialId].parts
+    const strawParts = generateMaterialPartsList(model)[strawbale.id].parts
 
     const fullBucket = strawParts['strawbale:full' as PartId]
     const partialBucket = strawParts['strawbale:partial' as PartId]
@@ -180,9 +176,9 @@ describe('generateMaterialPartsList', () => {
   })
 
   it('omits length metrics for non-dimensional materials', () => {
-    const element = createElement(windowMaterial.id, { type: 'window' }, newVec3(1200, 1200, 120))
+    const element = createElement(genericMaterial.id, { type: 'window' }, newVec3(1200, 1200, 120))
     const model = createModel([element])
-    const materialParts = generateMaterialPartsList(model)[windowMaterial.id]
+    const materialParts = generateMaterialPartsList(model)[genericMaterial.id]
     const partInfo = element.partInfo as FullPartInfo
     const part = materialParts.parts[partInfo.id]
 
@@ -193,33 +189,33 @@ describe('generateMaterialPartsList', () => {
   })
 
   it('records an issue when the cross section does not match the material', () => {
-    const element = createElement(woodMaterialId, { type: 'post' }, newVec3(5000, 200, 60))
+    const element = createElement(roughWood.id, { type: 'post' }, newVec3(5000, 200, 60))
     const model = createModel([element])
 
     generateMaterialPartsList(model)
     const partInfo = element.partInfo as FullPartInfo
-    const part = generateMaterialPartsList(model)[woodMaterialId].parts[partInfo.id]
+    const part = generateMaterialPartsList(model)[roughWood.id].parts[partInfo.id]
     expect(part.issue).toBe('CrossSectionMismatch')
     expect(part.length).toBe(5000)
   })
 
   it('records an issue when the part length exceeds available standard lengths', () => {
-    const element = createElement(woodMaterialId, { type: 'post' }, newVec3(6000, 360, 60))
+    const element = createElement(roughWood.id, { type: 'post' }, newVec3(6000, 360, 60))
     const model = createModel([element])
 
     generateMaterialPartsList(model)
     const partInfo = element.partInfo as FullPartInfo
-    const part = generateMaterialPartsList(model)[woodMaterialId].parts[partInfo.id]
+    const part = generateMaterialPartsList(model)[roughWood.id].parts[partInfo.id]
     expect(part.issue).toBe('LengthExceedsAvailable')
     expect(part.length).toBe(6000)
   })
 
   it('handles parts nested inside groups', () => {
-    const element = createElement(woodMaterialId, { type: 'post' }, newVec3(5000, 360, 60))
+    const element = createElement(roughWood.id, { type: 'post' }, newVec3(5000, 360, 60))
     const group = createConstructionGroup([element], IDENTITY)
 
     const model = createModel([group])
-    const materialParts = generateMaterialPartsList(model)[woodMaterialId]
+    const materialParts = generateMaterialPartsList(model)[roughWood.id]
     const partInfo = element.partInfo as FullPartInfo
     const part = materialParts.parts[partInfo.id]
 
@@ -271,7 +267,7 @@ describe('generateMaterialPartsList', () => {
   })
 
   it('creates entries for elements without part info', () => {
-    const nonPartElement = createConstructionElement(woodMaterialId, createCuboid(newVec3(5000, 360, 60)))
+    const nonPartElement = createConstructionElement(roughWood.id, createCuboid(newVec3(5000, 360, 60)))
 
     const model = createModel([nonPartElement])
     const partsList = generateMaterialPartsList(model)

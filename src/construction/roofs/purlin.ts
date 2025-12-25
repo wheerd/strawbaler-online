@@ -41,12 +41,14 @@ import {
   type LineSegment2D,
   type Polygon2D,
   type Vec2,
+  addVec2,
   direction,
   distVec2,
   dotAbsVec2,
   dotVec2,
   ensurePolygonIsClockwise,
   fromTrans,
+  getPosition,
   intersectLineSegmentWithPolygon,
   intersectLineWithPolygon,
   intersectPolygons,
@@ -66,7 +68,8 @@ import {
   splitPolygonByLine,
   subVec2,
   subtractPolygons,
-  unionPolygons
+  unionPolygons,
+  vec3To2
 } from '@/shared/geometry'
 
 import type { HeightLine, PurlinRoofConfig } from './types'
@@ -201,9 +204,12 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       .filter(p => 'shape' in p)
       .flatMap(purlin => {
         const purlinPolygon = (purlin.shape.base as ExtrudedShape).polygon.outer
-        const intersection = intersectLineSegmentWithPolygon(line, purlinPolygon)
+        const position = getPosition(purlin.transform)
+        const position2D = vec3To2(position)
+        const transformed: Polygon2D = { points: purlinPolygon.points.map(p => addVec2(p, position2D)) }
+        const intersection = intersectLineSegmentWithPolygon(line, transformed)
         if (!intersection) return []
-        const offset = purlin.transform[14]
+        const offset = position[2]
         return [{ tStart: intersection.segments[0].tStart, tEnd: intersection.segments[0].tEnd, offset }]
       })
       .sort((a, b) => b.tStart - a.tStart)

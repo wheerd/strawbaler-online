@@ -129,7 +129,7 @@ const computeDimensionalDetails = (size: Vec3, material: DimensionalMaterial) =>
 
 const computeSheetDetails = (size: Vec3, material: SheetMaterial) => {
   let issue: PartIssue | undefined
-  const dimensions = [Math.round(size[0]), Math.round(size[1]), Math.round(size[2])] as [number, number, number]
+  const dimensions = [Math.round(size[0]), Math.round(size[1]), Math.round(size[2])].sort() as [number, number, number]
 
   const thicknessIndex = dimensions.findIndex(d => material.thicknesses.includes(d))
   let thickness: Length
@@ -437,12 +437,19 @@ function processConstructionElement(
   }
 
   const materialDefinition = getMaterialById(materialEntry.material)
-  if (materialDefinition?.type === 'sheet') {
-    if (!polygon) {
+  if (!polygon) {
+    if (materialDefinition?.type === 'sheet') {
       const details = computeSheetDetails(arrayToVec3(size), materialDefinition)
       area = details.areaSize[0] * details.areaSize[1]
       thickness = details.thickness
+    } else if (materialDefinition?.type === 'volume') {
+      area = size[1] * size[2]
+      thickness = size[0]
     }
+  }
+
+  if (thickness != null) {
+    partId = `${partId}_${thickness}` as PartId
   }
 
   const existingPart = materialEntry.parts[partId]

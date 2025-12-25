@@ -826,7 +826,7 @@ function VolumePartsTable({
             Quantity
           </Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell width="5em" justify="end">
-            Area
+            Thickness
           </Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell width="8em" justify="end">
             Total Area
@@ -853,7 +853,7 @@ function VolumePartsTable({
               <Table.Cell>{part.type}</Table.Cell>
               <Table.Cell>{part.description}</Table.Cell>
               <Table.Cell justify="center">{part.quantity}</Table.Cell>
-              <Table.Cell justify="end"> {part.area !== undefined ? formatArea(part.area) : '—'}</Table.Cell>
+              <Table.Cell justify="end">{part.thickness !== undefined ? formatLength(part.thickness) : '—'}</Table.Cell>
               <Table.Cell justify="end">{part.totalArea !== undefined ? formatArea(part.totalArea) : '—'}</Table.Cell>
               <Table.Cell justify="end">{formatVolume(part.totalVolume)}</Table.Cell>
               <Table.Cell justify="end">{formatWeight(partWeight)}</Table.Cell>
