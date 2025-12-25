@@ -28,6 +28,7 @@ import {
   type Vec2,
   type Vec3,
   type Volume,
+  ZERO_VEC3,
   arrayToVec3,
   calculatePolygonWithHolesArea,
   copyVec3,
@@ -401,6 +402,7 @@ function processConstructionElement(
   let type: string
 
   const size = Array.from(element.bounds.size).sort()
+  let includeSize = true
 
   const layerTags = tags.filter(
     t => t.category === 'wall-layer' || t.category === 'floor-layer' || t.category === 'roof-layer'
@@ -420,6 +422,7 @@ function processConstructionElement(
     partId = `auto_${layerTag.id}` as PartId
     description = layerTag.label
     type = getLayerType(layerTags)
+    includeSize = false
   } else {
     partId = `auto_${size.join('x')}` as PartId
     type = '-'
@@ -446,6 +449,8 @@ function processConstructionElement(
       area = size[1] * size[2]
       thickness = size[0]
     }
+  } else {
+    includeSize = false
   }
 
   if (thickness != null) {
@@ -481,7 +486,7 @@ function processConstructionElement(
     description,
     label,
     material: materialEntry.material,
-    size: fullInfo.boxSize,
+    size: includeSize ? fullInfo.boxSize : ZERO_VEC3,
     elements: [element.id],
     totalVolume: volume,
     quantity: 1,

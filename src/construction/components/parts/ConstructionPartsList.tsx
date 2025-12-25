@@ -63,6 +63,28 @@ const formatCrossSection = ([first, second]: [number, number]) =>
 const formatDimensions = (size: Vec3) =>
   `${formatLengthInMeters(size[0])} × ${formatLengthInMeters(size[1])} × ${formatLengthInMeters(size[2])}`
 
+const formatSheetDimensions = (size: Vec3, thickness?: number) => {
+  if (thickness === undefined) {
+    return formatDimensions(size)
+  }
+
+  // Find which dimension matches the thickness and filter it out
+  const dimensions: number[] = []
+  for (let i = 0; i < 3; i++) {
+    if (Math.round(size[i]) !== Math.round(thickness)) {
+      dimensions.push(size[i])
+    }
+  }
+
+  // If we successfully filtered out exactly one dimension, show 2D format
+  if (dimensions.length === 2) {
+    return `${formatLengthInMeters(dimensions[0])} × ${formatLengthInMeters(dimensions[1])}`
+  }
+
+  // Fallback to full 3D format if something unexpected happened
+  return formatDimensions(size)
+}
+
 const formatWeight = (weight?: number) => {
   if (weight === undefined) return '—'
   if (weight > 1000) {
@@ -781,7 +803,7 @@ function SheetPartsTable({
                       <ExclamationTriangleIcon aria-hidden style={{ color: 'var(--amber-9)' }} />
                     </Tooltip>
                   )}
-                  <Text>{isZeroVec3(part.size) ? '' : formatDimensions(part.size)}</Text>
+                  <Text>{isZeroVec3(part.size) ? '' : formatSheetDimensions(part.size, part.thickness)}</Text>
                 </Flex>
               </Table.Cell>
               <Table.Cell justify="center">{part.quantity}</Table.Cell>

@@ -543,7 +543,8 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         this.config.deckingMaterial,
         createExtrudedPolygon({ outer: deckingArea, holes: [] }, 'xy', this.config.deckingThickness),
         fromTrans(newVec3(0, 0, this.config.thickness)),
-        [TAG_DECKING]
+        [TAG_DECKING],
+        { type: 'roof-decking' }
       )
     )
   }
