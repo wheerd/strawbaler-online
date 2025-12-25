@@ -8,6 +8,7 @@ import { getMaterialTypeIcon, getMaterialTypeName } from '@/construction/materia
 import type {
   DimensionalMaterial,
   Material,
+  MaterialType,
   SheetMaterial,
   StrawbaleMaterial,
   VolumeMaterial
@@ -1061,7 +1062,26 @@ export function ConstructionPartsList({ partsList, onViewInPlan }: ConstructionP
     }
   }, [])
 
-  const materialIds = useMemo(() => Object.keys(partsList) as Material['id'][], [partsList])
+  const materialIds = useMemo(() => {
+    const MATERIAL_TYPE_ORDER: MaterialType[] = ['strawbale', 'dimensional', 'sheet', 'volume', 'generic']
+
+    return (Object.keys(partsList) as Material['id'][])
+      .map(id => ({ id, material: materialsMap[id] }))
+      .filter((item): item is { id: Material['id']; material: Material } => item.material !== undefined)
+      .sort((a, b) => {
+        // Sort by type first
+        const typeA = a.material.type
+        const typeB = b.material.type
+        if (typeA !== typeB) {
+          const orderA = MATERIAL_TYPE_ORDER.indexOf(typeA)
+          const orderB = MATERIAL_TYPE_ORDER.indexOf(typeB)
+          return orderA - orderB
+        }
+        // Then sort by name
+        return a.material.name.localeCompare(b.material.name)
+      })
+      .map(({ id }) => id)
+  }, [partsList, materialsMap])
 
   if (materialIds.length === 0) {
     return (
