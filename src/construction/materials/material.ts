@@ -171,20 +171,6 @@ export const strawbale: StrawbaleMaterial = {
   density: 110
 }
 
-export const window: GenericMaterial = {
-  id: 'material_window' as MaterialId,
-  name: 'Window',
-  color: MATERIAL_COLORS.window,
-  type: 'generic'
-}
-
-export const door: GenericMaterial = {
-  id: 'material_door' as MaterialId,
-  name: 'Door',
-  color: MATERIAL_COLORS.door,
-  type: 'generic'
-}
-
 export const concrete: VolumeMaterial = {
   id: 'material_concrete' as MaterialId,
   name: 'Concrete',
@@ -374,6 +360,20 @@ export const fireProtectionBoarding: SheetMaterial = {
   density: 500
 }
 
+export const windBarrier: SheetMaterial = {
+  id: 'material_wind_barrier' as MaterialId,
+  name: 'Wind Barrier Membrane',
+  sizes: [
+    { smallerLength: 1500, biggerLength: 25000 },
+    { smallerLength: 1500, biggerLength: 50000 }
+  ],
+  thicknesses: [1],
+  sheetType: 'flexible',
+  type: 'sheet',
+  color: '#2a2a28',
+  density: 150
+}
+
 export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [battens.id]: battens,
   [bitumen.id]: bitumen,
@@ -386,7 +386,6 @@ export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [concrete.id]: concrete,
   [cork.id]: cork,
   [dhf.id]: dhf,
-  [door.id]: door,
   [fireProtectionBoarding.id]: fireProtectionBoarding,
   [glt.id]: glt,
   [gypsum.id]: gypsum,
@@ -398,6 +397,6 @@ export const DEFAULT_MATERIALS: Record<MaterialId, Material> = {
   [roughWood.id]: roughWood,
   [strawbale.id]: strawbale,
   [structuralWood.id]: structuralWood,
-  [window.id]: window,
+  [windBarrier.id]: windBarrier,
   [woodwool.id]: woodwool
 }
