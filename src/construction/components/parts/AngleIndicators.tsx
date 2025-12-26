@@ -1,6 +1,15 @@
 import React, { useMemo } from 'react'
 
-import { type Polygon2D, type PolygonWithHoles2D, type Vec2, addVec2, newVec2, scaleVec2 } from '@/shared/geometry'
+import {
+  type Polygon2D,
+  type PolygonWithHoles2D,
+  type Vec2,
+  addVec2,
+  ensurePolygonIsClockwise,
+  newVec2,
+  scaleAddVec2,
+  scaleVec2
+} from '@/shared/geometry'
 
 import {
   calculateInteriorAngle,
@@ -19,13 +28,15 @@ interface AngleIndicatorProps {
 }
 
 function RightAngleIndicator({ vertex, prevPoint, nextPoint, scaleFactor }: AngleIndicatorProps): React.JSX.Element {
+  const bisector = getAngleBisector(prevPoint, vertex, nextPoint)
+
   const { dir1, dir2 } = getEdgeDirections(prevPoint, vertex, nextPoint)
   const size = 6 * scaleFactor
 
   // Calculate the two perpendicular edges of the square
-  const p1 = addVec2(vertex, scaleVec2(dir1, size))
-  const corner = addVec2(addVec2(vertex, scaleVec2(dir1, size)), scaleVec2(dir2, size))
-  const p2 = addVec2(vertex, scaleVec2(dir2, size))
+  const p1 = scaleAddVec2(vertex, dir1, size)
+  const corner = scaleAddVec2(vertex, bisector, size * Math.SQRT2)
+  const p2 = scaleAddVec2(vertex, dir2, size)
 
   return (
     <path
@@ -57,13 +68,14 @@ function AngleArcIndicator({ vertex, prevPoint, nextPoint, scaleFactor }: AngleI
   const endX = vertex[0] + radius * Math.cos(endAngle)
   const endY = vertex[1] + radius * Math.sin(endAngle)
 
-  // Determine sweep direction - arc should bow outward from the corner
-  // We always sweep the smaller angle, which means sweepFlag = 1
+  // Determine sweep direction
+  // For interior angles: sweep clockwise (sweepFlag = 1)
+  // For exterior angles: sweep counter-clockwise (sweepFlag = 0)
   const largeArcFlag = angle > 180 ? 1 : 0
-  const sweepFlag = 1
+  const sweepFlag = useExterior ? 0 : 1
 
   // Calculate label position (at the bisector)
-  const bisector = getAngleBisector(prevPoint, vertex, nextPoint, useExterior)
+  const bisector = getAngleBisector(prevPoint, vertex, nextPoint)
   const labelPos = addVec2(vertex, scaleVec2(bisector, radius * 0.6))
 
   const arcPath = `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${endX} ${endY}`
@@ -154,7 +166,7 @@ export function PolygonAngleIndicators({
 
     // Add angles from holes
     for (const hole of polygon.holes) {
-      angles.push(...getPolygonAngles(hole, coordinateMapper))
+      angles.push(...getPolygonAngles(ensurePolygonIsClockwise(hole), coordinateMapper))
     }
 
     return angles

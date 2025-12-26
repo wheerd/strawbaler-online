@@ -68,20 +68,8 @@ export function getEdgeDirections(
   return { dir1, dir2 }
 }
 
-/**
- * Calculate the bisector direction for an angle.
- * This is used to position angle indicators on the correct side.
- */
-export function getAngleBisector(prevPoint: Vec2, vertex: Vec2, nextPoint: Vec2, useExterior: boolean): Vec2 {
-  const { dir1, dir2 } = getEdgeDirections(prevPoint, vertex, nextPoint)
-
-  // Calculate bisector (average of the two directions)
-  let bisector = normVec2(newVec2(dir1[0] + dir2[0], dir1[1] + dir2[1]))
-
-  // If using exterior angle, flip the bisector
-  if (useExterior) {
-    bisector = newVec2(-bisector[0], -bisector[1])
-  }
-
-  return bisector
+export function getAngleBisector(prevPoint: Vec2, vertex: Vec2, nextPoint: Vec2): Vec2 {
+  const v1 = normVec2(subVec2(prevPoint, vertex))
+  const v2 = normVec2(subVec2(nextPoint, vertex))
+  return normVec2(newVec2(v1[0] + v2[0], v1[1] + v2[1]))
 }
