@@ -1,6 +1,7 @@
 import type { Manifold } from 'manifold-3d'
 
 import type { Roof } from '@/building/model'
+import type { MonolithicRoofAssemblyConfig } from '@/construction/config'
 import { createConstructionElement } from '@/construction/elements'
 import { transformManifold } from '@/construction/manifold/operations'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
@@ -14,7 +15,7 @@ import {
 } from '@/construction/results'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/roofs/base'
 import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_ROOF, TAG_ROOF_SIDE_LEFT, TAG_ROOF_SIDE_RIGHT } from '@/construction/tags'
+import { TAG_MONOLITHIC_ROOF, TAG_ROOF, TAG_ROOF_SIDE_LEFT, TAG_ROOF_SIDE_RIGHT, createTag } from '@/construction/tags'
 import {
   IDENTITY,
   type Length,
@@ -68,7 +69,8 @@ export class MonolithicRoofAssembly extends BaseRoofAssembly<MonolithicRoofConfi
       return transformModel(resultsToModel(results), roofSide.transform, [sideTag])
     })
 
-    return transformModel(mergeModels(...roofModels), IDENTITY, [TAG_ROOF])
+    const nameTag = createTag('roof-assembly', (this.config as unknown as MonolithicRoofAssemblyConfig).name)
+    return transformModel(mergeModels(...roofModels), IDENTITY, [TAG_ROOF, TAG_MONOLITHIC_ROOF, nameTag])
   }
 
   get constructionThickness(): Length {

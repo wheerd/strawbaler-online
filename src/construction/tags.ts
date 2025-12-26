@@ -23,16 +23,19 @@ export const ALL_CATEGORIES = {
   'module-part': { label: 'Module Parts' },
 
   'floor-layer': { label: 'Floor Layers' },
-  'floor-wood': { label: 'Floor Wood' },
+  'floor-part': { label: 'Floor Part' },
+  'floor-assembly': { label: 'Floor Assembly' },
   'floor-measurement': { label: 'Floor Measurement' },
 
   'roof-part': { label: 'Roof Parts' },
   'roof-layer': { label: 'Roof Layers' },
   'roof-side': { label: 'Roof Side' },
+  'roof-assembly': { label: 'Roof Assembly' },
   'roof-measurement': { label: 'Roof Measurement' },
 
   'ring-beam-part': { label: 'Ring Beam Part' },
   'ring-beam-measurement': { label: 'Ring Beam Measurement' },
+  'ring-beam-assembly': { label: 'Ring Beam Assembly' },
 
   'finished-measurement': { label: 'Finished Measurement' },
 
@@ -416,33 +419,45 @@ export const TAG_LAYERS: Tag = {
 
 // Floor wood
 export const TAG_JOIST: Tag = {
-  id: 'floor-wood_joist',
+  id: 'floor-part_joist',
   label: 'Joist',
-  category: 'floor-wood'
+  category: 'floor-part'
+}
+
+export const TAG_FLOOR_WALL_BEAM: Tag = {
+  id: 'floor-part_wall-beam',
+  label: 'Wall Beam',
+  category: 'floor-part'
+}
+
+export const TAG_FLOOR_INFILL: Tag = {
+  id: 'floor-part_infill',
+  label: 'Wall Infill',
+  category: 'floor-part'
 }
 
 export const TAG_FLOOR_FRAME: Tag = {
-  id: 'floor-wood_frame',
+  id: 'floor-part_frame',
   label: 'Frame',
-  category: 'floor-wood'
+  category: 'floor-part'
 }
 
 export const TAG_FLOOR_OPENING_FRAME: Tag = {
-  id: 'floor-wood_opening-frame',
+  id: 'floor-part_opening-frame',
   label: 'Opening Frame',
-  category: 'floor-wood'
+  category: 'floor-part'
 }
 
 export const TAG_SUBFLOOR: Tag = {
-  id: 'floor-wood_subfloor',
+  id: 'floor-part_subfloor',
   label: 'Subfloor',
-  category: 'floor-wood'
+  category: 'floor-part'
 }
 
 export const TAG_FLOOR_CEILING_SHEATHING: Tag = {
-  id: 'floor-wood_ceiling-sheathing',
+  id: 'floor-part_ceiling-sheathing',
   label: 'Ceiling Sheathing',
-  category: 'floor-wood'
+  category: 'floor-part'
 }
 
 // Floor Measurement tags
@@ -456,6 +471,25 @@ export const TAG_JOIST_LENGTH: Tag = {
   id: 'floor-measurement_joist-length',
   label: 'Joist Length',
   category: 'floor-measurement'
+}
+
+// Floor assembly type tags
+export const TAG_MONOLITHIC_FLOOR: Tag = {
+  id: 'floor-assembly_monolithic',
+  label: 'Type: Monolithic',
+  category: 'floor-assembly'
+}
+
+export const TAG_JOIST_FLOOR: Tag = {
+  id: 'floor-assembly_joist',
+  label: 'Type: Joist',
+  category: 'floor-assembly'
+}
+
+export const TAG_FILLED_FLOOR: Tag = {
+  id: 'floor-assembly_filled',
+  label: 'Type: Filled',
+  category: 'floor-assembly'
 }
 
 // Roof parts
@@ -487,6 +521,25 @@ export const TAG_RIDGE_BEAM: Tag = {
   id: 'roof-part_ridge-beam',
   label: 'Ridge Beam',
   category: 'roof-part'
+}
+
+export const TAG_ROOF_INFILL: Tag = {
+  id: 'roof-part_infill',
+  label: 'Infill',
+  category: 'roof-part'
+}
+
+// Roof assembly type tags
+export const TAG_MONOLITHIC_ROOF: Tag = {
+  id: 'roof-assembly_monolithic',
+  label: 'Type: Monolithic',
+  category: 'roof-assembly'
+}
+
+export const TAG_PURLIN_ROOF: Tag = {
+  id: 'roof-assembly_purlin',
+  label: 'Type: Purlin',
+  category: 'roof-assembly'
 }
 
 // Roof Measurement tags

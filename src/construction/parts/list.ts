@@ -8,12 +8,14 @@ import {
 import { getMaterialById } from '@/construction/materials/store'
 import type { ConstructionModel } from '@/construction/model'
 import {
+  TAG_FLOOR_INFILL,
   TAG_FLOOR_LAYER_BOTTOM,
   TAG_FLOOR_LAYER_TOP,
   TAG_FULL_BALE,
   TAG_INFILL,
   TAG_MODULE_INFILL,
   TAG_PARTIAL_BALE,
+  TAG_ROOF_INFILL,
   TAG_ROOF_LAYER_INSIDE,
   TAG_ROOF_LAYER_OVERHANG,
   TAG_ROOF_LAYER_TOP,
@@ -98,6 +100,8 @@ interface TagMapping {
 const TAG_MAPPING: Record<string, TagMapping> = {
   [TAG_INFILL.id]: { type: 'wall-infill', descriptionTagCategory: 'wall-assembly' },
   [TAG_MODULE_INFILL.id]: { type: 'module-infill', descriptionTagCategory: 'wall-assembly' },
+  [TAG_FLOOR_INFILL.id]: { type: 'floor-infill', descriptionTagCategory: 'floor-assembly' },
+  [TAG_ROOF_INFILL.id]: { type: 'roof-infill', descriptionTagCategory: 'roof-assembly' },
   [TAG_WALL_LAYER_INSIDE.id]: { type: 'wall-layer-inside', descriptionTagCategory: 'wall-layer' },
   [TAG_WALL_LAYER_OUTSIDE.id]: { type: 'wall-layer-outside', descriptionTagCategory: 'wall-layer' },
   [TAG_FLOOR_LAYER_TOP.id]: { type: 'floor-layer', descriptionTagCategory: 'floor-layer' },

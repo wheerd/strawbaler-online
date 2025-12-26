@@ -22,7 +22,12 @@ function constructStoreyFloor(
 
   const floorModels = perimeterContexts
     .map(c => storeyContext.floorAssembly.construct(c))
-    .map(m => transformModel(m, fromTrans(newVec3(0, 0, storeyContext.wallBottom)), [TAG_FLOOR]))
+    .map(m =>
+      transformModel(m, fromTrans(newVec3(0, 0, storeyContext.wallBottom)), [
+        TAG_FLOOR,
+        ...storeyContext.floorAssembly.tags
+      ])
+    )
 
   const floorLayerModels: ConstructionModel[] = []
 
@@ -33,7 +38,10 @@ function constructStoreyFloor(
     const floorLayerResults = Array.from(storeyContext.floorAssembly.constructFloorLayers(floorPolygons))
     const floorLayersModel = resultsToModel(floorLayerResults)
     floorLayerModels.push(
-      transformModel(floorLayersModel, fromTrans(newVec3(0, 0, storeyContext.floorConstructionTop)), [TAG_FLOOR])
+      transformModel(floorLayersModel, fromTrans(newVec3(0, 0, storeyContext.floorConstructionTop)), [
+        TAG_FLOOR,
+        ...storeyContext.floorAssembly.tags
+      ])
     )
   }
 
@@ -49,7 +57,10 @@ function constructStoreyFloor(
       const ceilingLayerResults = Array.from(storeyContext.ceilingAssembly.constructCeilingLayers(ceilingPolygons))
       const ceilingLayerModel = resultsToModel(ceilingLayerResults)
       floorLayerModels.push(
-        transformModel(ceilingLayerModel, fromTrans(newVec3(0, 0, storeyContext.finishedCeilingBottom)), [TAG_FLOOR])
+        transformModel(ceilingLayerModel, fromTrans(newVec3(0, 0, storeyContext.finishedCeilingBottom)), [
+          TAG_FLOOR,
+          ...storeyContext.ceilingAssembly.tags
+        ])
       )
     }
   }

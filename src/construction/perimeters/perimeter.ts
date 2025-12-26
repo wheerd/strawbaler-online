@@ -152,7 +152,9 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
       floorModels.push(transformModel(floorLayersModel, fromTrans(newVec3(0, 0, storeyContext.floorConstructionTop))))
     }
 
-    allModels.push(transformModel(mergeModels(...floorModels), IDENTITY, [TAG_FLOOR]))
+    allModels.push(
+      transformModel(mergeModels(...floorModels), IDENTITY, [TAG_FLOOR, ...storeyContext.floorAssembly.tags])
+    )
 
     if (storeyContext.nextStoreyId && storeyContext.ceilingAssembly) {
       let ceilingHoles: Polygon2D[] = []
@@ -166,7 +168,10 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
         const ceilingLayerResults = Array.from(storeyContext.ceilingAssembly.constructCeilingLayers(ceilingPolygons))
         const ceilingLayerModel = resultsToModel(ceilingLayerResults)
         allModels.push(
-          transformModel(ceilingLayerModel, fromTrans(newVec3(0, 0, storeyContext.finishedCeilingBottom)), [TAG_FLOOR])
+          transformModel(ceilingLayerModel, fromTrans(newVec3(0, 0, storeyContext.finishedCeilingBottom)), [
+            TAG_FLOOR,
+            ...storeyContext.ceilingAssembly.tags
+          ])
         )
       }
     }

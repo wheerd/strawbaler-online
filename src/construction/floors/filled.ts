@@ -13,6 +13,7 @@ import type { PerimeterConstructionContext } from '@/construction/perimeters/con
 import { type ConstructionResult, aggregateResults, yieldMeasurement } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import {
+  TAG_FILLED_FLOOR,
   TAG_FLOOR_CEILING_SHEATHING,
   TAG_FLOOR_FRAME,
   TAG_FLOOR_OPENING_FRAME,
@@ -46,6 +47,8 @@ import type { FilledFloorConfig } from './types'
 const EPSILON = 1e-5
 
 export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
+  protected tag = TAG_FILLED_FLOOR
+
   construct = (context: PerimeterConstructionContext): ConstructionModel => {
     const bbox = minimumAreaBoundingBox(context.outerPolygon)
     const joistDirection = bbox.smallestDirection

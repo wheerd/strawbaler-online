@@ -1,4 +1,5 @@
 import type { Roof } from '@/building/model'
+import type { PurlinRoofAssemblyConfig } from '@/construction/config'
 import { createConstructionElement } from '@/construction/elements'
 import {
   PolygonWithBoundingRect,
@@ -26,6 +27,7 @@ import {
   TAG_PURLIN,
   TAG_PURLIN_LENGTH,
   TAG_PURLIN_RISE,
+  TAG_PURLIN_ROOF,
   TAG_PURLIN_SPACING,
   TAG_RAFTER,
   TAG_RAFTER_LENGTH,
@@ -33,7 +35,8 @@ import {
   TAG_RIDGE_BEAM,
   TAG_ROOF,
   TAG_ROOF_SIDE_LEFT,
-  TAG_ROOF_SIDE_RIGHT
+  TAG_ROOF_SIDE_RIGHT,
+  createTag
 } from '@/construction/tags'
 import {
   IDENTITY,
@@ -158,7 +161,8 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
 
     roofModels.push(resultsToModel(purlins))
 
-    return transformModel(mergeModels(...roofModels), IDENTITY, [TAG_ROOF])
+    const nameTag = createTag('roof-assembly', (this.config as unknown as PurlinRoofAssemblyConfig).name)
+    return transformModel(mergeModels(...roofModels), IDENTITY, [TAG_ROOF, TAG_PURLIN_ROOF, nameTag])
   }
 
   get constructionThickness(): Length {

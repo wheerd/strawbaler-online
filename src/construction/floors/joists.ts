@@ -11,6 +11,14 @@ import type { PerimeterConstructionContext } from '@/construction/perimeters/con
 import { type ConstructionResult, aggregateResults } from '@/construction/results'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import {
+  TAG_FLOOR_INFILL,
+  TAG_FLOOR_OPENING_FRAME,
+  TAG_FLOOR_WALL_BEAM,
+  TAG_JOIST,
+  TAG_JOIST_FLOOR,
+  TAG_SUBFLOOR
+} from '@/construction/tags'
+import {
   Bounds2D,
   type Polygon2D,
   type PolygonWithHoles2D,
@@ -169,7 +177,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
             this.config.wallBeamMaterial,
             createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
             undefined,
-            undefined,
+            [TAG_FLOOR_WALL_BEAM],
             { type: 'wall-beam' }
           )
         }) satisfies ConstructionResult
@@ -182,7 +190,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
             this.config.joistMaterial,
             createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
             undefined,
-            undefined,
+            [TAG_JOIST],
             { type: 'joist', requiresSinglePiece: true }
           )
         }) satisfies ConstructionResult
@@ -193,7 +201,9 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
           type: 'element',
           element: createConstructionElement(
             this.config.wallInfillMaterial,
-            createExtrudedPolygon(p, 'xy', this.config.constructionHeight)
+            createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
+            undefined,
+            [TAG_FLOOR_INFILL]
           )
         }) satisfies ConstructionResult
     )
@@ -206,7 +216,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
           this.config.openingSideMaterial,
           holeClip,
           { type: 'floor-opening-frame' },
-          undefined,
+          [TAG_FLOOR_OPENING_FRAME],
           false
         )
       )
@@ -221,7 +231,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
             this.config.subfloorMaterial,
             createExtrudedPolygon(p, 'xy', this.config.subfloorThickness),
             fromTrans(newVec3(0, 0, this.config.constructionHeight)),
-            undefined,
+            [TAG_SUBFLOOR],
             { type: 'subfloor' }
           )
         }) satisfies ConstructionResult
@@ -256,4 +266,6 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
   get constructionThickness() {
     return this.config.constructionHeight
   }
+
+  protected tag = TAG_JOIST_FLOOR
 }

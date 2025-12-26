@@ -3,6 +3,7 @@ import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import type { ConstructionResult } from '@/construction/results'
+import type { Tag } from '@/construction/tags'
 import type { Length, PolygonWithHoles2D } from '@/shared/geometry'
 
 export interface FloorAssembly {
@@ -16,6 +17,8 @@ export interface FloorAssembly {
   get bottomOffset(): Length
   get constructionThickness(): Length
   get totalThickness(): Length
+
+  get tags(): Tag[]
 }
 
 export type FloorAssemblyType = 'monolithic' | 'joist' | 'filled'

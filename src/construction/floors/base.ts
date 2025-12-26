@@ -1,3 +1,4 @@
+import type { FloorAssemblyConfig } from '@/construction/config'
 import { runLayerConstruction } from '@/construction/layers'
 import type { LayerConfig } from '@/construction/layers/types'
 import type { ConstructionModel } from '@/construction/model'
@@ -68,5 +69,12 @@ export abstract class BaseFloorAssembly<TConfig extends FloorAssemblyConfigBase>
       this.bottomOffset +
       this.config.layers.bottomThickness
     )
+  }
+
+  protected abstract get tag(): Tag
+
+  get tags(): Tag[] {
+    const nameTag = createTag('floor-assembly', (this.config as unknown as FloorAssemblyConfig).name)
+    return [nameTag, this.tag]
   }
 }

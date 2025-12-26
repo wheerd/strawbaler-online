@@ -2,7 +2,7 @@ import { createConstructionElement } from '@/construction/elements'
 import type { ConstructionModel } from '@/construction/model'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_FLOOR } from '@/construction/tags'
+import { TAG_MONOLITHIC_FLOOR } from '@/construction/tags'
 import { fromTrans, newVec3 } from '@/shared/geometry'
 
 import { BaseFloorAssembly } from './base'
@@ -14,7 +14,8 @@ export class MonolithicFloorAssembly extends BaseFloorAssembly<MonolithicFloorCo
       this.config.material,
       createExtrudedPolygon({ outer: context.outerPolygon, holes: context.floorOpenings }, 'xy', this.config.thickness),
       fromTrans(newVec3(0, 0, -this.config.thickness)),
-      [TAG_FLOOR]
+      undefined,
+      { type: 'floor' }
     )
     return {
       elements: [floor],
@@ -31,4 +32,6 @@ export class MonolithicFloorAssembly extends BaseFloorAssembly<MonolithicFloorCo
   get constructionThickness() {
     return this.config.thickness
   }
+
+  protected tag = TAG_MONOLITHIC_FLOOR
 }
