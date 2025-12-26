@@ -3,6 +3,7 @@ import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import { aggregateResults } from '@/construction/results'
 import type { StoreyContext } from '@/construction/storeys/context'
+import { TAG_INFILL_CONSTRUCTION } from '@/construction/tags'
 import type { InfillWallConfig, WallAssembly } from '@/construction/walls'
 import { constructWallLayers } from '@/construction/walls/layers'
 import { segmentedWallConstruction } from '@/construction/walls/segmentation'
@@ -44,4 +45,6 @@ export class InfillWallAssembly implements WallAssembly<InfillWallConfig> {
 
     return mergeModels(baseModel, layerModel)
   }
+
+  readonly tag = TAG_INFILL_CONSTRUCTION
 }

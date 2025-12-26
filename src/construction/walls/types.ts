@@ -6,6 +6,7 @@ import { type PostConfig, validatePosts } from '@/construction/materials/posts'
 import type { ConstructionModel } from '@/construction/model'
 import type { ConstructionResult } from '@/construction/results'
 import type { StoreyContext } from '@/construction/storeys/context'
+import type { Tag } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
 
 import type { ModuleConfig } from './strawhenge/modules'
@@ -17,6 +18,8 @@ export interface WallAssembly<TConfig extends WallBaseConfig> {
     storeyContext: StoreyContext,
     config: TConfig
   ) => ConstructionModel
+
+  get tag(): Tag
 }
 
 export type WallAssemblyType = 'infill' | 'strawhenge' | 'non-strawbale' | 'modules'

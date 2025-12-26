@@ -17,7 +17,8 @@ import {
   TAG_WALL_CONSTRUCTION_LENGTH_INSIDE,
   TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE,
   TAG_WALL_LENGTH_INSIDE,
-  TAG_WALL_LENGTH_OUTSIDE
+  TAG_WALL_LENGTH_OUTSIDE,
+  createTag
 } from '@/construction/tags'
 import { WALL_ASSEMBLIES } from '@/construction/walls'
 import {
@@ -114,22 +115,23 @@ export function constructPerimeter(perimeter: Perimeter, includeFloor = true, in
     if (assembly?.type) {
       const wallAssembly = WALL_ASSEMBLIES[assembly.type]
       wallModel = wallAssembly.construct(wall, perimeter, storeyContext, assembly)
-    }
 
-    if (wallModel) {
-      const segmentAngle = dirAngle(wall.insideLine.start, wall.insideLine.end)
+      if (wallModel) {
+        const segmentAngle = dirAngle(wall.insideLine.start, wall.insideLine.end)
 
-      const transformedModel = transformModel(
-        wallModel,
-        rotateZ(
-          fromTrans(newVec3(wall.insideLine.start[0], wall.insideLine.start[1], storeyContext.wallBottom)),
-          segmentAngle
-        ),
-        [TAG_WALLS],
-        undefined,
-        wall.id
-      )
-      allModels.push(transformedModel)
+        const nameTag = createTag('wall-assembly', assembly.name)
+        const transformedModel = transformModel(
+          wallModel,
+          rotateZ(
+            fromTrans(newVec3(wall.insideLine.start[0], wall.insideLine.start[1], storeyContext.wallBottom)),
+            segmentAngle
+          ),
+          [TAG_WALLS, wallAssembly.tag, nameTag],
+          undefined,
+          wall.id
+        )
+        allModels.push(transformedModel)
+      }
     }
   }
 

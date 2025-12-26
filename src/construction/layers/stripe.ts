@@ -89,9 +89,7 @@ export class StripedLayerConstruction implements LayerConstruction<StripedLayerC
           createConstructionElement(
             config.stripeMaterial,
             createExtrudedPolygon(stripe, plane, config.thickness),
-            fromTrans(position),
-            undefined,
-            { type: 'stripe' }
+            fromTrans(position)
           )
         )
       }

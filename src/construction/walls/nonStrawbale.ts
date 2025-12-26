@@ -8,6 +8,7 @@ import { type ConstructionResult, aggregateResults, yieldElement } from '@/const
 import { resolveRingBeamAssembly } from '@/construction/ringBeams'
 import { createExtrudedPolygon } from '@/construction/shapes'
 import type { StoreyContext } from '@/construction/storeys/context'
+import { TAG_NON_STRAWBALE_CONSTRUCTION } from '@/construction/tags'
 import type { NonStrawbaleWallConfig, WallAssembly } from '@/construction/walls'
 import { calculateWallCornerInfo, getWallContext } from '@/construction/walls/corners/corners'
 import { constructWallLayers } from '@/construction/walls/layers'
@@ -124,4 +125,6 @@ export class NonStrawbaleWallAssembly implements WallAssembly<NonStrawbaleWallCo
 
     return mergeModels(baseModel, layerModel)
   }
+
+  readonly tag = TAG_NON_STRAWBALE_CONSTRUCTION
 }

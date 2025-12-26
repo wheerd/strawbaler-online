@@ -7,7 +7,7 @@ import { mergeModels } from '@/construction/model'
 import type { ConstructionResult } from '@/construction/results'
 import { aggregateResults } from '@/construction/results'
 import type { StoreyContext } from '@/construction/storeys/context'
-import { TAG_POST_SPACING } from '@/construction/tags'
+import { TAG_POST_SPACING, TAG_STRAWHENGE_CONSTRUCTION } from '@/construction/tags'
 import type { StrawhengeWallConfig, WallAssembly } from '@/construction/walls'
 import { infillWallArea } from '@/construction/walls/infill/infill'
 import { constructWallLayers } from '@/construction/walls/layers'
@@ -182,4 +182,6 @@ export class StrawhengeWallAssembly implements WallAssembly<StrawhengeWallConfig
 
     return mergeModels(baseModel, layerModel)
   }
+
+  readonly tag = TAG_STRAWHENGE_CONSTRUCTION
 }

@@ -2,6 +2,7 @@ export interface Tag {
   readonly id: TagId
   readonly label: string
   readonly category: TagCategoryId
+  readonly custom?: boolean
 }
 
 export type TagId = `${TagCategoryId}_${string}`
@@ -13,7 +14,7 @@ export const ALL_CATEGORIES = {
 
   'wall-part': { label: 'Wall Wood' },
   'wall-measurement': { label: 'Wall Measurement' },
-  'wall-construction-type': { label: 'Wall Construction Type' },
+  'wall-assembly': { label: 'Wall Assembly' },
   'wall-layer': { label: 'Wall Layers' },
 
   opening: { label: 'Opening' },
@@ -56,7 +57,8 @@ export const createTagId = (category: TagCategoryId, name: string): TagId =>
 export const createTag = (category: TagCategoryId, name: string): Tag => ({
   category,
   id: createTagId(category, name),
-  label: name
+  label: name,
+  custom: true
 })
 
 // Straw tags
@@ -115,23 +117,29 @@ export const TAG_INFILL: Tag = {
   category: 'wall-part'
 }
 
-// Construction type tags
+// Wall assembly type tags
 export const TAG_INFILL_CONSTRUCTION: Tag = {
-  id: 'wall-construction-type_infill',
-  label: 'Infill Construction',
-  category: 'wall-construction-type'
+  id: 'wall-assembly_infill',
+  label: 'Type: Infill',
+  category: 'wall-assembly'
+}
+
+export const TAG_MODULE_CONSTRUCTION: Tag = {
+  id: 'wall-assembly_strawhenge',
+  label: 'Type: Modules',
+  category: 'wall-assembly'
 }
 
 export const TAG_STRAWHENGE_CONSTRUCTION: Tag = {
-  id: 'wall-construction-type_strawhenge',
-  label: 'Strawhenge Construction',
-  category: 'wall-construction-type'
+  id: 'wall-assembly_strawhenge',
+  label: 'Type: Strawhenge',
+  category: 'wall-assembly'
 }
 
 export const TAG_NON_STRAWBALE_CONSTRUCTION: Tag = {
-  id: 'wall-construction-type_non-strawbale',
-  label: 'Non-Strawbale Construction',
-  category: 'wall-construction-type'
+  id: 'wall-assembly_non-strawbale',
+  label: 'Type: Non-Strawbale',
+  category: 'wall-assembly'
 }
 
 // Wall layer

@@ -11,6 +11,8 @@ import {
   TAG_FLOOR_LAYER_BOTTOM,
   TAG_FLOOR_LAYER_TOP,
   TAG_FULL_BALE,
+  TAG_INFILL,
+  TAG_MODULE_INFILL,
   TAG_PARTIAL_BALE,
   TAG_ROOF_LAYER_INSIDE,
   TAG_ROOF_LAYER_OVERHANG,
@@ -19,7 +21,8 @@ import {
   TAG_STRAW_STUFFED,
   TAG_WALL_LAYER_INSIDE,
   TAG_WALL_LAYER_OUTSIDE,
-  type Tag
+  type Tag,
+  type TagCategoryId
 } from '@/construction/tags'
 import {
   type Area,
@@ -85,6 +88,23 @@ const getStrawCategoryFromTags = (tags?: Tag[]): StrawCategory => {
     if (category) return category
   }
   return 'stuffed'
+}
+
+interface TagMapping {
+  type: string
+  descriptionTagCategory?: TagCategoryId
+}
+
+const TAG_MAPPING: Record<string, TagMapping> = {
+  [TAG_INFILL.id]: { type: 'wall-infill', descriptionTagCategory: 'wall-assembly' },
+  [TAG_MODULE_INFILL.id]: { type: 'module-infill', descriptionTagCategory: 'wall-assembly' },
+  [TAG_WALL_LAYER_INSIDE.id]: { type: 'wall-layer-inside', descriptionTagCategory: 'wall-layer' },
+  [TAG_WALL_LAYER_OUTSIDE.id]: { type: 'wall-layer-outside', descriptionTagCategory: 'wall-layer' },
+  [TAG_FLOOR_LAYER_TOP.id]: { type: 'floor-layer', descriptionTagCategory: 'floor-layer' },
+  [TAG_FLOOR_LAYER_BOTTOM.id]: { type: 'ceiling-layer', descriptionTagCategory: 'floor-layer' },
+  [TAG_ROOF_LAYER_TOP.id]: { type: 'roof-layer-top', descriptionTagCategory: 'roof-layer' },
+  [TAG_ROOF_LAYER_INSIDE.id]: { type: 'roof-layer-ceiling', descriptionTagCategory: 'roof-layer' },
+  [TAG_ROOF_LAYER_OVERHANG.id]: { type: 'roof-layer-overhang', descriptionTagCategory: 'roof-layer' }
 }
 
 const computeDimensionalDetails = (size: Vec3, material: DimensionalMaterial) => {
@@ -249,11 +269,11 @@ function computePartIdWithoutInfo(
   geometryInfo: { boxSize: Vec3 },
   materialDefinition: ReturnType<typeof getMaterialById>
 ): PartId {
-  const layerInfo = findLayerTag(tags)
   let partId: PartId
 
-  if (layerInfo) {
-    partId = `auto_${layerInfo.tag.id}` as PartId
+  const mappedInfo = findMappedTag(tags)
+  if (mappedInfo) {
+    partId = `auto_${mappedInfo.tag.id}` as PartId
   } else {
     partId = `auto_misc` as PartId
   }
@@ -541,8 +561,7 @@ function computePartType(fullPartInfo: FullPartInfo | null, tags: Tag[], strawCa
   if (fullPartInfo) {
     return fullPartInfo.type
   }
-  const layerInfo = findLayerTag(tags)
-  return layerInfo?.type ?? '-'
+  return findMappedTag(tags)?.type ?? '-'
 }
 
 function computePartDescription(
@@ -556,39 +575,17 @@ function computePartDescription(
   if (fullPartInfo?.description) {
     return fullPartInfo.description
   }
-  const layerInfo = findLayerTag(tags)
-  return layerInfo?.tag.label
+  return findMappedTag(tags)?.description
 }
 
-function findLayerTag(tags: Tag[]): { tag: Tag; type: string } | null {
-  const layerTags = tags.filter(
-    t => t.category === 'wall-layer' || t.category === 'floor-layer' || t.category === 'roof-layer'
-  )
-  if (layerTags.length === 0) return null
-
-  const specificTag = layerTags.find(
-    t =>
-      t.id !== TAG_WALL_LAYER_INSIDE.id &&
-      t.id !== TAG_WALL_LAYER_OUTSIDE.id &&
-      t.id !== TAG_FLOOR_LAYER_TOP.id &&
-      t.id !== TAG_FLOOR_LAYER_BOTTOM.id &&
-      t.id !== TAG_ROOF_LAYER_TOP.id &&
-      t.id !== TAG_ROOF_LAYER_INSIDE.id &&
-      t.id !== TAG_ROOF_LAYER_OVERHANG.id
-  )
-  const layerTag = specificTag ?? layerTags[0]
-  const type = getLayerType(layerTags)
-
-  return { tag: layerTag, type }
-}
-
-function getLayerType(layerTags: Tag[]): string {
-  if (layerTags.indexOf(TAG_WALL_LAYER_INSIDE) !== -1) return 'wall-layer-inside'
-  if (layerTags.indexOf(TAG_WALL_LAYER_OUTSIDE) !== -1) return 'wall-layer-outside'
-  if (layerTags.indexOf(TAG_FLOOR_LAYER_TOP) !== -1) return 'floor-layer'
-  if (layerTags.indexOf(TAG_FLOOR_LAYER_BOTTOM) !== -1) return 'ceiling-layer'
-  if (layerTags.indexOf(TAG_ROOF_LAYER_TOP) !== -1) return 'roof-layer-top'
-  if (layerTags.indexOf(TAG_ROOF_LAYER_INSIDE) !== -1) return 'roof-layer-ceiling'
-  if (layerTags.indexOf(TAG_ROOF_LAYER_OVERHANG) !== -1) return 'roof-layer-overhang'
-  return 'layer'
+function findMappedTag(tags: Tag[]): { tag: Tag; type: string; description?: string } | null {
+  for (const tag of tags) {
+    const mapping = TAG_MAPPING[tag.id]
+    if (mapping) {
+      const customTag = tags.find(t => t.category === mapping.descriptionTagCategory && t.custom)
+      const description = customTag?.label
+      return { tag: customTag ?? tag, type: mapping.type, description }
+    }
+  }
+  return null
 }

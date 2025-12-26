@@ -143,6 +143,7 @@ describe('constructWall', () => {
     mockModelActions.getStoreyAbove.mockReturnValue(null)
     mockConfigActions.getFloorAssemblyById.mockReturnValue(mockFloorAssembly as any)
     mockConfigActions.getWallAssemblyById.mockReturnValue({
+      name: 'Test Infill',
       type: 'infill',
       layers: {
         insideThickness: 0,

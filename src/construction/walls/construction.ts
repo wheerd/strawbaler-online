@@ -5,6 +5,7 @@ import { getConfigActions } from '@/construction/config'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
 import { computePerimeterConstructionContext } from '@/construction/perimeters/context'
 import { createWallStoreyContext } from '@/construction/storeys/context'
+import { TAG_WALLS, createTag } from '@/construction/tags'
 import { type Length, type LineSegment2D, fromTrans, newVec3 } from '@/shared/geometry'
 
 import { WALL_ASSEMBLIES } from './index'
@@ -107,7 +108,14 @@ export function constructWall(
     const wallModel = wallAssembly.construct(currentWall, perimeter, storeyContext, assembly)
 
     if (cumulativeOffset > 0) {
-      const transformedModel = transformModel(wallModel, fromTrans(newVec3(cumulativeOffset, 0, 0)))
+      const nameTag = createTag('wall-assembly', assembly.name)
+      const transformedModel = transformModel(
+        wallModel,
+        fromTrans(newVec3(cumulativeOffset, 0, 0)),
+        [TAG_WALLS, wallAssembly.tag, nameTag],
+        undefined,
+        currentWallId
+      )
       wallModels.push(transformedModel)
     } else {
       wallModels.push(wallModel)
