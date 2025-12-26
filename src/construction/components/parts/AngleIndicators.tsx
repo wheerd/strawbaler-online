@@ -9,7 +9,7 @@ import {
   getSmallerAngle,
   isRightAngle
 } from './utils/angleUtils'
-import { type CoordinateMapper } from './utils/coordinateMapper'
+import { type ICoordinateMapper, IdentityCoordinateMapper } from './utils/coordinateMapper'
 
 const ANGLE_CONFIG = {
   rightAngleSize: 6,
@@ -101,7 +101,7 @@ function AngleIndicator({ vertex, prevPoint, nextPoint }: AngleIndicatorProps): 
 
 function getPolygonAngles(
   polygon: Polygon2D,
-  coordinateMapper: CoordinateMapper
+  coordinateMapper: ICoordinateMapper
 ): {
   vertex: Vec2
   prevPoint: Vec2
@@ -141,11 +141,13 @@ function getPolygonAngles(
 
 export function PolygonAngleIndicators({
   polygon,
-  coordinateMapper
+  coordinateMapper: providedMapper
 }: {
   polygon: PolygonWithHoles2D
-  coordinateMapper: CoordinateMapper
+  coordinateMapper?: ICoordinateMapper
 }): React.JSX.Element {
+  // Use identity mapper if none provided
+  const coordinateMapper = useMemo(() => providedMapper ?? new IdentityCoordinateMapper(), [providedMapper])
   const allAngles = useMemo(() => {
     const angles = getPolygonAngles(polygon.outer, coordinateMapper)
 

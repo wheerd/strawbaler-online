@@ -3,6 +3,7 @@ import { Badge, Card, Flex, Heading, IconButton, Table, Text, Tooltip } from '@r
 import React, { useCallback, useMemo, useRef } from 'react'
 
 import { PartCutModal } from '@/construction/components/parts/PartCutModal'
+import { SheetPartModal } from '@/construction/components/parts/SheetPartModal'
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 import { getMaterialTypeIcon, getMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
 import type {
@@ -798,7 +799,21 @@ function SheetPartsTable({
                 <Text weight="medium">{part.label}</Text>
               </Table.RowHeaderCell>
               <Table.Cell>{part.type}</Table.Cell>
-              <Table.Cell>{part.description}</Table.Cell>
+              <Table.Cell>
+                <Flex align="center" gap="2">
+                  <Text>{part.description}</Text>
+                  {part.sideFaces?.length && part.sideFaces[0].polygon.outer.points.length >= 3 && (
+                    <SheetPartModal
+                      trigger={
+                        <IconButton size="1" variant="outline" radius="full">
+                          <SawIcon />
+                        </IconButton>
+                      }
+                      polygon={part.sideFaces[0].polygon}
+                    />
+                  )}
+                </Flex>
+              </Table.Cell>
               <Table.Cell justify="end">
                 <Flex align="center" gap="2" justify="end">
                   {part.issue === 'ThicknessMismatch' && (

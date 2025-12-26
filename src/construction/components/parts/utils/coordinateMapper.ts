@@ -1,6 +1,13 @@
 import { type VirtualSegment } from './calculateBeamSegments'
 
-export class CoordinateMapper {
+export interface ICoordinateMapper {
+  toDisplay(virtualX: number): number | null
+  getSegmentDisplayStart(segmentIndex: number): number
+  getSegmentDisplayEnd(segmentIndex: number): number
+  getTotalDisplayWidth(): number
+}
+
+export class CoordinateMapper implements ICoordinateMapper {
   private segments: VirtualSegment[]
   private gapDisplayWidth: number
 
@@ -73,5 +80,26 @@ export class CoordinateMapper {
     }
 
     return width
+  }
+}
+
+/**
+ * Identity coordinate mapper that performs no transformation
+ */
+export class IdentityCoordinateMapper implements ICoordinateMapper {
+  toDisplay(virtualX: number): number {
+    return virtualX
+  }
+
+  getSegmentDisplayStart(_segmentIndex: number): number {
+    return 0
+  }
+
+  getSegmentDisplayEnd(_segmentIndex: number): number {
+    return 0
+  }
+
+  getTotalDisplayWidth(): number {
+    return 0
   }
 }

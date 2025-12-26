@@ -3,7 +3,7 @@ import React, { useMemo } from 'react'
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { type PolygonWithHoles2D, type Vec2, newVec2 } from '@/shared/geometry'
 
-import { type CoordinateMapper } from './utils/coordinateMapper'
+import { type ICoordinateMapper, IdentityCoordinateMapper } from './utils/coordinateMapper'
 import { getAllPolygonEdges, isAxisAligned } from './utils/edgeUtils'
 
 interface DiagonalEdge {
@@ -12,7 +12,7 @@ interface DiagonalEdge {
   length: number
 }
 
-function getDiagonalEdges(polygon: PolygonWithHoles2D, coordinateMapper: CoordinateMapper): DiagonalEdge[] {
+function getDiagonalEdges(polygon: PolygonWithHoles2D, coordinateMapper: ICoordinateMapper): DiagonalEdge[] {
   const diagonalEdges: DiagonalEdge[] = []
 
   // Get all edges from the polygon
@@ -49,11 +49,13 @@ function getDiagonalEdges(polygon: PolygonWithHoles2D, coordinateMapper: Coordin
 
 export function DiagonalEdgeMeasurements({
   polygon,
-  coordinateMapper
+  coordinateMapper: providedMapper
 }: {
   polygon: PolygonWithHoles2D
-  coordinateMapper: CoordinateMapper
+  coordinateMapper?: ICoordinateMapper
 }): React.JSX.Element {
+  // Use identity mapper if none provided
+  const coordinateMapper = useMemo(() => providedMapper ?? new IdentityCoordinateMapper(), [providedMapper])
   const diagonalEdges = useMemo(() => {
     return getDiagonalEdges(polygon, coordinateMapper)
   }, [polygon, coordinateMapper])

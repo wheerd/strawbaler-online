@@ -3,12 +3,12 @@ import React, { useMemo } from 'react'
 import { type LabelOrientation, SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { type Bounds2D, type PolygonWithHoles2D, newVec2 } from '@/shared/geometry'
 
-import { type CoordinateMapper } from './utils/coordinateMapper'
+import { type ICoordinateMapper, IdentityCoordinateMapper } from './utils/coordinateMapper'
 
 interface GridMeasurementSystemProps {
   polygon: PolygonWithHoles2D
   displayBounds: Bounds2D
-  coordinateMapper: CoordinateMapper
+  coordinateMapper?: ICoordinateMapper
 }
 
 const SIZE_LABEL_THRESHOLD = 20
@@ -16,8 +16,10 @@ const SIZE_LABEL_THRESHOLD = 20
 export function GridMeasurementSystem({
   polygon,
   displayBounds,
-  coordinateMapper
+  coordinateMapper: providedMapper
 }: GridMeasurementSystemProps): React.JSX.Element {
+  // Use identity mapper if none provided
+  const coordinateMapper = useMemo(() => providedMapper ?? new IdentityCoordinateMapper(), [providedMapper])
   // Extract unique X and Y coordinates from polygon points (in virtual space)
   const { xCoords, yCoords } = useMemo(() => {
     const allPoints = polygon.outer.points.concat(polygon.holes.flatMap(h => h.points))
