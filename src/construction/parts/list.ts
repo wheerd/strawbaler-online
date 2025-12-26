@@ -130,7 +130,11 @@ const computeDimensionalDetails = (size: Vec3, material: DimensionalMaterial) =>
 
 const computeSheetDetails = (size: Vec3, material: SheetMaterial) => {
   let issue: PartIssue | undefined
-  const dimensions = [Math.round(size[0]), Math.round(size[1]), Math.round(size[2])].sort() as [number, number, number]
+  const dimensions = [Math.round(size[0]), Math.round(size[1]), Math.round(size[2])].sort((a, b) => a - b) as [
+    number,
+    number,
+    number
+  ]
 
   const thicknessIndex = dimensions.findIndex(d => material.thicknesses.includes(d))
   let thickness: Length
@@ -188,24 +192,27 @@ function computeMaterialMetrics(
     volume = computeVolume(boxSize)
   } else if (materialDefinition?.type === 'sheet') {
     const details = computeSheetDetails(boxSize, materialDefinition)
+    thickness = details.thickness
     issue = hasPartInfo ? details.issue : undefined
 
-    if (hasPartInfo && sideFaces?.[0]) {
-      area = calculatePolygonWithHolesArea(sideFaces[0].polygon)
-      thickness = boxSize[sideFaces[0].index]
-      volume = thickness * area
+    if (sideFaces?.[0]) {
+      const sideFaceThickness = Math.round(boxSize[sideFaces[0].index])
+      if (sideFaceThickness === thickness) {
+        area = calculatePolygonWithHolesArea(sideFaces[0].polygon)
+      } else {
+        area = details.areaSize[0] * details.areaSize[1]
+      }
     } else {
-      thickness = details.thickness
       area = details.areaSize[0] * details.areaSize[1]
-      volume = thickness * area
     }
+    volume = thickness * area
   } else if (materialDefinition?.type === 'volume') {
     if (hasPartInfo && sideFaces?.[0]) {
       area = calculatePolygonWithHolesArea(sideFaces[0].polygon)
       thickness = boxSize[sideFaces[0].index]
       volume = thickness * area
     } else {
-      const sorted = Array.from(boxSize).sort()
+      const sorted = Array.from(boxSize).sort((a, b) => a - b)
       area = sorted[1] * sorted[2]
       thickness = sorted[0]
       volume = thickness * area
@@ -259,7 +266,7 @@ function computePartIdWithoutInfo(
     const details = computeDimensionalDetails(geometryInfo.boxSize, materialDefinition)
     partId = `${partId}_${details.crossSection.smallerLength}x${details.crossSection.biggerLength}` as PartId
   } else if (materialDefinition?.type === 'volume') {
-    const sorted = Array.from(geometryInfo.boxSize).sort()
+    const sorted = Array.from(geometryInfo.boxSize).sort((a, b) => a - b)
     const thickness = sorted[0]
     partId = `${partId}_${thickness}` as PartId
   }
@@ -412,7 +419,7 @@ function getFullPartInfo(element: GroupOrElement): FullPartInfo | null {
     return fullInfo
   }
 
-  const dims = [...element.bounds.size].sort()
+  const dims = [...element.bounds.size].sort((a, b) => a - b)
   const id = `${typePrefix}-group:${dims.join('x')}` as PartId
   const fullInfo = element.partInfo as FullPartInfo
   fullInfo.boxSize = arrayToVec3(dims)
