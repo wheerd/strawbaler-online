@@ -5,17 +5,16 @@ import type { ConstructionResult } from '@/construction/results'
 import { type InfillMethod } from '@/construction/walls/types'
 import type { Length } from '@/shared/geometry'
 
-export interface OpeningAssembly<TConfig extends OpeningAssemblyConfigBase> {
+export interface OpeningAssembly {
   construct: (
     area: WallConstructionArea,
     adjustedHeader: Length,
     adjustedSill: Length,
-    config: TConfig,
     infill: InfillMethod
   ) => Generator<ConstructionResult>
 
-  getSegmentationPadding(config: TConfig): Length
-  needsWallStands(config: TConfig): boolean
+  get segmentationPadding(): Length
+  get needsWallStands(): boolean
 }
 
 export type OpeningAssemblyType = 'simple' | 'post' | 'empty'

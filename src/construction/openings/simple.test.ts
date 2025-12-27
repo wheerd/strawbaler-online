@@ -62,8 +62,6 @@ const createMockInfillGenerator = function* (numElements = 2): Generator<Constru
 const mockInfillMethod = vi.fn<InfillMethod>(_area => createMockInfillGenerator())
 
 describe('SimpleOpeningAssembly', () => {
-  const assembly = new SimpleOpeningAssembly()
-
   beforeEach(() => {
     mockInfillMethod.mockReset()
     mockInfillMethod.mockImplementation(_area => createMockInfillGenerator())
@@ -73,8 +71,9 @@ describe('SimpleOpeningAssembly', () => {
     it('creates header and sill for window with sill height', () => {
       const area = createTestArea()
       const config = createTestConfig()
+      const assembly = new SimpleOpeningAssembly(config)
 
-      const results = [...assembly.construct(area, 2000, 800, config, mockInfillMethod)]
+      const results = [...assembly.construct(area, 2000, 800, mockInfillMethod)]
       const { elements, errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -90,8 +89,9 @@ describe('SimpleOpeningAssembly', () => {
     it('generates measurements', () => {
       const area = createTestArea(100, 1000)
       const config = createTestConfig()
+      const assembly = new SimpleOpeningAssembly(config)
 
-      const results = [...assembly.construct(area, 2000, 800, config, mockInfillMethod)]
+      const results = [...assembly.construct(area, 2000, 800, mockInfillMethod)]
       const { measurements } = aggregateResults(results)
 
       // Should generate measurements inline
@@ -118,8 +118,9 @@ describe('SimpleOpeningAssembly', () => {
     it('generates only header and opening width measurements for door', () => {
       const area = createTestArea()
       const config = createTestConfig()
+      const assembly = new SimpleOpeningAssembly(config)
 
-      const results = [...assembly.construct(area, 2000, 0, config, mockInfillMethod)]
+      const results = [...assembly.construct(area, 2000, 0, mockInfillMethod)]
       const { measurements } = aggregateResults(results)
 
       // Should generate fewer measurements for door (no sill)
@@ -141,8 +142,9 @@ describe('SimpleOpeningAssembly', () => {
     it('creates only header for door without sill height', () => {
       const area = createTestArea()
       const config = createTestConfig()
+      const assembly = new SimpleOpeningAssembly(config)
 
-      const results = [...assembly.construct(area, 2000, 0, config, mockInfillMethod)]
+      const results = [...assembly.construct(area, 2000, 0, mockInfillMethod)]
       const { elements, errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(0)
@@ -162,8 +164,9 @@ describe('SimpleOpeningAssembly', () => {
         headerThickness: 60,
         sillThickness: 60
       })
+      const assembly = new SimpleOpeningAssembly(config)
 
-      Array.from(assembly.construct(area, 2000, 800, config, mockInfillMethod))
+      Array.from(assembly.construct(area, 2000, 800, mockInfillMethod))
 
       expect(mockInfillMethod).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -179,8 +182,9 @@ describe('SimpleOpeningAssembly', () => {
         headerThickness: 60,
         sillThickness: 60
       })
+      const assembly = new SimpleOpeningAssembly(config)
 
-      Array.from(assembly.construct(area, 2000, 800, config, mockInfillMethod))
+      Array.from(assembly.construct(area, 2000, 800, mockInfillMethod))
 
       expect(mockInfillMethod).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -197,8 +201,9 @@ describe('SimpleOpeningAssembly', () => {
       const config = createTestConfig({
         headerThickness: 100
       })
+      const assembly = new SimpleOpeningAssembly(config)
 
-      const results = [...assembly.construct(area, area.size[2] - 50, 800, config, mockInfillMethod)]
+      const results = [...assembly.construct(area, area.size[2] - 50, 800, mockInfillMethod)]
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
@@ -210,8 +215,9 @@ describe('SimpleOpeningAssembly', () => {
       const config = createTestConfig({
         sillThickness: 100
       })
+      const assembly = new SimpleOpeningAssembly(config)
 
-      const results = [...assembly.construct(area, 2000, 50, config, mockInfillMethod)]
+      const results = [...assembly.construct(area, 2000, 50, mockInfillMethod)]
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)

@@ -1,13 +1,10 @@
 import type { OpeningAssemblyId } from '@/building/model'
 import { getConfigActions } from '@/construction/config/store'
-import type { WallConstructionArea } from '@/construction/geometry'
+import { EmptyOpeningAssembly } from '@/construction/openings/empty'
 import { PostOpeningAssembly } from '@/construction/openings/post'
 import { SimpleOpeningAssembly } from '@/construction/openings/simple'
-import type { ConstructionResult } from '@/construction/results'
-import type { InfillMethod } from '@/construction/walls'
-import type { Length } from '@/shared/geometry'
 
-import type { EmptyOpeningConfig, OpeningAssembly, OpeningConfig } from './types'
+import type { OpeningAssembly, OpeningConfig } from './types'
 
 /**
  * Resolves the opening assembly config using the inheritance hierarchy:
@@ -42,7 +39,7 @@ export function resolveOpeningConfig(
   return config
 }
 
-export function resolveOpeningAssembly(openingAssemblyId?: OpeningAssemblyId): OpeningAssemblyInstance {
+export function resolveOpeningAssembly(openingAssemblyId?: OpeningAssemblyId): OpeningAssembly {
   const configActions = getConfigActions()
 
   if (!openingAssemblyId) {
@@ -54,71 +51,14 @@ export function resolveOpeningAssembly(openingAssemblyId?: OpeningAssemblyId): O
     throw new Error('Opening assembly not found')
   }
 
-  if (config.type === 'simple') {
-    return {
-      construct: (area: WallConstructionArea, adjustedHeader: Length, adjustedSill: Length, infill: InfillMethod) =>
-        simpleAssembly.construct(area, adjustedHeader, adjustedSill, config, infill),
-      get segmentationPadding() {
-        return simpleAssembly.getSegmentationPadding(config)
-      },
-      get needsWallStands() {
-        return simpleAssembly.needsWallStands(config)
-      }
-    }
-  } else if (config.type === 'empty') {
-    return {
-      construct: (area: WallConstructionArea, adjustedHeader: Length, adjustedSill: Length, infill: InfillMethod) =>
-        emptyAssembly.construct(area, adjustedHeader, adjustedSill, config, infill),
-      get segmentationPadding() {
-        return emptyAssembly.getSegmentationPadding(config)
-      },
-      get needsWallStands() {
-        return emptyAssembly.needsWallStands(config)
-      }
-    }
-  } else if (config.type === 'post') {
-    return {
-      construct: (area: WallConstructionArea, adjustedHeader: Length, adjustedSill: Length, infill: InfillMethod) =>
-        postAssembly.construct(area, adjustedHeader, adjustedSill, config, infill),
-      get segmentationPadding() {
-        return postAssembly.getSegmentationPadding(config)
-      },
-      get needsWallStands() {
-        return postAssembly.needsWallStands(config)
-      }
-    }
+  switch (config.type) {
+    case 'simple':
+      return new SimpleOpeningAssembly(config)
+    case 'empty':
+      return new EmptyOpeningAssembly(config)
+    case 'post':
+      return new PostOpeningAssembly(config)
+    default:
+      throw new Error(`Unknown opening assembly type: ${(config as OpeningConfig).type}`)
   }
-
-  throw new Error('Invalid opening config type')
-}
-
-export class EmptyOpeningAssembly implements OpeningAssembly<EmptyOpeningConfig> {
-  *construct(
-    _area: WallConstructionArea,
-    _adjustedHeader: Length,
-    _adjustedSill: Length,
-    _config: EmptyOpeningConfig,
-    _infill: InfillMethod
-  ): Generator<ConstructionResult> {
-    // Intentionally empty
-  }
-
-  getSegmentationPadding = (_config: EmptyOpeningConfig) => 0
-  needsWallStands = (_config: EmptyOpeningConfig) => true
-}
-
-const simpleAssembly = new SimpleOpeningAssembly()
-const emptyAssembly = new EmptyOpeningAssembly()
-const postAssembly = new PostOpeningAssembly()
-
-interface OpeningAssemblyInstance {
-  construct: (
-    area: WallConstructionArea,
-    adjustedHeader: Length,
-    adjustedSill: Length,
-    infill: InfillMethod
-  ) => Generator<ConstructionResult>
-
-  get segmentationPadding(): Length
-  get needsWallStands(): boolean
 }

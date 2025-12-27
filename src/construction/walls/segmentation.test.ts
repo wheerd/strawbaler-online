@@ -213,7 +213,7 @@ function createMockStoreyContext(storeyHeight: Length = 2500, wallHeight: Length
 describe('segmentedWallConstruction', () => {
   let mockWallConstruction: Mocked<WallSegmentConstruction>
   let mockInfillMethod: Mock<InfillMethod>
-  let mockOpeningConstruction: Mock<OpeningAssembly<any>['construct']>
+  let mockOpeningConstruction: Mock<OpeningAssembly['construct']>
   let mockGetRingBeamAssemblyById: ReturnType<typeof vi.fn>
   let mockGetOpeningAssemblyById: Mock<() => OpeningAssemblyConfig>
 
@@ -302,7 +302,6 @@ describe('segmentedWallConstruction', () => {
       _area: WallConstructionArea,
       _adjustedHeader: Length,
       _adjustedSill: Length,
-      _config: any,
       _infill: InfillMethod
     ) {
       yield* yieldElement({
