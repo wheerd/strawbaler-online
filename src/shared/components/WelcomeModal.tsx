@@ -59,8 +59,9 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
 
           <Flex direction="column" mt="-2" p="0" gap="3">
             <Text>
-              This is a tool specifically designed for strawbale construction planning. Create floor plans with walls
-              and openings. Configure the construction and generate plans and 3D models.
+              This is a tool specifically designed for strawbale construction planning. Create floor plans with walls,
+              openings, roof and floors. Configure the construction and generate plans and 3D models. Get estimates for
+              required materials
             </Text>
 
             <Grid columns="1fr 1fr" gap="4">
@@ -68,10 +69,12 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                 <Heading size="3">Key Features</Heading>
                 <Text as="div" size="1">
                   <ul style={{ listStyleType: 'disc', margin: 0, paddingLeft: '1.5rem' }}>
-                    <li>Define perimeter walls in finished dimensions (with plasters)</li>
-                    <li>Add windows, doors, etc.</li>
-                    <li>Configure your wall assembly (infill, strawhenge, modules)</li>
-                    <li>Generate 2D construction plans for walls and floors</li>
+                    <li>Define perimeter walls in finished dimensions (with plasters) with windows and doors</li>
+                    <li>Add gable or shed roofs</li>
+                    <li>Configure your wall, floor and roof assembly (infill, strawhenge, modules)</li>
+                    <li>Generate 2D construction plans for invdividual walls or whole floors</li>
+                    <li>View and export 3D models of the construction (IFC)</li>
+                    <li>Get an overview of materials used in the construction</li>
                   </ul>
                 </Text>
               </Flex>
@@ -80,11 +83,11 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                 <Heading size="3">Planned Features</Heading>
                 <Text as="div" size="1">
                   <ul style={{ listStyleType: 'disc', margin: 0, paddingLeft: '1.5rem' }}>
-                    <li>Cut list for wood, material estimations</li>
                     <li>Cost and work hours estimations</li>
-                    <li>Support for floors, roofs, intermediate walls, foundations</li>
-                    <li>Import and export in CAD formats</li>
+                    <li>Support for intermediate walls and foundations</li>
+                    <li>Translation in more languages</li>
                     <li>Support for more irregular building shapes</li>
+                    <li>Support for multiple projects</li>
                   </ul>
                 </Text>
               </Flex>
