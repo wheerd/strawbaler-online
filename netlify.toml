@@ -13,15 +13,22 @@
 [build.processing]
   skip_processing = false
 
-# Deploy previews for pull requests
-[context.deploy-preview]
-  command = "pnpm typecheck && pnpm test && pnpm build"
-
-# Production deployments - ensure everything passes
+# Production deployments (main branch) - ensure everything passes
 [context.production]
   command = "pnpm typecheck && pnpm test && pnpm build"
 
-# Branch deployments
+# Development branch deployments - ensure everything passes
+# Deploys to: development--strawbaler.netlify.app
+[context.development]
+  command = "pnpm typecheck && pnpm test && pnpm build"
+
+# Deploy previews for pull requests - ensure everything passes
+[context.deploy-preview]
+  command = "pnpm typecheck && pnpm test && pnpm build"
+
+# Branch deployments (for any other branches if manually triggered)
+# Note: Feature branches won't auto-deploy - configured in Netlify UI
+# Only main, development, and PR previews deploy automatically
 [context.branch-deploy]
   command = "pnpm typecheck && pnpm test && pnpm build"
 
