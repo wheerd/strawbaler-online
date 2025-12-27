@@ -303,7 +303,7 @@ export function ConstructionPlan({
               key={`cut-bottom-${index}`}
               cut={area}
               projection={projectionMatrix}
-              viewportBounds={contentBounds}
+              worldBounds={model.bounds}
             />
           ))}
 
@@ -369,7 +369,7 @@ export function ConstructionPlan({
               key={`cut-top-${index}`}
               cut={area}
               projection={projectionMatrix}
-              viewportBounds={contentBounds}
+              worldBounds={model.bounds}
             />
           ))}
       </SVGViewport>

@@ -1,30 +1,31 @@
 import { type Projection, projectPoint } from '@/construction/geometry'
 import type { HighlightedCut } from '@/construction/model'
-import { type Bounds2D, newVec3 } from '@/shared/geometry'
+import { type Bounds3D, newVec3 } from '@/shared/geometry'
 
 import './areas.css'
 
 export interface CutAreaShapeProps {
   cut: HighlightedCut
   projection: Projection
-  viewportBounds: Bounds2D
+  worldBounds: Bounds3D
 }
 
 const EXTENSION = 500
 
-export function CutAreaShape({ cut, projection, viewportBounds }: CutAreaShapeProps): React.JSX.Element {
+export function CutAreaShape({ cut, projection, worldBounds }: CutAreaShapeProps): React.JSX.Element {
+  // Create line in 3D world space at the cut position, spanning the other two dimensions
   const start =
     cut.axis === 'x'
-      ? newVec3(cut.position, viewportBounds.min[1] - EXTENSION, viewportBounds.min[1] - EXTENSION)
+      ? newVec3(cut.position, worldBounds.min[1] - EXTENSION, worldBounds.min[2] - EXTENSION)
       : cut.axis === 'y'
-        ? newVec3(viewportBounds.min[0] - EXTENSION, cut.position, viewportBounds.min[1] - EXTENSION)
-        : newVec3(viewportBounds.min[0] - EXTENSION, viewportBounds.min[0] - EXTENSION, cut.position)
+        ? newVec3(worldBounds.min[0] - EXTENSION, cut.position, worldBounds.min[2] - EXTENSION)
+        : newVec3(worldBounds.min[0] - EXTENSION, worldBounds.min[1] - EXTENSION, cut.position)
   const end =
     cut.axis === 'x'
-      ? newVec3(cut.position, viewportBounds.max[1] + EXTENSION, viewportBounds.max[1] + EXTENSION)
+      ? newVec3(cut.position, worldBounds.max[1] + EXTENSION, worldBounds.max[2] + EXTENSION)
       : cut.axis === 'y'
-        ? newVec3(viewportBounds.max[0] + EXTENSION, cut.position, viewportBounds.max[1] + EXTENSION)
-        : newVec3(viewportBounds.max[0] + EXTENSION, viewportBounds.max[0] + EXTENSION, cut.position)
+        ? newVec3(worldBounds.max[0] + EXTENSION, cut.position, worldBounds.max[2] + EXTENSION)
+        : newVec3(worldBounds.max[0] + EXTENSION, worldBounds.max[1] + EXTENSION, cut.position)
 
   const projectedStart = projectPoint(start, projection)
   const projectedEnd = projectPoint(end, projection)
