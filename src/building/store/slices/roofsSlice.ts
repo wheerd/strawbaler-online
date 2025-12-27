@@ -4,6 +4,7 @@ import type { PerimeterId, RoofAssemblyId, RoofId, RoofOverhangId, StoreyId } fr
 import { createRoofId, createRoofOverhangId } from '@/building/model/ids'
 import type { Roof, RoofOverhang, RoofType } from '@/building/model/model'
 import { getConfigActions } from '@/construction/config/store'
+import { polygonEdges } from '@/construction/helpers'
 import {
   type Length,
   type LineSegment2D,
@@ -16,11 +17,11 @@ import {
   distVec2,
   dotVec2,
   ensurePolygonIsClockwise,
-  eqVec2,
   lenVec2,
   lineIntersection,
   midpoint,
   perpendicular,
+  perpendicularCCW,
   perpendicularCW,
   polygonEdgeOffset,
   projectVec2,
@@ -28,7 +29,6 @@ import {
   subVec2,
   wouldClosingPolygonSelfIntersect
 } from '@/shared/geometry'
-import { convexHullOfPolygon } from '@/shared/geometry/polygon'
 
 export interface RoofsState {
   roofs: Record<RoofId, Roof>
@@ -187,40 +187,22 @@ const computeRidgeLine = (polygon: Polygon2D, mainSideIndex: number, roofType: R
   return { start: copyVec2(point), end: bestIntersection ?? copyVec2(point) }
 }
 
-// Helper function to get valid main side indices (edges on convex hull)
 const getValidMainSideIndices = (polygon: Polygon2D): number[] => {
   const points = polygon.points
   const n = points.length
 
   if (n <= 3) {
-    // All sides are valid for triangles or smaller
     return Array.from({ length: n }, (_, i) => i)
   }
 
-  // Get convex hull
-  const hull = convexHullOfPolygon(polygon)
-  const hullPoints = hull.points
-
-  // Find which edges of the original polygon are on the convex hull
-  const validIndices: number[] = []
-
-  for (let i = 0; i < n; i++) {
-    const p1 = points[i]
-    const p2 = points[(i + 1) % n]
-
-    // Check if this edge exists in the hull
-    // An edge is on the hull if both its vertices are consecutive in the hull
-    for (let j = 0; j < hullPoints.length; j++) {
-      const h1 = hullPoints[j]
-      const h2 = hullPoints[(j + 1) % hullPoints.length]
-
-      // Check if (p1, p2) matches (h1, h2) in either direction
-      if ((eqVec2(p1, h1) && eqVec2(p2, h2)) || (eqVec2(p1, h2) && eqVec2(p2, h1))) {
-        validIndices.push(i)
-        break
-      }
-    }
-  }
+  const validIndices = [...polygonEdges(polygon)]
+    .map((edge, i) => {
+      const outwardDir = perpendicularCCW(direction(edge.start, edge.end))
+      const allProjections = polygon.points.map(p => projectVec2(edge.start, p, outwardDir))
+      const maxProjection = Math.max(...allProjections)
+      return maxProjection <= 0.1 ? i : -1
+    })
+    .filter(i => i >= 0)
 
   return validIndices.length > 0 ? validIndices : Array.from({ length: n }, (_, i) => i)
 }
