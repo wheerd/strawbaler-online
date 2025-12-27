@@ -1,8 +1,4 @@
-<div align="center">
-
-<img src="public/assets/inline-logo.svg" alt="Strawbaler Logo" width="200"/>
-
-# 🌾 Strawbaler Online
+# <img src="public/assets/inline-logo.svg" alt="Strawbaler Logo" height="40"/> Strawbaler
 
 [![CI](https://github.com/wheerd/strawbaler-online/workflows/CI/badge.svg)](https://github.com/wheerd/strawbaler-online/actions/workflows/ci.yml)
 [![Security](https://github.com/wheerd/strawbaler-online/workflows/Security%20&%20Dependencies/badge.svg)](https://github.com/wheerd/strawbaler-online/actions/workflows/security.yml)
@@ -10,13 +6,11 @@
 [![Netlify Status (DEV)](https://api.netlify.com/api/v1/badges/0c31f906-f421-426d-b6af-d0f69ae3ea83/deploy-status?branch=development)](https://development--strawbaler.netlify.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-</div>
-
 A modern web-based floor plan editor specifically designed for strawbale construction planning.
 
 ## 🌐 Try It Online
 
-**➡️ [Launch Strawbaler Online](https://strawbaler.netlify.app/)** - Start designing your strawbale building now!
+**➡️ [Launch Strawbaler](https://strawbaler.netlify.app/)** - Start designing your strawbale building now!
 
 > **Development version:** [development--strawbaler.netlify.app](https://development--strawbaler.netlify.app/) (latest features, may be unstable)
 
@@ -103,7 +97,7 @@ src/
 
 ## ⚠️ Disclaimer
 
-Strawbaler Online is under active development and provided as-is:
+Strawbaler is under active development and provided as-is:
 
 - No guarantees for the precision of calculations, generated plans, or 3D models
 - Breaking changes may occur between releases
