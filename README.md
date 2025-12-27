@@ -2,6 +2,7 @@
 [![CI](https://github.com/wheerd/strawbaler-online/workflows/CI/badge.svg)](https://github.com/wheerd/strawbaler-online/actions/workflows/ci.yml)
 [![Security](https://github.com/wheerd/strawbaler-online/workflows/Security%20&%20Dependencies/badge.svg)](https://github.com/wheerd/strawbaler-online/actions/workflows/security.yml)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/0c31f906-f421-426d-b6af-d0f69ae3ea83/deploy-status)](https://app.netlify.com/projects/strawbaler/deploys)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern web-based floor plan editor specifically designed for strawbale construction planning.
 
@@ -154,6 +155,27 @@ This project includes comprehensive CI/CD workflows:
 ## 🐛 Known Issues
 
 - Non-right corners are not fully supported
+
+## 🤝 Contributing
+
+We welcome contributions from everyone! Whether you're a developer, strawbale builder, architect, or enthusiast, there are many ways to help:
+
+- 🐛 Report bugs and suggest features
+- 💻 Contribute code improvements
+- 📚 Improve documentation
+- 🏗️ Share your strawbale building expertise
+- 🎨 Provide UI/UX feedback
+- ✅ Test the application and provide feedback
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on how to get started.
+
+Please note that this project is released with a [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to abide by its terms.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+This means you are free to use, modify, and distribute this software, even for commercial purposes, as long as you include the original copyright notice.
 
 ---
 
