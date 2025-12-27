@@ -39,53 +39,30 @@ export function* segmentedWallConstruction(
 ): Generator<ConstructionResult> {
   const wallContext = getWallContext(wall, perimeter)
   const cornerInfo = calculateWallCornerInfo(wall, wallContext)
-  const { constructionLength, extensionStart, extensionEnd } = cornerInfo
 
-  const { getRingBeamAssemblyById } = getConfigActions()
-  // Get ring beam assemblies for THIS specific wall
-  const basePlateAssembly = wall.baseRingBeamAssemblyId ? getRingBeamAssemblyById(wall.baseRingBeamAssemblyId) : null
-  const basePlateHeight = basePlateAssembly ? resolveRingBeamAssembly(basePlateAssembly).height : 0
-  const topPlateAssembly = wall.topRingBeamAssemblyId ? getRingBeamAssemblyById(wall.topRingBeamAssemblyId) : null
-  const topPlateHeight = topPlateAssembly ? resolveRingBeamAssembly(topPlateAssembly).height : 0
+  // Calculate ring beam heights
+  const { basePlateHeight, topPlateHeight } = getRingBeamHeights(wall)
 
-  const totalConstructionHeight = storeyContext.wallTop - storeyContext.wallBottom
-  const ceilingOffset = storeyContext.roofBottom - storeyContext.wallTop
+  // Calculate all wall dimensions
+  const dimensions = calculateWallDimensions(wall, layers, storeyContext, basePlateHeight, topPlateHeight)
 
-  const y = layers.insideThickness
-  const sizeY = wall.thickness - layers.insideThickness - layers.outsideThickness
-  const z = basePlateHeight
-  const sizeZ = totalConstructionHeight - basePlateHeight - topPlateHeight
-
-  const finishedFloorZLevel = storeyContext.finishedFloorTop - storeyContext.wallBottom
-
+  // Determine if stands are needed at wall start/end
   const standAtWallStart = wallContext.startCorner.exteriorAngle !== 180 || cornerInfo.startCorner.constructedByThisWall
   const standAtWallEnd = wallContext.endCorner.exteriorAngle !== 180 || cornerInfo.endCorner.constructedByThisWall
 
-  // Query roofs and get merged height line
-  const roofHeightLine = getRoofHeightLineForLines(
-    perimeter.storeyId,
-    [cornerInfo.constructionInsideLine, cornerInfo.constructionOutsideLine],
-    -ceilingOffset,
-    storeyContext.perimeterContexts
-  )
+  // Calculate roof offsets
+  const roofOffsets = calculateRoofOffsets(perimeter, cornerInfo, dimensions.ceilingOffset, storeyContext)
 
-  // Convert roof height line to wall offsets
-  let roofOffsets
-  if (roofHeightLine) {
-    roofOffsets = convertHeightLineToWallOffsets(roofHeightLine, constructionLength)
-  } else {
-    roofOffsets = [newVec2(0, -ceilingOffset), newVec2(constructionLength, -ceilingOffset)]
-  }
-
-  // Create overall wall construction area ONCE with roof offsets
+  // Create overall wall construction area with roof offsets
   const overallWallArea = new WallConstructionArea(
-    newVec3(-extensionStart, y, z),
-    newVec3(constructionLength, sizeY, sizeZ),
+    newVec3(-cornerInfo.extensionStart, dimensions.y, dimensions.z),
+    newVec3(cornerInfo.constructionLength, dimensions.sizeY, dimensions.sizeZ),
     roofOffsets
   )
 
+  // Generate corner areas, plate areas, and measurements
   yield* generateAreasAndMeasurements(
-    finishedFloorZLevel,
+    dimensions.finishedFloorZLevel,
     overallWallArea,
     basePlateHeight,
     topPlateHeight,
@@ -98,122 +75,18 @@ export function* segmentedWallConstruction(
   // Create combined list of openings and posts
   const wallItems = createSortedWallItems(wall, wallOpeningAssemblyId)
 
-  if (wallItems.length === 0) {
-    // No items - use the overall area directly
-    yield* wallConstruction(overallWallArea, standAtWallStart, standAtWallEnd, extensionEnd > 0)
-    return
-  }
-
-  let startWithStand = standAtWallStart
-  let currentX = 0 // Position relative to overallWallArea start
-  let lastOpeningEnd = 0
-
-  const zAdjustment = finishedFloorZLevel - z
-
-  for (const item of wallItems) {
-    const { start, end } = getItemBounds(item, extensionStart)
-
-    // Wall segment before item (if any)
-    if (start > currentX) {
-      const wallSegmentWidth = start - currentX
-      const wallSegmentArea = overallWallArea.withXAdjustment(currentX, wallSegmentWidth)
-
-      const parts = splitAtHeightJumps(wallSegmentArea)
-      for (let i = 0; i < parts.length; i++) {
-        const standAtStart = i === 0 ? startWithStand : parts[i - 1].getHeightAtEnd() < parts[i].getHeightAtStart()
-        const standAtEnd =
-          i === parts.length - 1
-            ? itemNeedsWallStands(item)
-            : parts[i + 1].getHeightAtStart() < parts[i].getHeightAtEnd()
-        yield* wallConstruction(parts[i], standAtStart, standAtEnd, currentX > 0)
-      }
-
-      if (item.type === 'opening-group') {
-        const x = overallWallArea.position[0] + lastOpeningEnd
-        yield yieldMeasurement({
-          startPoint: newVec3(x, y, z),
-          endPoint: newVec3(overallWallArea.position[0] + start, y, z),
-          extend1: newVec3(x, y, z + sizeZ),
-          extend2: newVec3(x, y + sizeY, z),
-          tags: [TAG_OPENING_SPACING]
-        })
-        lastOpeningEnd = end
-      }
-    }
-
-    // Update stand logic for next segment
-    startWithStand = itemNeedsWallStands(item)
-
-    // Construct the item itself
-    if (item.type === 'opening-group') {
-      const group = item.openings
-      const groupWidth = end - start
-      const openingArea = overallWallArea.withXAdjustment(start, groupWidth)
-
-      const sillHeight = Math.max(group[0].sillHeight ?? 0)
-      const adjustedSill = sillHeight + zAdjustment
-      const adjustedHeader = adjustedSill + group[0].height
-      yield* item.assembly.construct(openingArea, adjustedHeader, adjustedSill, infillMethod)
-
-      // Create opening areas (doors/windows/passages)
-      for (const opening of group) {
-        const config = resolveOpeningConfig(opening, { openingAssemblyId: wallOpeningAssemblyId })
-        const openingArea = overallWallArea
-          .withXAdjustment(
-            extensionStart + opening.centerOffsetFromWallStart - opening.width / 2 + config.padding,
-            opening.width - 2 * config.padding
-          )
-          .withZAdjustment(adjustedSill + config.padding, opening.height - 2 * config.padding)
-
-        const tags =
-          opening.type === 'door' ? [TAG_OPENING_DOOR] : opening.type === 'window' ? [TAG_OPENING_WINDOW] : []
-        const label = opening.type === 'door' ? 'Door' : opening.type === 'window' ? 'Window' : 'Passage'
-
-        yield yieldArea({
-          type: 'cuboid',
-          areaType: opening.type,
-          label,
-          sourceId: opening.id,
-          size: openingArea.size,
-          bounds: openingArea.bounds,
-          transform: fromTrans(openingArea.position),
-          tags,
-          renderPosition: 'bottom'
-        })
-      }
-    } else if (item.type === 'post') {
-      // Construct post
-      const postWidth = end - start
-      const postArea = overallWallArea.withXAdjustment(start, postWidth)
-      yield* constructWallPost(postArea, item.post)
-      // No measurements for posts
-    }
-
-    currentX = end
-  }
-
-  // Final wall segment after last item (if any)
-  if (currentX < constructionLength) {
-    const finalSegmentWidth = constructionLength - currentX
-    const finalWallArea = overallWallArea.withXAdjustment(currentX, finalSegmentWidth)
-
-    const parts = splitAtHeightJumps(finalWallArea)
-    for (let i = 0; i < parts.length; i++) {
-      const standAtStart = i === 0 ? startWithStand : parts[i - 1].getHeightAtEnd() < parts[i].getHeightAtStart()
-      const standAtEnd =
-        i === parts.length - 1 ? standAtWallEnd : parts[i + 1].getHeightAtStart() < parts[i].getHeightAtEnd()
-      yield* wallConstruction(parts[i], standAtStart, standAtEnd, true)
-    }
-
-    const x = overallWallArea.position[0] + lastOpeningEnd
-    yield yieldMeasurement({
-      startPoint: newVec3(x, y, z),
-      endPoint: newVec3(overallWallArea.position[0] + constructionLength, y, z),
-      extend1: newVec3(x, y, z + sizeZ),
-      extend2: newVec3(x, y + sizeY, z),
-      tags: [TAG_OPENING_SPACING]
-    })
-  }
+  // Construct all wall segments, openings, and posts
+  yield* constructWallSegments(
+    wallItems,
+    overallWallArea,
+    standAtWallStart,
+    standAtWallEnd,
+    cornerInfo,
+    dimensions,
+    wallConstruction,
+    infillMethod,
+    wallOpeningAssemblyId
+  )
 }
 
 function canMergeOpenings(opening1: Opening, opening2: Opening): boolean {
@@ -266,6 +139,258 @@ export type WallSegmentConstruction = (
   endsWithStand: boolean,
   startAtEnd: boolean
 ) => Generator<ConstructionResult>
+
+/**
+ * Wall dimension calculations result
+ */
+type WallDimensions = {
+  y: Length
+  sizeY: Length
+  z: Length
+  sizeZ: Length
+  finishedFloorZLevel: Length
+  totalConstructionHeight: Length
+  ceilingOffset: Length
+}
+
+/**
+ * Calculate ring beam heights for wall construction
+ */
+function getRingBeamHeights(wall: PerimeterWall): {
+  basePlateHeight: Length
+  topPlateHeight: Length
+} {
+  const { getRingBeamAssemblyById } = getConfigActions()
+
+  const basePlateAssembly = wall.baseRingBeamAssemblyId ? getRingBeamAssemblyById(wall.baseRingBeamAssemblyId) : null
+  const basePlateHeight = basePlateAssembly ? resolveRingBeamAssembly(basePlateAssembly).height : 0
+
+  const topPlateAssembly = wall.topRingBeamAssemblyId ? getRingBeamAssemblyById(wall.topRingBeamAssemblyId) : null
+  const topPlateHeight = topPlateAssembly ? resolveRingBeamAssembly(topPlateAssembly).height : 0
+
+  return { basePlateHeight, topPlateHeight }
+}
+
+/**
+ * Calculate all wall dimension parameters
+ */
+function calculateWallDimensions(
+  wall: PerimeterWall,
+  layers: WallLayersConfig,
+  storeyContext: StoreyContext,
+  basePlateHeight: Length,
+  topPlateHeight: Length
+): WallDimensions {
+  const totalConstructionHeight = storeyContext.wallTop - storeyContext.wallBottom
+  const ceilingOffset = storeyContext.roofBottom - storeyContext.wallTop
+
+  const y = layers.insideThickness
+  const sizeY = wall.thickness - layers.insideThickness - layers.outsideThickness
+  const z = basePlateHeight
+  const sizeZ = totalConstructionHeight - basePlateHeight - topPlateHeight
+
+  const finishedFloorZLevel = storeyContext.finishedFloorTop - storeyContext.wallBottom
+
+  return {
+    y,
+    sizeY,
+    z,
+    sizeZ,
+    finishedFloorZLevel,
+    totalConstructionHeight,
+    ceilingOffset
+  }
+}
+
+/**
+ * Calculate roof offsets for wall construction
+ */
+function calculateRoofOffsets(
+  perimeter: Perimeter,
+  cornerInfo: WallCornerInfo,
+  ceilingOffset: Length,
+  storeyContext: StoreyContext
+): WallTopOffsets {
+  const roofHeightLine = getRoofHeightLineForLines(
+    perimeter.storeyId,
+    [cornerInfo.constructionInsideLine, cornerInfo.constructionOutsideLine],
+    -ceilingOffset,
+    storeyContext.perimeterContexts
+  )
+
+  if (roofHeightLine) {
+    return convertHeightLineToWallOffsets(roofHeightLine, cornerInfo.constructionLength)
+  } else {
+    return [newVec2(0, -ceilingOffset), newVec2(cornerInfo.constructionLength, -ceilingOffset)]
+  }
+}
+
+/**
+ * Construct a wall segment before an item (opening or post)
+ */
+function* constructWallSegment(
+  overallWallArea: WallConstructionArea,
+  start: Length,
+  end: Length,
+  startWithStand: boolean,
+  endWithStand: boolean,
+  wallConstruction: WallSegmentConstruction
+): Generator<ConstructionResult> {
+  if (end <= start) return
+
+  const wallSegmentWidth = end - start
+  const wallSegmentArea = overallWallArea.withXAdjustment(start, wallSegmentWidth)
+
+  const parts = splitAtHeightJumps(wallSegmentArea)
+  for (let i = 0; i < parts.length; i++) {
+    const standAtStart = i === 0 ? startWithStand : parts[i - 1].getHeightAtEnd() < parts[i].getHeightAtStart()
+    const standAtEnd =
+      i === parts.length - 1 ? endWithStand : parts[i + 1].getHeightAtStart() < parts[i].getHeightAtEnd()
+    yield* wallConstruction(parts[i], standAtStart, standAtEnd, start > 0)
+  }
+}
+
+/**
+ * Construct an opening group with its areas and measurements
+ */
+function* constructOpeningGroup(
+  item: WallItem & { type: 'opening-group' },
+  overallWallArea: WallConstructionArea,
+  start: Length,
+  end: Length,
+  cornerInfo: WallCornerInfo,
+  dimensions: WallDimensions,
+  infillMethod: InfillMethod,
+  wallOpeningAssemblyId?: OpeningAssemblyId
+): Generator<ConstructionResult> {
+  const group = item.openings
+  const groupWidth = end - start
+  const openingArea = overallWallArea.withXAdjustment(start, groupWidth)
+
+  const zAdjustment = dimensions.finishedFloorZLevel - dimensions.z
+  const sillHeight = Math.max(group[0].sillHeight ?? 0)
+  const adjustedSill = sillHeight + zAdjustment
+  const adjustedHeader = adjustedSill + group[0].height
+  yield* item.assembly.construct(openingArea, adjustedHeader, adjustedSill, infillMethod)
+
+  // Create opening areas (doors/windows/passages)
+  for (const opening of group) {
+    const config = resolveOpeningConfig(opening, { openingAssemblyId: wallOpeningAssemblyId })
+    const openingArea = overallWallArea
+      .withXAdjustment(
+        cornerInfo.extensionStart + opening.centerOffsetFromWallStart - opening.width / 2 + config.padding,
+        opening.width - 2 * config.padding
+      )
+      .withZAdjustment(adjustedSill + config.padding, opening.height - 2 * config.padding)
+
+    const tags = opening.type === 'door' ? [TAG_OPENING_DOOR] : opening.type === 'window' ? [TAG_OPENING_WINDOW] : []
+    const label = opening.type === 'door' ? 'Door' : opening.type === 'window' ? 'Window' : 'Passage'
+
+    yield yieldArea({
+      type: 'cuboid',
+      areaType: opening.type,
+      label,
+      sourceId: opening.id,
+      size: openingArea.size,
+      bounds: openingArea.bounds,
+      transform: fromTrans(openingArea.position),
+      tags,
+      renderPosition: 'bottom'
+    })
+  }
+}
+
+/**
+ * Iterate through wall items and construct segments, openings, and posts
+ */
+function* constructWallSegments(
+  wallItems: WallItem[],
+  overallWallArea: WallConstructionArea,
+  standAtWallStart: boolean,
+  standAtWallEnd: boolean,
+  cornerInfo: WallCornerInfo,
+  dimensions: WallDimensions,
+  wallConstruction: WallSegmentConstruction,
+  infillMethod: InfillMethod,
+  wallOpeningAssemblyId?: OpeningAssemblyId
+): Generator<ConstructionResult> {
+  if (wallItems.length === 0) {
+    // No items - use the overall area directly
+    yield* wallConstruction(overallWallArea, standAtWallStart, standAtWallEnd, cornerInfo.extensionEnd > 0)
+    return
+  }
+
+  let startWithStand = standAtWallStart
+  let currentX = 0 // Position relative to overallWallArea start
+  let lastOpeningEnd = 0
+
+  for (const item of wallItems) {
+    const { start, end } = getItemBounds(item, cornerInfo.extensionStart)
+
+    yield* constructWallSegment(
+      overallWallArea,
+      currentX,
+      start,
+      startWithStand,
+      itemNeedsWallStands(item),
+      wallConstruction
+    )
+    startWithStand = itemNeedsWallStands(item)
+
+    if (item.type === 'opening-group' && start > currentX) {
+      const x = overallWallArea.position[0] + lastOpeningEnd
+      yield yieldMeasurement({
+        startPoint: newVec3(x, dimensions.y, dimensions.z),
+        endPoint: newVec3(overallWallArea.position[0] + start, dimensions.y, dimensions.z),
+        extend1: newVec3(x, dimensions.y, dimensions.z + dimensions.sizeZ),
+        extend2: newVec3(x, dimensions.y + dimensions.sizeY, dimensions.z),
+        tags: [TAG_OPENING_SPACING]
+      })
+
+      lastOpeningEnd = end
+    }
+
+    if (item.type === 'opening-group') {
+      yield* constructOpeningGroup(
+        item,
+        overallWallArea,
+        start,
+        end,
+        cornerInfo,
+        dimensions,
+        infillMethod,
+        wallOpeningAssemblyId
+      )
+    } else if (item.type === 'post') {
+      const postWidth = end - start
+      const postArea = overallWallArea.withXAdjustment(start, postWidth)
+      yield* constructWallPost(postArea, item.post)
+    }
+
+    currentX = end
+  }
+
+  // Final wall segment after last item (if any)
+  if (currentX < cornerInfo.constructionLength) {
+    yield* constructWallSegment(
+      overallWallArea,
+      currentX,
+      cornerInfo.constructionLength,
+      startWithStand,
+      standAtWallEnd,
+      wallConstruction
+    )
+
+    const x = overallWallArea.position[0] + lastOpeningEnd
+    yield yieldMeasurement({
+      startPoint: newVec3(x, dimensions.y, dimensions.z),
+      endPoint: newVec3(overallWallArea.position[0] + cornerInfo.constructionLength, dimensions.y, dimensions.z),
+      extend1: newVec3(x, dimensions.y, dimensions.z + dimensions.sizeZ),
+      extend2: newVec3(x, dimensions.y + dimensions.sizeY, dimensions.z),
+      tags: [TAG_OPENING_SPACING]
+    })
+  }
+}
 
 type WallItem =
   | {
