@@ -354,7 +354,7 @@ describe('segmentedWallConstruction', () => {
       )
 
       // Should generate wall length/height measurement
-      expect(measurements).toHaveLength(5)
+      expect(measurements).toHaveLength(8)
       expect(measurements.flatMap(m => m.tags)).toEqual(
         expect.arrayContaining([TAG_WALL_LENGTH, TAG_WALL_HEIGHT, TAG_WALL_CONSTRUCTION_HEIGHT, TAG_RING_BEAM_HEIGHT])
       )
@@ -800,8 +800,10 @@ describe('segmentedWallConstruction', () => {
 
       expect(areas.length).toBeGreaterThanOrEqual(2)
 
+      const corners = areas.filter(a => a.areaType === 'corner')
+
       // Start corner area
-      expect(areas[0]).toEqual({
+      expect(corners[0]).toEqual({
         type: 'polygon',
         areaType: 'corner',
         renderPosition: 'top',
@@ -814,7 +816,7 @@ describe('segmentedWallConstruction', () => {
       })
 
       // End corner area
-      expect(areas[1]).toEqual({
+      expect(corners[1]).toEqual({
         type: 'polygon',
         areaType: 'corner',
         renderPosition: 'top',

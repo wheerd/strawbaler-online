@@ -18,6 +18,7 @@ import {
 } from '@/construction/tags'
 import type { InfillMethod, WallLayersConfig } from '@/construction/walls'
 import {
+  type WallTopOffsets,
   convertHeightLineToWallOffsets,
   getRoofHeightLineForLines,
   splitAtHeightJumps
@@ -163,7 +164,8 @@ function itemNeedsWallStands(item: WallItem): boolean {
 function* createCornerAreas(
   cornerInfo: WallCornerInfo,
   wallLength: Length,
-  wallHeight: Length
+  wallHeightStart: Length,
+  wallHeightEnd: Length
 ): Generator<ConstructionResult> {
   if (cornerInfo.startCorner) {
     yield yieldArea({
@@ -175,8 +177,8 @@ function* createCornerAreas(
       polygon: {
         points: [
           newVec2(-cornerInfo.startCorner.extensionDistance, 0),
-          newVec2(-cornerInfo.startCorner.extensionDistance, wallHeight),
-          newVec2(0, wallHeight),
+          newVec2(-cornerInfo.startCorner.extensionDistance, wallHeightStart),
+          newVec2(0, wallHeightStart),
           ZERO_VEC2
         ]
       },
@@ -193,8 +195,8 @@ function* createCornerAreas(
       polygon: {
         points: [
           newVec2(wallLength, 0),
-          newVec2(wallLength, wallHeight),
-          newVec2(wallLength + cornerInfo.endCorner.extensionDistance, wallHeight),
+          newVec2(wallLength, wallHeightEnd),
+          newVec2(wallLength + cornerInfo.endCorner.extensionDistance, wallHeightEnd),
           newVec2(wallLength + cornerInfo.endCorner.extensionDistance, 0)
         ]
       },
@@ -209,7 +211,8 @@ function* createPlateAreas(
   topPlateHeight: Length,
   start: Length,
   constructionLength: Length,
-  perimeterId: string
+  perimeterId: string,
+  roofOffsets: WallTopOffsets
 ): Generator<ConstructionResult> {
   if (basePlateHeight > 0) {
     yield yieldArea({
@@ -230,6 +233,16 @@ function* createPlateAreas(
     })
   }
   if (topPlateHeight > 0) {
+    const topPoints = roofOffsets?.map(o => newVec2(start + o[0], totalConstructionHeight + o[1])) ?? [
+      newVec2(start, totalConstructionHeight),
+      newVec2(start + constructionLength, totalConstructionHeight)
+    ]
+    const bottomPoints = roofOffsets?.map(o =>
+      newVec2(start + o[0], totalConstructionHeight + o[1] - topPlateHeight)
+    ) ?? [
+      newVec2(start, totalConstructionHeight - topPlateHeight),
+      newVec2(start + constructionLength, totalConstructionHeight - topPlateHeight)
+    ]
     yield yieldArea({
       type: 'polygon',
       areaType: 'top-plate',
@@ -237,12 +250,7 @@ function* createPlateAreas(
       label: 'Top Ring Beam',
       plane: 'xz',
       polygon: {
-        points: [
-          newVec2(start, totalConstructionHeight - topPlateHeight),
-          newVec2(start + constructionLength, totalConstructionHeight - topPlateHeight),
-          newVec2(start + constructionLength, totalConstructionHeight),
-          newVec2(start, totalConstructionHeight)
-        ]
+        points: [...topPoints, ...bottomPoints.reverse()]
       },
       mergeKey: `top-plate-${perimeterId}`
     })
@@ -272,21 +280,10 @@ export function* segmentedWallConstruction(
   const totalConstructionHeight = storeyContext.wallTop - storeyContext.wallBottom
   const ceilingOffset = storeyContext.roofBottom - storeyContext.wallTop
 
-  yield* createCornerAreas(cornerInfo, wall.wallLength, totalConstructionHeight)
-
   const y = layers.insideThickness
   const sizeY = wall.thickness - layers.insideThickness - layers.outsideThickness
   const z = basePlateHeight
   const sizeZ = totalConstructionHeight - basePlateHeight - topPlateHeight
-
-  yield* createPlateAreas(
-    totalConstructionHeight,
-    basePlateHeight,
-    topPlateHeight,
-    -extensionStart,
-    constructionLength,
-    perimeter.id
-  )
 
   const finishedFloorZLevel = storeyContext.finishedFloorTop - storeyContext.wallBottom
 
@@ -302,50 +299,6 @@ export function* segmentedWallConstruction(
     position: finishedFloorZLevel,
     mergeKey: `floor-level-${perimeter.storeyId}`
   })
-
-  yield yieldMeasurement({
-    startPoint: newVec3(-extensionStart, y, z),
-    endPoint: newVec3(-extensionStart + constructionLength, y, z),
-    extend1: newVec3(-extensionStart, y + sizeY, z),
-    extend2: newVec3(-extensionStart, y, z + sizeZ),
-    tags: [TAG_WALL_LENGTH]
-  })
-
-  yield yieldMeasurement({
-    startPoint: newVec3(-extensionStart, y, 0),
-    endPoint: newVec3(-extensionStart, y, totalConstructionHeight),
-    extend1: newVec3(-extensionStart + constructionLength, y, 0),
-    extend2: newVec3(-extensionStart, y + sizeY, 0),
-    tags: [TAG_WALL_HEIGHT]
-  })
-
-  yield yieldMeasurement({
-    startPoint: newVec3(-extensionStart, y, z),
-    endPoint: newVec3(-extensionStart, y, sizeZ),
-    extend1: newVec3(-extensionStart + constructionLength, y, z),
-    extend2: newVec3(-extensionStart, y + sizeY, z),
-    tags: [TAG_WALL_CONSTRUCTION_HEIGHT]
-  })
-
-  if (basePlateHeight > 0) {
-    yield yieldMeasurement({
-      startPoint: newVec3(-extensionStart, y, 0),
-      endPoint: newVec3(-extensionStart, y, basePlateHeight),
-      extend1: newVec3(-extensionStart + constructionLength, y, 0),
-      extend2: newVec3(-extensionStart, y + sizeY, 0),
-      tags: [TAG_RING_BEAM_HEIGHT]
-    })
-  }
-
-  if (topPlateHeight > 0) {
-    yield yieldMeasurement({
-      startPoint: newVec3(-extensionStart, y, totalConstructionHeight - topPlateHeight),
-      endPoint: newVec3(-extensionStart, y, totalConstructionHeight),
-      extend1: newVec3(-extensionStart + constructionLength, y, totalConstructionHeight - topPlateHeight),
-      extend2: newVec3(-extensionStart, y + sizeY, totalConstructionHeight - topPlateHeight),
-      tags: [TAG_RING_BEAM_HEIGHT]
-    })
-  }
 
   // Query roofs and get merged height line
   const roofHeightLine = getRoofHeightLineForLines(
@@ -369,6 +322,89 @@ export function* segmentedWallConstruction(
     newVec3(constructionLength, sizeY, sizeZ),
     roofOffsets
   )
+
+  const wallHeightStart = overallWallArea.getHeightAtStart()
+  const wallHeightEnd = overallWallArea.getHeightAtEnd()
+
+  const constructionHeightStart = basePlateHeight + wallHeightStart + topPlateHeight
+  const constructionHeightEnd = basePlateHeight + wallHeightEnd + topPlateHeight
+  yield* createCornerAreas(cornerInfo, wall.wallLength, constructionHeightStart, constructionHeightEnd)
+
+  yield* createPlateAreas(
+    totalConstructionHeight,
+    basePlateHeight,
+    topPlateHeight,
+    -extensionStart,
+    constructionLength,
+    perimeter.id,
+    roofOffsets
+  )
+
+  yield yieldMeasurement({
+    startPoint: newVec3(-extensionStart, y, z),
+    endPoint: newVec3(-extensionStart + constructionLength, y, z),
+    extend1: newVec3(-extensionStart, y + sizeY, z),
+    extend2: newVec3(-extensionStart, y, z + sizeZ),
+    tags: [TAG_WALL_LENGTH]
+  })
+
+  yield yieldMeasurement({
+    startPoint: newVec3(-extensionStart, y, 0),
+    endPoint: newVec3(-extensionStart, y, wallHeightStart + basePlateHeight + topPlateHeight),
+    extend1: newVec3(-extensionStart + constructionLength / 2, y, 0),
+    extend2: newVec3(-extensionStart, y + sizeY, 0),
+    tags: [TAG_WALL_HEIGHT]
+  })
+  yield yieldMeasurement({
+    startPoint: newVec3(-extensionStart + constructionLength / 2, y, 0),
+    endPoint: newVec3(-extensionStart + constructionLength / 2, y, wallHeightEnd + basePlateHeight + topPlateHeight),
+    extend1: newVec3(-extensionStart + constructionLength, y, 0),
+    extend2: newVec3(-extensionStart + constructionLength / 2, y + sizeY, 0),
+    tags: [TAG_WALL_HEIGHT]
+  })
+
+  yield yieldMeasurement({
+    startPoint: newVec3(-extensionStart, y, z),
+    endPoint: newVec3(-extensionStart, y, z + wallHeightStart),
+    extend1: newVec3(-extensionStart + constructionLength / 2, y, z),
+    extend2: newVec3(-extensionStart, y + sizeY, z),
+    tags: [TAG_WALL_CONSTRUCTION_HEIGHT]
+  })
+  yield yieldMeasurement({
+    startPoint: newVec3(-extensionStart + constructionLength / 2, y, z),
+    endPoint: newVec3(-extensionStart + constructionLength / 2, y, z + wallHeightEnd),
+    extend1: newVec3(-extensionStart + constructionLength, y, z),
+    extend2: newVec3(-extensionStart + constructionLength / 2, y + sizeY, z),
+    tags: [TAG_WALL_CONSTRUCTION_HEIGHT]
+  })
+
+  if (basePlateHeight > 0) {
+    yield yieldMeasurement({
+      startPoint: newVec3(-extensionStart, y, 0),
+      endPoint: newVec3(-extensionStart, y, basePlateHeight),
+      extend1: newVec3(-extensionStart + constructionLength, y, 0),
+      extend2: newVec3(-extensionStart, y + sizeY, 0),
+      tags: [TAG_RING_BEAM_HEIGHT]
+    })
+  }
+
+  if (topPlateHeight > 0) {
+    yield yieldMeasurement({
+      startPoint: newVec3(-extensionStart, y, z + wallHeightStart),
+      endPoint: newVec3(-extensionStart, y, z + wallHeightStart + topPlateHeight),
+      extend1: newVec3(-extensionStart + constructionLength / 2, y, z + wallHeightStart),
+      extend2: newVec3(-extensionStart, y + sizeY, z + wallHeightStart),
+      tags: [TAG_RING_BEAM_HEIGHT]
+    })
+
+    yield yieldMeasurement({
+      startPoint: newVec3(-extensionStart + constructionLength / 2, y, z + wallHeightEnd),
+      endPoint: newVec3(-extensionStart + constructionLength / 2, y, z + wallHeightEnd + topPlateHeight),
+      extend1: newVec3(-extensionStart + constructionLength, y, z + wallHeightEnd),
+      extend2: newVec3(-extensionStart + constructionLength / 2, y + sizeY, z + wallHeightEnd),
+      tags: [TAG_RING_BEAM_HEIGHT]
+    })
+  }
 
   // Create combined list of openings and posts
   const wallItems = createSortedWallItems(wall, wallOpeningAssemblyId)
