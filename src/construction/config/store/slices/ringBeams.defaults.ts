@@ -17,14 +17,14 @@ const brickRingBeamAssembly: BrickRingBeamAssemblyConfig = {
   name: 'Brick Ring Beam',
   type: 'brick',
   wallHeight: 300,
-  wallWidth: 250,
+  wallWidth: 240,
   wallMaterial: brick.id,
   beamThickness: 60,
   beamWidth: 360,
   beamMaterial: roughWood.id,
   waterproofingThickness: 2,
   waterproofingMaterial: bitumen.id,
-  insulationThickness: 100,
+  insulationThickness: 120,
   insulationMaterial: cork.id
 }
 
