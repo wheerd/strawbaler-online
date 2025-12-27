@@ -1,7 +1,7 @@
 import { InfillWallAssembly } from './infill'
+import { ModulesWallAssembly } from './modules/all-modules'
+import { StrawhengeWallAssembly } from './modules/strawhenge'
 import { NonStrawbaleWallAssembly } from './nonStrawbale'
-import { ModulesWallAssembly } from './strawhenge/all-modules'
-import { StrawhengeWallAssembly } from './strawhenge/strawhenge'
 import type { WallAssembly, WallAssemblyType } from './types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,6 +17,6 @@ export * from './construction'
 export * from './segmentation'
 export * from './corners/corners'
 export * from './infill/infill'
-export * from './strawhenge/strawhenge'
+export * from './modules/strawhenge'
 export * from './nonStrawbale'
 export * from './layers'

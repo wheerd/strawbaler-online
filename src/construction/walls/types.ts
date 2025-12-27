@@ -9,7 +9,7 @@ import type { StoreyContext } from '@/construction/storeys/context'
 import type { Tag } from '@/construction/tags'
 import type { Length } from '@/shared/geometry'
 
-import type { ModuleConfig } from './strawhenge/modules'
+import type { ModuleConfig } from './modules/modules'
 
 export interface WallAssembly<TConfig extends WallBaseConfig> {
   construct: (

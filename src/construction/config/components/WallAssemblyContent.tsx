@@ -37,7 +37,7 @@ import type {
   WallAssemblyType,
   WallConfig
 } from '@/construction/walls'
-import type { ModuleConfig } from '@/construction/walls/strawhenge/modules'
+import type { ModuleConfig } from '@/construction/walls/modules/modules'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField'
 import { useDebouncedInput } from '@/shared/hooks/useDebouncedInput'
