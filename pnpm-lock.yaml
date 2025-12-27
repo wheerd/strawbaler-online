@@ -121,8 +121,8 @@ importers:
         specifier: ^1.3.3
         version: 1.3.3
       '@types/node':
-        specifier: ^24.10.1
-        version: 24.10.1
+        specifier: ^25.0.3
+        version: 25.0.3
       '@types/react':
         specifier: ^19.2.7
         version: 19.2.7
@@ -137,10 +137,10 @@ importers:
         version: 5.0.2
       '@vitejs/plugin-react':
         specifier: ^4.7.0
-        version: 4.7.0(vite@7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))
+        version: 4.7.0(vite@7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))
       '@vitest/coverage-v8':
         specifier: ^4.0.14
-        version: 4.0.14(vitest@4.0.14(@types/node@24.10.1)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1))
+        version: 4.0.14(vitest@4.0.14(@types/node@25.0.3)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1))
       autoprefixer:
         specifier: ^10.4.22
         version: 10.4.22(postcss@8.5.6)
@@ -179,16 +179,16 @@ importers:
         version: 8.48.0(eslint@9.39.1(jiti@1.21.7))(typescript@5.8.3)
       vite:
         specifier: ^7.2.4
-        version: 7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
+        version: 7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
       vite-plugin-pwa:
         specifier: ^1.1.0
-        version: 1.1.0(vite@7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))(workbox-build@7.3.0(@types/babel__core@7.20.5))(workbox-window@7.4.0)
+        version: 1.1.0(vite@7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))(workbox-build@7.3.0(@types/babel__core@7.20.5))(workbox-window@7.4.0)
       vitest:
         specifier: ^4.0.14
-        version: 4.0.14(@types/node@24.10.1)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1)
+        version: 4.0.14(@types/node@25.0.3)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1)
       vitest-canvas-mock:
         specifier: ^0.3.3
-        version: 0.3.3(vitest@4.0.14(@types/node@24.10.1)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1))
+        version: 0.3.3(vitest@4.0.14(@types/node@25.0.3)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1))
 
 packages:
 
@@ -2304,8 +2304,8 @@ packages:
   '@types/ndarray@1.0.14':
     resolution: {integrity: sha512-oANmFZMnFQvb219SSBIhI1Ih/r4CvHDOzkWyJS/XRqkMrGH5/kaPSA1hQhdIBzouaE+5KpE/f5ylI9cujmckQg==}
 
-  '@types/node@24.10.1':
-    resolution: {integrity: sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==}
+  '@types/node@25.0.3':
+    resolution: {integrity: sha512-W609buLVRVmeW693xKfzHeIV6nJGGz98uCPfeXI1ELMLXVeKYZ9m15fAMSaUPBHYLGFsVRcMmSCksQOrZV9BYA==}
 
   '@types/offscreencanvas@2019.7.3':
     resolution: {integrity: sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A==}
@@ -6163,7 +6163,7 @@ snapshots:
 
   '@jest/pattern@30.0.1':
     dependencies:
-      '@types/node': 24.10.1
+      '@types/node': 25.0.3
       jest-regex-util: 30.0.1
 
   '@jest/schemas@30.0.5':
@@ -6176,7 +6176,7 @@ snapshots:
       '@jest/schemas': 30.0.5
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 24.10.1
+      '@types/node': 25.0.3
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -7356,7 +7356,7 @@ snapshots:
 
   '@types/ndarray@1.0.14': {}
 
-  '@types/node@24.10.1':
+  '@types/node@25.0.3':
     dependencies:
       undici-types: 7.16.0
 
@@ -7564,7 +7564,7 @@ snapshots:
       '@use-gesture/core': 10.3.1
       react: 19.2.0
 
-  '@vitejs/plugin-react@4.7.0(vite@7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))':
+  '@vitejs/plugin-react@4.7.0(vite@7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))':
     dependencies:
       '@babel/core': 7.28.5
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.28.5)
@@ -7572,11 +7572,11 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.27
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
+      vite: 7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-v8@4.0.14(vitest@4.0.14(@types/node@24.10.1)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1))':
+  '@vitest/coverage-v8@4.0.14(vitest@4.0.14(@types/node@25.0.3)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1))':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.0.14
@@ -7589,7 +7589,7 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.14(@types/node@24.10.1)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1)
+      vitest: 4.0.14(@types/node@25.0.3)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -7602,13 +7602,13 @@ snapshots:
       chai: 6.2.1
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.14(vite@7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))':
+  '@vitest/mocker@4.0.14(vite@7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))':
     dependencies:
       '@vitest/spy': 4.0.14
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
+      vite: 7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
 
   '@vitest/pretty-format@4.0.14':
     dependencies:
@@ -7870,7 +7870,7 @@ snapshots:
 
   bun-types@1.3.3:
     dependencies:
-      '@types/node': 24.10.1
+      '@types/node': 25.0.3
 
   call-bind-apply-helpers@1.0.2:
     dependencies:
@@ -9017,7 +9017,7 @@ snapshots:
   jest-mock@30.2.0:
     dependencies:
       '@jest/types': 30.2.0
-      '@types/node': 24.10.1
+      '@types/node': 25.0.3
       jest-util: 30.2.0
 
   jest-regex-util@30.0.1: {}
@@ -9025,7 +9025,7 @@ snapshots:
   jest-util@30.2.0:
     dependencies:
       '@jest/types': 30.2.0
-      '@types/node': 24.10.1
+      '@types/node': 25.0.3
       chalk: 4.1.2
       ci-info: 4.3.1
       graceful-fs: 4.2.11
@@ -10403,18 +10403,18 @@ snapshots:
 
   utility-types@3.11.0: {}
 
-  vite-plugin-pwa@1.1.0(vite@7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))(workbox-build@7.3.0(@types/babel__core@7.20.5))(workbox-window@7.4.0):
+  vite-plugin-pwa@1.1.0(vite@7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))(workbox-build@7.3.0(@types/babel__core@7.20.5))(workbox-window@7.4.0):
     dependencies:
       debug: 4.4.3
       pretty-bytes: 6.1.1
       tinyglobby: 0.2.15
-      vite: 7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
+      vite: 7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
       workbox-build: 7.3.0(@types/babel__core@7.20.5)
       workbox-window: 7.4.0
     transitivePeerDependencies:
       - supports-color
 
-  vite@7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1):
+  vite@7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1):
     dependencies:
       esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.3)
@@ -10423,21 +10423,21 @@ snapshots:
       rollup: 4.53.3
       tinyglobby: 0.2.15
     optionalDependencies:
-      '@types/node': 24.10.1
+      '@types/node': 25.0.3
       fsevents: 2.3.3
       jiti: 1.21.7
       terser: 5.44.1
       yaml: 2.8.1
 
-  vitest-canvas-mock@0.3.3(vitest@4.0.14(@types/node@24.10.1)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1)):
+  vitest-canvas-mock@0.3.3(vitest@4.0.14(@types/node@25.0.3)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1)):
     dependencies:
       jest-canvas-mock: 2.5.2
-      vitest: 4.0.14(@types/node@24.10.1)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1)
+      vitest: 4.0.14(@types/node@25.0.3)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1)
 
-  vitest@4.0.14(@types/node@24.10.1)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1):
+  vitest@4.0.14(@types/node@25.0.3)(jiti@1.21.7)(jsdom@26.1.0(canvas@3.2.0))(terser@5.44.1)(yaml@2.8.1):
     dependencies:
       '@vitest/expect': 4.0.14
-      '@vitest/mocker': 4.0.14(vite@7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))
+      '@vitest/mocker': 4.0.14(vite@7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1))
       '@vitest/pretty-format': 4.0.14
       '@vitest/runner': 4.0.14
       '@vitest/snapshot': 4.0.14
@@ -10454,10 +10454,10 @@ snapshots:
       tinyexec: 0.3.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vite: 7.2.4(@types/node@24.10.1)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
+      vite: 7.2.4(@types/node@25.0.3)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 24.10.1
+      '@types/node': 25.0.3
       jsdom: 26.1.0(canvas@3.2.0)
     transitivePeerDependencies:
       - jiti
