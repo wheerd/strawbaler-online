@@ -73,7 +73,7 @@ export function* segmentedWallConstruction(
   )
 
   // Create combined list of openings and posts
-  const wallItems = createSortedWallItems(wall, wallOpeningAssemblyId)
+  const wallItems = createSortedWallItems(wall, cornerInfo.extensionStart, wallOpeningAssemblyId)
 
   // Construct all wall segments, openings, and posts
   yield* constructWallSegments(
@@ -143,7 +143,7 @@ export type WallSegmentConstruction = (
 /**
  * Wall dimension calculations result
  */
-type WallDimensions = {
+interface WallDimensions {
   y: Length
   sizeY: Length
   z: Length
@@ -325,49 +325,47 @@ function* constructWallSegments(
   let lastOpeningEnd = 0
 
   for (const item of wallItems) {
-    const { start, end } = getItemBounds(item, cornerInfo.extensionStart)
-
     yield* constructWallSegment(
       overallWallArea,
       currentX,
-      start,
+      item.start,
       startWithStand,
-      itemNeedsWallStands(item),
+      item.needsWallStands,
       wallConstruction
     )
-    startWithStand = itemNeedsWallStands(item)
+    startWithStand = item.needsWallStands
 
-    if (item.type === 'opening-group' && start > currentX) {
+    if (item.type === 'opening-group' && item.start > currentX) {
       const x = overallWallArea.position[0] + lastOpeningEnd
       yield yieldMeasurement({
         startPoint: newVec3(x, dimensions.y, dimensions.z),
-        endPoint: newVec3(overallWallArea.position[0] + start, dimensions.y, dimensions.z),
+        endPoint: newVec3(overallWallArea.position[0] + item.start, dimensions.y, dimensions.z),
         extend1: newVec3(x, dimensions.y, dimensions.z + dimensions.sizeZ),
         extend2: newVec3(x, dimensions.y + dimensions.sizeY, dimensions.z),
         tags: [TAG_OPENING_SPACING]
       })
 
-      lastOpeningEnd = end
+      lastOpeningEnd = item.end
     }
 
     if (item.type === 'opening-group') {
       yield* constructOpeningGroup(
         item,
         overallWallArea,
-        start,
-        end,
+        item.start,
+        item.end,
         cornerInfo,
         dimensions,
         infillMethod,
         wallOpeningAssemblyId
       )
     } else if (item.type === 'post') {
-      const postWidth = end - start
-      const postArea = overallWallArea.withXAdjustment(start, postWidth)
+      const postWidth = item.end - item.start
+      const postArea = overallWallArea.withXAdjustment(item.start, postWidth)
       yield* constructWallPost(postArea, item.post)
     }
 
-    currentX = end
+    currentX = item.end
   }
 
   // Final wall segment after last item (if any)
@@ -397,13 +395,26 @@ type WallItem =
       type: 'opening-group'
       openings: Opening[]
       assembly: ReturnType<typeof resolveOpeningAssembly>
+      start: Length
+      end: Length
+      needsWallStands: boolean
     }
-  | { type: 'post'; post: PerimeterWall['posts'][number] }
+  | {
+      type: 'post'
+      post: PerimeterWall['posts'][number]
+      start: Length
+      end: Length
+      needsWallStands: boolean
+    }
 
 /**
- * Combines openings (as groups) and posts into a single sorted list
+ * Combines openings (as groups) and posts into a single sorted list with computed bounds
  */
-function createSortedWallItems(wall: PerimeterWall, wallOpeningAssemblyId?: OpeningAssemblyId): WallItem[] {
+function createSortedWallItems(
+  wall: PerimeterWall,
+  extensionStart: Length,
+  wallOpeningAssemblyId?: OpeningAssemblyId
+): WallItem[] {
   const items: WallItem[] = []
 
   // Add opening groups (existing merging logic already works)
@@ -412,66 +423,43 @@ function createSortedWallItems(wall: PerimeterWall, wallOpeningAssemblyId?: Open
 
   for (const group of openingGroups) {
     const assembly = resolveOpeningAssembly(group[0].openingAssemblyId ?? wallOpeningAssemblyId)
+    const start =
+      extensionStart + group[0].centerOffsetFromWallStart - group[0].width / 2 - assembly.segmentationPadding
+    const end =
+      extensionStart +
+      group[group.length - 1].centerOffsetFromWallStart +
+      group[group.length - 1].width / 2 +
+      assembly.segmentationPadding
+
     items.push({
       type: 'opening-group',
       openings: group,
-      assembly
+      assembly,
+      start,
+      end,
+      needsWallStands: assembly.needsWallStands
     })
   }
 
   // Add posts
   for (const post of wall.posts) {
-    items.push({ type: 'post', post })
+    const postCenter = extensionStart + post.centerOffsetFromWallStart
+    // Clamp to valid wall area, might be outside because of outside layers
+    const start = Math.max(postCenter - post.width / 2, 0)
+    const end = start + post.width
+
+    items.push({
+      type: 'post',
+      post,
+      start,
+      end,
+      needsWallStands: !post.replacesPosts
+    })
   }
 
-  // Sort all items by center position
-  items.sort((a, b) => {
-    const centerA =
-      a.type === 'opening-group' ? a.openings[0].centerOffsetFromWallStart : a.post.centerOffsetFromWallStart
-    const centerB =
-      b.type === 'opening-group' ? b.openings[0].centerOffsetFromWallStart : b.post.centerOffsetFromWallStart
-    return centerA - centerB
-  })
+  items.sort((a, b) => a.start - b.start)
 
   return items
-}
-
-/**
- * Returns the construction bounds (start/end positions) for a wall item
- */
-function getItemBounds(item: WallItem, extensionStart: Length): { start: Length; end: Length } {
-  if (item.type === 'opening-group') {
-    const group = item.openings
-    const groupStart =
-      extensionStart + group[0].centerOffsetFromWallStart - group[0].width / 2 - item.assembly.segmentationPadding
-    const groupEnd =
-      extensionStart +
-      group[group.length - 1].centerOffsetFromWallStart +
-      group[group.length - 1].width / 2 +
-      item.assembly.segmentationPadding
-    return { start: groupStart, end: groupEnd }
-  } else {
-    const postCenter = extensionStart + item.post.centerOffsetFromWallStart
-    // Clamp to valid wall area, might be outside because of outside layers
-    const start = Math.max(postCenter - item.post.width / 2, 0)
-    return {
-      start,
-      end: start + item.post.width
-    }
-  }
-}
-
-/**
- * Determines if a wall item requires wall stands before/after it
- */
-function itemNeedsWallStands(item: WallItem): boolean {
-  if (item.type === 'opening-group') {
-    return item.assembly.needsWallStands
-  } else {
-    // Post replaces structural posts → no stands needed at this position
-    // Post doesn't replace posts → stands needed at this position
-    return !item.post.replacesPosts
-  }
 }
 
 function* createCornerAreas(
