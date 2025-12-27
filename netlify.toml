@@ -1,0 +1,53 @@
+[build]
+  # Build command - runs TypeScript check and Vite build
+  command = "pnpm build"
+  
+  # Directory with the production build
+  publish = "dist"
+  
+  # Install pnpm before building
+  [build.environment]
+    NODE_VERSION = "22"
+
+# Ensure tests pass before deploying
+[build.processing]
+  skip_processing = false
+
+# Deploy previews for pull requests
+[context.deploy-preview]
+  command = "pnpm typecheck && pnpm test && pnpm build"
+
+# Production deployments - ensure everything passes
+[context.production]
+  command = "pnpm typecheck && pnpm test && pnpm build"
+
+# Branch deployments
+[context.branch-deploy]
+  command = "pnpm typecheck && pnpm test && pnpm build"
+
+# Headers for security and caching
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer-when-downgrade"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Service Worker - don't cache
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Redirect rules (if needed in the future)
+# [[redirects]]
+#   from = "/old-path"
+#   to = "/new-path"
+#   status = 301
