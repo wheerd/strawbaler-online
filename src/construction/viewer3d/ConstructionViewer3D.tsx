@@ -75,7 +75,7 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
           far: maxSize * 10
         }}
         dpr={[1, maxDevicePixelRatio]}
-        gl={{ powerPreference: 'low-power' }}
+        gl={{ powerPreference: 'low-power', logarithmicDepthBuffer: true }}
         style={{
           width: `${containerSize.width}px`,
           height: `${containerSize.height}px`,
