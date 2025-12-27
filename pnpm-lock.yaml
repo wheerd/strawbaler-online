@@ -102,9 +102,6 @@ importers:
       '@eslint/js':
         specifier: ^9.39.1
         version: 9.39.1
-      '@opencode-ai/plugin':
-        specifier: ^0.14.7
-        version: 0.14.7
       '@playwright/test':
         specifier: ^1.57.0
         version: 1.57.0
@@ -1216,12 +1213,6 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
-
-  '@opencode-ai/plugin@0.14.7':
-    resolution: {integrity: sha512-yD6JJFoqYUG1+zyI6TWS3JzQT2kC9/hLYPx/oEJ94WOGY3101y5wGDo8DJlvCR4bn/RPhQukXs2/TV7pFg7Llg==}
-
-  '@opencode-ai/sdk@0.14.7':
-    resolution: {integrity: sha512-HlwShFaBA+5DqK3cL/ZWI6xEuwaYNKLvTlVsVG1zjLb2hBQsbTaSkbUKXSlfvMvaxSZJkXXTh0aZm/qkf0WwEQ==}
 
   '@playwright/test@1.57.0':
     resolution: {integrity: sha512-6TyEnHgd6SArQO8UO2OMTxshln3QMWBtPGrOCgs3wVEmQmwyuNtB10IZMfmYDE0riwNR1cu4q+pPcxMVtaG3TA==}
@@ -5088,9 +5079,6 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zod@4.1.8:
-    resolution: {integrity: sha512-5R1P+WwQqmmMIEACyzSvo4JXHY5WiAFHRMg+zBZKgKS+Q1viRa0C1hmUKtHltoIFKtIdki3pRxkmpP74jnNYHQ==}
-
   zundo@2.3.0:
     resolution: {integrity: sha512-4GXYxXA17SIKYhVbWHdSEU04P697IMyVGXrC2TnzoyohEAWytFNOKqOp5gTGvaW93F/PM5Y0evbGtOPF0PWQwQ==}
     peerDependencies:
@@ -6208,13 +6196,6 @@ snapshots:
       fastq: 1.19.1
 
   '@nolyfill/is-core-module@1.0.39': {}
-
-  '@opencode-ai/plugin@0.14.7':
-    dependencies:
-      '@opencode-ai/sdk': 0.14.7
-      zod: 4.1.8
-
-  '@opencode-ai/sdk@0.14.7': {}
 
   '@playwright/test@1.57.0':
     dependencies:
@@ -10583,8 +10564,6 @@ snapshots:
     optional: true
 
   yocto-queue@0.1.0: {}
-
-  zod@4.1.8: {}
 
   zundo@2.3.0(zustand@5.0.8(@types/react@19.2.7)(immer@10.2.0)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0))):
     dependencies:
