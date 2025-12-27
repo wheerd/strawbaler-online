@@ -1,19 +1,20 @@
-import { type ReactNode, createContext, useContext, useMemo, useState } from 'react'
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useSyncExternalStore
+} from 'react'
 
 import type { Tag, TagCategoryId, TagId } from '@/construction/tags'
 
-export type TagOrCategory = TagId | TagCategoryId
+import { type TagOpacityStore, type TagOrCategory, createTagOpacityStore } from './tagOpacityStore'
 
-interface TagOpacityContextValue {
-  opacityMap: Map<TagOrCategory, number>
-  getTagOrCategoryOpacity: (id: TagOrCategory) => number
-  getCategoryOpacityState: (categoryId: TagCategoryId, tagIds: TagId[]) => 'visible' | 'partial' | 'hidden'
-  cycleTagOrCategoryOpacity: (id: TagOrCategory) => void
-  setTagOrCategoryOpacity: (id: TagOrCategory, opacity: number) => void
-  getEffectiveOpacity: (tags: Tag[]) => number
-}
-
-const TagOpacityContext = createContext<TagOpacityContextValue | undefined>(undefined)
+const TagOpacityStoreContext = createContext<TagOpacityStore | null>(null)
 
 export interface TagOpacityProviderProps {
   children: ReactNode
@@ -21,99 +22,84 @@ export interface TagOpacityProviderProps {
 }
 
 export function TagOpacityProvider({ children, defaultOpacities }: TagOpacityProviderProps): React.JSX.Element {
-  const initialOpacities =
-    defaultOpacities ??
-    new Map<TagOrCategory, number>([
-      ['wall-layer', 0],
-      ['floor-layer', 0],
-      ['roof-layer', 0]
-    ])
-
-  const [opacityMap, setOpacityMap] = useState<Map<TagOrCategory, number>>(initialOpacities)
-
-  const getTagOrCategoryOpacity = (id: TagOrCategory): number => {
-    return opacityMap.get(id) ?? 1.0
-  }
-
-  const getCategoryOpacityState = (categoryId: TagCategoryId, tagIds: TagId[]): 'visible' | 'partial' | 'hidden' => {
-    const categoryOpacity = getTagOrCategoryOpacity(categoryId)
-
-    // If category is hidden, entire category is hidden
-    if (categoryOpacity === 0) {
-      return 'hidden'
-    }
-
-    // Check individual tag opacities
-    const tagOpacities = tagIds.map(id => {
-      const tagOpacity = getTagOrCategoryOpacity(id)
-      // Effective opacity is minimum of tag and category
-      return Math.min(tagOpacity, categoryOpacity)
+  const storeRef = useRef<TagOpacityStore>(
+    createTagOpacityStore({
+      initialOpacities: defaultOpacities
     })
-
-    const hiddenCount = tagOpacities.filter(opacity => opacity === 0).length
-    const visibleCount = tagOpacities.filter(opacity => opacity === 1.0).length
-
-    if (categoryOpacity === 0.5 || tagOpacities.some(opacity => opacity === 0.5)) {
-      // If category is semi-transparent or any tag is semi-transparent, it's partial
-      return 'partial'
-    }
-
-    if (hiddenCount === tagIds.length) {
-      return 'hidden'
-    } else if (visibleCount === tagIds.length) {
-      return 'visible'
-    } else {
-      return 'partial'
-    }
-  }
-
-  const setTagOrCategoryOpacity = (id: TagOrCategory, opacity: number): void => {
-    setOpacityMap(prev => {
-      const next = new Map(prev)
-      next.set(id, opacity)
-      return next
-    })
-  }
-
-  const cycleTagOrCategoryOpacity = (id: TagOrCategory): void => {
-    const current = getTagOrCategoryOpacity(id)
-    const next = current === 1.0 ? 0.5 : current === 0.5 ? 0.0 : 1.0
-    setTagOrCategoryOpacity(id, next)
-  }
-
-  function getEffectiveOpacity(tags: Tag[]): number {
-    if (tags.length === 0) return 1.0
-
-    let minOpacity = 1.0
-
-    tags.forEach(tag => {
-      const tagOpacity = opacityMap.get(tag.id) ?? 1.0
-      const categoryOpacity = opacityMap.get(tag.category) ?? 1.0
-      minOpacity = Math.min(minOpacity, tagOpacity, categoryOpacity)
-    })
-
-    return minOpacity
-  }
-
-  const value = useMemo(
-    () => ({
-      opacityMap,
-      getTagOrCategoryOpacity,
-      getCategoryOpacityState,
-      cycleTagOrCategoryOpacity,
-      setTagOrCategoryOpacity,
-      getEffectiveOpacity
-    }),
-    [opacityMap]
   )
 
-  return <TagOpacityContext.Provider value={value}>{children}</TagOpacityContext.Provider>
+  return <TagOpacityStoreContext.Provider value={storeRef.current}>{children}</TagOpacityStoreContext.Provider>
 }
 
-export function useTagOpacity(): TagOpacityContextValue {
-  const context = useContext(TagOpacityContext)
-  if (!context) {
-    throw new Error('useTagOpacity must be used within TagOpacityProvider')
+function useTagOpacityStore(): TagOpacityStore {
+  const store = useContext(TagOpacityStoreContext)
+  if (!store) {
+    throw new Error('useTagOpacityStore must be used within TagOpacityProvider')
   }
-  return context
+  return store
+}
+
+/**
+ * Hook to subscribe to effective opacity for a specific set of tags.
+ * Only re-renders when the opacity of any of the tags (or their categories) changes.
+ */
+export function useEffectiveOpacity(tags: Tag[]): number {
+  const store = useTagOpacityStore()
+
+  // Stable reference to tag IDs and category IDs to subscribe to
+  const subscriptionIds = useMemo(() => {
+    const ids = new Set<TagOrCategory>()
+    tags.forEach(tag => {
+      ids.add(tag.id)
+      ids.add(tag.category)
+    })
+    return Array.from(ids)
+  }, [tags])
+
+  return useSyncExternalStore(
+    useCallback(
+      callback => {
+        if (subscriptionIds.length === 0) {
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          return () => {}
+        }
+        return store.subscribeToTags(subscriptionIds, callback)
+      },
+      [store, subscriptionIds]
+    ),
+    useCallback(() => store.getEffectiveOpacity(tags), [store, tags]),
+    undefined
+  )
+}
+
+/**
+ * Hook to get stable action functions for modifying tag opacity.
+ * These functions never change, so they won't cause re-renders.
+ */
+export function useTagOpacityActions() {
+  const store = useTagOpacityStore()
+
+  return useMemo(
+    () => ({
+      cycleTagOrCategoryOpacity: (id: TagOrCategory) => store.cycleOpacity(id),
+      setTagOrCategoryOpacity: (id: TagOrCategory, opacity: number) => store.setOpacity(id, opacity),
+      getTagOrCategoryOpacity: (id: TagOrCategory) => store.getOpacity(id),
+      getCategoryOpacityState: (categoryId: TagCategoryId, tagIds: TagId[]) =>
+        store.getCategoryOpacityState(categoryId, tagIds)
+    }),
+    [store]
+  )
+}
+
+/**
+ * Hook for components that need to re-render on any opacity change (e.g., the menu).
+ * Use sparingly - prefer useEffectiveOpacity or useTagOpacityValue for fine-grained subscriptions.
+ */
+export function useTagOpacityForceUpdate(): void {
+  const store = useTagOpacityStore()
+  const [, forceUpdate] = useReducer(x => x + 1, 0)
+
+  useEffect(() => {
+    return store.subscribe(forceUpdate)
+  }, [store])
 }

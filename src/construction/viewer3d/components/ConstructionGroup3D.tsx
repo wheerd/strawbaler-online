@@ -1,5 +1,5 @@
 import type { ConstructionGroup, GroupOrElement } from '@/construction/elements'
-import { useTagOpacity } from '@/construction/viewer3d/context/TagOpacityContext'
+import { useEffectiveOpacity } from '@/construction/viewer3d/context/TagOpacityContext'
 import { toThreeTransform } from '@/construction/viewer3d/utils/geometry'
 
 import ConstructionElement3D from './ConstructionElement3D'
@@ -10,11 +10,8 @@ interface ConstructionGroup3DProps {
 }
 
 function ConstructionGroup3D({ group, parentOpacity = 1 }: ConstructionGroup3DProps): React.JSX.Element | null {
-  const { getEffectiveOpacity } = useTagOpacity()
-
   const { position, rotation, scale } = toThreeTransform(group.transform)
-
-  const groupOpacity = getEffectiveOpacity(group.tags ?? [])
+  const groupOpacity = useEffectiveOpacity(group.tags ?? [])
   const opacity = Math.min(parentOpacity, groupOpacity)
 
   if (opacity === 0) return null

@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import type { GroupOrElement } from '@/construction/elements'
 import type { ConstructionModel } from '@/construction/model'
 import { CATEGORIES, type Tag, type TagCategoryId, type TagId } from '@/construction/tags'
-import { useTagOpacity } from '@/construction/viewer3d/context/TagOpacityContext'
+import { useTagOpacityActions, useTagOpacityForceUpdate } from '@/construction/viewer3d/context/TagOpacityContext'
 
 export interface TagOpacityMenuProps {
   model: ConstructionModel
@@ -68,7 +68,10 @@ function getOpacityLabel(opacity: number): string {
 }
 
 export function TagOpacityMenu({ model }: TagOpacityMenuProps): React.JSX.Element {
-  const { getTagOrCategoryOpacity, getCategoryOpacityState, cycleTagOrCategoryOpacity } = useTagOpacity()
+  // This component re-renders on any opacity change (to update the UI)
+  useTagOpacityForceUpdate()
+
+  const { getTagOrCategoryOpacity, getCategoryOpacityState, cycleTagOrCategoryOpacity } = useTagOpacityActions()
 
   const tagsByCategory = useMemo(() => collectTagsFromModel(model), [model])
 

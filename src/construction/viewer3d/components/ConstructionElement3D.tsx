@@ -1,6 +1,6 @@
 import type { ConstructionElement } from '@/construction/elements'
 import { getMaterialById } from '@/construction/materials/store'
-import { useTagOpacity } from '@/construction/viewer3d/context/TagOpacityContext'
+import { useEffectiveOpacity } from '@/construction/viewer3d/context/TagOpacityContext'
 import { toThreeTransform } from '@/construction/viewer3d/utils/geometry'
 import { getShapeGeometry } from '@/construction/viewer3d/utils/geometryCache'
 import { getLineMaterial, getMeshMaterial } from '@/construction/viewer3d/utils/materialCache'
@@ -19,12 +19,11 @@ function stripAlphaFromHex(color: string): string {
 
 function ConstructionElement3D({ element, parentOpacity = 1 }: ConstructionElement3DProps): React.JSX.Element | null {
   const material = getMaterialById(element.material)
-  const { getEffectiveOpacity } = useTagOpacity()
 
   if (!material) return null
 
   const color = stripAlphaFromHex(material.color)
-  const elementOpacity = getEffectiveOpacity(element.tags ?? [])
+  const elementOpacity = useEffectiveOpacity(element.tags ?? [])
   const opacity = Math.min(parentOpacity, elementOpacity)
 
   const { position, rotation, scale } = toThreeTransform(element.transform)
