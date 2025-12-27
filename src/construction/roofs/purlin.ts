@@ -96,7 +96,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
       .reduce((a, b) => a.add(b))
 
     // Calculate Z-range for clipping volume (doubled for safety margin)
-    const minZ = (-2 * (ridgeHeight + this.config.layers.insideThickness)) as Length
+    const minZ = (-2 * (roof.rise + this.config.layers.insideThickness)) as Length
     const maxZ = ((this.config.thickness + this.config.layers.topThickness) * 2) as Length
 
     const outerConstructionClippingVolume = contexts
