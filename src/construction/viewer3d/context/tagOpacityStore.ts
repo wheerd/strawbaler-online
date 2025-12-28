@@ -1,5 +1,4 @@
 import type { Tag, TagCategoryId, TagId } from '@/construction/tags'
-import { taaResetEmitter } from '@/construction/viewer3d/hooks/useTAA'
 
 export type TagOrCategory = TagId | TagCategoryId
 
@@ -45,9 +44,6 @@ export function createTagOpacityStore(options?: CreateTagOpacityStoreOptions): T
 
     // Notify global listeners
     globalListeners.forEach(listener => listener())
-
-    // Reset TAA accumulation when opacity changes
-    taaResetEmitter.emit()
   }
 
   return {

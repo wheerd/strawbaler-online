@@ -1,16 +1,10 @@
 import * as THREE from 'three'
 
-import { DepthPeelingMaterial } from '@/construction/viewer3d/shaders/DepthPeelingMaterial'
-
 type IdleCallback = (deadline?: { didTimeout: boolean; timeRemaining(): number }) => void
-
-export type RenderMode = 'opaque' | 'transparent' | 'depth-peeling'
 
 interface MeshMaterialOptions {
   color: string
   opacity: number
-  depthWrite: boolean
-  renderMode?: RenderMode
 }
 
 interface LineMaterialOptions {
@@ -20,14 +14,13 @@ interface LineMaterialOptions {
 }
 
 const meshMaterialCache = new Map<string, THREE.MeshStandardMaterial>()
-const depthPeelingMaterialCache = new Map<string, DepthPeelingMaterial>()
 const lineMaterialCache = new Map<string, THREE.LineBasicMaterial>()
 let activeMaterialConsumers = 0
 let scheduledClearHandle: number | null = null
 let scheduledClearType: 'idle' | 'timeout' | null = null
 
-function meshMaterialKey({ color, opacity, depthWrite, renderMode }: MeshMaterialOptions): string {
-  return `${color}|${opacity}|${depthWrite ? 1 : 0}|${renderMode ?? 'opaque'}`
+function meshMaterialKey({ color, opacity }: MeshMaterialOptions): string {
+  return `${color}|${opacity}`
 }
 
 function lineMaterialKey({ color, opacity, linewidth }: LineMaterialOptions): string {
@@ -40,8 +33,8 @@ function createMeshMaterial(options: MeshMaterialOptions): THREE.MeshStandardMat
     color: options.color,
     opacity: options.opacity,
     transparent: isTransparent,
-    depthWrite: options.depthWrite && !isTransparent,
-    side: THREE.DoubleSide
+    depthWrite: !isTransparent,
+    side: isTransparent ? THREE.DoubleSide : THREE.FrontSide
   })
 }
 
@@ -54,19 +47,12 @@ function createLineMaterial(options: LineMaterialOptions): THREE.LineBasicMateri
   })
 }
 
-export function getMeshMaterial(
-  color: string,
-  opacity: number,
-  renderMode: RenderMode = 'opaque'
-): THREE.MeshStandardMaterial {
-  const depthWrite = opacity === 1
-
-  // Simplified - use standard materials for all (depth peeling disabled for now)
-  const key = meshMaterialKey({ color, opacity, depthWrite, renderMode })
+export function getMeshMaterial(color: string, opacity: number): THREE.MeshStandardMaterial {
+  const key = meshMaterialKey({ color, opacity })
   const cached = meshMaterialCache.get(key)
   if (cached) return cached
 
-  const material = createMeshMaterial({ color, opacity, depthWrite, renderMode })
+  const material = createMeshMaterial({ color, opacity })
   meshMaterialCache.set(key, material)
   return material
 }
@@ -86,11 +72,6 @@ function clearMaterialCache(): void {
     material.dispose()
   })
   meshMaterialCache.clear()
-
-  depthPeelingMaterialCache.forEach(material => {
-    material.dispose()
-  })
-  depthPeelingMaterialCache.clear()
 
   lineMaterialCache.forEach(material => {
     material.dispose()

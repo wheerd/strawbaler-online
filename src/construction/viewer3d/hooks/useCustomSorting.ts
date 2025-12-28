@@ -3,9 +3,45 @@ import { useEffect } from 'react'
 import * as THREE from 'three'
 
 /**
+ * Detects if geometry represents a thin layer (wall/floor/roof layer)
+ * based on its bounding box dimensions.
+ *
+ * A layer is defined as having one dimension much smaller than the other two.
+ * This creates sorting issues because the bounding box center is far from the visible surface.
+ */
+function isThinLayer(mesh: THREE.Mesh): boolean {
+  if (!mesh.geometry.boundingBox) {
+    mesh.geometry.computeBoundingBox()
+  }
+
+  const box = mesh.geometry.boundingBox
+  if (!box) return false
+
+  // Get dimensions
+  const size = new THREE.Vector3()
+  box.getSize(size)
+
+  // Sort dimensions to get [smallest, middle, largest]
+  const dims = [size.x, size.y, size.z].sort((a, b) => a - b)
+  const [smallest, middle, largest] = dims
+
+  // Avoid division by zero
+  if (smallest === 0) return false
+
+  // Check if it's a thin layer:
+  // - Smallest dimension is much smaller than the largest (aspect ratio > 10)
+  // - Has significant surface area (middle and largest are reasonably sized)
+  const aspectRatio = largest / smallest
+  const aspectRatioMid = middle / smallest
+  const hasSurfaceArea = middle > 10 && largest > 10
+
+  return aspectRatio > 50 && aspectRatioMid > 10 && hasSurfaceArea
+}
+
+/**
  * Custom sorting for transparent objects
  *
- * For wall layers, sort by minimum depth (front face) instead of center.
+ * For thin layers (walls, floors, roofs), sort by minimum depth (front face) instead of center.
  * This fixes sorting issues with thin geometry that has large surface area.
  */
 export function useCustomTransparentSorting(): void {
@@ -16,11 +52,11 @@ export function useCustomTransparentSorting(): void {
     const customSort = (a: THREE.Object3D, b: THREE.Object3D) => {
       // Get camera-space Z depth
       const getMinDepth = (obj: THREE.Object3D): number => {
-        // Check if this is a wall layer
-        const isWallLayer = obj.userData.renderMode === 'depth-peeling'
+        // Check if this is a thin layer (detected geometrically)
+        const isLayer = obj instanceof THREE.Mesh && isThinLayer(obj)
 
-        if (isWallLayer && obj instanceof THREE.Mesh && obj.geometry.boundingBox) {
-          // For wall layers, use the front face (minimum Z in camera space)
+        if (isLayer && obj instanceof THREE.Mesh && obj.geometry.boundingBox) {
+          // For thin layers, use the front face (minimum Z in camera space)
           const box = obj.geometry.boundingBox
           const worldMatrix = obj.matrixWorld
 
