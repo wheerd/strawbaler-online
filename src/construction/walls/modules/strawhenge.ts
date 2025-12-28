@@ -27,7 +27,8 @@ export class StrawhengeWallAssembly extends BaseWallAssembly<StrawhengeWallConfi
         this.config.layers,
         this.strawhengeWallArea.bind(this),
         area => infillWallArea(area, this.config.infill),
-        this.config.openingAssemblyId
+        this.config.openingAssemblyId,
+        false
       )
     )
 

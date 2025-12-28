@@ -35,7 +35,8 @@ export function* segmentedWallConstruction(
   layers: WallLayersConfig,
   wallConstruction: WallSegmentConstruction,
   infillMethod: InfillMethod,
-  wallOpeningAssemblyId?: OpeningAssemblyId
+  wallOpeningAssemblyId?: OpeningAssemblyId,
+  splitAtHeightJumps = true
 ): Generator<ConstructionResult> {
   const wallContext = getWallContext(wall, perimeter)
   const cornerInfo = calculateWallCornerInfo(wall, wallContext)
@@ -85,7 +86,8 @@ export function* segmentedWallConstruction(
     dimensions,
     wallConstruction,
     infillMethod,
-    wallOpeningAssemblyId
+    wallOpeningAssemblyId,
+    splitAtHeightJumps
   )
 }
 
@@ -234,12 +236,18 @@ function* constructWallSegment(
   end: Length,
   startWithStand: boolean,
   endWithStand: boolean,
-  wallConstruction: WallSegmentConstruction
+  wallConstruction: WallSegmentConstruction,
+  doSplitAtHeightJumps: boolean
 ): Generator<ConstructionResult> {
   if (end <= start) return
 
   const wallSegmentWidth = end - start
   const wallSegmentArea = overallWallArea.withXAdjustment(start, wallSegmentWidth)
+
+  if (!doSplitAtHeightJumps) {
+    yield* wallConstruction(wallSegmentArea, startWithStand, endWithStand, start > 0)
+    return
+  }
 
   const parts = splitAtHeightJumps(wallSegmentArea)
   for (let i = 0; i < parts.length; i++) {
@@ -312,7 +320,8 @@ function* constructWallSegments(
   dimensions: WallDimensions,
   wallConstruction: WallSegmentConstruction,
   infillMethod: InfillMethod,
-  wallOpeningAssemblyId?: OpeningAssemblyId
+  wallOpeningAssemblyId: OpeningAssemblyId | undefined,
+  splitAtHeightJumps: boolean
 ): Generator<ConstructionResult> {
   if (wallItems.length === 0) {
     // No items - use the overall area directly
@@ -331,7 +340,8 @@ function* constructWallSegments(
       item.start,
       startWithStand,
       item.needsWallStands,
-      wallConstruction
+      wallConstruction,
+      splitAtHeightJumps
     )
     startWithStand = item.needsWallStands
 
@@ -376,7 +386,8 @@ function* constructWallSegments(
       cornerInfo.constructionLength,
       startWithStand,
       standAtWallEnd,
-      wallConstruction
+      wallConstruction,
+      splitAtHeightJumps
     )
 
     const x = overallWallArea.position[0] + lastOpeningEnd

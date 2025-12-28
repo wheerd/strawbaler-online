@@ -25,7 +25,8 @@ export class ModulesWallAssembly extends BaseWallAssembly<ModulesWallConfig> {
         this.config.layers,
         this.moduleWallArea.bind(this),
         area => infillWallArea(area, this.config.infill),
-        this.config.openingAssemblyId
+        this.config.openingAssemblyId,
+        false
       )
     )
 
