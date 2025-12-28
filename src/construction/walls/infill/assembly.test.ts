@@ -119,10 +119,10 @@ function createMockGenerator(
       yield yieldMeasurement(measurement)
     }
     for (const error of errors) {
-      yield yieldError(error, [])
+      yield yieldError(error, undefined, [])
     }
     for (const warning of warnings) {
-      yield yieldWarning(warning, [])
+      yield yieldWarning(warning, undefined, [])
     }
   }
 }
@@ -294,8 +294,8 @@ describe('assembly.construct', () => {
 
       expect(result.errors).toHaveLength(1)
       expect(result.warnings).toHaveLength(1)
-      expect(result.errors[0].description).toBe(mockError)
-      expect(result.warnings[0].description).toBe(mockWarning)
+      expect(result.errors[0].messageKey).toBe(mockError)
+      expect(result.warnings[0].messageKey).toBe(mockWarning)
     })
 
     it('should include measurements in the result', () => {

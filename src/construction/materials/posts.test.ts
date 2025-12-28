@@ -145,7 +145,7 @@ describe('constructPost', () => {
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(1)
-      expect(warnings[0].description).toContain('dimensions')
+      expect(warnings[0].messageKey).toBe('construction.post.dimensionsMismatch')
     })
 
     it('should not generate warning for dimensional material exact match', () => {
@@ -345,7 +345,7 @@ describe('constructPost', () => {
       expect(errors).toHaveLength(1)
       expect(warnings).toHaveLength(0)
       expect(elements).toHaveLength(1)
-      expect(errors[0].description).toContain('not wide enough')
+      expect(errors[0].messageKey).toBe('construction.post.wallTooThin')
     })
 
     it('should generate warning for dimensional material size mismatch', () => {
@@ -360,7 +360,7 @@ describe('constructPost', () => {
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(1)
-      expect(warnings[0].description).toContain('dimensions')
+      expect(warnings[0].messageKey).toBe('construction.post.dimensionsMismatch')
     })
 
     it('should not generate warning for swapped material dimensions (60x120 posts with 120x60 material)', () => {

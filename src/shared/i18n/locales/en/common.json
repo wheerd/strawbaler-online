@@ -1,3 +1,37 @@
 {
-  "placeholder": "English translations will go here in Phase 2"
+  "placeholder": "English translations will go here in Phase 2",
+  "construction": {
+    "opening": {
+      "heightExceedsWall": "Opening is higher than the wall by {{excess, length}}",
+      "headerDoesNotFit": "Header does not fit: needs {{required, length}} but only {{available, length}} available",
+      "sillDoesNotFit": "Sill does not fit: needs {{required, length}} but only {{available, length}} available"
+    },
+    "post": {
+      "dimensionsMismatch": "Post dimensions ({{width, length}}×{{thickness, length}}) don't match available cross sections",
+      "crossSectionMismatch": "Cross section does not match available options for this material",
+      "wallTooThin": "Wall thickness ({{wallThickness, length}}) is not wide enough for double posts requiring {{required, length}} minimum"
+    },
+    "straw": {
+      "tooThick": "Wall is too thick for a single strawbale",
+      "tooThin": "Wall is too thin for a single strawbale"
+    },
+    "ringBeam": {
+      "doubleNotSupported": "Double ring beam construction is not yet supported."
+    },
+    "layer": {
+      "parallelLines": "Could not determine stripe positions due to parallel lines."
+    },
+    "infill": {
+      "notEnoughVerticalSpace": "Not enough vertical space to fill with straw",
+      "notEnoughSpaceForPost": "Not enough space for a post",
+      "notEnoughSpaceForTwoPosts": "Space for more than one post, but not enough for two",
+      "notEnoughSpaceForStraw": "Not enough space for infilling straw"
+    },
+    "error": {
+      "geometryProcessing": "An error occurred during geometry processing"
+    },
+    "roof": {
+      "invalidAssembly": "Invalid roof assembly"
+    }
+  }
 }

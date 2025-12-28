@@ -649,7 +649,11 @@ export function* simpleStripes(
       }
     }
   } catch (error) {
-    yield yieldWarning(error instanceof Error ? error.message : String(error), [])
+    yield yieldWarning(
+      'construction.error.geometryProcessing',
+      { message: error instanceof Error ? error.message : String(error) },
+      []
+    )
   }
 }
 

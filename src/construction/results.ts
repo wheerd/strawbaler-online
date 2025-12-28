@@ -21,7 +21,10 @@ export type ConstructionIssueId = string & { readonly brand: unique symbol }
 export interface ConstructionIssue {
   /** Unique ID for this issue. If the same ID is used, issues are grouped/merged */
   id: ConstructionIssueId
-  description: string
+  /** i18n translation key for the issue message */
+  messageKey: string
+  /** Parameters to interpolate into the translated message */
+  params?: Record<string, unknown>
   severity: 'error' | 'warning'
 }
 
@@ -67,7 +70,8 @@ export function* yieldElement(element: ConstructionElement | null): Generator<Co
 }
 
 export const yieldError = (
-  description: string,
+  messageKey: string,
+  params: Record<string, unknown> | undefined,
   elements: (GroupOrElement | null)[],
   issueId?: string
 ): ConstructionResult => {
@@ -88,14 +92,16 @@ export const yieldError = (
     type: 'error',
     error: {
       id,
-      description,
+      messageKey,
+      params,
       severity: 'error'
     }
   }
 }
 
 export const yieldWarning = (
-  description: string,
+  messageKey: string,
+  params: Record<string, unknown> | undefined,
   elements: (GroupOrElement | null)[],
   issueId?: string
 ): ConstructionResult => {
@@ -116,7 +122,8 @@ export const yieldWarning = (
     type: 'warning',
     warning: {
       id,
-      description,
+      messageKey,
+      params,
       severity: 'warning'
     }
   }

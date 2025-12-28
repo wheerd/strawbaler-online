@@ -23,22 +23,22 @@ export function* infillWallArea(
   const { size } = area
   const { minStrawSpace } = config
   const { width: postWidth } = config.posts
-  let error: string | null = null
-  let warning: string | null = null
+  let error: { messageKey: string; params?: Record<string, unknown> } | null = null
+  let warning: { messageKey: string; params?: Record<string, unknown> } | null = null
   const allElements: GroupOrElement[] = []
 
   if (size[2] < minStrawSpace && !config.infillMaterial) {
-    warning = 'Not enough vertical space to fill with straw'
+    warning = { messageKey: 'construction.infill.notEnoughVerticalSpace' }
   }
 
   if (startsWithStand || endsWithStand) {
     if (size[0] < postWidth) {
-      error = 'Not enough space for a post'
+      error = { messageKey: 'construction.infill.notEnoughSpaceForPost' }
     } else if (size[0] === postWidth) {
       yield* constructPost(area, config.posts)
       return
     } else if (startsWithStand && endsWithStand && size[0] < 2 * postWidth) {
-      error = 'Space for more than one post, but not enough for two'
+      error = { messageKey: 'construction.infill.notEnoughSpaceForTwoPosts' }
     }
   }
 
@@ -80,11 +80,11 @@ export function* infillWallArea(
 
   // Add warning/error with references to all created elements
   if (warning) {
-    yield yieldWarning(warning, allElements)
+    yield yieldWarning(warning.messageKey, warning.params, allElements)
   }
 
   if (error) {
-    yield yieldError(error, allElements)
+    yield yieldError(error.messageKey, error.params, allElements)
   }
 }
 
@@ -103,7 +103,7 @@ function* constructInfillRecursive(
     yield* yieldAndCollectElements(constructStraw(strawArea, config.strawMaterial), strawElements)
 
     if (baleWidth < config.minStrawSpace) {
-      yield yieldWarning('Not enough space for infilling straw', strawElements)
+      yield yieldWarning('construction.infill.notEnoughSpaceForStraw', undefined, strawElements)
     }
 
     yield* yieldMeasurementFromArea(strawArea, 'width', [TAG_POST_SPACING])

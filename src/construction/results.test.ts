@@ -11,7 +11,7 @@ const issueId = (suffix: string): ConstructionIssueId => `ci_${suffix}` as Const
 
 const createIssue = (overrides: Partial<ConstructionIssue> = {}): ConstructionIssue => ({
   id: issueId('default'),
-  description: 'issue',
+  messageKey: 'test.issue',
   severity: 'error',
   ...overrides
 })
@@ -25,13 +25,13 @@ describe('aggregateResults', () => {
       buildError(
         createIssue({
           id: issueId('duplicate'),
-          description: 'grouped'
+          messageKey: 'test.grouped'
         })
       ),
       buildError(
         createIssue({
           id: issueId('duplicate'),
-          description: 'grouped'
+          messageKey: 'test.grouped'
         })
       )
     ]
@@ -47,19 +47,19 @@ describe('aggregateResults', () => {
       buildError(
         createIssue({
           id: issueId('A'),
-          description: 'first'
+          messageKey: 'test.first'
         })
       ),
       buildError(
         createIssue({
           id: issueId('B'),
-          description: 'second'
+          messageKey: 'test.second'
         })
       ),
       buildError(
         createIssue({
           id: issueId('C'),
-          description: 'third'
+          messageKey: 'test.third'
         })
       )
     ]
@@ -77,13 +77,13 @@ describe('aggregateResults', () => {
       buildError(
         createIssue({
           id: issueId('dup'),
-          description: 'first description'
+          messageKey: 'test.firstDescription'
         })
       ),
       buildError(
         createIssue({
           id: issueId('dup'),
-          description: 'second description'
+          messageKey: 'test.secondDescription'
         })
       )
     ]
@@ -91,7 +91,7 @@ describe('aggregateResults', () => {
     const aggregated = aggregateResults(results)
 
     expect(aggregated.errors).toHaveLength(1)
-    expect(aggregated.errors[0].description).toBe('first description')
+    expect(aggregated.errors[0].messageKey).toBe('test.firstDescription')
   })
 
   it('handles warnings separately from errors', () => {

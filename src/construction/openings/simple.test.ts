@@ -207,7 +207,7 @@ describe('SimpleOpeningAssembly', () => {
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
-      expect(errors[0].description).toContain('Header does not fit')
+      expect(errors[0].messageKey).toBe('construction.opening.headerDoesNotFit')
     })
 
     it('returns error when sill does not fit', () => {
@@ -221,7 +221,7 @@ describe('SimpleOpeningAssembly', () => {
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
-      expect(errors[0].description).toContain('Sill does not fit')
+      expect(errors[0].messageKey).toBe('construction.opening.sillDoesNotFit')
     })
   })
 })

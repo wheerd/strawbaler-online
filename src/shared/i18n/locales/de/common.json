@@ -1,3 +1,37 @@
 {
-  "placeholder": "Deutsche Übersetzungen kommen hier in Phase 2"
+  "placeholder": "Deutsche Übersetzungen werden hier in Phase 2 sein",
+  "construction": {
+    "opening": {
+      "heightExceedsWall": "Öffnung ist höher als die Wand um {{excess, length}}",
+      "headerDoesNotFit": "Sturz passt nicht: benötigt {{required, length}}, aber nur {{available, length}} verfügbar",
+      "sillDoesNotFit": "Schwelle passt nicht: benötigt {{required, length}}, aber nur {{available, length}} verfügbar"
+    },
+    "post": {
+      "dimensionsMismatch": "Pfosten-Abmessungen ({{width, length}}×{{thickness, length}}) stimmen nicht mit verfügbaren Querschnitten überein",
+      "crossSectionMismatch": "Querschnitt stimmt nicht mit den verfügbaren Optionen für dieses Material überein",
+      "wallTooThin": "Wandstärke ({{wallThickness, length}}) ist nicht breit genug für Doppelpfosten, die {{required, length}} Minimum erfordern"
+    },
+    "straw": {
+      "tooThick": "Wand ist zu dick für einen einzelnen Strohballen",
+      "tooThin": "Wand ist zu dünn für einen einzelnen Strohballen"
+    },
+    "ringBeam": {
+      "doubleNotSupported": "Doppelte Ringbalken-Konstruktion wird noch nicht unterstützt."
+    },
+    "layer": {
+      "parallelLines": "Streifenpositionen konnten aufgrund paralleler Linien nicht bestimmt werden."
+    },
+    "infill": {
+      "notEnoughVerticalSpace": "Nicht genug vertikaler Raum zum Füllen mit Stroh",
+      "notEnoughSpaceForPost": "Nicht genug Platz für einen Pfosten",
+      "notEnoughSpaceForTwoPosts": "Platz für mehr als einen Pfosten, aber nicht genug für zwei",
+      "notEnoughSpaceForStraw": "Nicht genug Platz für Ausfüllstroh"
+    },
+    "error": {
+      "geometryProcessing": "Ein Fehler ist während der Geometrieverarbeitung aufgetreten"
+    },
+    "roof": {
+      "invalidAssembly": "Ungültige Dachkonstruktion"
+    }
+  }
 }

@@ -85,7 +85,11 @@ export interface HighlightedCut {
  * Returns a minimal construction model with no geometry but a single warning.
  * Useful for guarding unfinished construction paths until the real implementation lands.
  */
-export function createUnsupportedModel(description: string, issueId?: string): ConstructionModel {
+export function createUnsupportedModel(
+  messageKey: string,
+  params?: Record<string, unknown>,
+  issueId?: string
+): ConstructionModel {
   const id = (issueId ?? `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`) as ConstructionIssueId
 
   return {
@@ -96,7 +100,8 @@ export function createUnsupportedModel(description: string, issueId?: string): C
     warnings: [
       {
         id,
-        description,
+        messageKey,
+        params,
         severity: 'warning' as const
       }
     ],

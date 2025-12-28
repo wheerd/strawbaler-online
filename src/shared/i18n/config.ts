@@ -2,6 +2,14 @@ import i18n from 'i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
+import {
+  formatArea,
+  formatDimensions2D,
+  formatLength,
+  formatLengthInMeters,
+  formatVolume,
+  formatWeight
+} from './formatters'
 import commonDE from './locales/de/common.json'
 // Import translation files
 import commonEN from './locales/en/common.json'
@@ -25,7 +33,38 @@ i18n
     ns: ['common'],
 
     interpolation: {
-      escapeValue: false // React already escapes
+      escapeValue: false, // React already escapes
+      // Register custom formatters for use in translations
+      format: (value: unknown, format: string | undefined, lng: string | undefined) => {
+        const locale = lng || 'en'
+
+        if (typeof value !== 'number' && !Array.isArray(value)) {
+          return String(value)
+        }
+
+        switch (format) {
+          case 'length':
+            return formatLength(value as number, locale)
+          case 'lengthInMeters':
+            return formatLengthInMeters(value as number, locale)
+          case 'area':
+            return formatArea(value as number, locale)
+          case 'volume':
+            return formatVolume(value as number, locale)
+          case 'weight':
+            return formatWeight(value as number, locale)
+          case 'dimensions2D': {
+            // For cross-sections like "50mm × 100mm"
+            // Expects value to be array [width, height]
+            if (Array.isArray(value) && value.length === 2) {
+              return formatDimensions2D([value[0], value[1]], true, locale)
+            }
+            return String(value)
+          }
+          default:
+            return String(value)
+        }
+      }
     },
 
     detection: {

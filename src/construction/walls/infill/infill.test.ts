@@ -61,10 +61,10 @@ function createMockGenerator(
       yield yieldMeasurement(measurement)
     }
     for (const error of errors) {
-      yield yieldError(error, [])
+      yield yieldError(error, undefined, [])
     }
     for (const warning of warnings) {
-      yield yieldWarning(warning, [])
+      yield yieldWarning(warning, undefined, [])
     }
   }
 }
@@ -189,7 +189,7 @@ describe('infillWallArea', () => {
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
-      expect(errors[0].description).toBe('Not enough space for a post')
+      expect(errors[0].messageKey).toBe('construction.infill.notEnoughSpaceForPost')
     })
 
     it('should generate error when not enough space for a post with end stand', () => {
@@ -201,7 +201,7 @@ describe('infillWallArea', () => {
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
-      expect(errors[0].description).toBe('Not enough space for a post')
+      expect(errors[0].messageKey).toBe('construction.infill.notEnoughSpaceForPost')
     })
 
     it('should generate error when space for more than one post but not enough for two', () => {
@@ -213,7 +213,7 @@ describe('infillWallArea', () => {
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
-      expect(errors[0].description).toBe('Space for more than one post, but not enough for two')
+      expect(errors[0].messageKey).toBe('construction.infill.notEnoughSpaceForTwoPosts')
     })
 
     it('should generate warning when not enough vertical space for straw', () => {
@@ -225,7 +225,7 @@ describe('infillWallArea', () => {
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(1)
-      expect(warnings[0].description).toBe('Not enough vertical space to fill with straw')
+      expect(warnings[0].messageKey).toBe('construction.infill.notEnoughVerticalSpace')
     })
 
     it('should generate warning when not enough space for infilling straw', () => {
@@ -237,7 +237,7 @@ describe('infillWallArea', () => {
       const { warnings } = aggregateResults(results)
 
       expect(warnings.length).toBeGreaterThan(0)
-      expect(warnings.some(w => w.description === 'Not enough space for infilling straw')).toBe(true)
+      expect(warnings.some(w => w.messageKey === 'construction.infill.notEnoughSpaceForStraw')).toBe(true)
     })
   })
 
@@ -349,7 +349,7 @@ describe('infillWallArea', () => {
       const { warnings } = aggregateResults(results)
 
       expect(warnings).toHaveLength(1)
-      expect(warnings[0].description).toBe('Not enough vertical space to fill with straw')
+      expect(warnings[0].messageKey).toBe('construction.infill.notEnoughVerticalSpace')
     })
   })
 

@@ -1,6 +1,7 @@
 import { CheckCircledIcon, CrossCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { Callout, Flex, Text } from '@radix-ui/themes'
 import { use } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { ConstructionModel } from '@/construction/model'
 
@@ -13,6 +14,7 @@ interface IssueDescriptionPanelProps {
 export const IssueDescriptionPanel = ({ modelPromise }: IssueDescriptionPanelProps) => {
   const model = use(modelPromise)
   const { hoveredIssueId, setHoveredIssueId } = usePlanHighlight()
+  const { t } = useTranslation()
 
   return (
     <Flex direction="column" gap="2" p="2" style={{ maxHeight: '120px', overflowY: 'auto' }}>
@@ -43,7 +45,7 @@ export const IssueDescriptionPanel = ({ modelPromise }: IssueDescriptionPanelPro
                         transition: 'background-color 0.15s ease'
                       }}
                     >
-                      • {error.description}
+                      • {t(error.messageKey, error.params)}
                     </Text>
                   ))}
                 </Flex>
@@ -76,7 +78,7 @@ export const IssueDescriptionPanel = ({ modelPromise }: IssueDescriptionPanelPro
                         transition: 'background-color 0.15s ease'
                       }}
                     >
-                      • {warning.description}
+                      • {t(warning.messageKey, warning.params)}
                     </Text>
                   ))}
                 </Flex>

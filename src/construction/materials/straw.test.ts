@@ -92,7 +92,7 @@ describe('constructStraw', () => {
       expect(warnings).toHaveLength(0)
       expect(elements).toHaveLength(1)
 
-      expect(errors[0].description).toBe('Wall is too thick for a single strawbale')
+      expect(errors[0].messageKey).toBe('construction.straw.tooThick')
       expect(getPosition(elements[0].transform)).toEqual(position)
       expect(((elements[0] as ConstructionElement).shape.base as CuboidShape).size).toEqual(size)
     })
@@ -108,7 +108,7 @@ describe('constructStraw', () => {
       expect(warnings).toHaveLength(1)
       expect(elements).toHaveLength(1)
 
-      expect(warnings[0].description).toBe('Wall is too thin for a single strawbale')
+      expect(warnings[0].messageKey).toBe('construction.straw.tooThin')
       expect(getPosition(elements[0].transform)).toEqual(position)
       expect(((elements[0] as ConstructionElement).shape.base as CuboidShape).size).toEqual(size)
     })
