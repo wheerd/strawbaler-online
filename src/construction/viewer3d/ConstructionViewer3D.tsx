@@ -13,6 +13,7 @@ import ExportButton, { type ExportFormat } from './components/ExportButton'
 import { GridToggleButton } from './components/GridToggleButton'
 import SceneExporter from './components/SceneExporter'
 import { TagOpacityMenu } from './components/TagOpacityMenu'
+import { useCustomTransparentSorting } from './hooks/useCustomSorting'
 import { useShowGrid3D } from './hooks/useGrid3D'
 
 interface ConstructionViewer3DProps {
@@ -68,6 +69,7 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Canvas
+        frameloop="always"
         camera={{
           position: [cameraThreeX, cameraThreeY, cameraThreeZ],
           fov: 50,
@@ -82,6 +84,7 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
           background: theme.bgCanvas
         }}
       >
+        <CustomSorting />
         <CanvasBackground color={theme.bgCanvas} />
         <ambientLight intensity={theme.isDarkTheme ? 0.8 : 1.3} />
 
@@ -128,6 +131,11 @@ function CanvasBackground({ color }: { color: string }): null {
     gl.setClearColor(color)
   }, [color, gl])
 
+  return null
+}
+
+function CustomSorting(): null {
+  useCustomTransparentSorting()
   return null
 }
 
