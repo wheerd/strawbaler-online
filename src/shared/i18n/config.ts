@@ -33,8 +33,8 @@ i18n
       caches: ['localStorage']
     },
 
-    // Enable debug mode in development
-    debug: import.meta.env.DEV
+    // Enable debug mode in development, but disable in tests to reduce noise
+    debug: import.meta.env.DEV && import.meta.env.MODE !== 'test'
   })
 
 export default i18n
