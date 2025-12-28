@@ -281,7 +281,7 @@ export class FullRingBeamAssembly extends BaseRingBeamAssembly<FullRingBeamConfi
 
     const clippingExtent = 2 * (beamHeight + Math.abs(heightChange))
     const clippingShape = createExtrudedPolygon(subPolygon.polygon, 'xy', 2 * clippingExtent)
-    const clippingVolume = clippingShape.manifold.translate([0, 0, -clippingExtent])
+    const clippingVolume = clippingShape.manifold.translate([0, 0, startHeight - clippingExtent])
 
     const element = createConstructionElement(material, expandedShape, transform, tags, partInfo)
     yield* yieldAndClip(yieldElement(element), m => m.intersect(clippingVolume))
