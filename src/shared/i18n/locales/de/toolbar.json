@@ -1,0 +1,10 @@
+{
+  "viewConstructionPlan": "Konstruktionsplan anzeigen",
+  "viewPartsList": "Teileliste anzeigen",
+  "view3DConstruction": "3D-Konstruktion anzeigen",
+  "configuration": "Konfiguration",
+  "about": "Über",
+  "constructionPlanForStorey": "Konstruktionsplan für {{storeyName}}",
+  "constructionPlanForActiveStorey": "Konstruktionsplan für aktives Geschoss",
+  "partsListForEntireModel": "Teileliste für gesamtes Modell"
+}

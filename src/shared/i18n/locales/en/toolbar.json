@@ -1,0 +1,10 @@
+{
+  "viewConstructionPlan": "View Construction Plan",
+  "viewPartsList": "View Parts List",
+  "view3DConstruction": "View 3D Construction",
+  "configuration": "Configuration",
+  "about": "About",
+  "constructionPlanForStorey": "Construction Plan for {{storeyName}}",
+  "constructionPlanForActiveStorey": "Construction Plan for active storey",
+  "partsListForEntireModel": "Parts List for Entire Model"
+}

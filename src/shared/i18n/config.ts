@@ -11,19 +11,23 @@ import {
   formatWeight
 } from './formatters'
 import commonDE from './locales/de/common.json'
+import toolbarDE from './locales/de/toolbar.json'
 import welcomeDE from './locales/de/welcome.json'
 // Import translation files
 import commonEN from './locales/en/common.json'
+import toolbarEN from './locales/en/toolbar.json'
 import welcomeEN from './locales/en/welcome.json'
 
 const resources = {
   en: {
     common: commonEN,
-    welcome: welcomeEN
+    welcome: welcomeEN,
+    toolbar: toolbarEN
   },
   de: {
     common: commonDE,
-    welcome: welcomeDE
+    welcome: welcomeDE,
+    toolbar: toolbarDE
   }
 }
 
@@ -34,7 +38,7 @@ i18n
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'welcome'],
+    ns: ['common', 'welcome', 'toolbar'],
 
     interpolation: {
       escapeValue: false, // React already escapes

@@ -5,7 +5,8 @@ This directory contains the internationalization infrastructure for Strawbaler.
 ## Current Status
 
 ✅ **Implemented**: Locale-aware number formatting  
-❌ **Not Yet Implemented**: UI string translations (see `/docs/i18n-implementation-plan.md` for roadmap)
+✅ **Implemented**: Construction issue messages (errors/warnings)  
+🔄 **In Progress**: UI string translations (5% complete - see `/docs/i18n-phase2-tracker.md` for progress)
 
 ## Supported Languages
 
@@ -21,9 +22,11 @@ src/shared/i18n/
 ├── useFormatters.ts    # React hook for formatting functions
 ├── locales/
 │   ├── en/
-│   │   └── common.json # English translations (placeholder)
+│   │   ├── common.json     # Construction issue messages
+│   │   └── welcome.json    # Welcome modal content ✅
 │   └── de/
-│       └── common.json # German translations (placeholder)
+│       ├── common.json     # Construction issue messages (DE)
+│       └── welcome.json    # Welcome modal content (DE) ✅
 └── README.md           # This file
 ```
 
