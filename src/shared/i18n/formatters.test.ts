@@ -238,13 +238,6 @@ describe('formatLength', () => {
     })
   })
 
-  describe('locale parameter defaults', () => {
-    it('defaults to English locale when not specified', () => {
-      expect(formatLength(1234)).toBe('1.234m') // Period decimal
-      expect(formatLength(1500)).toBe('1.5m')
-    })
-  })
-
   describe('locale independence for unit selection', () => {
     it('uses same unit selection logic across locales', () => {
       const testValue = 1234

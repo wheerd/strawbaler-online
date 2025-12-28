@@ -18,7 +18,7 @@ import type { Area, Length, Volume } from '@/shared/geometry'
  * formatLength(23, 'en')    // "23mm"
  * ```
  */
-export function formatLength(lengthInMm: Length, locale = 'en'): string {
+export function formatLength(lengthInMm: Length, locale: string): string {
   const value = Math.round(lengthInMm)
 
   if (value === 0) {
@@ -66,7 +66,7 @@ export function formatLength(lengthInMm: Length, locale = 'en'): string {
  * formatLengthInMeters(1234, 'de')  // "1,234m"
  * ```
  */
-export function formatLengthInMeters(length: number, locale = 'en'): string {
+export function formatLengthInMeters(length: number, locale: string): string {
   const formatter = new Intl.NumberFormat(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
   return `${formatter.format(length / 1000)}m`
 }
@@ -88,7 +88,7 @@ const MM3_PER_LITER = 1_000_000
  * formatArea(1500000, 'de')  // "1,50m²"
  * ```
  */
-export function formatArea(area: Area, locale = 'en'): string {
+export function formatArea(area: Area, locale: string): string {
   const formatter = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   return `${formatter.format(area / MM2_PER_M2)}m²`
 }
@@ -106,7 +106,7 @@ export function formatArea(area: Area, locale = 'en'): string {
  * formatVolume(1500000000, 'de')  // "1,50m³"
  * ```
  */
-export function formatVolume(volume: Volume, locale = 'en'): string {
+export function formatVolume(volume: Volume, locale: string): string {
   const formatter = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   return `${formatter.format(volume / MM3_PER_M3)}m³`
 }
@@ -125,7 +125,7 @@ export function formatVolume(volume: Volume, locale = 'en'): string {
  * formatVolumeInLiters(1500000, 'de')   // "1,5L"
  * ```
  */
-export function formatVolumeInLiters(volume: Volume, locale = 'en'): string {
+export function formatVolumeInLiters(volume: Volume, locale: string): string {
   const liters = volume / MM3_PER_LITER
   const decimals = liters === Math.round(liters) ? 0 : 1
   const formatter = new Intl.NumberFormat(locale, {
@@ -152,7 +152,7 @@ export function formatVolumeInLiters(volume: Volume, locale = 'en'): string {
  * formatWeight(1500, 'de')    // "1,5 t"
  * ```
  */
-export function formatWeight(weight: number, locale = 'en'): string {
+export function formatWeight(weight: number, locale: string): string {
   // Weight in kg
   if (weight >= 1000) {
     const formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 3 })
@@ -175,7 +175,7 @@ export function formatWeight(weight: number, locale = 'en'): string {
  * formatPercentage(12.5, 'de')  // "12,5%"
  * ```
  */
-export function formatPercentage(value: number, locale = 'en'): string {
+export function formatPercentage(value: number, locale: string): string {
   const formatter = new Intl.NumberFormat(locale, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1
@@ -196,7 +196,7 @@ export function formatPercentage(value: number, locale = 'en'): string {
  * formatAngle(45.5, 'de')  // "45,5°"
  * ```
  */
-export function formatAngle(degrees: number, locale = 'en'): string {
+export function formatAngle(degrees: number, locale: string): string {
   const formatter = new Intl.NumberFormat(locale, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1
@@ -219,7 +219,7 @@ export function formatAngle(degrees: number, locale = 'en'): string {
  * formatNumber(12.345, 2, 'de')  // "12,35"
  * ```
  */
-export function formatNumber(value: number, decimals = 2, locale = 'en'): string {
+export function formatNumber(value: number, decimals = 2, locale: string): string {
   const formatter = new Intl.NumberFormat(locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
@@ -241,7 +241,7 @@ export function formatNumber(value: number, decimals = 2, locale = 'en'): string
  * formatDimensions2D([50, 100], 'de')     // "0,050m × 0,100m"
  * ```
  */
-export function formatDimensions2D(dimensions: [number, number], full = true, locale = 'en'): string {
+export function formatDimensions2D(dimensions: [number, number], full = true, locale: string): string {
   if (full) return `${formatLengthInMeters(dimensions[0], locale)} × ${formatLengthInMeters(dimensions[1], locale)}`
   return `${formatLength(dimensions[0], locale)} × ${formatLength(dimensions[1], locale)}`
 }
@@ -260,7 +260,7 @@ export function formatDimensions2D(dimensions: [number, number], full = true, lo
  * formatDimensions3D([1000, 500, 300], 'de')  // "1,000m × 0,500m × 0,300m"
  * ```
  */
-export function formatDimensions3D(dimensions: readonly [number, number, number], full = true, locale = 'en'): string {
+export function formatDimensions3D(dimensions: readonly [number, number, number], full = true, locale: string): string {
   if (full)
     return `${formatLengthInMeters(dimensions[0], locale)} × ${formatLengthInMeters(dimensions[1], locale)} × ${formatLengthInMeters(dimensions[2], locale)}`
   return `${formatLength(dimensions[0], locale)} × ${formatLength(dimensions[1], locale)} × ${formatLength(dimensions[2], locale)}`
