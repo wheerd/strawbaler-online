@@ -23,11 +23,12 @@ import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import { LengthField } from '@/shared/components/LengthField'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import type { PerimeterTool } from './PerimeterTool'
 
 export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterTool>): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const { state } = useReactiveTool(tool)
 
   // Force re-renders when tool state changes

@@ -18,8 +18,7 @@ import { useMaterialsMap } from '@/construction/materials/store'
 import type { MaterialPartItem, MaterialParts, MaterialPartsList, PartId } from '@/construction/parts'
 import { SawIcon } from '@/shared/components/Icons'
 import { Bounds2D, type Polygon2D, type Vec3, type Volume, isZeroVec3 } from '@/shared/geometry'
-import i18n from '@/shared/i18n/config'
-import * as i18nFormatters from '@/shared/i18n/formatters'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 type BadgeColor = React.ComponentProps<typeof Badge>['color']
 
@@ -60,24 +59,20 @@ const STRAW_CATEGORY_LABELS: Record<StrawCategory, string> = {
   stuffed: 'Stuffed fill'
 }
 
-// Helper functions that use locale-aware formatting
-// These use the current i18n locale to ensure consistency throughout the component
-const getLocale = () => i18n.language || 'en'
+// Helper functions that accept formatters and use locale-aware formatting
+interface Formatters {
+  formatLength: (mm: number) => string
+  formatLengthInMeters: (mm: number) => string
+  formatArea: (mm2: number) => string
+  formatVolume: (mm3: number) => string
+  formatDimensions2D: (dimensions: [number, number]) => string
+  formatDimensions3D: (dimensions: [number, number, number]) => string
+  formatWeight: (kg: number) => string
+}
 
-const formatLength = (mm: number) => i18nFormatters.formatLength(mm, getLocale())
-const formatLengthInMeters = (mm: number) => i18nFormatters.formatLengthInMeters(mm, getLocale())
-const formatArea = (mm2: number) => i18nFormatters.formatArea(mm2, getLocale())
-const formatVolume = (mm3: number) => i18nFormatters.formatVolume(mm3, getLocale())
-
-const formatCrossSection = ([first, second]: [number, number]) =>
-  `${formatLengthInMeters(first)} × ${formatLengthInMeters(second)}`
-
-const formatDimensions = (size: Vec3) =>
-  `${formatLengthInMeters(size[0])} × ${formatLengthInMeters(size[1])} × ${formatLengthInMeters(size[2])}`
-
-const formatSheetDimensions = (size: Vec3, thickness?: number) => {
+const formatSheetDimensions = (size: Vec3, thickness: number | undefined, formatters: Formatters): string => {
   if (thickness === undefined) {
-    return formatDimensions(size)
+    return formatters.formatDimensions3D([size[0], size[1], size[2]])
   }
 
   // Find which dimension matches the thickness and filter it out
@@ -90,16 +85,11 @@ const formatSheetDimensions = (size: Vec3, thickness?: number) => {
 
   // If we successfully filtered out exactly one dimension, show 2D format
   if (dimensions.length === 2) {
-    return `${formatLengthInMeters(dimensions[0])} × ${formatLengthInMeters(dimensions[1])}`
+    return formatters.formatDimensions2D([dimensions[0], dimensions[1]])
   }
 
   // Fallback to full 3D format if something unexpected happened
-  return formatDimensions(size)
-}
-
-const formatWeight = (weight: number | undefined): string => {
-  if (weight === undefined) return '—'
-  return i18nFormatters.formatWeight(weight, getLocale())
+  return formatters.formatDimensions3D([size[0], size[1], size[2]])
 }
 
 const getIssueSeverity = (part: MaterialPartItem): 'error' | 'warning' | undefined => {
@@ -196,16 +186,20 @@ const summarizeStrawbaleParts = (parts: MaterialPartItem[], material: StrawbaleM
   }
 }
 
-const createMaterialGroups = (material: Material, materialParts: MaterialParts): MaterialGroup[] => {
+const createMaterialGroups = (
+  material: Material,
+  materialParts: MaterialParts,
+  formatters: Formatters
+): MaterialGroup[] => {
   const parts = Object.values(materialParts.parts)
   if (parts.length === 0) return []
 
   if (material.type === 'dimensional') {
-    return groupDimensionalParts(parts, material)
+    return groupDimensionalParts(parts, material, formatters)
   }
 
   if (material.type === 'sheet') {
-    return groupSheetParts(parts, material)
+    return groupSheetParts(parts, material, formatters)
   }
 
   if (material.type === 'strawbale') {
@@ -231,7 +225,11 @@ const createMaterialGroups = (material: Material, materialParts: MaterialParts):
   ]
 }
 
-const groupDimensionalParts = (parts: MaterialPartItem[], material: DimensionalMaterial): MaterialGroup[] => {
+const groupDimensionalParts = (
+  parts: MaterialPartItem[],
+  material: DimensionalMaterial,
+  formatters: Formatters
+): MaterialGroup[] => {
   const groups = new Map<
     string,
     {
@@ -252,7 +250,7 @@ const groupDimensionalParts = (parts: MaterialPartItem[], material: DimensionalM
       : 'dimensional:other'
     const key = `${material.id}|${groupKey}`
     const label = displayCrossSection
-      ? formatCrossSection([displayCrossSection.smallerLength, displayCrossSection.biggerLength])
+      ? formatters.formatDimensions2D([displayCrossSection.smallerLength, displayCrossSection.biggerLength])
       : UNKNOWN_CROSS_SECTION_LABEL
     const sortValue = displayCrossSection
       ? displayCrossSection.smallerLength * displayCrossSection.biggerLength
@@ -297,7 +295,11 @@ const groupDimensionalParts = (parts: MaterialPartItem[], material: DimensionalM
     )
 }
 
-const groupSheetParts = (parts: MaterialPartItem[], material: SheetMaterial): MaterialGroup[] => {
+const groupSheetParts = (
+  parts: MaterialPartItem[],
+  material: SheetMaterial,
+  formatters: Formatters
+): MaterialGroup[] => {
   const groups = new Map<
     string,
     {
@@ -314,7 +316,7 @@ const groupSheetParts = (parts: MaterialPartItem[], material: SheetMaterial): Ma
   for (const part of parts) {
     const thickness = part.thickness
     const key = thickness != null ? `sheet:${thickness}` : 'sheet:other'
-    const label = thickness != null ? formatLength(thickness) : UNKNOWN_THICKNESS_LABEL
+    const label = thickness != null ? formatters.formatLength(thickness) : UNKNOWN_THICKNESS_LABEL
     const sortValue = thickness ?? Number.MAX_SAFE_INTEGER
     const isKnown = thickness != null && material.thicknesses.includes(thickness)
     const badgeColor: BadgeColor = thickness != null ? (isKnown ? 'green' : 'red') : 'gray'
@@ -523,12 +525,19 @@ function SpecialCutTooltip({ polygon }: { polygon: Polygon2D }): React.JSX.Eleme
 function MaterialSummaryRow({
   material,
   metrics,
-  onNavigate
+  onNavigate,
+  formatters
 }: {
   material: Material
   metrics: RowMetrics & { partCount: number }
   onNavigate: () => void
+  formatters: Formatters
 }) {
+  const formatWeight = (weight: number | undefined): string => {
+    if (weight === undefined) return '—'
+    return formatters.formatWeight(weight)
+  }
+
   return (
     <Table.Row>
       <Table.RowHeaderCell justify="center">
@@ -545,17 +554,32 @@ function MaterialSummaryRow({
       <Table.Cell justify="center">{metrics.totalQuantity}</Table.Cell>
       <Table.Cell justify="center">{metrics.partCount}</Table.Cell>
       <Table.Cell justify="end">
-        {metrics.totalLength !== undefined ? formatLengthInMeters(metrics.totalLength) : '—'}
+        {metrics.totalLength !== undefined ? formatters.formatLengthInMeters(metrics.totalLength) : '—'}
       </Table.Cell>
-      <Table.Cell justify="end">{metrics.totalArea !== undefined ? formatArea(metrics.totalArea) : '—'}</Table.Cell>
-      <Table.Cell justify="end">{formatVolume(metrics.totalVolume)}</Table.Cell>
+      <Table.Cell justify="end">
+        {metrics.totalArea !== undefined ? formatters.formatArea(metrics.totalArea) : '—'}
+      </Table.Cell>
+      <Table.Cell justify="end">{formatters.formatVolume(metrics.totalVolume)}</Table.Cell>
       <Table.Cell justify="end">{formatWeight(metrics.totalWeight)}</Table.Cell>
     </Table.Row>
   )
 }
 
-function MaterialGroupSummaryRow({ group, onNavigate }: { group: MaterialGroup; onNavigate: () => void }) {
+function MaterialGroupSummaryRow({
+  group,
+  onNavigate,
+  formatters
+}: {
+  group: MaterialGroup
+  onNavigate: () => void
+  formatters: Formatters
+}) {
   const { metrics } = group
+  const formatWeight = (weight: number | undefined): string => {
+    if (weight === undefined) return '—'
+    return formatters.formatWeight(weight)
+  }
+
   return (
     <Table.Row>
       <Table.Cell width="6em" justify="center">
@@ -572,10 +596,12 @@ function MaterialGroupSummaryRow({ group, onNavigate }: { group: MaterialGroup; 
       <Table.Cell justify="center">{metrics.totalQuantity}</Table.Cell>
       <Table.Cell justify="center">{metrics.partCount}</Table.Cell>
       <Table.Cell justify="end">
-        {metrics.totalLength !== undefined ? formatLengthInMeters(metrics.totalLength) : '—'}
+        {metrics.totalLength !== undefined ? formatters.formatLengthInMeters(metrics.totalLength) : '—'}
       </Table.Cell>
-      <Table.Cell justify="end">{metrics.totalArea !== undefined ? formatArea(metrics.totalArea) : '—'}</Table.Cell>
-      <Table.Cell justify="end">{formatVolume(metrics.totalVolume)}</Table.Cell>
+      <Table.Cell justify="end">
+        {metrics.totalArea !== undefined ? formatters.formatArea(metrics.totalArea) : '—'}
+      </Table.Cell>
+      <Table.Cell justify="end">{formatters.formatVolume(metrics.totalVolume)}</Table.Cell>
       <Table.Cell justify="end">{formatWeight(metrics.totalWeight)}</Table.Cell>
     </Table.Row>
   )
@@ -586,9 +612,10 @@ interface MaterialGroupCardProps {
   group: MaterialGroup
   onBackToTop: () => void
   onViewInPlan?: (partId: PartId) => void
+  formatters: Formatters
 }
 
-function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan }: MaterialGroupCardProps) {
+function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan, formatters }: MaterialGroupCardProps) {
   const { openConfiguration } = useConfigurationModal()
 
   return (
@@ -625,16 +652,33 @@ function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan }: Mater
         </Flex>
 
         {material.type === 'dimensional' && (
-          <DimensionalPartsTable parts={group.parts} material={material} onViewInPlan={onViewInPlan} />
+          <DimensionalPartsTable
+            parts={group.parts}
+            material={material}
+            onViewInPlan={onViewInPlan}
+            formatters={formatters}
+          />
         )}
         {material.type === 'sheet' && (
-          <SheetPartsTable parts={group.parts} material={material} onViewInPlan={onViewInPlan} />
+          <SheetPartsTable
+            parts={group.parts}
+            material={material}
+            onViewInPlan={onViewInPlan}
+            formatters={formatters}
+          />
         )}
         {material.type === 'volume' && (
-          <VolumePartsTable parts={group.parts} material={material} onViewInPlan={onViewInPlan} />
+          <VolumePartsTable
+            parts={group.parts}
+            material={material}
+            onViewInPlan={onViewInPlan}
+            formatters={formatters}
+          />
         )}
         {material.type === 'generic' && <GenericPartsTable parts={group.parts} onViewInPlan={onViewInPlan} />}
-        {material.type === 'strawbale' && <StrawbalePartsTable parts={group.parts} material={material} />}
+        {material.type === 'strawbale' && (
+          <StrawbalePartsTable parts={group.parts} material={material} formatters={formatters} />
+        )}
       </Flex>
     </Card>
   )
@@ -643,12 +687,18 @@ function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan }: Mater
 function DimensionalPartsTable({
   parts,
   material,
-  onViewInPlan
+  onViewInPlan,
+  formatters
 }: {
   parts: MaterialPartItem[]
   material: DimensionalMaterial
   onViewInPlan?: (partId: PartId) => void
+  formatters: Formatters
 }) {
+  const formatWeight = (weight: number | undefined): string => {
+    if (weight === undefined) return '—'
+    return formatters.formatWeight(weight)
+  }
   return (
     <Table.Root variant="surface" size="2" className="min-w-full">
       <Table.Header>
@@ -720,11 +770,11 @@ function DimensionalPartsTable({
                       content={
                         part.requiresSinglePiece
                           ? `Part length ${
-                              part.length !== undefined ? formatLengthInMeters(part.length) : 'Unknown'
-                            } exceeds material maximum available length ${formatLengthInMeters(Math.max(...material.lengths))}`
+                              part.length !== undefined ? formatters.formatLengthInMeters(part.length) : 'Unknown'
+                            } exceeds material maximum available length ${formatters.formatLengthInMeters(Math.max(...material.lengths))}`
                           : `Part length ${
-                              part.length !== undefined ? formatLengthInMeters(part.length) : 'Unknown'
-                            } exceeds material maximum available length ${formatLengthInMeters(Math.max(...material.lengths))}. This part will require multiple pieces.`
+                              part.length !== undefined ? formatters.formatLengthInMeters(part.length) : 'Unknown'
+                            } exceeds material maximum available length ${formatters.formatLengthInMeters(Math.max(...material.lengths))}. This part will require multiple pieces.`
                       }
                     >
                       <ExclamationTriangleIcon
@@ -732,13 +782,13 @@ function DimensionalPartsTable({
                       />
                     </Tooltip>
                   )}
-                  <Text>{part.length !== undefined ? formatLengthInMeters(part.length) : '—'}</Text>
+                  <Text>{part.length !== undefined ? formatters.formatLengthInMeters(part.length) : '—'}</Text>
                 </Flex>
               </Table.Cell>
               <Table.Cell justify="end">
-                {part.totalLength !== undefined ? formatLengthInMeters(part.totalLength) : '—'}
+                {part.totalLength !== undefined ? formatters.formatLengthInMeters(part.totalLength) : '—'}
               </Table.Cell>
-              <Table.Cell justify="end">{formatVolume(part.totalVolume)}</Table.Cell>
+              <Table.Cell justify="end">{formatters.formatVolume(part.totalVolume)}</Table.Cell>
               <Table.Cell justify="end">{formatWeight(partWeight)}</Table.Cell>
               <Table.Cell justify="center">
                 {canHighlightPart(part.partId) && onViewInPlan && (
@@ -758,12 +808,18 @@ function DimensionalPartsTable({
 function SheetPartsTable({
   parts,
   material,
-  onViewInPlan
+  onViewInPlan,
+  formatters
 }: {
   parts: MaterialPartItem[]
   material: SheetMaterial
   onViewInPlan?: (partId: PartId) => void
+  formatters: Formatters
 }) {
+  const formatWeight = (weight: number | undefined): string => {
+    if (weight === undefined) return '—'
+    return formatters.formatWeight(weight)
+  }
   return (
     <Table.Root variant="surface" size="2" className="min-w-full">
       <Table.Header>
@@ -826,8 +882,8 @@ function SheetPartsTable({
                   {part.issue === 'ThicknessMismatch' && (
                     <Tooltip
                       key="thickness-missmatch"
-                      content={`Dimensions ${formatDimensions(part.size)} do not match available thicknesses (${material.thicknesses
-                        .map(value => formatLengthInMeters(value))
+                      content={`Dimensions ${formatters.formatDimensions3D([part.size[0], part.size[1], part.size[2]])} do not match available thicknesses (${material.thicknesses
+                        .map(value => formatters.formatLengthInMeters(value))
                         .join(', ')})`}
                     >
                       <ExclamationTriangleIcon style={{ color: 'var(--red-9)' }} />
@@ -838,11 +894,11 @@ function SheetPartsTable({
                       key="sheet-size-exceeded"
                       content={
                         part.requiresSinglePiece
-                          ? `Dimensions ${formatDimensions(part.size)} exceed available sheet sizes (${material.sizes
-                              .map(size => formatCrossSection([size.smallerLength, size.biggerLength]))
+                          ? `Dimensions ${formatters.formatDimensions3D([part.size[0], part.size[1], part.size[2]])} exceed available sheet sizes (${material.sizes
+                              .map(size => formatters.formatDimensions2D([size.smallerLength, size.biggerLength]))
                               .join(', ')})`
-                          : `Dimensions ${formatDimensions(part.size)} exceed available sheet sizes (${material.sizes
-                              .map(size => formatCrossSection([size.smallerLength, size.biggerLength]))
+                          : `Dimensions ${formatters.formatDimensions3D([part.size[0], part.size[1], part.size[2]])} exceed available sheet sizes (${material.sizes
+                              .map(size => formatters.formatDimensions2D([size.smallerLength, size.biggerLength]))
                               .join(', ')}). This part will require multiple sheets.`
                       }
                     >
@@ -852,13 +908,17 @@ function SheetPartsTable({
                       />
                     </Tooltip>
                   )}
-                  <Text>{isZeroVec3(part.size) ? '' : formatSheetDimensions(part.size, part.thickness)}</Text>
+                  <Text>
+                    {isZeroVec3(part.size) ? '' : formatSheetDimensions(part.size, part.thickness, formatters)}
+                  </Text>
                 </Flex>
               </Table.Cell>
               <Table.Cell justify="center">{part.quantity}</Table.Cell>
-              <Table.Cell justify="end"> {part.area !== undefined ? formatArea(part.area) : '—'}</Table.Cell>
-              <Table.Cell justify="end">{part.totalArea !== undefined ? formatArea(part.totalArea) : '—'}</Table.Cell>
-              <Table.Cell justify="end">{formatVolume(part.totalVolume)}</Table.Cell>
+              <Table.Cell justify="end"> {part.area !== undefined ? formatters.formatArea(part.area) : '—'}</Table.Cell>
+              <Table.Cell justify="end">
+                {part.totalArea !== undefined ? formatters.formatArea(part.totalArea) : '—'}
+              </Table.Cell>
+              <Table.Cell justify="end">{formatters.formatVolume(part.totalVolume)}</Table.Cell>
               <Table.Cell justify="end">{formatWeight(partWeight)}</Table.Cell>
               <Table.Cell justify="center">
                 {canHighlightPart(part.partId) && onViewInPlan && (
@@ -878,12 +938,18 @@ function SheetPartsTable({
 function VolumePartsTable({
   parts,
   material,
-  onViewInPlan
+  onViewInPlan,
+  formatters
 }: {
   parts: MaterialPartItem[]
   material: VolumeMaterial
   onViewInPlan?: (partId: PartId) => void
+  formatters: Formatters
 }) {
+  const formatWeight = (weight: number | undefined): string => {
+    if (weight === undefined) return '—'
+    return formatters.formatWeight(weight)
+  }
   return (
     <Table.Root variant="surface" size="2" className="min-w-full">
       <Table.Header>
@@ -925,9 +991,13 @@ function VolumePartsTable({
               <Table.Cell>{part.type}</Table.Cell>
               <Table.Cell>{part.description}</Table.Cell>
               <Table.Cell justify="center">{part.quantity}</Table.Cell>
-              <Table.Cell justify="end">{part.thickness !== undefined ? formatLength(part.thickness) : '—'}</Table.Cell>
-              <Table.Cell justify="end">{part.totalArea !== undefined ? formatArea(part.totalArea) : '—'}</Table.Cell>
-              <Table.Cell justify="end">{formatVolume(part.totalVolume)}</Table.Cell>
+              <Table.Cell justify="end">
+                {part.thickness !== undefined ? formatters.formatLength(part.thickness) : '—'}
+              </Table.Cell>
+              <Table.Cell justify="end">
+                {part.totalArea !== undefined ? formatters.formatArea(part.totalArea) : '—'}
+              </Table.Cell>
+              <Table.Cell justify="end">{formatters.formatVolume(part.totalVolume)}</Table.Cell>
               <Table.Cell justify="end">{formatWeight(partWeight)}</Table.Cell>
               <Table.Cell justify="center">
                 {canHighlightPart(part.partId) && onViewInPlan && (
@@ -991,7 +1061,15 @@ function GenericPartsTable({
   )
 }
 
-function StrawbalePartsTable({ parts, material }: { parts: MaterialPartItem[]; material: StrawbaleMaterial }) {
+function StrawbalePartsTable({
+  parts,
+  material,
+  formatters
+}: {
+  parts: MaterialPartItem[]
+  material: StrawbaleMaterial
+  formatters: Formatters
+}) {
   const summary = summarizeStrawbaleParts(parts, material)
   const numberFormatter = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }), [])
 
@@ -1068,7 +1146,7 @@ function StrawbalePartsTable({ parts, material }: { parts: MaterialPartItem[]; m
               </Text>
             </Table.Cell>
             <Table.Cell justify="end">
-              <Text color={row.key === 'remaining' ? 'gray' : undefined}>{formatVolume(row.volume)}</Text>
+              <Text color={row.key === 'remaining' ? 'gray' : undefined}>{formatters.formatVolume(row.volume)}</Text>
             </Table.Cell>
           </Table.Row>
         ))}
@@ -1080,7 +1158,7 @@ function StrawbalePartsTable({ parts, material }: { parts: MaterialPartItem[]; m
             <Text weight="medium">{formatRange(totalMinQuantity, totalMaxQuantity)}</Text>
           </Table.Cell>
           <Table.Cell justify="end">
-            <Text weight="medium">{formatVolume(summary.totalVolume)}</Text>
+            <Text weight="medium">{formatters.formatVolume(summary.totalVolume)}</Text>
           </Table.Cell>
         </Table.Row>
       </Table.Body>
@@ -1090,6 +1168,7 @@ function StrawbalePartsTable({ parts, material }: { parts: MaterialPartItem[]; m
 
 export function ConstructionPartsList({ partsList, onViewInPlan }: ConstructionPartsListProps): React.JSX.Element {
   const materialsMap = useMaterialsMap()
+  const formatters = useFormatters()
   const topRef = useRef<HTMLDivElement | null>(null)
   const detailRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -1161,7 +1240,7 @@ export function ConstructionPartsList({ partsList, onViewInPlan }: ConstructionP
         const strawSummary = summarizeStrawbaleParts(parts, material)
         metrics.totalQuantity = strawSummary.totalEstimatedBalesMax
       }
-      const groups = createMaterialGroups(material, materialParts)
+      const groups = createMaterialGroups(material, materialParts, formatters)
       return { material, metrics, groups }
     })
     .filter(
@@ -1208,6 +1287,7 @@ export function ConstructionPartsList({ partsList, onViewInPlan }: ConstructionP
                     material={row.material}
                     metrics={row.metrics}
                     onNavigate={() => scrollToGroup(row.groups[0]?.key)}
+                    formatters={formatters}
                   />
                   {row.groups.length > 1 &&
                     row.groups.map(group => (
@@ -1215,6 +1295,7 @@ export function ConstructionPartsList({ partsList, onViewInPlan }: ConstructionP
                         key={group.key}
                         group={group}
                         onNavigate={() => scrollToGroup(group.key)}
+                        formatters={formatters}
                       />
                     ))}
                 </React.Fragment>
@@ -1229,7 +1310,7 @@ export function ConstructionPartsList({ partsList, onViewInPlan }: ConstructionP
           const material = materialsMap[materialId]
           const materialParts = partsList[materialId]
           if (!material || !materialParts) return null
-          const groups = createMaterialGroups(material, materialParts)
+          const groups = createMaterialGroups(material, materialParts, formatters)
           if (groups.length === 0) return null
           return (
             <Flex key={materialId} direction="column" gap="4">
@@ -1240,6 +1321,7 @@ export function ConstructionPartsList({ partsList, onViewInPlan }: ConstructionP
                     group={group}
                     onBackToTop={scrollToTop}
                     onViewInPlan={onViewInPlan}
+                    formatters={formatters}
                   />
                 </div>
               ))}

@@ -36,7 +36,7 @@ import { MaterialSelectWithEdit } from '@/construction/materials/components/Mate
 import type { MaterialId } from '@/construction/materials/material'
 import { LengthField } from '@/shared/components/LengthField'
 import type { Length } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 const DEFAULT_MATERIAL = '' as MaterialId
 
@@ -104,6 +104,7 @@ export function LayerListEditor({
   beforeLabel = 'Construction Side',
   afterLabel
 }: LayerListEditorProps): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const hasLayers = layers.length > 0
   const totalThickness = useMemo(() => sumLayerThickness(layers), [layers])
   const presetEntries = useMemo(() => (layerPresets ? Object.entries(layerPresets) : []), [layerPresets])

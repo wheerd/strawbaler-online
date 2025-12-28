@@ -3,11 +3,7 @@ import { Card, Flex, Heading, IconButton, Table, Text } from '@radix-ui/themes'
 import React, { useMemo } from 'react'
 
 import type { PartId, VirtualPartsList } from '@/construction/parts'
-import { type Vec3 } from '@/shared/geometry'
-import { formatLengthInMeters } from '@/shared/utils/formatting'
-
-const formatDimensions = (size: Vec3): string =>
-  `${formatLengthInMeters(size[0])} × ${formatLengthInMeters(size[1])} × ${formatLengthInMeters(size[2])}`
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 // Helper to check if part can be highlighted (not auto-generated)
 const canHighlightPart = (partId: PartId): boolean => !partId.startsWith('auto_')
@@ -19,6 +15,8 @@ export function ConstructionVirtualPartsList({
   partsList: VirtualPartsList
   onViewInPlan?: (partId: PartId) => void
 }): React.JSX.Element {
+  const { formatDimensions3D } = useFormatters()
+
   const parts = useMemo(() => Object.values(partsList).sort((a, b) => a.label.localeCompare(b.label)), [partsList])
 
   if (parts.length === 0) {
@@ -63,7 +61,7 @@ export function ConstructionVirtualPartsList({
                   <Text>{part.type}</Text>
                 </Table.Cell>
                 <Table.Cell>
-                  <Text>{formatDimensions(part.size)}</Text>
+                  <Text>{formatDimensions3D([part.size[0], part.size[1], part.size[2]])}</Text>
                 </Table.Cell>
                 <Table.Cell justify="center">
                   <Text>{part.quantity}</Text>

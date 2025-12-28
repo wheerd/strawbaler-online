@@ -28,7 +28,7 @@ import type { MonolithicRoofConfig, PurlinRoofConfig, RoofAssemblyType, RoofConf
 import { RoofMeasurementInfo } from '@/editor/components/RoofMeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import { useDebouncedInput } from '@/shared/hooks/useDebouncedInput'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import { getRoofAssemblyTypeIcon } from './Icons'
 import { RoofAssemblySelect } from './RoofAssemblySelect'
@@ -499,6 +499,7 @@ interface ConfigFormProps {
 }
 
 function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const { updateRoofAssemblyName, updateRoofAssemblyConfig } = useConfigActions()
 
   const nameInput = useDebouncedInput(assembly.name, (name: string) => updateRoofAssemblyName(assembly.id, name), {
@@ -513,7 +514,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
   const totalThickness = useMemo(() => {
     const assemblyImpl = resolveRoofAssembly(assembly)
     return formatLength(assemblyImpl.totalThickness)
-  }, [assembly])
+  }, [assembly, formatLength])
 
   return (
     <Flex

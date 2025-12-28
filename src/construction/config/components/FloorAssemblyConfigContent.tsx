@@ -35,7 +35,7 @@ import type { MaterialId } from '@/construction/materials/material'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import { useDebouncedInput } from '@/shared/hooks/useDebouncedInput'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import { FloorAssemblySelect } from './FloorAssemblySelect'
 import { getFloorAssemblyTypeIcon } from './Icons'
@@ -345,6 +345,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
 }
 
 function ConfigForm({ assembly }: { assembly: FloorAssemblyConfig }): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const { updateFloorAssemblyName, updateFloorAssemblyConfig } = useConfigActions()
 
   const nameInput = useDebouncedInput(assembly.name, (name: string) => updateFloorAssemblyName(assembly.id, name), {
@@ -356,7 +357,10 @@ function ConfigForm({ assembly }: { assembly: FloorAssemblyConfig }): React.JSX.
     [assembly.id, updateFloorAssemblyConfig]
   )
 
-  const totalThickness = useMemo(() => formatLength(resolveFloorAssembly(assembly).totalThickness), [assembly])
+  const totalThickness = useMemo(
+    () => formatLength(resolveFloorAssembly(assembly).totalThickness),
+    [assembly, formatLength]
+  )
 
   return (
     <Flex

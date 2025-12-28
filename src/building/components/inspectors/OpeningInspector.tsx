@@ -16,7 +16,7 @@ import { FitToViewIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
 import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/components/OpeningIcons'
 import { Bounds2D, type Polygon2D, addVec2, offsetPolygon, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import { OpeningPreview } from './OpeningPreview'
 
@@ -27,6 +27,7 @@ interface OpeningInspectorProps {
 }
 
 export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInspectorProps): React.JSX.Element {
+  const { formatLength } = useFormatters()
   // Get model store functions - use specific selectors for stable references
   const select = useSelectionStore()
   const {

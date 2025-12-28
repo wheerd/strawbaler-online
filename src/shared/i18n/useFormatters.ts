@@ -40,7 +40,11 @@ export function useFormatters() {
       formatWeight: (kg: number) => formatters.formatWeight(kg, locale),
       formatPercentage: (value: number) => formatters.formatPercentage(value, locale),
       formatAngle: (degrees: number) => formatters.formatAngle(degrees, locale),
-      formatNumber: (value: number, decimals?: number) => formatters.formatNumber(value, decimals, locale)
+      formatNumber: (value: number, decimals?: number) => formatters.formatNumber(value, decimals, locale),
+      formatDimensions2D: (dimensions: [number, number], full = true) =>
+        formatters.formatDimensions2D(dimensions, full, locale),
+      formatDimensions3D: (dimensions: readonly [number, number, number], full = true) =>
+        formatters.formatDimensions3D(dimensions, full, locale)
     }),
     [locale]
   )

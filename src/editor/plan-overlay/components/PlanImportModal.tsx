@@ -9,7 +9,7 @@ import type { FloorPlanOverlay, ImagePoint } from '@/editor/plan-overlay/types'
 import { calculatePixelDistance } from '@/editor/plan-overlay/utils/calibration'
 import { BaseModal } from '@/shared/components/BaseModal'
 import { LengthField } from '@/shared/components/LengthField'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 interface PlanImportModalProps {
   floorId: StoreyId
@@ -33,6 +33,7 @@ export function PlanImportModal({
   onOpenChange,
   existingPlan
 }: PlanImportModalProps): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const { importPlan, recalibratePlan } = useFloorPlanActions()
   const [file, setFile] = useState<File | null>(null)
   const [previewSource, setPreviewSource] = useState<PreviewSource | null>(null)

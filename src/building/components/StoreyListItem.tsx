@@ -8,7 +8,7 @@ import { defaultStoreyManagementService } from '@/building/store/services/Storey
 import { FloorAssemblySelectWithEdit } from '@/construction/config/components/FloorAssemblySelectWithEdit'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 export function getLevelColor(level: number): 'grass' | 'indigo' | 'brown' {
   if (level === 0) {
@@ -33,6 +33,7 @@ export function StoreyListItem({
   lowestStorey,
   highestStorey
 }: StoreyListItemProps): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const activeStoreyId = useActiveStoreyId()
   const { setActiveStoreyId } = useModelActions()
   const [editName, setEditName] = useState(storey.name)

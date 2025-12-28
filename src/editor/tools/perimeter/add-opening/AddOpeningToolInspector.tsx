@@ -36,7 +36,7 @@ import {
   WindowIcon
 } from '@/shared/components/OpeningIcons'
 import { type Length } from '@/shared/geometry'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import type { AddOpeningTool } from './AddOpeningTool'
 
@@ -117,6 +117,7 @@ interface ExistingConfig {
 }
 
 function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const { state } = useReactiveTool(tool)
   const [focusedField, setFocusedField] = useState<'width' | 'height' | 'sillHeight' | 'topHeight' | undefined>()
 

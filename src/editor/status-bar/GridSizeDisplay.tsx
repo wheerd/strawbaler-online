@@ -3,9 +3,10 @@ import { Button, Flex, Text } from '@radix-ui/themes'
 import React from 'react'
 
 import { useGridActions, useGridSize, useShowGrid } from '@/editor/hooks/useGrid'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 export function GridSizeDisplay(): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const showGrid = useShowGrid()
   const gridSize = useGridSize()
   const { setShowGrid } = useGridActions()

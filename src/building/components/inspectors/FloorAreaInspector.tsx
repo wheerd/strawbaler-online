@@ -8,13 +8,14 @@ import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { FitToViewIcon } from '@/shared/components/Icons'
 import { Bounds2D, calculatePolygonArea, polygonPerimeter } from '@/shared/geometry'
-import { formatArea, formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 interface FloorAreaInspectorProps {
   floorAreaId: FloorAreaId
 }
 
 export function FloorAreaInspector({ floorAreaId }: FloorAreaInspectorProps): React.JSX.Element | null {
+  const { formatArea, formatLength } = useFormatters()
   const floorArea = useFloorAreaById(floorAreaId)
   const { removeFloorArea } = useModelActions()
   const { fitToView } = useViewportActions()

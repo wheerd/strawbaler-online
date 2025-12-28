@@ -42,7 +42,7 @@ import { useMaterialUsage } from '@/construction/materials/usage'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import { VolumeField } from '@/shared/components/VolumeField/VolumeField'
 import type { Length } from '@/shared/geometry'
-import { formatLength, formatVolume, formatVolumeInLiters } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import { MaterialSelect, getMaterialTypeIcon, getMaterialTypeName } from './MaterialSelect'
 
@@ -55,9 +55,6 @@ export interface MaterialsConfigContentProps {
 }
 
 type MaterialType = Material['type']
-
-const formatCrossSectionLabel = (section: { smallerLength: number; biggerLength: number }) =>
-  `${formatLength(section.smallerLength)} × ${formatLength(section.biggerLength)}`
 
 export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigContentProps): React.JSX.Element {
   const materials = useMaterials()
@@ -432,6 +429,8 @@ function DimensionalMaterialFields({
   material: DimensionalMaterial
   onUpdate: (updates: Partial<DimensionalMaterial>) => void
 }) {
+  const { formatLength, formatDimensions2D } = useFormatters()
+
   const [newDim1, setNewDim1] = useState<Length>(material.crossSections[0]?.smallerLength ?? 50)
   const [newDim2, setNewDim2] = useState<Length>(material.crossSections[0]?.biggerLength ?? 100)
   const [newLengthInput, setNewLengthInput] = useState<Length>(material.lengths[0] ?? 3000)
@@ -496,7 +495,7 @@ function DimensionalMaterialFields({
             {material.crossSections.map(section => (
               <Badge role="listitem" key={`${section.smallerLength}x${section.biggerLength}`} size="2" variant="soft">
                 <Flex align="center" gap="1">
-                  {formatCrossSectionLabel(section)}
+                  {formatDimensions2D([section.smallerLength, section.biggerLength], false)}
                   <IconButton
                     size="1"
                     variant="ghost"
@@ -606,6 +605,7 @@ function SheetMaterialFields({
   material: SheetMaterial
   onUpdate: (updates: Partial<SheetMaterial>) => void
 }) {
+  const { formatLength, formatDimensions2D } = useFormatters()
   const [newWidth, setNewWidth] = useState<Length>(material.sizes[0]?.smallerLength ?? 600)
   const [newLength, setNewLength] = useState<Length>(material.sizes[0]?.biggerLength ?? 1200)
   const [newThickness, setNewThickness] = useState<Length>(material.thicknesses[0] ?? 18)
@@ -666,7 +666,7 @@ function SheetMaterialFields({
             {material.sizes.map(size => (
               <Badge role="listitem" key={`${size.smallerLength}x${size.biggerLength}`} size="2" variant="soft">
                 <Flex align="center" gap="1">
-                  {formatCrossSectionLabel(size)}
+                  {formatDimensions2D([size.smallerLength, size.biggerLength], false)}
                   <IconButton
                     size="1"
                     variant="ghost"
@@ -779,6 +779,7 @@ function VolumeMaterialFields({
   material: VolumeMaterial
   onUpdate: (updates: Partial<VolumeMaterial>) => void
 }) {
+  const { formatVolume, formatVolumeInLiters } = useFormatters()
   const [newVolumeInput, setNewVolumeInput] = useState<number>(1_000_000)
   const [volumeUnit, setVolumeUnit] = useState<'liter' | 'm3'>('liter')
 

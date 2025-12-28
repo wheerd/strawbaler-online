@@ -27,7 +27,7 @@ import {
   polygonPerimeter,
   radiansToDegrees
 } from '@/shared/geometry'
-import { formatArea, formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 interface RoofInspectorProps {
   roofId: RoofId
@@ -59,6 +59,7 @@ function MixedStateIndicator() {
 }
 
 export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element | null {
+  const { formatArea, formatLength } = useFormatters()
   const roof = useRoofById(roofId)
   const { removeRoof, updateRoofProperties, setAllRoofOverhangs, cycleRoofMainSide } = useModelActions()
   const { fitToView } = useViewportActions()

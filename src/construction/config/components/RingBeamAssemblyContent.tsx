@@ -32,7 +32,7 @@ import { type RingBeamConfig, resolveRingBeamAssembly } from '@/construction/rin
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import { useDebouncedInput } from '@/shared/hooks/useDebouncedInput'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import { getRingBeamTypeIcon } from './Icons'
 import { RingBeamAssemblySelect } from './RingBeamAssemblySelect'
@@ -322,6 +322,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
 }
 
 function ConfigForm({ assembly }: { assembly: RingBeamAssemblyConfig }): React.ReactNode {
+  const { formatLength } = useFormatters()
   const { updateRingBeamAssemblyName, updateRingBeamAssemblyConfig } = useConfigActions()
 
   const nameInput = useDebouncedInput(assembly.name, (name: string) => updateRingBeamAssemblyName(assembly.id, name), {
@@ -333,7 +334,7 @@ function ConfigForm({ assembly }: { assembly: RingBeamAssemblyConfig }): React.R
     [assembly, updateRingBeamAssemblyConfig]
   )
 
-  const totalHeight = useMemo(() => formatLength(resolveRingBeamAssembly(assembly).height), [assembly])
+  const totalHeight = useMemo(() => formatLength(resolveRingBeamAssembly(assembly).height), [assembly, formatLength])
 
   return (
     <Flex

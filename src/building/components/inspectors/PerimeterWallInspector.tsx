@@ -19,7 +19,7 @@ import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon } from '@/shared/com
 import { LengthField } from '@/shared/components/LengthField'
 import { Bounds2D, type Polygon2D, type Vec2, copyVec2 } from '@/shared/geometry'
 import { wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 interface PerimeterWallInspectorProps {
   perimeterId: PerimeterId
@@ -27,6 +27,7 @@ interface PerimeterWallInspectorProps {
 }
 
 export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallInspectorProps): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const {
     updatePerimeterWallThickness: updateOuterWallThickness,
     updatePerimeterWallAssembly: updateOuterWallAssembly,

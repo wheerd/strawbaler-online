@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolImplementation, ToolInspectorProps } from '@/editor/tools/system/types'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import type { BasePolygonTool, PolygonToolStateBase } from './BasePolygonTool'
 
@@ -24,6 +24,7 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
   completeLabel,
   cancelLabel
 }: SimplePolygonToolInspectorProps<TTool>): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const { state } = useReactiveTool(tool)
   const [, forceUpdate] = useState({})
 

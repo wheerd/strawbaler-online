@@ -50,7 +50,7 @@ import type { ModuleConfig } from '@/construction/walls/modules/modules'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/components/LengthField'
 import { useDebouncedInput } from '@/shared/hooks/useDebouncedInput'
-import { formatLength } from '@/shared/utils/formatting'
+import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import { getPerimeterConfigTypeIcon } from './Icons'
 import { WallAssemblySelect } from './WallAssemblySelect'
@@ -661,6 +661,7 @@ interface ConfigFormProps {
 }
 
 function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
+  const { formatLength } = useFormatters()
   const { updateWallAssemblyName, updateWallAssemblyConfig, getDefaultStrawMaterial } = useConfigActions()
   const { getMaterialById } = useMaterialActions()
 
