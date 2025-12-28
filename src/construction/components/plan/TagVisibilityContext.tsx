@@ -53,13 +53,15 @@ export function useTagVisibilityActions() {
  * Hook for components that need to re-render on any visibility change (e.g., the menu).
  * Use sparingly - prefer useVisibleItems for fine-grained subscriptions.
  */
-export function useTagVisibilityForceUpdate(): void {
+export function useTagVisibilityForceUpdate(): number {
   const store = useTagVisibilityStore()
-  const [, forceUpdate] = useReducer(x => x + 1, 0)
+  const [update, forceUpdate] = useReducer(x => x + 1, 0)
 
   useEffect(() => {
     return store.subscribe(forceUpdate)
   }, [store])
+
+  return update
 }
 
 /**

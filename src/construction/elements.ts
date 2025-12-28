@@ -24,7 +24,7 @@ export const createConstructionElement = (
   shape,
   transform,
   tags,
-  partInfo,
+  partInfo: partInfo ? { ...partInfo } : undefined,
   bounds: shape.bounds
 })
 

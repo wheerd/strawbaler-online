@@ -24,7 +24,7 @@ export function VisibilityStyles({
   hideMeasurements
 }: VisibilityStylesProps): React.JSX.Element {
   // Force re-render when tag visibility changes (only this component, not parent)
-  useTagVisibilityForceUpdate()
+  const tagUpdated = useTagVisibilityForceUpdate()
 
   // Get hidden tag IDs without subscribing (we already subscribe above)
   const { getHiddenTagIds } = useTagVisibilityActions()
@@ -39,7 +39,7 @@ export function VisibilityStyles({
       .concat(hideMeasurements ? ['measurement'] : [])
       .map(cssClass => `.${cssClass} { display: none; }`)
       .join('\n')
-  }, [getHiddenTagIds, hiddenTagsForView, hideAreas, hideIssues, hideMeasurements])
+  }, [getHiddenTagIds, hiddenTagsForView, hideAreas, hideIssues, hideMeasurements, tagUpdated])
 
   if (!visibilityStyles) {
     return <></>
