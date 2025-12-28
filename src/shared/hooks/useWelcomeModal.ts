@@ -9,7 +9,7 @@ interface WelcomeState {
 }
 
 const STORAGE_KEY = 'strawbaler-welcome-state'
-const CURRENT_VERSION = '1.0'
+const CURRENT_VERSION = '0.2'
 
 function loadWelcomeState(): WelcomeState | null {
   try {

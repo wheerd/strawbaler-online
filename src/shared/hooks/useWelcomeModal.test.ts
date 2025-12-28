@@ -26,7 +26,7 @@ describe('useWelcomeModal', () => {
       JSON.stringify({
         accepted: true,
         acceptedAt: new Date().toISOString(),
-        version: '1.0'
+        version: '0.2'
       })
     )
 
@@ -64,7 +64,7 @@ describe('useWelcomeModal', () => {
 
     const stored = JSON.parse(localStorage.getItem('strawbaler-welcome-state')!)
     expect(stored.accepted).toBe(true)
-    expect(stored.version).toBe('1.0')
+    expect(stored.version).toBe('0.2')
     expect(stored.acceptedAt).toBeDefined()
   })
 
@@ -74,7 +74,7 @@ describe('useWelcomeModal', () => {
       JSON.stringify({
         accepted: true,
         acceptedAt: new Date().toISOString(),
-        version: '1.0'
+        version: '0.2'
       })
     )
 
