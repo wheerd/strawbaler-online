@@ -52,4 +52,4 @@ const purlinAssembly: RoofAssemblyConfig = {
 
 export const DEFAULT_ROOF_ASSEMBLIES = [purlinAssembly, monolithicAssembly]
 
-export const DEFAULT_ROOF_ASSEMBLY_ID = monolithicAssembly.id
+export const DEFAULT_ROOF_ASSEMBLY_ID = purlinAssembly.id
