@@ -1,5 +1,5 @@
-import { Cross2Icon, ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import { Button, Callout, Dialog, Flex, Grid, Heading, IconButton, Text } from '@radix-ui/themes'
+import { Cross2Icon, ExclamationTriangleIcon, GitHubLogoIcon } from '@radix-ui/react-icons'
+import { Button, Callout, Dialog, Flex, Grid, Heading, IconButton, Link, Text } from '@radix-ui/themes'
 import React from 'react'
 
 import { VERSION_INFO } from '@/shared/utils/version'
@@ -61,7 +61,7 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
             <Text>
               This is a tool specifically designed for strawbale construction planning. Create floor plans with walls,
               openings, roof and floors. Configure the construction and generate plans and 3D models. Get estimates for
-              required materials
+              required materials. Export construction for use in other CAD tools.
             </Text>
 
             <Grid columns="1fr 1fr" gap="4">
@@ -93,41 +93,50 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
               </Flex>
             </Grid>
 
-            <Callout.Root color="orange" variant="surface">
-              <Callout.Icon>
-                <ExclamationTriangleIcon />
-              </Callout.Icon>
-              <Callout.Text>
-                <Flex direction="column" gap="2" as="span">
-                  <Text weight="bold">Important Disclaimer</Text>
-                  <Text>This tool is currently in active development and provided as-is:</Text>
-                  <Flex direction="column" ml="4" gap="0" as="span">
-                    <Text>No guarantees for accuracy of calculations, plans, or 3D models</Text>
-                    <Text>Breaking changes may occur between versions</Text>
-                    <Text>Project data may be lost due to browser storage limitations or updates</Text>
-                    <Text>
-                      <strong>Always save and export your work regularly</strong>
-                    </Text>
-                    <Text>This tool does not replace professional engineering consultation</Text>
-                  </Flex>
-                </Flex>
-              </Callout.Text>
-            </Callout.Root>
+            <Grid columns="1fr 1fr" gap="4">
+              <Flex direction="column" gap="2">
+                <Heading size="3">Demo Video</Heading>
+                <Text size="2">
+                  Watch a quick demonstration of Strawbaler&apos;s features:{' '}
+                  <Link href="https://www.youtube.com/watch?v=oe9VnhEW0JE" target="_blank" rel="noopener noreferrer">
+                    View on YouTube
+                  </Link>
+                </Text>
+                <Heading size="3">Local Storage</Heading>
+                <Text as="div" size="1">
+                  This application stores data locally in your browser to:
+                  <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.5rem' }}>
+                    <li>Remember that you&apos;ve seen this welcome message</li>
+                    <li>Save your floor plans and projects</li>
+                    <li>Preserve your configuration preferences</li>
+                  </ul>
+                </Text>
+                <Text size="2" color="gray">
+                  No cookies, tracking, or third-party analytics are used.
+                </Text>
+              </Flex>
 
-            <Flex direction="column" gap="2">
-              <Heading size="3">Local Storage</Heading>
-              <Text as="div" size="1">
-                This application stores data locally in your browser to:
-                <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.5rem' }}>
-                  <li>Remember that you&apos;ve seen this welcome message</li>
-                  <li>Save your floor plans and projects</li>
-                  <li>Preserve your configuration preferences</li>
-                </ul>
-              </Text>
-              <Text size="2" color="gray">
-                No cookies, tracking, or third-party analytics are used.
-              </Text>
-            </Flex>
+              <Callout.Root color="orange" variant="surface">
+                <Callout.Icon>
+                  <ExclamationTriangleIcon />
+                </Callout.Icon>
+                <Callout.Text>
+                  <Flex direction="column" gap="2" as="span">
+                    <Text weight="bold">Important Disclaimer</Text>
+                    <Text>This tool is currently in active development and provided as-is:</Text>
+                    <Flex direction="column" ml="4" gap="0" as="span">
+                      <Text>No guarantees for accuracy of calculations, plans, or 3D models</Text>
+                      <Text>Breaking changes may occur between versions</Text>
+                      <Text>Project data may be lost due to browser storage limitations or updates</Text>
+                      <Text>
+                        <strong>Always save and export your work regularly</strong>
+                      </Text>
+                      <Text>This tool does not replace professional engineering consultation</Text>
+                    </Flex>
+                  </Flex>
+                </Callout.Text>
+              </Callout.Root>
+            </Grid>
 
             <Flex direction="column" gap="2" align="center">
               <Button size="3" onClick={onAccept} style={{ width: '100%' }}>
@@ -138,9 +147,22 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                   You can review this information anytime via the info icon in the toolbar
                 </Text>
               )}
-              <Text size="1" color="gray" align="center" style={{ marginTop: 'var(--space-2)' }}>
-                Version {VERSION_INFO.version}
-              </Text>
+              <Flex direction="column" gap="1" align="center" style={{ marginTop: 'var(--space-2)' }}>
+                <Text size="1" color="gray" align="center">
+                  Version {VERSION_INFO.version}
+                </Text>
+                <Flex gap="2" align="center" justify="center">
+                  <GitHubLogoIcon width="14" height="14" />
+                  <Link
+                    size="1"
+                    href="https://github.com/wheerd/strawbaler-online"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View on GitHub
+                  </Link>
+                </Flex>
+              </Flex>
             </Flex>
           </Flex>
         </Flex>

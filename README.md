@@ -14,6 +14,8 @@ A modern web-based floor plan editor specifically designed for strawbale constru
 
 > **Development version:** [development--strawbaler.netlify.app](https://development--strawbaler.netlify.app/) (latest features, may be unstable)
 
+**🎥 [Watch Demo Video](https://www.youtube.com/watch?v=oe9VnhEW0JE)** - See Strawbaler's features in action
+
 ## ✨ Features
 
 - **Finished-Dimension Floor Plans**: Define perimeter walls with plaster thickness accounted for
@@ -22,6 +24,37 @@ A modern web-based floor plan editor specifically designed for strawbale constru
 - **Plan & Model Generation**: Produce wall and floor build plans with interactive 3D previews
 - **Modern Tech Stack**: React 19, TypeScript, Vite, Zustand, and Radix UI
 - **CI/CD Pipeline**: Automated testing, linting, security checks, and dependency updates
+
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/editor.png" alt="Floor Plan Editor">
+      <p align="center"><em>Floor Plan Editor</em></p>
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/3d.png" alt="3D Model View">
+      <p align="center"><em>3D Model Viewer</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/plan.png" alt="Construction Plans">
+      <p align="center"><em>Construction Plans</em></p>
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/materials.png" alt="Materials Overview">
+      <p align="center"><em>Materials Overview</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <img src="docs/screenshots/cut.png" alt="Cut View">
+      <p align="center"><em>Detailed Cut View</em></p>
+    </td>
+  </tr>
+</table>
 
 ## 🚀 Quick Start
 
