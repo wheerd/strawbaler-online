@@ -14,6 +14,7 @@ import { DEFAULT_EMPTY_ASSEMBLY } from './opening.defaults'
 const infillAssembly: InfillWallAssemblyConfig = {
   id: 'wa_infill_default' as WallAssemblyId,
   name: 'Standard Infill',
+  nameKey: 'walls.defaults.standardInfill',
   type: 'infill',
   maxPostSpacing: 900,
   desiredPostSpacing: 800,
@@ -37,6 +38,7 @@ const infillAssembly: InfillWallAssemblyConfig = {
 const strawhengeAssembly: StrawhengeWallAssemblyConfig = {
   id: 'wa_strawhenge_default' as WallAssemblyId,
   name: 'Strawhenge Module',
+  nameKey: 'walls.defaults.strawhengeModule',
   type: 'strawhenge',
   module: {
     minWidth: 920,
@@ -68,6 +70,7 @@ const strawhengeAssembly: StrawhengeWallAssemblyConfig = {
 const modulesAssembly: ModulesWallAssemblyConfig = {
   id: 'wa_module_default' as WallAssemblyId,
   name: 'Default Module',
+  nameKey: 'walls.defaults.defaultModule',
   type: 'modules',
   module: {
     minWidth: 920,
@@ -99,6 +102,7 @@ const modulesAssembly: ModulesWallAssemblyConfig = {
 const nonStrawbaleAssembly: NonStrawbaleWallAssemblyConfig = {
   id: 'wa_non_strawbale_default' as WallAssemblyId,
   name: 'Concrete Wall',
+  nameKey: 'walls.defaults.concreteWall',
   type: 'non-strawbale',
   material: concrete.id,
   openingAssemblyId: DEFAULT_EMPTY_ASSEMBLY.id, // Non-strawbale walls use empty opening type

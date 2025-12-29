@@ -68,6 +68,8 @@ e | y +--------------+ s | Floor top layers                 }
 export interface WallAssemblyIdPart {
   id: WallAssemblyId
   name: string
+  /** Optional translation key for default assemblies. If present, use t(nameKey) instead of name for display. Clear when user edits the name. */
+  nameKey?: string
 }
 
 export type InfillWallAssemblyConfig = InfillWallConfig & WallAssemblyIdPart
@@ -86,6 +88,8 @@ export type WallAssemblyConfig =
 export interface RingBeamAssemblyIdPart {
   id: RingBeamAssemblyId
   name: string
+  /** Optional translation key for default assemblies. If present, use t(nameKey) instead of name for display. Clear when user edits the name. */
+  nameKey?: string
 }
 
 export type FullRingBeamAssemblyConfig = FullRingBeamConfig & RingBeamAssemblyIdPart
@@ -102,6 +106,8 @@ export type RingBeamAssemblyConfig =
 export interface FloorAssemblyIdPart {
   id: FloorAssemblyId
   name: string
+  /** Optional translation key for default assemblies. If present, use t(nameKey) instead of name for display. Clear when user edits the name. */
+  nameKey?: string
 }
 
 export type MonolithicFloorAssemblyConfig = MonolithicFloorConfig & FloorAssemblyIdPart
@@ -115,6 +121,8 @@ export type FloorAssemblyConfig = MonolithicFloorAssemblyConfig | JoistFloorAsse
 export interface RoofAssemblyIdPart {
   id: RoofAssemblyId
   name: string
+  /** Optional translation key for default assemblies. If present, use t(nameKey) instead of name for display. Clear when user edits the name. */
+  nameKey?: string
 }
 
 export type MonolithicRoofAssemblyConfig = MonolithicRoofConfig & RoofAssemblyIdPart
@@ -127,6 +135,8 @@ export type RoofAssemblyConfig = MonolithicRoofAssemblyConfig | PurlinRoofAssemb
 export interface OpeningAssemblyIdPart {
   id: OpeningAssemblyId
   name: string
+  /** Optional translation key for default assemblies. If present, use t(nameKey) instead of name for display. Clear when user edits the name. */
+  nameKey?: string
 }
 
 export type SimpleOpeningAssemblyConfig = SimpleOpeningConfig & OpeningAssemblyIdPart

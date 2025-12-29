@@ -1,5 +1,6 @@
 import { Select, Text } from '@radix-ui/themes'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { OpeningAssemblyId } from '@/building/model/ids'
 import { useDefaultOpeningAssemblyId, useOpeningAssemblies } from '@/construction/config/store'
@@ -24,7 +25,12 @@ export function OpeningAssemblySelect({
   showDefaultIndicator = false
 }: OpeningAssemblySelectProps): React.JSX.Element {
   const openingAssemblies = useOpeningAssemblies()
+  const { t } = useTranslation('config')
   const defaultAssemblyId = useDefaultOpeningAssemblyId()
+
+  const getDisplayName = (assembly: { name: string; nameKey?: string }): string => {
+    return assembly.nameKey ? t(assembly.nameKey) : assembly.name
+  }
 
   const assemblies = Object.values(openingAssemblies)
 
@@ -58,7 +64,7 @@ export function OpeningAssemblySelect({
             return (
               <Select.Item key={assembly.id} value={assembly.id}>
                 <Text>
-                  {assembly.name}
+                  {getDisplayName(assembly)}
                   {isDefault && <Text color="gray"> (default)</Text>}
                 </Text>
               </Select.Item>

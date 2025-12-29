@@ -1,5 +1,6 @@
 import { Flex, Select, Text } from '@radix-ui/themes'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { FloorAssemblyId } from '@/building/model/ids'
 import { useFloorAssemblies } from '@/construction/config/store'
@@ -25,7 +26,12 @@ export function FloorAssemblySelect({
   showDefaultIndicator = false,
   defaultConfigId
 }: FloorAssemblySelectProps): React.JSX.Element {
+  const { t } = useTranslation('config')
   const floorAssemblyConfigs = useFloorAssemblies()
+
+  const getDisplayName = (assembly: { name: string; nameKey?: string }): string => {
+    return assembly.nameKey ? t(assembly.nameKey) : assembly.name
+  }
 
   return (
     <Select.Root
@@ -44,12 +50,13 @@ export function FloorAssemblySelect({
           floorAssemblyConfigs.map(config => {
             const Icon = getFloorAssemblyTypeIcon(config.type)
             const isDefault = showDefaultIndicator && config.id === defaultConfigId
+            const displayName = getDisplayName(config)
             return (
               <Select.Item key={config.id} value={config.id}>
                 <Flex align="center" gap="2">
                   <Icon style={{ flexShrink: 0 }} />
                   <Text>
-                    {config.name}
+                    {displayName}
                     {isDefault && <Text color="gray"> (default)</Text>}
                   </Text>
                 </Flex>

@@ -1,5 +1,6 @@
 import { Flex, Select, Text } from '@radix-ui/themes'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { RingBeamAssemblyId } from '@/building/model/ids'
 import { useRingBeamAssemblies } from '@/construction/config/store'
@@ -28,6 +29,11 @@ export function RingBeamAssemblySelect({
   defaultAssemblyIds = []
 }: RingBeamAssemblySelectProps): React.JSX.Element {
   const ringBeamAssemblies = useRingBeamAssemblies()
+  const { t } = useTranslation('config')
+
+  const getDisplayName = (assembly: { name: string; nameKey?: string }): string => {
+    return assembly.nameKey ? t(assembly.nameKey) : assembly.name
+  }
 
   return (
     <Select.Root
@@ -62,7 +68,7 @@ export function RingBeamAssemblySelect({
                 <Flex align="center" gap="2">
                   <Icon style={{ flexShrink: 0 }} />
                   <Text>
-                    {assembly.name}
+                    {getDisplayName(assembly)}
                     {isDefault && <Text color="gray"> (default)</Text>}
                   </Text>
                 </Flex>

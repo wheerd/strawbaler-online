@@ -1,5 +1,6 @@
 import { Flex, Select, Text } from '@radix-ui/themes'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { RoofAssemblyId } from '@/building/model/ids'
 import { useRoofAssemblies } from '@/construction/config/store'
@@ -26,6 +27,11 @@ export function RoofAssemblySelect({
   defaultAssemblyId
 }: RoofAssemblySelectProps): React.JSX.Element {
   const roofAssemblies = useRoofAssemblies()
+  const { t } = useTranslation('config')
+
+  const getDisplayName = (assembly: { name: string; nameKey?: string }): string => {
+    return assembly.nameKey ? t(assembly.nameKey) : assembly.name
+  }
 
   return (
     <Select.Root
@@ -49,7 +55,7 @@ export function RoofAssemblySelect({
                 <Flex align="center" gap="2">
                   <Icon style={{ flexShrink: 0 }} />
                   <Text>
-                    {assembly.name}
+                    {getDisplayName(assembly)}
                     {isDefault && <Text color="gray"> (default)</Text>}
                   </Text>
                 </Flex>

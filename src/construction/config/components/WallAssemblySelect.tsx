@@ -1,5 +1,6 @@
 import { Flex, Select, Text } from '@radix-ui/themes'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { WallAssemblyId } from '@/building/model/ids'
 import { useWallAssemblies } from '@/construction/config/store'
@@ -25,7 +26,12 @@ export function WallAssemblySelect({
   showDefaultIndicator = false,
   defaultAssemblyId
 }: WallAssemblySelectProps): React.JSX.Element {
+  const { t } = useTranslation('config')
   const wallAssemblies = useWallAssemblies()
+
+  const getDisplayName = (assembly: (typeof wallAssemblies)[number]): string => {
+    return assembly.nameKey ? t(assembly.nameKey) : assembly.name
+  }
 
   return (
     <Select.Root
@@ -44,12 +50,13 @@ export function WallAssemblySelect({
           wallAssemblies.map(assembly => {
             const Icon = getPerimeterConfigTypeIcon(assembly.type)
             const isDefault = showDefaultIndicator && assembly.id === defaultAssemblyId
+            const displayName = getDisplayName(assembly)
             return (
               <Select.Item key={assembly.id} value={assembly.id}>
                 <Flex align="center" gap="2">
                   <Icon style={{ flexShrink: 0 }} />
                   <Text>
-                    {assembly.name}
+                    {displayName}
                     {isDefault && <Text color="gray"> (default)</Text>}
                   </Text>
                 </Flex>

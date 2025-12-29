@@ -114,6 +114,12 @@
     "title": "Wall Assemblies",
     "defaultWallAssembly": "Default Wall Assembly",
     "selectDefault": "Select default...",
+    "defaults": {
+      "standardInfill": "Standard Infill",
+      "strawhengeModule": "Strawhenge Module",
+      "defaultModule": "Default Module",
+      "concreteWall": "Concrete Wall"
+    },
     "deleteTitle": "Delete Wall Assembly",
     "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
     "resetTitle": "Reset Wall Assemblies",
@@ -166,6 +172,11 @@
   "openings": {
     "title": "Opening Assemblies",
     "defaultOpeningAssembly": "Default Opening Assembly",
+    "defaults": {
+      "standardOpening": "Standard Opening",
+      "standardOpeningWithPosts": "Standard Opening with Posts",
+      "emptyOpening": "Empty Opening"
+    },
     "deleteTitle": "Delete Opening Assembly",
     "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
     "resetTitle": "Reset Opening Assemblies",
@@ -178,6 +189,12 @@
   "floors": {
     "title": "Floor Assemblies",
     "defaultFloorAssembly": "Default Floor Assembly",
+    "defaults": {
+      "clt18cm": "CLT 18cm (6cm)",
+      "concrete20cm": "Concrete 20cm (6cm)",
+      "joist12x24cm": "Joist 12x24cm (6cm)",
+      "filledJoist12x24cm": "Filled Joist 12x24cm (6cm)"
+    },
     "deleteTitle": "Delete Floor Assembly",
     "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
     "resetTitle": "Reset Floor Assemblies",
@@ -195,6 +212,10 @@
   "roofs": {
     "title": "Roof Assemblies",
     "defaultRoofAssembly": "Default Roof Assembly",
+    "defaults": {
+      "cltMonolithic18cm": "CLT Monolithic 18cm",
+      "purlinRoofStraw": "Purlin Roof (Straw)"
+    },
     "deleteTitle": "Delete Roof Assembly",
     "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
     "resetTitle": "Reset Roof Assemblies",
@@ -212,6 +233,10 @@
   "ringBeams": {
     "title": "Ring Beam Assemblies",
     "defaultRingBeamAssembly": "Default Ring Beam Assembly",
+    "defaults": {
+      "full36x6cm": "Full 36x6cm",
+      "brickRingBeam": "Brick Ring Beam"
+    },
     "deleteTitle": "Delete Ring Beam Assembly",
     "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
     "resetTitle": "Reset Ring Beam Assemblies",
