@@ -8,7 +8,7 @@ import { useConfigurationModal } from '@/construction/config/context/Configurati
 import { FloorAssemblySelect, type FloorAssemblySelectProps } from './FloorAssemblySelect'
 
 export function FloorAssemblySelectWithEdit(props: FloorAssemblySelectProps): React.JSX.Element {
-  const { t } = useTranslation()
+  const { t } = useTranslation('config')
   const { openConfiguration } = useConfigurationModal()
 
   return (
@@ -17,7 +17,7 @@ export function FloorAssemblySelectWithEdit(props: FloorAssemblySelectProps): Re
         <FloorAssemblySelect {...props} />
       </Flex>
       <IconButton
-        title={t('Configure Floor Assembly' as never)}
+        title={t($ => $.floors.configure)}
         variant="ghost"
         size={props.size}
         onClick={() => openConfiguration('floors', props.value ?? undefined)}

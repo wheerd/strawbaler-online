@@ -8,7 +8,7 @@ import { useConfigurationModal } from '@/construction/config/context/Configurati
 import { RoofAssemblySelect, type RoofAssemblySelectProps } from './RoofAssemblySelect'
 
 export function RoofAssemblySelectWithEdit(props: RoofAssemblySelectProps): React.JSX.Element {
-  const { t } = useTranslation()
+  const { t } = useTranslation('config')
   const { openConfiguration } = useConfigurationModal()
 
   return (
@@ -17,7 +17,7 @@ export function RoofAssemblySelectWithEdit(props: RoofAssemblySelectProps): Reac
         <RoofAssemblySelect {...props} />
       </Flex>
       <IconButton
-        title={t('Configure Roof Assembly' as never)}
+        title={t($ => $.roofs.configure)}
         variant="ghost"
         size={props.size}
         onClick={() => openConfiguration('roofs', props.value ?? undefined)}

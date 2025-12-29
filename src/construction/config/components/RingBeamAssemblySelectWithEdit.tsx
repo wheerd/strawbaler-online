@@ -8,7 +8,7 @@ import { useConfigurationModal } from '@/construction/config/context/Configurati
 import { RingBeamAssemblySelect, type RingBeamAssemblySelectProps } from './RingBeamAssemblySelect'
 
 export function RingBeamAssemblySelectWithEdit(props: RingBeamAssemblySelectProps): React.JSX.Element {
-  const { t } = useTranslation()
+  const { t } = useTranslation('config')
   const { openConfiguration } = useConfigurationModal()
 
   return (
@@ -17,7 +17,7 @@ export function RingBeamAssemblySelectWithEdit(props: RingBeamAssemblySelectProp
         <RingBeamAssemblySelect {...props} />
       </Flex>
       <IconButton
-        title={t('Configure Ring Beam' as never)}
+        title={t($ => $.ringBeams.configure)}
         variant="ghost"
         size={props.size}
         onClick={() => openConfiguration('ringbeams', props.value ?? undefined)}

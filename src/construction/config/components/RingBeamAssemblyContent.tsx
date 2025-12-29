@@ -220,12 +220,12 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
               <Flex gap="3" mt="4" justify="end">
                 <AlertDialog.Cancel>
                   <Button variant="soft" color="gray">
-                    {t('Cancel' as never)}
+                    {t($ => $.common.cancel)}
                   </Button>
                 </AlertDialog.Cancel>
                 <AlertDialog.Action>
                   <Button variant="solid" color="red" onClick={handleDelete}>
-                    {t('Delete' as never)}
+                    {t($ => $.common.delete)}
                   </Button>
                 </AlertDialog.Action>
               </Flex>
@@ -234,7 +234,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
 
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton color="red" variant="outline" title={t('Reset to Defaults' as never)}>
+              <IconButton color="red" variant="outline" title={t($ => $.common.resetToDefaults)}>
                 <ResetIcon />
               </IconButton>
             </AlertDialog.Trigger>
@@ -247,12 +247,12 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
               <Flex gap="3" mt="4" justify="end">
                 <AlertDialog.Cancel>
                   <Button variant="soft" color="gray">
-                    {t('Cancel' as never)}
+                    {t($ => $.common.cancel)}
                   </Button>
                 </AlertDialog.Cancel>
                 <AlertDialog.Action>
                   <Button variant="solid" color="red" onClick={handleReset}>
-                    {t('Reset' as never)}
+                    {t($ => $.common.reset)}
                   </Button>
                 </AlertDialog.Action>
               </Flex>
@@ -274,7 +274,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Default Base Plate' as never)}
+                {t($ => $.ringBeams.defaultBasePlate)}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedPart="basePlate" />
@@ -282,7 +282,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           <RingBeamAssemblySelect
             value={defaultBaseId}
             onValueChange={setDefaultBaseRingBeamAssembly}
-            placeholder={t('Select default...' as never)}
+            placeholder={t($ => $.common.placeholders.selectDefault)}
             size="2"
             allowNone
           />
@@ -290,7 +290,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Default Top Plate' as never)}
+                {t($ => $.ringBeams.defaultTopPlate)}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedPart="topPlate" />
@@ -298,7 +298,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           <RingBeamAssemblySelect
             value={defaultTopId}
             onValueChange={setDefaultTopRingBeamAssembly}
-            placeholder={t('Select default...' as never)}
+            placeholder={t($ => $.common.placeholders.selectDefault)}
             size="2"
             allowNone
           />
@@ -352,7 +352,7 @@ function ConfigForm({ assembly }: { assembly: RingBeamAssemblyConfig }): React.R
         <Grid columns="auto 1fr" gapX="2" align="center">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Name' as never)}
+              {t($ => $.common.name)}
             </Text>
           </Label.Root>
           <TextField.Root
@@ -360,7 +360,7 @@ function ConfigForm({ assembly }: { assembly: RingBeamAssemblyConfig }): React.R
             onChange={e => nameInput.handleChange(e.target.value)}
             onBlur={nameInput.handleBlur}
             onKeyDown={nameInput.handleKeyDown}
-            placeholder={t('Ring beam assembly name' as never)}
+            placeholder={t($ => $.ringBeams.placeholders.name)}
             size="2"
           />
         </Grid>
@@ -369,7 +369,7 @@ function ConfigForm({ assembly }: { assembly: RingBeamAssemblyConfig }): React.R
           <Flex gap="2" align="center">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Type' as never)}
+                {t($ => $.common.type)}
               </Text>
             </Label.Root>
             <Flex gap="2" align="center">
@@ -383,7 +383,7 @@ function ConfigForm({ assembly }: { assembly: RingBeamAssemblyConfig }): React.R
           <Flex gap="2" align="center">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Total Height' as never)}
+                {t($ => $.common.totalHeight)}
               </Text>
             </Label.Root>
             <Text size="2" color="gray">
@@ -415,7 +415,7 @@ function FullRingBeamFields({
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -424,7 +424,7 @@ function FullRingBeamFields({
             if (!material) return
             onUpdate({ material })
           }}
-          placeholder={t('Select material...' as never)}
+          placeholder={t($ => $.common.placeholders.selectMaterial)}
           size="2"
           preferredTypes={['dimensional']}
         />
@@ -432,7 +432,7 @@ function FullRingBeamFields({
         <Flex align="center" gap="1">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Height' as never)}
+              {t($ => $.common.height)}
             </Text>
           </Label.Root>
           <MeasurementInfo highlightedPart="plates" />
@@ -441,14 +441,14 @@ function FullRingBeamFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Width' as never)}
+            {t($ => $.common.width)}
           </Text>
         </Label.Root>
         <LengthField value={config.width} onChange={width => onUpdate({ width })} unit="mm" size="2" />
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Offset from Inside Edge' as never)}
+            {t($ => $.ringBeams.labels.offsetFromInsideEdge)}
           </Text>
         </Label.Root>
         <LengthField
@@ -481,7 +481,7 @@ function DoubleRingBeamFields({
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -490,14 +490,14 @@ function DoubleRingBeamFields({
             if (!material) return
             onUpdate({ material })
           }}
-          placeholder={t('Select material...' as never)}
+          placeholder={t($ => $.common.placeholders.selectMaterial)}
           size="2"
           preferredTypes={['dimensional']}
         />
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Infill Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -506,14 +506,14 @@ function DoubleRingBeamFields({
             if (!infillMaterial) return
             onUpdate({ infillMaterial })
           }}
-          placeholder={t('Select infill material...' as never)}
+          placeholder={t($ => $.common.placeholders.selectMaterial)}
           size="2"
         />
 
         <Flex align="center" gap="1">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Height' as never)}
+              {t($ => $.common.height)}
             </Text>
           </Label.Root>
           <MeasurementInfo highlightedPart="plates" />
@@ -523,7 +523,7 @@ function DoubleRingBeamFields({
         <Flex align="center" gap="1">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Thickness' as never)}
+              {t($ => $.common.thickness)}
             </Text>
           </Label.Root>
           <MeasurementInfo highlightedPart="plates" />
@@ -533,7 +533,7 @@ function DoubleRingBeamFields({
         <Flex align="center" gap="1">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Spacing' as never)}
+              {t($ => $.common.spacing)}
             </Text>
           </Label.Root>
           <MeasurementInfo highlightedPart="plates" />
@@ -543,7 +543,7 @@ function DoubleRingBeamFields({
         <Flex align="center" gap="1">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Offset from Edge' as never)}
+              {t($ => $.ringBeams.labels.offsetFromInsideEdge)}
             </Text>
           </Label.Root>
           <MeasurementInfo highlightedPart="plates" />
@@ -569,12 +569,12 @@ function BrickRingBeamFields({
   const { t } = useTranslation('config')
   return (
     <>
-      <Heading size="2">{t('Stem Wall' as never)}</Heading>
+      <Heading size="2">{t($ => $.ringBeams.sections.stemWall)}</Heading>
 
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Height' as never)}
+            {t($ => $.common.height)}
           </Text>
         </Label.Root>
         <LengthField
@@ -587,7 +587,7 @@ function BrickRingBeamFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Width' as never)}
+            {t($ => $.common.width)}
           </Text>
         </Label.Root>
         <LengthField
@@ -600,7 +600,7 @@ function BrickRingBeamFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -609,7 +609,7 @@ function BrickRingBeamFields({
             if (!wallMaterial) return
             onUpdate({ wallMaterial })
           }}
-          placeholder={t('Select wall material...' as never)}
+          placeholder={t($ => $.common.placeholders.selectMaterial)}
           size="2"
           preferredTypes={['dimensional']}
         />
@@ -622,7 +622,7 @@ function BrickRingBeamFields({
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Thickness' as never)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -635,7 +635,7 @@ function BrickRingBeamFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -644,7 +644,7 @@ function BrickRingBeamFields({
             if (!insulationMaterial) return
             onUpdate({ insulationMaterial })
           }}
-          placeholder={t('Select insulation material...' as never)}
+          placeholder={t($ => $.common.placeholders.selectMaterial)}
           size="2"
         />
       </Grid>
@@ -656,7 +656,7 @@ function BrickRingBeamFields({
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Thickness' as never)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -669,7 +669,7 @@ function BrickRingBeamFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Width' as never)}
+            {t($ => $.common.width)}
           </Text>
         </Label.Root>
         <LengthField
@@ -682,7 +682,7 @@ function BrickRingBeamFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -691,7 +691,7 @@ function BrickRingBeamFields({
             if (!beamMaterial) return
             onUpdate({ beamMaterial })
           }}
-          placeholder={t('Select beam material...' as never)}
+          placeholder={t($ => $.common.placeholders.selectMaterial)}
           size="2"
           preferredTypes={['dimensional']}
         />
@@ -704,7 +704,7 @@ function BrickRingBeamFields({
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Thickness' as never)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -717,7 +717,7 @@ function BrickRingBeamFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -726,7 +726,7 @@ function BrickRingBeamFields({
             if (!waterproofingMaterial) return
             onUpdate({ waterproofingMaterial })
           }}
-          placeholder={t('Select waterproofing material...' as never)}
+          placeholder={t($ => $.common.placeholders.selectMaterial)}
           size="2"
           preferredTypes={['sheet']}
         />

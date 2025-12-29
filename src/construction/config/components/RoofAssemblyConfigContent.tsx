@@ -44,13 +44,13 @@ function MonolithicRoofConfigForm({ config, onUpdate }: MonolithicRoofConfigForm
   const { t } = useTranslation('config')
   return (
     <Flex direction="column" gap="3">
-      <Heading size="2">{t('Monolithic Configuration' as never)}</Heading>
+      <Heading size="2">{t($ => $.roofs.sections.monolithicConfiguration)}</Heading>
 
       <Grid columns="2" gap="2" gapX="3">
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Material' as never)}
+              {t($ => $.common.materialLabel)}
             </Text>
           </Label.Root>
           <MaterialSelectWithEdit
@@ -67,7 +67,7 @@ function MonolithicRoofConfigForm({ config, onUpdate }: MonolithicRoofConfigForm
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Thickness' as never)}
+              {t($ => $.common.thickness)}
             </Text>
           </Label.Root>
           <LengthField
@@ -101,7 +101,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Layer Thickness' as never)}
+              {t($ => $.common.layerThickness)}
             </Text>
           </Label.Root>
           <LengthField
@@ -123,7 +123,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
           <MaterialSelectWithEdit
             value={config.strawMaterial ?? null}
             allowEmpty
-            emptyLabel={t('Use global straw settings' as never)}
+            emptyLabel={t($ => $.common.useGlobalStrawSettings)}
             onValueChange={strawMaterial => onUpdate({ ...config, strawMaterial: strawMaterial ?? undefined })}
             size="1"
             preferredTypes={['strawbale']}
@@ -139,7 +139,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Material' as never)}
+              {t($ => $.common.materialLabel)}
             </Text>
           </Label.Root>
           <MaterialSelectWithEdit
@@ -156,7 +156,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Height' as never)}
+              {t($ => $.common.height)}
             </Text>
           </Label.Root>
           <LengthField
@@ -172,7 +172,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Inset' as never)}
+              {t($ => $.common.inset)}
             </Text>
           </Label.Root>
           <LengthField
@@ -187,7 +187,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Width' as never)}
+              {t($ => $.common.width)}
             </Text>
           </Label.Root>
           <LengthField
@@ -203,7 +203,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Spacing' as never)}
+              {t($ => $.common.spacing)}
             </Text>
           </Label.Root>
           <LengthField
@@ -225,7 +225,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Material' as never)}
+              {t($ => $.common.materialLabel)}
             </Text>
           </Label.Root>
           <MaterialSelectWithEdit
@@ -242,7 +242,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Width' as never)}
+              {t($ => $.common.width)}
             </Text>
           </Label.Root>
           <LengthField
@@ -296,7 +296,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Material' as never)}
+              {t($ => $.common.materialLabel)}
             </Text>
           </Label.Root>
           <MaterialSelectWithEdit
@@ -313,7 +313,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Thickness' as never)}
+              {t($ => $.common.thickness)}
             </Text>
           </Label.Root>
           <LengthField
@@ -328,13 +328,13 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
 
       <Separator size="4" />
 
-      <Heading size="2">{t('Ceiling Sheathing' as never)}</Heading>
+      <Heading size="2">{t($ => $.roofs.sections.ceilingSheathing)}</Heading>
 
       <Grid columns="2" gap="2" gapX="3">
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Material' as never)}
+              {t($ => $.common.materialLabel)}
             </Text>
           </Label.Root>
           <MaterialSelectWithEdit
@@ -351,7 +351,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('Thickness' as never)}
+              {t($ => $.common.thickness)}
             </Text>
           </Label.Root>
           <LengthField
@@ -439,7 +439,7 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
   return (
     <Flex direction="column" gap="3">
       <LayerListEditor
-        title={t('Inside Layers (Ceiling)' as never)}
+        title={t($ => $.roofs.layers.insideLayers)}
         layers={config.layers.insideLayers}
         measurementInfo={<RoofMeasurementInfo highlightedPart="roofBottomLayers" />}
         onAddLayer={layer => addRoofAssemblyInsideLayer(assemblyId, layer)}
@@ -447,18 +447,18 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
         onUpdateLayer={(index, updates) => updateRoofAssemblyInsideLayer(assemblyId, index, updates)}
         onRemoveLayer={index => removeRoofAssemblyInsideLayer(assemblyId, index)}
         onMoveLayer={(fromIndex, toIndex) => moveRoofAssemblyInsideLayer(assemblyId, fromIndex, toIndex)}
-        addLabel={t('Add Inside Layer' as never)}
-        emptyHint={t('No inside layers defined' as never)}
+        addLabel={t($ => $.roofs.addInsideLayer)}
+        emptyHint={t($ => $.roofs.noInsideLayers)}
         layerPresets={DEFAULT_CEILING_LAYER_SETS}
         layerCopySources={insideLayerSources}
-        beforeLabel={t('Roof Construction' as never)}
-        afterLabel={t('Inside (Ceiling)' as never)}
+        beforeLabel={t($ => $.roofs.roofConstruction)}
+        afterLabel={t($ => $.roofs.layers.insideLayers)}
       />
 
       <Separator size="4" />
 
       <LayerListEditor
-        title={t('Top Layers (Roof Covering)' as never)}
+        title={t($ => $.roofs.topLayers)}
         layers={displayedTopLayers}
         measurementInfo={<RoofMeasurementInfo highlightedPart="roofTopLayers" />}
         onAddLayer={layer => addRoofAssemblyTopLayer(assemblyId, layer)}
@@ -468,18 +468,18 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
         onMoveLayer={(fromIndex, toIndex) =>
           moveRoofAssemblyTopLayer(assemblyId, mapTopIndex(fromIndex), mapTopIndex(toIndex))
         }
-        addLabel={t('Add Top Layer' as never)}
-        emptyHint={t('No top layers defined' as never)}
+        addLabel={t($ => $.roofs.addTopLayer)}
+        emptyHint={t($ => $.roofs.noTopLayers)}
         layerPresets={DEFAULT_ROOF_LAYER_SETS}
         layerCopySources={topLayerSources}
-        beforeLabel={t('Finished Top' as never)}
-        afterLabel={t('Roof Construction' as never)}
+        beforeLabel={t($ => $.roofs.finishedTop)}
+        afterLabel={t($ => $.roofs.roofConstruction)}
       />
 
       <Separator size="4" />
 
       <LayerListEditor
-        title={t('Overhang Layers' as never)}
+        title={t($ => $.roofs.layers.overhangLayers)}
         layers={config.layers.overhangLayers}
         measurementInfo={<RoofMeasurementInfo highlightedPart="overhangBottomLayers" />}
         onAddLayer={layer => addRoofAssemblyOverhangLayer(assemblyId, layer)}
@@ -487,12 +487,12 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
         onUpdateLayer={(index, updates) => updateRoofAssemblyOverhangLayer(assemblyId, index, updates)}
         onRemoveLayer={index => removeRoofAssemblyOverhangLayer(assemblyId, index)}
         onMoveLayer={(fromIndex, toIndex) => moveRoofAssemblyOverhangLayer(assemblyId, fromIndex, toIndex)}
-        addLabel={t('Add Overhang Layer' as never)}
-        emptyHint={t('No overhang layers defined (optional)' as never)}
+        addLabel={t($ => $.roofs.addOverhangLayer)}
+        emptyHint={t($ => $.roofs.noOverhangLayers)}
         layerPresets={{}}
         layerCopySources={overhangLayerSources}
-        beforeLabel={t('Overhang' as never)}
-        afterLabel={t('Outside' as never)}
+        beforeLabel={t($ => $.roofs.overhang)}
+        afterLabel={t($ => $.roofs.outside)}
       />
     </Flex>
   )
@@ -533,7 +533,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
         <Grid columns="auto 1fr" gapX="2" align="center">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Name' as never)}
+              {t($ => $.common.name)}
             </Text>
           </Label.Root>
           <TextField.Root
@@ -550,7 +550,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
           <Flex gap="2" align="center">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Type' as never)}
+                {t($ => $.common.type)}
               </Text>
             </Label.Root>
             <Flex gap="2" align="center">
@@ -564,7 +564,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
           <Flex gap="2" align="center">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Total Thickness' as never)}
+                {t($ => $.common.totalThickness)}
               </Text>
             </Label.Root>
             <Text size="2" color="gray">
@@ -740,13 +740,13 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
                 <DropdownMenu.Item onSelect={() => handleAddNew('monolithic')}>
                   <Flex align="center" gap="1">
                     <SquareIcon />
-                    {t('Monolithic' as never)}
+                    {t($ => $.roofs.types.monolithic)}
                   </Flex>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onSelect={() => handleAddNew('purlin')}>
                   <Flex align="center" gap="1">
                     <ComponentInstanceIcon />
-                    {t('Purlin' as never)}
+                    {t($ => $.roofs.types.purlin)}
                   </Flex>
                 </DropdownMenu.Item>
               </DropdownMenu.Content>
@@ -779,12 +779,12 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
                 <Flex gap="3" mt="4" justify="end">
                   <AlertDialog.Cancel>
                     <Button variant="soft" color="gray">
-                      {t('Cancel' as never)}
+                      {t($ => $.common.cancel)}
                     </Button>
                   </AlertDialog.Cancel>
                   <AlertDialog.Action>
                     <Button variant="solid" color="red" onClick={handleDelete}>
-                      {t('Delete' as never)}
+                      {t($ => $.common.delete)}
                     </Button>
                   </AlertDialog.Action>
                 </Flex>
@@ -793,7 +793,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
 
             <AlertDialog.Root>
               <AlertDialog.Trigger>
-                <IconButton color="red" variant="outline" title={t('Reset to Defaults' as never)}>
+                <IconButton color="red" variant="outline" title={t($ => $.common.resetToDefaults)}>
                   <ResetIcon />
                 </IconButton>
               </AlertDialog.Trigger>
@@ -806,12 +806,12 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
                 <Flex gap="3" mt="4" justify="end">
                   <AlertDialog.Cancel>
                     <Button variant="soft" color="gray">
-                      {t('Cancel' as never)}
+                      {t($ => $.common.cancel)}
                     </Button>
                   </AlertDialog.Cancel>
                   <AlertDialog.Action>
                     <Button variant="solid" color="red" onClick={handleReset}>
-                      {t('Reset' as never)}
+                      {t($ => $.common.reset)}
                     </Button>
                   </AlertDialog.Action>
                 </Flex>
@@ -823,7 +823,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
             <Label.Root>
               <Flex align="center" gap="1">
                 <Text size="1" weight="medium" color="gray">
-                  {t('Default Roof Assembly' as never)}
+                  {t($ => $.roofs.defaultRoofAssembly)}
                 </Text>
                 <RoofMeasurementInfo highlightedAssembly="roofAssembly" />
               </Flex>
@@ -831,7 +831,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
             <RoofAssemblySelect
               value={defaultAssemblyId}
               onValueChange={value => setDefaultRoofAssembly(value)}
-              placeholder={t('Select default...' as never)}
+              placeholder={t($ => $.common.placeholders.selectDefault)}
               size="2"
             />
           </Grid>

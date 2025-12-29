@@ -8,7 +8,7 @@ import { useConfigurationModal } from '@/construction/config/context/Configurati
 import { WallAssemblySelect, type WallAssemblySelectProps } from './WallAssemblySelect'
 
 export function WallAssemblySelectWithEdit(props: WallAssemblySelectProps): React.JSX.Element {
-  const { t } = useTranslation()
+  const { t } = useTranslation('config')
 
   const { openConfiguration } = useConfigurationModal()
 
@@ -18,7 +18,7 @@ export function WallAssemblySelectWithEdit(props: WallAssemblySelectProps): Reac
         <WallAssemblySelect {...props} />
       </Flex>
       <IconButton
-        title={t('Configure Wall Assembly' as never)}
+        title={t($ => $.walls.configure)}
         variant="ghost"
         size={props.size}
         onClick={() => openConfiguration('walls', props.value ?? undefined)}

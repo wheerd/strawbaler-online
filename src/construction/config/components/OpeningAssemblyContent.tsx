@@ -175,12 +175,12 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
               <DropdownMenu.Item onClick={() => handleAddNew('simple')}>
-                {t('Standard Opening' as never)}
+                {t($ => $.openings.types.simple)}
               </DropdownMenu.Item>
               <DropdownMenu.Item onClick={() => handleAddNew('post')}>
-                {t('Opening With Posts' as never)}
+                {t($ => $.openings.types.post)}
               </DropdownMenu.Item>
-              <DropdownMenu.Item onClick={() => handleAddNew('empty')}>{t('Empty Opening' as never)}</DropdownMenu.Item>
+              <DropdownMenu.Item onClick={() => handleAddNew('empty')}>{t($ => $.openings.types.empty)}</DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Root>
         </Flex>
@@ -213,12 +213,12 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
               <DropdownMenu.Item onClick={() => handleAddNew('simple')}>
-                {t('Standard Opening' as never)}
+                {t($ => $.openings.types.simple)}
               </DropdownMenu.Item>
               <DropdownMenu.Item onClick={() => handleAddNew('post')}>
-                {t('Opening With Posts' as never)}
+                {t($ => $.openings.types.post)}
               </DropdownMenu.Item>
-              <DropdownMenu.Item onClick={() => handleAddNew('empty')}>{t('Empty Opening' as never)}</DropdownMenu.Item>
+              <DropdownMenu.Item onClick={() => handleAddNew('empty')}>{t($ => $.openings.types.empty)}</DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Root>
 
@@ -228,7 +228,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
 
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton color="red" variant="soft" disabled={usage.isUsed} title={t('Delete' as never)}>
+              <IconButton color="red" variant="soft" disabled={usage.isUsed} title={t($ => $.common.delete)}>
                 <TrashIcon />
               </IconButton>
             </AlertDialog.Trigger>
@@ -240,12 +240,12 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
               <Flex gap="3" mt="4" justify="end">
                 <AlertDialog.Cancel>
                   <Button variant="soft" color="gray">
-                    {t('Cancel' as never)}
+                    {t($ => $.common.cancel)}
                   </Button>
                 </AlertDialog.Cancel>
                 <AlertDialog.Action>
                   <Button variant="solid" color="red" onClick={handleDelete}>
-                    {t('Delete' as never)}
+                    {t($ => $.common.delete)}
                   </Button>
                 </AlertDialog.Action>
               </Flex>
@@ -254,7 +254,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
 
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton color="red" variant="outline" title={t('Reset to Defaults' as never)}>
+              <IconButton color="red" variant="outline" title={t($ => $.common.resetToDefaults)}>
                 <ResetIcon />
               </IconButton>
             </AlertDialog.Trigger>
@@ -267,12 +267,12 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
               <Flex gap="3" mt="4" justify="end">
                 <AlertDialog.Cancel>
                   <Button variant="soft" color="gray">
-                    {t('Cancel' as never)}
+                    {t($ => $.common.cancel)}
                   </Button>
                 </AlertDialog.Cancel>
                 <AlertDialog.Action>
                   <Button variant="solid" color="red" onClick={handleReset}>
-                    {t('Reset' as never)}
+                    {t($ => $.common.reset)}
                   </Button>
                 </AlertDialog.Action>
               </Flex>
@@ -286,7 +286,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
       <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Default Opening Assembly' as never)}
+            {t($ => $.openings.defaultOpeningAssembly)}
           </Text>
         </Label.Root>
         <OpeningAssemblySelect
@@ -294,7 +294,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
           onValueChange={assemblyId => {
             if (assemblyId) setDefaultOpeningAssembly(assemblyId)
           }}
-          placeholder={t('Select default...' as never)}
+          placeholder={t($ => $.common.placeholders.selectDefault)}
           size="2"
         />
       </Grid>
@@ -308,7 +308,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
           <Flex gap="1" wrap="wrap">
             {usage.usedAsGlobalDefault && (
               <Badge size="2" variant="soft">
-                {t('Global Default' as never)}
+                {t($ => $.common.globalDefault)}
               </Badge>
             )}
             {usage.usedByWallAssemblies.map((use, index) => (
@@ -356,7 +356,7 @@ function ConfigForm({ assembly }: { assembly: OpeningConfig & { id: string; name
         <Grid columns="auto 1fr" gapX="2" align="center">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Name' as never)}
+              {t($ => $.common.name)}
             </Text>
           </Label.Root>
           <TextField.Root
@@ -364,7 +364,7 @@ function ConfigForm({ assembly }: { assembly: OpeningConfig & { id: string; name
             onChange={e => nameInput.handleChange(e.target.value)}
             onBlur={nameInput.handleBlur}
             onKeyDown={nameInput.handleKeyDown}
-            placeholder={t('Opening assembly name' as never)}
+            placeholder={t($ => $.openings.placeholders.name)}
             size="2"
           />
         </Grid>
@@ -372,7 +372,7 @@ function ConfigForm({ assembly }: { assembly: OpeningConfig & { id: string; name
         <Flex gap="2" align="center">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Type' as never)}
+              {t($ => $.common.type)}
             </Text>
           </Label.Root>
           <Text size="2" color="gray">
@@ -394,11 +394,11 @@ function ConfigForm({ assembly }: { assembly: OpeningConfig & { id: string; name
         <PostOpeningContent config={assembly} update={handleUpdateConfig} />
       ) : (
         <>
-          <Heading size="2">{t('Empty Opening' as never)}</Heading>
+          <Heading size="2">{t($ => $.openings.types.empty)}</Heading>
           <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Padding' as never)}
+                {t($ => $.openings.labels.padding)}
               </Text>
             </Label.Root>
             <LengthField value={assembly.padding} onChange={padding => handleUpdateConfig({ padding })} unit="mm" />
@@ -421,21 +421,21 @@ const SimpleOpeningContent = ({
     <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
       <Label.Root>
         <Text size="2" weight="medium" color="gray">
-          {t('Padding' as never)}
+          {t($ => $.openings.labels.padding)}
         </Text>
       </Label.Root>
       <LengthField value={config.padding} onChange={padding => update({ padding })} unit="mm" />
 
       <Label.Root>
         <Text size="2" weight="medium" color="gray">
-          {t('Header Thickness' as never)}
+          {t($ => $.openings.labels.headerThickness)}
         </Text>
       </Label.Root>
       <LengthField value={config.headerThickness} onChange={headerThickness => update({ headerThickness })} unit="mm" />
 
       <Label.Root>
         <Text size="2" weight="medium" color="gray">
-          {t('Header Material' as never)}
+          {t($ => $.openings.labels.headerMaterial)}
         </Text>
       </Label.Root>
       <MaterialSelectWithEdit
@@ -450,14 +450,14 @@ const SimpleOpeningContent = ({
 
       <Label.Root>
         <Text size="2" weight="medium" color="gray">
-          {t('Sill Thickness' as never)}
+          {t($ => $.openings.labels.sillThickness)}
         </Text>
       </Label.Root>
       <LengthField value={config.sillThickness} onChange={sillThickness => update({ sillThickness })} unit="mm" />
 
       <Label.Root>
         <Text size="2" weight="medium" color="gray">
-          {t('Sill Material' as never)}
+          {t($ => $.openings.labels.sillMaterial)}
         </Text>
       </Label.Root>
       <MaterialSelectWithEdit
@@ -487,14 +487,14 @@ const PostOpeningContent = ({
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Padding' as never)}
+            {t($ => $.openings.labels.padding)}
           </Text>
         </Label.Root>
         <LengthField value={config.padding} onChange={padding => update({ padding })} unit="mm" />
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Header Thickness' as never)}
+            {t($ => $.openings.labels.headerThickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -505,7 +505,7 @@ const PostOpeningContent = ({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Header Material' as never)}
+            {t($ => $.openings.labels.headerMaterial)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -520,14 +520,14 @@ const PostOpeningContent = ({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Sill Thickness' as never)}
+            {t($ => $.openings.labels.sillThickness)}
           </Text>
         </Label.Root>
         <LengthField value={config.sillThickness} onChange={sillThickness => update({ sillThickness })} unit="mm" />
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Sill Material' as never)}
+            {t($ => $.openings.labels.sillMaterial)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -566,7 +566,7 @@ function PostsConfigSection({
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root htmlFor={typeSelectId}>
           <Text size="2" weight="medium" color="gray">
-            {t('Post Type' as never)}
+            {t($ => $.common.type)}
           </Text>
         </Label.Root>
         <Select.Root
@@ -605,7 +605,7 @@ function PostsConfigSection({
                 onCheckedChange={value => onUpdate({ replacePosts: value === true })}
               />
               <Text size="2" weight="medium" color="gray">
-                {t('Replaces Wall Posts' as never)}
+                {t($ => $.openings.labels.replacesWallPosts)}
               </Text>
             </Flex>
           </Label.Root>
@@ -613,7 +613,7 @@ function PostsConfigSection({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Width' as never)}
+            {t($ => $.common.width)}
           </Text>
         </Label.Root>
         <LengthField
@@ -627,7 +627,7 @@ function PostsConfigSection({
           <>
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Thickness' as never)}
+                {t($ => $.common.thickness)}
               </Text>
             </Label.Root>
             <LengthField
@@ -641,7 +641,7 @@ function PostsConfigSection({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t('Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -658,7 +658,7 @@ function PostsConfigSection({
           <>
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Infill Material' as never)}
+                {t($ => $.common.materialLabel)}
               </Text>
             </Label.Root>
             <MaterialSelectWithEdit

@@ -124,7 +124,7 @@ function InfillConfigForm({ config, onUpdate }: InfillConfigFormProps): React.JS
           <MaterialSelectWithEdit
             value={config.strawMaterial ?? null}
             allowEmpty
-            emptyLabel={t('Use global straw settings' as never)}
+            emptyLabel={t($ => $.common.useGlobalStrawSettings)}
             onValueChange={strawMaterial => onUpdate({ ...config, strawMaterial: strawMaterial ?? undefined })}
             size="1"
             preferredTypes={['strawbale']}
@@ -137,14 +137,14 @@ function InfillConfigForm({ config, onUpdate }: InfillConfigFormProps): React.JS
               <Text size="1" weight="medium" color="gray">
                 {t($ => $.walls.infillMaterial)}
               </Text>
-              <Tooltip content="If configured, will be used for gaps which are too small for straw">
+              <Tooltip content={t($ => $.walls.infillMaterialTooltip)}>
                 <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
               </Tooltip>
             </Flex>
             <MaterialSelectWithEdit
               value={config.infillMaterial ?? null}
               allowEmpty
-              emptyLabel={t('No infill material' as never)}
+              emptyLabel={t($ => $.walls.noInfillMaterial)}
               onValueChange={infillMaterial => onUpdate({ ...config, infillMaterial: infillMaterial ?? undefined })}
               size="1"
             />
@@ -170,7 +170,7 @@ function PostsConfigSection({ posts, onUpdate }: PostsConfigSectionProps): React
       <Grid columns="5em 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('Post Type' as never)}
+            {t($ => $.walls.postType)}
           </Text>
         </Label.Root>
         <Select.Root
@@ -204,7 +204,7 @@ function PostsConfigSection({ posts, onUpdate }: PostsConfigSectionProps): React
       <Grid columns="5em 1fr 5em 1fr" gap="2" gapX="3">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('Width' as never)}
+            {t($ => $.common.width)}
           </Text>
         </Label.Root>
         <LengthField value={posts.width} onChange={value => onUpdate({ ...posts, width: value })} unit="mm" size="1" />
@@ -213,7 +213,7 @@ function PostsConfigSection({ posts, onUpdate }: PostsConfigSectionProps): React
           <>
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                {t('Thickness' as never)}
+                {t($ => $.common.thickness)}
               </Text>
             </Label.Root>
             <LengthField
@@ -228,7 +228,7 @@ function PostsConfigSection({ posts, onUpdate }: PostsConfigSectionProps): React
       <Grid columns="5em 1fr" gap="2">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -276,7 +276,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
       <Grid columns="6em 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('Module Type' as never)}
+            {t($ => $.walls.moduleType)}
           </Text>
         </Label.Root>
         <Select.Root
@@ -319,7 +319,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
       <Grid columns="6em 1fr 6em 1fr" gap="2" gapX="3">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('Min Width' as never)}
+            {t($ => $.walls.minWidth)}
           </Text>
         </Label.Root>
         <LengthField
@@ -331,7 +331,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
 
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('Max Width' as never)}
+            {t($ => $.walls.maxWidth)}
           </Text>
         </Label.Root>
         <LengthField
@@ -357,7 +357,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
           <>
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                {t('Frame Width' as never)}
+                {t($ => $.walls.frameWidth)}
               </Text>
             </Label.Root>
             <LengthField
@@ -424,7 +424,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
           <MaterialSelectWithEdit
             value={module.strawMaterial}
             allowEmpty
-            emptyLabel={t('Use global straw settings' as never)}
+            emptyLabel={t($ => $.common.useGlobalStrawSettings)}
             onValueChange={strawMaterial => onUpdate({ ...module, strawMaterial: strawMaterial ?? undefined })}
             size="1"
             preferredTypes={['strawbale']}
@@ -521,7 +521,7 @@ function NonStrawbaleConfigForm({ config, onUpdate }: NonStrawbaleConfigFormProp
       <Grid columns="auto 1fr" gap="2" gapX="3">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('Material' as never)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -593,7 +593,7 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
       <Flex direction="column" gap="1">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('Opening Assembly' as never)}
+            {t($ => $.walls.openingAssembly)}
           </Text>
         </Label.Root>
         <OpeningAssemblySelectWithEdit
@@ -612,7 +612,7 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
       <Separator size="4" />
       <Flex direction="column" gap="3">
         <LayerListEditor
-          title={t('Inside Layers' as never)}
+          title={t($ => $.walls.insideLayers)}
           measurementInfo={<MeasurementInfo highlightedPart="insideLayer" showFinishedSides />}
           layers={config.layers.insideLayers}
           onAddLayer={layer => addWallAssemblyInsideLayer(assemblyId, layer)}
@@ -620,18 +620,18 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           onUpdateLayer={(index, updates) => updateWallAssemblyInsideLayer(assemblyId, index, updates)}
           onRemoveLayer={index => removeWallAssemblyInsideLayer(assemblyId, index)}
           onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyInsideLayer(assemblyId, fromIndex, toIndex)}
-          addLabel={t('Add Inside Layer' as never)}
-          emptyHint={t('No inside layers defined' as never)}
+          addLabel={t($ => $.walls.addInsideLayer)}
+          emptyHint={t($ => $.walls.noInsideLayers)}
           layerPresets={DEFAULT_WALL_LAYER_SETS}
           layerCopySources={insideLayerSources}
-          beforeLabel={t('Wall Construction' as never)}
-          afterLabel={t('Inside' as never)}
+          beforeLabel={t($ => $.walls.wallConstruction)}
+          afterLabel={t($ => $.walls.inside)}
         />
 
         <Separator size="4" />
 
         <LayerListEditor
-          title={t('Outside Layers' as never)}
+          title={t($ => $.walls.outsideLayers)}
           measurementInfo={<MeasurementInfo highlightedPart="outsideLayer" showFinishedSides />}
           layers={config.layers.outsideLayers}
           onAddLayer={layer => addWallAssemblyOutsideLayer(assemblyId, layer)}
@@ -639,12 +639,12 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           onUpdateLayer={(index, updates) => updateWallAssemblyOutsideLayer(assemblyId, index, updates)}
           onRemoveLayer={index => removeWallAssemblyOutsideLayer(assemblyId, index)}
           onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyOutsideLayer(assemblyId, fromIndex, toIndex)}
-          addLabel={t('Add Outside Layer' as never)}
-          emptyHint={t('No outside layers defined' as never)}
+          addLabel={t($ => $.walls.addOutsideLayer)}
+          emptyHint={t($ => $.walls.noOutsideLayers)}
           layerPresets={DEFAULT_WALL_LAYER_SETS}
           layerCopySources={outsideLayerSources}
-          beforeLabel={t('Wall Construction' as never)}
-          afterLabel={t('Outside' as never)}
+          beforeLabel={t($ => $.walls.wallConstruction)}
+          afterLabel={t($ => $.walls.outside)}
         />
       </Flex>
     </Flex>
@@ -697,7 +697,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
         <Grid columns="auto 1fr" gapX="2" align="center">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t('Name' as never)}
+              {t($ => $.common.name)}
             </Text>
           </Label.Root>
           <TextField.Root
@@ -714,7 +714,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
           <Flex gap="2" align="center">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Type' as never)}
+                {t($ => $.common.type)}
               </Text>
             </Label.Root>
             <Flex gap="2" align="center">
@@ -734,7 +734,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
           <Flex gap="2" align="center">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                {t('Total Thickness' as never)}
+                {t($ => $.common.totalThickness)}
               </Text>
             </Label.Root>
             <Text size="2" color="gray">
@@ -947,19 +947,19 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                 <DropdownMenu.Item onSelect={() => handleAddNew('infill')}>
                   <Flex align="center" gap="1">
                     <LayersIcon />
-                    {t('Infill' as never)}
+                    {t($ => $.walls.typeInfill)}
                   </Flex>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onSelect={() => handleAddNew('strawhenge')}>
                   <Flex align="center" gap="1">
                     <CubeIcon />
-                    {t('Strawhenge' as never)}
+                    {t($ => $.walls.typeStrawhenge)}
                   </Flex>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onSelect={() => handleAddNew('modules')}>
                   <Flex align="center" gap="1">
                     <CircleIcon />
-                    {t('Modules' as never)}
+                    {t($ => $.walls.typeModules)}
                   </Flex>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onSelect={() => handleAddNew('non-strawbale')}>
@@ -998,12 +998,12 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                 <Flex gap="3" mt="4" justify="end">
                   <AlertDialog.Cancel>
                     <Button variant="soft" color="gray">
-                      {t('Cancel' as never)}
+                      {t($ => $.common.cancel)}
                     </Button>
                   </AlertDialog.Cancel>
                   <AlertDialog.Action>
                     <Button variant="solid" color="red" onClick={handleDelete}>
-                      {t('Delete' as never)}
+                      {t($ => $.common.delete)}
                     </Button>
                   </AlertDialog.Action>
                 </Flex>
@@ -1025,12 +1025,12 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                 <Flex gap="3" mt="4" justify="end">
                   <AlertDialog.Cancel>
                     <Button variant="soft" color="gray">
-                      {t('Cancel' as never)}
+                      {t($ => $.common.cancel)}
                     </Button>
                   </AlertDialog.Cancel>
                   <AlertDialog.Action>
                     <Button variant="solid" color="red" onClick={handleReset}>
-                      {t('Reset' as never)}
+                      {t($ => $.common.reset)}
                     </Button>
                   </AlertDialog.Action>
                 </Flex>
@@ -1042,7 +1042,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
             <Label.Root>
               <Flex align="center" gap="1">
                 <Text size="1" weight="medium" color="gray">
-                  {t('Default Wall Assembly' as never)}
+                  {t($ => $.walls.defaultWallAssembly)}
                 </Text>
                 <MeasurementInfo highlightedAssembly="wallAssembly" />
               </Flex>

@@ -134,7 +134,7 @@ export function LayerListEditor({
           {layerCopySources && (
             <DropdownMenu.Root>
               <DropdownMenu.Trigger>
-                <IconButton title={t('Copy from...' as never)} size="1" variant="soft">
+                <IconButton title={t($ => $.layers.copyFrom)} size="1" variant="soft">
                   <CopyIcon />
                 </IconButton>
               </DropdownMenu.Trigger>
@@ -157,7 +157,7 @@ export function LayerListEditor({
           {hasPresetMenu && (
             <DropdownMenu.Root>
               <DropdownMenu.Trigger>
-                <IconButton title={t('Apply preset' as never)} size="1" variant="soft">
+                <IconButton title={t($ => $.layers.presets)} size="1" variant="soft">
                   <MagicWandIcon />
                 </IconButton>
               </DropdownMenu.Trigger>
@@ -196,7 +196,7 @@ export function LayerListEditor({
               >
                 <Flex align="center" gap="1">
                   <LayerTypeIcon type="monolithic" />
-                  {t('Monolithic Layer' as never)}
+                  {t($ => $.layers.defaultName_monolithic)}
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item
@@ -212,7 +212,7 @@ export function LayerListEditor({
               >
                 <Flex align="center" gap="1">
                   <LayerTypeIcon type="striped" />
-                  {t('Striped Layer' as never)}
+                  {t($ => $.layers.defaultName_striped)}
                 </Flex>
               </DropdownMenu.Item>
             </DropdownMenu.Content>
@@ -311,7 +311,7 @@ function LayerCard({
         <Grid columns="auto 1fr auto auto auto" align="center" gap="1">
           <LayerTypeIcon type={layer.type} />
           <TextField.Root
-            title={t('Layer Name' as never)}
+            title={t($ => $.common.name)}
             size="1"
             value={nameInput}
             onChange={event => setNameInput(event.target.value)}
@@ -321,7 +321,7 @@ function LayerCard({
                 event.currentTarget.blur()
               }
             }}
-            placeholder={t('Enter Layer Name' as never)}
+            placeholder={t($ => $.common.placeholders.name)}
             required
           />
           <LengthField
@@ -331,7 +331,7 @@ function LayerCard({
             size="1"
             style={{ width: '8em' }}
           >
-            <TextField.Slot title={t('Thickness' as never)} side="left" className="pl-1 pr-0">
+            <TextField.Slot title={t($ => $.common.thickness)} side="left" className="pl-1 pr-0">
               <HeightIcon />
             </TextField.Slot>
           </LengthField>
@@ -339,7 +339,7 @@ function LayerCard({
           <Checkbox
             checked={layer.overlap}
             onCheckedChange={value => onUpdateLayer(index, { overlap: value === true })}
-            title={t('Overlap with next layer' as never)}
+            title={t($ => $.layers.overlap)}
           />
 
           <Flex gap="1">
@@ -348,7 +348,7 @@ function LayerCard({
               variant="soft"
               onClick={() => onMoveLayer(index, index - 1)}
               disabled={isFirst}
-              title={t('Move up' as never)}
+              title={t($ => $.layers.moveUp)}
             >
               <ChevronUpIcon />
             </IconButton>
@@ -357,7 +357,7 @@ function LayerCard({
               variant="soft"
               onClick={() => onMoveLayer(index, index + 1)}
               disabled={isLast}
-              title={t('Move down' as never)}
+              title={t($ => $.layers.moveDown)}
             >
               <ChevronDownIcon />
             </IconButton>
@@ -366,7 +366,7 @@ function LayerCard({
               variant="soft"
               color="red"
               onClick={() => onRemoveLayer(index)}
-              title={t('Remove layer' as never)}
+              title={t($ => $.layers.removeLayer)}
             >
               <TrashIcon />
             </IconButton>
@@ -406,7 +406,7 @@ function MonolithicLayerFields({
   const { t } = useTranslation('config')
   return (
     <Field
-      label={t('Material' as never)}
+      label={t($ => $.common.materialLabel)}
       control={
         <MaterialSelectWithEdit
           value={layer.material}
@@ -436,7 +436,7 @@ function StripedLayerFields({
   return (
     <>
       <Field
-        label={t('Direction' as never)}
+        label={t($ => $.layers.direction)}
         control={
           <Select.Root
             value={layer.direction}
@@ -456,7 +456,7 @@ function StripedLayerFields({
       />
       <Grid columns="auto auto auto 1fr" align="center" gapX="2" gapY="2">
         <Text size="1" color="gray">
-          {t('Stripe' as never)}
+          {t($ => $.layers.stripe)}
         </Text>
         <LengthField
           value={layer.stripeWidth}
@@ -465,13 +465,13 @@ function StripedLayerFields({
           size="1"
           style={{ width: '8em' }}
         >
-          <TextField.Slot title={t('Width' as never)} side="left" className="pl-1 pr-0">
+          <TextField.Slot title={t($ => $.common.width)} side="left" className="pl-1 pr-0">
             <WidthIcon />
           </TextField.Slot>
         </LengthField>
 
         <Text size="1" color="gray">
-          {t('Material' as never)}
+          {t($ => $.common.materialLabel)}
         </Text>
         <MaterialSelectWithEdit
           value={layer.stripeMaterial}
@@ -485,7 +485,7 @@ function StripedLayerFields({
         />
 
         <Text size="1" color="gray">
-          {t('Gap' as never)}
+          {t($ => $.layers.gap)}
         </Text>
         <LengthField
           value={layer.gapWidth}
@@ -494,18 +494,18 @@ function StripedLayerFields({
           size="1"
           style={{ width: '8em' }}
         >
-          <TextField.Slot title={t('Width' as never)} side="left" className="pl-1 pr-0">
+          <TextField.Slot title={t($ => $.common.width)} side="left" className="pl-1 pr-0">
             <WidthIcon />
           </TextField.Slot>
         </LengthField>
 
         <Text size="1" color="gray">
-          {t('Material' as never)}
+          {t($ => $.common.materialLabel)}
         </Text>
         <MaterialSelectWithEdit
           value={layer.gapMaterial}
           allowEmpty
-          emptyLabel={t('None' as never)}
+          emptyLabel={t($ => $.common.none)}
           onValueChange={material => onUpdateLayer(index, { gapMaterial: material ?? undefined })}
           placeholder={t($ => $.layers.selectMaterial)}
           size="1"
