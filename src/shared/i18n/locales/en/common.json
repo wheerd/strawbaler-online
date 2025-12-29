@@ -1,5 +1,14 @@
 {
-  "placeholder": "English translations will go here in Phase 2",
+  "actions": {
+    "addNew": "Add New"
+  },
+  "storeys": {
+    "manageFloors": "Manage Floors",
+    "manageFloorsTooltip": "Manage floors",
+    "addNewFloor": "Add New Floor",
+    "newFloor": "New Floor",
+    "noFloorsYet": "No floors yet."
+  },
   "construction": {
     "opening": {
       "heightExceedsWall": "Opening is higher than the wall by {{excess, length}}",

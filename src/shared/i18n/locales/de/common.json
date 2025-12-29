@@ -1,5 +1,14 @@
 {
-  "placeholder": "Deutsche Übersetzungen werden hier in Phase 2 sein",
+  "actions": {
+    "addNew": "Neu hinzufügen"
+  },
+  "storeys": {
+    "manageFloors": "Geschosse verwalten",
+    "manageFloorsTooltip": "Geschosse verwalten",
+    "addNewFloor": "Neues Geschoss hinzufügen",
+    "newFloor": "Neues Geschoss",
+    "noFloorsYet": "Noch keine Geschosse."
+  },
   "construction": {
     "opening": {
       "heightExceedsWall": "Öffnung ist höher als die Wand um {{excess, length}}",
