@@ -1,5 +1,6 @@
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { Callout, Flex, Text } from '@radix-ui/themes'
+import { useTranslation } from 'react-i18next'
 
 import {
   FloorAreaInspector,
@@ -31,6 +32,7 @@ import { useActiveStoreyId } from '@/building/store'
 import { useCurrentSelection, useSelectionPath } from '@/editor/hooks/useSelectionStore'
 
 export function SelectToolInspector(): React.JSX.Element {
+  const { t } = useTranslation('tool')
   const selectedId = useCurrentSelection()
   const selectionPath = useSelectionPath()
   const storeyId = useActiveStoreyId()
@@ -100,9 +102,9 @@ export function SelectToolInspector(): React.JSX.Element {
               <ExclamationTriangleIcon />
             </Callout.Icon>
             <Callout.Text>
-              <Text weight="bold">Unknown Entity Type</Text>
+              <Text weight="bold">{t('select.unknownEntityType')}</Text>
               <br />
-              Entity id not recognized: {selectedId}
+              {t('select.unknownEntityMessage', { id: selectedId })}
             </Callout.Text>
           </Callout.Root>
         )}
