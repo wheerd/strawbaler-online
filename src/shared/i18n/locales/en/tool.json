@@ -1,8 +1,4 @@
 {
-  "keyboard": {
-    "enter": "Enter",
-    "esc": "Esc"
-  },
   "addOpening": {
     "copyConfigurationTooltip": "Copy this configuration",
     "dimensionMode": "Dimension Mode",
@@ -67,6 +63,10 @@
     "completeLabel": "Complete Floor Opening",
     "description": "Draw an opening within an existing floor area. Use snapping to align with floor edges or other openings.",
     "title": "Floor Opening"
+  },
+  "keyboard": {
+    "enter": "Enter",
+    "esc": "Esc"
   },
   "move": {
     "controlCancel": "Press {{key}} to cancel ongoing movement",

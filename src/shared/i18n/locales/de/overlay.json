@@ -1,4 +1,9 @@
 {
+  "canvas": {
+    "resetView": "",
+    "scrollToZoom": "",
+    "uploadToBegin": ""
+  },
   "planControls": {
     "ariaLabel": "Grundriss-Überlagerung",
     "confirmRemove": {

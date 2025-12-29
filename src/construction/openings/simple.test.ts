@@ -1,3 +1,4 @@
+import { keyFromSelector } from 'i18next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type ConstructionElement, type GroupOrElement, createCuboidElement } from '@/construction/elements'
@@ -207,7 +208,7 @@ describe('SimpleOpeningAssembly', () => {
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
-      expect(errors[0].messageKey).toBe('construction.opening.headerDoesNotFit')
+      expect(keyFromSelector(errors[0].messageKey)).toBe('construction.opening.headerDoesNotFit')
     })
 
     it('returns error when sill does not fit', () => {
@@ -221,7 +222,7 @@ describe('SimpleOpeningAssembly', () => {
       const { errors } = aggregateResults(results)
 
       expect(errors).toHaveLength(1)
-      expect(errors[0].messageKey).toBe('construction.opening.sillDoesNotFit')
+      expect(keyFromSelector(errors[0].messageKey)).toBe('construction.opening.sillDoesNotFit')
     })
   })
 })

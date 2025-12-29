@@ -2,6 +2,12 @@
   "actions": {
     "cancel": "Cancel"
   },
+  "app": {
+    "changeLanguage": "Change language",
+    "constructionPlanning": "Construction Planning",
+    "fitToContent": "Fit to content",
+    "strawbaler": "Strawbaler"
+  },
   "autoSave": {
     "autoSaved": "Auto-saved {{time}}",
     "autoSaveFailed": "Auto-save failed",
@@ -19,12 +25,6 @@
     "minutesAgo": "{{minutes}}m ago",
     "notSaved": "Not saved",
     "saveToFile": "Save to File"
-  },
-  "app": {
-    "changeLanguage": "Change language",
-    "constructionPlanning": "Construction Planning",
-    "fitToContent": "Fit to content",
-    "strawbaler": "Strawbaler"
   },
   "currentLanguageWithLabel": "Current language: {{language}}",
   "storeys": {

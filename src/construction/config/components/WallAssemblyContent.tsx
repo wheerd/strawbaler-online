@@ -118,7 +118,7 @@ function InfillConfigForm({ config, onUpdate }: InfillConfigFormProps): React.JS
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              Straw Material (Override)
+              {t($ => $.common.strawMaterialOverride)}
             </Text>
           </Label.Root>
           <MaterialSelectWithEdit
@@ -418,7 +418,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              Straw Material (Override)
+              {t($ => $.common.strawMaterialOverride)}
             </Text>
           </Label.Root>
           <MaterialSelectWithEdit

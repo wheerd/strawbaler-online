@@ -175,19 +175,19 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
               <DropdownMenu.Item onSelect={() => handleAddNew('full')}>
                 <Flex align="center" gap="1">
                   {React.createElement(getRingBeamTypeIcon('full'))}
-                  Full Ring Beam
+                  {t($ => $.ringBeams.types.full)}
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item onSelect={() => handleAddNew('double')}>
                 <Flex align="center" gap="1">
                   {React.createElement(getRingBeamTypeIcon('double'))}
-                  Double Ring Beam
+                  {t($ => $.ringBeams.types.double)}
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item onSelect={() => handleAddNew('brick')}>
                 <Flex align="center" gap="1">
                   {React.createElement(getRingBeamTypeIcon('brick'))}
-                  Brick Ring Beam
+                  {t($ => $.ringBeams.types.brick)}
                 </Flex>
               </DropdownMenu.Item>
             </DropdownMenu.Content>
@@ -375,7 +375,7 @@ function ConfigForm({ assembly }: { assembly: RingBeamAssemblyConfig }): React.R
             <Flex gap="2" align="center">
               {React.createElement(getRingBeamTypeIcon(assembly.type))}
               <Text size="2" color="gray">
-                {assembly.type === 'full' ? 'Full' : assembly.type === 'double' ? 'Double' : 'Brick'}
+                {t($ => $.ringBeams.types[assembly.type])}
               </Text>
             </Flex>
           </Flex>

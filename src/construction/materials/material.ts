@@ -169,7 +169,7 @@ export const strawbale: StrawbaleMaterial = {
   id: 'material_strawbale' as MaterialId,
   type: 'strawbale',
   color: MATERIAL_COLORS.strawbale,
-  name: 'Straw bales',
+  name: 'Strawbales',
   nameKey: 'strawbale',
   baleMinLength: 800,
   baleMaxLength: 900,

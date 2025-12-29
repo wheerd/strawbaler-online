@@ -80,7 +80,7 @@ interface LayerListEditorProps {
   onRemoveLayer: (index: number) => void
   onMoveLayer: (fromIndex: number, toIndex: number) => void
   measurementInfo?: React.ReactNode
-  addLabel?: string
+  addLabel: string
   emptyHint?: string
   layerPresets?: Record<string, LayerConfig[]>
   layerCopySources?: LayerCopySource[]
@@ -97,12 +97,12 @@ export function LayerListEditor({
   onRemoveLayer,
   onMoveLayer,
   measurementInfo,
-  addLabel = 'Add Layer',
-  emptyHint = 'No layers yet',
+  addLabel,
+  emptyHint,
   layerPresets,
   layerCopySources,
   onReplaceLayers,
-  beforeLabel = 'Construction Side',
+  beforeLabel,
   afterLabel
 }: LayerListEditorProps): React.JSX.Element {
   const { t } = useTranslation('config')

@@ -228,7 +228,7 @@ interface Resources {
         "osb": "OSB",
         "reed": "Reed matting",
         "roughWood": "Rough-sawn timber",
-        "strawbale": "Straw bales",
+        "strawbale": "Strawbales",
         "structuralWood": "Structural timber",
         "windBarrier": "Wind barrier",
         "woodwool": "Woodwool"
@@ -240,6 +240,11 @@ interface Resources {
       "materialName": "Material name",
       "maxBaleLength": "Max Bale Length",
       "minBaleLength": "Min Bale Length",
+      "newName_dimensional": "New dimensional material",
+      "newName_generic": "New generic material",
+      "newName_sheet": "New sheet material",
+      "newName_strawbale": "New strawbale material",
+      "newName_volume": "New volume material",
       "noCrossSections": "No cross sections configured",
       "noLengths": "No lengths configured",
       "noMaterialsYet": "No materials yet. Create one using the \"New\" button above.",
@@ -381,7 +386,12 @@ interface Resources {
         "stemWall": "Stem Wall",
         "waterproofing": "Waterproofing"
       },
-      "title": "Ring Beam Assemblies"
+      "title": "Ring Beam Assemblies",
+      "types": {
+        "brick": "Brick",
+        "double": "Double",
+        "full": "Full"
+      }
     },
     "roofs": {
       "addBottomLayer": "Add Bottom Layer",
@@ -1269,6 +1279,13 @@ interface Resources {
     "view3DConstruction": "View 3D Construction",
     "viewConstructionPlan": "View Construction Plan",
     "viewPartsList": "View Parts List"
+  },
+  "translation": {
+    "app": {
+      "constructionPlanning": "app.constructionPlanning",
+      "fitToContent": "app.fitToContent",
+      "strawbaler": "app.strawbaler"
+    }
   },
   "viewer": {
     "export": {

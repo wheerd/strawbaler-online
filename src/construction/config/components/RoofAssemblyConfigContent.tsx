@@ -117,7 +117,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              Material (Override)
+              {t($ => $.common.strawMaterialOverride)}
             </Text>
           </Label.Root>
           <MaterialSelectWithEdit

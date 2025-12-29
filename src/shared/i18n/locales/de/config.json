@@ -35,6 +35,7 @@
     "width": ""
   },
   "floors": {
+    "configure": "",
     "defaultFloorAssembly": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "delete": {
@@ -124,6 +125,9 @@
   },
   "materials": {
     "add": "",
+    "addCrossSection": "",
+    "addSheetSize": "",
+    "addSize": "",
     "addStockLength": "",
     "addThickness": "",
     "addVolume": "",
@@ -131,7 +135,10 @@
     "availableVolumes": "",
     "baleHeight": "",
     "baleWidth": "",
+    "configure": "",
+    "crossSectionLarger": "",
     "crossSections": "",
+    "crossSectionSmaller": "",
     "defaultStrawMaterial": "",
     "deleteConfirm": "",
     "deleteTitle": "",
@@ -140,6 +147,11 @@
     "materialName": "",
     "maxBaleLength": "",
     "minBaleLength": "",
+    "newName_dimensional": "",
+    "newName_generic": "",
+    "newName_sheet": "",
+    "newName_strawbale": "",
+    "newName_volume": "",
     "noCrossSections": "",
     "noLengths": "",
     "noMaterialsYet": "",
@@ -154,11 +166,13 @@
     "resetConfirm": "",
     "resetTitle": "",
     "selectStrawMaterial": "",
+    "sheetLength": "",
     "sheetSizes": "",
     "sheetType": "",
     "sheetTypeFlexible": "",
     "sheetTypeSolid": "",
     "sheetTypeTongueAndGroove": "",
+    "sheetWidth": "",
     "stockLengthInput": "",
     "stockLengths": "",
     "thicknesses": "",
@@ -183,6 +197,7 @@
   },
   "openings": {
     "addLayer": "",
+    "configure": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "defaultOpeningAssembly": "",
     "defaults": {
@@ -236,14 +251,15 @@
   },
   "ringBeams": {
     "addLayer": "",
+    "configure": "",
     "defaultBasePlate": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "defaultRingBeamAssembly": "",
-    "defaultTopPlate": "",
     "defaults": {
       "brickRingBeam": "",
       "full36x6cm": ""
     },
+    "defaultTopPlate": "",
     "delete": {
       "confirm": "",
       "confirmTitle": ""
@@ -275,7 +291,10 @@
       "stemWall": "",
       "waterproofing": ""
     },
-    "title": ""
+    "title": "",
+    "types": {
+      "double": ""
+    }
   },
   "roofs": {
     "addBottomLayer": "",
@@ -284,6 +303,7 @@
     "addTopLayer": "",
     "bottom": "",
     "bottomLayers": "",
+    "configure": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "defaultRoofAssembly": "",
     "defaults": {
@@ -348,6 +368,7 @@
   "walls": {
     "addInsideLayer": "",
     "addOutsideLayer": "",
+    "configure": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "defaults": {
       "concreteWall": "",

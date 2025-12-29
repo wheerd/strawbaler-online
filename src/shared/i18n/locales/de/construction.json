@@ -11,6 +11,32 @@
     "strawbale": "",
     "volume": ""
   },
+  "measurements": {
+    "assembly": "",
+    "basePlate": "",
+    "ceilingLayers": "",
+    "construction": "",
+    "finishedCeiling": "",
+    "finishedFloor": "",
+    "finishedInside": "",
+    "finishedOutside": "",
+    "finishedOverhang": "",
+    "finishedRooftop": "",
+    "floorAssembly": "",
+    "floorBottomLayers": "",
+    "floorConstruction": "",
+    "floorTopLayers": "",
+    "insideLayers": "",
+    "measurements": "",
+    "outsideLayers": "",
+    "overhangLayers": "",
+    "roofAssembly": "",
+    "roofConstruction": "",
+    "roofMeasurementDetails": "",
+    "roofTopLayers": "",
+    "topPlate": "",
+    "wall": ""
+  },
   "modulesList": {
     "actions": {
       "viewInPlan": ""
@@ -24,6 +50,10 @@
       "view": ""
     },
     "title": ""
+  },
+  "partCutModal": {
+    "partCutDiagram": "",
+    "sheetPartDiagram": ""
   },
   "partsList": {
     "actions": {
@@ -95,6 +125,12 @@
       "modules": "Module"
     },
     "title": "Teileliste"
+  },
+  "plan": {
+    "hideAreas": "",
+    "hideIssues": "",
+    "hideMeasurements": "",
+    "midCut": ""
   },
   "planModal": {
     "errors": {

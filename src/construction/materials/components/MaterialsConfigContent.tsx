@@ -45,7 +45,7 @@ import { VolumeField } from '@/shared/components/VolumeField/VolumeField'
 import type { Length } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 
-import { MaterialSelect, getMaterialTypeIcon, getMaterialTypeName } from './MaterialSelect'
+import { MaterialSelect, getMaterialTypeIcon, useGetMaterialTypeName } from './MaterialSelect'
 
 export interface MaterialsConfigModalProps {
   trigger: React.ReactNode
@@ -59,6 +59,7 @@ type MaterialType = Material['type']
 
 export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigContentProps): React.JSX.Element {
   const { t } = useTranslation('config')
+  const getMaterialTypeName = useGetMaterialTypeName()
   const materials = useMaterials()
   const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial, reset } = useMaterialActions()
   const defaultStrawMaterialId = useDefaultStrawMaterialId()
@@ -83,7 +84,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
       switch (type) {
         case 'dimensional':
           newMaterial = addMaterial({
-            name: 'New dimensional material',
+            name: t($ => $.materials.newName_dimensional),
             type: 'dimensional',
             color: '#808080',
             crossSections: [],
@@ -92,7 +93,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
           break
         case 'sheet':
           newMaterial = addMaterial({
-            name: 'New sheet material',
+            name: t($ => $.materials.newName_sheet),
             type: 'sheet',
             color: '#808080',
             sizes: [],
@@ -102,7 +103,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
           break
         case 'volume':
           newMaterial = addMaterial({
-            name: 'New volume material',
+            name: t($ => $.materials.newName_volume),
             type: 'volume',
             color: '#808080',
             availableVolumes: []
@@ -110,14 +111,14 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
           break
         case 'generic':
           newMaterial = addMaterial({
-            name: 'New generic material',
+            name: t($ => $.materials.newName_generic),
             type: 'generic',
             color: '#808080'
           } satisfies Omit<GenericMaterial, 'id'>)
           break
         case 'strawbale':
           newMaterial = addMaterial({
-            name: 'New strawbale material',
+            name: t($ => $.materials.newName_strawbale),
             type: 'strawbale',
             color: strawbale.color,
             baleMinLength: strawbale.baleMinLength,
@@ -181,6 +182,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
 
   const Icon = selectedMaterial ? getMaterialTypeIcon(selectedMaterial.type) : null
 
+  const nameKey = selectedMaterial?.nameKey
   return (
     <Flex direction="column" gap="4" style={{ width: '100%' }}>
       <Grid columns="2" gap="2">
@@ -330,7 +332,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
               </Text>
             </Label.Root>
             <TextField.Root
-              value={selectedMaterial.name}
+              value={nameKey ? t($ => $.materials.defaults[nameKey]) : selectedMaterial.name}
               onChange={e => handleUpdate({ name: e.target.value })}
               placeholder={t($ => $.materials.materialName)}
               size="2"

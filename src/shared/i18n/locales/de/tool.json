@@ -57,6 +57,10 @@
     "description": "",
     "title": ""
   },
+  "keyboard": {
+    "enter": "",
+    "esc": ""
+  },
   "move": {
     "controlCancel": "",
     "controlDrag": "",

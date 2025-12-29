@@ -53,6 +53,10 @@
     },
     "title": "Modules"
   },
+  "partCutModal": {
+    "partCutDiagram": "Part Cut Diagram",
+    "sheetPartDiagram": "Sheet Part Diagram"
+  },
   "partsList": {
     "actions": {
       "backToSummary": "Back to summary",
@@ -112,10 +116,6 @@
       "view": "View"
     },
     "totalRow": "Total"
-  },
-  "partCutModal": {
-    "partCutDiagram": "Part Cut Diagram",
-    "sheetPartDiagram": "Sheet Part Diagram"
   },
   "partsListModal": {
     "errors": {

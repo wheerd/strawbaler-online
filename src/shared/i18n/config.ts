@@ -78,7 +78,7 @@ i18n
     defaultNS: 'common',
     ns: ['common', 'welcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction', 'errors', 'viewer'],
 
-    postProcess: 'x',
+    // postProcess: 'x',
 
     interpolation: {
       escapeValue: false, // React already escapes

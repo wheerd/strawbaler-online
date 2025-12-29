@@ -63,21 +63,6 @@ export function getMaterialTypeIcon(type: Material['type']): IconComponent {
   }
 }
 
-export function getMaterialTypeName(type: Material['type']) {
-  switch (type) {
-    case 'dimensional':
-      return 'Dimensional'
-    case 'sheet':
-      return 'Sheet'
-    case 'volume':
-      return 'Volume'
-    case 'generic':
-      return 'Generic'
-    case 'strawbale':
-      return 'Strawbale'
-  }
-}
-
 /**
  * Hook to get translated material type names
  */

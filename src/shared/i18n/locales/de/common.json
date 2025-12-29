@@ -2,6 +2,9 @@
   "actions": {
     "cancel": ""
   },
+  "app": {
+    "changeLanguage": ""
+  },
   "autoSave": {
     "autoSaved": "Automatisch gespeichert {{time}}",
     "autoSaveFailed": "Automatisches Speichern fehlgeschlagen",
@@ -41,6 +44,10 @@
     "newFloor": "Neues Geschoss",
     "noFloorsYet": "Noch keine Geschosse.",
     "switchToFloor": ""
+  },
+  "units": {
+    "liter": "",
+    "m3": ""
   },
   "viewMode": {
     "floors": "",
