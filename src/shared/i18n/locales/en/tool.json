@@ -1,4 +1,8 @@
 {
+  "keyboard": {
+    "enter": "Enter",
+    "esc": "Esc"
+  },
   "addOpening": {
     "copyConfigurationTooltip": "Copy this configuration",
     "dimensionMode": "Dimension Mode",

@@ -180,7 +180,9 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
               <DropdownMenu.Item onClick={() => handleAddNew('post')}>
                 {t($ => $.openings.types.post)}
               </DropdownMenu.Item>
-              <DropdownMenu.Item onClick={() => handleAddNew('empty')}>{t($ => $.openings.types.empty)}</DropdownMenu.Item>
+              <DropdownMenu.Item onClick={() => handleAddNew('empty')}>
+                {t($ => $.openings.types.empty)}
+              </DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Root>
         </Flex>
@@ -218,7 +220,9 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
               <DropdownMenu.Item onClick={() => handleAddNew('post')}>
                 {t($ => $.openings.types.post)}
               </DropdownMenu.Item>
-              <DropdownMenu.Item onClick={() => handleAddNew('empty')}>{t($ => $.openings.types.empty)}</DropdownMenu.Item>
+              <DropdownMenu.Item onClick={() => handleAddNew('empty')}>
+                {t($ => $.openings.types.empty)}
+              </DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Root>
 

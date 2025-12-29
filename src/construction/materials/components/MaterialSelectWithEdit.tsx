@@ -8,7 +8,7 @@ import { useConfigurationModal } from '@/construction/config/context/Configurati
 import { MaterialSelect, type MaterialSelectProps } from './MaterialSelect'
 
 export function MaterialSelectWithEdit(props: MaterialSelectProps): React.JSX.Element {
-  const { t } = useTranslation()
+  const { t } = useTranslation('config')
   const { openConfiguration } = useConfigurationModal()
 
   return (
@@ -17,7 +17,7 @@ export function MaterialSelectWithEdit(props: MaterialSelectProps): React.JSX.El
         <MaterialSelect {...props} />
       </Flex>
       <IconButton
-        title={t('Configure Materials' as never)}
+        title={t($ => $.materials.configure)}
         variant="ghost"
         size={props.size}
         onClick={() => openConfiguration('materials', props.value ?? undefined)}

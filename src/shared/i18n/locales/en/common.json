@@ -20,6 +20,12 @@
     "notSaved": "Not saved",
     "saveToFile": "Save to File"
   },
+  "app": {
+    "changeLanguage": "Change language",
+    "constructionPlanning": "Construction Planning",
+    "fitToContent": "Fit to content",
+    "strawbaler": "Strawbaler"
+  },
   "currentLanguageWithLabel": "Current language: {{language}}",
   "storeys": {
     "addNewFloor": "Add New Floor",
@@ -41,6 +47,10 @@
     "newFloor": "New Floor",
     "noFloorsYet": "No floors yet.",
     "switchToFloor": "Switch to floor"
+  },
+  "units": {
+    "liter": "L",
+    "m3": "m³"
   },
   "viewMode": {
     "floors": "Floors",

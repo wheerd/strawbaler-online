@@ -181,7 +181,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
             • {t($ => $.roof.controlSnap)}
           </Text>
           <Text size="1" color="gray">
-            • <Kbd>{t('Esc' as never)}</Kbd>{' '}
+            • <Kbd>{t($ => $.keyboard.esc)}</Kbd>{' '}
             {t($ => $.roof.controlEsc, {
               key: ''
             })
@@ -191,7 +191,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
           {state.points.length >= 3 && (
             <>
               <Text size="1" color="gray">
-                • <Kbd>{t('Enter' as never)}</Kbd>{' '}
+                • <Kbd>{t($ => $.keyboard.enter)}</Kbd>{' '}
                 {t($ => $.roof.controlEnter, {
                   key: ''
                 })
@@ -221,7 +221,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
                 >
                   <Text size="1">{t($ => $.roof.completeRoof)}</Text>
                   <Kbd size="1" style={{ marginLeft: 'auto' }}>
-                    {t('Enter' as never)}
+                    {t($ => $.keyboard.enter)}
                   </Kbd>
                 </Button>
               )}
@@ -235,7 +235,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
               >
                 <Text size="1">{t($ => $.roof.cancelRoof)}</Text>
                 <Kbd size="1" style={{ marginLeft: 'auto' }}>
-                  {t('Esc' as never)}
+                  {t($ => $.keyboard.esc)}
                 </Kbd>
               </Button>
             </Flex>

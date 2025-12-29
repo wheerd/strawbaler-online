@@ -52,7 +52,7 @@ export function PlanCalibrationCanvas({
   onOriginPointChange,
   mode
 }: PlanCalibrationCanvasProps): React.JSX.Element {
-  const { t } = useTranslation()
+  const { t } = useTranslation('overlay')
   const stageRef = useRef<Konva.Stage>(null)
   const [containerSize, setContainerRef] = elementSizeRef()
   const [hasInteracted, setHasInteracted] = useState(false)
@@ -302,14 +302,14 @@ export function PlanCalibrationCanvas({
             </Stage>
           ) : (
             <Flex height="300px" align="center" justify="center">
-              <Text color="gray">{t('Upload an image to begin' as never)}</Text>
+              <Text color="gray">{t($ => $.canvas.uploadToBegin)}</Text>
             </Flex>
           )}
           {image && (
             <Box position="absolute" bottom="3" left="3" style={{ zIndex: 10 }}>
               <Card size="1" variant="surface" className="shadow-md">
                 <Flex align="center" gap="3" m="-2" p="1">
-                  <Text size="1">{t('Scroll to zoom' as never)}</Text>
+                  <Text size="1">{t($ => $.canvas.scrollToZoom)}</Text>
                   <Text size="1">Shift + drag to pan</Text>
                   <Button
                     size="1"
@@ -320,7 +320,7 @@ export function PlanCalibrationCanvas({
                       setHasInteracted(false)
                     }}
                   >
-                    {t('Reset view' as never)}
+                    {t($ => $.canvas.resetView)}
                   </Button>
                 </Flex>
               </Card>

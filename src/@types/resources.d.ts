@@ -3,6 +3,12 @@ interface Resources {
     "actions": {
       "cancel": "Cancel"
     },
+    "app": {
+      "changeLanguage": "Change language",
+      "constructionPlanning": "Construction Planning",
+      "fitToContent": "Fit to content",
+      "strawbaler": "Strawbaler"
+    },
     "autoSave": {
       "autoSaveFailed": "Auto-save failed",
       "autoSaved": "Auto-saved {{time}}",
@@ -42,6 +48,10 @@ interface Resources {
       "newFloor": "New Floor",
       "noFloorsYet": "No floors yet.",
       "switchToFloor": "Switch to floor"
+    },
+    "units": {
+      "liter": "L",
+      "m3": "m³"
     },
     "viewMode": {
       "floors": "Floors",
@@ -192,6 +202,7 @@ interface Resources {
       "availableVolumes": "Available Volumes",
       "baleHeight": "Bale Height",
       "baleWidth": "Bale Width",
+      "configure": "Configure Materials",
       "crossSectionLarger": "Cross section larger dimension",
       "crossSectionSmaller": "Cross section smaller dimension",
       "crossSections": "Cross Sections",
@@ -528,6 +539,34 @@ interface Resources {
       "strawbale": "Strawbale",
       "volume": "Volume"
     },
+    "measurements": {
+      "assembly": "Assembly",
+      "basePlate": "Base Plate",
+      "ceilingLayers": "Ceiling Layers",
+      "construction": "Construction",
+      "finishedCeiling": "Finished Ceiling",
+      "finishedFloor": "Finished Floor",
+      "finishedInside": "Finished Inside",
+      "finishedOutside": "Finished Outside",
+      "finishedOverhang": "Finished Overhang",
+      "finishedRooftop": "Finished Rooftop",
+      "floorAssembly": "Floor Assembly",
+      "floorBottomLayers": "Floor Bottom Layers",
+      "floorConstruction": "Floor Construction",
+      "floorTopLayers": "Floor Top Layers",
+      "insideLayers": "Inside Layers",
+      "measurements": "Measurements",
+      "outsideLayers": "Outside Layers",
+      "overhangLayers": "Overhang Layers",
+      "roofAssembly": "Roof Assembly",
+      "roofConstruction": "Roof Construction",
+      "roofMeasurementDetails": "Roof Measurement Details",
+      "roofTopLayers": "Roof Top Layers",
+      "topPlate": "Top Plate",
+      "wall": "Wall",
+      "wallAssembly": "Wall Assembly",
+      "wallConstruction": "Wall Construction"
+    },
     "modulesList": {
       "actions": {
         "viewInPlan": "View in plan"
@@ -541,6 +580,10 @@ interface Resources {
         "view": "View"
       },
       "title": "Modules"
+    },
+    "partCutModal": {
+      "partCutDiagram": "Part Cut Diagram",
+      "sheetPartDiagram": "Sheet Part Diagram"
     },
     "partsList": {
       "actions": {
@@ -612,6 +655,12 @@ interface Resources {
         "modules": "Modules"
       },
       "title": "Parts List"
+    },
+    "plan": {
+      "hideAreas": "Hide Areas",
+      "hideIssues": "Hide Issues",
+      "hideMeasurements": "Hide Measurements",
+      "midCut": "Mid Cut"
     },
     "planModal": {
       "errors": {
@@ -920,6 +969,11 @@ interface Resources {
     }
   },
   "overlay": {
+    "canvas": {
+      "resetView": "Reset view",
+      "scrollToZoom": "Scroll to zoom",
+      "uploadToBegin": "Upload an image to begin"
+    },
     "planControls": {
       "ariaLabel": "Plan Overlay",
       "confirmRemove": {
@@ -1040,6 +1094,10 @@ interface Resources {
       "completeLabel": "Complete Floor Opening",
       "description": "Draw an opening within an existing floor area. Use snapping to align with floor edges or other openings.",
       "title": "Floor Opening"
+    },
+    "keyboard": {
+      "enter": "Enter",
+      "esc": "Esc"
     },
     "move": {
       "controlCancel": "Press {{key}} to cancel ongoing movement",

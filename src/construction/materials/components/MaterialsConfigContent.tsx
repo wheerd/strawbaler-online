@@ -190,7 +190,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
             <MaterialSelect
               value={selectedMaterialId ?? null}
               onValueChange={materialId => setSelectedMaterialId(materialId ?? null)}
-              placeholder={t('Select material...' as never)}
+              placeholder={t($ => $.common.placeholders.selectMaterial)}
             />
           </Flex>
           <DropdownMenu.Root>
@@ -533,7 +533,7 @@ function DimensionalMaterialFields({
             onChange={setNewDim1}
             unit="cm"
             size="2"
-            aria-label={t('Cross section smaller dimension' as never)}
+            aria-label={t($ => $.materials.crossSectionSmaller)}
           />
           <Text>x</Text>
           <LengthField
@@ -541,11 +541,11 @@ function DimensionalMaterialFields({
             onChange={setNewDim2}
             unit="cm"
             size="2"
-            aria-label={t('Cross section larger dimension' as never)}
+            aria-label={t($ => $.materials.crossSectionLarger)}
           />
           <IconButton
-            title={t('Add' as never)}
-            aria-label={t('Add cross section' as never)}
+            title={t($ => $.common.add)}
+            aria-label={t($ => $.materials.addCrossSection)}
             onClick={handleAddCrossSection}
             variant="surface"
             size="2"
@@ -710,7 +710,7 @@ function SheetMaterialFields({
             onChange={setNewWidth}
             unit="cm"
             size="2"
-            aria-label={t('Sheet width' as never)}
+            aria-label={t($ => $.materials.sheetWidth)}
           />
           <Text>x</Text>
           <LengthField
@@ -718,11 +718,11 @@ function SheetMaterialFields({
             onChange={setNewLength}
             unit="cm"
             size="2"
-            aria-label={t('Sheet length' as never)}
+            aria-label={t($ => $.materials.sheetLength)}
           />
           <IconButton
-            title={t('Add size' as never)}
-            aria-label={t('Add sheet size' as never)}
+            title={t($ => $.materials.addSize)}
+            aria-label={t($ => $.materials.addSheetSize)}
             onClick={handleAddSize}
             variant="surface"
             size="2"
@@ -876,8 +876,8 @@ function VolumeMaterialFields({
             onValueChange={value => setVolumeUnit(value as 'liter' | 'm3')}
             size="1"
           >
-            <SegmentedControl.Item value="liter">{t('L' as never)}</SegmentedControl.Item>
-            <SegmentedControl.Item value="m3">{t('m³' as never)}</SegmentedControl.Item>
+            <SegmentedControl.Item value="liter">{t($ => $.units.liter, { ns: 'common' })}</SegmentedControl.Item>
+            <SegmentedControl.Item value="m3">{t($ => $.units.m3, { ns: 'common' })}</SegmentedControl.Item>
           </SegmentedControl.Root>
           <Flex gap="2" align="end">
             <VolumeField

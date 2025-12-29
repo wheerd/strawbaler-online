@@ -11,6 +11,34 @@
     "strawbale": "Strawbale",
     "volume": "Volume"
   },
+  "measurements": {
+    "assembly": "Assembly",
+    "basePlate": "Base Plate",
+    "ceilingLayers": "Ceiling Layers",
+    "construction": "Construction",
+    "finishedCeiling": "Finished Ceiling",
+    "finishedFloor": "Finished Floor",
+    "finishedInside": "Finished Inside",
+    "finishedOutside": "Finished Outside",
+    "finishedOverhang": "Finished Overhang",
+    "finishedRooftop": "Finished Rooftop",
+    "floorAssembly": "Floor Assembly",
+    "floorBottomLayers": "Floor Bottom Layers",
+    "floorConstruction": "Floor Construction",
+    "floorTopLayers": "Floor Top Layers",
+    "insideLayers": "Inside Layers",
+    "measurements": "Measurements",
+    "outsideLayers": "Outside Layers",
+    "overhangLayers": "Overhang Layers",
+    "roofAssembly": "Roof Assembly",
+    "roofConstruction": "Roof Construction",
+    "roofMeasurementDetails": "Roof Measurement Details",
+    "roofTopLayers": "Roof Top Layers",
+    "topPlate": "Top Plate",
+    "wall": "Wall",
+    "wallAssembly": "Wall Assembly",
+    "wallConstruction": "Wall Construction"
+  },
   "modulesList": {
     "actions": {
       "viewInPlan": "View in plan"
@@ -85,6 +113,10 @@
     },
     "totalRow": "Total"
   },
+  "partCutModal": {
+    "partCutDiagram": "Part Cut Diagram",
+    "sheetPartDiagram": "Sheet Part Diagram"
+  },
   "partsListModal": {
     "errors": {
       "failedModulesList": "Failed to generate modules list",
@@ -95,6 +127,12 @@
       "modules": "Modules"
     },
     "title": "Parts List"
+  },
+  "plan": {
+    "hideAreas": "Hide Areas",
+    "hideIssues": "Hide Issues",
+    "hideMeasurements": "Hide Measurements",
+    "midCut": "Mid Cut"
   },
   "planModal": {
     "errors": {

@@ -84,8 +84,8 @@ export function Logo({ className = '', compact = false }: LogoProps): React.JSX.
       {/* App Name - Only show if not compact */}
       {!compact && (
         <div className="flex flex-col">
-          <div className="text-lg font-bold text-gray-800 leading-tight">{t('Strawbaler' as never)}</div>
-          <div className="text-xs text-gray-500 leading-tight">{t('Construction Planning' as never)}</div>
+          <div className="text-lg font-bold text-gray-800 leading-tight">{t($ => $.app.strawbaler)}</div>
+          <div className="text-xs text-gray-500 leading-tight">{t($ => $.app.constructionPlanning)}</div>
         </div>
       )}
     </div>

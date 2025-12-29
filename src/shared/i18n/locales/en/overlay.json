@@ -1,4 +1,9 @@
 {
+  "canvas": {
+    "resetView": "Reset view",
+    "scrollToZoom": "Scroll to zoom",
+    "uploadToBegin": "Upload an image to begin"
+  },
   "planControls": {
     "ariaLabel": "Plan Overlay",
     "confirmRemove": {

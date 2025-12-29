@@ -96,7 +96,7 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
             • {t($ => $.simplePolygon.controlNumbers)}
           </Text>
           <Text size="1" color="gray">
-            • <Kbd>{t('Esc' as never)}</Kbd>{' '}
+            • <Kbd>{t($ => $.keyboard.esc)}</Kbd>{' '}
             {state.lengthOverride
               ? t($ => $.simplePolygon.controlEscOverride, {
                   key: ''
@@ -111,7 +111,7 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
           </Text>
           {state.points.length >= minimumPoints && (
             <Text size="1" color="gray">
-              • <Kbd>{t('Enter' as never)}</Kbd>{' '}
+              • <Kbd>{t($ => $.keyboard.enter)}</Kbd>{' '}
               {t($ => $.simplePolygon.controlEnter, {
                 key: ''
               })
@@ -136,7 +136,7 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
                 >
                   <Text size="1">{completeLabel}</Text>
                   <Kbd size="1" style={{ marginLeft: 'auto' }}>
-                    {t('Enter' as never)}
+                    {t($ => $.keyboard.enter)}
                   </Kbd>
                 </Button>
               )}
@@ -150,7 +150,7 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
               >
                 <Text size="1">{cancelLabel}</Text>
                 <Kbd size="1" style={{ marginLeft: 'auto' }}>
-                  {t('Esc' as never)}
+                  {t($ => $.keyboard.esc)}
                 </Kbd>
               </Button>
             </Flex>

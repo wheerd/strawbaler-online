@@ -43,7 +43,7 @@ export function MoveToolInspector({ tool }: ToolInspectorProps<MoveTool>): React
             {t($ => $.move.controlCancel, {
               key: 'Esc'
             }).replace('{{key}}', '')}
-            <Kbd>{t('Esc' as never)}</Kbd>
+            <Kbd>{t($ => $.keyboard.esc)}</Kbd>
             {' to cancel ongoing movement'}
           </Text>
         </Flex>

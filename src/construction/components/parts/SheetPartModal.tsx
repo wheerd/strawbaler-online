@@ -66,7 +66,7 @@ export function SheetPartModal({
       width="95vw"
       maxHeight="90vh"
       maxWidth="95vw"
-      title={t('Sheet Part Diagram' as never)}
+      title={t($ => $.partCutModal.sheetPartDiagram)}
       trigger={trigger}
     >
       <Grid rows="1fr" p="0">

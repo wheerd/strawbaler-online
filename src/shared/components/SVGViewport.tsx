@@ -368,7 +368,7 @@ export function SVGViewport({
         variant="surface"
         onClick={fitToContent}
         className={`absolute ${getResetButtonPosition(resetButtonPosition)}`}
-        title={t('Fit to content' as never)}
+        title={t($ => $.app.fitToContent)}
       >
         <AllSidesIcon />
       </IconButton>

@@ -131,6 +131,7 @@
   },
   "materials": {
     "add": "Add",
+    "configure": "Configure Materials",
     "addCrossSection": "Add cross section",
     "addSheetSize": "Add sheet size",
     "addSize": "Add size",

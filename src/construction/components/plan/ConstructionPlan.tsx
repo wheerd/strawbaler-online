@@ -396,7 +396,7 @@ export function ConstructionPlan({
               <IconButton
                 variant={midCutEnabled ? 'solid' : 'outline'}
                 size="1"
-                title={t('Mid Cut' as never)}
+                title={t($ => $.plan.midCut)}
                 onClick={() => setMidCutEnabled(!midCutEnabled)}
               >
                 {currentView.plane === 'xy' ? <MidCutYIcon /> : <MidCutXIcon />}
@@ -406,7 +406,7 @@ export function ConstructionPlan({
               <IconButton
                 variant={hideAreas ? 'outline' : 'solid'}
                 size="1"
-                title={t('Hide Areas' as never)}
+                title={t($ => $.plan.hideAreas)}
                 onClick={() => setHideAreas(!hideAreas)}
               >
                 <GroupIcon />
@@ -416,7 +416,7 @@ export function ConstructionPlan({
               <IconButton
                 variant={hideIssues ? 'outline' : 'solid'}
                 size="1"
-                title={t('Hide Issues' as never)}
+                title={t($ => $.plan.hideIssues)}
                 onClick={() => setHideIssues(!hideIssues)}
               >
                 <ExclamationTriangleIcon />
@@ -426,7 +426,7 @@ export function ConstructionPlan({
               <IconButton
                 variant={hideMeasurements ? 'outline' : 'solid'}
                 size="1"
-                title={t('Hide Measurements' as never)}
+                title={t($ => $.plan.hideMeasurements)}
                 onClick={() => setHideMeasurements(!hideMeasurements)}
               >
                 <RulerHorizontalIcon />

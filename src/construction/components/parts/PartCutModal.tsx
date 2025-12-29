@@ -148,7 +148,7 @@ export function PartCutModal({
       width="95vw"
       maxHeight="90vh"
       maxWidth="95vw"
-      title={t('Part Cut Diagram' as never)}
+      title={t($ => $.partCutModal.partCutDiagram)}
       trigger={trigger}
     >
       <Grid rows="1fr" p="0">

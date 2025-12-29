@@ -199,7 +199,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           </Text>
           {state.lengthOverride ? (
             <Text size="1" color="gray">
-              • <Kbd>{t('Esc' as never)}</Kbd>{' '}
+              • <Kbd>{t($ => $.keyboard.esc)}</Kbd>{' '}
               {t($ => $.perimeter.controlEscOverride, {
                 key: ''
               })
@@ -208,7 +208,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             </Text>
           ) : (
             <Text size="1" color="gray">
-              • <Kbd>{t('Esc' as never)}</Kbd>{' '}
+              • <Kbd>{t($ => $.keyboard.esc)}</Kbd>{' '}
               {t($ => $.perimeter.controlEscAbort, {
                 key: ''
               })
@@ -219,7 +219,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           {state.points.length >= 3 && (
             <>
               <Text size="1" color="gray">
-                • <Kbd>{t('Enter' as never)}</Kbd>{' '}
+                • <Kbd>{t($ => $.keyboard.enter)}</Kbd>{' '}
                 {t($ => $.perimeter.controlEnter, {
                   key: ''
                 })
@@ -249,7 +249,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
                 >
                   <Text size="1">{t($ => $.perimeter.completePerimeter)}</Text>
                   <Kbd size="1" style={{ marginLeft: 'auto' }}>
-                    {t('Enter' as never)}
+                    {t($ => $.keyboard.enter)}
                   </Kbd>
                 </Button>
               )}
@@ -263,7 +263,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
               >
                 <Text size="1">{t($ => $.perimeter.cancelPerimeter)}</Text>
                 <Kbd size="1" style={{ marginLeft: 'auto' }}>
-                  {t('Esc' as never)}
+                  {t($ => $.keyboard.esc)}
                 </Kbd>
               </Button>
             </Flex>

@@ -43,7 +43,7 @@ export function LanguageSwitcher(): React.JSX.Element {
             language: currentLanguage.name,
             defaultValue: 'Current language: {{language}}'
           })}
-          aria-label={t('Change language' as never)}
+          aria-label={t($ => $.app.changeLanguage)}
         >
           <GlobeIcon />
         </IconButton>

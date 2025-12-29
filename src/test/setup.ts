@@ -141,12 +141,12 @@ vi.mock('@/shared/geometry/clipperInstance', () => {
 })
 
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (i18nKey: any) => keyFromSelector(i18nKey),
+  useTranslation: vi.fn(() => ({
+    t: vi.fn((i18nKey: any) => keyFromSelector(i18nKey)),
     i18n: {
       changeLanguage: () => new Promise(vi.fn())
     }
-  }),
+  })),
   initReactI18next: {
     type: '3rdParty',
     init: vi.fn()
