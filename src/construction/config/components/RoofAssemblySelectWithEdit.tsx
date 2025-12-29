@@ -15,7 +15,7 @@ export function RoofAssemblySelectWithEdit(props: RoofAssemblySelectProps): Reac
         <RoofAssemblySelect {...props} />
       </Flex>
       <IconButton
-        title="Configure Roof Assembly"
+        title={t('Configure Roof Assembly' as never)}
         variant="ghost"
         size={props.size}
         onClick={() => openConfiguration('roofs', props.value ?? undefined)}

@@ -142,7 +142,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
   const handleDuplicate = useCallback(() => {
     if (!selectedMaterial) return
 
-    const duplicated = duplicateMaterial(selectedMaterial.id, `${selectedMaterial.name} (Copy)`)
+    const duplicated = duplicateMaterial(selectedMaterial.id, t($ => $.materials.duplicateNamePattern, {name: selectedMaterial.name})
     setSelectedMaterialId(duplicated.id)
   }, [selectedMaterial, duplicateMaterial])
 
@@ -545,7 +545,7 @@ function DimensionalMaterialFields({
             aria-label="Cross section larger dimension"
           />
           <IconButton
-            title="Add"
+            title={t('Add' as never)}
             aria-label="Add cross section"
             onClick={handleAddCrossSection}
             variant="surface"
@@ -709,7 +709,13 @@ function SheetMaterialFields({
           <LengthField value={newWidth} onChange={setNewWidth} unit="cm" size="2" aria-label="Sheet width" />
           <Text>x</Text>
           <LengthField value={newLength} onChange={setNewLength} unit="cm" size="2" aria-label="Sheet length" />
-          <IconButton title="Add size" aria-label="Add sheet size" onClick={handleAddSize} variant="surface" size="2">
+          <IconButton
+            title={t('Add size' as never)}
+            aria-label="Add sheet size"
+            onClick={handleAddSize}
+            variant="surface"
+            size="2"
+          >
             <PlusIcon />
           </IconButton>
         </Grid>

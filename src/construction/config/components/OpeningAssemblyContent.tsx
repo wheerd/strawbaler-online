@@ -228,7 +228,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
 
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton color="red" variant="soft" disabled={usage.isUsed} title="Delete">
+              <IconButton color="red" variant="soft" disabled={usage.isUsed} title={t('Delete' as never)}>
                 <TrashIcon />
               </IconButton>
             </AlertDialog.Trigger>
@@ -254,7 +254,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
 
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton color="red" variant="outline" title="Reset to Defaults">
+              <IconButton color="red" variant="outline" title={t('Reset to Defaults' as never)}>
                 <ResetIcon />
               </IconButton>
             </AlertDialog.Trigger>

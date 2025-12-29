@@ -234,7 +234,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
 
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton color="red" variant="outline" title="Reset to Defaults">
+              <IconButton color="red" variant="outline" title={t('Reset to Defaults' as never)}>
                 <ResetIcon />
               </IconButton>
             </AlertDialog.Trigger>

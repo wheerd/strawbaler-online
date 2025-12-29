@@ -962,10 +962,19 @@ e | y +--------------+ s | Floor top layers                 }
 }
 
 export function MeasurementInfo(config: MeasurementDisplayConfig): React.JSX.Element {
+  const { t } = useTranslation()
+
   return (
     <HoverCard.Root>
       <HoverCard.Trigger>
-        <IconButton style={{ cursor: 'help' }} color="gray" radius="full" title="Measurements" variant="ghost" size="1">
+        <IconButton
+          style={{ cursor: 'help' }}
+          color="gray"
+          radius="full"
+          title={t('Measurements' as never)}
+          variant="ghost"
+          size="1"
+        >
           <InfoCircledIcon width={12} height={12} />
         </IconButton>
       </HoverCard.Trigger>

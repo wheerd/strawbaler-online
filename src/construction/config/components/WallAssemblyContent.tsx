@@ -124,7 +124,7 @@ function InfillConfigForm({ config, onUpdate }: InfillConfigFormProps): React.JS
           <MaterialSelectWithEdit
             value={config.strawMaterial ?? null}
             allowEmpty
-            emptyLabel="Use global straw settings"
+            emptyLabel={t('Use global straw settings' as never)}
             onValueChange={strawMaterial => onUpdate({ ...config, strawMaterial: strawMaterial ?? undefined })}
             size="1"
             preferredTypes={['strawbale']}
@@ -144,7 +144,7 @@ function InfillConfigForm({ config, onUpdate }: InfillConfigFormProps): React.JS
             <MaterialSelectWithEdit
               value={config.infillMaterial ?? null}
               allowEmpty
-              emptyLabel="No infill material"
+              emptyLabel={t('No infill material' as never)}
               onValueChange={infillMaterial => onUpdate({ ...config, infillMaterial: infillMaterial ?? undefined })}
               size="1"
             />
@@ -424,7 +424,7 @@ function ModuleConfigSection({ module, onUpdate }: ModuleConfigSectionProps): Re
           <MaterialSelectWithEdit
             value={module.strawMaterial}
             allowEmpty
-            emptyLabel="Use global straw settings"
+            emptyLabel={t('Use global straw settings' as never)}
             onValueChange={strawMaterial => onUpdate({ ...module, strawMaterial: strawMaterial ?? undefined })}
             size="1"
             preferredTypes={['strawbale']}
@@ -612,7 +612,7 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
       <Separator size="4" />
       <Flex direction="column" gap="3">
         <LayerListEditor
-          title="Inside Layers"
+          title={t('Inside Layers' as never)}
           measurementInfo={<MeasurementInfo highlightedPart="insideLayer" showFinishedSides />}
           layers={config.layers.insideLayers}
           onAddLayer={layer => addWallAssemblyInsideLayer(assemblyId, layer)}
@@ -620,18 +620,18 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           onUpdateLayer={(index, updates) => updateWallAssemblyInsideLayer(assemblyId, index, updates)}
           onRemoveLayer={index => removeWallAssemblyInsideLayer(assemblyId, index)}
           onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyInsideLayer(assemblyId, fromIndex, toIndex)}
-          addLabel="Add Inside Layer"
-          emptyHint="No inside layers defined"
+          addLabel={t('Add Inside Layer' as never)}
+          emptyHint={t('No inside layers defined' as never)}
           layerPresets={DEFAULT_WALL_LAYER_SETS}
           layerCopySources={insideLayerSources}
-          beforeLabel="Wall Construction"
-          afterLabel="Inside"
+          beforeLabel={t('Wall Construction' as never)}
+          afterLabel={t('Inside' as never)}
         />
 
         <Separator size="4" />
 
         <LayerListEditor
-          title="Outside Layers"
+          title={t('Outside Layers' as never)}
           measurementInfo={<MeasurementInfo highlightedPart="outsideLayer" showFinishedSides />}
           layers={config.layers.outsideLayers}
           onAddLayer={layer => addWallAssemblyOutsideLayer(assemblyId, layer)}
@@ -639,12 +639,12 @@ function CommonConfigSections({ assemblyId, config }: CommonConfigSectionsProps)
           onUpdateLayer={(index, updates) => updateWallAssemblyOutsideLayer(assemblyId, index, updates)}
           onRemoveLayer={index => removeWallAssemblyOutsideLayer(assemblyId, index)}
           onMoveLayer={(fromIndex, toIndex) => moveWallAssemblyOutsideLayer(assemblyId, fromIndex, toIndex)}
-          addLabel="Add Outside Layer"
-          emptyHint="No outside layers defined"
+          addLabel={t('Add Outside Layer' as never)}
+          emptyHint={t('No outside layers defined' as never)}
           layerPresets={DEFAULT_WALL_LAYER_SETS}
           layerCopySources={outsideLayerSources}
-          beforeLabel="Wall Construction"
-          afterLabel="Outside"
+          beforeLabel={t('Wall Construction' as never)}
+          afterLabel={t('Outside' as never)}
         />
       </Flex>
     </Flex>

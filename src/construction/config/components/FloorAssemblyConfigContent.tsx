@@ -274,7 +274,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
 
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton color="red" variant="outline" title="Reset to Defaults">
+              <IconButton color="red" variant="outline" title={t('Reset to Defaults' as never)}>
                 <ResetIcon />
               </IconButton>
             </AlertDialog.Trigger>
@@ -922,7 +922,7 @@ function FilledConfigFields({
         <MaterialSelectWithEdit
           value={config.strawMaterial ?? null}
           allowEmpty
-          emptyLabel="Use global straw settings"
+          emptyLabel={t('Use global straw settings' as never)}
           onValueChange={strawMaterial => onUpdate({ strawMaterial: strawMaterial ?? undefined })}
           placeholder={t('Select straw material...' as never)}
           size="2"
@@ -934,6 +934,7 @@ function FilledConfigFields({
 }
 
 function LayersFields({ assemblyId, config }: { assemblyId: FloorAssemblyId; config: FloorConfig }) {
+  const { t } = useTranslation('config')
   const {
     addFloorAssemblyTopLayer,
     setFloorAssemblyTopLayers,
@@ -981,7 +982,7 @@ function LayersFields({ assemblyId, config }: { assemblyId: FloorAssemblyId; con
   return (
     <Flex direction="column" gap="3">
       <LayerListEditor
-        title="Top Layers"
+        title={t('Top Layers' as never)}
         measurementInfo={<MeasurementInfo highlightedPart="floorTopLayers" />}
         layers={displayedTopLayers}
         onAddLayer={layer => addFloorAssemblyTopLayer(assemblyId, layer)}
@@ -991,18 +992,18 @@ function LayersFields({ assemblyId, config }: { assemblyId: FloorAssemblyId; con
         onMoveLayer={(fromIndex, toIndex) =>
           moveFloorAssemblyTopLayer(assemblyId, mapTopIndex(fromIndex), mapTopIndex(toIndex))
         }
-        addLabel="Add Top Layer"
-        emptyHint="No top layers defined"
+        addLabel={t('Add Top Layer' as never)}
+        emptyHint={t('No top layers defined' as never)}
         layerPresets={DEFAULT_FLOOR_LAYER_SETS}
         layerCopySources={topLayerSources}
-        beforeLabel="Finished Top"
-        afterLabel="Floor Construction"
+        beforeLabel={t('Finished Top' as never)}
+        afterLabel={t('Floor Construction' as never)}
       />
 
       <Separator size="4" />
 
       <LayerListEditor
-        title="Bottom Layers"
+        title={t('Bottom Layers' as never)}
         measurementInfo={<MeasurementInfo highlightedPart="floorBottomLayers" />}
         layers={config.layers.bottomLayers}
         onAddLayer={layer => addFloorAssemblyBottomLayer(assemblyId, layer)}
@@ -1010,12 +1011,12 @@ function LayersFields({ assemblyId, config }: { assemblyId: FloorAssemblyId; con
         onUpdateLayer={(index, updates) => updateFloorAssemblyBottomLayer(assemblyId, index, updates)}
         onRemoveLayer={index => removeFloorAssemblyBottomLayer(assemblyId, index)}
         onMoveLayer={(fromIndex, toIndex) => moveFloorAssemblyBottomLayer(assemblyId, fromIndex, toIndex)}
-        addLabel="Add Bottom Layer"
-        emptyHint="No bottom layers defined"
+        addLabel={t('Add Bottom Layer' as never)}
+        emptyHint={t('No bottom layers defined' as never)}
         layerPresets={DEFAULT_CEILING_LAYER_SETS}
         layerCopySources={bottomLayerSources}
-        beforeLabel="Floor Construction"
-        afterLabel="Finished Bottom"
+        beforeLabel={t('Floor Construction' as never)}
+        afterLabel={t('Finished Bottom' as never)}
       />
     </Flex>
   )

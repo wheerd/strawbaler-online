@@ -735,10 +735,19 @@ export function ConstructionSchematic({
 }
 
 export function RoofMeasurementInfo(config: MeasurementDisplayConfig): React.JSX.Element {
+  const { t } = useTranslation()
+
   return (
     <HoverCard.Root>
       <HoverCard.Trigger>
-        <IconButton style={{ cursor: 'help' }} color="gray" radius="full" title="Measurements" variant="ghost" size="1">
+        <IconButton
+          style={{ cursor: 'help' }}
+          color="gray"
+          radius="full"
+          title={t('Measurements' as never)}
+          variant="ghost"
+          size="1"
+        >
           <InfoCircledIcon width={12} height={12} />
         </IconButton>
       </HoverCard.Trigger>
@@ -752,9 +761,10 @@ export function RoofMeasurementInfo(config: MeasurementDisplayConfig): React.JSX
 }
 
 export function RoofMeasurementModal(): React.JSX.Element {
+  const { t } = useTranslation()
   return (
     <BaseModal
-      title="Roof Measurement Details"
+      title={t('Roof Measurement Details' as never)}
       trigger={
         <IconButton>
           <InfoCircledIcon />

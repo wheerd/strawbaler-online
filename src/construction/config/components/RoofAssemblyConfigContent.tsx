@@ -123,7 +123,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
           <MaterialSelectWithEdit
             value={config.strawMaterial ?? null}
             allowEmpty
-            emptyLabel="Use global straw settings"
+            emptyLabel={t('Use global straw settings' as never)}
             onValueChange={strawMaterial => onUpdate({ ...config, strawMaterial: strawMaterial ?? undefined })}
             size="1"
             preferredTypes={['strawbale']}
@@ -373,6 +373,7 @@ interface LayerSectionsProps {
 }
 
 function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.Element {
+  const { t } = useTranslation('config')
   const {
     addRoofAssemblyInsideLayer,
     setRoofAssemblyInsideLayers,
@@ -438,7 +439,7 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
   return (
     <Flex direction="column" gap="3">
       <LayerListEditor
-        title="Inside Layers (Ceiling)"
+        title={t('Inside Layers (Ceiling)' as never)}
         layers={config.layers.insideLayers}
         measurementInfo={<RoofMeasurementInfo highlightedPart="roofBottomLayers" />}
         onAddLayer={layer => addRoofAssemblyInsideLayer(assemblyId, layer)}
@@ -446,18 +447,18 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
         onUpdateLayer={(index, updates) => updateRoofAssemblyInsideLayer(assemblyId, index, updates)}
         onRemoveLayer={index => removeRoofAssemblyInsideLayer(assemblyId, index)}
         onMoveLayer={(fromIndex, toIndex) => moveRoofAssemblyInsideLayer(assemblyId, fromIndex, toIndex)}
-        addLabel="Add Inside Layer"
-        emptyHint="No inside layers defined"
+        addLabel={t('Add Inside Layer' as never)}
+        emptyHint={t('No inside layers defined' as never)}
         layerPresets={DEFAULT_CEILING_LAYER_SETS}
         layerCopySources={insideLayerSources}
-        beforeLabel="Roof Construction"
-        afterLabel="Inside (Ceiling)"
+        beforeLabel={t('Roof Construction' as never)}
+        afterLabel={t('Inside (Ceiling)' as never)}
       />
 
       <Separator size="4" />
 
       <LayerListEditor
-        title="Top Layers (Roof Covering)"
+        title={t('Top Layers (Roof Covering)' as never)}
         layers={displayedTopLayers}
         measurementInfo={<RoofMeasurementInfo highlightedPart="roofTopLayers" />}
         onAddLayer={layer => addRoofAssemblyTopLayer(assemblyId, layer)}
@@ -467,18 +468,18 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
         onMoveLayer={(fromIndex, toIndex) =>
           moveRoofAssemblyTopLayer(assemblyId, mapTopIndex(fromIndex), mapTopIndex(toIndex))
         }
-        addLabel="Add Top Layer"
-        emptyHint="No top layers defined"
+        addLabel={t('Add Top Layer' as never)}
+        emptyHint={t('No top layers defined' as never)}
         layerPresets={DEFAULT_ROOF_LAYER_SETS}
         layerCopySources={topLayerSources}
-        beforeLabel="Finished Top"
-        afterLabel="Roof Construction"
+        beforeLabel={t('Finished Top' as never)}
+        afterLabel={t('Roof Construction' as never)}
       />
 
       <Separator size="4" />
 
       <LayerListEditor
-        title="Overhang Layers"
+        title={t('Overhang Layers' as never)}
         layers={config.layers.overhangLayers}
         measurementInfo={<RoofMeasurementInfo highlightedPart="overhangBottomLayers" />}
         onAddLayer={layer => addRoofAssemblyOverhangLayer(assemblyId, layer)}
@@ -486,12 +487,12 @@ function LayerSections({ assemblyId, config }: LayerSectionsProps): React.JSX.El
         onUpdateLayer={(index, updates) => updateRoofAssemblyOverhangLayer(assemblyId, index, updates)}
         onRemoveLayer={index => removeRoofAssemblyOverhangLayer(assemblyId, index)}
         onMoveLayer={(fromIndex, toIndex) => moveRoofAssemblyOverhangLayer(assemblyId, fromIndex, toIndex)}
-        addLabel="Add Overhang Layer"
-        emptyHint="No overhang layers defined (optional)"
+        addLabel={t('Add Overhang Layer' as never)}
+        emptyHint={t('No overhang layers defined (optional)' as never)}
         layerPresets={{}}
         layerCopySources={overhangLayerSources}
-        beforeLabel="Overhang"
-        afterLabel="Outside"
+        beforeLabel={t('Overhang' as never)}
+        afterLabel={t('Outside' as never)}
       />
     </Flex>
   )
@@ -792,7 +793,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
 
             <AlertDialog.Root>
               <AlertDialog.Trigger>
-                <IconButton color="red" variant="outline" title="Reset to Defaults">
+                <IconButton color="red" variant="outline" title={t('Reset to Defaults' as never)}>
                   <ResetIcon />
                 </IconButton>
               </AlertDialog.Trigger>

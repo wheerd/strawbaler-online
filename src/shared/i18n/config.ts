@@ -1,4 +1,4 @@
-import i18n from 'i18next'
+import i18n, { type PostProcessorModule, type TOptions } from 'i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
@@ -10,6 +10,7 @@ import {
   formatVolume,
   formatWeight
 } from './formatters'
+// Import translation files
 import commonDE from './locales/de/common.json'
 import configDE from './locales/de/config.json'
 import constructionDE from './locales/de/construction.json'
@@ -20,7 +21,6 @@ import toolDE from './locales/de/tool.json'
 import toolbarDE from './locales/de/toolbar.json'
 import viewerDE from './locales/de/viewer.json'
 import welcomeDE from './locales/de/welcome.json'
-// Import translation files
 import commonEN from './locales/en/common.json'
 import configEN from './locales/en/config.json'
 import constructionEN from './locales/en/construction.json'
@@ -31,6 +31,15 @@ import toolEN from './locales/en/tool.json'
 import toolbarEN from './locales/en/toolbar.json'
 import viewerEN from './locales/en/viewer.json'
 import welcomeEN from './locales/en/welcome.json'
+
+class XPostProcessor implements PostProcessorModule {
+  readonly name = 'x'
+  readonly type = 'postProcessor'
+
+  process(_value: string, _key: string | string[], _options: TOptions, _translator: any): string {
+    return 'X'
+  }
+}
 
 const resources = {
   en: {
@@ -61,12 +70,15 @@ const resources = {
 
 i18n
   .use(LanguageDetector)
+  .use(new XPostProcessor())
   .use(initReactI18next)
   .init({
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
     ns: ['common', 'welcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction', 'errors', 'viewer'],
+
+    postProcess: 'x',
 
     interpolation: {
       escapeValue: false, // React already escapes
@@ -111,5 +123,7 @@ i18n
     // Enable debug mode in development, but disable in tests to reduce noise
     debug: import.meta.env.DEV && import.meta.env.MODE !== 'test'
   })
+
+i18n.services.formatter?.add('length', (value, lng, _options) => formatLength(value as number, lng ?? 'en'))
 
 export default i18n
