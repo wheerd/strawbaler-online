@@ -1,0 +1,39 @@
+{
+  "boundary": {
+    "title": "",
+    "description": "",
+    "errorMessage": "",
+    "errorDetails": "",
+    "noStackTrace": "",
+    "reloadPage": "",
+    "tryAgain": "",
+    "showDetails": "",
+    "hideDetails": "",
+    "copyError": "",
+    "dataRecovery": {
+      "title": "",
+      "description": "",
+      "hardReset": "",
+      "dialogTitle": "",
+      "dialogDescription": "",
+      "cancel": "",
+      "confirm": ""
+    }
+  },
+  "feature": {
+    "title": "",
+    "defaultMessage": "",
+    "retry": "",
+    "reloadPage": "",
+    "hardReset": "",
+    "dialogTitle": "",
+    "dialogDescription": "",
+    "cancel": "",
+    "confirm": ""
+  },
+  "modal": {
+    "errorPrefix": "",
+    "defaultMessage": "",
+    "retry": ""
+  }
+}

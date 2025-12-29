@@ -1,0 +1,24 @@
+{
+  "grid": {
+    "show": "",
+    "hide": ""
+  },
+  "tagOpacity": {
+    "title": "",
+    "noTags": "",
+    "fullCategory": "",
+    "semiCategory": "",
+    "hideCategory": "",
+    "full": "",
+    "semi": "",
+    "hide": ""
+  },
+  "export": {
+    "title": "",
+    "collada": "",
+    "gltf": "",
+    "obj": "",
+    "stl": "",
+    "ifc": ""
+  }
+}

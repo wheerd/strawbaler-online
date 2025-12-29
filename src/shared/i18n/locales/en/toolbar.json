@@ -6,5 +6,23 @@
   "about": "About",
   "constructionPlanForStorey": "Construction Plan for {{storeyName}}",
   "constructionPlanForActiveStorey": "Construction Plan for active storey",
-  "partsListForEntireModel": "Parts List for Entire Model"
+  "partsListForEntireModel": "Parts List for Entire Model",
+  "gridSizeDisplay": {
+    "showGrid": "Show Grid",
+    "hideGrid": "Hide Grid",
+    "off": "Off"
+  },
+  "themeToggle": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
+  },
+  "offlineStatus": {
+    "offline": "Offline. Changes will sync once connection returns.",
+    "offlineBadge": "Offline",
+    "loading": "Caching assets ({{loaded}}/{{total}})…",
+    "loadingUnknown": "Preparing offline experience…",
+    "loadingBadge": "Caching",
+    "ready": "All assets cached. Ready for offline use.",
+    "readyBadge": "Offline Ready"
+  }
 }

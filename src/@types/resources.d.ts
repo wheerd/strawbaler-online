@@ -364,6 +364,51 @@ interface Resources {
         "roof": "Roof",
         "walls": "Walls"
       }
+    },
+    "tagVisibility": {
+      "hideCategory": "Hide Category",
+      "noTags": "No tags available",
+      "showCategory": "Show Category",
+      "title": "Tag Visibility"
+    }
+  },
+  "errors": {
+    "boundary": {
+      "copyError": "Copy Error Details",
+      "dataRecovery": {
+        "cancel": "Cancel",
+        "confirm": "Delete All Data & Reset",
+        "description": "If the error persists, you can perform a hard reset that will clear all stored data and reset the application to its default state. This will delete your floor plans and configurations.",
+        "dialogDescription": "This will delete all your data including floor plans, configurations, and materials. This action cannot be undone.",
+        "dialogTitle": "Reset Application?",
+        "hardReset": "Hard Reset Application",
+        "title": "Data Recovery Option"
+      },
+      "description": "The application encountered an unexpected error and cannot continue.",
+      "errorDetails": "Error Details:",
+      "errorMessage": "An unexpected error occurred",
+      "hideDetails": "Hide Details",
+      "noStackTrace": "No stack trace available",
+      "reloadPage": "Reload Page",
+      "showDetails": "Show Details",
+      "title": "Something went wrong",
+      "tryAgain": "Try Again"
+    },
+    "feature": {
+      "cancel": "Cancel",
+      "confirm": "Delete All Data & Reset",
+      "defaultMessage": "This feature encountered an error and cannot be displayed.",
+      "dialogDescription": "This will delete all your data including floor plans, configurations, and materials. This action cannot be undone.",
+      "dialogTitle": "Reset Application?",
+      "hardReset": "Hard Reset Application",
+      "reloadPage": "Reload Page",
+      "retry": "Retry",
+      "title": "Error"
+    },
+    "modal": {
+      "defaultMessage": "This content could not be displayed due to an error.",
+      "errorPrefix": "Error:",
+      "retry": "Retry"
     }
   },
   "inspector": {
@@ -833,10 +878,52 @@ interface Resources {
     "configuration": "Configuration",
     "constructionPlanForActiveStorey": "Construction Plan for active storey",
     "constructionPlanForStorey": "Construction Plan for {{storeyName}}",
+    "gridSizeDisplay": {
+      "hideGrid": "Hide Grid",
+      "off": "Off",
+      "showGrid": "Show Grid"
+    },
+    "offlineStatus": {
+      "loading": "Caching assets ({{loaded}}/{{total}})…",
+      "loadingBadge": "Caching",
+      "loadingUnknown": "Preparing offline experience…",
+      "offline": "Offline. Changes will sync once connection returns.",
+      "offlineBadge": "Offline",
+      "ready": "All assets cached. Ready for offline use.",
+      "readyBadge": "Offline Ready"
+    },
     "partsListForEntireModel": "Parts List for Entire Model",
+    "themeToggle": {
+      "switchToDark": "Switch to dark mode",
+      "switchToLight": "Switch to light mode"
+    },
     "view3DConstruction": "View 3D Construction",
     "viewConstructionPlan": "View Construction Plan",
     "viewPartsList": "View Parts List"
+  },
+  "viewer": {
+    "export": {
+      "collada": "Collada (DAE)",
+      "gltf": "GLTF",
+      "ifc": "IFC",
+      "obj": "OBJ",
+      "stl": "STL",
+      "title": "Export"
+    },
+    "grid": {
+      "hide": "Hide Grid",
+      "show": "Show Grid"
+    },
+    "tagOpacity": {
+      "full": "Full",
+      "fullCategory": "Full Category",
+      "hide": "Hide",
+      "hideCategory": "Hide Category",
+      "noTags": "No tags available",
+      "semi": "Semi",
+      "semiCategory": "Semi Category",
+      "title": "Tag Opacity"
+    }
   },
   "welcome": {
     "changeLanguage": "Change Language",

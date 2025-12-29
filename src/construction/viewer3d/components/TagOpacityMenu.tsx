@@ -1,6 +1,7 @@
 import { EyeClosedIcon, EyeOpenIcon } from '@radix-ui/react-icons'
 import { DropdownMenu, Flex, IconButton, Text } from '@radix-ui/themes'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { GroupOrElement } from '@/construction/elements'
 import type { ConstructionModel } from '@/construction/model'
@@ -61,17 +62,19 @@ function collectTagsFromModel(model: ConstructionModel): Map<TagCategoryId, TagI
   return categoryMap
 }
 
-function getOpacityLabel(opacity: number): string {
-  if (opacity === 1.0) return 'Full'
-  if (opacity === 0.5) return 'Semi'
-  return 'Hide'
-}
-
 export function TagOpacityMenu({ model }: TagOpacityMenuProps): React.JSX.Element {
+  const { t } = useTranslation('viewer')
+
   // This component re-renders on any opacity change (to update the UI)
   useTagOpacityForceUpdate()
 
   const { getTagOrCategoryOpacity, getCategoryOpacityState, cycleTagOrCategoryOpacity } = useTagOpacityActions()
+
+  const getOpacityLabel = (opacity: number): string => {
+    if (opacity === 1.0) return t($ => $.tagOpacity.full)
+    if (opacity === 0.5) return t($ => $.tagOpacity.semi)
+    return t($ => $.tagOpacity.hide)
+  }
 
   const tagsByCategory = useMemo(() => collectTagsFromModel(model), [model])
 
@@ -107,14 +110,14 @@ export function TagOpacityMenu({ model }: TagOpacityMenuProps): React.JSX.Elemen
     return (
       <DropdownMenu.Root>
         <DropdownMenu.Trigger>
-          <IconButton size="1" variant="outline" title="Tag Opacity" disabled>
+          <IconButton size="1" variant="outline" title={t($ => $.tagOpacity.title)} disabled>
             <EyeOpenIcon />
           </IconButton>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.Item disabled>
             <Text size="1" color="gray">
-              No tags available
+              {t($ => $.tagOpacity.noTags)}
             </Text>
           </DropdownMenu.Item>
         </DropdownMenu.Content>
@@ -125,7 +128,7 @@ export function TagOpacityMenu({ model }: TagOpacityMenuProps): React.JSX.Elemen
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <IconButton size="1" variant="solid" title="Tag Opacity">
+        <IconButton size="1" variant="solid" title={t($ => $.tagOpacity.title)}>
           <EyeOpenIcon />
         </IconButton>
       </DropdownMenu.Trigger>

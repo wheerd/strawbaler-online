@@ -1,0 +1,39 @@
+{
+  "boundary": {
+    "title": "Something went wrong",
+    "description": "The application encountered an unexpected error and cannot continue.",
+    "errorMessage": "An unexpected error occurred",
+    "errorDetails": "Error Details:",
+    "noStackTrace": "No stack trace available",
+    "reloadPage": "Reload Page",
+    "tryAgain": "Try Again",
+    "showDetails": "Show Details",
+    "hideDetails": "Hide Details",
+    "copyError": "Copy Error Details",
+    "dataRecovery": {
+      "title": "Data Recovery Option",
+      "description": "If the error persists, you can perform a hard reset that will clear all stored data and reset the application to its default state. This will delete your floor plans and configurations.",
+      "hardReset": "Hard Reset Application",
+      "dialogTitle": "Reset Application?",
+      "dialogDescription": "This will delete all your data including floor plans, configurations, and materials. This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete All Data & Reset"
+    }
+  },
+  "feature": {
+    "title": "Error",
+    "defaultMessage": "This feature encountered an error and cannot be displayed.",
+    "retry": "Retry",
+    "reloadPage": "Reload Page",
+    "hardReset": "Hard Reset Application",
+    "dialogTitle": "Reset Application?",
+    "dialogDescription": "This will delete all your data including floor plans, configurations, and materials. This action cannot be undone.",
+    "cancel": "Cancel",
+    "confirm": "Delete All Data & Reset"
+  },
+  "modal": {
+    "errorPrefix": "Error:",
+    "defaultMessage": "This content could not be displayed due to an error.",
+    "retry": "Retry"
+  }
+}

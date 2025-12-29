@@ -1,6 +1,7 @@
 import { EyeClosedIcon, EyeOpenIcon } from '@radix-ui/react-icons'
 import { DropdownMenu, Flex, IconButton, Text } from '@radix-ui/themes'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { GroupOrElement } from '@/construction/elements'
 import type { ConstructionModel } from '@/construction/model'
@@ -65,6 +66,8 @@ function collectTagsFromModel(model: ConstructionModel): Map<TagCategoryId, TagI
 }
 
 export function TagVisibilityMenu({ model }: TagVisibilityMenuProps): React.JSX.Element {
+  const { t } = useTranslation('construction')
+
   // Re-render on any tag visibility change to update the menu UI
   useTagVisibilityForceUpdate()
 
@@ -94,14 +97,14 @@ export function TagVisibilityMenu({ model }: TagVisibilityMenuProps): React.JSX.
     return (
       <DropdownMenu.Root>
         <DropdownMenu.Trigger>
-          <IconButton size="1" variant="outline" title="Tag Visibility" disabled>
+          <IconButton size="1" variant="outline" title={t($ => $.tagVisibility.title)} disabled>
             <EyeOpenIcon />
           </IconButton>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.Item disabled>
             <Text size="1" color="gray">
-              No tags available
+              {t($ => $.tagVisibility.noTags)}
             </Text>
           </DropdownMenu.Item>
         </DropdownMenu.Content>
@@ -112,7 +115,7 @@ export function TagVisibilityMenu({ model }: TagVisibilityMenuProps): React.JSX.
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <IconButton size="1" variant="solid" title="Tag Visibility">
+        <IconButton size="1" variant="solid" title={t($ => $.tagVisibility.title)}>
           <EyeOpenIcon />
         </IconButton>
       </DropdownMenu.Trigger>
@@ -143,7 +146,9 @@ export function TagVisibilityMenu({ model }: TagVisibilityMenuProps): React.JSX.
                     }}
                   >
                     <Text size="1" weight="bold">
-                      {isTagOrCategoryVisible(categoryId) ? 'Hide' : 'Show'} Category
+                      {isTagOrCategoryVisible(categoryId)
+                        ? t($ => $.tagVisibility.hideCategory)
+                        : t($ => $.tagVisibility.showCategory)}
                     </Text>
                     {isTagOrCategoryVisible(categoryId) ? <EyeOpenIcon /> : <EyeClosedIcon />}
                   </Flex>

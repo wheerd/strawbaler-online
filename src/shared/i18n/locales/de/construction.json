@@ -26,5 +26,11 @@
       "failedPartsList": "Fehler beim Erstellen der Teileliste",
       "failedModulesList": "Fehler beim Erstellen der Modulliste"
     }
+  },
+  "tagVisibility": {
+    "title": "",
+    "noTags": "",
+    "showCategory": "",
+    "hideCategory": ""
   }
 }

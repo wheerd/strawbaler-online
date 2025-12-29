@@ -6,5 +6,23 @@
   "about": "Über",
   "constructionPlanForStorey": "Konstruktionsplan für {{storeyName}}",
   "constructionPlanForActiveStorey": "Konstruktionsplan für aktives Geschoss",
-  "partsListForEntireModel": "Teileliste für gesamtes Modell"
+  "partsListForEntireModel": "Teileliste für gesamtes Modell",
+  "gridSizeDisplay": {
+    "showGrid": "",
+    "hideGrid": "",
+    "off": ""
+  },
+  "themeToggle": {
+    "switchToLight": "",
+    "switchToDark": ""
+  },
+  "offlineStatus": {
+    "offline": "",
+    "offlineBadge": "",
+    "loading": "",
+    "loadingUnknown": "",
+    "loadingBadge": "",
+    "ready": "",
+    "readyBadge": ""
+  }
 }

@@ -13,19 +13,23 @@ import {
 import commonDE from './locales/de/common.json'
 import configDE from './locales/de/config.json'
 import constructionDE from './locales/de/construction.json'
+import errorsDE from './locales/de/errors.json'
 import inspectorDE from './locales/de/inspector.json'
 import overlayDE from './locales/de/overlay.json'
 import toolDE from './locales/de/tool.json'
 import toolbarDE from './locales/de/toolbar.json'
+import viewerDE from './locales/de/viewer.json'
 import welcomeDE from './locales/de/welcome.json'
 // Import translation files
 import commonEN from './locales/en/common.json'
 import configEN from './locales/en/config.json'
 import constructionEN from './locales/en/construction.json'
+import errorsEN from './locales/en/errors.json'
 import inspectorEN from './locales/en/inspector.json'
 import overlayEN from './locales/en/overlay.json'
 import toolEN from './locales/en/tool.json'
 import toolbarEN from './locales/en/toolbar.json'
+import viewerEN from './locales/en/viewer.json'
 import welcomeEN from './locales/en/welcome.json'
 
 const resources = {
@@ -37,7 +41,9 @@ const resources = {
     tool: toolEN,
     config: configEN,
     overlay: overlayEN,
-    construction: constructionEN
+    construction: constructionEN,
+    errors: errorsEN,
+    viewer: viewerEN
   },
   de: {
     common: commonDE,
@@ -47,7 +53,9 @@ const resources = {
     tool: toolDE,
     config: configDE,
     overlay: overlayDE,
-    construction: constructionDE
+    construction: constructionDE,
+    errors: errorsDE,
+    viewer: viewerDE
   }
 }
 
@@ -58,7 +66,7 @@ i18n
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'welcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction'],
+    ns: ['common', 'welcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction', 'errors', 'viewer'],
 
     interpolation: {
       escapeValue: false, // React already escapes
