@@ -25,6 +25,7 @@ import {
   TextField
 } from '@radix-ui/themes'
 import React, { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useConfigActions, useDefaultStrawMaterialId } from '@/construction/config/store'
 import type {
@@ -57,6 +58,7 @@ export interface MaterialsConfigContentProps {
 type MaterialType = Material['type']
 
 export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigContentProps): React.JSX.Element {
+  const { t } = useTranslation('config')
   const materials = useMaterials()
   const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial, reset } = useMaterialActions()
   const defaultStrawMaterialId = useDefaultStrawMaterialId()
@@ -190,7 +192,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
           </Flex>
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
-              <IconButton title="Add New">
+              <IconButton title={t('common.addNew')}>
                 <PlusIcon />
               </IconButton>
             </DropdownMenu.Trigger>
@@ -198,36 +200,41 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
               <DropdownMenu.Item onSelect={() => handleAddNew('dimensional')}>
                 <Flex align="center" gap="1">
                   <CubeIcon />
-                  Dimensional
+                  {t('materials.typeDimensional')}
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item onSelect={() => handleAddNew('strawbale')}>
                 <Flex align="center" gap="1">
                   <CubeIcon />
-                  Strawbale
+                  {t('materials.typeStrawbale')}
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item onSelect={() => handleAddNew('sheet')}>
                 <Flex align="center" gap="1">
                   <LayersIcon />
-                  Sheet
+                  {t('materials.typeSheet')}
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item onSelect={() => handleAddNew('volume')}>
                 <Flex align="center" gap="1">
                   <OpacityIcon />
-                  Volume
+                  {t('materials.typeVolume')}
                 </Flex>
               </DropdownMenu.Item>
               <DropdownMenu.Item onSelect={() => handleAddNew('generic')}>
                 <Flex align="center" gap="1">
                   <CircleIcon />
-                  Generic
+                  {t('materials.typeGeneric')}
                 </Flex>
               </DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Root>
-          <IconButton onClick={handleDuplicate} disabled={!selectedMaterial} title="Duplicate" variant="soft">
+          <IconButton
+            onClick={handleDuplicate}
+            disabled={!selectedMaterial}
+            title={t('common.duplicate')}
+            variant="soft"
+          >
             <CopyIcon />
           </IconButton>
           <AlertDialog.Root>
@@ -235,25 +242,25 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
               <IconButton
                 disabled={!selectedMaterial || usage.isUsed}
                 color="red"
-                title={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}
+                title={usage.isUsed ? t('common.inUseCannotDelete') : t('common.delete')}
               >
                 <TrashIcon />
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
-              <AlertDialog.Title>Delete Material</AlertDialog.Title>
+              <AlertDialog.Title>{t('materials.deleteTitle')}</AlertDialog.Title>
               <AlertDialog.Description>
-                Are you sure you want to delete "{selectedMaterial?.name}"? This action cannot be undone.
+                {t('materials.deleteConfirm', { name: selectedMaterial?.name })}
               </AlertDialog.Description>
               <Flex gap="3" mt="4" justify="end">
                 <AlertDialog.Cancel>
                   <Button variant="soft" color="gray">
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                 </AlertDialog.Cancel>
                 <AlertDialog.Action>
                   <Button variant="solid" color="red" onClick={handleDelete}>
-                    Delete
+                    {t('common.delete')}
                   </Button>
                 </AlertDialog.Action>
               </Flex>
@@ -261,24 +268,22 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
           </AlertDialog.Root>
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton color="red" variant="outline" title="Reset to Default">
+              <IconButton color="red" variant="outline" title={t('common.resetToDefaults')}>
                 <ResetIcon />
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
-              <AlertDialog.Title>Reset Materials</AlertDialog.Title>
-              <AlertDialog.Description>
-                Are you sure you want to reset all materials to default? This action cannot be undone.
-              </AlertDialog.Description>
+              <AlertDialog.Title>{t('materials.resetTitle')}</AlertDialog.Title>
+              <AlertDialog.Description>{t('materials.resetConfirm')}</AlertDialog.Description>
               <Flex gap="3" mt="4" justify="end">
                 <AlertDialog.Cancel>
                   <Button variant="soft" color="gray">
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                 </AlertDialog.Cancel>
                 <AlertDialog.Action>
                   <Button variant="solid" color="red" onClick={handleReset}>
-                    Reset
+                    {t('common.reset')}
                   </Button>
                 </AlertDialog.Action>
               </Flex>
@@ -289,7 +294,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
         <Grid columns="auto 1fr" gap="2" align="center">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              Default Straw Material
+              {t('materials.defaultStrawMaterial')}
             </Text>
           </Label.Root>
           <MaterialSelect
@@ -299,7 +304,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
                 updateDefaultStrawMaterial(materialId)
               }
             }}
-            placeholder="Select straw material..."
+            placeholder={t('materials.selectStrawMaterial')}
             size="2"
             materials={materials}
           />
@@ -317,20 +322,20 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
           <Grid columns="4em 1fr" gap="2" gapX="3" align="center">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                Name
+                {t('common.name')}
               </Text>
             </Label.Root>
             <TextField.Root
               value={selectedMaterial.name}
               onChange={e => handleUpdate({ name: e.target.value })}
-              placeholder="Material name"
+              placeholder={t('materials.materialName')}
               size="2"
             />
           </Grid>
           <Grid columns="4em 1fr auto 1fr auto auto" gap="2" gapX="3" align="center">
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                Type
+                {t('common.type')}
               </Text>
             </Label.Root>
             <Flex gap="2" align="center">
@@ -342,7 +347,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
 
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                Color
+                {t('common.color')}
               </Text>
             </Label.Root>
             <input
@@ -353,7 +358,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
             />
             <Label.Root>
               <Text size="2" weight="medium" color="gray">
-                Density
+                {t('common.density')}
               </Text>
             </Label.Root>
             <TextField.Root
@@ -372,7 +377,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
             >
               <TextField.Slot side="right" style={{ paddingInline: '6px' }}>
                 <Text size="1" color="gray">
-                  kg/m³
+                  {t('common.densityUnit')}
                 </Text>
               </TextField.Slot>
             </TextField.Root>
@@ -398,7 +403,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
 
       {!selectedMaterial && materials.length === 0 && (
         <Flex justify="center" align="center" p="5">
-          <Text color="gray">No materials yet. Create one using the "New" button above.</Text>
+          <Text color="gray">{t('common.noItemsYet', { items: 'materials' })}</Text>
         </Flex>
       )}
 
@@ -406,7 +411,7 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
         <Grid columns="auto 1fr" gap="2" gapX="3" align="baseline">
           <Label.Root>
             <Text size="2" weight="medium" color="gray" id="material-usage-list">
-              Used By:
+              {t('common.usedBy')}
             </Text>
           </Label.Root>
           <Flex gap="1" wrap="wrap" role="list" aria-labelledby="material-usage-list">
@@ -429,6 +434,7 @@ function DimensionalMaterialFields({
   material: DimensionalMaterial
   onUpdate: (updates: Partial<DimensionalMaterial>) => void
 }) {
+  const { t } = useTranslation('config')
   const { formatLength, formatDimensions2D } = useFormatters()
 
   const [newDim1, setNewDim1] = useState<Length>(material.crossSections[0]?.smallerLength ?? 50)
@@ -489,7 +495,7 @@ function DimensionalMaterialFields({
       <Flex direction="row" justify="between" align="end">
         <Flex direction="column" gap="2">
           <Text size="2" weight="medium" color="gray" id="crossSections">
-            Cross Sections
+            {t('materials.crossSections')}
           </Text>
           <Flex gap="2" wrap="wrap" role="list" aria-labelledby="crossSections">
             {material.crossSections.map(section => (
@@ -502,7 +508,7 @@ function DimensionalMaterialFields({
                     color="gray"
                     onClick={() => handleRemoveCrossSection(section)}
                     style={{ cursor: 'pointer' }}
-                    aria-label="Remove cross section"
+                    aria-label={t('materials.removeCrossSection')}
                   >
                     <Cross2Icon width="10" height="10" />
                   </IconButton>
@@ -514,7 +520,7 @@ function DimensionalMaterialFields({
                 <Callout.Icon>
                   <ExclamationTriangleIcon />
                 </Callout.Icon>
-                <Callout.Text>No cross sections configured</Callout.Text>
+                <Callout.Text>{t('materials.noCrossSections')}</Callout.Text>
               </Callout.Root>
             )}
           </Flex>

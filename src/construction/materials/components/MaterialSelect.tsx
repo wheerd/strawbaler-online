@@ -1,6 +1,7 @@
 import { CircleIcon, CubeIcon, LayersIcon, OpacityIcon } from '@radix-ui/react-icons'
 import { Flex, Select, Text } from '@radix-ui/themes'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { Material, MaterialId, MaterialType } from '@/construction/materials/material'
 import { useMaterials } from '@/construction/materials/store'
@@ -88,9 +89,15 @@ export function MaterialSelect({
   emptyLabel = 'None',
   preferredTypes
 }: MaterialSelectProps): React.JSX.Element {
+  const { t } = useTranslation('config')
   const materialsFromStore = useMaterials()
   const materials = materialsProp ?? materialsFromStore
   const normalizedValue = value ?? (allowEmpty ? NONE_VALUE : '')
+
+  const getMaterialDisplayName = (material: Material): string => {
+    return material.nameKey ? t(material.nameKey) : material.name
+  }
+
   const sortedMaterials = [...materials].sort((a, b) => {
     if (a.type !== b.type) {
       if (preferredTypes) {
@@ -102,7 +109,7 @@ export function MaterialSelect({
       }
       return a.type < b.type ? -1 : 1
     }
-    return a.name.localeCompare(b.name)
+    return getMaterialDisplayName(a).localeCompare(getMaterialDisplayName(b))
   })
 
   return (
@@ -126,6 +133,7 @@ export function MaterialSelect({
         ) : (
           sortedMaterials.map(material => {
             const Icon = getMaterialTypeIcon(material.type)
+            const displayName = getMaterialDisplayName(material)
             return (
               <Select.Item key={material.id} value={material.id}>
                 <Flex align="center" gap="2">
@@ -148,7 +156,7 @@ export function MaterialSelect({
                       style={{ color: 'white', filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }}
                     />
                   </div>
-                  <Text>{material.name}</Text>
+                  <Text>{displayName}</Text>
                 </Flex>
               </Select.Item>
             )
