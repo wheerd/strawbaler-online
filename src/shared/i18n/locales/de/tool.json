@@ -10,5 +10,48 @@
   "roof": {},
   "perimeter": {},
   "addPost": {},
-  "addOpening": {}
+  "addOpening": {},
+  "presetDialogs": {
+    "rectangular": {
+      "title": "Rechteckiger Umriss",
+      "configuration": "Konfiguration",
+      "preview": "Vorschau",
+      "width": "Breite",
+      "length": "Länge",
+      "wallThickness": "Wandstärke",
+      "wallAssembly": "Wandaufbau",
+      "basePlate": "Fußplatte",
+      "topPlate": "Kopfplatte",
+      "referenceSide": "Referenzseite",
+      "inside": "Innen",
+      "outside": "Außen",
+      "selectAssembly": "Aufbau auswählen",
+      "none": "Keine",
+      "cancel": "Abbrechen",
+      "confirm": "Bestätigen"
+    },
+    "lShaped": {
+      "title": "L-förmiger Umriss",
+      "configuration": "Konfiguration",
+      "preview": "Vorschau",
+      "mainRectangle": "Hauptrechteck",
+      "extensionRectangle": "Erweiterungsrechteck",
+      "width1": "Breite 1",
+      "length1": "Länge 1",
+      "width2": "Breite 2",
+      "length2": "Länge 2",
+      "rotation": "Drehung",
+      "wallThickness": "Wandstärke",
+      "wallAssembly": "Wandaufbau",
+      "basePlate": "Fußplatte",
+      "topPlate": "Kopfplatte",
+      "referenceSide": "Referenzseite",
+      "inside": "Innen",
+      "outside": "Außen",
+      "selectAssembly": "Aufbau auswählen",
+      "none": "Keine",
+      "cancel": "Abbrechen",
+      "confirm": "Bestätigen"
+    }
+  }
 }

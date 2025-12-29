@@ -161,5 +161,48 @@
     "smallWindow": "Small Window",
     "standardWindow": "Standard Window",
     "floorWindow": "Floor Window"
+  },
+  "presetDialogs": {
+    "rectangular": {
+      "title": "Rectangular Perimeter",
+      "configuration": "Configuration",
+      "preview": "Preview",
+      "width": "Width",
+      "length": "Length",
+      "wallThickness": "Wall Thickness",
+      "wallAssembly": "Wall Assembly",
+      "basePlate": "Base Plate",
+      "topPlate": "Top Plate",
+      "referenceSide": "Reference Side",
+      "inside": "Inside",
+      "outside": "Outside",
+      "selectAssembly": "Select assembly",
+      "none": "None",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "lShaped": {
+      "title": "L-Shaped Perimeter",
+      "configuration": "Configuration",
+      "preview": "Preview",
+      "mainRectangle": "Main Rectangle",
+      "extensionRectangle": "Extension Rectangle",
+      "width1": "Width 1",
+      "length1": "Length 1",
+      "width2": "Width 2",
+      "length2": "Length 2",
+      "rotation": "Rotation",
+      "wallThickness": "Wall Thickness",
+      "wallAssembly": "Wall Assembly",
+      "basePlate": "Base Plate",
+      "topPlate": "Top Plate",
+      "referenceSide": "Reference Side",
+      "inside": "Inside",
+      "outside": "Outside",
+      "selectAssembly": "Select assembly",
+      "none": "None",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    }
   }
 }
