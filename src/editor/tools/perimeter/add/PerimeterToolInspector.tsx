@@ -14,6 +14,7 @@ import {
   Text
 } from '@radix-ui/themes'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import type { PerimeterReferenceSide } from '@/building/model/model'
@@ -28,6 +29,7 @@ import { useFormatters } from '@/shared/i18n/useFormatters'
 import type { PerimeterTool } from './PerimeterTool'
 
 export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterTool>): React.JSX.Element {
+  const { t } = useTranslation('tool')
   const { formatLength } = useFormatters()
   const { state } = useReactiveTool(tool)
 
@@ -52,9 +54,9 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           </Callout.Icon>
           <Callout.Text>
             <Text size="1">
-              Draw the <Text weight="bold">{state.referenceSide === 'inside' ? 'inside edge' : 'outside edge'}</Text> of
-              your building perimeter. Click to place points, and close the shape by clicking the first point or
-              pressing Enter.
+              {t('perimeter.infoInside', {
+                edge: state.referenceSide === 'inside' ? t('perimeter.insideEdge') : t('perimeter.outsideEdge')
+              })}
             </Text>
           </Callout.Text>
         </Callout.Root>
@@ -65,7 +67,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                Wall Assembly
+                {t('perimeter.wallAssembly')}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedAssembly="wallAssembly" />
@@ -82,7 +84,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           <Flex align="center" gap="1">
             <Label.Root htmlFor="wall-thickness">
               <Text size="1" weight="medium" color="gray">
-                Wall Thickness
+                {t('perimeter.wallThickness')}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedMeasurement="totalWallThickness" showFinishedSides />
@@ -101,7 +103,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                Reference Side
+                {t('perimeter.referenceSide')}
               </Text>
             </Label.Root>
           </Flex>
@@ -110,15 +112,15 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             value={state.referenceSide}
             onValueChange={value => tool.setReferenceSide(value as PerimeterReferenceSide)}
           >
-            <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
-            <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
+            <SegmentedControl.Item value="inside">{t('perimeter.referenceSideInside')}</SegmentedControl.Item>
+            <SegmentedControl.Item value="outside">{t('perimeter.referenceSideOutside')}</SegmentedControl.Item>
           </SegmentedControl.Root>
 
           {/* Base Ring Beam */}
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                Base Plate
+                {t('perimeter.basePlate')}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedPart="basePlate" />
@@ -128,7 +130,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             onValueChange={(value: RingBeamAssemblyId | undefined) => {
               tool.setBaseRingBeam(value)
             }}
-            placeholder="None"
+            placeholder={t('perimeter.nonePlaceholder')}
             size="1"
             allowNone
           />
@@ -137,7 +139,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                Top Plate
+                {t('perimeter.topPlate')}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedPart="topPlate" />
@@ -147,7 +149,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             onValueChange={(value: RingBeamAssemblyId | undefined) => {
               tool.setTopRingBeam(value)
             }}
-            placeholder="None"
+            placeholder={t('perimeter.nonePlaceholder')}
             size="1"
             allowNone
           />
@@ -159,7 +161,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             <Separator size="4" />
             <Flex align="center" justify="between" gap="2">
               <Text size="1" weight="medium" color="blue">
-                Length Override
+                {t('perimeter.lengthOverride')}
               </Text>
               <Flex align="center" gap="2">
                 <Code size="1" color="blue">
@@ -170,7 +172,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
                   variant="ghost"
                   color="red"
                   onClick={() => tool.clearLengthOverride()}
-                  title="Clear length override (Escape)"
+                  title={t('perimeter.clearLengthOverride')}
                 >
                   <Cross2Icon />
                 </IconButton>
@@ -183,33 +185,33 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
         <Separator size="4" />
         <Flex direction="column" gap="2">
           <Text size="1" weight="medium">
-            Controls:
+            {t('perimeter.controlsHeading')}
           </Text>
           <Text size="1" color="gray">
-            • Click to place corner points
+            • {t('perimeter.controlPlace')}
           </Text>
           <Text size="1" color="gray">
-            • Points snap to grid and existing geometry
+            • {t('perimeter.controlSnap')}
           </Text>
           <Text size="1" color="gray">
-            • Type numbers to set exact wall length
+            • {t('perimeter.controlNumbers')}
           </Text>
           {state.lengthOverride ? (
             <Text size="1" color="gray">
-              • <Kbd>Esc</Kbd> to clear override
+              • <Kbd>Esc</Kbd> {t('perimeter.controlEscOverride', { key: '' }).replace('{{key}}', '').trim()}
             </Text>
           ) : (
             <Text size="1" color="gray">
-              • <Kbd>Esc</Kbd> to abort perimeter
+              • <Kbd>Esc</Kbd> {t('perimeter.controlEscAbort', { key: '' }).replace('{{key}}', '').trim()}
             </Text>
           )}
           {state.points.length >= 3 && (
             <>
               <Text size="1" color="gray">
-                • <Kbd>Enter</Kbd> to close perimeter
+                • <Kbd>Enter</Kbd> {t('perimeter.controlEnter', { key: '' }).replace('{{key}}', '').trim()}
               </Text>
               <Text size="1" color="gray">
-                • Click first point to close
+                • {t('perimeter.controlClickFirst')}
               </Text>
             </>
           )}
@@ -226,10 +228,10 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
                   color="green"
                   onClick={() => tool.complete()}
                   disabled={!state.isClosingSegmentValid}
-                  title="Complete perimeter (Enter)"
+                  title={t('perimeter.completeTooltip')}
                   style={{ width: '100%' }}
                 >
-                  <Text size="1">✓ Complete Perimeter</Text>
+                  <Text size="1">{t('perimeter.completePerimeter')}</Text>
                   <Kbd size="1" style={{ marginLeft: 'auto' }}>
                     Enter
                   </Kbd>
@@ -240,10 +242,10 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
                 color="red"
                 variant="soft"
                 onClick={() => tool.cancel()}
-                title="Cancel perimeter creation (Escape)"
+                title={t('perimeter.cancelTooltip')}
                 style={{ width: '100%' }}
               >
-                <Text size="1">✕ Cancel Perimeter</Text>
+                <Text size="1">{t('perimeter.cancelPerimeter')}</Text>
                 <Kbd size="1" style={{ marginLeft: 'auto' }}>
                   Esc
                 </Kbd>

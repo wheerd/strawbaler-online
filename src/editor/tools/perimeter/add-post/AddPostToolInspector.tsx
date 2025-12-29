@@ -13,6 +13,7 @@ import {
   Text
 } from '@radix-ui/themes'
 import { useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { WallPostType } from '@/building/model/model'
 import { usePerimeters } from '@/building/store'
@@ -52,6 +53,7 @@ const POST_TYPE_LABELS: Record<WallPostType, string> = {
 }
 
 function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): React.JSX.Element {
+  const { t } = useTranslation('tool')
   const { formatLength } = useFormatters()
   const { state } = useReactiveTool(tool)
 
@@ -166,36 +168,34 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
           <InfoCircledIcon />
         </Callout.Icon>
         <Callout.Text>
-          <Text size="1">
-            Click on a wall to place a post. Configure dimensions, type, position, and materials before placement.
-          </Text>
+          <Text size="1">{t('addPost.info')}</Text>
         </Callout.Text>
       </Callout.Root>
 
       {/* Type Selection */}
       <Flex align="center" justify="between" gap="2">
         <Text size="1" weight="medium" color="gray">
-          Type
+          {t('addPost.type')}
         </Text>
         <SegmentedControl.Root value={state.type} onValueChange={handleTypeChange} size="1">
-          <SegmentedControl.Item value="inside">Inside</SegmentedControl.Item>
-          <SegmentedControl.Item value="center">Center</SegmentedControl.Item>
-          <SegmentedControl.Item value="outside">Outside</SegmentedControl.Item>
-          <SegmentedControl.Item value="double">Double</SegmentedControl.Item>
+          <SegmentedControl.Item value="inside">{t('addPost.typeInside')}</SegmentedControl.Item>
+          <SegmentedControl.Item value="center">{t('addPost.typeCenter')}</SegmentedControl.Item>
+          <SegmentedControl.Item value="outside">{t('addPost.typeOutside')}</SegmentedControl.Item>
+          <SegmentedControl.Item value="double">{t('addPost.typeDouble')}</SegmentedControl.Item>
         </SegmentedControl.Root>
       </Flex>
 
       <Flex align="center" justify="between" gap="2">
         <Text size="1" weight="medium" color="gray">
-          Behavior
+          {t('addPost.behavior')}
         </Text>
         <Flex align="center" gap="2">
           <Text size="1" color="gray">
-            Acts as Post
+            {t('addPost.actsAsPost')}
           </Text>
           <Switch checked={!state.replacesPosts} size="1" onCheckedChange={handleReplacesPostsChange} />
           <Text size="1" color="gray">
-            Flanked by Posts
+            {t('addPost.flankedByPosts')}
           </Text>
         </Flex>
       </Flex>
@@ -205,7 +205,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
         {/* Width Label */}
         <Label.Root htmlFor="post-width">
           <Text size="1" weight="medium" color="gray">
-            Width
+            {t('addPost.width')}
           </Text>
         </Label.Root>
 
@@ -224,7 +224,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
         {/* Thickness Label */}
         <Label.Root htmlFor="post-thickness">
           <Text size="1" weight="medium" color="gray">
-            Thickness
+            {t('addPost.thickness')}
           </Text>
         </Label.Root>
 
@@ -244,7 +244,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
       {/* Material Selection */}
       <Flex direction="column" gap="2">
         <Text size="1" weight="medium" color="gray">
-          Post Material
+          {t('addPost.postMaterial')}
         </Text>
         <MaterialSelectWithEdit
           value={state.material}
@@ -257,7 +257,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
       {/* Infill Material Selection */}
       <Flex direction="column" gap="2">
         <Text size="1" weight="medium" color="gray">
-          Infill Material
+          {t('addPost.infillMaterial')}
         </Text>
         <MaterialSelectWithEdit value={state.infillMaterial} onValueChange={handleInfillMaterialChange} size="1" />
       </Flex>
@@ -269,11 +269,11 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
         {/* Copy Existing Configuration */}
         <Flex align="center" justify="between" gap="2">
           <Text size="1" weight="medium" color="gray">
-            Quick Presets
+            {t('addPost.presets')}
           </Text>
           <DropdownMenu.Root>
             <DropdownMenu.Trigger disabled={allPostConfigs.length === 0}>
-              <IconButton size="2" title="Copy existing configuration">
+              <IconButton size="2" title={t('addPost.copyConfigurationTooltip')}>
                 <CopyIcon />
               </IconButton>
             </DropdownMenu.Trigger>
