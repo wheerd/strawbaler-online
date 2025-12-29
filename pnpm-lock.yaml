@@ -154,8 +154,8 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0(@typescript-eslint/eslint-plugin@8.48.0(@typescript-eslint/parser@8.48.0(eslint@9.39.1(jiti@1.21.7))(typescript@5.8.3))(eslint@9.39.1(jiti@1.21.7))(typescript@5.8.3))(eslint@9.39.1(jiti@1.21.7))
       fast-check:
-        specifier: ^4.3.0
-        version: 4.3.0
+        specifier: ^4.5.2
+        version: 4.5.2
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0(canvas@3.2.0)
@@ -3245,8 +3245,8 @@ packages:
     resolution: {integrity: sha512-u/feCi0GPsI+988gU2FLcsHyAHTU0MX1Wg68NhAnN7z/+C5wqG+CY8J53N9ioe8RXgaoz0nBR/TYMf3AycUuPw==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
 
-  fast-check@4.3.0:
-    resolution: {integrity: sha512-JVw/DJSxVKl8uhCb7GrwanT9VWsCIdBkK3WpP37B/Au4pyaspriSjtrY2ApbSFwTg3ViPfniT13n75PhzE7VEQ==}
+  fast-check@4.5.2:
+    resolution: {integrity: sha512-tOzL01LMrDIWPLfvMiGUMH0AjqnOelHQPmgvYkW/aRO4Yaw+pBQqWmyebNzAEbKOigoCN8HkRWUZXFkjmiaXMQ==}
     engines: {node: '>=12.17.0'}
 
   fast-deep-equal@3.1.3:
@@ -4985,6 +4985,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -8547,7 +8548,7 @@ snapshots:
       jest-mock: 30.2.0
       jest-util: 30.2.0
 
-  fast-check@4.3.0:
+  fast-check@4.5.2:
     dependencies:
       pure-rand: 7.0.1
 
