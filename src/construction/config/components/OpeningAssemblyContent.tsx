@@ -169,7 +169,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
         <Flex gap="2" align="end">
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
-              <IconButton title={t('common.addNew')}>
+              <IconButton title={t($ => $.common.addNew)}>
                 <PlusIcon />
               </IconButton>
             </DropdownMenu.Trigger>
@@ -180,12 +180,11 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
             </DropdownMenu.Content>
           </DropdownMenu.Root>
         </Flex>
-
         <Callout.Root color="gray">
           <Callout.Text>No opening assemblies. Create one to get started.</Callout.Text>
         </Callout.Root>
       </Flex>
-    )
+    );
   }
 
   return (
@@ -204,7 +203,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
 
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
-              <IconButton title={t('common.addNew')}>
+              <IconButton title={t($ => $.common.addNew)}>
                 <PlusIcon />
               </IconButton>
             </DropdownMenu.Trigger>
@@ -215,7 +214,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
             </DropdownMenu.Content>
           </DropdownMenu.Root>
 
-          <IconButton onClick={handleDuplicate} variant="soft" title={t('common.duplicate')}>
+          <IconButton onClick={handleDuplicate} variant="soft" title={t($ => $.common.duplicate)}>
             <CopyIcon />
           </IconButton>
 
@@ -226,7 +225,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
-              <AlertDialog.Title>{t('openings.deleteTitle')}</AlertDialog.Title>
+              <AlertDialog.Title>{t($ => $.openings.deleteTitle)}</AlertDialog.Title>
               <AlertDialog.Description>
                 Are you sure you want to delete &quot;{selectedAssembly.name}&quot;?
               </AlertDialog.Description>
@@ -252,7 +251,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
-              <AlertDialog.Title>{t('openings.resetTitle')}</AlertDialog.Title>
+              <AlertDialog.Title>{t($ => $.openings.resetTitle)}</AlertDialog.Title>
               <AlertDialog.Description>
                 Are you sure you want to reset default opening assemblies? This will restore the original default
                 assemblies but keep any custom assemblies you've created. This action cannot be undone.
@@ -273,12 +272,9 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
           </AlertDialog.Root>
         </Flex>
       </Flex>
-
       {/* Form */}
       {selectedAssembly && <ConfigForm assembly={selectedAssembly} />}
-
       <Separator size="4" />
-
       <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
@@ -294,7 +290,6 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
           size="2"
         />
       </Grid>
-
       {usage.isUsed && (
         <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
           <Label.Root>
@@ -322,7 +317,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
         </Grid>
       )}
     </Flex>
-  )
+  );
 }
 
 function ConfigForm({ assembly }: { assembly: OpeningConfig & { id: string; name: string } }): React.JSX.Element {

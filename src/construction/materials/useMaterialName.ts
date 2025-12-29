@@ -13,8 +13,9 @@ export function useMaterialName(material: Material | null | undefined): string {
   if (!material) return ''
 
   // If material has a translation key, use it
-  if (material.nameKey) {
-    return t(material.nameKey)
+  const nameKey = material.nameKey
+  if (nameKey != null) {
+    return t($ => $.materials.defaults[nameKey])
   }
 
   // Otherwise use the direct name (user-edited or no translation available)

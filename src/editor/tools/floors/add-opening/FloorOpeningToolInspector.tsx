@@ -11,10 +11,10 @@ export function FloorOpeningToolInspector({ tool }: ToolInspectorProps<FloorOpen
   return (
     <SimplePolygonToolInspector
       tool={tool}
-      title={t('floorOpening.title')}
-      description={t('floorOpening.description')}
-      completeLabel={t('floorOpening.completeLabel')}
-      cancelLabel={t('floorOpening.cancelLabel')}
+      title={t($ => $.floorOpening.title)}
+      description={t($ => $.floorOpening.description)}
+      completeLabel={t($ => $.floorOpening.completeLabel)}
+      cancelLabel={t($ => $.floorOpening.cancelLabel)}
     />
-  )
+  );
 }

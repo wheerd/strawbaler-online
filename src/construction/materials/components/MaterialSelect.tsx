@@ -95,7 +95,8 @@ export function MaterialSelect({
   const normalizedValue = value ?? (allowEmpty ? NONE_VALUE : '')
 
   const getMaterialDisplayName = (material: Material): string => {
-    return material.nameKey ? t(material.nameKey) : material.name
+    const nameKey = material.nameKey
+    return nameKey ? t($ => $.materials.defaults[nameKey]) : material.name
   }
 
   const sortedMaterials = [...materials].sort((a, b) => {

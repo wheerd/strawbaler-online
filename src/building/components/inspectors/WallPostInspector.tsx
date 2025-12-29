@@ -47,13 +47,15 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
       <Box p="2">
         <Callout.Root color="red">
           <Callout.Text>
-            <Text weight="bold">{t('wallPost.notFound')}</Text>
+            <Text weight="bold">{t($ => $.wallPost.notFound)}</Text>
             <br />
-            {t('wallPost.notFoundMessage', { id: postId })}
+            {t($ => $.wallPost.notFoundMessage, {
+              id: postId
+            })}
           </Callout.Text>
         </Callout.Root>
       </Box>
-    )
+    );
   }
 
   // Event handlers with stable references
@@ -90,7 +92,7 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
   )
 
   const handleRemovePost = useCallback(() => {
-    if (confirm(t('wallPost.confirmDelete'))) {
+    if (confirm(t($ => $.wallPost.confirmDelete))) {
       select.popSelection()
       removePost(perimeterId, wallId, postId)
     }
@@ -132,27 +134,27 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
       <Flex direction="column" gap="3">
         <Flex align="center" justify="between" gap="2">
           <Text size="1" weight="medium" color="gray">
-            {t('wallPost.type')}
+            {t($ => $.wallPost.type)}
           </Text>
           <SegmentedControl.Root value={post.type} onValueChange={handleTypeChange} size="1">
-            <SegmentedControl.Item value="inside">{t('wallPost.typeInside')}</SegmentedControl.Item>
-            <SegmentedControl.Item value="center">{t('wallPost.typeCenter')}</SegmentedControl.Item>
-            <SegmentedControl.Item value="outside">{t('wallPost.typeOutside')}</SegmentedControl.Item>
-            <SegmentedControl.Item value="double">{t('wallPost.typeDouble')}</SegmentedControl.Item>
+            <SegmentedControl.Item value="inside">{t($ => $.wallPost.typeInside)}</SegmentedControl.Item>
+            <SegmentedControl.Item value="center">{t($ => $.wallPost.typeCenter)}</SegmentedControl.Item>
+            <SegmentedControl.Item value="outside">{t($ => $.wallPost.typeOutside)}</SegmentedControl.Item>
+            <SegmentedControl.Item value="double">{t($ => $.wallPost.typeDouble)}</SegmentedControl.Item>
           </SegmentedControl.Root>
         </Flex>
 
         <Flex align="center" justify="between" gap="2">
           <Text size="1" weight="medium" color="gray">
-            {t('wallPost.behavior')}
+            {t($ => $.wallPost.behavior)}
           </Text>
           <Flex align="center" gap="2">
             <Text size="1" color="gray">
-              {t('wallPost.actsAsPost')}
+              {t($ => $.wallPost.actsAsPost)}
             </Text>
             <Switch checked={!post.replacesPosts} size="1" onCheckedChange={handleReplacesPostsChange} />
             <Text size="1" color="gray">
-              {t('wallPost.flankedByPosts')}
+              {t($ => $.wallPost.flankedByPosts)}
             </Text>
           </Flex>
         </Flex>
@@ -162,7 +164,7 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
           {/* Width Label */}
           <Label.Root htmlFor="post-width">
             <Text size="1" weight="medium" color="gray">
-              {t('wallPost.width')}
+              {t($ => $.wallPost.width)}
             </Text>
           </Label.Root>
 
@@ -183,7 +185,7 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
           {/* Thickness Label */}
           <Label.Root htmlFor="post-thickness">
             <Text size="1" weight="medium" color="gray">
-              {t('wallPost.thickness')}
+              {t($ => $.wallPost.thickness)}
             </Text>
           </Label.Root>
 
@@ -202,12 +204,11 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
           />
         </Grid>
       </Flex>
-
       {/* Material Selection */}
       <Flex direction="column" gap="2">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('wallPost.postMaterial')}
+            {t($ => $.wallPost.postMaterial)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -217,29 +218,25 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
           preferredTypes={['dimensional']}
         />
       </Flex>
-
       {/* Infill Material Selection */}
       <Flex direction="column" gap="2">
         <Label.Root>
           <Text size="1" weight="medium" color="gray">
-            {t('wallPost.infillMaterial')}
+            {t($ => $.wallPost.infillMaterial)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit value={post.infillMaterial} onValueChange={handleInfillMaterialChange} size="1" />
       </Flex>
-
       <Separator size="4" />
-
       {/* Action Buttons */}
       <Flex gap="2" justify="end">
-        <IconButton size="2" title={t('wallPost.fitToView')} onClick={handleFitToView}>
+        <IconButton size="2" title={t($ => $.wallPost.fitToView)} onClick={handleFitToView}>
           <FitToViewIcon />
         </IconButton>
-        <IconButton size="2" color="red" title={t('wallPost.deletePost')} onClick={handleRemovePost}>
+        <IconButton size="2" color="red" title={t($ => $.wallPost.deletePost)} onClick={handleRemovePost}>
           <TrashIcon />
         </IconButton>
       </Flex>
-
       <Callout.Root color="blue">
         <Callout.Icon>
           <InfoCircledIcon />
@@ -252,5 +249,5 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
         </Callout.Text>
       </Callout.Root>
     </Flex>
-  )
+  );
 }

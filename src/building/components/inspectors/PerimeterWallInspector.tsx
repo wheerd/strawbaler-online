@@ -53,12 +53,14 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
     return (
       <Callout.Root color="red">
         <Callout.Text>
-          <Text weight="bold">{t('perimeterWall.notFound')}</Text>
+          <Text weight="bold">{t($ => $.perimeterWall.notFound)}</Text>
           <br />
-          {t('perimeterWall.notFoundMessage', { id: wallId })}
+          {t($ => $.perimeterWall.notFoundMessage, {
+            id: wallId
+          })}
         </Callout.Text>
       </Callout.Root>
-    )
+    );
   }
 
   // Get assembly for this wall
@@ -120,7 +122,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
         <Flex align="center" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('perimeterWall.wallAssembly')}
+              {t($ => $.perimeterWall.wallAssembly)}
             </Text>
           </Label.Root>
           <MeasurementInfo highlightedAssembly="wallAssembly" />
@@ -130,7 +132,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
           onValueChange={(value: WallAssemblyId) => {
             updateOuterWallAssembly(perimeterId, wallId, value)
           }}
-          placeholder={t('perimeterWall.selectAssemblyPlaceholder')}
+          placeholder={t($ => $.perimeterWall.selectAssemblyPlaceholder)}
           size="1"
         />
 
@@ -138,7 +140,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
         <Flex align="center" gap="1">
           <Label.Root htmlFor="wall-thickness">
             <Text size="1" weight="medium" color="gray">
-              {t('perimeterWall.thickness')}
+              {t($ => $.perimeterWall.thickness)}
             </Text>
           </Label.Root>
           <MeasurementInfo highlightedMeasurement="totalWallThickness" showFinishedSides />
@@ -159,7 +161,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
         <Label.Root>
           <Flex align="center" gap="1">
             <Text size="1" weight="medium" color="gray">
-              {t('perimeterWall.basePlate')}
+              {t($ => $.perimeterWall.basePlate)}
             </Text>
             <MeasurementInfo highlightedPart="basePlate" />
           </Flex>
@@ -173,7 +175,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               removeWallBaseRingBeam(perimeterId, wallId)
             }
           }}
-          placeholder={t('perimeterWall.nonePlaceholder')}
+          placeholder={t($ => $.perimeterWall.nonePlaceholder)}
           size="1"
           allowNone
         />
@@ -182,7 +184,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
         <Label.Root>
           <Flex align="center" gap="1">
             <Text size="1" weight="medium" color="gray">
-              {t('perimeterWall.topPlate')}
+              {t($ => $.perimeterWall.topPlate)}
             </Text>
             <MeasurementInfo highlightedPart="topPlate" />
           </Flex>
@@ -196,24 +198,22 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               removeWallTopRingBeam(perimeterId, wallId)
             }
           }}
-          placeholder={t('perimeterWall.nonePlaceholder')}
+          placeholder={t($ => $.perimeterWall.nonePlaceholder)}
           size="1"
           allowNone
         />
       </Grid>
-
       <Separator size="4" />
-
       {/* Measurements */}
       <Flex direction="column" gap="2">
-        <Heading size="2">{t('perimeterWall.measurements')}</Heading>
+        <Heading size="2">{t($ => $.perimeterWall.measurements)}</Heading>
         <DataList.Root size="1">
           <DataList.Item>
-            <DataList.Label minWidth="88px">{t('perimeterWall.insideLength')}</DataList.Label>
+            <DataList.Label minWidth="88px">{t($ => $.perimeterWall.insideLength)}</DataList.Label>
             <DataList.Value>{formatLength(wall.insideLength)}</DataList.Value>
           </DataList.Item>
           <DataList.Item>
-            <DataList.Label minWidth="88px">{t('perimeterWall.outsideLength')}</DataList.Label>
+            <DataList.Label minWidth="88px">{t($ => $.perimeterWall.outsideLength)}</DataList.Label>
             <DataList.Value>{formatLength(wall.outsideLength)}</DataList.Value>
           </DataList.Item>
           {wallAssembly ? (
@@ -221,7 +221,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               <DataList.Item>
                 <DataList.Label minWidth="88px">
                   <Flex align="center" gap="1">
-                    {t('perimeterWall.insideLayersThickness')}
+                    {t($ => $.perimeterWall.insideLayersThickness)}
                     <MeasurementInfo highlightedPart="insideLayer" />
                   </Flex>
                 </DataList.Label>
@@ -230,7 +230,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               <DataList.Item>
                 <DataList.Label minWidth="88px">
                   <Flex align="center" gap="1">
-                    {t('perimeterWall.outsideLayersThickness')}
+                    {t($ => $.perimeterWall.outsideLayersThickness)}
                     <MeasurementInfo highlightedPart="outsideLayer" />
                   </Flex>
                 </DataList.Label>
@@ -239,7 +239,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
               <DataList.Item>
                 <DataList.Label minWidth="88px">
                   <Flex align="center" gap="1">
-                    {t('perimeterWall.constructionThickness')}
+                    {t($ => $.perimeterWall.constructionThickness)}
                     <MeasurementInfo highlightedPart="wallConstruction" />
                   </Flex>
                 </DataList.Label>
@@ -255,12 +255,10 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
           )}
         </DataList.Root>
       </Flex>
-
       <Separator size="4" />
-
       {/* Openings */}
       <Flex direction="column" gap="2">
-        <Heading size="2">{t('perimeterWall.openings')}</Heading>
+        <Heading size="2">{t($ => $.perimeterWall.openings)}</Heading>
         <Grid columns="3" gap="2">
           <Card size="1" variant="surface">
             <Flex direction="column" gap="0" m="-1">
@@ -268,7 +266,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
                 {wall.openings.filter(o => o.type === 'door').length}
               </Text>
               <Text align="center" size="1" color="gray">
-                {t('perimeterWall.doors')}
+                {t($ => $.perimeterWall.doors)}
               </Text>
             </Flex>
           </Card>
@@ -278,7 +276,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
                 {wall.openings.filter(o => o.type === 'window').length}
               </Text>
               <Text align="center" size="1" color="gray">
-                {t('perimeterWall.windows')}
+                {t($ => $.perimeterWall.windows)}
               </Text>
             </Flex>
           </Card>
@@ -288,45 +286,43 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
                 {wall.openings.filter(o => o.type === 'passage').length}
               </Text>
               <Text align="center" size="1" color="gray">
-                {t('perimeterWall.passages')}
+                {t($ => $.perimeterWall.passages)}
               </Text>
             </Flex>
           </Card>
         </Grid>
       </Flex>
-
       <Separator size="4" />
-
       {/* Actions */}
       <Flex direction="column" gap="2">
         <Flex gap="2" justify="end">
           <ConstructionPlanModal
-            title={t('perimeterWall.constructionPlanTitle')}
+            title={t($ => $.perimeterWall.constructionPlanTitle)}
             constructionModelFactory={async () => constructWall(perimeterId, wallId, true)}
             views={[
-              { view: FRONT_VIEW, label: t('perimeterWall.viewOutside') },
-              { view: BACK_VIEW, label: t('perimeterWall.viewInside') },
-              { view: TOP_VIEW, label: t('perimeterWall.viewTop') }
+              { view: FRONT_VIEW, label: t($ => $.perimeterWall.viewOutside) },
+              { view: BACK_VIEW, label: t($ => $.perimeterWall.viewInside) },
+              { view: TOP_VIEW, label: t($ => $.perimeterWall.viewTop) }
             ]}
             defaultHiddenTags={['wall-layer']}
             refreshKey={[perimeterId, wallId]}
             trigger={
-              <IconButton title={t('perimeterWall.viewConstructionPlan')} size="2">
+              <IconButton title={t($ => $.perimeterWall.viewConstructionPlan)} size="2">
                 <ConstructionPlanIcon width={20} height={20} />
               </IconButton>
             }
           />
 
-          <IconButton size="2" title={t('perimeterWall.splitWall')} onClick={() => pushTool('perimeter.split-wall')}>
+          <IconButton size="2" title={t($ => $.perimeterWall.splitWall)} onClick={() => pushTool('perimeter.split-wall')}>
             <SplitWallIcon width={20} height={20} />
           </IconButton>
-          <IconButton size="2" title={t('perimeterWall.fitToView')} onClick={handleFitToView}>
+          <IconButton size="2" title={t($ => $.perimeterWall.fitToView)} onClick={handleFitToView}>
             <FitToViewIcon width={20} height={20} />
           </IconButton>
           <IconButton
             size="2"
             color="red"
-            title={canDeleteWall.canDelete ? t('perimeterWall.deleteWall') : canDeleteWall.reason}
+            title={canDeleteWall.canDelete ? t($ => $.perimeterWall.deleteWall) : canDeleteWall.reason}
             onClick={handleDelete}
             disabled={!canDeleteWall.canDelete}
           >
@@ -335,5 +331,5 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
         </Flex>
       </Flex>
     </Flex>
-  )
+  );
 }

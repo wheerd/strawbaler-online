@@ -1,8 +1,9 @@
 import { Flex, Select, Text } from '@radix-ui/themes'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 
 import type { WallAssemblyId } from '@/building/model/ids'
+import type { NamedAssembly } from '@/construction/config'
 import { useWallAssemblies } from '@/construction/config/store'
 
 import { getPerimeterConfigTypeIcon } from './Icons'
@@ -29,7 +30,7 @@ export function WallAssemblySelect({
   const { t } = useTranslation('config')
   const wallAssemblies = useWallAssemblies()
 
-  const getDisplayName = (assembly: (typeof wallAssemblies)[number]): string => {
+  const getDisplayName = (assembly: NamedAssembly): string => {
     return assembly.nameKey ? t(assembly.nameKey) : assembly.name
   }
 
@@ -44,20 +45,25 @@ export function WallAssemblySelect({
       <Select.Content>
         {wallAssemblies.length === 0 ? (
           <Select.Item value="" disabled>
-            <Text color="gray">No wall assemblies available</Text>
+            <Text color="gray">{t($ => $.walls.emptyList)}</Text>
           </Select.Item>
         ) : (
           wallAssemblies.map(assembly => {
             const Icon = getPerimeterConfigTypeIcon(assembly.type)
             const isDefault = showDefaultIndicator && assembly.id === defaultAssemblyId
-            const displayName = getDisplayName(assembly)
+            const label = getDisplayName(assembly)
             return (
               <Select.Item key={assembly.id} value={assembly.id}>
                 <Flex align="center" gap="2">
                   <Icon style={{ flexShrink: 0 }} />
                   <Text>
-                    {displayName}
-                    {isDefault && <Text color="gray"> (default)</Text>}
+                    {isDefault ? (
+                      <Trans t={t} i18nKey={$ => $.walls.defaultLabel} components={{ gray: <Text color="gray" /> }}>
+                        <>{{ label }}</> <Text color="gray"> (default)</Text>
+                      </Trans>
+                    ) : (
+                      <>{label}</>
+                    )}
                   </Text>
                 </Flex>
               </Select.Item>

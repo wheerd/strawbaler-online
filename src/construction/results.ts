@@ -1,3 +1,4 @@
+import type { Resources, SelectorFn, SelectorOptions } from 'i18next'
 import type { Manifold } from 'manifold-3d'
 
 import { transformBounds } from '@/construction/geometry'
@@ -18,12 +19,13 @@ import type { ConstructionModel, HighlightedArea } from './model'
 
 export type ConstructionIssueId = string & { readonly brand: unique symbol }
 
+export type IssueMessageKey = SelectorFn<Resources['common'], string, SelectorOptions<'common'>>
+
 export interface ConstructionIssue {
   /** Unique ID for this issue. If the same ID is used, issues are grouped/merged */
   id: ConstructionIssueId
   /** i18n translation key for the issue message */
-  messageKey: string
-  /** Parameters to interpolate into the translated message */
+  messageKey: IssueMessageKey
   params?: Record<string, unknown>
   severity: 'error' | 'warning'
 }
@@ -70,7 +72,7 @@ export function* yieldElement(element: ConstructionElement | null): Generator<Co
 }
 
 export const yieldError = (
-  messageKey: string,
+  messageKey: IssueMessageKey,
   params: Record<string, unknown> | undefined,
   elements: (GroupOrElement | null)[],
   issueId?: string
@@ -100,7 +102,7 @@ export const yieldError = (
 }
 
 export const yieldWarning = (
-  messageKey: string,
+  messageKey: IssueMessageKey,
   params: Record<string, unknown> | undefined,
   elements: (GroupOrElement | null)[],
   issueId?: string

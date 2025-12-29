@@ -14,30 +14,28 @@ export function SplitWallToolInspector({ tool }: ToolInspectorProps<SplitWallToo
   if (!state.selectedWallId) {
     return (
       <Flex direction="column" gap="3">
-        <Heading size="2">{t('splitWall.title')}</Heading>
-
+        <Heading size="2">{t($ => $.splitWall.title)}</Heading>
         <Callout.Root color="blue">
           <Callout.Icon>
             <InfoCircledIcon />
           </Callout.Icon>
           <Callout.Text>
-            <Text size="1">{t('splitWall.info')}</Text>
+            <Text size="1">{t($ => $.splitWall.info)}</Text>
           </Callout.Text>
         </Callout.Root>
-
         <Text size="2" color="gray">
-          {t('splitWall.selectWall')}
+          {t($ => $.splitWall.selectWall)}
         </Text>
       </Flex>
-    )
+    );
   }
 
   return (
     <Flex direction="column" gap="4">
-      <Heading size="2">{t('splitWall.title')}</Heading>
+      <Heading size="2">{t($ => $.splitWall.title)}</Heading>
       {state.isValidSplit && (
         <Callout.Root color="green">
-          <Callout.Text>{t('splitWall.readyToSplit')}</Callout.Text>
+          <Callout.Text>{t($ => $.splitWall.readyToSplit)}</Callout.Text>
         </Callout.Root>
       )}
       {!state.isValidSplit && state.splitError && (
@@ -45,32 +43,30 @@ export function SplitWallToolInspector({ tool }: ToolInspectorProps<SplitWallToo
           <Callout.Text>{state.splitError}</Callout.Text>
         </Callout.Root>
       )}
-
       {/* Action Buttons */}
       <Flex direction="column" gap="2">
         <Button onClick={() => tool.commitSplit()} disabled={!state.isValidSplit} size="2">
-          {t('splitWall.splitWall')} <Kbd>Enter</Kbd>
+          {t($ => $.splitWall.splitWall)} <Kbd>Enter</Kbd>
         </Button>
         <Button variant="soft" onClick={() => tool.cancel()} size="2">
-          {t('splitWall.cancel')} <Kbd>Esc</Kbd>
+          {t($ => $.splitWall.cancel)} <Kbd>Esc</Kbd>
         </Button>
       </Flex>
-
       {/* Instructions */}
       <Flex direction="column" gap="1">
         <Text size="1" color="gray">
-          • {t('splitWall.controlHover')}
+          • {t($ => $.splitWall.controlHover)}
         </Text>
         <Text size="1" color="gray">
-          • {t('splitWall.controlClick')}
+          • {t($ => $.splitWall.controlClick)}
         </Text>
         <Text size="1" color="gray">
-          • {t('splitWall.controlMeasurements')}
+          • {t($ => $.splitWall.controlMeasurements)}
         </Text>
         <Text size="1" color="gray">
-          • {t('splitWall.controlConfirm')}
+          • {t($ => $.splitWall.controlConfirm)}
         </Text>
       </Flex>
     </Flex>
-  )
+  );
 }

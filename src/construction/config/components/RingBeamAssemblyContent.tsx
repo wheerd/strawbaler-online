@@ -167,7 +167,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
 
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
-              <IconButton title={t('common.addNew')}>
+              <IconButton title={t($ => $.common.addNew)}>
                 <PlusIcon />
               </IconButton>
             </DropdownMenu.Trigger>
@@ -196,7 +196,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           <IconButton
             onClick={handleDuplicate}
             disabled={!selectedAssembly}
-            title={t('common.duplicate')}
+            title={t($ => $.common.duplicate)}
             variant="soft"
           >
             <CopyIcon />
@@ -213,7 +213,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
-              <AlertDialog.Title>{t('ringBeams.deleteTitle')}</AlertDialog.Title>
+              <AlertDialog.Title>{t($ => $.ringBeams.deleteTitle)}</AlertDialog.Title>
               <AlertDialog.Description>
                 Are you sure you want to delete "{selectedAssembly?.name}"? This action cannot be undone.
               </AlertDialog.Description>
@@ -239,7 +239,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
-              <AlertDialog.Title>{t('ringBeams.resetTitle')}</AlertDialog.Title>
+              <AlertDialog.Title>{t($ => $.ringBeams.resetTitle)}</AlertDialog.Title>
               <AlertDialog.Description>
                 Are you sure you want to reset default ring beam assemblies? This will restore the original default
                 assemblies but keep any custom assemblies you've created. This action cannot be undone.
@@ -260,16 +260,13 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           </AlertDialog.Root>
         </Flex>
       </Flex>
-
       {/* Form */}
       {selectedAssembly && <ConfigForm assembly={selectedAssembly} />}
-
       {!selectedAssembly && ringBeamAssemblies.length === 0 && (
         <Flex justify="center" align="center" p="5">
           <Text color="gray">No ring beam assemblies yet. Create one using the "New" button above.</Text>
         </Flex>
       )}
-
       {/* Defaults Section */}
       <Separator size="4" />
       <Flex direction="column" gap="3">
@@ -325,7 +322,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
         )}
       </Flex>
     </Flex>
-  )
+  );
 }
 
 function ConfigForm({ assembly }: { assembly: RingBeamAssemblyConfig }): React.ReactNode {

@@ -64,14 +64,16 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
           </Dialog.Title>
 
           <Flex direction="column" mt="-2" p="0" gap="3">
-            <Text>{t('introduction')}</Text>
+            <Text>{t($ => $.introduction)}</Text>
 
             <Grid columns="1fr 1fr" gap="4">
               <Flex direction="column" gap="2">
-                <Heading size="3">{t('keyFeatures.title')}</Heading>
+                <Heading size="3">{t($ => $.keyFeatures.title)}</Heading>
                 <Text as="div" size="1">
                   <ul style={{ listStyleType: 'disc', margin: 0, paddingLeft: '1.5rem' }}>
-                    {(t('keyFeatures.items', { returnObjects: true }) as string[]).map((item, index) => (
+                    {(t($ => $.keyFeatures.items, {
+                      returnObjects: true
+                    }) as string[]).map((item, index) => (
                       <li key={index}>{item}</li>
                     ))}
                   </ul>
@@ -79,10 +81,12 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
               </Flex>
 
               <Flex direction="column" gap="2">
-                <Heading size="3">{t('plannedFeatures.title')}</Heading>
+                <Heading size="3">{t($ => $.plannedFeatures.title)}</Heading>
                 <Text as="div" size="1">
                   <ul style={{ listStyleType: 'disc', margin: 0, paddingLeft: '1.5rem' }}>
-                    {(t('plannedFeatures.items', { returnObjects: true }) as string[]).map((item, index) => (
+                    {(t($ => $.plannedFeatures.items, {
+                      returnObjects: true
+                    }) as string[]).map((item, index) => (
                       <li key={index}>{item}</li>
                     ))}
                   </ul>
@@ -92,8 +96,8 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
 
             <Grid columns="1fr 1fr" gap="4">
               <Flex direction="column" gap="2">
-                <Heading size="3">{t('demoVideo.title')}</Heading>
-                <Text size="2">{t('demoVideo.description')}</Text>
+                <Heading size="3">{t($ => $.demoVideo.title)}</Heading>
+                <Text size="2">{t($ => $.demoVideo.description)}</Text>
                 <Flex direction="row" gap="4" align="center">
                   <Link
                     size="2"
@@ -102,7 +106,7 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {t('demoVideo.demo01')}
+                    {t($ => $.demoVideo.demo01)}
                   </Link>
                   <Link
                     size="2"
@@ -111,20 +115,22 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {t('demoVideo.demo02')}
+                    {t($ => $.demoVideo.demo02)}
                   </Link>
                 </Flex>
-                <Heading size="3">{t('localStorage.title')}</Heading>
+                <Heading size="3">{t($ => $.localStorage.title)}</Heading>
                 <Text as="div" size="1">
-                  {t('localStorage.description')}
+                  {t($ => $.localStorage.description)}
                   <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.5rem' }}>
-                    {(t('localStorage.items', { returnObjects: true }) as string[]).map((item, index) => (
+                    {(t($ => $.localStorage.items, {
+                      returnObjects: true
+                    }) as string[]).map((item, index) => (
                       <li key={index}>{item}</li>
                     ))}
                   </ul>
                 </Text>
                 <Text size="2" color="gray">
-                  {t('localStorage.privacy')}
+                  {t($ => $.localStorage.privacy)}
                 </Text>
               </Flex>
 
@@ -134,10 +140,12 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                 </Callout.Icon>
                 <Callout.Text>
                   <Flex direction="column" gap="2" as="span">
-                    <Text weight="bold">{t('disclaimer.title')}</Text>
-                    <Text>{t('disclaimer.intro')}</Text>
+                    <Text weight="bold">{t($ => $.disclaimer.title)}</Text>
+                    <Text>{t($ => $.disclaimer.intro)}</Text>
                     <Flex direction="column" ml="4" gap="0" as="span">
-                      {(t('disclaimer.items', { returnObjects: true }) as string[]).map((item, index) => (
+                      {(t($ => $.disclaimer.items, {
+                        returnObjects: true
+                      }) as string[]).map((item, index) => (
                         <Text key={index}>{index === 3 ? <strong>{item}</strong> : item}</Text>
                       ))}
                     </Flex>
@@ -148,16 +156,18 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
 
             <Flex direction="column" gap="2" align="center">
               <Button size="3" onClick={onAccept} style={{ width: '100%' }}>
-                {t('continueButton')}
+                {t($ => $.continueButton)}
               </Button>
               {isFirstVisit && (
                 <Text size="1" color="gray" align="center">
-                  {t('reviewInfo')}
+                  {t($ => $.reviewInfo)}
                 </Text>
               )}
               <Flex direction="column" gap="1" align="center" style={{ marginTop: 'var(--space-2)' }}>
                 <Text size="1" color="gray" align="center">
-                  {t('version', { version: VERSION_INFO.version })}
+                  {t($ => $.version, {
+                    version: VERSION_INFO.version
+                  })}
                 </Text>
                 <Flex gap="2" align="center" justify="center">
                   <GitHubLogoIcon width="14" height="14" />
@@ -167,7 +177,7 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {t('viewOnGitHub')}
+                    {t($ => $.viewOnGitHub)}
                   </Link>
                 </Flex>
               </Flex>
@@ -176,5 +186,5 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
         </Flex>
       </Dialog.Content>
     </Dialog.Root>
-  )
+  );
 }

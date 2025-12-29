@@ -199,7 +199,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
 
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
-              <IconButton title={t('common.addNew')}>
+              <IconButton title={t($ => $.common.addNew)}>
                 <PlusIcon />
               </IconButton>
             </DropdownMenu.Trigger>
@@ -225,7 +225,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
             </DropdownMenu.Content>
           </DropdownMenu.Root>
 
-          <IconButton onClick={handleDuplicate} disabled={!selectedConfig} title={t('common.duplicate')} variant="soft">
+          <IconButton onClick={handleDuplicate} disabled={!selectedConfig} title={t($ => $.common.duplicate)} variant="soft">
             <CopyIcon />
           </IconButton>
 
@@ -248,7 +248,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
-              <AlertDialog.Title>{t('floors.deleteTitle')}</AlertDialog.Title>
+              <AlertDialog.Title>{t($ => $.floors.deleteTitle)}</AlertDialog.Title>
               <AlertDialog.Description>
                 Are you sure you want to delete "{selectedConfig?.name}"? This action cannot be undone.
               </AlertDialog.Description>
@@ -274,7 +274,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
-              <AlertDialog.Title>{t('floors.resetTitle')}</AlertDialog.Title>
+              <AlertDialog.Title>{t($ => $.floors.resetTitle)}</AlertDialog.Title>
               <AlertDialog.Description>
                 Are you sure you want to reset default floor assemblies? This will restore the original default
                 assemblies but keep any custom assemblies you've created. This action cannot be undone.
@@ -295,16 +295,13 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
           </AlertDialog.Root>
         </Flex>
       </Flex>
-
       {/* Form */}
       {selectedConfig && <ConfigForm assembly={selectedConfig} />}
-
       {!selectedConfig && floorAssemblies.length === 0 && (
         <Flex justify="center" align="center" p="5">
           <Text color="gray">No floor assemblies yet. Create one using the "New" button above.</Text>
         </Flex>
       )}
-
       {/* Defaults Section */}
       <Separator size="4" />
       <Flex direction="column" gap="3">
@@ -343,7 +340,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
         )}
       </Flex>
     </Flex>
-  )
+  );
 }
 
 function ConfigForm({ assembly }: { assembly: FloorAssemblyConfig }): React.JSX.Element {

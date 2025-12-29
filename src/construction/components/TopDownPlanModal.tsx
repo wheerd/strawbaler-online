@@ -27,18 +27,18 @@ export default function TopDownPlanModal({
       views={[
         {
           view: TOP_VIEW,
-          label: t('planModal.views.walls'),
+          label: t($ => $.planModal.views.walls),
           alwaysHiddenTags: [TAG_ROOF.id, 'roof-measurement', 'floor-measurement']
         },
         {
           view: TOP_VIEW,
-          label: t('planModal.views.roof'),
+          label: t($ => $.planModal.views.roof),
           alwaysHiddenTags: ['wall-measurement', 'opening-measurement', 'floor-measurement'],
           toggleHideTags: [TAG_DECKING.id]
         },
         {
           view: TOP_VIEW,
-          label: t('planModal.views.floor'),
+          label: t($ => $.planModal.views.floor),
           alwaysHiddenTags: [
             TAG_WALLS.id,
             TAG_BASE_PLATE.id,
@@ -56,5 +56,5 @@ export default function TopDownPlanModal({
       refreshKey={refreshKey}
       trigger={trigger}
     />
-  )
+  );
 }

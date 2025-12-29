@@ -6,7 +6,7 @@ import { constructPost } from '@/construction/materials/posts'
 import { getMaterialById } from '@/construction/materials/store'
 import { constructStraw } from '@/construction/materials/straw'
 import { yieldMeasurementFromArea } from '@/construction/measurements'
-import type { ConstructionResult } from '@/construction/results'
+import type { ConstructionResult, IssueMessageKey } from '@/construction/results'
 import { yieldAndCollectElements, yieldElement, yieldError, yieldWarning } from '@/construction/results'
 import { createElementFromArea } from '@/construction/shapes'
 import { TAG_INFILL, TAG_POST_SPACING } from '@/construction/tags'
@@ -23,22 +23,22 @@ export function* infillWallArea(
   const { size } = area
   const { minStrawSpace } = config
   const { width: postWidth } = config.posts
-  let error: { messageKey: string; params?: Record<string, unknown> } | null = null
-  let warning: { messageKey: string; params?: Record<string, unknown> } | null = null
+  let error: { messageKey: IssueMessageKey; params?: Record<string, unknown> } | null = null
+  let warning: { messageKey: IssueMessageKey; params?: Record<string, unknown> } | null = null
   const allElements: GroupOrElement[] = []
 
   if (size[2] < minStrawSpace && !config.infillMaterial) {
-    warning = { messageKey: 'construction.infill.notEnoughVerticalSpace' }
+    warning = { messageKey: $ => $.construction.infill.notEnoughVerticalSpace }
   }
 
   if (startsWithStand || endsWithStand) {
     if (size[0] < postWidth) {
-      error = { messageKey: 'construction.infill.notEnoughSpaceForPost' }
+      error = { messageKey: $ => $.construction.infill.notEnoughSpaceForPost }
     } else if (size[0] === postWidth) {
       yield* constructPost(area, config.posts)
       return
     } else if (startsWithStand && endsWithStand && size[0] < 2 * postWidth) {
-      error = { messageKey: 'construction.infill.notEnoughSpaceForTwoPosts' }
+      error = { messageKey: $ => $.construction.infill.notEnoughSpaceForTwoPosts }
     }
   }
 
@@ -103,7 +103,7 @@ function* constructInfillRecursive(
     yield* yieldAndCollectElements(constructStraw(strawArea, config.strawMaterial), strawElements)
 
     if (baleWidth < config.minStrawSpace) {
-      yield yieldWarning('construction.infill.notEnoughSpaceForStraw', undefined, strawElements)
+      yield yieldWarning($ => $.construction.infill.notEnoughSpaceForStraw, undefined, strawElements)
     }
 
     yield* yieldMeasurementFromArea(strawArea, 'width', [TAG_POST_SPACING])

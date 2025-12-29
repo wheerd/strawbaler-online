@@ -142,13 +142,15 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
       <Box p="2">
         <Callout.Root color="red">
           <Callout.Text>
-            <Text weight="bold">{t('opening.notFound')}</Text>
+            <Text weight="bold">{t($ => $.opening.notFound)}</Text>
             <br />
-            {t('opening.notFoundMessage', { id: openingId })}
+            {t($ => $.opening.notFoundMessage, {
+              id: openingId
+            })}
           </Callout.Text>
         </Callout.Root>
       </Box>
-    )
+    );
   }
 
   // Event handlers with stable references
@@ -162,7 +164,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   )
 
   const handleRemoveOpening = useCallback(() => {
-    if (confirm(t('opening.confirmDelete'))) {
+    if (confirm(t($ => $.opening.confirmDelete))) {
       select.popSelection()
       removeOpeningFromOuterWall(perimeterId, wallId, openingId)
     }
@@ -212,15 +214,14 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           />
         </Flex>
       )}
-
       {/* Basic Properties */}
       <Flex direction="column" gap="3">
         <Flex align="center" justify="between" gap="2">
           <Flex gap="1" align="center">
             <Text size="1" weight="medium" color="gray">
-              {t('opening.type')}
+              {t($ => $.opening.type)}
             </Text>
-            <Tooltip content={t('opening.typeTooltip')}>
+            <Tooltip content={t($ => $.opening.typeTooltip)}>
               <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
             </Tooltip>
           </Flex>
@@ -232,7 +233,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             size="2"
           >
             <SegmentedControl.Item value="door">
-              <Tooltip content={t('opening.typeDoorTooltip')}>
+              <Tooltip content={t($ => $.opening.typeDoorTooltip)}>
                 <Box>
                   <DoorIcon width={20} height={20} />
                 </Box>
@@ -240,7 +241,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             </SegmentedControl.Item>
 
             <SegmentedControl.Item value="window">
-              <Tooltip content={t('opening.typeWindowTooltip')}>
+              <Tooltip content={t($ => $.opening.typeWindowTooltip)}>
                 <Box>
                   <WindowIcon width={20} height={20} />
                 </Box>
@@ -248,7 +249,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             </SegmentedControl.Item>
 
             <SegmentedControl.Item value="passage">
-              <Tooltip content={t('opening.typePassageTooltip')}>
+              <Tooltip content={t($ => $.opening.typePassageTooltip)}>
                 <Box>
                   <PassageIcon width={20} height={20} />
                 </Box>
@@ -261,13 +262,13 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
         <Flex align="center" justify="between" gap="2">
           <Flex align="center" gap="1">
             <Text size="1" weight="medium" color="gray">
-              {t('opening.dimensionMode')}
+              {t($ => $.opening.dimensionMode)}
             </Text>
             <Tooltip
               content={
                 dimensionInputMode === 'fitting'
-                  ? t('opening.dimensionModeFittingTooltip')
-                  : t('opening.dimensionModeFinishedTooltip')
+                  ? t($ => $.opening.dimensionModeFittingTooltip)
+                  : t($ => $.opening.dimensionModeFinishedTooltip)
               }
             >
               <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
@@ -278,13 +279,13 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
             onValueChange={(value: 'fitting' | 'finished') => setDimensionInputMode(value)}
             size="1"
           >
-            <SegmentedControl.Item value="fitting">{t('opening.dimensionModeFitting')}</SegmentedControl.Item>
-            <SegmentedControl.Item value="finished">{t('opening.dimensionModeFinished')}</SegmentedControl.Item>
+            <SegmentedControl.Item value="fitting">{t($ => $.opening.dimensionModeFitting)}</SegmentedControl.Item>
+            <SegmentedControl.Item value="finished">{t($ => $.opening.dimensionModeFinished)}</SegmentedControl.Item>
           </SegmentedControl.Root>
         </Flex>
         <Flex align="center" justify="between" gap="1">
           <Text size="1" weight="medium" color="gray">
-            {t('opening.padding')}
+            {t($ => $.opening.padding)}
           </Text>
           <Text size="1" color="gray">
             {formatLength(openingConfig.padding)}
@@ -296,7 +297,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           {/* Row 1, Column 1: Width Label */}
           <Label.Root htmlFor="opening-width">
             <Text size="1" weight="medium" color="gray">
-              {t('opening.width')}
+              {t($ => $.opening.width)}
             </Text>
           </Label.Root>
 
@@ -320,7 +321,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           {/* Row 1, Column 3: Height Label */}
           <Label.Root htmlFor="opening-height">
             <Text size="1" weight="medium" color="gray">
-              {t('opening.height')}
+              {t($ => $.opening.height)}
             </Text>
           </Label.Root>
 
@@ -344,7 +345,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           {/* Row 2, Column 1: Sill Height Label */}
           <Label.Root htmlFor="opening-sill-height">
             <Text size="1" weight="medium" color="gray">
-              {t('opening.sill')}
+              {t($ => $.opening.sill)}
             </Text>
           </Label.Root>
 
@@ -370,7 +371,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           {/* Row 2, Column 3: Top Height Label */}
           <Label.Root htmlFor="opening-top-height">
             <Text size="1" weight="medium" color="gray">
-              {t('opening.top')}
+              {t($ => $.opening.top)}
             </Text>
           </Label.Root>
 
@@ -394,16 +395,15 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           />
         </Grid>
       </Flex>
-
       {/* Opening Assembly Override */}
       <Flex direction="column" gap="1">
         <Flex gap="1" align="center">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('opening.openingAssembly')}
+              {t($ => $.opening.openingAssembly)}
             </Text>
           </Label.Root>
-          <Tooltip content={t('opening.openingAssemblyTooltip')}>
+          <Tooltip content={t($ => $.opening.openingAssemblyTooltip)}>
             <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
           </Tooltip>
         </Flex>
@@ -419,19 +419,16 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
           size="1"
         />
       </Flex>
-
       <Separator size="4" />
-
       {/* Action Buttons */}
       <Flex gap="2" justify="end">
-        <IconButton size="2" title={t('opening.fitToView')} onClick={handleFitToView}>
+        <IconButton size="2" title={t($ => $.opening.fitToView)} onClick={handleFitToView}>
           <FitToViewIcon />
         </IconButton>
-        <IconButton size="2" color="red" title={t('opening.deleteOpening')} onClick={handleRemoveOpening}>
+        <IconButton size="2" color="red" title={t($ => $.opening.deleteOpening)} onClick={handleRemoveOpening}>
           <TrashIcon />
         </IconButton>
       </Flex>
-
       <Callout.Root color="blue">
         <Callout.Icon>
           <InfoCircledIcon />
@@ -444,5 +441,5 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
         </Callout.Text>
       </Callout.Root>
     </Flex>
-  )
+  );
 }

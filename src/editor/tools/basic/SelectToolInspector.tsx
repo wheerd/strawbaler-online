@@ -40,14 +40,11 @@ export function SelectToolInspector(): React.JSX.Element {
   return (
     <Flex direction="column" p="2" gap="2">
       {!selectedId && <StoreyInspector key="storey" selectedId={storeyId} />}
-
       {/* Perimeter entities */}
       {selectedId && isPerimeterId(selectedId) && <PerimeterInspector key={selectedId} selectedId={selectedId} />}
-
       {selectedId && isPerimeterWallId(selectedId) && (
         <PerimeterWallInspector key={selectedId} perimeterId={selectionPath[0] as PerimeterId} wallId={selectedId} />
       )}
-
       {selectedId && isPerimeterCornerId(selectedId) && (
         <PerimeterCornerInspector
           key={selectedId}
@@ -55,7 +52,6 @@ export function SelectToolInspector(): React.JSX.Element {
           cornerId={selectedId}
         />
       )}
-
       {selectedId && isOpeningId(selectedId) && (
         <OpeningInspector
           key={selectedId}
@@ -64,7 +60,6 @@ export function SelectToolInspector(): React.JSX.Element {
           openingId={selectedId}
         />
       )}
-
       {selectedId && isWallPostId(selectedId) && (
         <WallPostInspector
           key={selectedId}
@@ -73,19 +68,14 @@ export function SelectToolInspector(): React.JSX.Element {
           postId={selectedId}
         />
       )}
-
       {selectedId && isFloorAreaId(selectedId) && <FloorAreaInspector key={selectedId} floorAreaId={selectedId} />}
-
       {selectedId && isFloorOpeningId(selectedId) && (
         <FloorOpeningInspector key={selectedId} floorOpeningId={selectedId} />
       )}
-
       {selectedId && isRoofId(selectedId) && <RoofInspector key={selectedId} roofId={selectedId} />}
-
       {selectedId && isRoofOverhangId(selectedId) && (
         <RoofOverhangInspector key={selectedId} roofId={selectionPath[0] as RoofId} overhangId={selectedId} />
       )}
-
       {/* Unknown entity type */}
       {selectedId &&
         !isPerimeterId(selectedId) &&
@@ -102,12 +92,14 @@ export function SelectToolInspector(): React.JSX.Element {
               <ExclamationTriangleIcon />
             </Callout.Icon>
             <Callout.Text>
-              <Text weight="bold">{t('select.unknownEntityType')}</Text>
+              <Text weight="bold">{t($ => $.select.unknownEntityType)}</Text>
               <br />
-              {t('select.unknownEntityMessage', { id: selectedId })}
+              {t($ => $.select.unknownEntityMessage, {
+                id: selectedId
+              })}
             </Callout.Text>
           </Callout.Root>
         )}
     </Flex>
-  )
+  );
 }

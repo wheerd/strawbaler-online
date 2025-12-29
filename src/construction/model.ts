@@ -17,7 +17,12 @@ import { simplifyPolygon, unionPolygons } from '@/shared/geometry/polygon'
 import { type ConstructionGroup, type GroupOrElement, createConstructionElementId } from './elements'
 import { transformBounds } from './geometry'
 import type { RawMeasurement } from './measurements'
-import { type ConstructionIssue, type ConstructionIssueId, mergeConstructionIssues } from './results'
+import {
+  type ConstructionIssue,
+  type ConstructionIssueId,
+  type IssueMessageKey,
+  mergeConstructionIssues
+} from './results'
 import type { Tag } from './tags'
 
 export interface ConstructionModel {
@@ -86,7 +91,7 @@ export interface HighlightedCut {
  * Useful for guarding unfinished construction paths until the real implementation lands.
  */
 export function createUnsupportedModel(
-  messageKey: string,
+  messageKey: IssueMessageKey,
   params?: Record<string, unknown>,
   issueId?: string
 ): ConstructionModel {

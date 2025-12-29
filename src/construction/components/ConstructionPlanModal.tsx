@@ -166,12 +166,11 @@ function ModalContent({
     >
       <div className="pb-[2px] mr-6">
         <Tabs.List justify="end">
-          <Tabs.Trigger value="plan">{t('planModal.tabs.planIssues')}</Tabs.Trigger>
-          <Tabs.Trigger value="parts">{t('planModal.tabs.partsList')}</Tabs.Trigger>
-          <Tabs.Trigger value="modules">{t('planModal.tabs.modules')}</Tabs.Trigger>
+          <Tabs.Trigger value="plan">{t($ => $.planModal.tabs.planIssues)}</Tabs.Trigger>
+          <Tabs.Trigger value="parts">{t($ => $.planModal.tabs.partsList)}</Tabs.Trigger>
+          <Tabs.Trigger value="modules">{t($ => $.planModal.tabs.modules)}</Tabs.Trigger>
         </Tabs.List>
       </div>
-
       <Tabs.Content value="plan">
         <Flex direction="column" gap="3" style={{ flex: 1, minHeight: 0 }} className="overflow-hidden">
           <div
@@ -205,7 +204,6 @@ function ModalContent({
           </Box>
         </Flex>
       </Tabs.Content>
-
       <Tabs.Content value="parts">
         <Box width="100%" height="100%" style={{ overflow: 'auto' }}>
           {partsDataPromise ? (
@@ -217,7 +215,6 @@ function ModalContent({
           )}
         </Box>
       </Tabs.Content>
-
       <Tabs.Content value="modules">
         <Box width="100%" height="100%" style={{ overflow: 'auto' }}>
           {partsDataPromise ? (
@@ -230,7 +227,7 @@ function ModalContent({
         </Box>
       </Tabs.Content>
     </Tabs.Root>
-  )
+  );
 }
 
 function ConstructionPlanModalContent({
@@ -258,10 +255,10 @@ function ConstructionPlanModalContent({
           <Callout.Icon>
             <CrossCircledIcon />
           </Callout.Icon>
-          <Callout.Text>{t('planModal.errors.failedModel')}</Callout.Text>
+          <Callout.Text>{t($ => $.planModal.errors.failedModel)}</Callout.Text>
         </Callout.Root>
       </Flex>
-    )
+    );
   }
 
   return (
@@ -293,10 +290,10 @@ function PartsTabContent({
           <Callout.Icon>
             <CrossCircledIcon />
           </Callout.Icon>
-          <Callout.Text>{t('planModal.errors.failedPartsList')}</Callout.Text>
+          <Callout.Text>{t($ => $.planModal.errors.failedPartsList)}</Callout.Text>
         </Callout.Root>
       </Flex>
-    )
+    );
   }
 
   return <ConstructionPartsList partsList={partsData.material} onViewInPlan={onViewInPlan} />
@@ -319,10 +316,10 @@ function ModulesTabContent({
           <Callout.Icon>
             <CrossCircledIcon />
           </Callout.Icon>
-          <Callout.Text>{t('planModal.errors.failedModulesList')}</Callout.Text>
+          <Callout.Text>{t($ => $.planModal.errors.failedModulesList)}</Callout.Text>
         </Callout.Root>
       </Flex>
-    )
+    );
   }
 
   return <ConstructionVirtualPartsList partsList={partsData.virtual} onViewInPlan={onViewInPlan} />

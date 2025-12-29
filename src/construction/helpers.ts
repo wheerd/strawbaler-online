@@ -650,7 +650,7 @@ export function* simpleStripes(
     }
   } catch (error) {
     yield yieldWarning(
-      'construction.error.geometryProcessing',
+      $ => $.construction.error.geometryProcessing,
       { message: error instanceof Error ? error.message : String(error) },
       []
     )

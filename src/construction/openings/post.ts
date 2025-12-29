@@ -41,7 +41,7 @@ export class PostOpeningAssembly extends BaseOpeningAssembly<PostOpeningConfig> 
     const [headerArea, aboveHeader] = topPart.splitInZ(this.config.headerThickness)
 
     if (adjustedHeader > wallTop) {
-      yield yieldError('construction.opening.heightExceedsWall', { excess: adjustedHeader - wallTop }, [])
+      yield yieldError($ => $.construction.opening.heightExceedsWall, { excess: adjustedHeader - wallTop }, [])
     }
 
     yield* yieldMeasurementFromArea(rawOpeningArea, 'width', [TAG_OPENING_WIDTH])
@@ -58,7 +58,7 @@ export class PostOpeningAssembly extends BaseOpeningAssembly<PostOpeningConfig> 
 
       if (headerTop > wallTop) {
         yield yieldError(
-          'construction.opening.headerDoesNotFit',
+          $ => $.construction.opening.headerDoesNotFit,
           { required: this.config.headerThickness, available: wallTop - adjustedHeader },
           [headerElement]
         )
@@ -79,7 +79,7 @@ export class PostOpeningAssembly extends BaseOpeningAssembly<PostOpeningConfig> 
 
       if (sillBottom < 0) {
         yield yieldError(
-          'construction.opening.sillDoesNotFit',
+          $ => $.construction.opening.sillDoesNotFit,
           { required: this.config.sillThickness, available: sillArea.minHeight },
           [sillElement]
         )

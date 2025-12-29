@@ -38,7 +38,7 @@ export function ConfigurationModal({
       open={open}
       onOpenChange={onOpenChange}
       titleIcon={<GearIcon />}
-      title={t('modal.title')}
+      title={t($ => $.modal.title)}
       size="4"
       width="95%"
       maxWidth="95%"
@@ -48,12 +48,12 @@ export function ConfigurationModal({
     >
       <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
         <Tabs.List>
-          <Tabs.Trigger value="materials">{t('modal.tabMaterials')}</Tabs.Trigger>
-          <Tabs.Trigger value="ringbeams">{t('modal.tabRingBeams')}</Tabs.Trigger>
-          <Tabs.Trigger value="walls">{t('modal.tabWalls')}</Tabs.Trigger>
-          <Tabs.Trigger value="openings">{t('modal.tabOpenings')}</Tabs.Trigger>
-          <Tabs.Trigger value="floors">{t('modal.tabFloors')}</Tabs.Trigger>
-          <Tabs.Trigger value="roofs">{t('modal.tabRoofs')}</Tabs.Trigger>
+          <Tabs.Trigger value="materials">{t($ => $.modal.tabMaterials)}</Tabs.Trigger>
+          <Tabs.Trigger value="ringbeams">{t($ => $.modal.tabRingBeams)}</Tabs.Trigger>
+          <Tabs.Trigger value="walls">{t($ => $.modal.tabWalls)}</Tabs.Trigger>
+          <Tabs.Trigger value="openings">{t($ => $.modal.tabOpenings)}</Tabs.Trigger>
+          <Tabs.Trigger value="floors">{t($ => $.modal.tabFloors)}</Tabs.Trigger>
+          <Tabs.Trigger value="roofs">{t($ => $.modal.tabRoofs)}</Tabs.Trigger>
         </Tabs.List>
 
         <Tabs.Content value="materials">
@@ -93,5 +93,5 @@ export function ConfigurationModal({
         </Tabs.Content>
       </Tabs.Root>
     </BaseModal>
-  )
+  );
 }

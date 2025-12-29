@@ -2,10 +2,27 @@
   "modal": {},
   "common": {},
   "materials": {},
-  "walls": {},
-  "openings": {},
-  "floors": {},
-  "roofs": {},
-  "ringBeams": {},
+  "walls": {
+    "emptyList": "Keine Wandaufbauten verfügbar",
+    "defaultLabel": "{{label}} <gray>(Standard)</gray>"
+  },
+  "openings": {
+    "useGlobalDefault": "Globalen Standard verwenden",
+    "emptyList": "Keine Öffnungsaufbauten verfügbar",
+    "defaultLabel": "{{label}} <gray>(Standard)</gray>"
+  },
+  "floors": {
+    "emptyList": "Keine Bodenaufbauten verfügbar",
+    "defaultLabel": "{{label}} <gray>(Standard)</gray>"
+  },
+  "roofs": {
+    "emptyList": "Keine Dachaufbauten verfügbar",
+    "defaultLabel": "{{label}} <gray>(Standard)</gray>"
+  },
+  "ringBeams": {
+    "none": "Keine",
+    "emptyList": "Keine Ringbalkenaufbauten verfügbar",
+    "defaultLabel": "{{label}} <gray>(Standard)</gray>"
+  },
   "layers": {}
 }

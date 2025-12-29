@@ -40,7 +40,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
             <InfoCircledIcon />
           </Callout.Icon>
           <Callout.Text>
-            <Text size="1">{t('roof.info')}</Text>
+            <Text size="1">{t($ => $.roof.info)}</Text>
           </Callout.Text>
         </Callout.Root>
 
@@ -54,7 +54,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
           <Flex direction="column" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                {t('roof.assembly')}
+                {t($ => $.roof.assembly)}
               </Text>
             </Label.Root>
             <RoofAssemblySelectWithEdit
@@ -70,12 +70,12 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
           <Flex align="center" gap="2" justify="between">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                {t('roof.type')}
+                {t($ => $.roof.type)}
               </Text>
             </Label.Root>
             <SegmentedControl.Root size="1" value={state.type} onValueChange={value => tool.setType(value as RoofType)}>
-              <SegmentedControl.Item value="gable">{t('roof.typeGable')}</SegmentedControl.Item>
-              <SegmentedControl.Item value="shed">{t('roof.typeShed')}</SegmentedControl.Item>
+              <SegmentedControl.Item value="gable">{t($ => $.roof.typeGable)}</SegmentedControl.Item>
+              <SegmentedControl.Item value="shed">{t($ => $.roof.typeShed)}</SegmentedControl.Item>
             </SegmentedControl.Root>
           </Flex>
 
@@ -83,7 +83,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
           <Flex align="center" gap="2" justify="between">
             <Label.Root htmlFor="roof-slope">
               <Text size="1" weight="medium" color="gray">
-                {t('roof.slope')}
+                {t($ => $.roof.slope)}
               </Text>
             </Label.Root>
 
@@ -131,7 +131,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
           <Flex align="center" gap="2" justify="between">
             <Label.Root htmlFor="vertical-offset">
               <Text size="1" weight="medium" color="gray">
-                {t('roof.verticalOffset')}
+                {t($ => $.roof.verticalOffset)}
               </Text>
             </Label.Root>
             <LengthField
@@ -151,7 +151,7 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
           <Flex align="center" gap="2" justify="between">
             <Label.Root htmlFor="roof-overhang">
               <Text size="1" weight="medium" color="gray">
-                {t('roof.overhang')}
+                {t($ => $.roof.overhang)}
               </Text>
             </Label.Root>
             <LengthField
@@ -172,24 +172,28 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
         <Separator size="4" />
         <Flex direction="column" gap="2">
           <Text size="1" weight="medium">
-            {t('roof.controlsHeading')}
+            {t($ => $.roof.controlsHeading)}
           </Text>
           <Text size="1" color="gray">
-            • {t('roof.controlPlace')}
+            • {t($ => $.roof.controlPlace)}
           </Text>
           <Text size="1" color="gray">
-            • {t('roof.controlSnap')}
+            • {t($ => $.roof.controlSnap)}
           </Text>
           <Text size="1" color="gray">
-            • <Kbd>Esc</Kbd> {t('roof.controlEsc', { key: '' }).replace('{{key}}', '').trim()}
+            • <Kbd>Esc</Kbd> {t($ => $.roof.controlEsc, {
+            key: ''
+          }).replace('{{key}}', '').trim()}
           </Text>
           {state.points.length >= 3 && (
             <>
               <Text size="1" color="gray">
-                • <Kbd>Enter</Kbd> {t('roof.controlEnter', { key: '' }).replace('{{key}}', '').trim()}
+                • <Kbd>Enter</Kbd> {t($ => $.roof.controlEnter, {
+                key: ''
+              }).replace('{{key}}', '').trim()}
               </Text>
               <Text size="1" color="gray">
-                • {t('roof.controlClickFirst')}
+                • {t($ => $.roof.controlClickFirst)}
               </Text>
             </>
           )}
@@ -206,10 +210,10 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
                   color="green"
                   onClick={() => tool.complete()}
                   disabled={!state.isClosingSegmentValid}
-                  title={t('roof.completeTooltip')}
+                  title={t($ => $.roof.completeTooltip)}
                   style={{ width: '100%' }}
                 >
-                  <Text size="1">{t('roof.completeRoof')}</Text>
+                  <Text size="1">{t($ => $.roof.completeRoof)}</Text>
                   <Kbd size="1" style={{ marginLeft: 'auto' }}>
                     Enter
                   </Kbd>
@@ -220,10 +224,10 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
                 color="red"
                 variant="soft"
                 onClick={() => tool.cancel()}
-                title={t('roof.cancelTooltip')}
+                title={t($ => $.roof.cancelTooltip)}
                 style={{ width: '100%' }}
               >
-                <Text size="1">{t('roof.cancelRoof')}</Text>
+                <Text size="1">{t($ => $.roof.cancelRoof)}</Text>
                 <Kbd size="1" style={{ marginLeft: 'auto' }}>
                   Esc
                 </Kbd>
@@ -233,5 +237,5 @@ export function RoofToolInspector({ tool }: ToolInspectorProps<RoofTool>): React
         )}
       </Flex>
     </Box>
-  )
+  );
 }

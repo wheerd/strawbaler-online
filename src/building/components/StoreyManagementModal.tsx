@@ -24,7 +24,7 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
   const handleAddEmptyStorey = useCallback(() => {
     try {
       const floorAssemblyId = getDefaultFloorAssemblyId()
-      const newStorey = addStorey(t('storeys.newFloor'), undefined, floorAssemblyId)
+      const newStorey = addStorey(t($ => $.storeys.newFloor), undefined, floorAssemblyId)
       setActiveStoreyId(newStorey.id) // Switch to new storey
     } catch (error) {
       console.error('Failed to add new floor:', error)
@@ -35,7 +35,7 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
   const storeysDisplayOrder = [...storeysOrdered].reverse()
 
   return (
-    <BaseModal title={t('storeys.manageFloors')} trigger={trigger} width="60vw" maxWidth="90vw">
+    <BaseModal title={t($ => $.storeys.manageFloors)} trigger={trigger} width="60vw" maxWidth="90vw">
       <Grid columns="1fr" gap="2">
         {storeysDisplayOrder.length > 0 ? (
           storeysDisplayOrder.map(storey => (
@@ -48,14 +48,14 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
             />
           ))
         ) : (
-          <Text>{t('storeys.noFloorsYet')}</Text>
+          <Text>{t($ => $.storeys.noFloorsYet)}</Text>
         )}
 
         <Button onClick={handleAddEmptyStorey}>
           <PlusIcon />
-          {t('storeys.addNewFloor')}
+          {t($ => $.storeys.addNewFloor)}
         </Button>
       </Grid>
     </BaseModal>
-  )
+  );
 }

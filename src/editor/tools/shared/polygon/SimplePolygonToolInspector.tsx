@@ -61,7 +61,7 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
             <Separator size="4" />
             <Flex align="center" justify="between" gap="2">
               <Text size="1" weight="medium" color="blue">
-                {t('simplePolygon.lengthOverride')}
+                {t($ => $.simplePolygon.lengthOverride)}
               </Text>
               <Flex align="center" gap="2">
                 <Code size="1" color="blue">
@@ -72,7 +72,7 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
                   variant="ghost"
                   color="red"
                   onClick={() => tool.clearLengthOverride()}
-                  title={t('simplePolygon.clearLengthOverride')}
+                  title={t($ => $.simplePolygon.clearLengthOverride)}
                 >
                   <Cross2Icon />
                 </IconButton>
@@ -84,26 +84,32 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
         <Separator size="4" />
         <Flex direction="column" gap="2">
           <Text size="1" weight="medium">
-            {t('simplePolygon.controlsHeading')}
+            {t($ => $.simplePolygon.controlsHeading)}
           </Text>
           <Text size="1" color="gray">
-            • {t('simplePolygon.controlPlace')}
+            • {t($ => $.simplePolygon.controlPlace)}
           </Text>
           <Text size="1" color="gray">
-            • {t('simplePolygon.controlSnap')}
+            • {t($ => $.simplePolygon.controlSnap)}
           </Text>
           <Text size="1" color="gray">
-            • {t('simplePolygon.controlNumbers')}
+            • {t($ => $.simplePolygon.controlNumbers)}
           </Text>
           <Text size="1" color="gray">
             • <Kbd>Esc</Kbd>{' '}
             {state.lengthOverride
-              ? t('simplePolygon.controlEscOverride', { key: '' }).replace('{{key}}', '').trim()
-              : t('simplePolygon.controlEscCancel', { key: '' }).replace('{{key}}', '').trim()}
+              ? t($ => $.simplePolygon.controlEscOverride, {
+              key: ''
+            }).replace('{{key}}', '').trim()
+              : t($ => $.simplePolygon.controlEscCancel, {
+              key: ''
+            }).replace('{{key}}', '').trim()}
           </Text>
           {state.points.length >= minimumPoints && (
             <Text size="1" color="gray">
-              • <Kbd>Enter</Kbd> {t('simplePolygon.controlEnter', { key: '' }).replace('{{key}}', '').trim()}
+              • <Kbd>Enter</Kbd> {t($ => $.simplePolygon.controlEnter, {
+              key: ''
+            }).replace('{{key}}', '').trim()}
             </Text>
           )}
         </Flex>
@@ -118,7 +124,7 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
                   color="green"
                   onClick={() => tool.complete()}
                   disabled={!canComplete}
-                  title={t('simplePolygon.completeShape')}
+                  title={t($ => $.simplePolygon.completeShape)}
                   style={{ width: '100%' }}
                 >
                   <Text size="1">{completeLabel}</Text>
@@ -132,7 +138,7 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
                 color="red"
                 variant="soft"
                 onClick={() => tool.cancel()}
-                title={t('simplePolygon.cancelDrawing')}
+                title={t($ => $.simplePolygon.cancelDrawing)}
                 style={{ width: '100%' }}
               >
                 <Text size="1">{cancelLabel}</Text>
@@ -145,5 +151,5 @@ export function SimplePolygonToolInspector<TTool extends BasePolygonTool<Polygon
         )}
       </Flex>
     </Box>
-  )
+  );
 }

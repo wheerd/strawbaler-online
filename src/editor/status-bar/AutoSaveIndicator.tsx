@@ -132,43 +132,43 @@ export function AutoSaveIndicator(): React.JSX.Element {
     // Prioritize export/import errors and states
     if (exportError || importError) {
       return {
-        text: exportError || importError || t('autoSave.exportFailed'),
+        text: exportError || importError || t($ => $.autoSave.exportFailed),
         icon: <Cross2Icon />,
         color: 'red' as const
-      }
+      };
     }
 
     if (isExporting) {
       return {
-        text: t('autoSave.exporting'),
+        text: t($ => $.autoSave.exporting),
         icon: <UpdateIcon className="animate-spin" />,
         color: 'blue' as const
-      }
+      };
     }
 
     if (isImporting) {
       return {
-        text: t('autoSave.importing'),
+        text: t($ => $.autoSave.importing),
         icon: <UpdateIcon className="animate-spin" />,
         color: 'blue' as const
-      }
+      };
     }
 
     // Fall back to auto-save states
     if (saveError) {
       return {
-        text: t('autoSave.autoSaveFailed'),
+        text: t($ => $.autoSave.autoSaveFailed),
         icon: <Cross2Icon />,
         color: 'red' as const
-      }
+      };
     }
 
     if (isSaving) {
       return {
-        text: t('autoSave.autoSaving'),
+        text: t($ => $.autoSave.autoSaving),
         icon: <UpdateIcon className="animate-spin" />,
         color: 'blue' as const
-      }
+      };
     }
 
     if (lastSaved) {
@@ -178,26 +178,32 @@ export function AutoSaveIndicator(): React.JSX.Element {
 
       let timeText: string
       if (diffMinutes < 1) {
-        timeText = t('autoSave.justNow')
+        timeText = t($ => $.autoSave.justNow)
       } else if (diffMinutes < 60) {
-        timeText = t('autoSave.minutesAgo', { minutes: diffMinutes })
+        timeText = t($ => $.autoSave.minutesAgo, {
+          minutes: diffMinutes
+        })
       } else {
         const diffHours = Math.floor(diffMinutes / 60)
-        timeText = t('autoSave.hoursAgo', { hours: diffHours })
+        timeText = t($ => $.autoSave.hoursAgo, {
+          hours: diffHours
+        })
       }
 
       return {
-        text: t('autoSave.autoSaved', { time: timeText }),
+        text: t($ => $.autoSave.autoSaved, {
+          time: timeText
+        }),
         icon: <CheckIcon />,
         color: 'green' as const
-      }
+      };
     }
 
     return {
-      text: t('autoSave.notSaved'),
+      text: t($ => $.autoSave.notSaved),
       icon: <Cross2Icon />,
       color: 'gray' as const
-    }
+    };
   }
 
   const statusInfo = getStatusInfo()
@@ -214,35 +220,34 @@ export function AutoSaveIndicator(): React.JSX.Element {
           </Tooltip>
         </Button>
       </DropdownMenu.Trigger>
-
       <DropdownMenu.Content>
         <DropdownMenu.Sub>
-          <DropdownMenu.SubTrigger>{t('autoSave.importExportIfc')}</DropdownMenu.SubTrigger>
+          <DropdownMenu.SubTrigger>{t($ => $.autoSave.importExportIfc)}</DropdownMenu.SubTrigger>
           <DropdownMenu.SubContent>
             <DropdownMenu.Item onClick={handleIfcExport} disabled={isExporting || isImporting}>
               <DownloadIcon />
-              {t('autoSave.exportBuildingModel')}
+              {t($ => $.autoSave.exportBuildingModel)}
             </DropdownMenu.Item>
 
             <DropdownMenu.Item onClick={handleIfcGeometryExport} disabled={isExporting || isImporting}>
               <DownloadIcon />
-              {t('autoSave.exportConstructionModel')}
+              {t($ => $.autoSave.exportConstructionModel)}
             </DropdownMenu.Item>
 
             <DropdownMenu.Item onClick={handleIfcImport} disabled={isExporting || isImporting}>
               <UploadIcon />
-              {t('autoSave.import')}
+              {t($ => $.autoSave.import)}
             </DropdownMenu.Item>
           </DropdownMenu.SubContent>
         </DropdownMenu.Sub>
         <DropdownMenu.Item onClick={handleExport} disabled={isExporting || isImporting}>
           <DownloadIcon />
-          {t('autoSave.saveToFile')}
+          {t($ => $.autoSave.saveToFile)}
         </DropdownMenu.Item>
 
         <DropdownMenu.Item onClick={handleImport} disabled={isExporting || isImporting}>
           <UploadIcon />
-          {t('autoSave.loadFromFile')}
+          {t($ => $.autoSave.loadFromFile)}
         </DropdownMenu.Item>
 
         <DropdownMenu.Separator />
@@ -250,5 +255,5 @@ export function AutoSaveIndicator(): React.JSX.Element {
         <DropdownMenu.Item disabled>{statusInfo.text}</DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>
-  )
+  );
 }

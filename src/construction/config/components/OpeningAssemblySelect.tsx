@@ -1,8 +1,9 @@
 import { Select, Text } from '@radix-ui/themes'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 
 import type { OpeningAssemblyId } from '@/building/model/ids'
+import type { NamedAssembly } from '@/construction/config'
 import { useDefaultOpeningAssemblyId, useOpeningAssemblies } from '@/construction/config/store'
 
 export interface OpeningAssemblySelectProps {
@@ -28,7 +29,7 @@ export function OpeningAssemblySelect({
   const { t } = useTranslation('config')
   const defaultAssemblyId = useDefaultOpeningAssemblyId()
 
-  const getDisplayName = (assembly: { name: string; nameKey?: string }): string => {
+  const getDisplayName = (assembly: NamedAssembly): string => {
     return assembly.nameKey ? t(assembly.nameKey) : assembly.name
   }
 
@@ -51,21 +52,27 @@ export function OpeningAssemblySelect({
       <Select.Content>
         {allowDefault && (
           <Select.Item value="__default__">
-            <Text color="gray">Use global default</Text>
+            <Text color="gray">{t($ => $.openings.useGlobalDefault)}</Text>
           </Select.Item>
         )}
         {assemblies.length === 0 ? (
           <Select.Item value="__none__" disabled>
-            <Text color="gray">No opening assemblies available</Text>
+            <Text color="gray">{t($ => $.openings.emptyList)}</Text>
           </Select.Item>
         ) : (
           assemblies.map(assembly => {
             const isDefault = showDefaultIndicator && assembly.id === defaultAssemblyId
+            const label = getDisplayName(assembly)
             return (
               <Select.Item key={assembly.id} value={assembly.id}>
                 <Text>
-                  {getDisplayName(assembly)}
-                  {isDefault && <Text color="gray"> (default)</Text>}
+                  {isDefault ? (
+                    <Trans t={t} i18nKey={$ => $.openings.defaultLabel} components={{ gray: <Text color="gray" /> }}>
+                      <>{{ label }}</> <Text color="gray"> (default)</Text>
+                    </Trans>
+                  ) : (
+                    <>{label}</>
+                  )}
                 </Text>
               </Select.Item>
             )

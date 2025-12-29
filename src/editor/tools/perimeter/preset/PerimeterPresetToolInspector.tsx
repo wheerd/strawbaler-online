@@ -20,7 +20,7 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
             <InfoCircledIcon />
           </Callout.Icon>
           <Callout.Text>
-            <Text size="1">{t('perimeterPreset.info')}</Text>
+            <Text size="1">{t($ => $.perimeterPreset.info)}</Text>
           </Callout.Text>
         </Callout.Root>
 
@@ -30,7 +30,9 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
             trigger={
               <Button className="w-full" size="2">
                 <preset.icon />
-                {t('perimeterPreset.presetButton', { name: preset.name })}
+                {t($ => $.perimeterPreset.presetButton, {
+                  name: preset.name
+                })}
               </Button>
             }
             onConfirm={config => tool.placePerimeter(preset, config)}
@@ -38,5 +40,5 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
         ))}
       </Flex>
     </Box>
-  )
+  );
 }

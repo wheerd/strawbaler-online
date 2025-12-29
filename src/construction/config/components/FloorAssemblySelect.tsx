@@ -1,8 +1,9 @@
 import { Flex, Select, Text } from '@radix-ui/themes'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 
 import type { FloorAssemblyId } from '@/building/model/ids'
+import type { NamedAssembly } from '@/construction/config'
 import { useFloorAssemblies } from '@/construction/config/store'
 
 import { getFloorAssemblyTypeIcon } from './Icons'
@@ -29,7 +30,7 @@ export function FloorAssemblySelect({
   const { t } = useTranslation('config')
   const floorAssemblyConfigs = useFloorAssemblies()
 
-  const getDisplayName = (assembly: { name: string; nameKey?: string }): string => {
+  const getDisplayName = (assembly: NamedAssembly): string => {
     return assembly.nameKey ? t(assembly.nameKey) : assembly.name
   }
 
@@ -44,20 +45,25 @@ export function FloorAssemblySelect({
       <Select.Content>
         {floorAssemblyConfigs.length === 0 ? (
           <Select.Item value="" disabled>
-            <Text color="gray">No floor assemblies available</Text>
+            <Text color="gray">{t($ => $.floors.emptyList)}</Text>
           </Select.Item>
         ) : (
           floorAssemblyConfigs.map(config => {
             const Icon = getFloorAssemblyTypeIcon(config.type)
             const isDefault = showDefaultIndicator && config.id === defaultConfigId
-            const displayName = getDisplayName(config)
+            const label = getDisplayName(config)
             return (
               <Select.Item key={config.id} value={config.id}>
                 <Flex align="center" gap="2">
                   <Icon style={{ flexShrink: 0 }} />
                   <Text>
-                    {displayName}
-                    {isDefault && <Text color="gray"> (default)</Text>}
+                    {isDefault ? (
+                      <Trans t={t} i18nKey={$ => $.floors.defaultLabel} components={{ gray: <Text color="gray" /> }}>
+                        <>{{ label }}</> <Text color="gray"> (default)</Text>
+                      </Trans>
+                    ) : (
+                      <>{label}</>
+                    )}
                   </Text>
                 </Flex>
               </Select.Item>

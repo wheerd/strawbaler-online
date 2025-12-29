@@ -64,7 +64,7 @@ export function LShapedPresetDialog({ onConfirm, trigger }: PresetDialogProps): 
   )
 
   return (
-    <BaseModal title={t('presetDialogs.lShaped.title')} trigger={trigger} size="4" maxWidth="800px">
+    <BaseModal title={t($ => $.presetDialogs.lShaped.title)} trigger={trigger} size="4" maxWidth="800px">
       <Flex direction="column" gap="4">
         <Grid columns="1fr auto" gap="5">
           {/* Left Column - Configuration */}
@@ -221,7 +221,7 @@ export function LShapedPresetDialog({ onConfirm, trigger }: PresetDialogProps): 
                   onValueChange={(value: WallAssemblyId) => {
                     setConfig(prev => ({ ...prev, wallAssemblyId: value }))
                   }}
-                  placeholder={t('presetDialogs.lShaped.selectAssembly')}
+                  placeholder={t($ => $.presetDialogs.lShaped.selectAssembly)}
                   size="1"
                 />
               </Flex>
@@ -239,7 +239,7 @@ export function LShapedPresetDialog({ onConfirm, trigger }: PresetDialogProps): 
                   onValueChange={value => {
                     setConfig(prev => ({ ...prev, baseRingBeamAssemblyId: value }))
                   }}
-                  placeholder={t('presetDialogs.lShaped.none')}
+                  placeholder={t($ => $.presetDialogs.lShaped.none)}
                   size="1"
                   allowNone
                 />
@@ -258,7 +258,7 @@ export function LShapedPresetDialog({ onConfirm, trigger }: PresetDialogProps): 
                   onValueChange={value => {
                     setConfig(prev => ({ ...prev, topRingBeamAssemblyId: value }))
                   }}
-                  placeholder={t('presetDialogs.lShaped.none')}
+                  placeholder={t($ => $.presetDialogs.lShaped.none)}
                   size="1"
                   allowNone
                 />
@@ -284,8 +284,8 @@ export function LShapedPresetDialog({ onConfirm, trigger }: PresetDialogProps): 
                   setConfig(prev => ({ ...prev, referenceSide: value as PerimeterReferenceSide }))
                 }
               >
-                <SegmentedControl.Item value="inside">{t('presetDialogs.lShaped.inside')}</SegmentedControl.Item>
-                <SegmentedControl.Item value="outside">{t('presetDialogs.lShaped.outside')}</SegmentedControl.Item>
+                <SegmentedControl.Item value="inside">{t($ => $.presetDialogs.lShaped.inside)}</SegmentedControl.Item>
+                <SegmentedControl.Item value="outside">{t($ => $.presetDialogs.lShaped.outside)}</SegmentedControl.Item>
               </SegmentedControl.Root>
             </Flex>
 
@@ -320,5 +320,5 @@ export function LShapedPresetDialog({ onConfirm, trigger }: PresetDialogProps): 
         </Flex>
       </Flex>
     </BaseModal>
-  )
+  );
 }

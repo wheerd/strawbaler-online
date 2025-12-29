@@ -386,13 +386,13 @@ function MonolithicLayerFields({
             if (!material) return
             onUpdateLayer(index, { material })
           }}
-          placeholder={t('layers.selectMaterial')}
+          placeholder={t($ => $.layers.selectMaterial)}
           size="1"
           preferredTypes={['sheet', 'volume']}
         />
       }
     />
-  )
+  );
 }
 
 function StripedLayerFields({
@@ -451,7 +451,7 @@ function StripedLayerFields({
             if (!material) return
             onUpdateLayer(index, { stripeMaterial: material })
           }}
-          placeholder={t('layers.selectMaterial')}
+          placeholder={t($ => $.layers.selectMaterial)}
           size="1"
           preferredTypes={['dimensional']}
         />
@@ -479,11 +479,11 @@ function StripedLayerFields({
           allowEmpty
           emptyLabel="None"
           onValueChange={material => onUpdateLayer(index, { gapMaterial: material ?? undefined })}
-          placeholder={t('layers.selectMaterial')}
+          placeholder={t($ => $.layers.selectMaterial)}
           size="1"
           preferredTypes={['sheet', 'volume']}
         />
       </Grid>
     </>
-  )
+  );
 }

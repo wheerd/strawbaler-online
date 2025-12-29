@@ -34,18 +34,20 @@ export function RoofOverhangInspector({ roofId, overhangId }: RoofOverhangInspec
       <Box p="2">
         <Callout.Root color="red">
           <Callout.Text>
-            <Text weight="bold">{t('roofOverhang.notFound')}</Text>
+            <Text weight="bold">{t($ => $.roofOverhang.notFound)}</Text>
           </Callout.Text>
         </Callout.Root>
       </Box>
-    )
+    );
   }
 
   return (
     <Box p="2">
       <Flex direction="column" gap="3">
         <Text size="2" weight="bold">
-          {t('roofOverhang.title', { side: overhang.sideIndex + 1 })}
+          {t($ => $.roofOverhang.title, {
+            side: overhang.sideIndex + 1
+          })}
         </Text>
 
         <Separator size="4" />
@@ -54,7 +56,7 @@ export function RoofOverhangInspector({ roofId, overhangId }: RoofOverhangInspec
         <Flex align="center" gap="2" justify="between">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              {t('roofOverhang.overhang')}
+              {t($ => $.roofOverhang.overhang)}
             </Text>
           </Label.Root>
           <LengthField
@@ -73,11 +75,11 @@ export function RoofOverhangInspector({ roofId, overhangId }: RoofOverhangInspec
 
         {/* Actions */}
         <Flex gap="2" justify="end">
-          <IconButton size="2" title={t('roofOverhang.fitToView')} onClick={handleFitToView}>
+          <IconButton size="2" title={t($ => $.roofOverhang.fitToView)} onClick={handleFitToView}>
             <FitToViewIcon />
           </IconButton>
         </Flex>
       </Flex>
     </Box>
-  )
+  );
 }

@@ -45,7 +45,6 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
     <Flex align="center" gap="4" style={{ borderBottom: '1px solid var(--gray-6)' }} data-testid="main-toolbar" p="3">
       {/* Logo - Compact version */}
       <Logo />
-
       {/* Tools positioned next to logo on the left */}
       <Toolbar.Root>
         <Flex align="center" gap="2">
@@ -89,29 +88,30 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
           ))}
         </Flex>
       </Toolbar.Root>
-
       {/* Configuration button on the right */}
       <Flex ml="auto" gap="2" align="center">
         <TopDownPlanModal
           title={
             activeStorey
-              ? t('constructionPlanForStorey', { storeyName: activeStorey.name })
-              : t('constructionPlanForActiveStorey')
+              ? t($ => $.constructionPlanForStorey, {
+              storeyName: activeStorey.name
+            })
+              : t($ => $.constructionPlanForActiveStorey)
           }
           factory={async () => constructStorey(activeStoreyId)}
           refreshKey={[activeStoreyId, activePerimiters]}
           trigger={
-            <IconButton title={t('viewConstructionPlan')} size="2" variant="solid">
+            <IconButton title={t($ => $.viewConstructionPlan)} size="2" variant="solid">
               <ConstructionPlanIcon width={20} height={20} aria-hidden />
             </IconButton>
           }
         />
         <ConstructionPartsListModal
-          title={t('partsListForEntireModel')}
+          title={t($ => $.partsListForEntireModel)}
           constructionModelFactory={async () => constructModel()}
           refreshKey={[storeys, perimeters]}
           trigger={
-            <IconButton title={t('viewPartsList')} size="2" variant="solid">
+            <IconButton title={t($ => $.viewPartsList)} size="2" variant="solid">
               <FileTextIcon width={20} height={20} aria-hidden />
             </IconButton>
           }
@@ -120,23 +120,23 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
           constructionModelFactory={async () => constructModel()}
           refreshKey={[storeys, perimeters]}
           trigger={
-            <IconButton title={t('view3DConstruction')} size="2" variant="solid">
+            <IconButton title={t($ => $.view3DConstruction)} size="2" variant="solid">
               <Model3DIcon width={20} height={20} aria-hidden />
             </IconButton>
           }
         />
         <IconButton
-          title={t('configuration')}
+          title={t($ => $.configuration)}
           variant="surface"
           size="2"
           onClick={() => openConfiguration('materials')}
         >
           <GearIcon width={20} height={20} aria-hidden />
         </IconButton>
-        <IconButton title={t('about')} variant="ghost" size="2" onClick={onInfoClick}>
+        <IconButton title={t($ => $.about)} variant="ghost" size="2" onClick={onInfoClick}>
           <InfoCircledIcon aria-hidden />
         </IconButton>
       </Flex>
     </Flex>
-  )
+  );
 }

@@ -11,7 +11,7 @@ const issueId = (suffix: string): ConstructionIssueId => `ci_${suffix}` as Const
 
 const createIssue = (overrides: Partial<ConstructionIssue> = {}): ConstructionIssue => ({
   id: issueId('default'),
-  messageKey: 'test.issue',
+  messageKey: 'test.issue' as any,
   severity: 'error',
   ...overrides
 })
@@ -25,13 +25,13 @@ describe('aggregateResults', () => {
       buildError(
         createIssue({
           id: issueId('duplicate'),
-          messageKey: 'test.grouped'
+          messageKey: 'test.grouped' as any
         })
       ),
       buildError(
         createIssue({
           id: issueId('duplicate'),
-          messageKey: 'test.grouped'
+          messageKey: 'test.grouped' as any
         })
       )
     ]
@@ -47,19 +47,19 @@ describe('aggregateResults', () => {
       buildError(
         createIssue({
           id: issueId('A'),
-          messageKey: 'test.first'
+          messageKey: 'test.first' as any
         })
       ),
       buildError(
         createIssue({
           id: issueId('B'),
-          messageKey: 'test.second'
+          messageKey: 'test.second' as any
         })
       ),
       buildError(
         createIssue({
           id: issueId('C'),
-          messageKey: 'test.third'
+          messageKey: 'test.third' as any
         })
       )
     ]
@@ -77,13 +77,13 @@ describe('aggregateResults', () => {
       buildError(
         createIssue({
           id: issueId('dup'),
-          messageKey: 'test.firstDescription'
+          messageKey: 'test.firstDescription' as any
         })
       ),
       buildError(
         createIssue({
           id: issueId('dup'),
-          messageKey: 'test.secondDescription'
+          messageKey: 'test.secondDescription' as any
         })
       )
     ]

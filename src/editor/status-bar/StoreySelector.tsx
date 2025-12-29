@@ -56,7 +56,7 @@ export function StoreySelector(): React.JSX.Element {
 
       <StoreyManagementModal
         trigger={
-          <IconButton size="1" title={t('storeys.manageFloorsTooltip')} type="button" variant="soft">
+          <IconButton size="1" title={t($ => $.storeys.manageFloorsTooltip)} type="button" variant="soft">
             <Pencil1Icon />
           </IconButton>
         }

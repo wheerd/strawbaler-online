@@ -132,7 +132,7 @@ export function PlanImportModal({
       return null
     }
     if (pixelDistance < 100) {
-      return t('planImport.step2.warningSmallSpan')
+      return t($ => $.planImport.step2.warningSmallSpan);
     }
     return null
   }, [pixelDistance, t])
@@ -217,19 +217,21 @@ export function PlanImportModal({
     <BaseModal
       open={open}
       onOpenChange={onOpenChange}
-      title={existingPlan ? t('planImport.titleExisting') : t('planImport.titleNew')}
+      title={existingPlan ? t($ => $.planImport.titleExisting) : t($ => $.planImport.titleNew)}
       maxWidth="720px"
     >
       <Flex direction="column" gap="4">
         <Flex direction="column" gap="2">
-          <Text weight="medium">{t('planImport.step1.title')}</Text>
+          <Text weight="medium">{t($ => $.planImport.step1.title)}</Text>
           {existingPlan && !file ? (
             <Text size="2" color="gray">
-              {t('planImport.step1.currentImage', { name: existingPlan.image.name })}
+              {t($ => $.planImport.step1.currentImage, {
+                name: existingPlan.image.name
+              })}
             </Text>
           ) : (
             <Text size="2" color="gray">
-              {t('planImport.step1.uploadHint')}
+              {t($ => $.planImport.step1.uploadHint)}
             </Text>
           )}
           <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -238,10 +240,10 @@ export function PlanImportModal({
         <Separator />
 
         <Flex direction="column" gap="2">
-          <Text weight="medium">{t('planImport.step2.title')}</Text>
+          <Text weight="medium">{t($ => $.planImport.step2.title)}</Text>
           <Flex align="baseline" justify="between">
             <Text size="2" color="gray">
-              {t('planImport.step2.instructions')}
+              {t($ => $.planImport.step2.instructions)}
             </Text>
             <Flex gap="2">
               <Button
@@ -250,7 +252,7 @@ export function PlanImportModal({
                 disabled={referencePoints.length === 0}
                 onClick={() => setReferencePoints([])}
               >
-                {t('planImport.step2.clearPoints')}
+                {t($ => $.planImport.step2.clearPoints)}
               </Button>
             </Flex>
           </Flex>
@@ -267,7 +269,7 @@ export function PlanImportModal({
           <Grid columns="1fr 1fr 1fr" align="center" gap="3">
             <Flex direction="row" gap="1" align="center">
               <Text weight="medium" size="2">
-                {t('planImport.step2.realDistance')}
+                {t($ => $.planImport.step2.realDistance)}
               </Text>
               <LengthField
                 value={realDistance}
@@ -282,10 +284,10 @@ export function PlanImportModal({
 
             <Flex align="center" gap="1" justify="center">
               <Text weight="medium" size="2">
-                {t('planImport.step2.pixelDistance')}
+                {t($ => $.planImport.step2.pixelDistance)}
               </Text>
               <Text size="2" color="gray">
-                {pixelDistance ? `${pixelDistance.toFixed(1)} px` : t('planImport.step2.pixelDistancePlaceholder')}
+                {pixelDistance ? `${pixelDistance.toFixed(1)} px` : t($ => $.planImport.step2.pixelDistancePlaceholder)}
               </Text>
               {pixelDistanceWarning && (
                 <Tooltip content={pixelDistanceWarning}>
@@ -296,12 +298,14 @@ export function PlanImportModal({
 
             <Flex direction="row" gap="1" align="center" justify="end">
               <Text weight="medium" size="2">
-                {t('planImport.step2.scale')}
+                {t($ => $.planImport.step2.scale)}
               </Text>
               <Text size="2" color="gray">
                 {mmPerPixel
-                  ? t('planImport.step2.scaleValue', { distance: formatLength(mmPerPixel) })
-                  : t('planImport.step2.scalePlaceholder')}
+                  ? t($ => $.planImport.step2.scaleValue, {
+                  distance: formatLength(mmPerPixel)
+                })
+                  : t($ => $.planImport.step2.scalePlaceholder)}
               </Text>
             </Flex>
           </Grid>
@@ -310,13 +314,13 @@ export function PlanImportModal({
         <Separator />
 
         <Flex direction="column" gap="2">
-          <Text weight="medium">{t('planImport.step3.title')}</Text>
+          <Text weight="medium">{t($ => $.planImport.step3.title)}</Text>
           <Text size="2" color="gray">
-            {t('planImport.step3.instructions')}
+            {t($ => $.planImport.step3.instructions)}
           </Text>
 
           <Flex gap="3" align="center">
-            <Tooltip content={showOriginHint ? t('planImport.step3.clickHint') : t('planImport.step3.pickHint')}>
+            <Tooltip content={showOriginHint ? t($ => $.planImport.step3.clickHint) : t($ => $.planImport.step3.pickHint)}>
               <Button
                 size="1"
                 variant={showOriginHint ? 'solid' : 'soft'}
@@ -324,16 +328,16 @@ export function PlanImportModal({
                 disabled={!imageElement}
               >
                 {showOriginHint
-                  ? t('planImport.step3.clickImage')
+                  ? t($ => $.planImport.step3.clickImage)
                   : originPoint
-                    ? t('planImport.step3.changeOrigin')
-                    : t('planImport.step3.pickOrigin')}
+                    ? t($ => $.planImport.step3.changeOrigin)
+                    : t($ => $.planImport.step3.pickOrigin)}
               </Button>
             </Tooltip>
 
             {originPoint && (
               <Button size="1" variant="ghost" onClick={() => setOriginPoint(null)}>
-                {t('planImport.step3.clearOrigin')}
+                {t($ => $.planImport.step3.clearOrigin)}
               </Button>
             )}
           </Flex>
@@ -341,18 +345,18 @@ export function PlanImportModal({
 
         <Flex justify="between" align="center">
           <Text size="1" color="gray">
-            {t('planImport.footer.storageNote')}
+            {t($ => $.planImport.footer.storageNote)}
           </Text>
           <Flex gap="2">
             <Button variant="soft" onClick={() => onOpenChange(false)}>
-              {t('planImport.footer.cancel')}
+              {t($ => $.planImport.footer.cancel)}
             </Button>
             <Button onClick={handleSubmit} disabled={!canSubmit}>
-              {existingPlan ? t('planImport.footer.replacePlan') : t('planImport.footer.addPlan')}
+              {existingPlan ? t($ => $.planImport.footer.replacePlan) : t($ => $.planImport.footer.addPlan)}
             </Button>
           </Flex>
         </Flex>
       </Flex>
     </BaseModal>
-  )
+  );
 }

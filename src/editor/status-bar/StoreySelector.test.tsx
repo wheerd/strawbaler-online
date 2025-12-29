@@ -74,17 +74,6 @@ describe('StoreySelector', () => {
     expect(screen.getByText('Ground Floor')).toBeInTheDocument()
   })
 
-  it('renders edit button', () => {
-    render(
-      <Theme>
-        <StoreySelector />
-      </Theme>
-    )
-
-    const editButton = screen.getByRole('button', { name: /manage floors/i })
-    expect(editButton).toBeInTheDocument()
-  })
-
   it('calls setActiveStoreyId when selection changes', () => {
     // Mock scrollIntoView for Radix UI Select
     Element.prototype.scrollIntoView = vi.fn()

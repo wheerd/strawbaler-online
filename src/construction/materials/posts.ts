@@ -67,7 +67,7 @@ function* constructFullPost(area: WallConstructionArea, config: FullPostConfig):
 
     if (!materialSupportsCrossSection(dimensionalMaterial, postDimensions)) {
       yield yieldWarning(
-        'construction.post.dimensionsMismatch',
+        $ => $.construction.post.dimensionsMismatch,
         {
           width: config.width,
           thickness: size[1]
@@ -89,7 +89,7 @@ function* constructDoublePost(area: WallConstructionArea, config: DoublePostConf
 
     yield* yieldElement(errorElement)
     yield yieldError(
-      'construction.post.wallTooThin',
+      $ => $.construction.post.wallTooThin,
       {
         wallThickness: size[1],
         required: minimumWallThickness
@@ -132,7 +132,7 @@ function* constructDoublePost(area: WallConstructionArea, config: DoublePostConf
 
       if (!materialSupportsCrossSection(dimensionalMaterial, postDimensions)) {
         yield yieldWarning(
-          'construction.post.dimensionsMismatch',
+          $ => $.construction.post.dimensionsMismatch,
           {
             width: config.width,
             thickness: config.thickness
@@ -247,7 +247,7 @@ export function* constructWallPost(area: WallConstructionArea, post: WallPost): 
 
     if (!materialSupportsCrossSection(dimensionalMaterial, postDimensions)) {
       yield yieldWarning(
-        'construction.post.dimensionsMismatch',
+        $ => $.construction.post.dimensionsMismatch,
         {
           width: postDimensions.width,
           thickness: postDimensions.thickness

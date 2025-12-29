@@ -19,7 +19,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "testimporter": "IFCIMPORTER=1 vitest watch src/importers/ifc/importer.integration.test.ts"
+    "testimporter": "IFCIMPORTER=1 vitest watch src/importers/ifc/importer.integration.test.ts",
+    "i18n:toc": "i18next-resources-for-ts toc -i ./src/shared/i18n/locales/en -o ./src/@types/resources.ts",
+    "i18n:merge": "i18next-resources-for-ts merge -i ./src/shared/i18n/locales/en -o ./src/@types/resources.json",
+    "i18n:interface": "i18next-resources-for-ts interface -i ./src/shared/i18n/locales/en -o ./src/@types/resources.d.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

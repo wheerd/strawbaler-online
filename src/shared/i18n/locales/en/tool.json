@@ -150,17 +150,21 @@
     "top": "Top",
     "openingAssembly": "Opening Assembly",
     "openingAssemblyTooltip": "Override the opening assembly for this specific opening. Leave as default to inherit from the wall assembly or global default.",
-    "presets": "Presets",
+    "presets": {
+      "title": "Presets",
+      "buttonLabel": "{{label}}: {{width, length}} × {{height, length}}",
+      "buttonLabel_sill": "{{label}}: {{width, length}} × {{height, length}} sill: {{sillHeight, length}}",
+      "standardDoor": "Standard Door",
+      "wideDoor": "Wide Door",
+      "doubleDoor": "Double Door",
+      "smallWindow": "Small Window",
+      "standardWindow": "Standard Window",
+      "floorWindow": "Floor Window"
+    },
     "existingOpenings": "Existing Openings",
     "noExistingOpenings": "No existing openings found in model",
     "copyConfiguration": "Copy Configuration",
-    "copyConfigurationTooltip": "Copy this configuration",
-    "standardDoor": "Standard Door",
-    "wideDoor": "Wide Door",
-    "doubleDoor": "Double Door",
-    "smallWindow": "Small Window",
-    "standardWindow": "Standard Window",
-    "floorWindow": "Floor Window"
+    "copyConfigurationTooltip": "Copy this configuration"
   },
   "presetDialogs": {
     "rectangular": {

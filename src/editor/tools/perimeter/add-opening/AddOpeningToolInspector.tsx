@@ -12,6 +12,7 @@ import {
   Text,
   Tooltip
 } from '@radix-ui/themes'
+import type { Resources } from 'i18next'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -51,7 +52,7 @@ interface AddOpeningToolInspectorImplProps {
 
 // Quick preset buttons for common sizes
 interface PresetConfig {
-  labelKey: string
+  labelKey: keyof Resources['tool']['addOpening']['presets']
   type: OpeningType
   width: Length
   height: Length
@@ -62,28 +63,28 @@ interface PresetConfig {
 // All presets available for all opening types
 const ALL_OPENING_PRESETS: PresetConfig[] = [
   {
-    labelKey: 'addOpening.standardDoor',
+    labelKey: 'standardDoor',
     type: 'door',
     width: 800,
     height: 2100,
     icon: <StandardDoorPresetIcon width={20} height={20} />
   },
   {
-    labelKey: 'addOpening.wideDoor',
+    labelKey: 'wideDoor',
     type: 'door',
     width: 900,
     height: 2100,
     icon: <WideDoorPresetIcon width={20} height={20} />
   },
   {
-    labelKey: 'addOpening.doubleDoor',
+    labelKey: 'doubleDoor',
     type: 'door',
     width: 1600,
     height: 2100,
     icon: <DoubleDoorPresetIcon width={20} height={20} />
   },
   {
-    labelKey: 'addOpening.smallWindow',
+    labelKey: 'smallWindow',
     type: 'window',
     width: 800,
     height: 1200,
@@ -91,7 +92,7 @@ const ALL_OPENING_PRESETS: PresetConfig[] = [
     icon: <SmallWindowPresetIcon width={20} height={20} />
   },
   {
-    labelKey: 'addOpening.standardWindow',
+    labelKey: 'standardWindow',
     type: 'window',
     width: 1200,
     height: 1200,
@@ -99,7 +100,7 @@ const ALL_OPENING_PRESETS: PresetConfig[] = [
     icon: <StandardWindowPresetIcon width={20} height={20} />
   },
   {
-    labelKey: 'addOpening.floorWindow',
+    labelKey: 'floorWindow',
     type: 'window',
     width: 1200,
     height: 2000,
@@ -249,26 +250,24 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           <InfoCircledIcon />
         </Callout.Icon>
         <Callout.Text>
-          <Text size="1">{t('addOpening.info')}</Text>
+          <Text size="1">{t($ => $.addOpening.info)}</Text>
         </Callout.Text>
       </Callout.Root>
-
       {/* Dimension Mode Toggle */}
       <Flex align="center" justify="between" gap="2">
         <Flex gap="1" align="center">
           <Text size="1" weight="medium" color="gray">
-            {t('addOpening.dimensionMode')}
+            {t($ => $.addOpening.dimensionMode)}
           </Text>
-          <Tooltip content={t('addOpening.dimensionModeFinishedTooltip')}>
+          <Tooltip content={t($ => $.addOpening.dimensionModeFinishedTooltip)}>
             <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
           </Tooltip>
         </Flex>
         <SegmentedControl.Root value={state.dimensionMode} onValueChange={handleDimensionModeChange} size="1">
-          <SegmentedControl.Item value="finished">{t('addOpening.dimensionModeFinished')}</SegmentedControl.Item>
-          <SegmentedControl.Item value="fitting">{t('addOpening.dimensionModeFitting')}</SegmentedControl.Item>
+          <SegmentedControl.Item value="finished">{t($ => $.addOpening.dimensionModeFinished)}</SegmentedControl.Item>
+          <SegmentedControl.Item value="fitting">{t($ => $.addOpening.dimensionModeFitting)}</SegmentedControl.Item>
         </SegmentedControl.Root>
       </Flex>
-
       {/* Preview */}
       <Flex direction="column" align="center">
         <OpeningPreview
@@ -284,17 +283,16 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           focusedField={focusedField}
         />
       </Flex>
-
       {/* Type Selection */}
       <Flex align="center" justify="between" gap="2">
         <Flex gap="1" align="center">
           <Text size="1" weight="medium" color="gray">
-            {t('addOpening.openingType')}
+            {t($ => $.addOpening.openingType)}
           </Text>
         </Flex>
         <SegmentedControl.Root value={state.openingType} onValueChange={handleTypeChange} size="2">
           <SegmentedControl.Item value="door">
-            <Tooltip content={t('addOpening.typeDoor')}>
+            <Tooltip content={t($ => $.addOpening.typeDoor)}>
               <Box>
                 <DoorIcon width={20} height={20} />
               </Box>
@@ -302,7 +300,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           </SegmentedControl.Item>
 
           <SegmentedControl.Item value="window">
-            <Tooltip content={t('addOpening.typeWindow')}>
+            <Tooltip content={t($ => $.addOpening.typeWindow)}>
               <Box>
                 <WindowIcon width={20} height={20} />
               </Box>
@@ -310,7 +308,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           </SegmentedControl.Item>
 
           <SegmentedControl.Item value="passage">
-            <Tooltip content={t('addOpening.typePassage')}>
+            <Tooltip content={t($ => $.addOpening.typePassage)}>
               <Box>
                 <PassageIcon width={20} height={20} />
               </Box>
@@ -318,22 +316,20 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           </SegmentedControl.Item>
         </SegmentedControl.Root>
       </Flex>
-
       <Flex align="center" gap="2">
         <Text size="1" weight="medium" color="gray">
-          {t('addOpening.padding')}
+          {t($ => $.addOpening.padding)}
         </Text>
         <Text size="1" color="gray">
           {formatLength(currentPadding)}
         </Text>
       </Flex>
-
       {/* Dimension inputs in Radix Grid layout */}
       <Grid columns="auto min-content auto min-content" rows="2" gap="2" gapX="3" align="center">
         {/* Row 1, Column 1: Width Label */}
         <Label.Root htmlFor="opening-width">
           <Text size="1" weight="medium" color="gray">
-            {t('addOpening.width')}
+            {t($ => $.addOpening.width)}
           </Text>
         </Label.Root>
 
@@ -354,7 +350,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
         {/* Row 1, Column 3: Height Label */}
         <Label.Root htmlFor="opening-height">
           <Text size="1" weight="medium" color="gray">
-            {t('addOpening.height')}
+            {t($ => $.addOpening.height)}
           </Text>
         </Label.Root>
 
@@ -375,7 +371,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
         {/* Row 2, Column 1: Sill Height Label */}
         <Label.Root htmlFor="opening-sill-height">
           <Text size="1" weight="medium" color="gray">
-            {t('addOpening.sill')}
+            {t($ => $.addOpening.sill)}
           </Text>
         </Label.Root>
 
@@ -396,7 +392,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
         {/* Row 2, Column 3: Top Height Label */}
         <Label.Root htmlFor="opening-top-height">
           <Text size="1" weight="medium" color="gray">
-            {t('addOpening.top')}
+            {t($ => $.addOpening.top)}
           </Text>
         </Label.Root>
 
@@ -418,11 +414,10 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           onBlur={() => setFocusedField(undefined)}
         />
       </Grid>
-
       <Flex align="center" justify="end" gap="2">
         <DropdownMenu.Root>
           <DropdownMenu.Trigger disabled={allOpeningConfigs.length === 0}>
-            <IconButton size="2" title={t('addOpening.copyConfigurationTooltip')}>
+            <IconButton size="2" title={t($ => $.addOpening.copyConfigurationTooltip)}>
               <CopyIcon />
             </IconButton>
           </DropdownMenu.Trigger>
@@ -438,13 +433,11 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </Flex>
-
       <Separator size="4" />
-
       {/* Presets Section */}
       <Flex direction="column" gap="2">
         <Text size="1" weight="medium" color="gray">
-          {t('addOpening.presets')}
+          {t($ => $.addOpening.presets.title)}
         </Text>
         <Grid columns="6" gap="1">
           {ALL_OPENING_PRESETS.map((preset: PresetConfig, index: number) => (
@@ -453,23 +446,34 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
               variant="surface"
               size="3"
               onClick={() => handlePresetOrCopyClick(preset)}
-              title={`${t(preset.labelKey)}: ${formatLength(preset.width)} × ${formatLength(preset.height)}${preset.sillHeight ? `, sill: ${formatLength(preset.sillHeight)}` : ''}`}
+              title={
+                preset.sillHeight == null
+                  ? t($ => $.addOpening.presets.buttonLabel, {
+                      label: t($ => $.addOpening.presets[preset.labelKey]),
+                      width: preset.width,
+                      height: preset.height
+                    })
+                  : t($ => $.addOpening.presets.buttonLabel_sill, {
+                      label: t($ => $.addOpening.presets[preset.labelKey]),
+                      width: preset.width,
+                      height: preset.height,
+                      sillHeight: preset.sillHeight
+                    })
+              }
             >
               {preset.icon}
             </IconButton>
           ))}
         </Grid>
       </Flex>
-
       <Separator size="4" />
-
       {/* Opening Assembly Selector */}
       <Flex direction="column" gap="1">
         <Flex gap="1" align="center">
           <Text size="1" weight="medium" color="gray">
-            {t('addOpening.openingAssembly')}
+            {t($ => $.addOpening.openingAssembly)}
           </Text>
-          <Tooltip content={t('addOpening.openingAssemblyTooltip')}>
+          <Tooltip content={t($ => $.addOpening.openingAssemblyTooltip)}>
             <InfoCircledIcon cursor="help" width={12} height={12} style={{ color: 'var(--gray-9)' }} />
           </Tooltip>
         </Flex>

@@ -117,10 +117,10 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
     return (
       <Box p="2">
         <Text size="1" color="red" weight="bold">
-          {t('roof.notFound')}
+          {t($ => $.roof.notFound)}
         </Text>
       </Box>
-    )
+    );
   }
 
   return (
@@ -133,15 +133,15 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
         {/* Basic Information */}
         <DataList.Root size="1">
           <DataList.Item>
-            <DataList.Label>{t('roof.type')}</DataList.Label>
-            <DataList.Value>{roof.type === 'gable' ? t('roof.typeGable') : t('roof.typeShed')}</DataList.Value>
+            <DataList.Label>{t($ => $.roof.type)}</DataList.Label>
+            <DataList.Value>{roof.type === 'gable' ? t($ => $.roof.typeGable) : t($ => $.roof.typeShed)}</DataList.Value>
           </DataList.Item>
           <DataList.Item>
-            <DataList.Label>{t('roof.perimeter')}</DataList.Label>
+            <DataList.Label>{t($ => $.roof.perimeter)}</DataList.Label>
             <DataList.Value>{formatLength(perimeterLength)}</DataList.Value>
           </DataList.Item>
           <DataList.Item>
-            <DataList.Label>{t('roof.area')}</DataList.Label>
+            <DataList.Label>{t($ => $.roof.area)}</DataList.Label>
             <DataList.Value>{formatArea(area)}</DataList.Value>
           </DataList.Item>
         </DataList.Root>
@@ -154,7 +154,7 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
           <Flex direction="column" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                {t('roof.assembly')}
+                {t($ => $.roof.assembly)}
               </Text>
             </Label.Root>
             <RoofAssemblySelectWithEdit
@@ -170,7 +170,7 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
           <Flex align="center" gap="2" justify="between">
             <Label.Root htmlFor="roof-slope">
               <Text size="1" weight="medium" color="gray">
-                {t('roof.slope')}
+                {t($ => $.roof.slope)}
               </Text>
             </Label.Root>
 
@@ -218,7 +218,7 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
           <Flex align="center" gap="2" justify="between">
             <Label.Root htmlFor="vertical-offset">
               <Text size="1" weight="medium" color="gray">
-                {t('roof.verticalOffset')}
+                {t($ => $.roof.verticalOffset)}
               </Text>
             </Label.Root>
             <LengthField
@@ -238,16 +238,16 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
             <Label.Root htmlFor="roof-overhang">
               <Flex align="center" gap="1">
                 <Text size="1" weight="medium" color="gray">
-                  {t('roof.overhang')}
+                  {t($ => $.roof.overhang)}
                 </Text>
-                {overhangState.isMixed && <MixedStateIndicator tooltip={t('roof.mixedValuesTooltip')} />}
+                {overhangState.isMixed && <MixedStateIndicator tooltip={t($ => $.roof.mixedValuesTooltip)} />}
               </Flex>
             </Label.Root>
             <LengthField
               id="roof-overhang"
               value={overhangState.value as Length}
               onCommit={value => setAllRoofOverhangs(roof.id, value)}
-              placeholder={overhangState.isMixed ? t('roof.mixedPlaceholder') : undefined}
+              placeholder={overhangState.isMixed ? t($ => $.roof.mixedPlaceholder) : undefined}
               min={0}
               max={2000}
               step={10}
@@ -259,7 +259,7 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
 
           {overhangState.isMixed && (
             <Text size="1" color="gray">
-              {t('roof.mixedWarning')}
+              {t($ => $.roof.mixedWarning)}
             </Text>
           )}
         </Flex>
@@ -269,18 +269,18 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
         {/* Construction Views */}
         <Flex direction="row" gap="3" pt="1" align="center" justify="center">
           <ConstructionPlanModal
-            title={t('roof.constructionPlanTitle')}
+            title={t($ => $.roof.constructionPlanTitle)}
             constructionModelFactory={async () => constructRoof(roof)}
             midCutActiveDefault={false}
             views={[
-              { view: TOP_VIEW, label: t('roof.viewTop'), toggleHideTags: [TAG_DECKING.id] },
-              { view: FRONT_VIEW, label: t('roof.viewFront') },
-              { view: LEFT_VIEW, label: t('roof.viewLeft') }
+              { view: TOP_VIEW, label: t($ => $.roof.viewTop), toggleHideTags: [TAG_DECKING.id] },
+              { view: FRONT_VIEW, label: t($ => $.roof.viewFront) },
+              { view: LEFT_VIEW, label: t($ => $.roof.viewLeft) }
             ]}
             defaultHiddenTags={['roof-layer']}
             refreshKey={roof}
             trigger={
-              <IconButton title={t('roof.viewConstructionPlan')} size="3">
+              <IconButton title={t($ => $.roof.viewConstructionPlan)} size="3">
                 <ConstructionPlanIcon width={24} height={24} />
               </IconButton>
             }
@@ -289,7 +289,7 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
             constructionModelFactory={async () => constructRoof(roof)}
             refreshKey={roof}
             trigger={
-              <IconButton title={t('roof.view3DConstruction')} size="3" variant="outline">
+              <IconButton title={t($ => $.roof.view3DConstruction)} size="3" variant="outline">
                 <Model3DIcon width={24} height={24} />
               </IconButton>
             }
@@ -301,22 +301,22 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
         {/* Action Buttons */}
         <Flex gap="2" justify="end">
           {roof.referencePerimeter && (
-            <IconButton size="2" title={t('roof.viewAssociatedPerimeter')} onClick={handleNavigateToPerimeter}>
+            <IconButton size="2" title={t($ => $.roof.viewAssociatedPerimeter)} onClick={handleNavigateToPerimeter}>
               <SquareIcon />
             </IconButton>
           )}
-          <Tooltip content={t('roof.cycleMainSide')}>
+          <Tooltip content={t($ => $.roof.cycleMainSide)}>
             <IconButton size="2" onClick={() => cycleRoofMainSide(roofId)}>
               <ReloadIcon />
             </IconButton>
           </Tooltip>
-          <IconButton size="2" title={t('roof.fitToView')} onClick={handleFitToView}>
+          <IconButton size="2" title={t($ => $.roof.fitToView)} onClick={handleFitToView}>
             <FitToViewIcon />
           </IconButton>
           <IconButton
             size="2"
             color="red"
-            title={t('roof.removeRoof')}
+            title={t($ => $.roof.removeRoof)}
             onClick={() => {
               removeRoof(roof.id)
               popSelection()
@@ -327,5 +327,5 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
         </Flex>
       </Flex>
     </Box>
-  )
+  );
 }

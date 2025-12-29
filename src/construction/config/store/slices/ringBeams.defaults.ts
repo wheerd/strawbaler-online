@@ -5,7 +5,7 @@ import { bitumen, brick, cork, roughWood } from '@/construction/materials/materi
 const fullRingBeamAssembly: FullRingBeamAssemblyConfig = {
   id: 'ringbeam_default' as RingBeamAssemblyId,
   name: 'Full 36x6cm',
-  nameKey: 'ringBeams.defaults.full36x6cm',
+  nameKey: $ => $.ringBeams.defaults.full36x6cm,
   type: 'full',
   material: roughWood.id,
   height: 60,
@@ -16,7 +16,7 @@ const fullRingBeamAssembly: FullRingBeamAssemblyConfig = {
 const brickRingBeamAssembly: BrickRingBeamAssemblyConfig = {
   id: 'ringbeam_brick_default' as RingBeamAssemblyId,
   name: 'Brick Ring Beam',
-  nameKey: 'ringBeams.defaults.brickRingBeam',
+  nameKey: $ => $.ringBeams.defaults.brickRingBeam,
   type: 'brick',
   wallHeight: 300,
   wallWidth: 240,

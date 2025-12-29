@@ -42,10 +42,10 @@ export function FloorOpeningInspector({ floorOpeningId }: FloorOpeningInspectorP
     return (
       <Box p="2">
         <Text size="1" color="red" weight="bold">
-          {t('floorOpening.notFound')}
+          {t($ => $.floorOpening.notFound)}
         </Text>
       </Box>
-    )
+    );
   }
 
   return (
@@ -53,11 +53,11 @@ export function FloorOpeningInspector({ floorOpeningId }: FloorOpeningInspectorP
       <Flex direction="column" gap="3">
         <DataList.Root size="1">
           <DataList.Item>
-            <DataList.Label>{t('floorOpening.perimeter')}</DataList.Label>
+            <DataList.Label>{t($ => $.floorOpening.perimeter)}</DataList.Label>
             <DataList.Value>{formatLength(perimeterLength)}</DataList.Value>
           </DataList.Item>
           <DataList.Item>
-            <DataList.Label>{t('floorOpening.area')}</DataList.Label>
+            <DataList.Label>{t($ => $.floorOpening.area)}</DataList.Label>
             <DataList.Value>{formatArea(area)}</DataList.Value>
           </DataList.Item>
         </DataList.Root>
@@ -65,12 +65,12 @@ export function FloorOpeningInspector({ floorOpeningId }: FloorOpeningInspectorP
         <Separator size="4" />
 
         <Flex gap="2" justify="end">
-          <IconButton size="2" title={t('floorOpening.fitToView')} onClick={handleFitToView}>
+          <IconButton size="2" title={t($ => $.floorOpening.fitToView)} onClick={handleFitToView}>
             <FitToViewIcon />
           </IconButton>
           <IconButton
             color="red"
-            title={t('floorOpening.removeFloorOpening')}
+            title={t($ => $.floorOpening.removeFloorOpening)}
             onClick={() => {
               removeFloorOpening(opening.id)
               popSelection()
@@ -81,5 +81,5 @@ export function FloorOpeningInspector({ floorOpeningId }: FloorOpeningInspectorP
         </Flex>
       </Flex>
     </Box>
-  )
+  );
 }

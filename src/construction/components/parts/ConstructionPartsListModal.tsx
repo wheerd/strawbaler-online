@@ -29,7 +29,7 @@ export function ConstructionPartsListModal({
   refreshKey
 }: ConstructionPartsListModalProps): React.JSX.Element {
   const { t } = useTranslation('construction')
-  const defaultTitle = t('partsListModal.title')
+  const defaultTitle = t($ => $.partsListModal.title)
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'materials' | 'modules'>('materials')
   const [partsDataPromise, setPartsDataPromise] = useState<Promise<PartsData | null> | null>(null)
@@ -80,8 +80,8 @@ export function ConstructionPartsListModal({
       <Tabs.Root value={activeTab} onValueChange={value => setActiveTab(value as 'materials' | 'modules')}>
         <Box px="4" pt="3">
           <Tabs.List>
-            <Tabs.Trigger value="materials">{t('partsListModal.tabs.materials')}</Tabs.Trigger>
-            <Tabs.Trigger value="modules">{t('partsListModal.tabs.modules')}</Tabs.Trigger>
+            <Tabs.Trigger value="materials">{t($ => $.partsListModal.tabs.materials)}</Tabs.Trigger>
+            <Tabs.Trigger value="modules">{t($ => $.partsListModal.tabs.modules)}</Tabs.Trigger>
           </Tabs.List>
         </Box>
 
@@ -110,7 +110,7 @@ export function ConstructionPartsListModal({
         </Tabs.Content>
       </Tabs.Root>
     </BaseModal>
-  )
+  );
 }
 
 function MaterialPartsContent({ partsDataPromise }: { partsDataPromise: Promise<PartsData | null> }) {
@@ -124,10 +124,10 @@ function MaterialPartsContent({ partsDataPromise }: { partsDataPromise: Promise<
           <Callout.Icon>
             <CrossCircledIcon />
           </Callout.Icon>
-          <Callout.Text>{t('partsListModal.errors.failedPartsList')}</Callout.Text>
+          <Callout.Text>{t($ => $.partsListModal.errors.failedPartsList)}</Callout.Text>
         </Callout.Root>
       </Flex>
-    )
+    );
   }
 
   return <ConstructionPartsList partsList={partsData.material} />
@@ -144,10 +144,10 @@ function ModulePartsContent({ partsDataPromise }: { partsDataPromise: Promise<Pa
           <Callout.Icon>
             <CrossCircledIcon />
           </Callout.Icon>
-          <Callout.Text>{t('partsListModal.errors.failedModulesList')}</Callout.Text>
+          <Callout.Text>{t($ => $.partsListModal.errors.failedModulesList)}</Callout.Text>
         </Callout.Root>
       </Flex>
-    )
+    );
   }
 
   return <ConstructionVirtualPartsList partsList={partsData.virtual} />

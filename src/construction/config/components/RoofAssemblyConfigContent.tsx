@@ -538,7 +538,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
             onChange={e => nameInput.handleChange(e.target.value)}
             onBlur={nameInput.handleBlur}
             onKeyDown={nameInput.handleKeyDown}
-            placeholder={t('common.placeholderName')}
+            placeholder={t($ => $.common.placeholderName)}
             size="2"
           />
         </Grid>
@@ -570,9 +570,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
           </Flex>
         </Grid>
       </Grid>
-
       <Separator size="4" />
-
       {/* Two Column Layout */}
       <Grid columns="2" gap="4" style={{ gridTemplateColumns: '1fr 1fr' }}>
         {/* Left Column - Type-specific configuration */}
@@ -587,7 +585,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
         </Flex>
       </Grid>
     </Flex>
-  )
+  );
 }
 
 export interface RoofAssemblyConfigContentProps {
@@ -731,7 +729,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
 
             <DropdownMenu.Root>
               <DropdownMenu.Trigger>
-                <IconButton title={t('common.addNew')}>
+                <IconButton title={t($ => $.common.addNew)}>
                   <PlusIcon />
                 </IconButton>
               </DropdownMenu.Trigger>
@@ -754,7 +752,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
             <IconButton
               onClick={handleDuplicate}
               disabled={!selectedAssembly}
-              title={t('common.duplicate')}
+              title={t($ => $.common.duplicate)}
               variant="soft"
             >
               <CopyIcon />
@@ -771,7 +769,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
                 </IconButton>
               </AlertDialog.Trigger>
               <AlertDialog.Content>
-                <AlertDialog.Title>{t('roofs.deleteTitle')}</AlertDialog.Title>
+                <AlertDialog.Title>{t($ => $.roofs.deleteTitle)}</AlertDialog.Title>
                 <AlertDialog.Description>
                   Are you sure you want to delete "{selectedAssembly?.name}"? This action cannot be undone.
                 </AlertDialog.Description>
@@ -797,7 +795,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
                 </IconButton>
               </AlertDialog.Trigger>
               <AlertDialog.Content>
-                <AlertDialog.Title>{t('roofs.resetTitle')}</AlertDialog.Title>
+                <AlertDialog.Title>{t($ => $.roofs.resetTitle)}</AlertDialog.Title>
                 <AlertDialog.Description>
                   Are you sure you want to reset default roof assemblies? This will restore the original default
                   assemblies but keep any custom assemblies you've created. This action cannot be undone.
@@ -836,16 +834,13 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
           </Grid>
         </Grid>
       </Flex>
-
       {/* Form */}
       {selectedAssembly && <ConfigForm assembly={selectedAssembly} />}
-
       {!selectedAssembly && roofAssemblies.length === 0 && (
         <Flex justify="center" align="center" p="5">
           <Text color="gray">No roof assemblies yet. Create one using the "New" button above.</Text>
         </Flex>
       )}
-
       {usage.isUsed && (
         <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
           <Label.Root>
@@ -863,5 +858,5 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
         </Grid>
       )}
     </Flex>
-  )
+  );
 }

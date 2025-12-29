@@ -54,8 +54,8 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           </Callout.Icon>
           <Callout.Text>
             <Text size="1">
-              {t('perimeter.infoInside', {
-                edge: state.referenceSide === 'inside' ? t('perimeter.insideEdge') : t('perimeter.outsideEdge')
+              {t($ => $.perimeter.infoInside, {
+                edge: state.referenceSide === 'inside' ? t($ => $.perimeter.insideEdge) : t($ => $.perimeter.outsideEdge)
               })}
             </Text>
           </Callout.Text>
@@ -67,7 +67,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                {t('perimeter.wallAssembly')}
+                {t($ => $.perimeter.wallAssembly)}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedAssembly="wallAssembly" />
@@ -84,7 +84,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           <Flex align="center" gap="1">
             <Label.Root htmlFor="wall-thickness">
               <Text size="1" weight="medium" color="gray">
-                {t('perimeter.wallThickness')}
+                {t($ => $.perimeter.wallThickness)}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedMeasurement="totalWallThickness" showFinishedSides />
@@ -103,7 +103,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                {t('perimeter.referenceSide')}
+                {t($ => $.perimeter.referenceSide)}
               </Text>
             </Label.Root>
           </Flex>
@@ -112,15 +112,15 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             value={state.referenceSide}
             onValueChange={value => tool.setReferenceSide(value as PerimeterReferenceSide)}
           >
-            <SegmentedControl.Item value="inside">{t('perimeter.referenceSideInside')}</SegmentedControl.Item>
-            <SegmentedControl.Item value="outside">{t('perimeter.referenceSideOutside')}</SegmentedControl.Item>
+            <SegmentedControl.Item value="inside">{t($ => $.perimeter.referenceSideInside)}</SegmentedControl.Item>
+            <SegmentedControl.Item value="outside">{t($ => $.perimeter.referenceSideOutside)}</SegmentedControl.Item>
           </SegmentedControl.Root>
 
           {/* Base Ring Beam */}
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                {t('perimeter.basePlate')}
+                {t($ => $.perimeter.basePlate)}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedPart="basePlate" />
@@ -130,7 +130,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             onValueChange={(value: RingBeamAssemblyId | undefined) => {
               tool.setBaseRingBeam(value)
             }}
-            placeholder={t('perimeter.nonePlaceholder')}
+            placeholder={t($ => $.perimeter.nonePlaceholder)}
             size="1"
             allowNone
           />
@@ -139,7 +139,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
           <Flex align="center" gap="1">
             <Label.Root>
               <Text size="1" weight="medium" color="gray">
-                {t('perimeter.topPlate')}
+                {t($ => $.perimeter.topPlate)}
               </Text>
             </Label.Root>
             <MeasurementInfo highlightedPart="topPlate" />
@@ -149,7 +149,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             onValueChange={(value: RingBeamAssemblyId | undefined) => {
               tool.setTopRingBeam(value)
             }}
-            placeholder={t('perimeter.nonePlaceholder')}
+            placeholder={t($ => $.perimeter.nonePlaceholder)}
             size="1"
             allowNone
           />
@@ -161,7 +161,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
             <Separator size="4" />
             <Flex align="center" justify="between" gap="2">
               <Text size="1" weight="medium" color="blue">
-                {t('perimeter.lengthOverride')}
+                {t($ => $.perimeter.lengthOverride)}
               </Text>
               <Flex align="center" gap="2">
                 <Code size="1" color="blue">
@@ -172,7 +172,7 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
                   variant="ghost"
                   color="red"
                   onClick={() => tool.clearLengthOverride()}
-                  title={t('perimeter.clearLengthOverride')}
+                  title={t($ => $.perimeter.clearLengthOverride)}
                 >
                   <Cross2Icon />
                 </IconButton>
@@ -185,33 +185,39 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
         <Separator size="4" />
         <Flex direction="column" gap="2">
           <Text size="1" weight="medium">
-            {t('perimeter.controlsHeading')}
+            {t($ => $.perimeter.controlsHeading)}
           </Text>
           <Text size="1" color="gray">
-            • {t('perimeter.controlPlace')}
+            • {t($ => $.perimeter.controlPlace)}
           </Text>
           <Text size="1" color="gray">
-            • {t('perimeter.controlSnap')}
+            • {t($ => $.perimeter.controlSnap)}
           </Text>
           <Text size="1" color="gray">
-            • {t('perimeter.controlNumbers')}
+            • {t($ => $.perimeter.controlNumbers)}
           </Text>
           {state.lengthOverride ? (
             <Text size="1" color="gray">
-              • <Kbd>Esc</Kbd> {t('perimeter.controlEscOverride', { key: '' }).replace('{{key}}', '').trim()}
+              • <Kbd>Esc</Kbd> {t($ => $.perimeter.controlEscOverride, {
+              key: ''
+            }).replace('{{key}}', '').trim()}
             </Text>
           ) : (
             <Text size="1" color="gray">
-              • <Kbd>Esc</Kbd> {t('perimeter.controlEscAbort', { key: '' }).replace('{{key}}', '').trim()}
+              • <Kbd>Esc</Kbd> {t($ => $.perimeter.controlEscAbort, {
+              key: ''
+            }).replace('{{key}}', '').trim()}
             </Text>
           )}
           {state.points.length >= 3 && (
             <>
               <Text size="1" color="gray">
-                • <Kbd>Enter</Kbd> {t('perimeter.controlEnter', { key: '' }).replace('{{key}}', '').trim()}
+                • <Kbd>Enter</Kbd> {t($ => $.perimeter.controlEnter, {
+                key: ''
+              }).replace('{{key}}', '').trim()}
               </Text>
               <Text size="1" color="gray">
-                • {t('perimeter.controlClickFirst')}
+                • {t($ => $.perimeter.controlClickFirst)}
               </Text>
             </>
           )}
@@ -228,10 +234,10 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
                   color="green"
                   onClick={() => tool.complete()}
                   disabled={!state.isClosingSegmentValid}
-                  title={t('perimeter.completeTooltip')}
+                  title={t($ => $.perimeter.completeTooltip)}
                   style={{ width: '100%' }}
                 >
-                  <Text size="1">{t('perimeter.completePerimeter')}</Text>
+                  <Text size="1">{t($ => $.perimeter.completePerimeter)}</Text>
                   <Kbd size="1" style={{ marginLeft: 'auto' }}>
                     Enter
                   </Kbd>
@@ -242,10 +248,10 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
                 color="red"
                 variant="soft"
                 onClick={() => tool.cancel()}
-                title={t('perimeter.cancelTooltip')}
+                title={t($ => $.perimeter.cancelTooltip)}
                 style={{ width: '100%' }}
               >
-                <Text size="1">{t('perimeter.cancelPerimeter')}</Text>
+                <Text size="1">{t($ => $.perimeter.cancelPerimeter)}</Text>
                 <Kbd size="1" style={{ marginLeft: 'auto' }}>
                   Esc
                 </Kbd>
@@ -255,5 +261,5 @@ export function PerimeterToolInspector({ tool }: ToolInspectorProps<PerimeterToo
         )}
       </Flex>
     </Box>
-  )
+  );
 }

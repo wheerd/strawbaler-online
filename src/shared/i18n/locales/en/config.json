@@ -167,7 +167,9 @@
     "noOutsideLayers": "No outside layers defined",
     "wallConstruction": "Wall Construction",
     "inside": "Inside",
-    "outside": "Outside"
+    "outside": "Outside",
+    "emptyList": "No wall assemblies available",
+    "defaultLabel": "{{label}} <gray>(default)</gray>"
   },
   "openings": {
     "title": "Opening Assemblies",
@@ -184,7 +186,10 @@
     "padding": "Padding",
     "layers": "Layers",
     "addLayer": "Add Layer",
-    "noLayers": "No layers defined"
+    "noLayers": "No layers defined",
+    "useGlobalDefault": "Use global default",
+    "emptyList": "No opening assemblies available",
+    "defaultLabel": "{{label}} <gray>(default)</gray>"
   },
   "floors": {
     "title": "Floor Assemblies",
@@ -207,7 +212,9 @@
     "noBottomLayers": "No bottom layers defined",
     "floorConstruction": "Floor Construction",
     "top": "Top",
-    "bottom": "Bottom"
+    "bottom": "Bottom",
+    "emptyList": "No floor assemblies available",
+    "defaultLabel": "{{label}} <gray>(default)</gray>"
   },
   "roofs": {
     "title": "Roof Assemblies",
@@ -228,7 +235,9 @@
     "noBottomLayers": "No bottom layers defined",
     "roofConstruction": "Roof Construction",
     "top": "Top",
-    "bottom": "Bottom"
+    "bottom": "Bottom",
+    "emptyList": "No roof assemblies available",
+    "defaultLabel": "{{label}} <gray>(default)</gray>"
   },
   "ringBeams": {
     "title": "Ring Beam Assemblies",
@@ -243,7 +252,10 @@
     "resetConfirm": "Are you sure you want to reset default ring beam assemblies? This will restore the original default assemblies but keep any custom assemblies you've created. This action cannot be undone.",
     "layers": "Layers",
     "addLayer": "Add Layer",
-    "noLayers": "No layers defined"
+    "noLayers": "No layers defined",
+    "none": "None",
+    "emptyList": "No ring beam assemblies available",
+    "defaultLabel": "{{label}} <gray>(default)</gray>"
   },
   "layers": {
     "title": "Layers",
