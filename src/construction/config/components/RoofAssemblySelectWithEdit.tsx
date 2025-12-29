@@ -1,12 +1,14 @@
 import { Pencil1Icon } from '@radix-ui/react-icons'
 import { Flex, IconButton } from '@radix-ui/themes'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 
 import { RoofAssemblySelect, type RoofAssemblySelectProps } from './RoofAssemblySelect'
 
 export function RoofAssemblySelectWithEdit(props: RoofAssemblySelectProps): React.JSX.Element {
+  const { t } = useTranslation()
   const { openConfiguration } = useConfigurationModal()
 
   return (

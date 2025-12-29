@@ -15,7 +15,6 @@ export const IssueDescriptionPanel = ({ modelPromise }: IssueDescriptionPanelPro
   const model = use(modelPromise)
   const { hoveredIssueId, setHoveredIssueId } = usePlanHighlight()
   const { t } = useTranslation('construction')
-  const { t: tGlobal } = useTranslation()
 
   return (
     <Flex direction="column" gap="2" p="2" style={{ maxHeight: '120px', overflowY: 'auto' }}>
@@ -46,7 +45,7 @@ export const IssueDescriptionPanel = ({ modelPromise }: IssueDescriptionPanelPro
                         transition: 'background-color 0.15s ease'
                       }}
                     >
-                      • {tGlobal(error.messageKey, error.params)}
+                      • {t(error.messageKey, { ...error.params, ns: 'errors' })}
                     </Text>
                   ))}
                 </Flex>
@@ -79,7 +78,7 @@ export const IssueDescriptionPanel = ({ modelPromise }: IssueDescriptionPanelPro
                         transition: 'background-color 0.15s ease'
                       }}
                     >
-                      • {tGlobal(warning.messageKey, warning.params)}
+                      • {t(warning.messageKey, { ...warning.params, ns: 'errors' })}
                     </Text>
                   ))}
                 </Flex>
