@@ -12,6 +12,7 @@ import {
 } from './formatters'
 import commonDE from './locales/de/common.json'
 import configDE from './locales/de/config.json'
+import constructionDE from './locales/de/construction.json'
 import inspectorDE from './locales/de/inspector.json'
 import overlayDE from './locales/de/overlay.json'
 import toolDE from './locales/de/tool.json'
@@ -20,6 +21,7 @@ import welcomeDE from './locales/de/welcome.json'
 // Import translation files
 import commonEN from './locales/en/common.json'
 import configEN from './locales/en/config.json'
+import constructionEN from './locales/en/construction.json'
 import inspectorEN from './locales/en/inspector.json'
 import overlayEN from './locales/en/overlay.json'
 import toolEN from './locales/en/tool.json'
@@ -34,7 +36,8 @@ const resources = {
     inspector: inspectorEN,
     tool: toolEN,
     config: configEN,
-    overlay: overlayEN
+    overlay: overlayEN,
+    construction: constructionEN
   },
   de: {
     common: commonDE,
@@ -43,7 +46,8 @@ const resources = {
     inspector: inspectorDE,
     tool: toolDE,
     config: configDE,
-    overlay: overlayDE
+    overlay: overlayDE,
+    construction: constructionDE
   }
 }
 
@@ -54,7 +58,7 @@ i18n
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'welcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay'],
+    ns: ['common', 'welcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction'],
 
     interpolation: {
       escapeValue: false, // React already escapes

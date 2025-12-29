@@ -1,0 +1,30 @@
+{
+  "partsListModal": {
+    "title": "Teileliste",
+    "tabs": {
+      "materials": "Materialien",
+      "modules": "Module"
+    },
+    "errors": {
+      "failedPartsList": "Fehler beim Erstellen der Teileliste",
+      "failedModulesList": "Fehler beim Erstellen der Modulliste"
+    }
+  },
+  "planModal": {
+    "tabs": {
+      "planIssues": "Plan & Probleme",
+      "partsList": "Teileliste",
+      "modules": "Module"
+    },
+    "views": {
+      "walls": "Wände",
+      "roof": "Dach",
+      "floor": "Boden"
+    },
+    "errors": {
+      "failedModel": "Fehler beim Erstellen des Konstruktionsmodells",
+      "failedPartsList": "Fehler beim Erstellen der Teileliste",
+      "failedModulesList": "Fehler beim Erstellen der Modulliste"
+    }
+  }
+}

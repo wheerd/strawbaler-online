@@ -1,0 +1,30 @@
+{
+  "partsListModal": {
+    "title": "Parts List",
+    "tabs": {
+      "materials": "Materials",
+      "modules": "Modules"
+    },
+    "errors": {
+      "failedPartsList": "Failed to generate parts list",
+      "failedModulesList": "Failed to generate modules list"
+    }
+  },
+  "planModal": {
+    "tabs": {
+      "planIssues": "Plan & Issues",
+      "partsList": "Parts List",
+      "modules": "Modules"
+    },
+    "views": {
+      "walls": "Walls",
+      "roof": "Roof",
+      "floor": "Floor"
+    },
+    "errors": {
+      "failedModel": "Failed to generate construction model",
+      "failedPartsList": "Failed to generate parts list",
+      "failedModulesList": "Failed to generate modules list"
+    }
+  }
+}
