@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { OpeningAssemblyId, StoreyId, WallAssemblyId } from '@/building/model/ids'
 import { usePerimeters } from '@/building/store'
+import type { OpeningAssemblyConfig } from '@/construction/config'
 import {
   useConfigActions,
   useDefaultOpeningAssemblyId,
@@ -333,12 +334,14 @@ function UsageDisplay({ usage }: { usage: OpeningAssemblyUsage }): React.JSX.Ele
   )
 }
 
-function ConfigForm({ assembly }: { assembly: OpeningConfig & { id: string; name: string } }): React.JSX.Element {
+function ConfigForm({ assembly }: { assembly: OpeningAssemblyConfig }): React.JSX.Element {
   const { t } = useTranslation('config')
   const { updateOpeningAssemblyName, updateOpeningAssemblyConfig } = useConfigActions()
 
+  const nameKey = assembly.nameKey
+
   const nameInput = useDebouncedInput(
-    assembly.name,
+    nameKey ? t(nameKey) : assembly.name,
     (name: string) => updateOpeningAssemblyName(assembly.id as OpeningAssemblyId, name),
     {
       debounceMs: 1000

@@ -315,9 +315,15 @@ function ConfigForm({ assembly }: { assembly: RingBeamAssemblyConfig }): React.R
   const { formatLength } = useFormatters()
   const { updateRingBeamAssemblyName, updateRingBeamAssemblyConfig } = useConfigActions()
 
-  const nameInput = useDebouncedInput(assembly.name, (name: string) => updateRingBeamAssemblyName(assembly.id, name), {
-    debounceMs: 1000
-  })
+  const nameKey = assembly.nameKey
+
+  const nameInput = useDebouncedInput(
+    nameKey ? t(nameKey) : assembly.name,
+    (name: string) => updateRingBeamAssemblyName(assembly.id, name),
+    {
+      debounceMs: 1000
+    }
+  )
 
   const handleUpdateConfig = useCallback(
     (updates: Partial<RingBeamConfig>) => updateRingBeamAssemblyConfig(assembly.id, updates),

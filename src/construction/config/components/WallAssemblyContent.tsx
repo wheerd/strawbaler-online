@@ -662,9 +662,15 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
   const { getMaterialById } = useMaterialActions()
 
   const { t } = useTranslation('config')
-  const nameInput = useDebouncedInput(assembly.name, (name: string) => updateWallAssemblyName(assembly.id, name), {
-    debounceMs: 1000
-  })
+  const nameKey = assembly.nameKey
+
+  const nameInput = useDebouncedInput(
+    nameKey ? t(nameKey) : assembly.name,
+    (name: string) => updateWallAssemblyName(assembly.id, name),
+    {
+      debounceMs: 1000
+    }
+  )
 
   const updateConfig = useCallback(
     (updates: Partial<WallConfig>) => updateWallAssemblyConfig(assembly.id, updates),

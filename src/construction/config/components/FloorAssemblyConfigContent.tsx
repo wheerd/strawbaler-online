@@ -361,9 +361,15 @@ function ConfigForm({ assembly }: { assembly: FloorAssemblyConfig }): React.JSX.
   const { formatLength } = useFormatters()
   const { updateFloorAssemblyName, updateFloorAssemblyConfig } = useConfigActions()
 
-  const nameInput = useDebouncedInput(assembly.name, (name: string) => updateFloorAssemblyName(assembly.id, name), {
-    debounceMs: 1000
-  })
+  const nameKey = assembly.nameKey
+
+  const nameInput = useDebouncedInput(
+    nameKey ? t(nameKey) : assembly.name,
+    (name: string) => updateFloorAssemblyName(assembly.id, name),
+    {
+      debounceMs: 1000
+    }
+  )
 
   const handleUpdateConfig = useCallback(
     (updates: Partial<FloorConfig>) => updateFloorAssemblyConfig(assembly.id, updates),

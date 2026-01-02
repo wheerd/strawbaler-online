@@ -38,6 +38,12 @@
     "configure": "",
     "defaultFloorAssembly": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
+    "defaults": {
+      "clt18cm": "",
+      "concrete20cm": "",
+      "filledJoist12x24cm": "",
+      "joist12x24cm": ""
+    },
     "delete": {
       "cannotDeleteInUse": "",
       "cannotDeleteLast": "",

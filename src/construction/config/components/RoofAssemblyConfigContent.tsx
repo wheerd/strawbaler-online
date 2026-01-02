@@ -508,9 +508,15 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
   const { formatLength } = useFormatters()
   const { updateRoofAssemblyName, updateRoofAssemblyConfig } = useConfigActions()
 
-  const nameInput = useDebouncedInput(assembly.name, (name: string) => updateRoofAssemblyName(assembly.id, name), {
-    debounceMs: 1000
-  })
+  const nameKey = assembly.nameKey
+
+  const nameInput = useDebouncedInput(
+    nameKey ? t(nameKey) : assembly.name,
+    (name: string) => updateRoofAssemblyName(assembly.id, name),
+    {
+      debounceMs: 1000
+    }
+  )
 
   const updateConfig = useCallback(
     (updates: Partial<RoofConfig>) => updateRoofAssemblyConfig(assembly.id, updates),
