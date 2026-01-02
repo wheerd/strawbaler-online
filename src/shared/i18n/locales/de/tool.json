@@ -27,6 +27,7 @@
     "actsAsPost": "",
     "behavior": "",
     "copyConfigurationTooltip": "",
+    "copyLabel": "",
     "flankedByPosts": "",
     "infillMaterial": "",
     "info": "",
@@ -38,6 +39,12 @@
     "typeDouble": "",
     "typeInside": "",
     "typeOutside": "",
+    "types": {
+      "center": "",
+      "double": "",
+      "inside": "",
+      "outside": ""
+    },
     "width": ""
   },
   "addPost.presets.double14x14": "",
@@ -189,6 +196,9 @@
     "controlConfirm": "",
     "controlHover": "",
     "controlMeasurements": "",
+    "errors": {
+      "noWall": ""
+    },
     "info": "",
     "readyToSplit": "",
     "selectWall": "",

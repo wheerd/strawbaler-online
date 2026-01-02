@@ -85,7 +85,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
       let name: string
       let config: FloorConfig
       if (type === 'monolithic') {
-        name = 'New Monolithic Floor'
+        name = t($ => $.floors.newName.monolithic, { defaultValue: 'New Monolithic Floor' })
         config = {
           type: 'monolithic',
           thickness: 180,
@@ -98,7 +98,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
           }
         }
       } else if (type === 'joist') {
-        name = 'New Joist Floor'
+        name = t($ => $.floors.newName.joist, { defaultValue: 'New Joist Floor' })
         config = {
           type: 'joist',
           constructionHeight: 240,
@@ -121,7 +121,7 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
           }
         }
       } else {
-        name = 'New Filled Floor'
+        name = t($ => $.floors.newName.filled, { defaultValue: 'New Filled Floor' })
         config = {
           type: 'filled',
           constructionHeight: 360,

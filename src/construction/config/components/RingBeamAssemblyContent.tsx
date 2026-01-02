@@ -207,7 +207,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
               <IconButton
                 disabled={!selectedAssembly || usage.isUsed}
                 color="red"
-                title={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}
+                title={usage.isUsed ? t($ => $.common.inUseCannotDelete) : t($ => $.common.delete)}
               >
                 <TrashIcon />
               </IconButton>
@@ -215,7 +215,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
             <AlertDialog.Content>
               <AlertDialog.Title>{t($ => $.ringBeams.deleteTitle)}</AlertDialog.Title>
               <AlertDialog.Description>
-                Are you sure you want to delete "{selectedAssembly?.name}"? This action cannot be undone.
+                {t($ => $.ringBeams.deleteConfirm, { name: selectedAssembly?.name })}
               </AlertDialog.Description>
               <Flex gap="3" mt="4" justify="end">
                 <AlertDialog.Cancel>

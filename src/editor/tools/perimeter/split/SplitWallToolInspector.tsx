@@ -30,6 +30,8 @@ export function SplitWallToolInspector({ tool }: ToolInspectorProps<SplitWallToo
     )
   }
 
+  const splitError = state.splitError
+
   return (
     <Flex direction="column" gap="4">
       <Heading size="2">{t($ => $.splitWall.title)}</Heading>
@@ -38,9 +40,9 @@ export function SplitWallToolInspector({ tool }: ToolInspectorProps<SplitWallToo
           <Callout.Text>{t($ => $.splitWall.readyToSplit)}</Callout.Text>
         </Callout.Root>
       )}
-      {!state.isValidSplit && state.splitError && (
+      {!state.isValidSplit && splitError != null && (
         <Callout.Root color="red">
-          <Callout.Text>{state.splitError}</Callout.Text>
+          <Callout.Text>{t($ => $.splitWall.errors[splitError])}</Callout.Text>
         </Callout.Root>
       )}
       {/* Action Buttons */}

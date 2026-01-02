@@ -727,13 +727,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
             <Flex gap="2" align="center">
               {React.createElement(getPerimeterConfigTypeIcon(assembly.type))}
               <Text size="2" color="gray">
-                {assembly.type === 'infill'
-                  ? 'Infill'
-                  : assembly.type === 'modules'
-                    ? 'Modules'
-                    : assembly.type === 'strawhenge'
-                      ? 'Strawhenge'
-                      : 'Non-Strawbale'}
+                {t($ => $.walls.types[assembly.type])}
               </Text>
             </Flex>
           </Flex>
@@ -953,25 +947,25 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                 <DropdownMenu.Item onSelect={() => handleAddNew('infill')}>
                   <Flex align="center" gap="1">
                     <LayersIcon />
-                    {t($ => $.walls.typeInfill)}
+                    {t($ => $.walls.types.infill)}
                   </Flex>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onSelect={() => handleAddNew('strawhenge')}>
                   <Flex align="center" gap="1">
                     <CubeIcon />
-                    {t($ => $.walls.typeStrawhenge)}
+                    {t($ => $.walls.types.strawhenge)}
                   </Flex>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onSelect={() => handleAddNew('modules')}>
                   <Flex align="center" gap="1">
                     <CircleIcon />
-                    {t($ => $.walls.typeModules)}
+                    {t($ => $.walls.types.modules)}
                   </Flex>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onSelect={() => handleAddNew('non-strawbale')}>
                   <Flex align="center" gap="1">
                     <TrashIcon />
-                    Non-Strawbale
+                    {t($ => $.walls.types['non-strawbale'])}
                   </Flex>
                 </DropdownMenu.Item>
               </DropdownMenu.Content>
@@ -991,7 +985,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                 <IconButton
                   disabled={!selectedAssembly || usage.isUsed}
                   color="red"
-                  title={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}
+                  title={usage.isUsed ? t($ => $.common.inUseCannotDelete) : t($ => $.common.delete)}
                 >
                   <TrashIcon />
                 </IconButton>
@@ -999,7 +993,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
               <AlertDialog.Content>
                 <AlertDialog.Title>{t($ => $.walls.deleteTitle)}</AlertDialog.Title>
                 <AlertDialog.Description>
-                  Are you sure you want to delete "{selectedAssembly?.name}"? This action cannot be undone.
+                  {t($ => $.walls.deleteConfirm, { name: selectedAssembly?.name })}
                 </AlertDialog.Description>
                 <Flex gap="3" mt="4" justify="end">
                   <AlertDialog.Cancel>

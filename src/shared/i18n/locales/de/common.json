@@ -9,6 +9,13 @@
     "autoSaved": "Automatisch gespeichert {{time}}",
     "autoSaveFailed": "Automatisches Speichern fehlgeschlagen",
     "autoSaving": "Speichere automatisch...",
+    "errors": {
+      "failedExport": "",
+      "failedGenerateModel": "",
+      "failedIFCExport": "",
+      "failedIFCImport": "",
+      "failedImport": ""
+    },
     "exportBuildingModel": "Gebäudemodell exportieren",
     "exportConstructionModel": "Konstruktionsmodell exportieren",
     "exportFailed": "Export/Import fehlgeschlagen",
@@ -45,6 +52,7 @@
     "noFloorsYet": "Noch keine Geschosse.",
     "switchToFloor": ""
   },
+  "todo": "",
   "units": {
     "liter": "",
     "m3": ""

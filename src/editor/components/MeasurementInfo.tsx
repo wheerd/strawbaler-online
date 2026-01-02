@@ -483,7 +483,7 @@ e | y +--------------+ s | Floor top layers                 }
       {renderMeasurement('storeyHeight', {
         startPoint: newVec2(marginRightX, marginTop),
         endPoint: newVec2(marginRightX, marginTop + storeyHeight),
-        label: 'Floor Height',
+        label: t($ => $.measurements.storeyHeight, { defaultValue: 'Floor Height' }),
         fontSize: 60,
         offset: 40,
         strokeWidth: 10
@@ -492,7 +492,7 @@ e | y +--------------+ s | Floor top layers                 }
       {renderMeasurement('roomHeight', {
         startPoint: newVec2(marginRightX, roomHeightStartY),
         endPoint: newVec2(marginRightX, marginTop + storeyHeight),
-        label: 'Ceiling Height',
+        label: t($ => $.measurements.roomHeight, { defaultValue: 'Ceiling Height' }),
         fontSize: 60,
         offset: 120,
         strokeWidth: 10
@@ -505,7 +505,7 @@ e | y +--------------+ s | Floor top layers                 }
       {renderMeasurement('floorTopOffset', {
         startPoint: newVec2(wallRight, topFloorConstructionTopY),
         endPoint: newVec2(wallRight, topFloorConstructionTopY + floorConstructionTopOverlap),
-        label: 'Construction Top Offset',
+        label: t($ => $.measurements.floorTopOffset, { defaultValue: 'Construction Top Offset' }),
         fontSize: 50,
         offset: wallRight - floorMeasurementX,
         strokeWidth: 10,
@@ -515,7 +515,7 @@ e | y +--------------+ s | Floor top layers                 }
       {renderMeasurement('floorBottomOffset', {
         startPoint: newVec2(wallRight, topFloorConstructionBottomY - floorConstructionBottomOverlap),
         endPoint: newVec2(wallRight, topFloorConstructionBottomY),
-        label: 'Construction Bottom Offset',
+        label: t($ => $.measurements.floorBottomOffset, { defaultValue: 'Construction Bottom Offset' }),
         fontSize: 50,
         offset: wallRight - floorMeasurementX,
         strokeWidth: 10,
@@ -791,7 +791,7 @@ e | y +--------------+ s | Floor top layers                 }
       {renderMeasurement('wallAssemblyHeight', {
         startPoint: newVec2(wallLeft, wallAssemblyTopY),
         endPoint: newVec2(wallLeft, wallAssemblyBottomY),
-        label: 'Wall Assembly Height',
+        label: t($ => $.measurements.wallAssemblyHeight, { defaultValue: 'Wall Assembly Height' }),
         fontSize: 60,
         offset: outsideThickness + 160,
         strokeWidth: 10
@@ -800,7 +800,7 @@ e | y +--------------+ s | Floor top layers                 }
       {renderMeasurement('wallConstructionHeight', {
         startPoint: newVec2(wallLeft, wallCoreTopY),
         endPoint: newVec2(wallLeft, wallCoreBottomY),
-        label: 'Wall Construction Height',
+        label: t($ => $.measurements.wallConstructionHeight, { defaultValue: 'Wall Construction Height' }),
         fontSize: 60,
         offset: outsideThickness + 100,
         strokeWidth: 10

@@ -25,7 +25,6 @@ import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import { LengthField } from '@/shared/components/LengthField'
 import { type Length } from '@/shared/geometry'
-import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import type { AddPostTool } from './AddPostTool'
 
@@ -45,16 +44,8 @@ interface ExistingPostConfig {
   infillMaterial?: MaterialId
 }
 
-const POST_TYPE_LABELS: Record<WallPostType, string> = {
-  center: 'Center',
-  double: 'Double',
-  inside: 'Inside',
-  outside: 'Outside'
-}
-
 function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): React.JSX.Element {
   const { t } = useTranslation('tool')
-  const { formatLength } = useFormatters()
   const { state } = useReactiveTool(tool)
 
   // Collect all post configurations from model and assemblies
@@ -177,10 +168,10 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
           {t($ => $.addPost.type)}
         </Text>
         <SegmentedControl.Root value={state.type} onValueChange={handleTypeChange} size="1">
-          <SegmentedControl.Item value="inside">{t($ => $.addPost.typeInside)}</SegmentedControl.Item>
-          <SegmentedControl.Item value="center">{t($ => $.addPost.typeCenter)}</SegmentedControl.Item>
-          <SegmentedControl.Item value="outside">{t($ => $.addPost.typeOutside)}</SegmentedControl.Item>
-          <SegmentedControl.Item value="double">{t($ => $.addPost.typeDouble)}</SegmentedControl.Item>
+          <SegmentedControl.Item value="inside">{t($ => $.addPost.types.inside)}</SegmentedControl.Item>
+          <SegmentedControl.Item value="center">{t($ => $.addPost.types.center)}</SegmentedControl.Item>
+          <SegmentedControl.Item value="outside">{t($ => $.addPost.types.outside)}</SegmentedControl.Item>
+          <SegmentedControl.Item value="double">{t($ => $.addPost.types.double)}</SegmentedControl.Item>
         </SegmentedControl.Root>
       </Flex>
       <Flex align="center" justify="between" gap="2">
@@ -273,9 +264,12 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
             <DropdownMenu.Content>
               {allPostConfigs.map((config, index) => (
                 <DropdownMenu.Item key={index} onClick={() => handleCopyClick(config)}>
-                  <Text>
-                    {POST_TYPE_LABELS[config.type]} • {formatLength(config.width)}×{formatLength(config.thickness)}
-                  </Text>
+                  {t($ => $.addPost.copyLabel, {
+                    defaultValue: '{{type}} • {{width, length}}×{{thickness, length}}',
+                    type: t($ => $.addPost.types[config.type]),
+                    width: config.width,
+                    thickness: config.thickness
+                  })}
                 </DropdownMenu.Item>
               ))}
             </DropdownMenu.Content>

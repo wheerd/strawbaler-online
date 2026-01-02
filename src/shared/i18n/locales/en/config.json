@@ -85,6 +85,11 @@
       "noTopLayers": "No top layers defined",
       "topLayers": "Top Layers"
     },
+    "newName": {
+      "filled": "New Filled Floor",
+      "joist": "New Joist Floor",
+      "monolithic": "New Monolithic Floor"
+    },
     "reset": {
       "confirm": "Are you sure you want to reset default floor assemblies? This will restore the original default assemblies but keep any custom assemblies you've created. This action cannot be undone.",
       "title": "Reset Floor Assemblies"
@@ -117,6 +122,11 @@
     "defaultName_monolithic": "Monolithic Layer",
     "defaultName_striped": "Striped Layer",
     "direction": "Direction",
+    "directions": {
+      "colinear": "Colinear",
+      "diagonal": "Diagonal",
+      "perpendicular": "Perpendicular"
+    },
     "gap": "Gap",
     "material": "Material",
     "moveDown": "Move down",
@@ -127,7 +137,12 @@
     "selectMaterial": "Select material...",
     "stripe": "Stripe",
     "thickness": "Thickness",
-    "title": "Layers"
+    "title": "Layers",
+    "totalThicknessLabel": "{{thickness, length}}",
+    "types": {
+      "monolithic": "Monolithic",
+      "striped": "Striped"
+    }
   },
   "materials": {
     "add": "Add",
@@ -327,9 +342,9 @@
     },
     "title": "Ring Beam Assemblies",
     "types": {
-      "full": "Full Ring Beam",
+      "brick": "Brick Ring Beam",
       "double": "Double Ring Beam",
-      "brick": "Brick Ring Beam"
+      "full": "Full Ring Beam"
     }
   },
   "roofs": {
@@ -369,6 +384,10 @@
       "noInsideLayers": "No inside layers defined",
       "overhangLayers": "Overhang Layers"
     },
+    "newName": {
+      "monolithic": "New Monolithic Roof",
+      "purlin": "New Purlin Roof"
+    },
     "noBottomLayers": "No bottom layers defined",
     "noInsideLayers": "No inside layers defined",
     "noOverhangLayers": "No overhang layers defined (optional)",
@@ -400,6 +419,24 @@
       "monolithic": "Monolithic",
       "purlin": "Purlin"
     }
+  },
+  "usage": {
+    "globalDefault_floor": "Global Default",
+    "globalDefault_opening": "Global Default",
+    "globalDefault_ringBeamBase": "Global Default (Base Plate)",
+    "globalDefault_ringBeamTop": "Global Default (Top Plate)",
+    "globalDefault_roof": "Global Default",
+    "globalDefault_straw": "Default Straw Material",
+    "globalDefault_wall": "Global Default",
+    "unknown": "Unknown",
+    "usedBy": "Used By:",
+    "usedInFloor": "Floor: {{label}}",
+    "usedInOpening": "Opening: {{label}}",
+    "usedInRingBeam": "Ring Beam: {{label}}",
+    "usedInRoof": "Roof: {{label}}",
+    "usedInStorey": "Storey: {{label}}",
+    "usedInWall": "Wall: {{label}}",
+    "usedInWallPosts": "Wall Posts"
   },
   "walls": {
     "addInsideLayer": "Add Inside Layer",
@@ -466,30 +503,14 @@
     "strawMaterialOverride": "Straw Material (Override)",
     "thickness": "Thickness",
     "title": "Wall Assemblies",
-    "typeInfill": "Infill",
-    "typeModules": "Modules",
-    "typeNonStrawbale": "Non-Strawbale",
-    "typeStrawhenge": "Strawhenge",
+    "types": {
+      "infill": "Infill",
+      "modules": "Modules",
+      "non-strawbale": "Non-Strawbale",
+      "strawhenge": "Strawhenge"
+    },
     "useGlobalStrawSettings": "Use global straw settings",
     "wallConstruction": "Wall Construction",
     "width": "Width"
-  },
-  "usage": {
-    "unknown": "Unknown",
-    "usedBy": "Used By:",
-    "usedInStorey": "Storey: {{label}}",
-    "usedInRingBeam": "Ring Beam: {{label}}",
-    "usedInWall": "Wall: {{label}}",
-    "usedInFloor": "Floor: {{label}}",
-    "usedInRoof": "Roof: {{label}}",
-    "usedInOpening": "Opening: {{label}}",
-    "usedInWallPosts": "Wall Posts",
-    "globalDefault_ringBeamBase": "Global Default (Base Plate)",
-    "globalDefault_ringBeamTop": "Global Default (Top Plate)",
-    "globalDefault_wall": "Global Default",
-    "globalDefault_floor": "Global Default",
-    "globalDefault_roof": "Global Default",
-    "globalDefault_opening": "Global Default",
-    "globalDefault_straw": "Default Straw Material"
   }
 }

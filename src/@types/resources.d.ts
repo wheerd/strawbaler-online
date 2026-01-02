@@ -13,6 +13,13 @@ interface Resources {
       "autoSaveFailed": "Auto-save failed",
       "autoSaved": "Auto-saved {{time}}",
       "autoSaving": "Auto-saving...",
+      "errors": {
+        "failedExport": "Failed to export project",
+        "failedGenerateModel": "Failed to generate model",
+        "failedIFCExport": "Failed to export IFC",
+        "failedIFCImport": "Failed to import IFC file",
+        "failedImport": "Failed to import file"
+      },
       "exportBuildingModel": "Export Building Model",
       "exportConstructionModel": "Export Construction Model",
       "exportFailed": "Export/Import failed",
@@ -146,6 +153,11 @@ interface Resources {
         "noTopLayers": "No top layers defined",
         "topLayers": "Top Layers"
       },
+      "newName": {
+        "filled": "New Filled Floor",
+        "joist": "New Joist Floor",
+        "monolithic": "New Monolithic Floor"
+      },
       "reset": {
         "confirm": "Are you sure you want to reset default floor assemblies? This will restore the original default assemblies but keep any custom assemblies you've created. This action cannot be undone.",
         "title": "Reset Floor Assemblies"
@@ -178,6 +190,11 @@ interface Resources {
       "defaultName_monolithic": "Monolithic Layer",
       "defaultName_striped": "Striped Layer",
       "direction": "Direction",
+      "directions": {
+        "colinear": "Colinear",
+        "diagonal": "Diagonal",
+        "perpendicular": "Perpendicular"
+      },
       "gap": "Gap",
       "material": "Material",
       "moveDown": "Move down",
@@ -188,7 +205,12 @@ interface Resources {
       "selectMaterial": "Select material...",
       "stripe": "Stripe",
       "thickness": "Thickness",
-      "title": "Layers"
+      "title": "Layers",
+      "totalThicknessLabel": "{{thickness, length}}",
+      "types": {
+        "monolithic": "Monolithic",
+        "striped": "Striped"
+      }
     },
     "materials": {
       "add": "Add",
@@ -430,6 +452,10 @@ interface Resources {
         "noInsideLayers": "No inside layers defined",
         "overhangLayers": "Overhang Layers"
       },
+      "newName": {
+        "monolithic": "New Monolithic Roof",
+        "purlin": "New Purlin Roof"
+      },
       "noBottomLayers": "No bottom layers defined",
       "noInsideLayers": "No inside layers defined",
       "noOverhangLayers": "No overhang layers defined (optional)",
@@ -545,10 +571,12 @@ interface Resources {
       "strawMaterialOverride": "Straw Material (Override)",
       "thickness": "Thickness",
       "title": "Wall Assemblies",
-      "typeInfill": "Infill",
-      "typeModules": "Modules",
-      "typeNonStrawbale": "Non-Strawbale",
-      "typeStrawhenge": "Strawhenge",
+      "types": {
+        "infill": "Infill",
+        "modules": "Modules",
+        "non-strawbale": "Non-Strawbale",
+        "strawhenge": "Strawhenge"
+      },
       "useGlobalStrawSettings": "Use global straw settings",
       "wallConstruction": "Wall Construction",
       "width": "Width"
@@ -580,8 +608,10 @@ interface Resources {
       "finishedRooftop": "Finished Rooftop",
       "floorAssembly": "Floor Assembly",
       "floorBottomLayers": "Floor Bottom Layers",
+      "floorBottomOffset": "Construction Bottom Offset",
       "floorConstruction": "Floor Construction",
       "floorTopLayers": "Floor Top Layers",
+      "floorTopOffset": "Construction Top Offset",
       "insideLayers": "Inside Layers",
       "measurements": "Measurements",
       "outsideLayers": "Outside Layers",
@@ -590,10 +620,14 @@ interface Resources {
       "roofConstruction": "Roof Construction",
       "roofMeasurementDetails": "Roof Measurement Details",
       "roofTopLayers": "Roof Top Layers",
+      "roomHeight": "Ceiling Height",
+      "storeyHeight": "Floor Height",
       "topPlate": "Top Plate",
       "wall": "Wall",
       "wallAssembly": "Wall Assembly",
-      "wallConstruction": "Wall Construction"
+      "wallAssemblyHeight": "Wall Assembly Height",
+      "wallConstruction": "Wall Construction",
+      "wallConstructionHeight": "Wall Construction Height"
     },
     "modulesList": {
       "actions": {
@@ -1209,6 +1243,7 @@ interface Resources {
       "actsAsPost": "Acts as Post",
       "behavior": "Behavior",
       "copyConfigurationTooltip": "Copy this configuration",
+      "copyLabel": "{{type}} • {{width, length}}×{{thickness, length}}",
       "flankedByPosts": "Flanked by Posts",
       "infillMaterial": "Infill Material",
       "info": "Click on a wall to place a post. Configure dimensions, type, position, and materials before placement.",
@@ -1222,10 +1257,12 @@ interface Resources {
       },
       "thickness": "Thickness",
       "type": "Type",
-      "typeCenter": "Center",
-      "typeDouble": "Double",
-      "typeInside": "Inside",
-      "typeOutside": "Outside",
+      "types": {
+        "center": "Center",
+        "double": "Double",
+        "inside": "Inside",
+        "outside": "Outside"
+      },
       "width": "Width"
     },
     "floorArea": {
@@ -1372,6 +1409,11 @@ interface Resources {
       "controlConfirm": "Press Enter to confirm split",
       "controlHover": "Hover over wall to preview split position",
       "controlMeasurements": "Click measurements to enter precise values",
+      "errors": {
+        "intersectsOpening": "Split position intersects with an opening",
+        "noWall": "No wall selected",
+        "outOfBounds": "Split position is not inside the bounds of the wall"
+      },
       "info": "Split walls to create segments with different wall assemblies or to position openings precisely.",
       "readyToSplit": "Ready to split wall",
       "selectWall": "Click on a wall to select it for splitting",

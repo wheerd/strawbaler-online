@@ -85,6 +85,11 @@
       "noTopLayers": "",
       "topLayers": ""
     },
+    "newName": {
+      "filled": "",
+      "joist": "",
+      "monolithic": ""
+    },
     "reset": {
       "confirm": "",
       "title": ""
@@ -117,6 +122,11 @@
     "defaultName_monolithic": "",
     "defaultName_striped": "",
     "direction": "",
+    "directions": {
+      "colinear": "",
+      "diagonal": "",
+      "perpendicular": ""
+    },
     "gap": "",
     "material": "",
     "moveDown": "",
@@ -127,7 +137,12 @@
     "selectMaterial": "",
     "stripe": "",
     "thickness": "",
-    "title": ""
+    "title": "",
+    "totalThicknessLabel": "",
+    "types": {
+      "monolithic": "",
+      "striped": ""
+    }
   },
   "materials": {
     "add": "",
@@ -299,7 +314,9 @@
     },
     "title": "",
     "types": {
-      "double": ""
+      "brick": "",
+      "double": "",
+      "full": ""
     }
   },
   "roofs": {
@@ -339,6 +356,10 @@
       "noInsideLayers": "",
       "overhangLayers": ""
     },
+    "newName": {
+      "monolithic": "",
+      "purlin": ""
+    },
     "noBottomLayers": "",
     "noInsideLayers": "",
     "noOverhangLayers": "",
@@ -370,6 +391,25 @@
       "monolithic": "",
       "purlin": ""
     }
+  },
+  "todo": "",
+  "usage": {
+    "globalDefault_floor": "",
+    "globalDefault_opening": "",
+    "globalDefault_ringBeamBase": "",
+    "globalDefault_ringBeamTop": "",
+    "globalDefault_roof": "",
+    "globalDefault_straw": "",
+    "globalDefault_wall": "",
+    "unknown": "",
+    "usedBy": "",
+    "usedInFloor": "",
+    "usedInOpening": "",
+    "usedInRingBeam": "",
+    "usedInRoof": "",
+    "usedInStorey": "",
+    "usedInWall": "",
+    "usedInWallPosts": ""
   },
   "walls": {
     "addInsideLayer": "",
@@ -439,27 +479,15 @@
     "typeInfill": "",
     "typeModules": "",
     "typeNonStrawbale": "",
+    "types": {
+      "infill": "",
+      "modules": "",
+      "non-strawbale": "",
+      "strawhenge": ""
+    },
     "typeStrawhenge": "",
     "useGlobalStrawSettings": "",
     "wallConstruction": "",
     "width": ""
-  },
-  "usage": {
-    "unknown": "",
-    "usedBy": "",
-    "usedInStorey": "",
-    "usedInRingBeam": "",
-    "usedInWall": "",
-    "usedInFloor": "",
-    "usedInRoof": "",
-    "usedInOpening": "",
-    "usedInWallPosts": "",
-    "globalDefault_ringBeamBase": "",
-    "globalDefault_ringBeamTop": "",
-    "globalDefault_wall": "",
-    "globalDefault_floor": "",
-    "globalDefault_roof": "",
-    "globalDefault_opening": "",
-    "globalDefault_straw": ""
   }
 }

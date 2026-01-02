@@ -77,6 +77,7 @@ const STRAW_CATEGORY_BY_TAG: Record<string, StrawCategory> = {
   [TAG_STRAW_STUFFED.id as string]: 'stuffed'
 }
 
+// TODO: Translate
 const STRAW_CATEGORY_LABELS: Record<StrawCategory, string> = {
   full: 'Full bales',
   partial: 'Partial bales',

@@ -227,14 +227,19 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
 
           <AlertDialog.Root>
             <AlertDialog.Trigger>
-              <IconButton color="red" variant="soft" disabled={usage.isUsed} title={t($ => $.common.delete)}>
+              <IconButton
+                color="red"
+                variant="soft"
+                disabled={usage.isUsed}
+                title={usage.isUsed ? t($ => $.common.inUseCannotDelete) : t($ => $.common.delete)}
+              >
                 <TrashIcon />
               </IconButton>
             </AlertDialog.Trigger>
             <AlertDialog.Content>
               <AlertDialog.Title>{t($ => $.openings.deleteTitle)}</AlertDialog.Title>
               <AlertDialog.Description>
-                Are you sure you want to delete &quot;{selectedAssembly.name}&quot;?
+                {t($ => $.openings.deleteConfirm, { name: selectedAssembly.name })}
               </AlertDialog.Description>
               <Flex gap="3" mt="4" justify="end">
                 <AlertDialog.Cancel>
@@ -384,11 +389,7 @@ function ConfigForm({ assembly }: { assembly: OpeningAssemblyConfig }): React.JS
             </Text>
           </Label.Root>
           <Text size="2" color="gray">
-            {assembly.type === 'simple'
-              ? 'Standard Opening'
-              : assembly.type === 'post'
-                ? 'Opening with Posts'
-                : 'Empty Opening'}
+            {t($ => $.openings.types[assembly.type])}
           </Text>
         </Flex>
       </Grid>

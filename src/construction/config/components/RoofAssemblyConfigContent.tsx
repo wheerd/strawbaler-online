@@ -563,7 +563,7 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
             <Flex gap="2" align="center">
               {React.createElement(getRoofAssemblyTypeIcon(assembly.type))}
               <Text size="2" color="gray">
-                {assembly.type === 'monolithic' ? 'Monolithic' : 'Purlin'}
+                {t($ => $.roofs.types[assembly.type])}
               </Text>
             </Flex>
           </Flex>
@@ -640,7 +640,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
       let name: string
       let config: RoofConfig
       if (type === 'monolithic') {
-        name = 'New Monolithic Roof'
+        name = t($ => $.roofs.newName.monolithic, { defaultValue: 'New Monolithic Roof' })
         config = {
           type: 'monolithic',
           thickness: 180,
@@ -656,7 +656,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
           }
         }
       } else {
-        name = 'New Purlin Roof'
+        name = t($ => $.roofs.newName.purlin, { defaultValue: 'New Purlin Roof' })
         config = {
           type: 'purlin',
           thickness: 360,
@@ -772,7 +772,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
                 <IconButton
                   disabled={!selectedAssembly || usage.isUsed}
                   color="red"
-                  title={usage.isUsed ? 'In Use - Cannot Delete' : 'Delete'}
+                  title={usage.isUsed ? t($ => $.common.inUseCannotDelete) : t($ => $.common.delete)}
                 >
                   <TrashIcon />
                 </IconButton>
@@ -780,7 +780,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
               <AlertDialog.Content>
                 <AlertDialog.Title>{t($ => $.roofs.deleteTitle)}</AlertDialog.Title>
                 <AlertDialog.Description>
-                  Are you sure you want to delete "{selectedAssembly?.name}"? This action cannot be undone.
+                  {t($ => $.roofs.deleteConfirm, { name: selectedAssembly?.name })}
                 </AlertDialog.Description>
                 <Flex gap="3" mt="4" justify="end">
                   <AlertDialog.Cancel>

@@ -41,12 +41,6 @@ import { useFormatters } from '@/shared/i18n/useFormatters'
 
 const DEFAULT_MATERIAL = '' as MaterialId
 
-const stripeDirectionLabels: Record<StripeDirection, string> = {
-  perpendicular: 'Perpendicular',
-  colinear: 'Colinear',
-  diagonal: 'Diagonal'
-}
-
 const getDefaultLayer = (type: LayerType, name: string, thickness: number): LayerConfig =>
   type === 'monolithic'
     ? {
@@ -127,7 +121,7 @@ export function LayerListEditor({
           </Text>
           {measurementInfo}
           <Text size="1" color="gray">
-            · {formatLength(totalThickness)}
+            {t($ => $.layers.totalThicknessLabel, { thickness: totalThickness })}
           </Text>
         </Flex>
         <Flex gap="1">
@@ -270,11 +264,14 @@ interface LayerCardProps {
   onRemoveLayer: (index: number) => void
 }
 
-const LayerTypeIcon = ({ type }: { type: LayerType }) => (
-  <Tooltip content={type === 'monolithic' ? 'Monolithic' : 'Striped'}>
-    {type === 'monolithic' ? <SquareIcon width={16} height={16} /> : <ColumnsIcon width={16} height={16} />}
-  </Tooltip>
-)
+const LayerTypeIcon = ({ type }: { type: LayerType }) => {
+  const { t } = useTranslation('config')
+  return (
+    <Tooltip content={t($ => $.layers.types[type])}>
+      {type === 'monolithic' ? <SquareIcon width={16} height={16} /> : <ColumnsIcon width={16} height={16} />}
+    </Tooltip>
+  )
+}
 
 function LayerCard({
   index,
@@ -445,11 +442,15 @@ function StripedLayerFields({
           >
             <Select.Trigger />
             <Select.Content>
-              {Object.entries(stripeDirectionLabels).map(([value, label]) => (
-                <Select.Item key={value} value={value}>
-                  {label}
-                </Select.Item>
-              ))}
+              <Select.Item value="perpendicular">
+                {t($ => $.layers.directions.perpendicular, { defaultValue: 'Perpendicular' })}
+              </Select.Item>
+              <Select.Item value="colinear">
+                {t($ => $.layers.directions.colinear, { defaultValue: 'Colinear' })}
+              </Select.Item>
+              <Select.Item value="diagonal">
+                {t($ => $.layers.directions.diagonal, { defaultValue: 'Diagonal' })}
+              </Select.Item>
             </Select.Content>
           </Select.Root>
         }
