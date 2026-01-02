@@ -76,7 +76,7 @@ i18n
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'welcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction', 'errors', 'viewer'],
+    ns: ['common', 'wselcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction', 'errors', 'viewer'],
 
     // postProcess: 'x',
 

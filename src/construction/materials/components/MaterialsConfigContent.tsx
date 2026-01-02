@@ -27,7 +27,15 @@ import {
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  isFloorAssemblyId,
+  isOpeningAssemblyId,
+  isRingBeamAssemblyId,
+  isRoofAssemblyId,
+  isWallAssemblyId
+} from '@/building/model/ids'
 import { useConfigActions, useDefaultStrawMaterialId } from '@/construction/config/store'
+import { useEntityLabel } from '@/construction/config/useEntityLabel'
 import type {
   DimensionalMaterial,
   GenericMaterial,
@@ -39,7 +47,7 @@ import type {
 } from '@/construction/materials/material'
 import { strawbale } from '@/construction/materials/material'
 import { useMaterialActions, useMaterials } from '@/construction/materials/store'
-import { useMaterialUsage } from '@/construction/materials/usage'
+import { type MaterialUsage, useMaterialUsage } from '@/construction/materials/usage'
 import { LengthField } from '@/shared/components/LengthField/LengthField'
 import { VolumeField } from '@/shared/components/VolumeField/VolumeField'
 import type { Length } from '@/shared/geometry'
@@ -411,23 +419,73 @@ export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigCo
           <Text color="gray">{t($ => $.materials.noMaterialsYet)}</Text>
         </Flex>
       )}
-      {usage.isUsed && (
-        <Grid columns="auto 1fr" gap="2" gapX="3" align="baseline">
-          <Label.Root>
-            <Text size="2" weight="medium" color="gray" id="material-usage-list">
-              {t($ => $.common.usedBy)}
-            </Text>
-          </Label.Root>
-          <Flex gap="1" wrap="wrap" role="list" aria-labelledby="material-usage-list">
-            {usage.usedByConfigs.map((use, index) => (
-              <Badge role="listitem" key={index} size="2" variant="soft">
-                {use}
-              </Badge>
-            ))}
-          </Flex>
-        </Grid>
-      )}
+      {usage.isUsed && <UsageDisplay usage={usage} />}
     </Flex>
+  )
+}
+
+function UsageDisplay({ usage }: { usage: MaterialUsage }): React.JSX.Element {
+  const { t } = useTranslation('config')
+  const getLabel = useEntityLabel()
+
+  return (
+    <Grid columns="auto 1fr" gap="2" gapX="3" align="baseline">
+      <Label.Root>
+        <Text size="2" weight="medium" color="gray">
+          {t($ => $.usage.usedBy)}
+        </Text>
+      </Label.Root>
+      <Flex gap="1" wrap="wrap">
+        {usage.isDefaultStraw && (
+          <Badge size="2" variant="soft" color="blue">
+            {t($ => $.usage.globalDefault_straw)}
+          </Badge>
+        )}
+        {usage.assemblyIds.map(id => {
+          if (isRingBeamAssemblyId(id)) {
+            return (
+              <Badge key={id} size="2" variant="soft">
+                {t($ => $.usage.usedInRingBeam, { label: getLabel(id) })}
+              </Badge>
+            )
+          }
+          if (isWallAssemblyId(id)) {
+            return (
+              <Badge key={id} size="2" variant="soft">
+                {t($ => $.usage.usedInWall, { label: getLabel(id) })}
+              </Badge>
+            )
+          }
+          if (isFloorAssemblyId(id)) {
+            return (
+              <Badge key={id} size="2" variant="soft">
+                {t($ => $.usage.usedInFloor, { label: getLabel(id) })}
+              </Badge>
+            )
+          }
+          if (isRoofAssemblyId(id)) {
+            return (
+              <Badge key={id} size="2" variant="soft">
+                {t($ => $.usage.usedInRoof, { label: getLabel(id) })}
+              </Badge>
+            )
+          }
+          if (isOpeningAssemblyId(id)) {
+            return (
+              <Badge key={id} size="2" variant="soft">
+                {t($ => $.usage.usedInOpening, { label: getLabel(id) })}
+              </Badge>
+            )
+          }
+          return null
+        })}
+        {usage.usedInWallPosts && (
+          <Badge size="2" variant="soft">
+            {t($ => $.usage.usedInWallPosts)}
+          </Badge>
+        )}
+      </Flex>
+    </Grid>
   )
 }
 

@@ -20,15 +20,16 @@ import {
 import React, { useCallback, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { OpeningAssemblyId } from '@/building/model/ids'
-import { usePerimeters, useStoreysOrderedByLevel } from '@/building/store'
+import type { OpeningAssemblyId, StoreyId, WallAssemblyId } from '@/building/model/ids'
+import { usePerimeters } from '@/building/store'
 import {
   useConfigActions,
   useDefaultOpeningAssemblyId,
   useOpeningAssemblies,
   useWallAssemblies
 } from '@/construction/config/store'
-import { getOpeningAssemblyUsage } from '@/construction/config/usage'
+import { type OpeningAssemblyUsage, getOpeningAssemblyUsage } from '@/construction/config/usage'
+import { useEntityLabel } from '@/construction/config/useEntityLabel'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'
@@ -52,7 +53,6 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
   const openingAssemblies = useOpeningAssemblies()
   const wallAssemblies = useWallAssemblies()
   const perimeters = usePerimeters()
-  const storeys = useStoreysOrderedByLevel()
   const {
     addOpeningAssembly,
     removeOpeningAssembly,
@@ -78,15 +78,9 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
   const usage = useMemo(
     () =>
       selectedAssembly
-        ? getOpeningAssemblyUsage(
-            selectedAssembly.id as OpeningAssemblyId,
-            perimeters,
-            Object.values(storeys),
-            wallAssemblyArray,
-            defaultId
-          )
-        : { isUsed: false, usedAsGlobalDefault: false, usedByWallAssemblies: [], usedByOpenings: [] },
-    [selectedAssembly, perimeters, storeys, wallAssemblyArray, defaultId]
+        ? getOpeningAssemblyUsage(selectedAssembly.id as OpeningAssemblyId, perimeters, wallAssemblyArray, defaultId)
+        : { isUsed: false, isDefault: false, wallAssemblyIds: [], storeyIds: [] },
+    [selectedAssembly, perimeters, wallAssemblyArray, defaultId]
   )
 
   const handleAddNew = useCallback(
@@ -302,33 +296,40 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
           size="2"
         />
       </Grid>
-      {usage.isUsed && (
-        <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
-          <Label.Root>
-            <Text size="2" weight="medium" color="gray">
-              Used By:
-            </Text>
-          </Label.Root>
-          <Flex gap="1" wrap="wrap">
-            {usage.usedAsGlobalDefault && (
-              <Badge size="2" variant="soft">
-                {t($ => $.common.globalDefault)}
-              </Badge>
-            )}
-            {usage.usedByWallAssemblies.map((use, index) => (
-              <Badge key={index} size="2" variant="soft">
-                {use}
-              </Badge>
-            ))}
-            {usage.usedByOpenings.map((use, index) => (
-              <Badge key={`opening-${index}`} size="2" variant="soft">
-                {use}
-              </Badge>
-            ))}
-          </Flex>
-        </Grid>
-      )}
+      {usage.isUsed && <UsageDisplay usage={usage} />}
     </Flex>
+  )
+}
+
+function UsageDisplay({ usage }: { usage: OpeningAssemblyUsage }): React.JSX.Element {
+  const { t } = useTranslation('config')
+  const getLabel = useEntityLabel()
+
+  return (
+    <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
+      <Label.Root>
+        <Text size="2" weight="medium" color="gray">
+          {t($ => $.usage.usedBy)}
+        </Text>
+      </Label.Root>
+      <Flex gap="1" wrap="wrap">
+        {usage.isDefault && (
+          <Badge size="2" variant="soft" color="blue">
+            {t($ => $.usage.globalDefault_opening)}
+          </Badge>
+        )}
+        {usage.wallAssemblyIds.map((id: WallAssemblyId) => (
+          <Badge key={id} size="2" variant="soft">
+            {t($ => $.usage.usedInWall, { label: getLabel(id) })}
+          </Badge>
+        ))}
+        {usage.storeyIds.map((id: StoreyId) => (
+          <Badge key={id} size="2" variant="soft">
+            {t($ => $.usage.usedInStorey, { label: getLabel(id) })}
+          </Badge>
+        ))}
+      </Flex>
+    </Grid>
   )
 }
 

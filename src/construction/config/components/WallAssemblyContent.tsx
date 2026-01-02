@@ -27,12 +27,13 @@ import {
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { OpeningAssemblyId, WallAssemblyId } from '@/building/model/ids'
-import { usePerimeters, useStoreysOrderedByLevel } from '@/building/store'
+import type { OpeningAssemblyId, StoreyId, WallAssemblyId } from '@/building/model/ids'
+import { usePerimeters } from '@/building/store'
 import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
 import { useConfigActions, useDefaultWallAssemblyId, useWallAssemblies } from '@/construction/config/store'
 import type { WallAssemblyConfig } from '@/construction/config/types'
-import { getWallAssemblyUsage } from '@/construction/config/usage'
+import { type WallAssemblyUsage, getWallAssemblyUsage } from '@/construction/config/usage'
+import { useEntityLabel } from '@/construction/config/useEntityLabel'
 import { DEFAULT_WALL_LAYER_SETS } from '@/construction/layers/defaults'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
@@ -770,7 +771,6 @@ export interface WallAssemblyContentProps {
 export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentProps): React.JSX.Element {
   const wallAssemblies = useWallAssemblies()
   const perimeters = usePerimeters()
-  const storeys = useStoreysOrderedByLevel()
   const {
     addWallAssembly,
     duplicateWallAssembly,
@@ -794,9 +794,9 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
   const usage = useMemo(
     () =>
       selectedAssembly
-        ? getWallAssemblyUsage(selectedAssembly.id, perimeters, storeys)
-        : { isUsed: false, usedByWalls: [] },
-    [selectedAssembly, perimeters, storeys]
+        ? getWallAssemblyUsage(selectedAssembly.id, perimeters, defaultAssemblyId)
+        : { isUsed: false, isDefault: false, storeyIds: [] },
+    [selectedAssembly, perimeters, defaultAssemblyId]
   )
 
   const handleAddNew = useCallback(
@@ -1063,22 +1063,34 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
           <Text color="gray">No wall assemblies yet. Create one using the "New" button above.</Text>
         </Flex>
       )}
-      {usage.isUsed && (
-        <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
-          <Label.Root>
-            <Text size="2" weight="medium" color="gray">
-              Used By:
-            </Text>
-          </Label.Root>
-          <Flex gap="1" wrap="wrap">
-            {usage.usedByWalls.map((use, index) => (
-              <Badge key={index} size="2" variant="soft">
-                {use}
-              </Badge>
-            ))}
-          </Flex>
-        </Grid>
-      )}
+      {usage.isUsed && <UsageDisplay usage={usage} />}
     </Flex>
+  )
+}
+
+function UsageDisplay({ usage }: { usage: WallAssemblyUsage }): React.JSX.Element {
+  const { t } = useTranslation('config')
+  const getLabel = useEntityLabel()
+
+  return (
+    <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
+      <Label.Root>
+        <Text size="2" weight="medium" color="gray">
+          {t($ => $.usage.usedBy)}
+        </Text>
+      </Label.Root>
+      <Flex gap="1" wrap="wrap">
+        {usage.isDefault && (
+          <Badge size="2" variant="soft" color="blue">
+            {t($ => $.usage.globalDefault_wall)}
+          </Badge>
+        )}
+        {usage.storeyIds.map((id: StoreyId) => (
+          <Badge key={id} size="2" variant="soft">
+            {t($ => $.usage.usedInStorey, { label: getLabel(id) })}
+          </Badge>
+        ))}
+      </Flex>
+    </Grid>
   )
 }

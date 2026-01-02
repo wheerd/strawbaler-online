@@ -16,11 +16,12 @@ import {
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { RoofAssemblyId } from '@/building/model/ids'
-import { useRoofs, useStoreysOrderedByLevel } from '@/building/store'
+import type { RoofAssemblyId, StoreyId } from '@/building/model/ids'
+import { useRoofs } from '@/building/store'
 import { useConfigActions, useDefaultRoofAssemblyId, useRoofAssemblies } from '@/construction/config/store'
 import type { RoofAssemblyConfig } from '@/construction/config/types'
-import { getRoofAssemblyUsage } from '@/construction/config/usage'
+import { type RoofAssemblyUsage, getRoofAssemblyUsage } from '@/construction/config/usage'
+import { useEntityLabel } from '@/construction/config/useEntityLabel'
 import { DEFAULT_CEILING_LAYER_SETS, DEFAULT_ROOF_LAYER_SETS } from '@/construction/layers/defaults'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
@@ -599,7 +600,6 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
   const { t } = useTranslation('config')
   const roofAssemblies = useRoofAssemblies()
   const roofs = useRoofs()
-  const storeys = useStoreysOrderedByLevel()
   const {
     addRoofAssembly,
     duplicateRoofAssembly,
@@ -622,9 +622,9 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
   const usage = useMemo(
     () =>
       selectedAssembly
-        ? getRoofAssemblyUsage(selectedAssembly.id, Object.values(roofs), storeys)
-        : { isUsed: false, usedByRoofs: [] },
-    [selectedAssembly, roofs, storeys]
+        ? getRoofAssemblyUsage(selectedAssembly.id, Object.values(roofs), defaultAssemblyId)
+        : { isUsed: false, isDefault: false, storeyIds: [] },
+    [selectedAssembly, roofs, defaultAssemblyId]
   )
 
   const handleAddNew = useCallback(
@@ -844,22 +844,34 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
           <Text color="gray">No roof assemblies yet. Create one using the "New" button above.</Text>
         </Flex>
       )}
-      {usage.isUsed && (
-        <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
-          <Label.Root>
-            <Text size="2" weight="medium" color="gray">
-              Used By:
-            </Text>
-          </Label.Root>
-          <Flex gap="1" wrap="wrap">
-            {usage.usedByRoofs.map((use, index) => (
-              <Badge key={index} size="2" variant="soft">
-                {use}
-              </Badge>
-            ))}
-          </Flex>
-        </Grid>
-      )}
+      {usage.isUsed && <UsageDisplay usage={usage} />}
     </Flex>
+  )
+}
+
+function UsageDisplay({ usage }: { usage: RoofAssemblyUsage }): React.JSX.Element {
+  const { t } = useTranslation('config')
+  const getLabel = useEntityLabel()
+
+  return (
+    <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
+      <Label.Root>
+        <Text size="2" weight="medium" color="gray">
+          {t($ => $.usage.usedBy)}
+        </Text>
+      </Label.Root>
+      <Flex gap="1" wrap="wrap">
+        {usage.isDefault && (
+          <Badge size="2" variant="soft" color="blue">
+            {t($ => $.usage.globalDefault_roof)}
+          </Badge>
+        )}
+        {usage.storeyIds.map((id: StoreyId) => (
+          <Badge key={id} size="2" variant="soft">
+            {t($ => $.usage.usedInStorey, { label: getLabel(id) })}
+          </Badge>
+        ))}
+      </Flex>
+    </Grid>
   )
 }

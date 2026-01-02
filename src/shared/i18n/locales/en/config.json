@@ -473,5 +473,23 @@
     "useGlobalStrawSettings": "Use global straw settings",
     "wallConstruction": "Wall Construction",
     "width": "Width"
+  },
+  "usage": {
+    "unknown": "Unknown",
+    "usedBy": "Used By:",
+    "usedInStorey": "Storey: {{label}}",
+    "usedInRingBeam": "Ring Beam: {{label}}",
+    "usedInWall": "Wall: {{label}}",
+    "usedInFloor": "Floor: {{label}}",
+    "usedInRoof": "Roof: {{label}}",
+    "usedInOpening": "Opening: {{label}}",
+    "usedInWallPosts": "Wall Posts",
+    "globalDefault_ringBeamBase": "Global Default (Base Plate)",
+    "globalDefault_ringBeamTop": "Global Default (Top Plate)",
+    "globalDefault_wall": "Global Default",
+    "globalDefault_floor": "Global Default",
+    "globalDefault_roof": "Global Default",
+    "globalDefault_opening": "Global Default",
+    "globalDefault_straw": "Default Straw Material"
   }
 }

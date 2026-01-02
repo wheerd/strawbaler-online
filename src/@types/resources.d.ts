@@ -462,6 +462,24 @@ interface Resources {
         "purlin": "Purlin"
       }
     },
+    "usage": {
+      "globalDefault_floor": "Global Default",
+      "globalDefault_opening": "Global Default",
+      "globalDefault_ringBeamBase": "Global Default (Base Plate)",
+      "globalDefault_ringBeamTop": "Global Default (Top Plate)",
+      "globalDefault_roof": "Global Default",
+      "globalDefault_straw": "Default Straw Material",
+      "globalDefault_wall": "Global Default",
+      "unknown": "Unknown",
+      "usedBy": "Used By:",
+      "usedInFloor": "Floor: {{label}}",
+      "usedInOpening": "Opening: {{label}}",
+      "usedInRingBeam": "Ring Beam: {{label}}",
+      "usedInRoof": "Roof: {{label}}",
+      "usedInStorey": "Storey: {{label}}",
+      "usedInWall": "Wall: {{label}}",
+      "usedInWallPosts": "Wall Posts"
+    },
     "walls": {
       "addInsideLayer": "Add Inside Layer",
       "addOutsideLayer": "Add Outside Layer",

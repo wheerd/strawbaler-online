@@ -17,8 +17,8 @@ import {
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { RingBeamAssemblyId } from '@/building/model/ids'
-import { usePerimeters, useStoreysOrderedByLevel } from '@/building/store'
+import type { RingBeamAssemblyId, StoreyId } from '@/building/model/ids'
+import { usePerimeters } from '@/building/store'
 import type { RingBeamAssemblyConfig } from '@/construction/config'
 import {
   useConfigActions,
@@ -26,7 +26,8 @@ import {
   useDefaultTopRingBeamAssemblyId,
   useRingBeamAssemblies
 } from '@/construction/config/store'
-import { getRingBeamAssemblyUsage } from '@/construction/config/usage'
+import { type RingBeamAssemblyUsage, getRingBeamAssemblyUsage } from '@/construction/config/usage'
+import { useEntityLabel } from '@/construction/config/useEntityLabel'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import { bitumen, brick, cork, roughWood, woodwool } from '@/construction/materials/material'
 import { type RingBeamConfig, resolveRingBeamAssembly } from '@/construction/ringBeams'
@@ -48,7 +49,6 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
   const { t } = useTranslation('config')
   const ringBeamAssemblies = useRingBeamAssemblies()
   const perimeters = usePerimeters()
-  const storeys = useStoreysOrderedByLevel()
   const {
     addRingBeamAssembly,
     removeRingBeamAssembly,
@@ -72,9 +72,9 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
   const usage = useMemo(
     () =>
       selectedAssembly
-        ? getRingBeamAssemblyUsage(selectedAssembly.id, perimeters, Object.values(storeys))
-        : { isUsed: false, usedByPerimeters: [] },
-    [selectedAssembly, perimeters, storeys]
+        ? getRingBeamAssemblyUsage(selectedAssembly.id, perimeters, defaultBaseId, defaultTopId)
+        : { isUsed: false, isDefaultBase: false, isDefaultTop: false, storeyIds: [] },
+    [selectedAssembly, perimeters, defaultBaseId, defaultTopId]
   )
 
   const handleAddNew = useCallback(
@@ -304,22 +304,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           />
         </Grid>
 
-        {usage.isUsed && (
-          <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
-            <Label.Root>
-              <Text size="2" weight="medium" color="gray">
-                Used By:
-              </Text>
-            </Label.Root>
-            <Flex gap="1" wrap="wrap">
-              {usage.usedByPerimeters.map((use, index) => (
-                <Badge key={index} size="2" variant="soft">
-                  {use}
-                </Badge>
-              ))}
-            </Flex>
-          </Grid>
-        )}
+        {usage.isUsed && <UsageDisplay usage={usage} />}
       </Flex>
     </Flex>
   )
@@ -732,5 +717,37 @@ function BrickRingBeamFields({
         />
       </Grid>
     </>
+  )
+}
+
+function UsageDisplay({ usage }: { usage: RingBeamAssemblyUsage }): React.JSX.Element {
+  const { t } = useTranslation('config')
+  const getLabel = useEntityLabel()
+
+  return (
+    <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
+      <Label.Root>
+        <Text size="2" weight="medium" color="gray">
+          {t($ => $.usage.usedBy)}
+        </Text>
+      </Label.Root>
+      <Flex gap="1" wrap="wrap">
+        {usage.isDefaultBase && (
+          <Badge size="2" variant="soft" color="blue">
+            {t($ => $.usage.globalDefault_ringBeamBase)}
+          </Badge>
+        )}
+        {usage.isDefaultTop && (
+          <Badge size="2" variant="soft" color="blue">
+            {t($ => $.usage.globalDefault_ringBeamTop)}
+          </Badge>
+        )}
+        {usage.storeyIds.map((id: StoreyId) => (
+          <Badge key={id} size="2" variant="soft">
+            {t($ => $.usage.usedInStorey, { label: getLabel(id) })}
+          </Badge>
+        ))}
+      </Flex>
+    </Grid>
   )
 }

@@ -17,11 +17,12 @@ import {
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { FloorAssemblyId } from '@/building/model/ids'
+import type { FloorAssemblyId, StoreyId } from '@/building/model/ids'
 import { useStoreysOrderedByLevel } from '@/building/store'
 import type { FloorAssemblyConfig } from '@/construction/config'
 import { useConfigActions, useDefaultFloorAssemblyId, useFloorAssemblies } from '@/construction/config/store'
-import { getFloorAssemblyUsage } from '@/construction/config/usage'
+import { type FloorAssemblyUsage, getFloorAssemblyUsage } from '@/construction/config/usage'
+import { useEntityLabel } from '@/construction/config/useEntityLabel'
 import { resolveFloorAssembly } from '@/construction/floors'
 import type {
   FilledFloorConfig,
@@ -70,8 +71,11 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
   const selectedConfig = floorAssemblies.find(c => c.id === selectedConfigId) ?? null
 
   const usage = useMemo(
-    () => (selectedConfig ? getFloorAssemblyUsage(selectedConfig.id, storeys) : { isUsed: false, usedByStoreys: [] }),
-    [selectedConfig, storeys]
+    () =>
+      selectedConfig
+        ? getFloorAssemblyUsage(selectedConfig.id, storeys, defaultConfigId)
+        : { isUsed: false, isDefault: false, storeyIds: [] },
+    [selectedConfig, storeys, defaultConfigId]
   )
 
   const handleAddNew = useCallback(
@@ -319,24 +323,36 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
           <FloorAssemblySelect value={defaultConfigId} onValueChange={setDefaultFloorAssembly} size="2" />
         </Grid>
 
-        {usage.isUsed && (
-          <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
-            <Label.Root>
-              <Text size="2" weight="medium" color="gray">
-                {t($ => $.common.usedBy)}
-              </Text>
-            </Label.Root>
-            <Flex gap="1" wrap="wrap">
-              {usage.usedByStoreys.map((use, index) => (
-                <Badge key={index} size="2" variant="soft">
-                  {use}
-                </Badge>
-              ))}
-            </Flex>
-          </Grid>
-        )}
+        {usage.isUsed && <UsageDisplay usage={usage} />}
       </Flex>
     </Flex>
+  )
+}
+
+function UsageDisplay({ usage }: { usage: FloorAssemblyUsage }): React.JSX.Element {
+  const { t } = useTranslation('config')
+  const getLabel = useEntityLabel()
+
+  return (
+    <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
+      <Label.Root>
+        <Text size="2" weight="medium" color="gray">
+          {t($ => $.usage.usedBy)}
+        </Text>
+      </Label.Root>
+      <Flex gap="1" wrap="wrap">
+        {usage.isDefault && (
+          <Badge size="2" variant="soft" color="blue">
+            {t($ => $.usage.globalDefault_floor)}
+          </Badge>
+        )}
+        {usage.storeyIds.map((id: StoreyId) => (
+          <Badge key={id} size="2" variant="soft">
+            {t($ => $.usage.usedInStorey, { label: getLabel(id) })}
+          </Badge>
+        ))}
+      </Flex>
+    </Grid>
   )
 }
 
