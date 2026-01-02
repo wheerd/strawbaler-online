@@ -24,7 +24,8 @@ import {
   TAG_WALL_LAYER_INSIDE,
   TAG_WALL_LAYER_OUTSIDE,
   type Tag,
-  type TagCategoryId
+  type TagCategoryId,
+  isCustomTag
 } from '@/construction/tags'
 import {
   type Area,
@@ -70,10 +71,10 @@ const indexToLabel = (index: number): string => {
 const computeVolume = (size: Vec3): Volume => size[0] * size[1] * size[2]
 
 const STRAW_CATEGORY_BY_TAG: Record<string, StrawCategory> = {
-  [TAG_FULL_BALE.id]: 'full',
-  [TAG_PARTIAL_BALE.id]: 'partial',
-  [TAG_STRAW_FLAKES.id]: 'flakes',
-  [TAG_STRAW_STUFFED.id]: 'stuffed'
+  [TAG_FULL_BALE.id as string]: 'full',
+  [TAG_PARTIAL_BALE.id as string]: 'partial',
+  [TAG_STRAW_FLAKES.id as string]: 'flakes',
+  [TAG_STRAW_STUFFED.id as string]: 'stuffed'
 }
 
 const STRAW_CATEGORY_LABELS: Record<StrawCategory, string> = {
@@ -86,7 +87,7 @@ const STRAW_CATEGORY_LABELS: Record<StrawCategory, string> = {
 const getStrawCategoryFromTags = (tags?: Tag[]): StrawCategory => {
   if (!tags) return 'stuffed'
   for (const tag of tags) {
-    const category = STRAW_CATEGORY_BY_TAG[tag.id]
+    const category = STRAW_CATEGORY_BY_TAG[tag.id as string]
     if (category) return category
   }
   return 'stuffed'
@@ -277,7 +278,7 @@ function computePartIdWithoutInfo(
 
   const mappedInfo = findMappedTag(tags)
   if (mappedInfo) {
-    partId = `auto_${mappedInfo.tag.id}` as PartId
+    partId = `auto_${String(mappedInfo.tag.id)}` as PartId
   } else {
     partId = `auto_misc` as PartId
   }
@@ -584,10 +585,10 @@ function computePartDescription(
 
 function findMappedTag(tags: Tag[]): { tag: Tag; type: string; description?: string } | null {
   for (const tag of tags) {
-    const mapping = TAG_MAPPING[tag.id]
+    const mapping = TAG_MAPPING[tag.id as string]
     if (mapping) {
-      const customTag = tags.find(t => t.category === mapping.descriptionTagCategory && t.custom)
-      const description = customTag?.label
+      const customTag = tags.find(t => t.category === mapping.descriptionTagCategory && isCustomTag(t))
+      const description = customTag && isCustomTag(customTag) ? customTag.label : undefined
       return { tag: customTag ?? tag, type: mapping.type, description }
     }
   }
