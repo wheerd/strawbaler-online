@@ -39,11 +39,7 @@ export function AutoSaveIndicator(): React.JSX.Element {
         downloadFile(result.content, filename)
       }
     } catch (error) {
-      setExportError(
-        error instanceof Error
-          ? error.message
-          : t($ => $.autoSave.errors.failedExport, { defaultValue: 'Failed to export project' })
-      )
+      setExportError(error instanceof Error ? error.message : t($ => $.autoSave.errors.failedExport))
     } finally {
       setIsExporting(false)
     }
@@ -57,11 +53,7 @@ export function AutoSaveIndicator(): React.JSX.Element {
       const { exportCurrentModelToIfc } = await import('@/exporters/ifc')
       await exportCurrentModelToIfc()
     } catch (error) {
-      setExportError(
-        error instanceof Error
-          ? error.message
-          : t($ => $.autoSave.errors.failedIFCExport, { defaultValue: 'Failed to export IFC' })
-      )
+      setExportError(error instanceof Error ? error.message : t($ => $.autoSave.errors.failedIFCExport))
     } finally {
       setIsExporting(false)
     }
@@ -76,16 +68,12 @@ export function AutoSaveIndicator(): React.JSX.Element {
       const { constructModel } = await import('@/construction/storeys/storey')
       const model = constructModel()
       if (!model) {
-        setExportError(t($ => $.autoSave.errors.failedGenerateModel, { defaultValue: 'Failed to generate model' }))
+        setExportError(t($ => $.autoSave.errors.failedGenerateModel))
       } else {
         await exportConstructionGeometryToIfc(model)
       }
     } catch (error) {
-      setExportError(
-        error instanceof Error
-          ? error.message
-          : t($ => $.autoSave.errors.failedIFCExport, { defaultValue: 'Failed to export IFC geometry' })
-      )
+      setExportError(error instanceof Error ? error.message : t($ => $.autoSave.errors.failedIFCExport))
     } finally {
       setIsExporting(false)
     }
@@ -108,11 +96,7 @@ export function AutoSaveIndicator(): React.JSX.Element {
       })
     } catch (error) {
       if (!(error instanceof FileInputCancelledError)) {
-        setImportError(
-          error instanceof Error
-            ? error.message
-            : t($ => $.autoSave.errors.failedImport, { defaultValue: 'Failed to import file' })
-        )
+        setImportError(error instanceof Error ? error.message : t($ => $.autoSave.errors.failedImport))
         console.error(error)
       }
     } finally {
@@ -130,20 +114,14 @@ export function AutoSaveIndicator(): React.JSX.Element {
         const { importIfcIntoModel } = await import('@/importers/ifc/importService')
         const result = await importIfcIntoModel(content)
         if (!result.success) {
-          throw new Error(
-            result.error ?? t($ => $.autoSave.errors.failedIFCImport, { defaultValue: 'Failed to import IFC file' })
-          )
+          throw new Error(result.error ?? t($ => $.autoSave.errors.failedIFCImport))
         } else {
           pushTool('basic.fit-to-view')
         }
       }, '.ifc')
     } catch (error) {
       if (!(error instanceof FileInputCancelledError)) {
-        setImportError(
-          error instanceof Error
-            ? error.message
-            : t($ => $.autoSave.errors.failedIFCImport, { defaultValue: 'Failed to import IFC file' })
-        )
+        setImportError(error instanceof Error ? error.message : t($ => $.autoSave.errors.failedIFCImport))
       }
     } finally {
       setIsImporting(false)

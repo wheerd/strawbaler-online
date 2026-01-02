@@ -346,7 +346,7 @@ export function ConstructionSchematic({
               : roofBottomThicknessVertical) +
             marginRightDelta
         ),
-        label: 'Roof\nThickness',
+        label: t($ => $.measurements.totalRoofThickness),
         labelOrientation: 'perpendicular',
         fontSize: 50,
         strokeWidth: 10
@@ -355,7 +355,7 @@ export function ConstructionSchematic({
       {renderMeasurement('roofInsideOverlap', {
         startPoint: newVec2(wallRight, roofInsideCornerY),
         endPoint: newVec2(wallRight, wallAssemblyTopY),
-        label: 'Inside\nOverlap',
+        label: t($ => $.measurements.roofInsideOverlap),
         labelOrientation: 'perpendicular',
         offset: 80,
         fontSize: 50,
@@ -365,7 +365,7 @@ export function ConstructionSchematic({
       {renderMeasurement('roofOutsideOverlap', {
         startPoint: newVec2(wallLeft, roofOutsideCornerY),
         endPoint: newVec2(wallLeft, wallAssemblyTopY),
-        label: 'Outside\nOverlap',
+        label: t($ => $.measurements.roofOutsideOverlap),
         labelOrientation: 'perpendicular',
         offset: -80,
         fontSize: 50,

@@ -442,15 +442,9 @@ function StripedLayerFields({
           >
             <Select.Trigger />
             <Select.Content>
-              <Select.Item value="perpendicular">
-                {t($ => $.layers.directions.perpendicular, { defaultValue: 'Perpendicular' })}
-              </Select.Item>
-              <Select.Item value="colinear">
-                {t($ => $.layers.directions.colinear, { defaultValue: 'Colinear' })}
-              </Select.Item>
-              <Select.Item value="diagonal">
-                {t($ => $.layers.directions.diagonal, { defaultValue: 'Diagonal' })}
-              </Select.Item>
+              <Select.Item value="perpendicular">{t($ => $.layers.directions.perpendicular)}</Select.Item>
+              <Select.Item value="colinear">{t($ => $.layers.directions.colinear)}</Select.Item>
+              <Select.Item value="diagonal">{t($ => $.layers.directions.diagonal)}</Select.Item>
             </Select.Content>
           </Select.Root>
         }

@@ -285,7 +285,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
               tool.setThickness(360)
             }}
           >
-            {t($ => $.addPost.presets.single6x36, { defaultValue: '6×36cm Single' })}
+            {t($ => $.addPost.presets.single6x36)}
           </Button>
           <Button
             size="1"
@@ -296,7 +296,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
               tool.setThickness(120)
             }}
           >
-            {t($ => $.addPost.presets.double6x12, { defaultValue: '6×12cm Double' })}
+            {t($ => $.addPost.presets.double6x12)}
           </Button>
           <Button
             size="1"
@@ -307,7 +307,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
               tool.setThickness(140)
             }}
           >
-            {t($ => $.addPost.presets.single14x14, { defaultValue: '14×14cm Single' })}
+            {t($ => $.addPost.presets.single14x14)}
           </Button>
           <Button
             size="1"
@@ -318,7 +318,7 @@ function AddPostToolInspectorImpl({ tool }: AddPostToolInspectorImplProps): Reac
               tool.setThickness(140)
             }}
           >
-            {t($ => $.addPost.presets.double14x14, { defaultValue: '14×14cm Double' })}
+            {t($ => $.addPost.presets.double14x14)}
           </Button>
         </Grid>
       </Flex>

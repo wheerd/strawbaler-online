@@ -640,7 +640,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
       let name: string
       let config: RoofConfig
       if (type === 'monolithic') {
-        name = t($ => $.roofs.newName.monolithic, { defaultValue: 'New Monolithic Roof' })
+        name = t($ => $.roofs.newName.monolithic)
         config = {
           type: 'monolithic',
           thickness: 180,
@@ -656,7 +656,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
           }
         }
       } else {
-        name = t($ => $.roofs.newName.purlin, { defaultValue: 'New Purlin Roof' })
+        name = t($ => $.roofs.newName.purlin)
         config = {
           type: 'purlin',
           thickness: 360,
