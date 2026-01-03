@@ -107,7 +107,7 @@
       "thicknessMismatch": "Dicke stimmt nicht mit verfügbaren Optionen für dieses Material überein"
     },
     "straw": {
-      "flakes": "Häcksel",
+      "flakes": "Ballen-Schichten (Flakes)",
       "fullBales": "Ganze Ballen",
       "leftoverFromPartialBales": "Rest von Teilballen",
       "partialBales": "Teilballen",
@@ -186,7 +186,7 @@
     }
   },
   "strawCategories": {
-    "flakes": "Häcksel",
+    "flakes": "Ballen-Schichten (Flakes)",
     "full": "Ganze Ballen",
     "partial": "Teilballen",
     "stuffed": "Stopffüllung"
@@ -215,7 +215,7 @@
     "wall-assembly": "Wandkonstruktion",
     "wall-layer": "Wandschichten",
     "wall-measurement": "Wandmaß",
-    "wall-part": "Wandholz"
+    "wall-part": "Wandteile"
   },
   "tags": {
     "area_perimeter-inside": "Umfang innen",
@@ -271,17 +271,17 @@
     "roof-measurement_purlin-spacing": "Pfettenabstand",
     "roof-measurement_rafter-length": "Sparrenlänge",
     "roof-measurement_rafter-spacing": "Sparrenabstand",
-    "roof-part_decking": "Dachlattung",
+    "roof-part_decking": "Dachbeplankung",
     "roof-part_infill": "Füllung",
-    "roof-part_inside-sheathing": "Innenbeplankung",
+    "roof-part_inside-sheathing": "Deckenbeplankung",
     "roof-part_purlin": "Pfette",
     "roof-part_rafter": "Sparren",
     "roof-part_ridge-beam": "Firstbalken",
     "roof-side_left": "Linke Dachseite",
     "roof-side_right": "Rechte Dachseite",
-    "straw_flakes": "Strohhäcksel",
+    "straw_flakes": "Stroh-Schichten (Flakes)",
     "straw_full-bale": "Ganzer Strohballen",
-    "straw_infill": "Generische Strohfüllung",
+    "straw_infill": "Strohfüllung",
     "straw_partial-bale": "Teil-Strohballen",
     "straw_stuffed": "Gestopftes Stroh",
     "wall-assembly_infill": "Typ: Ausfachung",

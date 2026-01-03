@@ -16,6 +16,7 @@ import type {
   VolumeMaterial
 } from '@/construction/materials/material'
 import { useMaterialsMap } from '@/construction/materials/store'
+import { useMaterialName } from '@/construction/materials/useMaterialName'
 import type { MaterialPartItem, MaterialParts, MaterialPartsList, PartId } from '@/construction/parts'
 import { SawIcon } from '@/shared/components/Icons'
 import { Bounds2D, type Polygon2D, type Vec3, type Volume, isZeroVec3 } from '@/shared/geometry'
@@ -362,6 +363,7 @@ function MaterialSummaryRow({
     if (weight === undefined) return '—'
     return formatters.formatWeight(weight)
   }
+  const materialName = useMaterialName(material)
 
   return (
     <Table.Row>
@@ -370,7 +372,7 @@ function MaterialSummaryRow({
       </Table.RowHeaderCell>
       <Table.RowHeaderCell>
         <Flex align="center" gap="2" justify="between">
-          <Text weight="medium">{material.name}</Text>
+          <Text weight="medium">{materialName}</Text>
           <IconButton title={t($ => $.partsList.actions.jumpToDetails)} size="1" variant="ghost" onClick={onNavigate}>
             <PinBottomIcon />
           </IconButton>
@@ -444,6 +446,7 @@ interface MaterialGroupCardProps {
 function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan, formatters }: MaterialGroupCardProps) {
   const { t } = useTranslation('construction')
   const { openConfiguration } = useConfigurationModal()
+  const materialName = useMaterialName(material)
 
   return (
     <Card variant="surface" size="2">
@@ -451,7 +454,7 @@ function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan, formatt
         <Flex align="center" justify="between" gap="3">
           <Flex align="center" gap="3">
             <MaterialTypeIndicator material={material} size={24} />
-            <Heading size="4">{material.name}</Heading>
+            <Heading size="4">{materialName}</Heading>
             <IconButton
               title={t($ => $.partsList.actions.configureMaterial)}
               variant="ghost"
