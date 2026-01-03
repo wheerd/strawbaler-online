@@ -478,6 +478,10 @@
     "moduleType": "",
     "moduleTypeDouble": "",
     "moduleTypeSingle": "",
+    "newName_infill": "",
+    "newName_modules": "",
+    "newName_nonStrawbale": "",
+    "newName_strawhenge": "",
     "noInfillMaterial": "",
     "noInsideLayers": "",
     "nonStrawbaleConfiguration": "",
@@ -516,6 +520,7 @@
       "strawhenge": ""
     },
     "typeStrawhenge": "",
+    "unclearTotalThickness": "",
     "useGlobalStrawSettings": "",
     "wallConstruction": "",
     "width": ""

@@ -689,7 +689,10 @@ function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
     const totalLayerThickness = assembly.layers.insideThickness + assembly.layers.outsideThickness
     return wallConstructionThickness != null && assembly.type !== 'non-strawbale'
       ? formatLength(wallConstructionThickness + totalLayerThickness)
-      : `? + ${formatLength(totalLayerThickness)} (Layers)`
+      : t($ => $.walls.unclearTotalThickness, {
+          defaultValue: `? + {{layerThickness, length}} (Layers)`,
+          layerThickness: totalLayerThickness
+        })
   }, [assembly])
 
   return (
@@ -803,6 +806,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
     (type: WallAssemblyType) => {
       const defaultMaterial = '' as MaterialId
 
+      let name: string
       let config: WallConfig
       const layers = {
         insideThickness: 30,
@@ -813,6 +817,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
 
       switch (type) {
         case 'infill':
+          name = t($ => $.walls.newName_infill)
           config = {
             type: 'infill',
             maxPostSpacing: 900,
@@ -829,6 +834,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
           }
           break
         case 'strawhenge':
+          name = t($ => $.walls.newName_strawhenge)
           config = {
             type: 'strawhenge',
             module: {
@@ -853,6 +859,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
           }
           break
         case 'modules':
+          name = t($ => $.walls.newName_modules)
           config = {
             type: 'modules',
             module: {
@@ -877,6 +884,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
           }
           break
         case 'non-strawbale':
+          name = t($ => $.walls.newName_nonStrawbale)
           config = {
             type: 'non-strawbale',
             material: defaultMaterial,
@@ -886,7 +894,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
           break
       }
 
-      const newAssembly = addWallAssembly(`New ${type} assembly`, config)
+      const newAssembly = addWallAssembly(name, config)
       setSelectedAssemblyId(newAssembly.id)
     },
     [addWallAssembly]
@@ -1018,10 +1026,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
               </AlertDialog.Trigger>
               <AlertDialog.Content>
                 <AlertDialog.Title>{t($ => $.walls.resetTitle)}</AlertDialog.Title>
-                <AlertDialog.Description>
-                  Are you sure you want to reset default wall assemblies? This will restore the original default
-                  assemblies but keep any custom assemblies you've created. This action cannot be undone.
-                </AlertDialog.Description>
+                <AlertDialog.Description>{t($ => $.walls.resetConfirm)}</AlertDialog.Description>
                 <Flex gap="3" mt="4" justify="end">
                   <AlertDialog.Cancel>
                     <Button variant="soft" color="gray">
@@ -1060,7 +1065,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
       {selectedAssembly && <ConfigForm assembly={selectedAssembly} />}
       {!selectedAssembly && wallAssemblies.length === 0 && (
         <Flex justify="center" align="center" p="5">
-          <Text color="gray">No wall assemblies yet. Create one using the "New" button above.</Text>
+          <Text color="gray">{t($ => $.walls.emptyList)}</Text>
         </Flex>
       )}
       {usage.isUsed && <UsageDisplay usage={usage} />}

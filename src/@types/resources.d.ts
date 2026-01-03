@@ -573,6 +573,10 @@ interface Resources {
       "moduleType": "Module Type",
       "moduleTypeDouble": "Double Frame",
       "moduleTypeSingle": "Single Frame",
+      "newName_infill": "New Infill Assembly",
+      "newName_modules": "New Modules Assembly",
+      "newName_nonStrawbale": "New Non-Strawbale Assembly",
+      "newName_strawhenge": "New Strawhenge Assembly",
       "noInfillMaterial": "No infill material",
       "noInsideLayers": "No inside layers defined",
       "noOutsideLayers": "No outside layers defined",
@@ -607,6 +611,7 @@ interface Resources {
         "non-strawbale": "Non-Strawbale",
         "strawhenge": "Strawhenge"
       },
+      "unclearTotalThickness": "? + {{layerThickness, length}} (Layers)",
       "useGlobalStrawSettings": "Use global straw settings",
       "wallConstruction": "Wall Construction",
       "width": "Width"
