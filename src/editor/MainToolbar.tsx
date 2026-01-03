@@ -65,14 +65,14 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
                       key={toolId}
                       content={
                         <Flex align="center" justify="between" gap="2" as="span">
-                          <Text>{toolInfo.name}</Text>
+                          <Text>{t($ => $.tools[toolInfo.nameKey])}</Text>
                           {toolInfo.hotkey && <Kbd>{toolInfo.hotkey.toUpperCase()}</Kbd>}
                         </Flex>
                       }
                     >
                       <Toolbar.Button asChild>
                         <IconButton
-                          aria-label={toolInfo.name}
+                          aria-label={t($ => $.tools[toolInfo.nameKey])}
                           size="2"
                           variant={activeToolId === toolId ? 'solid' : 'surface'}
                           onClick={() => handleToolSelect(toolId)}

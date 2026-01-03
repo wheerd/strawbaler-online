@@ -131,7 +131,7 @@ interface Resources {
       "labels": {
         "beamHeight": "Beam Height",
         "constructionHeight": "Construction Height",
-        "wallBeamInsideOffset": "Wall Beam Inside Offset"
+        "wallBeamInsideOffset": "Inside Offset"
       },
       "layers": {
         "addBottomLayer": "Add Bottom Layer",
@@ -1415,6 +1415,13 @@ interface Resources {
       "off": "Off",
       "showGrid": "Show Grid"
     },
+    "groups": {
+      "basic": "Basic",
+      "floors": "Floors",
+      "perimeter": "Perimeter",
+      "roofs": "Roofs",
+      "test": "Test Data"
+    },
     "offlineStatus": {
       "loading": "Caching assets ({{loaded}}/{{total}})…",
       "loadingUnknown": "Preparing offline experience…",
@@ -1425,6 +1432,20 @@ interface Resources {
     "themeToggle": {
       "switchToDark": "Switch to dark mode",
       "switchToLight": "Switch to light mode"
+    },
+    "tools": {
+      "basic.fit-to-view": "Fit to View",
+      "basic.move": "Move",
+      "basic.select": "Select",
+      "floors.add-area": "Floor Area",
+      "floors.add-opening": "Floor Opening",
+      "perimeter.add": "Building Perimeter",
+      "perimeter.add-opening": "Add Opening",
+      "perimeter.add-post": "Add Post",
+      "perimeter.preset": "Perimeter Presets",
+      "perimeter.split-wall": "Split Wall",
+      "roofs.add-roof": "Roof",
+      "test.data": "Test Data"
     },
     "view3DConstruction": "View 3D Construction",
     "viewConstructionPlan": "View Construction Plan",

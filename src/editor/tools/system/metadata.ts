@@ -15,60 +15,60 @@ import type { ToolGroup, ToolId, ToolMetadata } from './types'
 
 export const TOOL_METADATA: Record<ToolId, ToolMetadata> = {
   'basic.select': {
-    name: 'Select',
+    nameKey: 'basic.select',
     iconComponent: CursorArrowIcon,
     hotkey: 'v'
   },
   'basic.move': {
-    name: 'Move',
+    nameKey: 'basic.move',
     iconComponent: MoveIcon,
     hotkey: 'm'
   },
   'basic.fit-to-view': {
-    name: 'Fit to View',
+    nameKey: 'basic.fit-to-view',
     iconComponent: FitToViewIcon,
     hotkey: 'f'
   },
   'floors.add-area': {
-    name: 'Floor Area',
+    nameKey: 'floors.add-area',
     iconComponent: FloorAreaIcon
   },
   'floors.add-opening': {
-    name: 'Floor Opening',
+    nameKey: 'floors.add-opening',
     iconComponent: FloorOpeningIcon
   },
   'perimeter.add': {
-    name: 'Building Perimeter',
+    nameKey: 'perimeter.add',
     iconComponent: PerimeterDrawIcon,
     hotkey: 'w'
   },
   'perimeter.preset': {
-    name: 'Perimeter Presets',
+    nameKey: 'perimeter.preset',
     iconComponent: PerimeterPresetsIcon,
     hotkey: 'p'
   },
   'perimeter.add-opening': {
-    name: 'Add Opening',
+    nameKey: 'perimeter.add-opening',
     iconComponent: OpeningsIcon,
     hotkey: 'o'
   },
   'perimeter.add-post': {
-    name: 'Add Post',
+    nameKey: 'perimeter.add-post',
     iconComponent: StretchVerticallyIcon,
     hotkey: 'shift+p'
   },
   'perimeter.split-wall': {
-    name: 'Split Wall',
+    nameKey: 'perimeter.split-wall',
     iconComponent: SplitWallIcon,
     hotkey: 's'
   },
   'roofs.add-roof': {
-    name: 'Roof',
+    nameKey: 'roofs.add-roof',
     iconComponent: RoofIcon,
     hotkey: 'r'
   },
   'test.data': {
-    name: 'Test Data',
+    nameKey: 'test.data',
     iconComponent: RocketIcon,
     hotkey: 't'
   }
@@ -76,11 +76,11 @@ export const TOOL_METADATA: Record<ToolId, ToolMetadata> = {
 
 export const TOOL_GROUPS: ToolGroup[] = [
   {
-    name: 'Basic',
+    nameKey: 'basic',
     tools: ['basic.select', 'basic.move', 'basic.fit-to-view'] as const
   },
   {
-    name: 'Perimeter',
+    nameKey: 'perimeter',
     tools: [
       'perimeter.add',
       'perimeter.preset',
@@ -90,15 +90,15 @@ export const TOOL_GROUPS: ToolGroup[] = [
     ] as const
   },
   {
-    name: 'Floors',
+    nameKey: 'floors',
     tools: ['floors.add-opening'] as const
   },
   {
-    name: 'Roofs',
+    nameKey: 'roofs',
     tools: ['roofs.add-roof'] satisfies ToolId[]
   },
   {
-    name: 'Test Data',
+    nameKey: 'test',
     tools: ['test.data'] as const
   }
 ] as const

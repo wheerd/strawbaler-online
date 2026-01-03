@@ -8,6 +8,13 @@
     "off": "Aus",
     "showGrid": "Raster anzeigen"
   },
+  "groups": {
+    "basic": "Grundlagen",
+    "floors": "Decken",
+    "perimeter": "Umriss",
+    "roofs": "Dächer",
+    "test": "Testdaten"
+  },
   "offlineStatus": {
     "loading": "Assets werden gecacht ({{loaded}}/{{total}})…",
     "loadingUnknown": "Offline-Erlebnis wird vorbereitet…",
@@ -18,6 +25,20 @@
   "themeToggle": {
     "switchToDark": "Zu dunklem Modus wechseln",
     "switchToLight": "Zu hellem Modus wechseln"
+  },
+  "tools": {
+    "basic.select": "Auswählen",
+    "basic.move": "Verschieben",
+    "basic.fit-to-view": "Auf Ansicht anpassen",
+    "floors.add-area": "Bodenfläche",
+    "floors.add-opening": "Bodenöffnung",
+    "perimeter.add": "Gebäudeumriss",
+    "perimeter.preset": "Umriss-Vorlagen",
+    "perimeter.add-opening": "Öffnung hinzufügen",
+    "perimeter.add-post": "Pfosten hinzufügen",
+    "perimeter.split-wall": "Wand teilen",
+    "roofs.add-roof": "Dach",
+    "test.data": "Testdaten"
   },
   "view3DConstruction": "3D-Konstruktion anzeigen",
   "viewConstructionPlan": "Konstruktionsplan anzeigen",

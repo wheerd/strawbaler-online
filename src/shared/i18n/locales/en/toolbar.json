@@ -8,6 +8,13 @@
     "off": "Off",
     "showGrid": "Show Grid"
   },
+  "groups": {
+    "basic": "Basic",
+    "floors": "Floors",
+    "perimeter": "Perimeter",
+    "roofs": "Roofs",
+    "test": "Test Data"
+  },
   "offlineStatus": {
     "loading": "Caching assets ({{loaded}}/{{total}})…",
     "loadingUnknown": "Preparing offline experience…",
@@ -18,6 +25,20 @@
   "themeToggle": {
     "switchToDark": "Switch to dark mode",
     "switchToLight": "Switch to light mode"
+  },
+  "tools": {
+    "basic.select": "Select",
+    "basic.move": "Move",
+    "basic.fit-to-view": "Fit to View",
+    "floors.add-area": "Floor Area",
+    "floors.add-opening": "Floor Opening",
+    "perimeter.add": "Building Perimeter",
+    "perimeter.preset": "Perimeter Presets",
+    "perimeter.add-opening": "Add Opening",
+    "perimeter.add-post": "Add Post",
+    "perimeter.split-wall": "Split Wall",
+    "roofs.add-roof": "Roof",
+    "test.data": "Test Data"
   },
   "view3DConstruction": "View 3D Construction",
   "viewConstructionPlan": "View Construction Plan",
