@@ -461,7 +461,7 @@ export class PolygonWithBoundingRect {
       endPoint,
       extend1,
       extend2,
-      length: this.dirExtent,
+      length: offset != null ? this.dirExtent : undefined,
       label: undefined,
       tags,
       offset
@@ -491,7 +491,7 @@ export class PolygonWithBoundingRect {
       endPoint,
       extend1,
       extend2,
-      length: this.perpExtent,
+      length: offset != null ? this.perpExtent : undefined,
       label: undefined,
       tags,
       offset
