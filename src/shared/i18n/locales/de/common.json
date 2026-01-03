@@ -37,6 +37,8 @@
   "storeys": {
     "addNewFloor": "Neues Geschoss hinzufügen",
     "basement": "",
+    "defaultBasementName_ordinal_other": "",
+    "defaultName_ordinal_other": "",
     "deleteFloor": "",
     "deleteFloorConfirm": "",
     "deleteFloorTitle": "",
@@ -46,12 +48,12 @@
     "floorHeight": "",
     "floorName": "",
     "ground": "",
+    "groundFloor": "",
     "manageFloors": "Geschosse verwalten",
     "manageFloorsTooltip": "Geschosse verwalten",
     "moveDown": "",
     "moveUp": "",
     "name": "",
-    "newFloor": "Neues Geschoss",
     "noFloorsYet": "Noch keine Geschosse.",
     "switchToFloor": ""
   },

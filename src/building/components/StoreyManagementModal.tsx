@@ -24,11 +24,7 @@ export function StoreyManagementModal({ trigger }: StoreyManagementModalProps): 
   const handleAddEmptyStorey = useCallback(() => {
     try {
       const floorAssemblyId = getDefaultFloorAssemblyId()
-      const newStorey = addStorey(
-        t($ => $.storeys.newFloor),
-        undefined,
-        floorAssemblyId
-      )
+      const newStorey = addStorey(undefined, floorAssemblyId)
       setActiveStoreyId(newStorey.id) // Switch to new storey
     } catch (error) {
       console.error('Failed to add new floor:', error)

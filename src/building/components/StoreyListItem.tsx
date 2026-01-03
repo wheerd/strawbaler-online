@@ -3,6 +3,7 @@ import { AlertDialog, Button, Card, Code, Flex, IconButton, Text, TextField } fr
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useStoreyName } from '@/building/hooks/useStoreyName'
 import type { Storey } from '@/building/model/model'
 import { useActiveStoreyId, useModelActions } from '@/building/store'
 import { defaultStoreyManagementService } from '@/building/store/services/StoreyManagementService'
@@ -38,7 +39,8 @@ export function StoreyListItem({
   const { formatLength } = useFormatters()
   const activeStoreyId = useActiveStoreyId()
   const { setActiveStoreyId } = useModelActions()
-  const [editName, setEditName] = useState(storey.name)
+  const storeyName = useStoreyName(storey)
+  const [editName, setEditName] = useState(storeyName)
 
   const { updateStoreyName, updateStoreyFloorHeight, updateStoreyFloorAssembly } = useModelActions()
 
@@ -54,15 +56,16 @@ export function StoreyListItem({
   }, [])
 
   const handleNameSave = useCallback(() => {
-    if (editName.trim() !== storey.name && editName.trim() !== '') {
+    if (editName.trim() !== storeyName && editName.trim() !== '') {
+      console.log('update', editName, storeyName, storey)
       try {
         updateStoreyName(storey.id, editName.trim())
       } catch (error) {
         console.error('Failed to update storey name:', error)
-        setEditName(storey.name) // Revert on error
+        setEditName(storeyName) // Revert on error
       }
     } else {
-      setEditName(storey.name) // Revert if empty or unchanged
+      setEditName(storeyName) // Revert if empty or unchanged
     }
   }, [editName, storey.name, storey.id, updateStoreyName])
 
@@ -126,6 +129,10 @@ export function StoreyListItem({
       setFocussedOnce(true)
     }
   }, [nameFieldRef.current, isActive, focussedOnce])
+
+  useEffect(() => {
+    if (storey.useDefaultName) setEditName(storeyName)
+  }, [storeyName, storey.useDefaultName])
 
   return (
     <Card style={isActive ? { background: 'var(--accent-5)' } : {}}>

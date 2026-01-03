@@ -2,6 +2,7 @@ import { Box, Callout, Code, DataList, Flex, Heading, Text } from '@radix-ui/the
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useStoreyName } from '@/building/hooks/useStoreyName'
 import type { StoreyId } from '@/building/model/ids'
 import { usePerimeters, useStoreyById } from '@/building/store'
 import { getPerimeterStats } from '@/construction/perimeters/perimeter'
@@ -16,6 +17,7 @@ export function StoreyInspector({ selectedId }: StoreyInspectorProps): React.JSX
   const { t } = useTranslation('inspector')
   // Get storey data from model store
   const storey = useStoreyById(selectedId)
+  const storeyName = useStoreyName(storey)
   const perimeters = Object.values(usePerimeters()).filter(perimeter => perimeter.storeyId === selectedId)
   const perimeterStats = perimeters.map(perimeter => getPerimeterStats(perimeter))
   const { formatArea, formatLength, formatVolume, formatPercentage, formatNumber } = useFormatters()
@@ -82,7 +84,7 @@ export function StoreyInspector({ selectedId }: StoreyInspectorProps): React.JSX
             <Code variant="ghost" size="2" weight="bold" color={getLevelColor(storey.level)}>
               L{storey.level}
             </Code>
-            <Text>{storey.name}</Text>
+            <Text>{storeyName}</Text>
           </Flex>
         </Heading>
         <DataList.Root size="1">

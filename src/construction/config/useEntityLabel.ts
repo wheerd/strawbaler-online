@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import { getStoreyName } from '@/building/hooks/useStoreyName'
 import type {
   FloorAssemblyId,
   OpeningAssemblyId,
@@ -49,25 +50,38 @@ export function useEntityLabel(): (id: EntityId | undefined) => string {
 
     // Try each collection
     const storey = storeys.find(s => s.id === id)
-    if (storey) return storey.name
+    if (storey) return getStoreyName(storey, t)
 
     const ringBeam = ringBeams.find(a => a.id === id)
-    if (ringBeam) return ringBeam.name
+    if (ringBeam) {
+      return ringBeam.nameKey ? t(ringBeam.nameKey) : ringBeam.name
+    }
 
     const wall = walls.find(a => a.id === id)
-    if (wall) return wall.name
+    if (wall) {
+      return wall.nameKey ? t(wall.nameKey) : wall.name
+    }
 
     const floor = floors.find(a => a.id === id)
-    if (floor) return floor.name
+    if (floor) {
+      return floor.nameKey ? t(floor.nameKey) : floor.name
+    }
 
     const roof = roofs.find(a => a.id === id)
-    if (roof) return roof.name
+    if (roof) {
+      return roof.nameKey ? t(roof.nameKey) : roof.name
+    }
 
     const opening = openings.find(a => a.id === id)
-    if (opening) return opening.name
+    if (opening) {
+      return opening.nameKey ? t(opening.nameKey) : opening.name
+    }
 
     const material = materials.find(m => m.id === id)
-    if (material) return material.name
+    if (material) {
+      const nameKey = material.nameKey
+      return nameKey ? t($ => $.materials.defaults[nameKey]) : material.name
+    }
 
     return t($ => $.usage.unknown)
   }

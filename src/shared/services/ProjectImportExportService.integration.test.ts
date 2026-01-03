@@ -294,8 +294,8 @@ describe('ProjectImportExportService Integration', () => {
 
     // Create multiple storeys
     const ground = modelActions.getStoreysOrderedByLevel()[0] // Default ground floor
-    const firstFloor = modelActions.addStorey('First Floor', 2800)
-    modelActions.addStorey('Second Floor', 2600)
+    const firstFloor = modelActions.addStorey(2800)
+    modelActions.addStorey(2600)
 
     // Add perimeters to each storey
     const wallAssemblyId = getConfigActions().getDefaultWallAssemblyId()
@@ -327,10 +327,6 @@ describe('ProjectImportExportService Integration', () => {
     const importedStoreys = modelActions.getStoreysOrderedByLevel()
     expect(importedStoreys).toHaveLength(3)
 
-    expect(importedStoreys[0].name).toBe('Ground Floor')
-    expect(importedStoreys[1].name).toBe('First Floor')
-    expect(importedStoreys[2].name).toBe('Second Floor')
-
     expect(importedStoreys[0].level).toBe(0)
     expect(importedStoreys[1].level).toBe(1)
     expect(importedStoreys[2].level).toBe(2)
@@ -349,8 +345,9 @@ describe('ProjectImportExportService Integration', () => {
     const modelActions = getModelActions()
 
     // Create additional storeys above ground (keeping ground floor at level 0)
-    modelActions.addStorey('First Floor', 2800)
-    modelActions.addStorey('Second Floor', 2600)
+    const firstFloor = modelActions.addStorey(2800)
+    modelActions.updateStoreyName(firstFloor.id, 'First Floor')
+    modelActions.addStorey(2600)
 
     const storeys = modelActions.getStoreysOrderedByLevel()
     expect(storeys[0].level).toBe(0) // ground floor
@@ -373,19 +370,21 @@ describe('ProjectImportExportService Integration', () => {
     const importedStoreys = modelActions.getStoreysOrderedByLevel()
     expect(importedStoreys).toHaveLength(3)
     expect(importedStoreys[0].level).toBe(0)
-    expect(importedStoreys[0].name).toBe('Ground Floor')
+    expect(importedStoreys[0].useDefaultName).toBe(true)
     expect(importedStoreys[1].level).toBe(1)
     expect(importedStoreys[1].name).toBe('First Floor')
+    expect(importedStoreys[1].useDefaultName).toBe(false)
     expect(importedStoreys[2].level).toBe(2)
-    expect(importedStoreys[2].name).toBe('Second Floor')
+    expect(importedStoreys[2].useDefaultName).toBe(true)
   })
 
   it('correctly handles level adjustments with minLevel', async () => {
     const modelActions = getModelActions()
 
     // Create storeys and manually adjust levels to start at a higher base
-    modelActions.addStorey('First Floor', 2800)
-    modelActions.addStorey('Second Floor', 2600)
+    const firstFloor = modelActions.addStorey(2800)
+    modelActions.updateStoreyName(firstFloor.id, 'First Floor')
+    modelActions.addStorey(2600)
 
     // Adjust all levels up by -1 (so we have levels -1, 0, 1)
     modelActions.adjustAllLevels(-1)
@@ -414,11 +413,12 @@ describe('ProjectImportExportService Integration', () => {
     const importedStoreys = modelActions.getStoreysOrderedByLevel()
     expect(importedStoreys).toHaveLength(3)
     expect(importedStoreys[0].level).toBe(-1)
-    expect(importedStoreys[0].name).toBe('Ground Floor')
+    expect(importedStoreys[0].useDefaultName).toBe(true)
     expect(importedStoreys[1].level).toBe(0)
     expect(importedStoreys[1].name).toBe('First Floor')
+    expect(importedStoreys[1].useDefaultName).toBe(false)
     expect(importedStoreys[2].level).toBe(1)
-    expect(importedStoreys[2].name).toBe('Second Floor')
+    expect(importedStoreys[2].useDefaultName).toBe(true)
   })
 
   it('exports and imports materials with configurations', async () => {
