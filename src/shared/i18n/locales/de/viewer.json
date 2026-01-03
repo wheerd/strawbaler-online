@@ -1,21 +1,21 @@
 {
   "export": {
-    "collada": "",
-    "gltf": "",
-    "ifc": "",
-    "obj": "",
-    "stl": "",
-    "title": ""
+    "collada": "Collada (DAE)",
+    "gltf": "GLTF",
+    "ifc": "IFC",
+    "obj": "OBJ",
+    "stl": "STL",
+    "title": "Exportieren"
   },
   "grid": {
-    "hide": "",
-    "show": ""
+    "hide": "Raster ausblenden",
+    "show": "Raster anzeigen"
   },
   "tagOpacity": {
-    "fullCategory": "",
-    "hideCategory": "",
-    "noTags": "",
-    "semiCategory": "",
-    "title": ""
+    "fullCategory": "Vollständige Kategorie",
+    "hideCategory": "Kategorie ausblenden",
+    "noTags": "Keine Tags verfügbar",
+    "semiCategory": "Halbe Kategorie",
+    "title": "Tag-Deckkraft"
   }
 }

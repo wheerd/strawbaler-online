@@ -1,23 +1,23 @@
 {
   "actions": {
-    "cancel": ""
+    "cancel": "Abbrechen"
   },
   "app": {
-    "changeLanguage": "",
-    "constructionPlanning": "",
-    "fitToContent": "",
-    "strawbaler": ""
+    "changeLanguage": "Sprache ändern",
+    "constructionPlanning": "Konstruktionsplanung",
+    "fitToContent": "An Inhalt anpassen",
+    "strawbaler": "Strawbaler"
   },
   "autoSave": {
     "autoSaved": "Automatisch gespeichert {{time}}",
     "autoSaveFailed": "Automatisches Speichern fehlgeschlagen",
     "autoSaving": "Speichere automatisch...",
     "errors": {
-      "failedExport": "",
-      "failedGenerateModel": "",
-      "failedIFCExport": "",
-      "failedIFCImport": "",
-      "failedImport": ""
+      "failedExport": "Fehler beim Exportieren des Projekts",
+      "failedGenerateModel": "Fehler beim Generieren des Modells",
+      "failedIFCExport": "Fehler beim Exportieren der IFC-Datei",
+      "failedIFCImport": "Fehler beim Importieren der IFC-Datei",
+      "failedImport": "Fehler beim Importieren der Datei"
     },
     "exportBuildingModel": "Gebäudemodell exportieren",
     "exportConstructionModel": "Konstruktionsmodell exportieren",
@@ -33,37 +33,37 @@
     "notSaved": "Nicht gespeichert",
     "saveToFile": "In Datei speichern"
   },
-  "currentLanguageWithLabel": "",
+  "currentLanguageWithLabel": "Aktuelle Sprache: {{language}}",
   "storeys": {
     "addNewFloor": "Neues Geschoss hinzufügen",
-    "basement": "",
-    "defaultBasementName_ordinal_other": "",
-    "defaultName_ordinal_other": "",
-    "deleteFloor": "",
-    "deleteFloorConfirm": "",
-    "deleteFloorTitle": "",
-    "duplicateFloor": "",
-    "floor": "",
-    "floorAssembly": "",
-    "floorHeight": "",
-    "floorName": "",
-    "ground": "",
-    "groundFloor": "",
+    "basement": "UG{{level}}",
+    "defaultBasementName_ordinal_other": "{{count}}. Untergeschoss",
+    "defaultName_ordinal_other": "{{count}}. Obergeschoss",
+    "deleteFloor": "Geschoss löschen",
+    "deleteFloorConfirm": "Möchtest du das Geschoss wirklich löschen?",
+    "deleteFloorTitle": "Geschoss löschen",
+    "duplicateFloor": "Geschoss duplizieren",
+    "floor": "Geschoss {{level}}",
+    "floorAssembly": "Deckenkonstruktion",
+    "floorHeight": "Geschosshöhe",
+    "floorName": "Geschossname",
+    "ground": "Erdgeschoss",
+    "groundFloor": "Erdgeschoss",
     "manageFloors": "Geschosse verwalten",
     "manageFloorsTooltip": "Geschosse verwalten",
-    "moveDown": "",
-    "moveUp": "",
-    "name": "",
+    "moveDown": "Nach unten verschieben",
+    "moveUp": "Nach oben verschieben",
+    "name": "Name",
     "noFloorsYet": "Noch keine Geschosse.",
-    "switchToFloor": ""
+    "switchToFloor": "Zu Geschoss wechseln"
   },
   "units": {
-    "liter": "",
-    "m3": ""
+    "liter": "L",
+    "m3": "m³"
   },
   "viewMode": {
-    "floors": "",
-    "roofs": "",
-    "walls": ""
+    "floors": "Decken",
+    "roofs": "Dächer",
+    "walls": "Wände"
   }
 }

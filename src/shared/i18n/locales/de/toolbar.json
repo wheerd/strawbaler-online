@@ -4,20 +4,20 @@
   "constructionPlanForActiveStorey": "Konstruktionsplan für aktives Geschoss",
   "constructionPlanForStorey": "Konstruktionsplan für {{storeyName}}",
   "gridSizeDisplay": {
-    "hideGrid": "",
-    "off": "",
-    "showGrid": ""
+    "hideGrid": "Raster ausblenden",
+    "off": "Aus",
+    "showGrid": "Raster anzeigen"
   },
   "offlineStatus": {
-    "loading": "",
-    "loadingUnknown": "",
-    "offline": "",
-    "ready": ""
+    "loading": "Assets werden gecacht ({{loaded}}/{{total}})…",
+    "loadingUnknown": "Offline-Erlebnis wird vorbereitet…",
+    "offline": "Offline. Änderungen werden synchronisiert, sobald die Verbindung wiederhergestellt ist.",
+    "ready": "Alle Assets gecacht. Bereit für Offline-Nutzung."
   },
   "partsListForEntireModel": "Teileliste für gesamtes Modell",
   "themeToggle": {
-    "switchToDark": "",
-    "switchToLight": ""
+    "switchToDark": "Zu dunklem Modus wechseln",
+    "switchToLight": "Zu hellem Modus wechseln"
   },
   "view3DConstruction": "3D-Konstruktion anzeigen",
   "viewConstructionPlan": "Konstruktionsplan anzeigen",

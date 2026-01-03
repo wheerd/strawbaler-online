@@ -1,8 +1,8 @@
 {
   "canvas": {
-    "resetView": "",
-    "scrollToZoom": "",
-    "uploadToBegin": ""
+    "resetView": "Ansicht zurücksetzen",
+    "scrollToZoom": "Scrollen zum Zoomen",
+    "uploadToBegin": "Lade ein Bild hoch, um zu beginnen"
   },
   "planControls": {
     "ariaLabel": "Grundriss-Überlagerung",
