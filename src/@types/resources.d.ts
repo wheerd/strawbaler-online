@@ -86,6 +86,7 @@ interface Resources {
       "duplicate": "Duplicate",
       "height": "Height",
       "inUseCannotDelete": "In Use - Cannot Delete",
+      "infillMaterial": "Infill Material",
       "inset": "Inset",
       "layerThickness": "Layer Thickness",
       "materialLabel": "Material",
@@ -129,25 +130,8 @@ interface Resources {
       "emptyList": "No floor assemblies available",
       "labels": {
         "beamHeight": "Beam Height",
-        "ceilingSheathingMaterial": "Ceiling Sheathing Material",
-        "ceilingSheathingThickness": "Ceiling Sheathing Thickness",
         "constructionHeight": "Construction Height",
-        "frameMaterial": "Frame Material",
-        "frameThickness": "Frame Thickness",
-        "joistMaterial": "Joist Material",
-        "joistSpacing": "Joist Spacing",
-        "joistThickness": "Joist Thickness",
-        "openingFrameMaterial": "Opening Frame Material",
-        "openingFrameThickness": "Opening Frame Thickness",
-        "openingSideMaterial": "Opening Side Material",
-        "openingSideThickness": "Opening Side Thickness",
-        "subfloorMaterial": "Subfloor Material",
-        "subfloorThickness": "Subfloor Thickness",
-        "thickness": "Thickness",
-        "wallBeamInsideOffset": "Wall Beam Inside Offset",
-        "wallBeamMaterial": "Wall Beam Material",
-        "wallBeamThickness": "Wall Beam Thickness",
-        "wallInfillMaterial": "Wall Infill Material"
+        "wallBeamInsideOffset": "Wall Beam Inside Offset"
       },
       "layers": {
         "addBottomLayer": "Add Bottom Layer",
@@ -185,9 +169,9 @@ interface Resources {
         "strawMaterialOverride": "Material used to fill spaces between joists. Leave empty to use global straw settings."
       },
       "types": {
-        "joist": "Joist",
-        "monolithic": "Monolithic",
-        "straw": "Straw Filled"
+        "joist": "Joist Floor",
+        "monolithic": "Monolithic Floor",
+        "straw": "Straw Filled Floor"
       }
     },
     "layers": {

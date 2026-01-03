@@ -464,7 +464,7 @@ function MonolithicConfigFields({
   const { t } = useTranslation('config')
   return (
     <>
-      <Heading size="2">{t($ => $.floors.types.monolithic)}</Heading>
+      <Heading size="3">{t($ => $.floors.types.monolithic)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
@@ -485,7 +485,7 @@ function MonolithicConfigFields({
         <Flex align="center" gap="1">
           <Label.Root>
             <Text size="2" weight="medium" color="gray">
-              {t($ => $.floors.labels.thickness)}
+              {t($ => $.common.thickness)}
             </Text>
           </Label.Root>
           <MeasurementInfo highlightedPart="floorConstruction" />
@@ -506,7 +506,7 @@ function JoistConfigFields({
   const { t } = useTranslation('config')
   return (
     <>
-      <Heading size="2">{t($ => $.floors.types.joist)}</Heading>
+      <Heading size="3">{t($ => $.floors.types.joist)}</Heading>
 
       {/* Beam Height - Full Width */}
       <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
@@ -533,11 +533,11 @@ function JoistConfigFields({
       <Separator size="4" />
 
       {/* Joists Section */}
-      <Heading size="3">{t($ => $.floors.sections.joists)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.joists)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.joistMaterial)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -553,7 +553,7 @@ function JoistConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.joistThickness)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -565,7 +565,7 @@ function JoistConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.joistSpacing)}
+            {t($ => $.common.spacing)}
           </Text>
         </Label.Root>
         <LengthField
@@ -579,11 +579,11 @@ function JoistConfigFields({
       <Separator size="4" />
 
       {/* Wall Beams Section */}
-      <Heading size="3">{t($ => $.floors.sections.wallBeams)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.wallBeams)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.wallBeamMaterial)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -599,7 +599,7 @@ function JoistConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.wallBeamThickness)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -623,7 +623,7 @@ function JoistConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.wallInfillMaterial)}
+            {t($ => $.common.infillMaterial)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -640,11 +640,11 @@ function JoistConfigFields({
       <Separator size="4" />
 
       {/* Subfloor Section */}
-      <Heading size="3">{t($ => $.floors.sections.subfloor)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.subfloor)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.subfloorMaterial)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -660,7 +660,7 @@ function JoistConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.subfloorThickness)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -674,11 +674,11 @@ function JoistConfigFields({
       <Separator size="4" />
 
       {/* Opening Sides Section */}
-      <Heading size="3">{t($ => $.floors.sections.openingSides)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.openingSides)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.openingSideMaterial)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -694,7 +694,7 @@ function JoistConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.openingSideThickness)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -718,7 +718,7 @@ function FilledConfigFields({
   const { t } = useTranslation('config')
   return (
     <>
-      <Heading size="2">{t($ => $.floors.types.straw)}</Heading>
+      <Heading size="3">{t($ => $.floors.types.straw)}</Heading>
 
       <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
         <Flex align="center" gap="1">
@@ -744,11 +744,11 @@ function FilledConfigFields({
       <Separator size="4" />
 
       {/* Joists Section */}
-      <Heading size="3">{t($ => $.floors.sections.joists)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.joists)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.joistMaterial)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -764,7 +764,7 @@ function FilledConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.joistThickness)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -776,7 +776,7 @@ function FilledConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.joistSpacing)}
+            {t($ => $.common.spacing)}
           </Text>
         </Label.Root>
         <LengthField
@@ -790,11 +790,11 @@ function FilledConfigFields({
       <Separator size="4" />
 
       {/* Frame Section */}
-      <Heading size="3">{t($ => $.floors.sections.perimeterFrame)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.perimeterFrame)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.frameMaterial)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -810,7 +810,7 @@ function FilledConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.frameThickness)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -824,11 +824,11 @@ function FilledConfigFields({
       <Separator size="4" />
 
       {/* Subfloor Section */}
-      <Heading size="3">{t($ => $.floors.sections.subfloor)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.subfloor)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.subfloorMaterial)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -844,7 +844,7 @@ function FilledConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.subfloorThickness)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -858,11 +858,11 @@ function FilledConfigFields({
       <Separator size="4" />
 
       {/* Ceiling Sheathing Section */}
-      <Heading size="3">{t($ => $.floors.sections.ceilingSheathing)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.ceilingSheathing)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.ceilingSheathingMaterial)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -878,7 +878,7 @@ function FilledConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.ceilingSheathingThickness)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -892,11 +892,11 @@ function FilledConfigFields({
       <Separator size="4" />
 
       {/* Opening Frame Section */}
-      <Heading size="3">{t($ => $.floors.sections.openingFrame)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.openingFrame)}</Heading>
       <Grid columns="auto 1fr auto 1fr" gap="2" gapX="3" align="center">
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.openingFrameMaterial)}
+            {t($ => $.common.materialLabel)}
           </Text>
         </Label.Root>
         <MaterialSelectWithEdit
@@ -912,7 +912,7 @@ function FilledConfigFields({
 
         <Label.Root>
           <Text size="2" weight="medium" color="gray">
-            {t($ => $.floors.labels.openingFrameThickness)}
+            {t($ => $.common.thickness)}
           </Text>
         </Label.Root>
         <LengthField
@@ -926,7 +926,7 @@ function FilledConfigFields({
       <Separator size="4" />
 
       {/* Straw Infill Section */}
-      <Heading size="3">{t($ => $.floors.sections.strawInfill)}</Heading>
+      <Heading size="2">{t($ => $.floors.sections.strawInfill)}</Heading>
       <Grid columns="auto 1fr" gap="2" gapX="3" align="center">
         <Flex align="center" gap="1">
           <Label.Root>

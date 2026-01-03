@@ -9,6 +9,7 @@
     "densityUnit": "kg/m³",
     "duplicate": "Duplizieren",
     "height": "Höhe",
+    "infillMaterial": "",
     "inset": "Einzug",
     "inUseCannotDelete": "In Verwendung – kann nicht gelöscht werden",
     "layerThickness": "Schichtdicke",
@@ -41,37 +42,20 @@
       "clt18cm": "CLT 18 cm (6 cm)",
       "concrete20cm": "Beton 20 cm (6 cm)",
       "filledJoist8x36cm": "Stroh-Bodenplatte 8×36 cm (6 cm)",
-      "joist8x24cm": "Balkendeck 8×24 cm (6 cm)"
+      "joist8x24cm": "Balkendecke 8×24 cm (6 cm)"
     },
     "delete": {
       "cannotDeleteInUse": "In Verwendung – kann nicht gelöscht werden",
       "cannotDeleteLast": "Die letzte Konfiguration kann nicht gelöscht werden",
       "confirm": "Möchten Sie „{{name}}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
       "confirmTitle": "Deckenkonstruktion löschen",
-      "noConfigSelected": "Keine Konfiguration ausgewählt"
+      "noConfigSelected": "Keine Konstruktion ausgewählt"
     },
     "emptyList": "Keine Deckenkonstruktionen verfügbar",
     "labels": {
-      "beamHeight": "Trägerhöhe",
-      "ceilingSheathingMaterial": "Material Deckenbeplankung",
-      "ceilingSheathingThickness": "Dicke Deckenbeplankung",
+      "beamHeight": "Balkenhöhe",
       "constructionHeight": "Konstruktionshöhe",
-      "frameMaterial": "Rahmenmaterial",
-      "frameThickness": "Rahmendicke",
-      "joistMaterial": "Balkenmaterial",
-      "joistSpacing": "Balkenabstand",
-      "joistThickness": "Balkendicke",
-      "openingFrameMaterial": "Material Rahmen Durchbruch",
-      "openingFrameThickness": "Dicke Rahmen Durchbruch",
-      "openingSideMaterial": "Material Rahmen Durchbruch",
-      "openingSideThickness": "Dicke Rahmen Durchbruch",
-      "subfloorMaterial": "Unterbodenmaterial",
-      "subfloorThickness": "Unterbodendicke",
-      "thickness": "Dicke",
-      "wallBeamInsideOffset": "Innenversatz Wandträger",
-      "wallBeamMaterial": "Material Wandträger",
-      "wallBeamThickness": "Dicke Wandträger",
-      "wallInfillMaterial": "Material Wandfüllung"
+      "wallBeamInsideOffset": "Innenversatz"
     },
     "layers": {
       "addBottomLayer": "Untere Schicht hinzufügen",
@@ -87,7 +71,7 @@
     "newName": {
       "filled": "Neue gefüllte Decke",
       "joist": "Neue Balkendecke",
-      "monolithic": "Neue monolithische Decke"
+      "monolithic": "Neue Massivdecke"
     },
     "reset": {
       "confirm": "Möchten Sie die Standard-Deckenkonstruktionen wirklich zurücksetzen? Benutzerdefinierte Konstruktionen bleiben erhalten. Diese Aktion kann nicht rückgängig gemacht werden.",
@@ -104,18 +88,18 @@
       "wallBeams": "Wandträger"
     },
     "tips": {
-      "beamHeight": "Höhe der Tragträger. Gilt für Balken und Wandträger.",
+      "beamHeight": "Bakenhöhe. Gilt für Balken und Wandträger.",
       "constructionHeight": "Höhe der Deckenkonstruktion (Balkenhöhe).",
       "strawMaterialOverride": "Material zur Füllung zwischen Balken. Leer lassen, um die globalen Stroheinstellungen zu verwenden."
     },
     "types": {
-      "joist": "Balken",
-      "monolithic": "Massiv",
-      "straw": "Strohgefüllt"
+      "joist": "Balkenboden",
+      "monolithic": "Massivboden",
+      "straw": "Strohgefüllter Boden"
     }
   },
   "layers": {
-    "copyFrom": "{{name}} kopieren",
+    "copyFrom": "Von \"{{name}}\" kopieren",
     "defaultName_monolithic": "",
     "defaultName_striped": "",
     "defaults": {
