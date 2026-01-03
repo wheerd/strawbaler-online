@@ -1,4 +1,4 @@
-import i18n, { type PostProcessorModule } from 'i18next'
+import i18n from 'i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
@@ -32,15 +32,6 @@ import toolbarEN from './locales/en/toolbar.json'
 import viewerEN from './locales/en/viewer.json'
 import welcomeEN from './locales/en/welcome.json'
 
-class XPostProcessor implements PostProcessorModule {
-  readonly name = 'x'
-  readonly type = 'postProcessor'
-
-  process(): string {
-    return 'X'
-  }
-}
-
 const resources = {
   en: {
     common: commonEN,
@@ -70,49 +61,15 @@ const resources = {
 
 i18n
   .use(LanguageDetector)
-  .use(new XPostProcessor())
   .use(initReactI18next)
   .init({
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'wselcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction', 'errors', 'viewer'],
-
-    // postProcess: 'x',
+    ns: ['common', 'welcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction', 'errors', 'viewer'],
 
     interpolation: {
-      escapeValue: false, // React already escapes
-      // Register custom formatters for use in translations
-      format: (value: unknown, format: string | undefined, lng: string | undefined) => {
-        const locale = lng || 'en'
-
-        if (typeof value !== 'number' && !Array.isArray(value)) {
-          return String(value)
-        }
-
-        switch (format) {
-          case 'length':
-            return formatLength(value as number, locale)
-          case 'lengthInMeters':
-            return formatLengthInMeters(value as number, locale)
-          case 'area':
-            return formatArea(value as number, locale)
-          case 'volume':
-            return formatVolume(value as number, locale)
-          case 'weight':
-            return formatWeight(value as number, locale)
-          case 'dimensions2D': {
-            // For cross-sections like "50mm × 100mm"
-            // Expects value to be array [width, height]
-            if (Array.isArray(value) && value.length === 2) {
-              return formatDimensions2D([value[0], value[1]], true, locale)
-            }
-            return String(value)
-          }
-          default:
-            return String(value)
-        }
-      }
+      escapeValue: false // React already escapes
     },
 
     detection: {
@@ -124,6 +81,28 @@ i18n
     debug: import.meta.env.DEV && import.meta.env.MODE !== 'test'
   })
 
+// Register custom formatters for use in translations
+// These can be used in translation strings like: {{value, length}} or {{value, area}}
 i18n.services.formatter?.add('length', (value, lng, _options) => formatLength(value as number, lng ?? 'en'))
+
+i18n.services.formatter?.add('lengthInMeters', (value, lng, _options) =>
+  formatLengthInMeters(value as number, lng ?? 'en')
+)
+
+i18n.services.formatter?.add('area', (value, lng, _options) => formatArea(value as number, lng ?? 'en'))
+
+i18n.services.formatter?.add('volume', (value, lng, _options) => formatVolume(value as number, lng ?? 'en'))
+
+i18n.services.formatter?.add('weight', (value, lng, _options) => formatWeight(value as number, lng ?? 'en'))
+
+i18n.services.formatter?.add('dimensions2D', (value, lng, _options) => {
+  // For cross-sections like "50mm × 100mm"
+  // Expects value to be array [width, height]
+  const locale = lng ?? 'en'
+  if (Array.isArray(value) && value.length === 2) {
+    return formatDimensions2D([value[0], value[1]], true, locale)
+  }
+  return String(value)
+})
 
 export default i18n

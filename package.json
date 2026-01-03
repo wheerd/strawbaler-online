@@ -20,9 +20,9 @@
     "test": "vitest run",
     "test:watch": "vitest watch",
     "testimporter": "IFCIMPORTER=1 vitest watch src/importers/ifc/importer.integration.test.ts",
-    "i18n:toc": "i18next-resources-for-ts toc -i ./src/shared/i18n/locales/en -o ./src/@types/resources.ts",
-    "i18n:merge": "i18next-resources-for-ts merge -i ./src/shared/i18n/locales/en -o ./src/@types/resources.json",
-    "i18n:interface": "i18next-resources-for-ts interface -i ./src/shared/i18n/locales/en -o ./src/@types/resources.d.ts"
+    "i18n:interface": "i18next-cli types",
+    "i18n:extract": "i18next-cli extract",
+    "i18n:update": "pnpm i18n:extract && pnpm i18n:interface"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -80,7 +80,6 @@
     "eslint-plugin-unused-imports": "^4.3.0",
     "fast-check": "^4.3.0",
     "i18next-cli": "^1.33.5",
-    "i18next-resources-for-ts": "^2.0.0",
     "jsdom": "^26.1.0",
     "neostandard": "^0.12.2",
     "postcss": "^8.5.6",
