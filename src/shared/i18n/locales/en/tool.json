@@ -215,6 +215,7 @@
     "crossShaped": "📐 Cross/T-Shape Perimeter",
     "dangerZone": "⚠️ Danger Zone",
     "generationHeading": "Test Data Generation",
+    "hardReset": "Hard Reset",
     "hexagonal": "⬡ Hexagonal Perimeter (3m sides)",
     "instructions": "Click any button above to generate test data or reset the model. Each test case creates a perimeter with realistic windows and doors to demonstrate the application features.",
     "rectangular": "▭ Rectangular Perimeter (8×5m)",

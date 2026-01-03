@@ -3,6 +3,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
+import { hardReset } from '@/shared/utils/hardReset'
 
 import type { TestDataTool } from './TestDataTool'
 
@@ -67,6 +68,9 @@ export function TestDataToolInspector({ tool }: ToolInspectorProps<TestDataTool>
           <Flex direction="column" gap="2">
             <Button className="w-full" size="2" color="red" variant="solid" onClick={handleResetData}>
               {t($ => $.testData.resetAll)}
+            </Button>
+            <Button className="w-full" size="2" color="red" variant="solid" onClick={hardReset}>
+              {t($ => $.testData.hardReset)}
             </Button>
 
             <Text size="1" color="gray">
