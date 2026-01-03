@@ -259,7 +259,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              Spacing (Min)
+              {t($ => $.roofs.labels.spacingMin)}
             </Text>
           </Label.Root>
           <LengthField
@@ -275,7 +275,7 @@ function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormProps): 
         <Flex direction="column" gap="1">
           <Label.Root>
             <Text size="1" weight="medium" color="gray">
-              Spacing (Target)
+              {t($ => $.roofs.labels.spacingTarget)}
             </Text>
           </Label.Root>
           <LengthField
@@ -694,7 +694,11 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
   const handleDuplicate = useCallback(() => {
     if (!selectedAssembly) return
 
-    const duplicated = duplicateRoofAssembly(selectedAssembly.id, `${selectedAssembly.name} (Copy)`)
+    const newName = t($ => $.roofs.copyNameTemplate, {
+      defaultValue: `{{name}} (Copy)`,
+      name: selectedAssembly.name
+    })
+    const duplicated = duplicateRoofAssembly(selectedAssembly.id, newName)
     setSelectedAssemblyId(duplicated.id)
   }, [selectedAssembly, duplicateRoofAssembly])
 
@@ -844,7 +848,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
       {selectedAssembly && <ConfigForm assembly={selectedAssembly} />}
       {!selectedAssembly && roofAssemblies.length === 0 && (
         <Flex justify="center" align="center" p="5">
-          <Text color="gray">No roof assemblies yet. Create one using the "New" button above.</Text>
+          <Text color="gray">{t($ => $.roofs.emptyList)}</Text>
         </Flex>
       )}
       {usage.isUsed && <UsageDisplay usage={usage} />}

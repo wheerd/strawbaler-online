@@ -131,7 +131,11 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
   const handleDuplicate = useCallback(() => {
     if (!selectedAssembly) return
 
-    const duplicated = duplicateOpeningAssembly(selectedAssembly.id, `${selectedAssembly.name} (Copy)`)
+    const newName = t($ => $.openings.copyNameTemplate, {
+      defaultValue: `{{name}} (Copy)`,
+      name: selectedAssembly.name
+    })
+    const duplicated = duplicateOpeningAssembly(selectedAssembly.id, newName)
     setSelectedAssemblyId(duplicated.id)
   }, [selectedAssembly, duplicateOpeningAssembly])
 
@@ -182,7 +186,7 @@ export function OpeningAssemblyContent({ initialSelectionId }: OpeningAssemblyCo
           </DropdownMenu.Root>
         </Flex>
         <Callout.Root color="gray">
-          <Callout.Text>No opening assemblies. Create one to get started.</Callout.Text>
+          <Callout.Text>{t($ => $.openings.emptyList)}</Callout.Text>
         </Callout.Root>
       </Flex>
     )

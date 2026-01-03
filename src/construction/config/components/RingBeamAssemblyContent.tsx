@@ -79,8 +79,10 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
 
   const handleAddNew = useCallback(
     (type: RingBeamType) => {
+      let name: string
       let config: RingBeamConfig
       if (type === 'full') {
+        name = t($ => $.ringBeams.newName_full)
         config = {
           type: 'full',
           height: 60,
@@ -89,6 +91,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           offsetFromEdge: 0
         }
       } else if (type === 'double') {
+        name = t($ => $.ringBeams.newName_double)
         config = {
           type: 'double',
           height: 60,
@@ -99,6 +102,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
           spacing: 100
         }
       } else {
+        name = t($ => $.ringBeams.newName_brick)
         config = {
           type: 'brick',
           wallHeight: 300,
@@ -114,7 +118,7 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
         }
       }
 
-      const newAssembly = addRingBeamAssembly(`New ${type} ring beam`, config)
+      const newAssembly = addRingBeamAssembly(name, config)
       setSelectedAssemblyId(newAssembly.id)
     },
     [addRingBeamAssembly]
@@ -124,7 +128,11 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
     if (!selectedAssembly) return
 
     const { id: _id, name: _name, ...config } = selectedAssembly
-    const duplicated = addRingBeamAssembly(`${selectedAssembly.name} (Copy)`, config)
+    const newName = t($ => $.ringBeams.copyNameTemplate, {
+      defaultValue: `{{name}} (Copy)`,
+      name: selectedAssembly.name
+    })
+    const duplicated = addRingBeamAssembly(newName, config)
     setSelectedAssemblyId(duplicated.id)
   }, [selectedAssembly, addRingBeamAssembly])
 

@@ -903,7 +903,11 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
   const handleDuplicate = useCallback(() => {
     if (!selectedAssembly) return
 
-    const duplicated = duplicateWallAssembly(selectedAssembly.id, `${selectedAssembly.name} (Copy)`)
+    const newName = t($ => $.walls.copyNameTemplate, {
+      defaultValue: `{{name}} (Copy)`,
+      name: selectedAssembly.name
+    })
+    const duplicated = duplicateWallAssembly(selectedAssembly.id, newName)
     setSelectedAssemblyId(duplicated.id)
   }, [selectedAssembly, duplicateWallAssembly])
 

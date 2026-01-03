@@ -1,6 +1,4 @@
 (Exceptions/error handling)
 Storey names
-Plan Highlighted Areas
-Layer names
 
 Regexp: '[A-Z][a-zA-Z ]+'

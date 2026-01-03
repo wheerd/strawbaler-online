@@ -155,7 +155,11 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
   const handleDuplicate = useCallback(() => {
     if (!selectedConfig) return
 
-    const duplicated = duplicateFloorAssembly(selectedConfig.id, `${selectedConfig.name} (Copy)`)
+    const newName = t($ => $.floors.copyNameTemplate, {
+      defaultValue: `{{name}} (Copy)`,
+      name: selectedConfig.name
+    })
+    const duplicated = duplicateFloorAssembly(selectedConfig.id, newName)
     setSelectedConfigId(duplicated.id)
   }, [selectedConfig, duplicateFloorAssembly])
 

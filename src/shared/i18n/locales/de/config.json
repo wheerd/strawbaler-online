@@ -34,6 +34,7 @@
   },
   "floors": {
     "configure": "",
+    "copyNameTemplate": "",
     "defaultFloorAssembly": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "defaults": {
@@ -225,6 +226,7 @@
   },
   "openings": {
     "configure": "",
+    "copyNameTemplate": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "defaultOpeningAssembly": "",
     "defaults": {
@@ -265,6 +267,7 @@
   },
   "ringBeams": {
     "configure": "",
+    "copyNameTemplate": "",
     "defaultBasePlate": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "defaults": {
@@ -278,6 +281,9 @@
     "labels": {
       "offsetFromInsideEdge": ""
     },
+    "newName_brick": "",
+    "newName_double": "",
+    "newName_full": "",
     "none": "Keine",
     "placeholders": {
       "name": ""
@@ -301,6 +307,7 @@
     "addOverhangLayer": "",
     "addTopLayer": "",
     "configure": "",
+    "copyNameTemplate": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "defaultRoofAssembly": "",
     "defaults": {
@@ -311,6 +318,10 @@
     "deleteTitle": "",
     "emptyList": "Keine Dachaufbauten verfügbar",
     "finishedTop": "",
+    "labels": {
+      "spacingMin": "",
+      "spacingTarget": ""
+    },
     "layers": {
       "insideLayers": "",
       "overhangLayers": ""
@@ -363,6 +374,7 @@
     "addInsideLayer": "",
     "addOutsideLayer": "",
     "configure": "",
+    "copyNameTemplate": "",
     "defaultLabel": "{{label}} <gray>(Standard)</gray>",
     "defaults": {
       "concreteWall": "",

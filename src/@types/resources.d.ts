@@ -102,6 +102,7 @@ interface Resources {
     },
     "floors": {
       "configure": "Configure Floor Assembly",
+      "copyNameTemplate": "{{name}} (Copy)",
       "defaultFloorAssembly": "Default Floor Assembly",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaults": {
@@ -336,6 +337,7 @@ interface Resources {
     },
     "openings": {
       "configure": "Configure Opening Assembly",
+      "copyNameTemplate": "{{name}} (Copy)",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultOpeningAssembly": "Default Opening Assembly",
       "defaults": {
@@ -376,6 +378,7 @@ interface Resources {
     },
     "ringBeams": {
       "configure": "Configure Ring Beam",
+      "copyNameTemplate": "{{name}} (Copy)",
       "defaultBasePlate": "Default Base Plate",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultTopPlate": "Default Top Plate",
@@ -389,6 +392,9 @@ interface Resources {
       "labels": {
         "offsetFromInsideEdge": "Offset from Inside Edge"
       },
+      "newName_brick": "New Brick Assembly",
+      "newName_double": "New Double Assembly",
+      "newName_full": "New Full Assembly",
       "none": "None",
       "placeholders": {
         "name": "Ring beam assembly name"
@@ -412,6 +418,7 @@ interface Resources {
       "addOverhangLayer": "Add Overhang Layer",
       "addTopLayer": "Add Top Layer",
       "configure": "Configure Roof Assembly",
+      "copyNameTemplate": "{{name}} (Copy)",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultRoofAssembly": "Default Roof Assembly",
       "defaults": {
@@ -422,6 +429,10 @@ interface Resources {
       "deleteTitle": "Delete Roof Assembly",
       "emptyList": "No roof assemblies available",
       "finishedTop": "Finished Top",
+      "labels": {
+        "spacingMin": "Spacing (Min)",
+        "spacingTarget": "Spacing (Target)"
+      },
       "layers": {
         "insideLayers": "Inside Layers (Ceiling)",
         "overhangLayers": "Overhang Layers"
@@ -474,6 +485,7 @@ interface Resources {
       "addInsideLayer": "Add Inside Layer",
       "addOutsideLayer": "Add Outside Layer",
       "configure": "Configure Wall Assembly",
+      "copyNameTemplate": "{{name}} (Copy)",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultWallAssembly": "Default Wall Assembly",
       "defaults": {
