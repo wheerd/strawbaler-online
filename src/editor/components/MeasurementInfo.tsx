@@ -756,7 +756,7 @@ e | y +--------------+ s | Floor top layers                 }
           {t($ => $.measurements.wallAssembly)
             .split('\n')
             .map((l, i) => (
-              <tspan x={0} dy={`${(1.2 * i).toFixed(1)}em`}>
+              <tspan key={i} x={0} dy={`${(1.2 * i).toFixed(1)}em`}>
                 {l}
               </tspan>
             ))}
@@ -831,7 +831,7 @@ e | y +--------------+ s | Floor top layers                 }
             {t($ => $.measurements.wallConstruction)
               .split('\n')
               .map((l, i) => (
-                <tspan x={0} dy={`${(1.2 * i).toFixed(1)}em`}>
+                <tspan key={i} x={0} dy={`${(1.2 * i).toFixed(1)}em`}>
                   {l}
                 </tspan>
               ))}
