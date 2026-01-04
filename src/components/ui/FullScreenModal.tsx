@@ -31,13 +31,7 @@ export function FullScreenModal({
       <DialogPrimitive.Portal>
         <Theme>
           {/* Overlay */}
-          <DialogPrimitive.Overlay
-            className="fixed inset-0 z-50"
-            style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              backdropFilter: 'blur(4px)'
-            }}
-          />
+          <DialogPrimitive.Overlay className="fixed inset-0 z-50" style={{ backgroundColor: 'var(--color-overlay)' }} />
 
           {/* Content */}
           <DialogPrimitive.Content
