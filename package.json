@@ -37,7 +37,7 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@types/jest": "^30.0.0",
-    "clipper2-wasm": "^0.1.0",
+    "clipper2-wasm": "^0.2.1",
     "fast-deep-equal": "^3.1.3",
     "gl-matrix": "^3.4.4",
     "i18next": "^25.7.3",
