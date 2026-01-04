@@ -59,7 +59,10 @@ export function ConstructionViewer3DModal({
       <Flex direction="column" gap="1" height="100%" className="overflow-hidden">
         <div
           ref={containerRef}
-          className="relative flex-1 min-h-[500px] max-h-[calc(90vh-100px)] overflow-hidden border border-gray-6 rounded-2"
+          className="relative flex-1 min-h-[500px] max-h-[calc(90vh-100px)] overflow-hidden border rounded-md"
+          style={{
+            borderColor: 'var(--gray-6)'
+          }}
         >
           {modelPromise ? (
             <Suspense

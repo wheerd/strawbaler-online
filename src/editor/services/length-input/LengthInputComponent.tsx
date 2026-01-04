@@ -128,7 +128,7 @@ export function LengthInputComponent(): React.JSX.Element | null {
 
   return (
     <Box
-      className="absolute z-[1000] pointer-events-auto"
+      className="absolute z-1000 pointer-events-auto"
       style={{
         left: constrainedPosition.x,
         top: constrainedPosition.y,

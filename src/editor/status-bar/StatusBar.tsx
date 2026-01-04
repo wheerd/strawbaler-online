@@ -14,7 +14,7 @@ import { ThemeToggle } from './ThemeToggle'
 export function StatusBar(): React.JSX.Element {
   return (
     <Box
-      className="absolute z-[10] pointer-events-none"
+      className="absolute z-10 pointer-events-none"
       left="0"
       right="0"
       bottom="0"
