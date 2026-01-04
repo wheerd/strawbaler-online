@@ -1,4 +1,5 @@
 /// <reference types="vitest" />
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
@@ -10,6 +11,7 @@ import { nonBlockingStylesPlugin, versionInfoPlugin } from './vite/plugins'
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     versionInfoPlugin(),
     nonBlockingStylesPlugin(),
     VitePWA({

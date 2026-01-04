@@ -175,8 +175,14 @@ function ModalContent({
         <Flex direction="column" gap="3" style={{ flex: 1, minHeight: 0 }} className="overflow-hidden">
           <div
             ref={containerRef}
-            className="overflow-hidden border border-gray-6 rounded-2"
-            style={{ flex: '1 1 100%', minHeight: 0, height: '100%', position: 'relative' }}
+            className="overflow-hidden border rounded-md"
+            style={{
+              flex: '1 1 100%',
+              minHeight: 0,
+              height: '100%',
+              position: 'relative',
+              borderColor: 'var(--gray-6)'
+            }}
           >
             {modelPromise ? (
               <Suspense fallback={<PlanSkeleton />}>
