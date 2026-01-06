@@ -300,7 +300,8 @@
     "wall-part_header": "Header",
     "wall-part_infill": "Infill",
     "wall-part_post": "Post",
-    "wall-part_sill": "Sill"
+    "wall-part_sill": "Sill",
+    "wall-part_triangular-batten": "Triangular Batten"
   },
   "tagVisibility": {
     "hideCategory": "Hide Category",

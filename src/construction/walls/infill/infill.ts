@@ -5,6 +5,7 @@ import type { StrawbaleMaterial } from '@/construction/materials/material'
 import { constructPost } from '@/construction/materials/posts'
 import { getMaterialById } from '@/construction/materials/store'
 import { constructStraw } from '@/construction/materials/straw'
+import { constructTriangularBattens } from '@/construction/materials/triangularBattens'
 import { yieldMeasurementFromArea } from '@/construction/measurements'
 import type { ConstructionResult, IssueMessageKey } from '@/construction/results'
 import { yieldAndCollectElements, yieldElement, yieldError, yieldWarning } from '@/construction/results'
@@ -101,6 +102,7 @@ function* constructInfillRecursive(
     const strawElements: GroupOrElement[] = []
     const strawArea = area.withXAdjustment(atStart ? 0 : size[0] - baleWidth, baleWidth)
     yield* yieldAndCollectElements(constructStraw(strawArea, config.strawMaterial), strawElements)
+    yield* constructTriangularBattens(strawArea, config.triangularBattens)
 
     if (baleWidth < config.minStrawSpace) {
       yield yieldWarning($ => $.construction.infill.notEnoughSpaceForStraw, undefined, strawElements)
