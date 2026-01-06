@@ -116,7 +116,7 @@ export const TAG_STRAW_STUFFED: PredefinedTag = {
   category: 'straw'
 }
 
-// Wall wood tags
+// Wall part tags
 export const TAG_POST: PredefinedTag = {
   id: 'wall-part_post',
   category: 'wall-part'
@@ -134,6 +134,11 @@ export const TAG_SILL: PredefinedTag = {
 
 export const TAG_INFILL: PredefinedTag = {
   id: 'wall-part_infill',
+  category: 'wall-part'
+}
+
+export const TAG_TRIANGLE_BATTON: PredefinedTag = {
+  id: 'wall-part_triangle-batten',
   category: 'wall-part'
 }
 

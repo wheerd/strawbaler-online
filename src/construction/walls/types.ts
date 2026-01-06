@@ -3,6 +3,7 @@ import type { WallConstructionArea } from '@/construction/geometry'
 import type { LayerConfig } from '@/construction/layers/types'
 import type { MaterialId } from '@/construction/materials/material'
 import { type PostConfig, validatePosts } from '@/construction/materials/posts'
+import type { TriangleBattenConfig } from '@/construction/materials/triangleBattens'
 import type { ConstructionModel } from '@/construction/model'
 import type { ConstructionResult } from '@/construction/results'
 import type { StoreyContext } from '@/construction/storeys/context'
@@ -37,6 +38,7 @@ export interface InfillWallSegmentConfig {
   desiredPostSpacing: Length // Default: 800mm
   minStrawSpace: Length // Default: 70mm
   posts: PostConfig // Default: full
+  triangleBattens: TriangleBattenConfig
   strawMaterial?: MaterialId
   infillMaterial?: MaterialId
 }

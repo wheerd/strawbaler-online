@@ -300,7 +300,8 @@
     "wall-part_header": "Sturz",
     "wall-part_infill": "Füllung",
     "wall-part_post": "Ständer",
-    "wall-part_sill": "Schwelle"
+    "wall-part_sill": "Schwelle",
+    "wall-part_triangle-batten": "Dreiecksleiste"
   },
   "tagVisibility": {
     "hideCategory": "Kategorie ausblenden",
