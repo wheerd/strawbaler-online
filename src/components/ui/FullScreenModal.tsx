@@ -31,7 +31,7 @@ export function FullScreenModal({
       <DialogPrimitive.Portal>
         <Theme>
           {/* Overlay */}
-          <DialogPrimitive.Overlay className="fixed inset-0 z-50" style={{ backgroundColor: 'var(--color-overlay)' }} />
+          <DialogPrimitive.Overlay className="fixed inset-0" style={{ backgroundColor: 'var(--color-overlay)' }} />
 
           {/* Content */}
           <DialogPrimitive.Content
@@ -42,7 +42,7 @@ export function FullScreenModal({
               }
               e.stopPropagation()
             }}
-            className="fixed left-1/2 top-1/2 z-50 flex flex-col rounded-lg shadow-lg focus:outline-none"
+            className="fixed left-1/2 top-1/2 flex flex-col rounded-lg shadow-lg focus:outline-none"
             style={{
               transform: 'translate(-50%, -50%)',
               width: 'calc(100vw - 2rem)',
