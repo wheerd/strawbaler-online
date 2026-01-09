@@ -194,7 +194,7 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
     if (perimeters.length === 0) return []
 
     const insidePolygons: Polygon2D[] = perimeters.map(p => ({
-      points: p.corners.map(c => copyVec2(c.insidePoint))
+      points: p.cornerIds.map(c => copyVec2(c.insidePoint))
     }))
 
     const insides = unionPolygons(insidePolygons)

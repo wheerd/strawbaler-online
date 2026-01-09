@@ -41,7 +41,7 @@ export abstract class BaseRingBeamAssembly<T extends RingBeamConfigBase> impleme
 
   protected *colinearParts(segment: RingBeamSegment): Generator<ColinearPart> {
     const { perimeter, startIndex, endIndex } = segment
-    const total = perimeter.walls.length
+    const total = perimeter.wallIds.length
 
     const segmentCount = this.calculateSegmentCount(startIndex, endIndex, total)
 
@@ -51,21 +51,21 @@ export abstract class BaseRingBeamAssembly<T extends RingBeamConfigBase> impleme
 
     for (let offset = 0; offset < segmentCount; offset++) {
       const wallIndex = (startIndex + offset) % total
-      const wall = perimeter.walls[wallIndex]
+      const wall = perimeter.wallIds[wallIndex]
       const nextWallIndex = (wallIndex + 1) % total
-      const endCorner = perimeter.corners[nextWallIndex]
+      const endCorner = perimeter.cornerIds[nextWallIndex]
 
       const isColinearWithNext = Math.abs(endCorner.exteriorAngle - 180) < 0.01 && offset < segmentCount - 1
       if (isColinearWithNext) {
         if (colinearStartIndex === null) {
           colinearStartIndex = wallIndex
-          colinearStartCorner = perimeter.corners[wallIndex]
+          colinearStartCorner = perimeter.cornerIds[wallIndex]
         }
         continue // Skip creating polygon, continue to next wall
       }
 
       // End of colinear segment (or single wall)
-      const startCorner = colinearStartCorner ?? perimeter.corners[wallIndex]
+      const startCorner = colinearStartCorner ?? perimeter.cornerIds[wallIndex]
       const prevWallIndex = ((colinearStartIndex ?? wallIndex) - 1 + total) % total
 
       yield {
@@ -90,8 +90,8 @@ export abstract class BaseRingBeamAssembly<T extends RingBeamConfigBase> impleme
     const { perimeter } = segment
     for (const part of this.colinearParts(segment)) {
       const { startCorner, endCorner, nextWallIndex, prevWallIndex, wall } = part
-      const prevWallDir = perimeter.walls[prevWallIndex].direction
-      const nextWallDir = perimeter.walls[nextWallIndex].direction
+      const prevWallDir = perimeter.wallIds[prevWallIndex].direction
+      const nextWallDir = perimeter.wallIds[nextWallIndex].direction
 
       const polygon = this.createBeamPolygon(
         context,

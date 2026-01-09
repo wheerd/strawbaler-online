@@ -53,7 +53,7 @@ export function getRingBeamAssemblyUsage(
   const storeyIdSet = new Set<StoreyId>()
 
   perimeters.forEach(perimeter => {
-    perimeter.walls.forEach(wall => {
+    perimeter.wallIds.forEach(wall => {
       if (wall.baseRingBeamAssemblyId === assemblyId || wall.topRingBeamAssemblyId === assemblyId) {
         storeyIdSet.add(perimeter.storeyId)
       }
@@ -82,7 +82,7 @@ export function getWallAssemblyUsage(
   const storeyIdSet = new Set<StoreyId>()
 
   perimeters.forEach(perimeter => {
-    perimeter.walls.forEach(wall => {
+    perimeter.wallIds.forEach(wall => {
       if (wall.wallAssemblyId === assemblyId) {
         storeyIdSet.add(perimeter.storeyId)
       }
@@ -173,7 +173,7 @@ export function getOpeningAssemblyUsage(
 
   // Check individual openings that override to use this assembly
   perimeters.forEach(perimeter => {
-    perimeter.walls.forEach(wall => {
+    perimeter.wallIds.forEach(wall => {
       wall.openings.forEach(opening => {
         if (opening.openingAssemblyId === assemblyId) {
           storeyIdSet.add(perimeter.storeyId)

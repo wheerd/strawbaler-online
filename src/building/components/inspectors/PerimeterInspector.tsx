@@ -123,23 +123,23 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
 
   // Mixed state detection
   const wallAssemblyState = useMemo(
-    () => (perimeter ? detectMixedAssemblies(perimeter.walls) : { isMixed: false, value: null }),
-    [perimeter?.walls]
+    () => (perimeter ? detectMixedAssemblies(perimeter.wallIds) : { isMixed: false, value: null }),
+    [perimeter?.wallIds]
   )
 
   const thicknessState = useMemo(
-    () => (perimeter ? detectMixedThickness(perimeter.walls) : { isMixed: false, value: null }),
-    [perimeter?.walls]
+    () => (perimeter ? detectMixedThickness(perimeter.wallIds) : { isMixed: false, value: null }),
+    [perimeter?.wallIds]
   )
 
   const baseRingBeamState = useMemo(
-    () => (perimeter ? detectMixedRingBeams(perimeter.walls, 'base') : { isMixed: false, value: null }),
-    [perimeter?.walls]
+    () => (perimeter ? detectMixedRingBeams(perimeter.wallIds, 'base') : { isMixed: false, value: null }),
+    [perimeter?.wallIds]
   )
 
   const topRingBeamState = useMemo(
-    () => (perimeter ? detectMixedRingBeams(perimeter.walls, 'top') : { isMixed: false, value: null }),
-    [perimeter?.walls]
+    () => (perimeter ? detectMixedRingBeams(perimeter.wallIds, 'top') : { isMixed: false, value: null }),
+    [perimeter?.wallIds]
   )
 
   // If perimeter not found, show error
@@ -164,7 +164,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
   const totalInnerArea = calculatePolygonArea(perimeter.innerPolygon)
   const totalOuterArea = calculatePolygonArea(perimeter.outerPolygon)
 
-  const hasNonStandardAngles = perimeter.corners.some(corner => corner.interiorAngle % 90 !== 0)
+  const hasNonStandardAngles = perimeter.cornerIds.some(corner => corner.interiorAngle % 90 !== 0)
 
   const handleFitToView = useCallback(() => {
     if (!perimeter) return

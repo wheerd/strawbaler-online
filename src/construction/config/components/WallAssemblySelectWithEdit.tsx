@@ -18,7 +18,7 @@ export function WallAssemblySelectWithEdit(props: WallAssemblySelectProps): Reac
         <WallAssemblySelect {...props} />
       </Flex>
       <IconButton
-        title={t($ => $.walls.configure)}
+        title={t($ => $.wallIds.configure)}
         variant="ghost"
         size={props.size}
         onClick={() => openConfiguration('walls', props.value ?? undefined)}

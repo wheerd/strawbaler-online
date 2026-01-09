@@ -33,8 +33,8 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
   // Get model store functions - use specific selectors for stable references
   const select = useSelectionStore()
   const {
-    updatePerimeterWallOpening: updateOpening,
-    removePerimeterWallOpening: removeOpeningFromOuterWall,
+    updateWallOpening: updateOpening,
+    removeWallOpening: removeOpeningFromOuterWall,
     getStoreyById
   } = useModelActions()
 
@@ -48,7 +48,7 @@ export function OpeningInspector({ perimeterId, wallId, openingId }: OpeningInsp
 
   // Use useMemo to find wall and opening within the wall object
   const wall = useMemo(() => {
-    return perimeter?.walls.find(w => w.id === wallId)
+    return perimeter?.wallIds.find(w => w.id === wallId)
   }, [perimeter, wallId])
 
   const opening = useMemo(() => {

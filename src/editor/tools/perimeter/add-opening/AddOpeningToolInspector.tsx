@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { OpeningPreview } from '@/building/components/inspectors/OpeningPreview'
 import type { OpeningAssemblyId } from '@/building/model'
 import type { OpeningType } from '@/building/model'
-import { useActiveStoreyId, useModelActions, usePerimeters } from '@/building/store'
+import { useActiveStoreyId, useModelActions, useWallOpenings } from '@/building/store'
 import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
 import { useDefaultOpeningAssemblyId, useOpeningAssemblyById } from '@/construction/config/store'
 import { createWallStoreyContext } from '@/construction/storeys/context'
@@ -178,29 +178,25 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
     [state.dimensionMode, currentPadding]
   )
 
-  const allPerimeters = usePerimeters()
+  const allOpenings = useWallOpenings()
   const allOpeningConfigs = useMemo(() => {
     const existingConfigs: Record<string, ExistingConfig> = {}
-    for (const perimeter of allPerimeters) {
-      for (const wall of perimeter.walls) {
-        for (const opening of wall.openings) {
-          const key = `${opening.openingAssemblyId}:${opening.type}:${opening.width}:${opening.height}:${opening.sillHeight}`
-          if (!(key in existingConfigs)) {
-            const label = `${formatLength(opening.width)} x ${formatLength(opening.height)}${opening.sillHeight ? ` SH ${formatLength(opening.sillHeight)}` : ''}`
-            existingConfigs[key] = {
-              label,
-              assemblyId: opening.openingAssemblyId,
-              type: opening.type,
-              width: opening.width,
-              height: opening.height,
-              sillHeight: opening.sillHeight
-            }
-          }
+    for (const opening of allOpenings) {
+      const key = `${opening.openingAssemblyId}:${opening.type}:${opening.width}:${opening.height}:${opening.sillHeight}`
+      if (!(key in existingConfigs)) {
+        const label = `${formatLength(opening.width)} x ${formatLength(opening.height)}${opening.sillHeight ? ` SH ${formatLength(opening.sillHeight)}` : ''}`
+        existingConfigs[key] = {
+          label,
+          assemblyId: opening.openingAssemblyId,
+          type: opening.openingType,
+          width: opening.width,
+          height: opening.height,
+          sillHeight: opening.sillHeight
         }
       }
     }
     return Object.values(existingConfigs).sort((a, b) => a.label.localeCompare(b.label))
-  }, [allPerimeters])
+  }, [allOpenings])
 
   // Event handlers with stable references
   const handleTypeChange = useCallback(

@@ -427,7 +427,7 @@ function createSortedWallItems(
   const items: WallItem[] = []
 
   // Add opening groups (existing merging logic already works)
-  const sortedOpenings = [...wall.openings].sort((a, b) => a.centerOffsetFromWallStart - b.centerOffsetFromWallStart)
+  const sortedOpenings = [...wall.entityIds].sort((a, b) => a.centerOffsetFromWallStart - b.centerOffsetFromWallStart)
   const openingGroups = mergeAdjacentOpenings(sortedOpenings)
 
   for (const group of openingGroups) {

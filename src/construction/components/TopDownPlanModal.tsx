@@ -27,7 +27,7 @@ export default function TopDownPlanModal({
       views={[
         {
           view: TOP_VIEW,
-          label: t($ => $.planModal.views.walls),
+          label: t($ => $.planModal.views.wallIds),
           alwaysHiddenTags: [TAG_ROOF.id, 'roof-measurement', 'floor-measurement']
         },
         {

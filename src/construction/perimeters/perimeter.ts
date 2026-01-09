@@ -69,7 +69,7 @@ export function constructPerimeter(
   const allModels: ConstructionModel[] = []
 
   // Construct base ring beams
-  const baseRingBeamSegments = groupConsecutiveWallsByRingBeam(perimeter.walls, wall => wall.baseRingBeamAssemblyId)
+  const baseRingBeamSegments = groupConsecutiveWallsByRingBeam(perimeter.wallIds, wall => wall.baseRingBeamAssemblyId)
 
   for (const segment of baseRingBeamSegments) {
     const assemblyConfig = getRingBeamAssemblyById(segment.assemblyId)
@@ -89,7 +89,7 @@ export function constructPerimeter(
   }
 
   // Construct top ring beams
-  const topRingBeamSegments = groupConsecutiveWallsByRingBeam(perimeter.walls, wall => wall.topRingBeamAssemblyId)
+  const topRingBeamSegments = groupConsecutiveWallsByRingBeam(perimeter.wallIds, wall => wall.topRingBeamAssemblyId)
 
   for (const segment of topRingBeamSegments) {
     const assemblyConfig = getRingBeamAssemblyById(segment.assemblyId)
@@ -112,7 +112,7 @@ export function constructPerimeter(
     allModels.push(transformedModel)
   }
 
-  for (const wall of perimeter.walls) {
+  for (const wall of perimeter.wallIds) {
     const assembly = getWallAssemblyById(wall.wallAssemblyId)
     let wallModel: ConstructionModel | null = null
 
@@ -241,7 +241,7 @@ function groupConsecutiveWallsByRingBeam(
 
     if (currentAssemblyId === firstSegmentAssemblyId && segments.length > 0 && segments[0].startIndex === 0) {
       // Merge with first segment (wrap around)
-      segments[0].walls = [...currentWalls, ...segments[0].walls]
+      segments[0].wallIds = [...currentWalls, ...segments[0].wallIds]
       segments[0].startIndex = startIndex
     } else {
       // Add as separate segment
@@ -281,10 +281,10 @@ export function getPerimeterStats(perimeter: PerimeterWithGeometry): PerimeterSt
   const constructionHeight = storeyContext.ceilingConstructionBottom - storeyContext.floorConstructionTop
   const finishedHeight = storeyContext.finishedCeilingBottom - storeyContext.finishedFloorTop
 
-  const footprintPolygon: Polygon2D = { points: perimeter.corners.map(corner => corner.outsidePoint) }
+  const footprintPolygon: Polygon2D = { points: perimeter.cornerIds.map(corner => corner.outsidePoint) }
   const footprint = calculatePolygonArea(footprintPolygon)
 
-  const innerFloorPolygon: Polygon2D = { points: perimeter.corners.map(corner => corner.insidePoint) }
+  const innerFloorPolygon: Polygon2D = { points: perimeter.cornerIds.map(corner => corner.insidePoint) }
   const innerArea = calculatePolygonArea(innerFloorPolygon)
   const floorHoles = getFloorOpeningsByStorey(perimeter.storeyId).map(a => a.area)
   const floorPolygons = subtractPolygons([innerFloorPolygon], floorHoles)
@@ -297,7 +297,7 @@ export function getPerimeterStats(perimeter: PerimeterWithGeometry): PerimeterSt
   let totalWindowArea = 0
   let totalDoorArea = 0
 
-  for (const wall of perimeter.walls) {
+  for (const wall of perimeter.wallIds) {
     totalConstructionLength += wall.wallLength
 
     for (const opening of wall.openings) {
@@ -338,10 +338,10 @@ function createPerimeterMeasurementModel(
 ): ConstructionModel {
   const measurements: RawMeasurement[] = []
 
-  for (let i = 0; i < perimeter.corners.length; i++) {
-    const corner = perimeter.corners[i]
-    const nextCorner = perimeter.corners[(i + 1) % perimeter.corners.length]
-    const wall = perimeter.walls[i]
+  for (let i = 0; i < perimeter.cornerIds.length; i++) {
+    const corner = perimeter.cornerIds[i]
+    const nextCorner = perimeter.cornerIds[(i + 1) % perimeter.cornerIds.length]
+    const wall = perimeter.wallIds[i]
 
     const insideStart = newVec3(corner.insidePoint[0], corner.insidePoint[1], storeyContext.finishedFloorTop)
     const insideEnd = newVec3(nextCorner.insidePoint[0], nextCorner.insidePoint[1], storeyContext.finishedFloorTop)

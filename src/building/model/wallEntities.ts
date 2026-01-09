@@ -12,6 +12,13 @@ interface BaseWallEntity {
   width: Length
 }
 
+export interface WallEntityGeometry {
+  insideLine: LineSegment2D
+  outsideLine: LineSegment2D
+  polygon: Polygon2D
+  center: Vec2
+}
+
 export type OpeningType = 'door' | 'window' | 'passage'
 
 export interface Opening extends BaseWallEntity {
@@ -23,12 +30,7 @@ export interface Opening extends BaseWallEntity {
   openingAssemblyId?: OpeningAssemblyId // Optional override for this specific opening
 }
 
-export interface OpeningGeometry {
-  insideLine: LineSegment2D
-  outsideLine: LineSegment2D
-  area: Polygon2D
-  center: Vec2
-}
+export type OpeningGeometry = WallEntityGeometry
 
 export interface OpeningWithGeometry extends Opening, OpeningGeometry {}
 
@@ -63,12 +65,7 @@ export interface WallPostParams {
   infillMaterial: MaterialId
 }
 
-export interface WallPostGeometry {
-  insideLine: LineSegment2D
-  outsideLine: LineSegment2D
-  area: Polygon2D
-  center: Vec2
-}
+export type WallPostGeometry = WallEntityGeometry
 
 export interface WallPostWithGeometry extends WallPost, WallPostGeometry {}
 

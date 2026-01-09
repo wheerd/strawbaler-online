@@ -44,10 +44,10 @@ export class FullRingBeamAssembly extends BaseRingBeamAssembly<FullRingBeamConfi
         part.wall.outsideDirection,
         this.isWallIndexInSegment(part.prevWallIndex, segment),
         part.startCorner,
-        segment.perimeter.walls[part.prevWallIndex].direction,
+        segment.perimeter.wallIds[part.prevWallIndex].direction,
         this.isWallIndexInSegment(part.nextWallIndex, segment),
         part.endCorner,
-        segment.perimeter.walls[part.nextWallIndex].direction,
+        segment.perimeter.wallIds[part.nextWallIndex].direction,
         this.config.offsetFromEdge,
         this.config.width
       )

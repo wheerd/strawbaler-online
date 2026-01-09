@@ -90,7 +90,7 @@ export function useMaterialUsage(materialId: MaterialId): MaterialUsage {
 
     // Check wall posts from building model
     for (const perimeter of perimeters) {
-      for (const wall of perimeter.walls) {
+      for (const wall of perimeter.wallIds) {
         for (const post of wall.posts) {
           if (post.material === materialId || post.infillMaterial === materialId) {
             usedInWallPosts = true

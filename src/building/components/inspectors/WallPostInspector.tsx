@@ -25,14 +25,14 @@ export function WallPostInspector({ perimeterId, wallId, postId }: WallPostInspe
   const { t } = useTranslation('inspector')
   // Get model store functions
   const select = useSelectionStore()
-  const { updatePerimeterWallPost: updatePost, removePerimeterWallPost: removePost } = useModelActions()
+  const { updateWallPost: updatePost, removeWallPost: removePost } = useModelActions()
 
   // Get perimeter from store
   const perimeter = usePerimeterById(perimeterId)
 
   // Use useMemo to find wall and post within the wall object
   const wall = useMemo(() => {
-    return perimeter?.walls.find(w => w.id === wallId)
+    return perimeter?.wallIds.find(w => w.id === wallId)
   }, [perimeter, wallId])
 
   const post = useMemo(() => {

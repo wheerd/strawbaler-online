@@ -1,4 +1,4 @@
-import type { OpeningAssemblyId, Perimeter, PerimeterWallWithGeometry } from '@/building/model'
+import type { OpeningAssemblyId, PerimeterWallWithGeometry, PerimeterWithGeometry } from '@/building/model'
 import type { WallConstructionArea } from '@/construction/geometry'
 import type { LayerConfig } from '@/construction/layers/types'
 import type { MaterialId } from '@/construction/materials/material'

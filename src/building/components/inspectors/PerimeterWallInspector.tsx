@@ -45,7 +45,7 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
 
   // Use useMemo to find wall within the wall object
   const wall = useMemo(() => {
-    return outerWall?.walls.find(s => s.id === wallId)
+    return outerWall?.wallIds.find(s => s.id === wallId)
   }, [outerWall, wallId])
 
   // If wall not found, show error
@@ -77,17 +77,17 @@ export function PerimeterWallInspector({ perimeterId, wallId }: PerimeterWallIns
     if (!outerWall || !wall) return { canDelete: false, reason: $ => $.perimeterWall.notFound }
 
     // Need at least 5 walls (triangle = 3 walls, removing 1 and merging = min 3 walls remaining, needs 5 to start)
-    if (outerWall.walls.length < 5) {
+    if (outerWall.wallIds.length < 5) {
       return { canDelete: false, reason: $ => $.perimeterWall.cannotDeleteMinWalls }
     }
 
     // Check if removal would cause self-intersection
-    const wallIndex = outerWall.walls.findIndex(w => w.id === wallId)
+    const wallIndex = outerWall.wallIds.findIndex(w => w.id === wallId)
     if (wallIndex === -1) return { canDelete: false, reason: $ => $.perimeterWall.notFound }
 
     const newBoundaryPoints: Vec2[] = outerWall.referencePolygon.map(point => copyVec2(point))
     const cornerIndex1 = wallIndex
-    const cornerIndex2 = (wallIndex + 1) % outerWall.corners.length
+    const cornerIndex2 = (wallIndex + 1) % outerWall.cornerIds.length
 
     // Remove corners to test for self-intersection
     if (cornerIndex2 > cornerIndex1) {

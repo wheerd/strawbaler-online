@@ -1,4 +1,4 @@
-import type { Perimeter } from '@/building/model'
+import type { PerimeterWithGeometry } from '@/building/model'
 import type { SelectableId } from '@/building/model/ids'
 import { isPerimeterId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
@@ -30,15 +30,20 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
       throw new Error(`Could not find wall ${entityId}`)
     }
 
+    const referenceSide = perimeter.referenceSide
     const activeStorey = store.getActiveStoreyId()
     const storeys = store.getStoreysOrderedByLevel()
     const storeyIndex = storeys.findIndex(s => s.id === activeStorey)
     const lowerStorey = storeyIndex > 0 ? storeys[storeyIndex - 1] : null
     const lowerPerimeters = lowerStorey ? store.getPerimetersByStorey(lowerStorey.id) : []
-    const lowerPerimeterPoints = lowerPerimeters.flatMap(p => p.referencePolygon)
+    const lowerPerimeterPoints = lowerPerimeters.flatMap(p =>
+      referenceSide === 'inside' ? p.innerPolygon.points : p.outerPolygon.points
+    )
 
     const otherPerimeters = store.getPerimetersByStorey(activeStorey).filter(p => p.id !== entityId)
-    const otherPerimeterPoints = otherPerimeters.flatMap(p => p.referencePolygon)
+    const otherPerimeterPoints = otherPerimeters.flatMap(p =>
+      referenceSide === 'inside' ? p.innerPolygon.points : p.outerPolygon.points
+    )
 
     const snapContext: SnappingContext = {
       snapPoints: lowerPerimeterPoints,
@@ -49,7 +54,8 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
   }
 
   protected getPolygonPoints(context: MovementContext<PerimeterEntityContext>): readonly Vec2[] {
-    return context.entity.perimeter.referencePolygon
+    const perimeter = context.entity.perimeter
+    return perimeter.referenceSide === 'inside' ? perimeter.innerPolygon.points : perimeter.outerPolygon.points
   }
 
   validatePosition(movementState: PerimeterMovementState, context: MovementContext<PerimeterEntityContext>): boolean {
@@ -77,22 +83,14 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
   }
 
   private isDeltaValid(delta: Vec2, context: MovementContext<PerimeterEntityContext>): boolean {
-    const previewOutside = this.translatePoints(
-      context.entity.perimeter.corners.map(corner => corner.outsidePoint),
-      delta
-    )
+    const previewOutside = this.translatePoints(context.entity.perimeter.outerPolygon.points, delta)
 
     const currentWall = context.entity.perimeter
-    const allWalls = context.store.getPerimetersByStorey(currentWall.storeyId)
-    const otherWalls = allWalls.filter(wall => wall.id !== currentWall.id)
+    const allPerimeters = context.store.getPerimetersByStorey(currentWall.storeyId)
 
-    for (const otherWall of otherWalls) {
-      if (
-        arePolygonsIntersecting(
-          { points: previewOutside },
-          { points: otherWall.corners.map(corner => corner.outsidePoint) }
-        )
-      ) {
+    for (const other of allPerimeters) {
+      if (other.id === currentWall.id) continue
+      if (arePolygonsIntersecting({ points: previewOutside }, other.outerPolygon)) {
         return false
       }
     }

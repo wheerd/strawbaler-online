@@ -57,6 +57,7 @@ export interface PerimeterWallGeometry {
   outsideLine: LineSegment2D
   direction: Vec2 // Normalized from start -> end of wall
   outsideDirection: Vec2 // Normal vector pointing outside
+  polygon: Polygon2D
 }
 
 export interface PerimeterWallWithGeometry extends PerimeterWall, PerimeterWallGeometry {}
@@ -86,6 +87,8 @@ export interface PerimeterCornerGeometry {
 
   // Exterior angle (outside the building perimeter) in degrees
   exteriorAngle: number
+
+  polygon: Polygon2D
 }
 
 export interface PerimeterCornerWithGeometry extends PerimeterCorner, PerimeterCornerGeometry {}

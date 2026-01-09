@@ -11,20 +11,20 @@ export interface WallContext {
 }
 
 export function getWallContext(wall: PerimeterWallWithGeometry, perimeter: PerimeterWithGeometry): WallContext {
-  const wallIndex = perimeter.walls.findIndex(w => w.id === wall.id)
+  const wallIndex = perimeter.wallIds.findIndex(w => w.id === wall.id)
   if (wallIndex === -1) {
     throw new Error(`Could not find wall with id ${wall.id}`)
   }
 
-  const startWallIndex = (wallIndex - 1 + perimeter.walls.length) % perimeter.walls.length // wall[i-1] is the wall at the start corner for wall[i]
+  const startWallIndex = (wallIndex - 1 + perimeter.wallIds.length) % perimeter.wallIds.length // wall[i-1] is the wall at the start corner for wall[i]
   const startCornerIndex = wallIndex // corner[i] is the start corner for wall[i]
-  const endCornerIndex = (wallIndex + 1) % perimeter.corners.length // corner[i+1] is the end corner for wall[i]
+  const endCornerIndex = (wallIndex + 1) % perimeter.cornerIds.length // corner[i+1] is the end corner for wall[i]
 
   return {
-    startCorner: perimeter.corners[startCornerIndex],
-    previousWall: perimeter.walls[startWallIndex],
-    endCorner: perimeter.corners[endCornerIndex],
-    nextWall: perimeter.walls[endCornerIndex]
+    startCorner: perimeter.cornerIds[startCornerIndex],
+    previousWall: perimeter.wallIds[startWallIndex],
+    endCorner: perimeter.cornerIds[endCornerIndex],
+    nextWall: perimeter.wallIds[endCornerIndex]
   }
 }
 

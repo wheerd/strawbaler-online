@@ -1,9 +1,16 @@
 import { Handle, IFC4, IfcAPI, type IfcLineObject } from 'web-ifc'
 import wasmUrl from 'web-ifc/web-ifc.wasm?url'
 
-import type { Perimeter, PerimeterCornerWithGeometry, PerimeterWallWithGeometry, Storey } from '@/building/model'
-import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/construction/config'
+import {
+  type OpeningWithGeometry,
+  type PerimeterCornerWithGeometry,
+  type PerimeterWallWithGeometry,
+  type PerimeterWithGeometry,
+  type Storey,
+  isOpeningId
+} from '@/building/model'
+import { type StoreActions, getModelActions } from '@/building/store'
+import { type ConfigActions, getConfigActions } from '@/construction/config'
 import { type StoreyContext, createWallStoreyContext } from '@/construction/storeys/context'
 import {
   type Length,
@@ -56,6 +63,14 @@ class IfcExporter {
   private readonly storeyIds = new Map<string, Handle<IFC4.IfcBuildingStorey>>()
   private readonly storeyPlacements = new Map<string, Handle<IFC4.IfcPlacement>>()
 
+  private store: StoreActions
+  private config: ConfigActions
+
+  public constructor(store?: StoreActions, config?: ConfigActions) {
+    this.store = store ?? getModelActions()
+    this.config = config ?? getConfigActions()
+  }
+
   async export(): Promise<Uint8Array<ArrayBuffer>> {
     await this.api.Init((path, prefix) => {
       if (path.endsWith('.wasm')) {
@@ -75,22 +90,13 @@ class IfcExporter {
 
     this.initialiseContext()
 
-    const { getStoreysOrderedByLevel, getPerimetersByStorey, getFloorOpeningsByStorey, getFloorAreasByStorey } =
-      getModelActions()
-    const { getWallAssemblyById } = getConfigActions()
-
-    const orderedStoreys = getStoreysOrderedByLevel()
+    const orderedStoreys = this.store.getStoreysOrderedByLevel()
     if (orderedStoreys.length === 0) {
       throw new Error('Cannot export IFC without any storeys')
     }
 
     const storeyInfos = this.buildStoreyContext(orderedStoreys)
-    const floorGeometry = this.computeFloorGeometry(
-      storeyInfos,
-      getPerimetersByStorey,
-      getFloorAreasByStorey,
-      getFloorOpeningsByStorey
-    )
+    const floorGeometry = this.computeFloorGeometry(storeyInfos)
 
     this.createSpatialStructure(storeyInfos)
 
@@ -100,13 +106,11 @@ class IfcExporter {
       const storeyPlacement = this.storeyPlacements.get(info.storeyId)
       if (storeyPlacement == null) continue
 
-      const perimeters = getPerimetersByStorey(info.storeyId)
+      const perimeters = this.store.getPerimetersByStorey(info.storeyId)
       const elements: Handle<IFC4.IfcElement>[] = []
 
       for (const perimeter of perimeters) {
-        elements.push(
-          ...this.createWallsForPerimeter(perimeter, info, storeyPlacement, getWallAssemblyById, wallMaterialCache)
-        )
+        elements.push(...this.createWallsForPerimeter(perimeter, info, storeyPlacement, wallMaterialCache))
       }
 
       for (const floor of floorGeometry.filter(f => f.storeyId === info.storeyId)) {
@@ -356,29 +360,25 @@ class IfcExporter {
     return infos
   }
 
-  private computeFloorGeometry(
-    storeyInfos: IfcStoreyContext[],
-    getPerimetersByStorey: (storeyId: Storey['id']) => Perimeter[],
-    getFloorAreasByStorey: (storeyId: Storey['id']) => { area: Polygon2D }[],
-    getFloorOpeningsByStorey: (storeyId: Storey['id']) => { area: Polygon2D }[]
-  ): FloorGeometry[] {
+  private computeFloorGeometry(storeyInfos: IfcStoreyContext[]): FloorGeometry[] {
     const geometries: FloorGeometry[] = []
 
     for (const info of storeyInfos) {
-      const perimeters = getPerimetersByStorey(info.storeyId)
+      const perimeters = this.store.getPerimetersByStorey(info.storeyId)
       if (perimeters.length === 0) continue
 
-      const perimeterPolygons = perimeters.map(perimeter => ({
-        points: perimeter.corners.map(corner => corner.outsidePoint)
-      }))
+      const perimeterPolygons = perimeters.map(p => p.outerPolygon)
 
-      const baseAreas = [...perimeterPolygons, ...getFloorAreasByStorey(info.storeyId).map(area => area.area)]
+      const baseAreas = [
+        ...perimeterPolygons,
+        ...this.store.getFloorAreasByStorey(info.storeyId).map(area => area.area)
+      ]
       const mergedFootprint = unionPolygons(baseAreas)
       if (mergedFootprint.length === 0) {
         continue
       }
 
-      const openings = getFloorOpeningsByStorey(info.storeyId).map(opening => opening.area)
+      const openings = this.store.getFloorOpeningsByStorey(info.storeyId).map(opening => opening.area)
       const relevantOpenings = openings.filter(opening =>
         mergedFootprint.some(poly => arePolygonsIntersecting(poly, opening))
       )
@@ -402,18 +402,20 @@ class IfcExporter {
     perimeter: PerimeterWithGeometry,
     info: IfcStoreyContext,
     storeyPlacement: Handle<IFC4.IfcPlacement>,
-    getWallAssemblyById: (id: PerimeterWallWithGeometry['wallAssemblyId']) => { type: string } | null,
     materialUsageCache: Map<string, Handle<IFC4.IfcMaterialLayerSetUsage>>
   ): Handle<IFC4.IfcWall>[] {
     const elements: Handle<IFC4.IfcWall>[] = []
 
-    for (let index = 0; index < perimeter.walls.length; index++) {
-      const wall = perimeter.walls[index]
-      const assemblyConfig = getWallAssemblyById(wall.wallAssemblyId)
+    for (let index = 0; index < perimeter.wallIds.length; index++) {
+      const wall = this.store.getPerimeterWallById(perimeter.wallIds[index])
+      if (!wall) continue
+
+      const assemblyConfig = this.config.getWallAssemblyById(wall.wallAssemblyId)
       if (!assemblyConfig) continue
 
-      const startCorner = perimeter.corners[index]
-      const endCorner = perimeter.corners[(index + 1) % perimeter.corners.length]
+      const startCorner = this.store.getPerimeterCornerById(wall.startCornerId)
+      const endCorner = this.store.getPerimeterCornerById(wall.endCornerId)
+      if (!startCorner || !endCorner) continue
 
       const wallId = this.createWallElement(wall, startCorner, endCorner, info, storeyPlacement, materialUsageCache)
       elements.push(wallId)
@@ -494,15 +496,20 @@ class IfcExporter {
       new IFC4.IfcRelDefinesByProperties(this.globalId(), this.ownerHistory, null, null, [wallId], propertySet)
     )
 
-    for (const opening of wall.openings) {
-      this.createOpeningElement(opening, wall, wallId, placement)
+    for (const entityId of wall.entityIds) {
+      if (isOpeningId(entityId)) {
+        const opening = this.store.getWallOpeningById(entityId)
+        if (opening) {
+          this.createOpeningElement(opening, wall, wallId, placement)
+        }
+      }
     }
 
     return wallId
   }
 
   private createOpeningElement(
-    opening: PerimeterWallWithGeometry['openings'][number],
+    opening: OpeningWithGeometry,
     wall: PerimeterWallWithGeometry,
     wallId: Handle<IFC4.IfcElement>,
     wallPlacement: Handle<IFC4.IfcPlacement>

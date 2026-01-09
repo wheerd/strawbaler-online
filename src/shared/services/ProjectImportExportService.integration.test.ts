@@ -74,11 +74,11 @@ describe('ProjectImportExportService Integration', () => {
     )
 
     // Add openings to walls
-    const wall1 = perimeter.walls[0]
-    const wall2 = perimeter.walls[1]
+    const wall1 = perimeter.wallIds[0]
+    const wall2 = perimeter.wallIds[1]
 
     // Add a door to the first wall
-    modelActions.addPerimeterWallOpening(perimeter.id, wall1.id, {
+    modelActions.addWallOpening(perimeter.id, wall1.id, {
       type: 'door',
       centerOffsetFromWallStart: 1000,
       width: 900,
@@ -87,7 +87,7 @@ describe('ProjectImportExportService Integration', () => {
     })
 
     // Add a window to the second wall
-    modelActions.addPerimeterWallOpening(perimeter.id, wall2.id, {
+    modelActions.addWallOpening(perimeter.id, wall2.id, {
       type: 'window',
       centerOffsetFromWallStart: 2000,
       width: 1200,
@@ -96,11 +96,11 @@ describe('ProjectImportExportService Integration', () => {
     })
 
     // Modify wall thickness on third wall
-    const wall3 = perimeter.walls[2]
+    const wall3 = perimeter.wallIds[2]
     modelActions.updatePerimeterWallThickness(perimeter.id, wall3.id, 300)
 
     // Update corner construction
-    const corner1 = perimeter.corners[0]
+    const corner1 = perimeter.cornerIds[0]
     modelActions.updatePerimeterCornerConstructedByWall(perimeter.id, corner1.id, 'previous')
 
     // Add floor area
@@ -214,20 +214,20 @@ describe('ProjectImportExportService Integration', () => {
 
         // Ring beams are now on walls, not perimeters
         // Compare wall ring beam settings
-        for (let k = 0; k < originalPerimeter.walls.length; k++) {
-          expect(importedPerimeter.walls[k].baseRingBeamAssemblyId).toBe(
-            originalPerimeter.walls[k].baseRingBeamAssemblyId
+        for (let k = 0; k < originalPerimeter.wallIds.length; k++) {
+          expect(importedPerimeter.wallIds[k].baseRingBeamAssemblyId).toBe(
+            originalPerimeter.wallIds[k].baseRingBeamAssemblyId
           )
-          expect(importedPerimeter.walls[k].topRingBeamAssemblyId).toBe(
-            originalPerimeter.walls[k].topRingBeamAssemblyId
+          expect(importedPerimeter.wallIds[k].topRingBeamAssemblyId).toBe(
+            originalPerimeter.wallIds[k].topRingBeamAssemblyId
           )
         }
 
         // Compare corners (excluding IDs)
-        expect(importedPerimeter.corners).toHaveLength(originalPerimeter.corners.length)
-        for (let k = 0; k < originalPerimeter.corners.length; k++) {
-          const originalCorner = originalPerimeter.corners[k]
-          const importedCorner = importedPerimeter.corners[k]
+        expect(importedPerimeter.cornerIds).toHaveLength(originalPerimeter.cornerIds.length)
+        for (let k = 0; k < originalPerimeter.cornerIds.length; k++) {
+          const originalCorner = originalPerimeter.cornerIds[k]
+          const importedCorner = importedPerimeter.cornerIds[k]
 
           expect(importedCorner.insidePoint[0]).toBeCloseTo(originalCorner.insidePoint[0], 5)
           expect(importedCorner.insidePoint[1]).toBeCloseTo(originalCorner.insidePoint[1], 5)
@@ -235,10 +235,10 @@ describe('ProjectImportExportService Integration', () => {
         }
 
         // Compare walls (excluding IDs)
-        expect(importedPerimeter.walls).toHaveLength(originalPerimeter.walls.length)
-        for (let k = 0; k < originalPerimeter.walls.length; k++) {
-          const originalWall = originalPerimeter.walls[k]
-          const importedWall = importedPerimeter.walls[k]
+        expect(importedPerimeter.wallIds).toHaveLength(originalPerimeter.wallIds.length)
+        for (let k = 0; k < originalPerimeter.wallIds.length; k++) {
+          const originalWall = originalPerimeter.wallIds[k]
+          const importedWall = importedPerimeter.wallIds[k]
 
           expect(Number(importedWall.thickness)).toBe(Number(originalWall.thickness))
           expect(importedWall.wallAssemblyId).toBe(originalWall.wallAssemblyId)

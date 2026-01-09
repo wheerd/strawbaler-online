@@ -222,7 +222,7 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
     const { wallId } = this.state.hoveredPerimeterWall
 
     try {
-      const post = getModelActions().addPerimeterWallPost(wallId, {
+      const post = getModelActions().addWallPost(wallId, {
         postType: this.state.type,
         centerOffsetFromWallStart: this.state.offset,
         width: this.state.width,

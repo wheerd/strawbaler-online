@@ -49,7 +49,7 @@ export function computePerimeterConstructionPolygon(
 ): { polygon: Polygon2D; lines: Line2D[] } {
   const { getWallAssemblyById } = getConfigActions()
 
-  const offsets = perimeter.walls.map(wall => {
+  const offsets = perimeter.wallIds.map(wall => {
     const assembly = getWallAssemblyById(wall.wallAssemblyId)
     const layerThickness = Math.max(
       (outside ? assembly?.layers.outsideThickness : assembly?.layers.insideThickness) ?? 0,
@@ -59,7 +59,7 @@ export function computePerimeterConstructionPolygon(
     return distanceFromEdge
   })
 
-  const offsetLines = perimeter.walls.map((wall, index) => {
+  const offsetLines = perimeter.wallIds.map((wall, index) => {
     const offsetDistance = offsets[index]
     const offsetPoint = scaleAddVec2(
       outside ? wall.outsideLine.start : wall.insideLine.start,
@@ -104,8 +104,8 @@ export const computePerimeterConstructionContext = (
     outerPolygon: outer.polygon,
     floorOpenings: mergedHoles,
     wallFaceOffsets: wallFaces,
-    innerFinishedPolygon: { points: perimeter.corners.map(c => c.insidePoint) },
-    outerFinishedPolygon: { points: perimeter.corners.map(c => c.outsidePoint) }
+    innerFinishedPolygon: { points: perimeter.cornerIds.map(c => c.insidePoint) },
+    outerFinishedPolygon: { points: perimeter.cornerIds.map(c => c.outsidePoint) }
   }
 }
 
@@ -117,8 +117,8 @@ export function createWallFaceOffsets(perimeters: PerimeterWithGeometry[]): Wall
   const faces: WallFaceOffset[] = []
 
   for (const perimeter of perimeters) {
-    for (let wallIndex = 0; wallIndex < perimeter.walls.length; wallIndex++) {
-      const wall = perimeter.walls[wallIndex]
+    for (let wallIndex = 0; wallIndex < perimeter.wallIds.length; wallIndex++) {
+      const wall = perimeter.wallIds[wallIndex]
       const assembly = getWallAssemblyById(wall.wallAssemblyId)
       if (!assembly) {
         continue
@@ -129,8 +129,8 @@ export function createWallFaceOffsets(perimeters: PerimeterWithGeometry[]): Wall
       const insideThickness = Math.max(assembly.layers.insideThickness ?? 0, 0)
       if (insideThickness > 0) {
         const segment: LineSegment2D = {
-          start: copyVec2(perimeter.corners[wallIndex].insidePoint),
-          end: copyVec2(perimeter.corners[(wallIndex + 1) % perimeter.corners.length].insidePoint)
+          start: copyVec2(perimeter.cornerIds[wallIndex].insidePoint),
+          end: copyVec2(perimeter.cornerIds[(wallIndex + 1) % perimeter.cornerIds.length].insidePoint)
         }
         faces.push({
           line: {
@@ -147,8 +147,8 @@ export function createWallFaceOffsets(perimeters: PerimeterWithGeometry[]): Wall
       const outsideThickness = Math.max(assembly.layers.outsideThickness ?? 0, 0)
       if (outsideThickness > 0) {
         const segment: LineSegment2D = {
-          start: copyVec2(perimeter.corners[wallIndex].outsidePoint),
-          end: copyVec2(perimeter.corners[(wallIndex + 1) % perimeter.corners.length].outsidePoint)
+          start: copyVec2(perimeter.cornerIds[wallIndex].outsidePoint),
+          end: copyVec2(perimeter.cornerIds[(wallIndex + 1) % perimeter.cornerIds.length].outsidePoint)
         }
         faces.push({
           line: {

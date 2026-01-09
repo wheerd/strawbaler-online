@@ -102,15 +102,15 @@ describe('FloorAreaTool', () => {
 
     expect(result.snapPoints).toEqual(
       expect.arrayContaining([
-        perimeter.corners[0].insidePoint,
-        perimeter.corners[1].insidePoint,
+        perimeter.cornerIds[0].insidePoint,
+        perimeter.cornerIds[1].insidePoint,
         ...floorArea.area.points,
         ...floorOpening.area.points
       ])
     )
     expect(result.referenceLineSegments).toEqual(
       expect.arrayContaining([
-        perimeter.walls[0].insideLine,
+        perimeter.wallIds[0].insideLine,
         expect.objectContaining({ start: floorArea.area.points[0], end: floorArea.area.points[1] })
       ])
     )

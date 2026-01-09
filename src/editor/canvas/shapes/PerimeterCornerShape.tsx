@@ -1,6 +1,7 @@
 import { Arrow, Group, Line } from 'react-konva/lib/ReactKonvaCore'
 
-import type { PerimeterCornerWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
+import type { PerimeterCornerId } from '@/building/model'
+import { usePerimeterCornerById, usePerimeterWallById } from '@/building/store'
 import { useWallAssemblyById } from '@/construction/config/store'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { direction, midpoint, perpendicular, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
@@ -8,21 +9,17 @@ import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 
 interface PerimeterCornerShapeProps {
-  corner: PerimeterCornerWithGeometry
-  previousWall: PerimeterWallWithGeometry
-  nextWall: PerimeterWallWithGeometry
-  perimeterId: string
+  cornerId: PerimeterCornerId
 }
 
-export function PerimeterCornerShape({
-  corner,
-  previousWall,
-  nextWall,
-  perimeterId
-}: PerimeterCornerShapeProps): React.JSX.Element {
+export function PerimeterCornerShape({ cornerId }: PerimeterCornerShapeProps): React.JSX.Element {
   const select = useSelectionStore()
   const theme = useCanvasTheme()
-  const isSelected = select.isCurrentSelection(corner.id)
+  const isSelected = select.isCurrentSelection(cornerId)
+
+  const corner = usePerimeterCornerById(cornerId)
+  const previousWall = usePerimeterWallById(corner.previousWallId)
+  const nextWall = usePerimeterWallById(corner.nextWallId)
 
   const cornerPolygon = [
     corner.insidePoint,
@@ -55,7 +52,7 @@ export function PerimeterCornerShape({
       name={`perimeter-corner-${corner.id}`}
       entityId={corner.id}
       entityType="perimeter-corner"
-      parentIds={[perimeterId]}
+      parentIds={[corner.perimeterId]}
       listening
     >
       {/* Corner polygon fill */}

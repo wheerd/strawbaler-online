@@ -99,7 +99,7 @@ const mockActions = {
   })),
   updatePerimeterWallThickness: vi.fn(),
   updatePerimeterWallAssembly: vi.fn(),
-  addPerimeterWallOpening: vi.fn(),
+  addWallOpening: vi.fn(),
   updatePerimeterCornerConstructedByWall: vi.fn(),
   addFloorArea: vi.fn(),
   addFloorOpening: vi.fn()

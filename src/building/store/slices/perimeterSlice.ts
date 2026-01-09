@@ -15,6 +15,8 @@ import type {
   PerimeterWallGeometry,
   PerimeterWallWithGeometry,
   PerimeterWithGeometry,
+  WallEntity,
+  WallEntityGeometry,
   WallPost,
   WallPostGeometry,
   WallPostParams,
@@ -45,10 +47,12 @@ import {
   type Line2D,
   type Polygon2D,
   type Vec2,
+  ZERO_VEC2,
   addVec2,
   copyVec2,
   direction,
   distVec2,
+  eqVec2,
   lineFromPoints,
   lineIntersection,
   midpoint,
@@ -56,7 +60,8 @@ import {
   perpendicularCCW,
   projectPointOntoLine,
   radiansToDegrees,
-  scaleAddVec2
+  scaleAddVec2,
+  scaleVec2
 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
@@ -86,7 +91,7 @@ export interface PerimetersActions {
     baseRingBeamAssemblyId?: RingBeamAssemblyId,
     topRingBeamAssemblyId?: RingBeamAssemblyId,
     referenceSide?: PerimeterReferenceSide
-  ) => Perimeter
+  ) => PerimeterWithGeometry
   removePerimeter: (perimeterId: PerimeterId) => void
 
   setPerimeterReferenceSide: (perimeterId: PerimeterId, referenceSide: PerimeterReferenceSide) => void
@@ -127,9 +132,9 @@ export interface PerimetersActions {
   ) => Length | null
 
   // Wall Posts
-  addPerimeterWallPost: (wallId: PerimeterWallId, postParams: WallPostParams) => WallPost | null
-  removePerimeterWallPost: (postId: WallPostId) => void
-  updatePerimeterWallPost: (postId: WallPostId, updates: Partial<WallPostParams>) => void
+  addWallPost: (wallId: PerimeterWallId, postParams: WallPostParams) => WallPost | null
+  removeWallPost: (postId: WallPostId) => void
+  updateWallPost: (postId: WallPostId, updates: Partial<WallPostParams>) => void
   isWallPostPlacementValid: (
     wallId: PerimeterWallId,
     centerOffsetFromWallStart: Length,
@@ -144,14 +149,16 @@ export interface PerimetersActions {
   ) => Length | null
 
   // Getters
-  getPerimeterById: (perimeterId: PerimeterId) => PerimeterWithGeometry | null
-  getPerimeterWallById: (wallId: PerimeterWallId) => PerimeterWallWithGeometry | null
-  getPerimeterCornerById: (cornerId: PerimeterCornerId) => PerimeterCornerWithGeometry | null
-  getWallOpeningById: (openingId: OpeningId) => OpeningWithGeometry | null
-  getPerimeterWallPostById: (postId: WallPostId) => WallPostWithGeometry | null
+  getPerimeterById: (perimeterId: PerimeterId) => PerimeterWithGeometry
+  getPerimeterWallById: (wallId: PerimeterWallId) => PerimeterWallWithGeometry
+  getPerimeterCornerById: (cornerId: PerimeterCornerId) => PerimeterCornerWithGeometry
+  getWallEntityById: (entity: WallEntityId) => OpeningWithGeometry | WallPostWithGeometry
+  getWallOpeningById: (openingId: OpeningId) => OpeningWithGeometry
+  getWallPostById: (postId: WallPostId) => WallPostWithGeometry
   getPerimetersByStorey: (storeyId: StoreyId) => PerimeterWithGeometry[]
   getAllPerimeters: () => PerimeterWithGeometry[]
   getAllWallPosts: () => WallPostWithGeometry[]
+  getAllWallOpenings: () => OpeningWithGeometry[]
 
   // Movement operations for MoveTool
   movePerimeter: (perimeterId: PerimeterId, offset: Vec2) => boolean
@@ -209,7 +216,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         throw new Error('Wall thickness must be greater than 0')
       }
 
-      let perimeter: Perimeter | undefined
+      let result: PerimeterWithGeometry | undefined
 
       set(state => {
         const perimeterId = createPerimeterId()
@@ -236,7 +243,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           entityIds: []
         }))
 
-        perimeter = {
+        const perimeter = {
           id: createPerimeterId(),
           storeyId,
           referenceSide,
@@ -262,16 +269,18 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           state.perimeterCorners[corner.id] = corner
         })
 
+        state.perimeters[perimeter.id] = perimeter
+
         // Calculate all geometry using the mutable helper
         updatePerimeterGeometry(state, perimeterId)
 
-        state.perimeters[perimeter.id] = perimeter
+        result = { ...perimeter, ...state._perimeterGeometry[perimeterId] }
       })
 
-      if (!perimeter) {
+      if (!result) {
         throw new Error('Failed to create perimeter')
       }
-      return perimeter
+      return result
     },
 
     removePerimeter: (perimeterId: PerimeterId) => {
@@ -593,7 +602,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const state = get()
       const perimeter = state.perimeters[perimeterId]
       const geometry = state._perimeterGeometry[perimeterId]
-      if (!perimeter || !geometry) return null
+      if (!perimeter || !geometry) {
+        throw new Error(`Perimeter with id "${perimeterId}" not found`)
+      }
       return { ...perimeter, ...geometry }
     },
 
@@ -601,7 +612,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const state = get()
       const wall = state.perimeterWalls[wallId]
       const geometry = state._perimeterWallGeometry[wallId]
-      if (!wall || !geometry) return null
+      if (!wall || !geometry) {
+        throw new Error(`Perimeter wall with id "${wallId}" not found`)
+      }
       return { ...wall, ...geometry }
     },
 
@@ -609,7 +622,9 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const state = get()
       const corner = state.perimeterCorners[cornerId]
       const geometry = state._perimeterCornerGeometry[cornerId]
-      if (!corner || !geometry) return null
+      if (!corner || !geometry) {
+        throw new Error(`Perimeter corner with id "${cornerId}" not found`)
+      }
       return { ...corner, ...geometry }
     },
 
@@ -617,8 +632,18 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const state = get()
       const opening = state.openings[openingId]
       const geometry = state._openingGeometry[openingId]
-      if (!opening || !geometry) return null
+      if (!opening || !geometry) {
+        throw new Error(`Wall opening with id "${openingId}" not found`)
+      }
       return { ...opening, ...geometry }
+    },
+
+    getWallEntityById: (entityId: WallEntityId) => {
+      const state = get()
+      if (isOpeningId(entityId)) {
+        return state.actions.getWallOpeningById(entityId)
+      }
+      return state.actions.getWallPostById(entityId)
     },
 
     updateWallOpening: (openingId: OpeningId, updates: Partial<OpeningParams>) => {
@@ -656,6 +681,11 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       return Object.values(state.wallPosts).map(p => ({ ...p, ...state._wallPostGeometry[p.id] }))
     },
 
+    getAllWallOpenings: () => {
+      const state = get()
+      return Object.values(state.openings).map(p => ({ ...p, ...state._openingGeometry[p.id] }))
+    },
+
     // Opening validation methods implementation
     isWallOpeningPlacementValid: (
       wallId: PerimeterWallId,
@@ -680,7 +710,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       findNearestValidWallEntityPosition(get(), wallId, preferredCenterOffset, width, 0, 0, excludedOpening),
 
     // Wall post operations
-    addPerimeterWallPost: (wallId: PerimeterWallId, postParams: WallPostParams) => {
+    addWallPost: (wallId: PerimeterWallId, postParams: WallPostParams) => {
       if (postParams.width <= 0) {
         throw new Error('Post width must be greater than 0')
       }
@@ -719,7 +749,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       return post
     },
 
-    removePerimeterWallPost: (postId: WallPostId) => {
+    removeWallPost: (postId: WallPostId) => {
       set(state => {
         const post = state.wallPosts[postId]
         if (!post) return
@@ -733,7 +763,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       })
     },
 
-    updatePerimeterWallPost: (postId: WallPostId, updates: Partial<WallPostParams>) => {
+    updateWallPost: (postId: WallPostId, updates: Partial<WallPostParams>) => {
       set(state => {
         const post = state.wallPosts[postId]
         if (!post) return
@@ -751,11 +781,13 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       })
     },
 
-    getPerimeterWallPostById: (postId: WallPostId) => {
+    getWallPostById: (postId: WallPostId) => {
       const state = get()
       const post = state.wallPosts[postId]
       const geometry = state._wallPostGeometry[postId]
-      if (!post || !geometry) return null
+      if (!post || !geometry) {
+        throw new Error(`Wall post with id "${postId}" not found`)
+      }
       return { ...post, ...geometry }
     },
 
@@ -1118,11 +1150,10 @@ const updateAllCornerAngles = (corners: PerimeterCornerGeometry[]): void => {
 }
 
 const updateWallGeometry = (
-  wall: PerimeterWallGeometry,
   thickness: Length,
   startCorner: PerimeterCornerGeometry,
   endCorner: PerimeterCornerGeometry
-): void => {
+): PerimeterWallGeometry => {
   const insideStart = startCorner.insidePoint
   const insideEnd = endCorner.insidePoint
   const wallMidpoint = midpoint(insideStart, insideEnd)
@@ -1163,14 +1194,21 @@ const updateWallGeometry = (
   const finalOutsideStart = startDistBoundary <= startDistCorner ? boundaryStartOnOutside : startCornerOutside
   const finalOutsideEnd = endDistBoundary <= endDistCorner ? boundaryEndOnOutside : endCornerOutside
 
+  const polygon: Polygon2D = ensurePolygonIsClockwise({
+    points: [finalInsideStart, finalInsideEnd, finalOutsideEnd, finalOutsideStart]
+  })
+
   // Directly mutate wall properties
-  wall.insideLength = distVec2(insideStart, insideEnd)
-  wall.outsideLength = distVec2(startCornerOutside, endCornerOutside)
-  wall.wallLength = distVec2(finalInsideStart, finalInsideEnd)
-  wall.insideLine = { start: finalInsideStart, end: finalInsideEnd }
-  wall.outsideLine = { start: finalOutsideStart, end: finalOutsideEnd }
-  wall.direction = wallDirection
-  wall.outsideDirection = outsideDirection
+  return {
+    insideLength: distVec2(insideStart, insideEnd),
+    outsideLength: distVec2(startCornerOutside, endCornerOutside),
+    wallLength: distVec2(finalInsideStart, finalInsideEnd),
+    insideLine: { start: finalInsideStart, end: finalInsideEnd },
+    outsideLine: { start: finalOutsideStart, end: finalOutsideEnd },
+    direction: wallDirection,
+    outsideDirection: outsideDirection,
+    polygon
+  }
 }
 
 // High-level helper to recalculate all perimeter geometry in place
@@ -1187,7 +1225,13 @@ const updatePerimeterGeometry = (state: PerimetersState, perimeterId: PerimeterI
   const referencePoints = perimeter.cornerIds.map(c => state.perimeterCorners[c].referencePoint)
   const infiniteLines = createInfiniteLines({ points: referencePoints }, thicknesses, perimeter.referenceSide)
 
-  const corners = perimeter.cornerIds.map(c => state._perimeterCornerGeometry[c])
+  const corners: PerimeterCornerGeometry[] = perimeter.cornerIds.map(() => ({
+    insidePoint: ZERO_VEC2,
+    outsidePoint: ZERO_VEC2,
+    exteriorAngle: 0,
+    interiorAngle: 0,
+    polygon: { points: [] }
+  }))
   if (perimeter.referenceSide === 'inside') {
     corners.forEach((corner, i) => {
       corner.insidePoint = copyVec2(referencePoints[i])
@@ -1202,11 +1246,42 @@ const updatePerimeterGeometry = (state: PerimetersState, perimeterId: PerimeterI
 
   updateAllCornerAngles(corners)
 
-  const wallGeometries = perimeter.wallIds.map(w => state._perimeterWallGeometry[w])
-  for (let i = 0; i < wallGeometries.length; i++) {
-    const startCorner = corners[i]
-    const endCorner = corners[(i + 1) % corners.length]
-    updateWallGeometry(wallGeometries[i], thicknesses[i], startCorner, endCorner)
+  for (const wallId of perimeter.wallIds) {
+    const wall = state.perimeterWalls[wallId]
+    const startCorner = state._perimeterCornerGeometry[wall.startCornerId]
+    const endCorner = state._perimeterCornerGeometry[wall.endCornerId]
+    const wallGeometry = updateWallGeometry(wall.thickness, startCorner, endCorner)
+    state._perimeterWallGeometry[wallId] = wallGeometry
+
+    for (const entityId of wall.entityIds) {
+      if (isOpeningId(entityId)) {
+        const opening = state.openings[entityId]
+        const openingGeometry = updateEntityGeometry(wallGeometry, opening)
+        state._openingGeometry[entityId] = openingGeometry
+      } else {
+        const post = state.wallPosts[entityId]
+        const postGeometry = updateEntityGeometry(wallGeometry, post)
+        state._wallPostGeometry[entityId] = postGeometry
+      }
+    }
+  }
+
+  for (let i = 0; i < corners.length; i++) {
+    const cornerGeometry = corners[i]
+    const corner = state.perimeterCorners[perimeter.cornerIds[i]]
+    const previousWall = state._perimeterWallGeometry[corner.previousWallId]
+    const nextWall = state._perimeterWallGeometry[corner.nextWallId]
+
+    cornerGeometry.polygon = {
+      points: [
+        cornerGeometry.insidePoint,
+        eqVec2(cornerGeometry.insidePoint, previousWall.insideLine.end) ? null : previousWall.insideLine.end,
+        eqVec2(cornerGeometry.outsidePoint, previousWall.outsideLine.end) ? null : previousWall.outsideLine.end,
+        cornerGeometry.outsidePoint,
+        eqVec2(cornerGeometry.outsidePoint, nextWall.outsideLine.start) ? null : nextWall.outsideLine.start,
+        eqVec2(cornerGeometry.insidePoint, nextWall.insideLine.start) ? null : nextWall.insideLine.start
+      ].filter(p => p !== null)
+    }
   }
 
   state._perimeterGeometry[perimeterId] = {
@@ -1305,7 +1380,7 @@ const removeWallAndMergeAdjacent = (state: PerimetersState, wall: PerimeterWall)
  * Calculate valid placement range for posts, including corner extensions
  * Returns [minOffset, maxOffset]
  */
-export const getWallPostPlacementBounds = (
+const getWallPostPlacementBounds = (
   state: PerimetersState,
   wallId: PerimeterWallId
 ): { minOffset: Length; maxOffset: Length } => {
@@ -1550,4 +1625,37 @@ function findNearestValidWallEntityPosition(
   }
 
   return bestCenter
+}
+
+function updateEntityGeometry(wall: PerimeterWallGeometry, entity: WallEntity): WallEntityGeometry {
+  // Extract wall geometry
+  const insideStart = wall.insideLine.start
+  const outsideStart = wall.outsideLine.start
+  const wallVector = wall.direction
+
+  // Calculate left edge from center position
+  const offsetDistance = entity.centerOffsetFromWallStart - entity.width / 2
+  const centerWallStart = midpoint(insideStart, outsideStart)
+  const offsetStart = scaleVec2(wallVector, offsetDistance)
+  const offsetEnd = scaleAddVec2(offsetStart, wallVector, entity.width)
+  const centerStart = scaleAddVec2(centerWallStart, wallVector, offsetDistance)
+  const centerEnd = scaleAddVec2(centerStart, wallVector, entity.width)
+  const center = midpoint(centerStart, centerEnd)
+
+  // Calculate entity polygon corners
+  const insideEntityStart = addVec2(insideStart, offsetStart)
+  const insideEntityEnd = addVec2(insideStart, offsetEnd)
+  const outsideEntityStart = addVec2(outsideStart, offsetStart)
+  const outsideEntityEnd = addVec2(outsideStart, offsetEnd)
+
+  const openingPolygon = ensurePolygonIsClockwise({
+    points: [insideEntityStart, insideEntityEnd, outsideEntityEnd, outsideEntityStart]
+  })
+
+  return {
+    insideLine: { start: insideEntityStart, end: insideEntityEnd },
+    outsideLine: { start: outsideEntityStart, end: outsideEntityEnd },
+    polygon: openingPolygon,
+    center
+  }
 }

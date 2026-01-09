@@ -33,11 +33,11 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
 
   // Use useMemo to find corner and its index within the wall object
   const cornerIndex = useMemo(() => {
-    return outerWall?.corners.findIndex(c => c.id === cornerId) ?? -1
+    return outerWall?.cornerIds.findIndex(c => c.id === cornerId) ?? -1
   }, [outerWall, cornerId])
 
   const corner = useMemo(() => {
-    return cornerIndex !== -1 ? outerWall?.corners[cornerIndex] : null
+    return cornerIndex !== -1 ? outerWall?.cornerIds[cornerIndex] : null
   }, [outerWall, cornerIndex])
 
   // If corner not found, show error
@@ -59,14 +59,14 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
 
   // Get adjacent walls
   const { previousWall, nextWall } = useMemo(() => {
-    const prevIndex = (cornerIndex - 1 + outerWall.walls.length) % outerWall.walls.length
-    const nextIndex = cornerIndex % outerWall.walls.length
+    const prevIndex = (cornerIndex - 1 + outerWall.wallIds.length) % outerWall.wallIds.length
+    const nextIndex = cornerIndex % outerWall.wallIds.length
 
     return {
-      previousWall: outerWall.walls[prevIndex],
-      nextWall: outerWall.walls[nextIndex]
+      previousWall: outerWall.wallIds[prevIndex],
+      nextWall: outerWall.wallIds[nextIndex]
     }
-  }, [outerWall.walls, cornerIndex])
+  }, [outerWall.wallIds, cornerIndex])
 
   // Check if we can switch which wall constructs the corner
   const canSwitchWall = useMemo(() => {
@@ -115,7 +115,7 @@ export function PerimeterCornerInspector({ perimeterId, cornerId }: PerimeterCor
     if (!outerWall || !corner) return { canDelete: false, reason: $ => $.perimeterCorner.notFound }
 
     // Need at least 4 corners (triangle = 3 corners minimum)
-    if (outerWall.corners.length < 4) {
+    if (outerWall.cornerIds.length < 4) {
       return { canDelete: false, reason: $ => $.perimeterCorner.cannotDeleteMinCorners }
     }
 

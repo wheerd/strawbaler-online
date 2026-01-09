@@ -30,7 +30,7 @@ export interface WallCornerInfo {
 }
 
 function findColinearWalls(perimeter: PerimeterWithGeometry, startWallId: PerimeterWallId): PerimeterWallId[] {
-  const startIndex = perimeter.walls.findIndex(w => w.id === startWallId)
+  const startIndex = perimeter.wallIds.findIndex(w => w.id === startWallId)
   if (startIndex === -1) {
     throw new Error(`Wall ${startWallId} not found in perimeter`)
   }
@@ -40,29 +40,29 @@ function findColinearWalls(perimeter: PerimeterWithGeometry, startWallId: Perime
   let currentIndex = startIndex
   while (true) {
     const cornerIndex = currentIndex
-    const corner = perimeter.corners[cornerIndex]
+    const corner = perimeter.cornerIds[cornerIndex]
 
     if (corner.interiorAngle !== 180) break
 
-    currentIndex = (currentIndex - 1 + perimeter.walls.length) % perimeter.walls.length
+    currentIndex = (currentIndex - 1 + perimeter.wallIds.length) % perimeter.wallIds.length
 
     if (currentIndex === startIndex) break
 
-    colinearWallIds.unshift(perimeter.walls[currentIndex].id)
+    colinearWallIds.unshift(perimeter.wallIds[currentIndex].id)
   }
 
   currentIndex = startIndex
   while (true) {
-    const cornerIndex = (currentIndex + 1) % perimeter.corners.length
-    const corner = perimeter.corners[cornerIndex]
+    const cornerIndex = (currentIndex + 1) % perimeter.cornerIds.length
+    const corner = perimeter.cornerIds[cornerIndex]
 
     if (corner.interiorAngle !== 180) break
 
-    currentIndex = (currentIndex + 1) % perimeter.walls.length
+    currentIndex = (currentIndex + 1) % perimeter.wallIds.length
 
     if (currentIndex === startIndex) break
 
-    colinearWallIds.push(perimeter.walls[currentIndex].id)
+    colinearWallIds.push(perimeter.wallIds[currentIndex].id)
   }
 
   return colinearWallIds
@@ -90,7 +90,7 @@ export function constructWall(
   let cumulativeOffset = 0
 
   for (const currentWallId of wallIds) {
-    const currentWall = perimeter.walls.find(w => w.id === currentWallId)
+    const currentWall = perimeter.wallIds.find(w => w.id === currentWallId)
     if (!currentWall) {
       throw new Error(`Wall with ID ${currentWallId} not found in perimeter ${perimeterId}`)
     }

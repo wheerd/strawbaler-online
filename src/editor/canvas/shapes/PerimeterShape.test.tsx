@@ -157,9 +157,9 @@ describe('PerimeterShape', () => {
         <Stage width={2000} height={2000}>
           <Layer>
             <PerimeterCornerShape
-              corner={testPerimeter.corners[0]}
-              previousWall={testPerimeter.walls[3]}
-              nextWall={testPerimeter.walls[0]}
+              corner={testPerimeter.cornerIds[0]}
+              previousWall={testPerimeter.wallIds[3]}
+              nextWall={testPerimeter.wallIds[0]}
               perimeterId={testPerimeter.id}
             />
           </Layer>

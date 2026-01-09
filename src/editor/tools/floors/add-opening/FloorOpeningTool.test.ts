@@ -89,11 +89,15 @@ describe('FloorOpeningTool', () => {
     ).extendSnapContext(baseContext)
 
     expect(result.snapPoints).toEqual(
-      expect.arrayContaining([perimeter.corners[0].insidePoint, ...floorArea.area.points, ...floorOpening.area.points])
+      expect.arrayContaining([
+        perimeter.cornerIds[0].insidePoint,
+        ...floorArea.area.points,
+        ...floorOpening.area.points
+      ])
     )
     expect(result.referenceLineSegments).toEqual(
       expect.arrayContaining([
-        perimeter.walls[0].insideLine,
+        perimeter.wallIds[0].insideLine,
         expect.objectContaining({ start: floorOpening.area.points[0], end: floorOpening.area.points[1] })
       ])
     )
