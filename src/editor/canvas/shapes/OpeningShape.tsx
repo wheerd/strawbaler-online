@@ -7,7 +7,7 @@ import { LengthIndicator } from '@/editor/canvas/utils/LengthIndicator'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { activateLengthInput } from '@/editor/services/length-input'
-import { type Length, ZERO_VEC2, midpoint } from '@/shared/geometry'
+import { type Length, type Vec2, ZERO_VEC2, midpoint } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
@@ -24,7 +24,7 @@ export function OpeningShape({ openingId }: { openingId: OpeningId }): React.JSX
   const startCorner = usePerimeterCornerById(wall.startCornerId)
   const endCorner = usePerimeterCornerById(wall.endCornerId)
 
-  const openingPolygonArray = opening.polygon.points.flatMap(p => [p[0], p[1]])
+  const openingPolygonArray = opening.polygon.points.flatMap((p: Vec2) => [p[0], p[1]])
   const centerLineStart = midpoint(opening.insideLine.start, opening.outsideLine.start)
   const centerLineEnd = midpoint(opening.insideLine.end, opening.outsideLine.end)
 

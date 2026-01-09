@@ -100,14 +100,7 @@ const useModelStore = create<Store>()(
       name: 'strawbaler-model',
       version: CURRENT_VERSION,
       migrate: (persistedState: unknown) => applyMigrations(persistedState) as StoreState,
-      partialize: state => ({
-        storeys: state.storeys,
-        perimeters: state.perimeters,
-        floorAreas: state.floorAreas,
-        floorOpenings: state.floorOpenings,
-        roofs: state.roofs,
-        activeStoreyId: state.activeStoreyId
-      }),
+      partialize: state => Object.fromEntries(Object.entries(state).filter(([k]) => k !== 'actions')),
       storage: {
         getItem: name => {
           const item = localStorage.getItem(name)

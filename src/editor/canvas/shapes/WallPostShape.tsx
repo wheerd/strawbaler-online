@@ -7,7 +7,7 @@ import { LengthIndicator } from '@/editor/canvas/utils/LengthIndicator'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
 import { activateLengthInput } from '@/editor/services/length-input'
-import { type Length, ZERO_VEC2, lerpVec2, midpoint } from '@/shared/geometry'
+import { type Length, type Vec2, ZERO_VEC2, lerpVec2, midpoint } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useCanvasTheme } from '@/shared/theme/CanvasThemeContext'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
@@ -25,7 +25,7 @@ export function WallPostShape({ postId }: { postId: WallPostId }): React.JSX.Ele
   const endCorner = usePerimeterCornerById(wall.endCornerId)
 
   // Get post geometry from store
-  const postPolygonArray = post.polygon.points.flatMap(p => [p[0], p[1]])
+  const postPolygonArray = post.polygon.points.flatMap((p: Vec2) => [p[0], p[1]])
   const insidePostStart = post.insideLine.start
   const insidePostEnd = post.insideLine.end
   const outsidePostStart = post.outsideLine.start
