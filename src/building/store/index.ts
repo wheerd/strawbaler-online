@@ -14,6 +14,7 @@ import type {
   PerimeterWallWithGeometry,
   PerimeterWithGeometry,
   Roof,
+  RoofOverhang,
   Storey,
   WallPostWithGeometry
 } from '@/building/model'
@@ -25,6 +26,7 @@ import {
   type PerimeterId,
   type PerimeterWallId,
   type RoofId,
+  type RoofOverhangId,
   type SelectableId,
   type StoreyId,
   type WallPostId,
@@ -109,7 +111,7 @@ const useModelStore = create<Store>()(
       // Persistence configuration
       name: 'strawbaler-model',
       version: CURRENT_VERSION,
-      migrate: (persistedState: unknown) => applyMigrations(persistedState) as StoreState,
+      migrate: (persistedState: unknown, version: number) => applyMigrations(persistedState, version) as StoreState,
       partialize: state => Object.fromEntries(Object.entries(state).filter(([k]) => k !== 'actions')),
       storage: {
         getItem: name => {
@@ -148,9 +150,10 @@ export const useStoreysOrderedByLevel = (): Storey[] => {
   return useMemo(() => getStoreysOrderedByLevel(), [storeys])
 }
 
+const nullGetter = () => null
+
 export const useModelEntityById = (
-  id: SelectableId | null,
-  parentId?: SelectableId
+  id: SelectableId | null
 ):
   | PerimeterWithGeometry
   | PerimeterWallWithGeometry
@@ -160,6 +163,7 @@ export const useModelEntityById = (
   | FloorArea
   | FloorOpening
   | Roof
+  | RoofOverhang
   | null => {
   const selector = useCallback(
     (state: Store) => {
@@ -172,10 +176,10 @@ export const useModelEntityById = (
       if (isFloorAreaId(id)) return state.floorAreas[id]
       if (isFloorOpeningId(id)) return state.floorOpenings[id]
       if (isRoofId(id)) return state.roofs[id]
-      if (isRoofOverhangId(id)) return state.roofs[parentId as RoofId]
-      return state
+      if (isRoofOverhangId(id)) return state.roofOverhangs[id]
+      throw new Error('Unsupported entity')
     },
-    [id, parentId]
+    [id]
   )
   const geometrySelector = useCallback(
     (state: Store) => {
@@ -185,14 +189,14 @@ export const useModelEntityById = (
       if (isPerimeterId(id)) return state._perimeterGeometry[id]
       if (isPerimeterWallId(id)) return state._perimeterWallGeometry[id]
       if (isPerimeterCornerId(id)) return state._perimeterCornerGeometry[id]
-      if (isRoofOverhangId(id)) return state.roofs[parentId as RoofId]
-      return state
+      if (isRoofOverhangId(id)) return state.roofOverhangs[id]
+      throw new Error('Unsupported entity')
     },
-    [id, parentId]
+    [id]
   )
   const getterSelector = useCallback(
     (state: Store) => {
-      if (id == null) return () => null
+      if (id == null) return nullGetter
       if (isOpeningId(id)) return state.actions.getWallOpeningById
       if (isWallPostId(id)) return state.actions.getWallPostById
       if (isPerimeterId(id)) return state.actions.getPerimeterById
@@ -201,8 +205,8 @@ export const useModelEntityById = (
       if (isFloorAreaId(id)) return state.actions.getFloorAreaById
       if (isFloorOpeningId(id)) return state.actions.getFloorOpeningById
       if (isRoofId(id)) return state.actions.getRoofById
-      if (isRoofOverhangId(id)) return state.actions.getRoofById
-      return () => null
+      if (isRoofOverhangId(id)) return state.actions.getRoofOverhangById
+      return nullGetter
     },
     [id]
   )
@@ -211,12 +215,8 @@ export const useModelEntityById = (
   const getter = useModelStore(getterSelector)
   return useMemo(() => {
     if (id == null) return null
-    if (isRoofOverhangId(id)) {
-      const roof = getter(parentId as RoofId) as Roof | null
-      return roof?.overhangs.find(o => o.id === id) ?? null
-    }
     return getter(id as any)
-  }, [entity, geometry, getter, id, parentId])
+  }, [entity, geometry, getter, id])
 }
 
 export const usePerimeters = (): PerimeterWithGeometry[] => {
@@ -274,6 +274,33 @@ export const useWallPostById = (id: WallPostId): WallPostWithGeometry => {
   const getWallPostById = useModelStore(state => state.actions.getWallPostById)
   return useMemo(() => getWallPostById(id), [post, geometry])
 }
+export const usePerimeterWalls = (): PerimeterWallWithGeometry[] => {
+  const walls = useModelStore(state => state.perimeterWalls)
+  const geometries = useModelStore(state => state._perimeterWallGeometry)
+  const getAllPerimeterWalls = useModelStore(state => state.actions.getAllPerimeterWalls)
+  return useMemo(() => getAllPerimeterWalls(), [walls, geometries])
+}
+export const usePerimeterWallsById = (id: PerimeterId): PerimeterWallWithGeometry[] => {
+  const perimeter = useModelStore(state => state.perimeters[id])
+  const walls = useModelStore(state => state.perimeterWalls)
+  const geometries = useModelStore(state => state._perimeterWallGeometry)
+  const getPerimeterWallsById = useModelStore(state => state.actions.getPerimeterWallsById)
+  return useMemo(() => getPerimeterWallsById(id), [perimeter, walls, geometries, id])
+}
+export const usePerimeterCornersById = (id: PerimeterId): PerimeterCornerWithGeometry[] => {
+  const perimeter = useModelStore(state => state.perimeters[id])
+  const walls = useModelStore(state => state.perimeterCorners)
+  const geometries = useModelStore(state => state._perimeterCornerGeometry)
+  const getPerimeterCornersById = useModelStore(state => state.actions.getPerimeterCornersById)
+  return useMemo(() => getPerimeterCornersById(id), [perimeter, walls, geometries, id])
+}
+export const useWallOpeningsById = (id: PerimeterWallId): OpeningWithGeometry[] => {
+  const wall = useModelStore(state => state.perimeterWalls[id])
+  const openings = useModelStore(state => state.openings)
+  const geometries = useModelStore(state => state._openingGeometry)
+  const getWallOpeningsById = useModelStore(state => state.actions.getWallOpeningsById)
+  return useMemo(() => getWallOpeningsById(id), [wall, openings, geometries, id])
+}
 
 export const useFloorAreas = (): Record<FloorAreaId, FloorArea> => useModelStore(state => state.floorAreas)
 export const useFloorOpenings = (): Record<FloorOpeningId, FloorOpening> => useModelStore(state => state.floorOpenings)
@@ -317,6 +344,21 @@ export const useRoofsOfActiveStorey = (): Roof[] => {
   const roofs = useModelStore(state => state.roofs)
   const getRoofsByStorey = useModelStore(state => state.actions.getRoofsByStorey)
   return useMemo(() => getRoofsByStorey(activeStoreyId), [roofs, activeStoreyId])
+}
+
+export const useRoofOverhangs = (): Record<RoofOverhangId, RoofOverhang> => useModelStore(state => state.roofOverhangs)
+
+export const useRoofOverhangById = (id: RoofOverhangId): RoofOverhang | null => {
+  const overhangs = useModelStore(state => state.roofOverhangs)
+  const getRoofOverhangById = useModelStore(state => state.actions.getRoofOverhangById)
+  return useMemo(() => getRoofOverhangById(id), [overhangs, id])
+}
+
+export const useRoofOverhangsByRoof = (roofId: RoofId): RoofOverhang[] => {
+  const overhangs = useModelStore(state => state.roofOverhangs)
+  const roofs = useModelStore(state => state.roofs)
+  const getRoofOverhangsByRoof = useModelStore(state => state.actions.getRoofOverhangsByRoof)
+  return useMemo(() => getRoofOverhangsByRoof(roofId), [overhangs, roofs, roofId])
 }
 
 export const useModelActions = (): StoreActions => useModelStore(state => state.actions)

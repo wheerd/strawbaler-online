@@ -232,16 +232,19 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
         const floorOpenings = modelActions
           .getFloorOpeningsByStorey(storey.id)
           .map(opening => polygonToExport(opening.area))
-        const roofs = modelActions.getRoofsByStorey(storey.id).map(roof => ({
-          type: roof.type,
-          referencePolygon: polygonToExport(roof.referencePolygon),
-          mainSideIndex: roof.mainSideIndex,
-          slope: roof.slope,
-          verticalOffset: Number(roof.verticalOffset),
-          overhangs: roof.overhangs.map(o => Number(o.value)),
-          assemblyId: roof.assemblyId,
-          referencePerimeter: roof.referencePerimeter
-        }))
+        const roofs = modelActions.getRoofsByStorey(storey.id).map(roof => {
+          const overhangs = roof.overhangIds.map(o => modelActions.getRoofOverhangById(o)).filter(c => c != null)
+          return {
+            type: roof.type,
+            referencePolygon: polygonToExport(roof.referencePolygon),
+            mainSideIndex: roof.mainSideIndex,
+            slope: roof.slope,
+            verticalOffset: Number(roof.verticalOffset),
+            overhangs: overhangs.map(o => Number(o.value)),
+            assemblyId: roof.assemblyId,
+            referencePerimeter: roof.referencePerimeter
+          }
+        })
         const perimeters = modelActions.getPerimetersByStorey(storey.id).map(perimeter => {
           const corners = perimeter.cornerIds.map(c => modelActions.getPerimeterCornerById(c)).filter(c => c != null)
           const walls = perimeter.wallIds.map(w => modelActions.getPerimeterWallById(w)).filter(w => w != null)
@@ -540,12 +543,12 @@ class ProjectImportExportServiceImpl implements IProjectImportExportService {
             referencePerimeter
           )
           // Update individual overhangs if they differ
-          if (addedRoof && exportedRoof.overhangs.length === addedRoof.overhangs.length) {
+          if (addedRoof && exportedRoof.overhangs.length === addedRoof.overhangIds.length) {
             exportedRoof.overhangs.forEach((overhangValue, index) => {
               if (index > 0 && overhangValue !== exportedRoof.overhangs[0]) {
-                const overhang = addedRoof.overhangs[index]
-                if (overhang) {
-                  modelActions.updateRoofOverhangById(addedRoof.id, overhang.id, overhangValue)
+                const overhangId = addedRoof.overhangIds[index]
+                if (overhangId) {
+                  modelActions.updateRoofOverhangById(overhangId, overhangValue)
                 }
               }
             })

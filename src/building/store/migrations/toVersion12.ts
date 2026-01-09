@@ -5,21 +5,29 @@ import type { Migration } from './shared'
 import { isRecord, toVec2 } from './shared'
 
 /**
- * Migration to version 12: Normalize perimeter structure
+ * Migration to version 12: Normalize perimeter and roof overhang structures
  *
  * Major changes:
+ *
+ * Perimeters:
  * - Transform nested array-based structure to normalized, ID-based structure
  * - Separate data from geometry into parallel records
  * - Move openings and posts from wall.openings[]/wall.posts[] to top-level records
  * - Add perimeterId, wallId relationships to all entities
  * - Recalculate all geometry using updatePerimeterGeometry()
  *
+ * Roofs:
+ * - Move overhangs from roof.overhangs[] to top-level roofOverhangs record
+ * - Add roofId back-reference to all overhangs
+ * - Update roof to use overhangIds instead of overhangs array
+ *
  * Old structure:
  * - perimeters[id].walls[] with embedded openings[] and posts[]
  * - perimeters[id].corners[] with embedded geometry
+ * - roofs[id].overhangs[] with embedded overhangs
  *
  * New structure:
- * - Normalized entities: perimeters, perimeterWalls, perimeterCorners, openings, wallPosts
+ * - Normalized entities: perimeters, perimeterWalls, perimeterCorners, openings, wallPosts, roofOverhangs
  * - Separated geometry: _perimeterGeometry, _perimeterWallGeometry, _perimeterCornerGeometry, _openingGeometry, _wallPostGeometry
  */
 export const migrateToVersion12: Migration = state => {
@@ -309,6 +317,50 @@ export const migrateToVersion12: Migration = state => {
       state.wallPosts = {}
       state._wallPostGeometry = {}
       state._perimeterGeometry = {}
+    }
+  }
+
+  // Migrate roofs: normalize overhang structure
+  if (isRecord(state.roofs)) {
+    const newRoofOverhangs: Record<string, any> = {}
+
+    try {
+      for (const roof of Object.values(state.roofs)) {
+        if (!isRecord(roof)) continue
+        if (typeof roof.id !== 'string') continue
+
+        // Extract old overhangs array
+        const oldOverhangs = Array.isArray(roof.overhangs) ? roof.overhangs : []
+        const overhangIds: string[] = []
+
+        for (const oldOverhang of oldOverhangs) {
+          if (!isRecord(oldOverhang)) continue
+          if (typeof oldOverhang.id !== 'string') continue
+
+          const overhangId = oldOverhang.id
+          overhangIds.push(overhangId)
+
+          // Create normalized overhang (keep all properties including geometry)
+          newRoofOverhangs[overhangId] = {
+            id: overhangId,
+            roofId: roof.id,
+            sideIndex: typeof oldOverhang.sideIndex === 'number' ? oldOverhang.sideIndex : 0,
+            value: typeof oldOverhang.value === 'number' ? oldOverhang.value : 0,
+            area: isRecord(oldOverhang.area) && Array.isArray(oldOverhang.area.points) ? oldOverhang.area : { points: [] }
+          }
+        }
+
+        // Update roof to use overhangIds instead of overhangs array
+        roof.overhangIds = overhangIds as any
+        delete roof.overhangs
+      }
+
+      // Assign new normalized structure to state
+      state.roofOverhangs = newRoofOverhangs
+    } catch (error) {
+      console.error('Migration to version 12 failed for roofs, resetting roof data:', error)
+      state.roofs = {}
+      state.roofOverhangs = {}
     }
   }
 }

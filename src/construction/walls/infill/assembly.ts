@@ -1,4 +1,4 @@
-import type { Perimeter, PerimeterWallWithGeometry } from '@/building/model'
+import type { PerimeterWallWithGeometry } from '@/building/model'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import { aggregateResults } from '@/construction/results'
@@ -13,15 +13,10 @@ import { Bounds3D } from '@/shared/geometry'
 import { infillWallArea } from './infill'
 
 export class InfillWallAssembly extends BaseWallAssembly<InfillWallConfig> {
-  construct(
-    wall: PerimeterWallWithGeometry,
-    perimeter: PerimeterWithGeometry,
-    storeyContext: StoreyContext
-  ): ConstructionModel {
+  construct(wall: PerimeterWallWithGeometry, storeyContext: StoreyContext): ConstructionModel {
     const allResults = Array.from(
       segmentedWallConstruction(
         wall,
-        perimeter,
         storeyContext,
         this.config.layers,
         (area, startsWithStand, endsWithStand, startAtEnd) =>
@@ -41,7 +36,7 @@ export class InfillWallAssembly extends BaseWallAssembly<InfillWallConfig> {
       warnings: aggRes.warnings
     }
 
-    const layerModel = constructWallLayers(wall, perimeter, storeyContext, this.config.layers)
+    const layerModel = constructWallLayers(wall, storeyContext, this.config.layers)
 
     return mergeModels(baseModel, layerModel)
   }

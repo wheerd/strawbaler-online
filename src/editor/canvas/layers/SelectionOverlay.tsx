@@ -1,18 +1,15 @@
-import { useEffect } from 'react'
 import { Group } from 'react-konva/lib/ReactKonvaCore'
 
-import type { PerimeterCornerGeometry, PerimeterCornerWithGeometry } from '@/building/model'
-import type { RoofId, SelectableId } from '@/building/model/ids'
+import type { PerimeterCornerGeometry, PerimeterCornerWithGeometry, RoofOverhang } from '@/building/model'
+import type { SelectableId } from '@/building/model/ids'
 import { isPerimeterCornerId, isRoofOverhangId } from '@/building/model/ids'
 import { useModelEntityById } from '@/building/store'
 import { SelectionOutline } from '@/editor/canvas/utils/SelectionOutline'
-import { useCurrentSelection, useSelectionPath } from '@/editor/hooks/useSelectionStore'
+import { useCurrentSelection } from '@/editor/hooks/useSelectionStore'
 import { type Vec2, direction, perpendicular, scaleAddVec2 } from '@/shared/geometry'
 
-function getOutlinePoints(
-  entity: ReturnType<typeof useModelEntityById>,
-  currentSelection: SelectableId | null
-): Vec2[] | null {
+function useSelectionOutlinePoints(currentSelection: SelectableId | null): Vec2[] | null {
+  const entity = useModelEntityById(currentSelection)
   if (!entity || !currentSelection) return null
 
   // Handle special case for perimeter corners
@@ -22,7 +19,7 @@ function getOutlinePoints(
 
   // Handle roof overhang
   if (isRoofOverhangId(currentSelection)) {
-    return (entity as any)?.area?.points ?? null
+    return (entity as RoofOverhang).area.points
   }
 
   // Handle all other entities with polygon or area properties
@@ -34,20 +31,9 @@ function getOutlinePoints(
   return null
 }
 
-function useSelectionOutlinePoints(
-  selectionPath: SelectableId[],
-  currentSelection: SelectableId | null
-): Vec2[] | null {
-  const parentId = isRoofOverhangId(currentSelection) ? selectionPath[0] : undefined
-  const entity = useModelEntityById(currentSelection, parentId)
-  return getOutlinePoints(entity, currentSelection)
-}
-
 export function SelectionOverlay(): React.JSX.Element | null {
-  const selectionPath = useSelectionPath()
   const currentSelection = useCurrentSelection()
-
-  const outlinePoints = useSelectionOutlinePoints(selectionPath, currentSelection)
+  const outlinePoints = useSelectionOutlinePoints(currentSelection)
 
   if (!outlinePoints || outlinePoints.length === 0) {
     return null

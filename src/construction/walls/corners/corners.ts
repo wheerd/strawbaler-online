@@ -1,4 +1,5 @@
-import type { Perimeter, PerimeterCornerWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
+import type { PerimeterCornerWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
+import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import type { WallCornerInfo } from '@/construction/walls/construction'
 import { distVec2, scaleAddVec2 } from '@/shared/geometry'
@@ -10,21 +11,17 @@ export interface WallContext {
   nextWall: PerimeterWallWithGeometry
 }
 
-export function getWallContext(wall: PerimeterWallWithGeometry, perimeter: PerimeterWithGeometry): WallContext {
-  const wallIndex = perimeter.wallIds.findIndex(w => w.id === wall.id)
-  if (wallIndex === -1) {
-    throw new Error(`Could not find wall with id ${wall.id}`)
-  }
-
-  const startWallIndex = (wallIndex - 1 + perimeter.wallIds.length) % perimeter.wallIds.length // wall[i-1] is the wall at the start corner for wall[i]
-  const startCornerIndex = wallIndex // corner[i] is the start corner for wall[i]
-  const endCornerIndex = (wallIndex + 1) % perimeter.cornerIds.length // corner[i+1] is the end corner for wall[i]
-
+export function getWallContext(wall: PerimeterWallWithGeometry): WallContext {
+  const { getPerimeterCornerById, getPerimeterWallById } = getModelActions()
+  const startCorner = getPerimeterCornerById(wall.startCornerId)
+  const endCorner = getPerimeterCornerById(wall.endCornerId)
+  const previousWall = getPerimeterWallById(startCorner.previousWallId)
+  const nextWall = getPerimeterWallById(endCorner.nextWallId)
   return {
-    startCorner: perimeter.cornerIds[startCornerIndex],
-    previousWall: perimeter.wallIds[startWallIndex],
-    endCorner: perimeter.cornerIds[endCornerIndex],
-    nextWall: perimeter.wallIds[endCornerIndex]
+    startCorner,
+    previousWall,
+    endCorner,
+    nextWall
   }
 }
 

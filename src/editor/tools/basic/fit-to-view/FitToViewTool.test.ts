@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { Perimeter, PerimeterCornerWithGeometry } from '@/building/model'
+import type { PerimeterCornerWithGeometry, PerimeterWithGeometry } from '@/building/model'
 import type { StoreyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { viewportActions } from '@/editor/hooks/useViewportStore'

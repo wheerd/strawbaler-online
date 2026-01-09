@@ -274,7 +274,7 @@ function AddOpeningToolInspectorImpl({ tool }: AddOpeningToolInspectorImplProps)
       <Flex direction="column" align="center">
         <OpeningPreview
           opening={{
-            type: state.openingType,
+            openingType: state.openingType,
             width: state.width,
             height: state.height,
             sillHeight: state.sillHeight

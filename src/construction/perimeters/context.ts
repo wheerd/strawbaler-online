@@ -1,4 +1,5 @@
-import type { FloorOpening, Perimeter } from '@/building/model'
+import type { FloorOpening, PerimeterWithGeometry } from '@/building/model'
+import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import {
   type Length,
@@ -47,9 +48,12 @@ export function computePerimeterConstructionPolygon(
   perimeter: PerimeterWithGeometry,
   outside = true
 ): { polygon: Polygon2D; lines: Line2D[] } {
+  const { getPerimeterWallById } = getModelActions()
   const { getWallAssemblyById } = getConfigActions()
 
-  const offsets = perimeter.wallIds.map(wall => {
+  const walls = perimeter.wallIds.map(getPerimeterWallById)
+
+  const offsets = walls.map(wall => {
     const assembly = getWallAssemblyById(wall.wallAssemblyId)
     const layerThickness = Math.max(
       (outside ? assembly?.layers.outsideThickness : assembly?.layers.insideThickness) ?? 0,
@@ -59,7 +63,7 @@ export function computePerimeterConstructionPolygon(
     return distanceFromEdge
   })
 
-  const offsetLines = perimeter.wallIds.map((wall, index) => {
+  const offsetLines = walls.map((wall, index) => {
     const offsetDistance = offsets[index]
     const offsetPoint = scaleAddVec2(
       outside ? wall.outsideLine.start : wall.insideLine.start,
@@ -104,8 +108,8 @@ export const computePerimeterConstructionContext = (
     outerPolygon: outer.polygon,
     floorOpenings: mergedHoles,
     wallFaceOffsets: wallFaces,
-    innerFinishedPolygon: { points: perimeter.cornerIds.map(c => c.insidePoint) },
-    outerFinishedPolygon: { points: perimeter.cornerIds.map(c => c.outsidePoint) }
+    innerFinishedPolygon: perimeter.innerPolygon,
+    outerFinishedPolygon: perimeter.outerPolygon
   }
 }
 
@@ -113,24 +117,28 @@ const PARALLEL_EPSILON = 1e-6
 const DISTANCE_EPSILON = 1e-3
 
 export function createWallFaceOffsets(perimeters: PerimeterWithGeometry[]): WallFaceOffset[] {
+  const { getPerimeterWallById, getPerimeterCornerById } = getModelActions()
   const { getWallAssemblyById } = getConfigActions()
   const faces: WallFaceOffset[] = []
 
   for (const perimeter of perimeters) {
-    for (let wallIndex = 0; wallIndex < perimeter.wallIds.length; wallIndex++) {
-      const wall = perimeter.wallIds[wallIndex]
+    const walls = perimeter.wallIds.map(getPerimeterWallById)
+    for (const wall of walls) {
       const assembly = getWallAssemblyById(wall.wallAssemblyId)
       if (!assembly) {
         continue
       }
+
+      const startCorner = getPerimeterCornerById(wall.startCornerId)
+      const endCorner = getPerimeterCornerById(wall.endCornerId)
 
       const inwardNormal = negVec2(wall.outsideDirection)
 
       const insideThickness = Math.max(assembly.layers.insideThickness ?? 0, 0)
       if (insideThickness > 0) {
         const segment: LineSegment2D = {
-          start: copyVec2(perimeter.cornerIds[wallIndex].insidePoint),
-          end: copyVec2(perimeter.cornerIds[(wallIndex + 1) % perimeter.cornerIds.length].insidePoint)
+          start: copyVec2(startCorner.insidePoint),
+          end: copyVec2(endCorner.insidePoint)
         }
         faces.push({
           line: {
@@ -147,8 +155,8 @@ export function createWallFaceOffsets(perimeters: PerimeterWithGeometry[]): Wall
       const outsideThickness = Math.max(assembly.layers.outsideThickness ?? 0, 0)
       if (outsideThickness > 0) {
         const segment: LineSegment2D = {
-          start: copyVec2(perimeter.cornerIds[wallIndex].outsidePoint),
-          end: copyVec2(perimeter.cornerIds[(wallIndex + 1) % perimeter.cornerIds.length].outsidePoint)
+          start: copyVec2(startCorner.outsidePoint),
+          end: copyVec2(endCorner.outsidePoint)
         }
         faces.push({
           line: {

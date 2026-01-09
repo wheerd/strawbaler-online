@@ -1,4 +1,5 @@
 import type { PerimeterCornerWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
+import { getModelActions } from '@/building/store'
 import { PolygonWithBoundingRect, polygonEdges } from '@/construction/helpers'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import { type ConstructionResult } from '@/construction/results'
@@ -40,6 +41,7 @@ export abstract class BaseRingBeamAssembly<T extends RingBeamConfigBase> impleme
   abstract construct(segment: RingBeamSegment, context: PerimeterConstructionContext): Generator<ConstructionResult>
 
   protected *colinearParts(segment: RingBeamSegment): Generator<ColinearPart> {
+    const { getPerimeterCornerById, getPerimeterWallById } = getModelActions()
     const { perimeter, startIndex, endIndex } = segment
     const total = perimeter.wallIds.length
 
@@ -51,21 +53,21 @@ export abstract class BaseRingBeamAssembly<T extends RingBeamConfigBase> impleme
 
     for (let offset = 0; offset < segmentCount; offset++) {
       const wallIndex = (startIndex + offset) % total
-      const wall = perimeter.wallIds[wallIndex]
+      const wall = getPerimeterWallById(perimeter.wallIds[wallIndex])
       const nextWallIndex = (wallIndex + 1) % total
-      const endCorner = perimeter.cornerIds[nextWallIndex]
+      const endCorner = getPerimeterCornerById(perimeter.cornerIds[nextWallIndex])
 
       const isColinearWithNext = Math.abs(endCorner.exteriorAngle - 180) < 0.01 && offset < segmentCount - 1
       if (isColinearWithNext) {
         if (colinearStartIndex === null) {
           colinearStartIndex = wallIndex
-          colinearStartCorner = perimeter.cornerIds[wallIndex]
+          colinearStartCorner = getPerimeterCornerById(perimeter.cornerIds[wallIndex])
         }
         continue // Skip creating polygon, continue to next wall
       }
 
       // End of colinear segment (or single wall)
-      const startCorner = colinearStartCorner ?? perimeter.cornerIds[wallIndex]
+      const startCorner = colinearStartCorner ?? getPerimeterCornerById(perimeter.cornerIds[wallIndex])
       const prevWallIndex = ((colinearStartIndex ?? wallIndex) - 1 + total) % total
 
       yield {
@@ -87,11 +89,12 @@ export abstract class BaseRingBeamAssembly<T extends RingBeamConfigBase> impleme
     offsetFromInside?: Length,
     width?: Length
   ): Generator<PolygonWithBoundingRect> {
+    const { getPerimeterWallById } = getModelActions()
     const { perimeter } = segment
     for (const part of this.colinearParts(segment)) {
       const { startCorner, endCorner, nextWallIndex, prevWallIndex, wall } = part
-      const prevWallDir = perimeter.wallIds[prevWallIndex].direction
-      const nextWallDir = perimeter.wallIds[nextWallIndex].direction
+      const prevWallDir = getPerimeterWallById(perimeter.wallIds[prevWallIndex]).direction
+      const nextWallDir = getPerimeterWallById(perimeter.wallIds[nextWallIndex]).direction
 
       const polygon = this.createBeamPolygon(
         context,

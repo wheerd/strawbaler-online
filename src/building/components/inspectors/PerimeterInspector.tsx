@@ -18,7 +18,13 @@ import { useTranslation } from 'react-i18next'
 
 import type { PerimeterReferenceSide, PerimeterWallWithGeometry, RoofType } from '@/building/model'
 import type { PerimeterId, RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
-import { useModelActions, usePerimeterById, useRoofsOfActiveStorey } from '@/building/store'
+import {
+  useModelActions,
+  usePerimeterById,
+  usePerimeterCornersById,
+  usePerimeterWallsById,
+  useRoofsOfActiveStorey
+} from '@/building/store'
 import TopDownPlanModal from '@/construction/components/TopDownPlanModal'
 import { useDefaultRoofAssemblyId } from '@/construction/config'
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
@@ -110,6 +116,8 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
   } = useModelActions()
   const roofAssemblyId = useDefaultRoofAssemblyId()
   const perimeter = usePerimeterById(selectedId)
+  const walls = usePerimeterWallsById(selectedId)
+  const corners = usePerimeterCornersById(selectedId)
   const viewportActions = useViewportActions()
   const { setMode } = useViewModeActions()
   const roofsOfStorey = useRoofsOfActiveStorey()
@@ -122,25 +130,10 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
   )
 
   // Mixed state detection
-  const wallAssemblyState = useMemo(
-    () => (perimeter ? detectMixedAssemblies(perimeter.wallIds) : { isMixed: false, value: null }),
-    [perimeter?.wallIds]
-  )
-
-  const thicknessState = useMemo(
-    () => (perimeter ? detectMixedThickness(perimeter.wallIds) : { isMixed: false, value: null }),
-    [perimeter?.wallIds]
-  )
-
-  const baseRingBeamState = useMemo(
-    () => (perimeter ? detectMixedRingBeams(perimeter.wallIds, 'base') : { isMixed: false, value: null }),
-    [perimeter?.wallIds]
-  )
-
-  const topRingBeamState = useMemo(
-    () => (perimeter ? detectMixedRingBeams(perimeter.wallIds, 'top') : { isMixed: false, value: null }),
-    [perimeter?.wallIds]
-  )
+  const wallAssemblyState = useMemo(() => detectMixedAssemblies(walls), [walls])
+  const thicknessState = useMemo(() => detectMixedThickness(walls), [walls])
+  const baseRingBeamState = useMemo(() => detectMixedRingBeams(walls, 'base'), [walls])
+  const topRingBeamState = useMemo(() => detectMixedRingBeams(walls, 'top'), [walls])
 
   // If perimeter not found, show error
   if (!perimeter) {
@@ -164,7 +157,7 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
   const totalInnerArea = calculatePolygonArea(perimeter.innerPolygon)
   const totalOuterArea = calculatePolygonArea(perimeter.outerPolygon)
 
-  const hasNonStandardAngles = perimeter.cornerIds.some(corner => corner.interiorAngle % 90 !== 0)
+  const hasNonStandardAngles = corners.some(corner => corner.interiorAngle % 90 !== 0)
 
   const handleFitToView = useCallback(() => {
     if (!perimeter) return

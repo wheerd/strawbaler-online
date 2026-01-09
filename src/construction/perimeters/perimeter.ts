@@ -121,7 +121,7 @@ export function constructPerimeter(
 
     if (assembly?.type) {
       const wallAssembly = resolveWallAssembly(assembly)
-      wallModel = wallAssembly.construct(wall, perimeter, storeyContext)
+      wallModel = wallAssembly.construct(wall, storeyContext)
 
       if (wallModel) {
         const segmentAngle = dirAngle(wall.insideLine.start, wall.insideLine.end)

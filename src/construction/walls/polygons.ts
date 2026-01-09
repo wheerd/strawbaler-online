@@ -1,4 +1,4 @@
-import type { PerimeterWallWithGeometry } from '@/building/model'
+import type { OpeningWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
 import type { WallConstructionArea } from '@/construction/geometry'
 import {
   type Length,
@@ -103,10 +103,10 @@ export const subtractWallOpenings = (
   end: Length,
   bottom: Length,
   top: Length,
-  wall: PerimeterWallWithGeometry,
+  openings: OpeningWithGeometry[],
   finishedFloorHeight: Length
 ): PolygonWithHoles2D[] => {
-  const holes = wall.openings
+  const holes = openings
     .map(opening => {
       // Calculate left edge from center position
       const openingStart = opening.centerOffsetFromWallStart - opening.width / 2
@@ -155,7 +155,7 @@ export interface WallPolygonBounds {
 
 export const createWallPolygonWithOpenings = (
   area: WallConstructionArea,
-  wall: PerimeterWallWithGeometry,
+  openings: OpeningWithGeometry[],
   finishedFloorHeight: Length
 ): PolygonWithHoles2D[] =>
   subtractWallOpenings(
@@ -164,6 +164,6 @@ export const createWallPolygonWithOpenings = (
     area.position[0] + area.size[0],
     area.position[2],
     area.position[2] + area.size[2],
-    wall,
+    openings,
     finishedFloorHeight
   )

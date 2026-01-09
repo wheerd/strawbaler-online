@@ -279,7 +279,7 @@ const updateWallGeometry = (
   }
 }
 
-function updateEntityGeometry(wall: PerimeterWallGeometry, entity: WallEntity): WallEntityGeometry {
+export function updateEntityGeometry(wall: PerimeterWallGeometry, entity: WallEntity): WallEntityGeometry {
   // Extract wall geometry
   const insideStart = wall.insideLine.start
   const outsideStart = wall.outsideLine.start

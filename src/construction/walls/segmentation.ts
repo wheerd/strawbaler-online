@@ -1,5 +1,12 @@
-import type { Opening, Perimeter, PerimeterWallWithGeometry } from '@/building/model'
-import type { OpeningAssemblyId, PerimeterId, StoreyId } from '@/building/model/ids'
+import type { Opening, PerimeterWallWithGeometry, WallPost } from '@/building/model'
+import {
+  type OpeningAssemblyId,
+  type PerimeterId,
+  type StoreyId,
+  isOpeningId,
+  isWallPostId
+} from '@/building/model/ids'
+import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
 import { WallConstructionArea } from '@/construction/geometry'
 import { constructWallPost } from '@/construction/materials/posts'
@@ -30,7 +37,6 @@ import { calculateWallCornerInfo, getWallContext } from './corners/corners'
 
 export function* segmentedWallConstruction(
   wall: PerimeterWallWithGeometry,
-  perimeter: PerimeterWithGeometry,
   storeyContext: StoreyContext,
   layers: WallLayersConfig,
   wallConstruction: WallSegmentConstruction,
@@ -38,7 +44,7 @@ export function* segmentedWallConstruction(
   wallOpeningAssemblyId?: OpeningAssemblyId,
   splitAtHeightJumps = true
 ): Generator<ConstructionResult> {
-  const wallContext = getWallContext(wall, perimeter)
+  const wallContext = getWallContext(wall)
   const cornerInfo = calculateWallCornerInfo(wall, wallContext)
 
   // Calculate ring beam heights
@@ -52,7 +58,7 @@ export function* segmentedWallConstruction(
   const standAtWallEnd = wallContext.endCorner.exteriorAngle !== 180 || cornerInfo.endCorner.constructedByThisWall
 
   // Calculate roof offsets
-  const roofOffsets = calculateRoofOffsets(perimeter, cornerInfo, dimensions.ceilingOffset, storeyContext)
+  const roofOffsets = calculateRoofOffsets(cornerInfo, dimensions.ceilingOffset, storeyContext)
 
   // Create overall wall construction area with roof offsets
   const overallWallArea = new WallConstructionArea(
@@ -69,8 +75,8 @@ export function* segmentedWallConstruction(
     topPlateHeight,
     cornerInfo,
     wall.wallLength,
-    perimeter.id,
-    perimeter.storeyId
+    wall.perimeterId,
+    storeyContext.storeyId
   )
 
   // Create combined list of openings and posts
@@ -208,13 +214,12 @@ function calculateWallDimensions(
  * Calculate roof offsets for wall construction
  */
 function calculateRoofOffsets(
-  perimeter: PerimeterWithGeometry,
   cornerInfo: WallCornerInfo,
   ceilingOffset: Length,
   storeyContext: StoreyContext
 ): WallTopOffsets {
   const roofHeightLine = getRoofHeightLineForLines(
-    perimeter.storeyId,
+    storeyContext.storeyId,
     [cornerInfo.constructionInsideLine, cornerInfo.constructionOutsideLine],
     -ceilingOffset,
     storeyContext.perimeterContexts
@@ -291,11 +296,12 @@ function* constructOpeningGroup(
       )
       .withZAdjustment(adjustedSill + config.padding, opening.height - 2 * config.padding)
 
-    const tags = opening.type === 'door' ? [TAG_OPENING_DOOR] : opening.type === 'window' ? [TAG_OPENING_WINDOW] : []
+    const tags =
+      opening.openingType === 'door' ? [TAG_OPENING_DOOR] : opening.openingType === 'window' ? [TAG_OPENING_WINDOW] : []
 
     yield yieldArea({
       type: 'cuboid',
-      areaType: opening.type,
+      areaType: opening.openingType,
       sourceId: opening.id,
       size: openingArea.size,
       bounds: openingArea.bounds,
@@ -410,7 +416,7 @@ type WallItem =
     }
   | {
       type: 'post'
-      post: PerimeterWallWithGeometry['posts'][number]
+      post: WallPost
       start: Length
       end: Length
       needsWallStands: boolean
@@ -424,10 +430,12 @@ function createSortedWallItems(
   extensionStart: Length,
   wallOpeningAssemblyId?: OpeningAssemblyId
 ): WallItem[] {
+  const { getWallOpeningById, getWallPostById } = getModelActions()
   const items: WallItem[] = []
 
   // Add opening groups (existing merging logic already works)
-  const sortedOpenings = [...wall.entityIds].sort((a, b) => a.centerOffsetFromWallStart - b.centerOffsetFromWallStart)
+  const openings = wall.entityIds.filter(isOpeningId).map(getWallOpeningById)
+  const sortedOpenings = openings.sort((a, b) => a.centerOffsetFromWallStart - b.centerOffsetFromWallStart)
   const openingGroups = mergeAdjacentOpenings(sortedOpenings)
 
   for (const group of openingGroups) {
@@ -451,7 +459,8 @@ function createSortedWallItems(
   }
 
   // Add posts
-  for (const post of wall.posts) {
+  const posts = wall.entityIds.filter(isWallPostId).map(getWallPostById)
+  for (const post of posts) {
     const postCenter = extensionStart + post.centerOffsetFromWallStart
     // Clamp to valid wall area, might be outside because of outside layers
     const start = Math.max(postCenter - post.width / 2, 0)

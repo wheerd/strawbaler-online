@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { Perimeter, PerimeterCornerWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
+import type { PerimeterCornerWithGeometry, PerimeterWallWithGeometry, PerimeterWithGeometry } from '@/building/model'
 import { createPerimeterId, createPerimeterWallId, createWallAssemblyId } from '@/building/model/ids'
 import { type ConfigActions, type WallAssemblyConfig, getConfigActions } from '@/construction/config'
 import type { WallLayersConfig } from '@/construction/walls'

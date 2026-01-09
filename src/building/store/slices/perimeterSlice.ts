@@ -43,7 +43,7 @@ import {
 import { type Length, type Polygon2D, type Vec2, addVec2, copyVec2, distVec2, scaleAddVec2 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
-import { updatePerimeterGeometry } from './perimeterGeometry'
+import { updateEntityGeometry, updatePerimeterGeometry } from './perimeterGeometry'
 
 export interface PerimetersState {
   perimeters: Record<PerimeterId, Perimeter>
@@ -78,7 +78,15 @@ export interface PerimetersActions {
 
   // Entity deletion operations
   removePerimeterCorner: (cornerId: PerimeterCornerId) => boolean
+  canRemovePerimeterCorner: (cornerId: PerimeterCornerId) => {
+    canRemove: boolean
+    reason?: 'cannotDeleteMinCorners' | 'cannotDeleteSelfIntersect'
+  }
   removePerimeterWall: (wallId: PerimeterWallId) => boolean
+  canRemovePerimeterWall: (wallId: PerimeterWallId) => {
+    canRemove: boolean
+    reason?: 'cannotDeleteMinWalls' | 'cannotDeleteSelfIntersect'
+  }
 
   // Wall splitting operation
   splitPerimeterWall: (wallId: PerimeterWallId, splitPosition: Length) => PerimeterWallId | null
@@ -130,15 +138,19 @@ export interface PerimetersActions {
 
   // Getters
   getPerimeterById: (perimeterId: PerimeterId) => PerimeterWithGeometry
+  getPerimeterWallsById: (perimeterId: PerimeterId) => PerimeterWallWithGeometry[]
   getPerimeterWallById: (wallId: PerimeterWallId) => PerimeterWallWithGeometry
   getPerimeterCornerById: (cornerId: PerimeterCornerId) => PerimeterCornerWithGeometry
+  getPerimeterCornersById: (perimeterId: PerimeterId) => PerimeterCornerWithGeometry[]
   getWallEntityById: (entity: WallEntityId) => OpeningWithGeometry | WallPostWithGeometry
   getWallOpeningById: (openingId: OpeningId) => OpeningWithGeometry
+  getWallOpeningsById: (wallId: PerimeterWallId) => OpeningWithGeometry[]
   getWallPostById: (postId: WallPostId) => WallPostWithGeometry
   getPerimetersByStorey: (storeyId: StoreyId) => PerimeterWithGeometry[]
   getAllPerimeters: () => PerimeterWithGeometry[]
   getAllWallPosts: () => WallPostWithGeometry[]
   getAllWallOpenings: () => OpeningWithGeometry[]
+  getAllPerimeterWalls: () => PerimeterWallWithGeometry[]
 
   // Movement operations for MoveTool
   movePerimeter: (perimeterId: PerimeterId, offset: Vec2) => boolean
@@ -294,6 +306,32 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       return success
     },
 
+    canRemovePerimeterCorner: (
+      cornerId: PerimeterCornerId
+    ): { canRemove: boolean; reason?: 'cannotDeleteMinCorners' | 'cannotDeleteSelfIntersect' } => {
+      const state = get()
+      const corner = state.perimeterCorners[cornerId]
+      if (!corner) throw new Error('Corner not found')
+
+      const perimeter = state.perimeters[corner.perimeterId]
+      if (!perimeter) throw new Error('Perimeter not found')
+
+      // Need at least 4 corners (triangle = 3 corners minimum)
+      if (perimeter.cornerIds.length < 4) {
+        return { canRemove: false, reason: 'cannotDeleteMinCorners' }
+      }
+
+      // Check if removal would cause self-intersection
+      const newCorners = perimeter.cornerIds.filter(id => id !== cornerId)
+      const newBoundaryPoints = newCorners.map(id => state.perimeterCorners[id].referencePoint)
+
+      if (wouldClosingPolygonSelfIntersect({ points: newBoundaryPoints })) {
+        return { canRemove: false, reason: 'cannotDeleteSelfIntersect' }
+      }
+
+      return { canRemove: true }
+    },
+
     // Wall deletion: removes the target wall and merges the two adjacent walls into one,
     // also removing the two corner points that connected these three walls
     removePerimeterWall: (wallId: PerimeterWallId): boolean => {
@@ -316,6 +354,33 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         success = true
       })
       return success
+    },
+
+    canRemovePerimeterWall: (
+      wallId: PerimeterWallId
+    ): { canRemove: boolean; reason?: 'cannotDeleteMinWalls' | 'cannotDeleteSelfIntersect' } => {
+      const state = get()
+      const wall = state.perimeterWalls[wallId]
+      if (!wall) throw new Error('Wall not found')
+
+      const perimeter = state.perimeters[wall.perimeterId]
+      if (!perimeter) throw new Error('Perimeter not found')
+
+      // Need at least 5 walls (triangle = 3 walls, removing 1 and merging = min 3 walls remaining, needs 5 to start)
+      if (perimeter.wallIds.length < 5) {
+        return { canRemove: false, reason: 'cannotDeleteMinWalls' }
+      }
+
+      // Check if removal would cause self-intersection
+      const newBoundary = perimeter.cornerIds
+        .filter(id => id !== wall.startCornerId && id !== wall.endCornerId)
+        .map(id => state._perimeterCornerGeometry[id].insidePoint)
+
+      if (wouldClosingPolygonSelfIntersect({ points: newBoundary })) {
+        return { canRemove: false, reason: 'cannotDeleteSelfIntersect' }
+      }
+
+      return { canRemove: true }
     },
 
     // Wall splitting operation
@@ -558,6 +623,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         wall.entityIds.push(newOpening.id)
         state.openings[newOpening.id] = newOpening
         opening = newOpening
+
+        const wallGeometry = state._perimeterWallGeometry[wallId]
+        const openingGeometry = updateEntityGeometry(wallGeometry, opening)
+        state._openingGeometry[newOpening.id] = openingGeometry
       })
 
       return opening
@@ -574,6 +643,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         }
 
         delete state.openings[openingId]
+        delete state._openingGeometry[openingId]
       })
     },
 
@@ -640,6 +710,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           )
         ) {
           Object.assign(opening, updates)
+
+          const wallGeometry = state._perimeterWallGeometry[opening.wallId]
+          const openingGeometry = updateEntityGeometry(wallGeometry, opening)
+          state._openingGeometry[opening.id] = openingGeometry
         }
       })
     },
@@ -664,6 +738,53 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
     getAllWallOpenings: () => {
       const state = get()
       return Object.values(state.openings).map(p => ({ ...p, ...state._openingGeometry[p.id] }))
+    },
+
+    getAllPerimeterWalls: () => {
+      const state = get()
+      return Object.values(state.perimeterWalls).map(p => ({ ...p, ...state._perimeterWallGeometry[p.id] }))
+    },
+
+    getPerimeterWallsById: (perimeterId: PerimeterId) => {
+      const state = get()
+      const perimeter = state.perimeters[perimeterId]
+      const walls = perimeter.wallIds.map(wallId => {
+        const wall = state.perimeterWalls[wallId]
+        const geometry = state._perimeterWallGeometry[wallId]
+        if (!wall || !geometry) {
+          throw new Error(`Perimeter wall with id "${wallId}" not found`)
+        }
+        return { ...wall, ...geometry }
+      })
+      return walls
+    },
+
+    getPerimeterCornersById: (perimeterId: PerimeterId) => {
+      const state = get()
+      const perimeter = state.perimeters[perimeterId]
+      const corners = perimeter.cornerIds.map(cornerId => {
+        const corner = state.perimeterCorners[cornerId]
+        const geometry = state._perimeterCornerGeometry[cornerId]
+        if (!corner || !geometry) {
+          throw new Error(`Perimeter corner with id "${cornerId}" not found`)
+        }
+        return { ...corner, ...geometry }
+      })
+      return corners
+    },
+
+    getWallOpeningsById: (wallId: PerimeterWallId) => {
+      const state = get()
+      const wall = state.perimeterWalls[wallId]
+      const openings = wall.entityIds.filter(isOpeningId).map(openingId => {
+        const opening = state.openings[openingId]
+        const geometry = state._openingGeometry[openingId]
+        if (!opening || !geometry) {
+          throw new Error(`Opening with id "${openingId}" not found`)
+        }
+        return { ...opening, ...geometry }
+      })
+      return openings
     },
 
     // Opening validation methods implementation
@@ -724,6 +845,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         wall.entityIds.push(newPost.id)
         state.wallPosts[newPost.id] = newPost
         post = newPost
+
+        const wallGeometry = state._perimeterWallGeometry[post.wallId]
+        const geometry = updateEntityGeometry(wallGeometry, post)
+        state._wallPostGeometry[post.id] = geometry
       })
 
       return post
@@ -740,6 +865,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         }
 
         delete state.wallPosts[postId]
+        delete state._wallPostGeometry[postId]
       })
     },
 
@@ -757,6 +883,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           )
         ) {
           Object.assign(post, updates)
+
+          const wallGeometry = state._perimeterWallGeometry[post.wallId]
+          const geometry = updateEntityGeometry(wallGeometry, post)
+          state._wallPostGeometry[post.id] = geometry
         }
       })
     },

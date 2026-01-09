@@ -1,4 +1,4 @@
-import type { Perimeter } from '@/building/model'
+import type { PerimeterWithGeometry } from '@/building/model'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import type { ConstructionResult } from '@/construction/results'
