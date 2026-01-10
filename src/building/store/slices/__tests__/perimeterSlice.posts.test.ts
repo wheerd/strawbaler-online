@@ -8,6 +8,7 @@ import type { PerimetersSlice } from '../perimeterSlice'
 import {
   createRectangularBoundary,
   expectThrowsForInvalidId,
+  mockPost,
   setupPerimeterSlice,
   verifyNoOrphanedEntities
 } from './testHelpers'
@@ -334,19 +335,13 @@ describe('wallPostSlice', () => {
   describe('Wall Post Validation', () => {
     describe('isWallPostPlacementValid', () => {
       it('should return true for valid placement', () => {
-        const isValid = slice.actions.isWallPostPlacementValid(wallId, {
-          centerOffsetFromWallStart: 2000,
-          width: 100
-        })
+        const isValid = slice.actions.isWallPostPlacementValid(wallId, 2000, 100)
 
         expect(isValid).toBe(true)
       })
 
       it('should return false when post extends beyond wall start', () => {
-        const isValid = slice.actions.isWallPostPlacementValid(wallId, {
-          centerOffsetFromWallStart: 30,
-          width: 100
-        })
+        const isValid = slice.actions.isWallPostPlacementValid(wallId, 30, 100)
 
         expect(isValid).toBe(false)
       })
@@ -354,10 +349,7 @@ describe('wallPostSlice', () => {
       it('should return false when post extends beyond wall end', () => {
         const wall = slice.actions.getPerimeterWallById(wallId)
 
-        const isValid = slice.actions.isWallPostPlacementValid(wallId, {
-          centerOffsetFromWallStart: wall.insideLength - 30,
-          width: 100
-        })
+        const isValid = slice.actions.isWallPostPlacementValid(wallId, wall.insideLength - 30, 100)
 
         expect(isValid).toBe(false)
       })
@@ -371,10 +363,7 @@ describe('wallPostSlice', () => {
           })
         )
 
-        const isValid = slice.actions.isWallPostPlacementValid(wallId, {
-          centerOffsetFromWallStart: 2050,
-          width: 100
-        })
+        const isValid = slice.actions.isWallPostPlacementValid(wallId, 2050, 100)
 
         expect(isValid).toBe(false)
       })
@@ -387,10 +376,7 @@ describe('wallPostSlice', () => {
           height: 2100
         })
 
-        const isValid = slice.actions.isWallPostPlacementValid(wallId, {
-          centerOffsetFromWallStart: 2100,
-          width: 100
-        })
+        const isValid = slice.actions.isWallPostPlacementValid(wallId, 2100, 100)
 
         expect(isValid).toBe(false)
       })
@@ -405,14 +391,7 @@ describe('wallPostSlice', () => {
         )
 
         // Should be valid because we're excluding the existing post
-        const isValid = slice.actions.isWallPostPlacementValid(
-          wallId,
-          {
-            centerOffsetFromWallStart: 2050,
-            width: 100
-          },
-          post.id
-        )
+        const isValid = slice.actions.isWallPostPlacementValid(wallId, 2050, 100, post.id)
 
         expect(isValid).toBe(true)
       })
@@ -420,19 +399,13 @@ describe('wallPostSlice', () => {
 
     describe('findNearestValidWallPostPosition', () => {
       it('should return same position when already valid', () => {
-        const position = slice.actions.findNearestValidWallPostPosition(wallId, {
-          centerOffsetFromWallStart: 2000,
-          width: 100
-        })
+        const position = slice.actions.findNearestValidWallPostPosition(wallId, 2000, 100)
 
         expect(position).toBe(2000)
       })
 
       it('should adjust position when near wall start', () => {
-        const position = slice.actions.findNearestValidWallPostPosition(wallId, {
-          centerOffsetFromWallStart: 30,
-          width: 100
-        })
+        const position = slice.actions.findNearestValidWallPostPosition(wallId, 30, 100)
 
         expect(position).toBeGreaterThanOrEqual(50) // At least half width from start
       })
@@ -440,10 +413,7 @@ describe('wallPostSlice', () => {
       it('should adjust position when near wall end', () => {
         const wall = slice.actions.getPerimeterWallById(wallId)
 
-        const position = slice.actions.findNearestValidWallPostPosition(wallId, {
-          centerOffsetFromWallStart: wall.insideLength - 30,
-          width: 100
-        })
+        const position = slice.actions.findNearestValidWallPostPosition(wallId, wall.insideLength - 30, 100)
 
         expect(position).toBeLessThanOrEqual(wall.insideLength - 50) // At least half width from end
       })
@@ -452,10 +422,11 @@ describe('wallPostSlice', () => {
         const wall = slice.actions.getPerimeterWallById(wallId)
 
         // Try to place post wider than wall
-        const position = slice.actions.findNearestValidWallPostPosition(wallId, {
-          centerOffsetFromWallStart: wall.insideLength / 2,
-          width: wall.insideLength + 1000
-        })
+        const position = slice.actions.findNearestValidWallPostPosition(
+          wallId,
+          wall.insideLength / 2,
+          wall.insideLength + 1000
+        )
 
         expect(position).toBeNull()
       })
@@ -471,10 +442,7 @@ describe('wallPostSlice', () => {
         )
 
         // Try to place post at overlapping position
-        const position = slice.actions.findNearestValidWallPostPosition(wallId, {
-          centerOffsetFromWallStart: 2050,
-          width: 100
-        })
+        const position = slice.actions.findNearestValidWallPostPosition(wallId, 2050, 100)
 
         // Should find valid position away from existing post
         expect(position).not.toBeNull()
@@ -493,10 +461,7 @@ describe('wallPostSlice', () => {
         })
 
         // Try to place post at overlapping position
-        const position = slice.actions.findNearestValidWallPostPosition(wallId, {
-          centerOffsetFromWallStart: 2100,
-          width: 100
-        })
+        const position = slice.actions.findNearestValidWallPostPosition(wallId, 2100, 100)
 
         // Should find valid position away from opening
         expect(position).not.toBeNull()
@@ -649,10 +614,7 @@ describe('wallPostSlice', () => {
       })
 
       // Post should not overlap with opening
-      const isValid = slice.actions.isWallPostPlacementValid(wallId, {
-        centerOffsetFromWallStart: 2100,
-        width: 100
-      })
+      const isValid = slice.actions.isWallPostPlacementValid(wallId, 2100, 100)
 
       expect(isValid).toBe(false)
     })

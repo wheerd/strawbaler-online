@@ -9,7 +9,6 @@ import {
   createRectangularBoundary,
   expectThrowsForInvalidId,
   setupPerimeterSlice,
-  verifyGeometryExists,
   verifyNoOrphanedEntities
 } from './testHelpers'
 
@@ -365,19 +364,13 @@ describe('openingSlice', () => {
   describe('Opening Validation', () => {
     describe('isWallOpeningPlacementValid', () => {
       it('should return true for valid placement', () => {
-        const isValid = slice.actions.isWallOpeningPlacementValid(wallId, {
-          centerOffsetFromWallStart: 2000,
-          width: 900
-        })
+        const isValid = slice.actions.isWallOpeningPlacementValid(wallId, 2000, 900)
 
         expect(isValid).toBe(true)
       })
 
       it('should return false when opening extends beyond wall start', () => {
-        const isValid = slice.actions.isWallOpeningPlacementValid(wallId, {
-          centerOffsetFromWallStart: 200,
-          width: 900
-        })
+        const isValid = slice.actions.isWallOpeningPlacementValid(wallId, 200, 900)
 
         expect(isValid).toBe(false)
       })
@@ -385,10 +378,7 @@ describe('openingSlice', () => {
       it('should return false when opening extends beyond wall end', () => {
         const wall = slice.actions.getPerimeterWallById(wallId)
 
-        const isValid = slice.actions.isWallOpeningPlacementValid(wallId, {
-          centerOffsetFromWallStart: wall.insideLength - 200,
-          width: 900
-        })
+        const isValid = slice.actions.isWallOpeningPlacementValid(wallId, wall.insideLength - 200, 900)
 
         expect(isValid).toBe(false)
       })
@@ -401,10 +391,7 @@ describe('openingSlice', () => {
           height: 2100
         })
 
-        const isValid = slice.actions.isWallOpeningPlacementValid(wallId, {
-          centerOffsetFromWallStart: 2200,
-          width: 1200
-        })
+        const isValid = slice.actions.isWallOpeningPlacementValid(wallId, 2200, 1200)
 
         expect(isValid).toBe(false)
       })
@@ -418,14 +405,7 @@ describe('openingSlice', () => {
         })!
 
         // Should be valid because we're excluding the existing opening
-        const isValid = slice.actions.isWallOpeningPlacementValid(
-          wallId,
-          {
-            centerOffsetFromWallStart: 2200,
-            width: 900
-          },
-          opening.id
-        )
+        const isValid = slice.actions.isWallOpeningPlacementValid(wallId, 2200, 900, opening.id)
 
         expect(isValid).toBe(true)
       })
@@ -433,19 +413,13 @@ describe('openingSlice', () => {
 
     describe('findNearestValidWallOpeningPosition', () => {
       it('should return same position when already valid', () => {
-        const position = slice.actions.findNearestValidWallOpeningPosition(wallId, {
-          centerOffsetFromWallStart: 2000,
-          width: 900
-        })
+        const position = slice.actions.findNearestValidWallOpeningPosition(wallId, 2000, 900)
 
         expect(position).toBe(2000)
       })
 
       it('should adjust position when near wall start', () => {
-        const position = slice.actions.findNearestValidWallOpeningPosition(wallId, {
-          centerOffsetFromWallStart: 200,
-          width: 900
-        })
+        const position = slice.actions.findNearestValidWallOpeningPosition(wallId, 200, 900)
 
         expect(position).toBeGreaterThan(450) // At least half width from start
       })
@@ -453,10 +427,7 @@ describe('openingSlice', () => {
       it('should adjust position when near wall end', () => {
         const wall = slice.actions.getPerimeterWallById(wallId)
 
-        const position = slice.actions.findNearestValidWallOpeningPosition(wallId, {
-          centerOffsetFromWallStart: wall.insideLength - 200,
-          width: 900
-        })
+        const position = slice.actions.findNearestValidWallOpeningPosition(wallId, wall.insideLength - 200, 900)
 
         expect(position).toBeLessThan(wall.insideLength - 450) // At least half width from end
       })
@@ -465,10 +436,11 @@ describe('openingSlice', () => {
         const wall = slice.actions.getPerimeterWallById(wallId)
 
         // Try to place opening wider than wall
-        const position = slice.actions.findNearestValidWallOpeningPosition(wallId, {
-          centerOffsetFromWallStart: wall.insideLength / 2,
-          width: wall.insideLength + 1000
-        })
+        const position = slice.actions.findNearestValidWallOpeningPosition(
+          wallId,
+          wall.insideLength / 2,
+          wall.insideLength + 1000
+        )
 
         expect(position).toBeNull()
       })
@@ -483,10 +455,7 @@ describe('openingSlice', () => {
         })
 
         // Try to place opening at overlapping position
-        const position = slice.actions.findNearestValidWallOpeningPosition(wallId, {
-          centerOffsetFromWallStart: 2200,
-          width: 900
-        })
+        const position = slice.actions.findNearestValidWallOpeningPosition(wallId, 2200, 900)
 
         // Should find valid position away from existing opening
         expect(position).not.toBeNull()

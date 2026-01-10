@@ -8,6 +8,7 @@ import type { PerimetersSlice } from '../perimeterSlice'
 import {
   createRectangularBoundary,
   expectThrowsForInvalidId,
+  mockPost,
   setupPerimeterSlice,
   verifyGeometryExists,
   verifyNoOrphanedEntities,

@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
-import type { PerimeterCornerGeometry, PerimeterReferenceSide, PerimeterWallGeometry } from '@/building/model'
+import type { PerimeterWallGeometry } from '@/building/model'
 import { createStoreyId, createWallAssemblyId } from '@/building/model/ids'
 import { eqVec2, newVec2 } from '@/shared/geometry'
 
 import { updateEntityGeometry } from '../perimeterGeometry'
-import type { PerimetersSlice } from '../perimeterSlice'
 import {
   createLShapedBoundary,
   createRectangularBoundary,
   createTriangularBoundary,
+  mockPost,
   setupPerimeterSlice
 } from './testHelpers'
 
@@ -422,20 +422,19 @@ describe('perimeterGeometry', () => {
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
         const wallId = perimeter.wallIds[0]
 
-        const opening = slice.actions.addWallOpening(wallId, {
+        const originalOpening = slice.actions.addWallOpening(wallId, {
           openingType: 'door',
           centerOffsetFromWallStart: 2000,
           width: 900,
           height: 2100
         })!
 
-        const originalOpening = slice.actions.getWallOpeningById(openingId)
         const originalPolygon = { ...originalOpening.polygon }
 
         // Change wall thickness
         slice.actions.updatePerimeterWallThickness(wallId, 600)
 
-        const updatedOpening = slice.actions.getWallOpeningById(openingId)
+        const updatedOpening = slice.actions.getWallOpeningById(originalOpening.id)
 
         // Polygon should have changed
         expect(updatedOpening.polygon).not.toEqual(originalPolygon)
@@ -452,15 +451,13 @@ describe('perimeterGeometry', () => {
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
         const wallId = perimeter.wallIds[0]
 
-        const postId = slice.actions.addWallPost(
+        const post = slice.actions.addWallPost(
           wallId,
           mockPost({
             centerOffsetFromWallStart: 2000,
             width: 100
           })
         )!
-
-        const post = slice.actions.getWallPostById(postId)
 
         expect(post.polygon).toBeDefined()
         expect(post.polygon.points).toHaveLength(4)
@@ -477,7 +474,7 @@ describe('perimeterGeometry', () => {
         const wallId = perimeter.wallIds[0]
         const width = 100
 
-        const postId = slice.actions.addWallPost(
+        const post = slice.actions.addWallPost(
           wallId,
           mockPost({
             centerOffsetFromWallStart: 2000,
@@ -485,7 +482,6 @@ describe('perimeterGeometry', () => {
           })
         )!
 
-        const post = slice.actions.getWallPostById(postId)
         const insideStart = post.insideLine.start
         const insideEnd = post.insideLine.end
 
@@ -512,8 +508,6 @@ describe('perimeterGeometry', () => {
           height: 2100
         })!
 
-        const opening = slice.actions.getWallOpeningById(openingId)
-
         expect(opening.polygon).toBeDefined()
         expect(opening.polygon.points).toHaveLength(4)
       })
@@ -535,8 +529,6 @@ describe('perimeterGeometry', () => {
           height: 2100
         })!
 
-        const opening = slice.actions.getWallOpeningById(openingId)
-
         expect(opening.polygon).toBeDefined()
         expect(opening.polygon.points).toHaveLength(4)
       })
@@ -557,15 +549,15 @@ describe('perimeterGeometry', () => {
           insideLength: 10000,
           outsideLength: 10000,
           wallLength: 10000,
-          direction: [1, 0],
-          outsideDirection: [0, -1],
+          direction: newVec2(1, 0),
+          outsideDirection: newVec2(0, -1),
           polygon: { points: [] }
         }
 
         const entity = {
           centerOffsetFromWallStart: 2000,
           width: 900
-        }
+        } as any
 
         const geometry = updateEntityGeometry(wallGeometry, entity)
 

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type StoreyId, createStoreyId, createWallAssemblyId } from '@/building/model/ids'
+import { newVec2 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
 import type { PerimetersSlice } from '../perimeterSlice'
@@ -161,10 +162,7 @@ describe('perimeterSlice - Basic CRUD', () => {
 
     it('should reject polygon with less than 3 points', () => {
       const invalidBoundary = {
-        points: [
-          { x: 0, y: 0 },
-          { x: 100, y: 0 }
-        ]
+        points: [newVec2(0, 0), newVec2(100, 0)]
       }
       const wallAssemblyId = createWallAssemblyId()
 
@@ -429,7 +427,7 @@ describe('perimeterSlice - Basic CRUD', () => {
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
 
         const originalCorners = perimeter.cornerIds.map(id => slice.actions.getPerimeterCornerById(id))
-        const offset = { x: 1000, y: 500 }
+        const offset = newVec2(1000, 500)
 
         slice.actions.movePerimeter(perimeter.id, offset)
 
@@ -445,7 +443,7 @@ describe('perimeterSlice - Basic CRUD', () => {
         const wallAssemblyId = createWallAssemblyId()
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
 
-        const offset = { x: 1000, y: 500 }
+        const offset = newVec2(1000, 500)
         slice.actions.movePerimeter(perimeter.id, offset)
 
         // Verify geometry still exists and is valid
@@ -463,7 +461,7 @@ describe('perimeterSlice - Basic CRUD', () => {
         const originalWalls = perimeter.wallIds.map(id => slice.actions.getPerimeterWallById(id))
         const originalLengths = originalWalls.map(w => w.insideLength)
 
-        slice.actions.movePerimeter(perimeter.id, { x: 2000, y: -1000 })
+        slice.actions.movePerimeter(perimeter.id, newVec2(2000, -1000))
 
         const movedWalls = perimeter.wallIds.map(id => slice.actions.getPerimeterWallById(id))
         movedWalls.forEach((wall, i) => {
@@ -478,12 +476,7 @@ describe('perimeterSlice - Basic CRUD', () => {
         const wallAssemblyId = createWallAssemblyId()
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
 
-        const newBoundary = [
-          { x: 0, y: 0 },
-          { x: 15000, y: 0 },
-          { x: 15000, y: 8000 },
-          { x: 0, y: 8000 }
-        ]
+        const newBoundary = [newVec2(0, 0), newVec2(15000, 0), newVec2(15000, 8000), newVec2(0, 8000)]
 
         const success = slice.actions.updatePerimeterBoundary(perimeter.id, newBoundary)
 
@@ -499,11 +492,7 @@ describe('perimeterSlice - Basic CRUD', () => {
 
         expect(perimeter.wallIds).toHaveLength(4)
 
-        const triangleBoundary = [
-          { x: 0, y: 0 },
-          { x: 10000, y: 0 },
-          { x: 5000, y: 8000 }
-        ]
+        const triangleBoundary = [newVec2(0, 0), newVec2(10000, 0), newVec2(5000, 8000)]
 
         slice.actions.updatePerimeterBoundary(perimeter.id, triangleBoundary)
 
@@ -520,12 +509,7 @@ describe('perimeterSlice - Basic CRUD', () => {
         const newAssemblyId = createWallAssemblyId()
         slice.actions.updateAllPerimeterWallsAssembly(perimeter.id, newAssemblyId)
 
-        const newBoundary = [
-          { x: 0, y: 0 },
-          { x: 12000, y: 0 },
-          { x: 12000, y: 6000 },
-          { x: 0, y: 6000 }
-        ]
+        const newBoundary = [newVec2(0, 0), newVec2(12000, 0), newVec2(12000, 6000), newVec2(0, 6000)]
 
         slice.actions.updatePerimeterBoundary(perimeter.id, newBoundary)
 
@@ -541,10 +525,7 @@ describe('perimeterSlice - Basic CRUD', () => {
         const wallAssemblyId = createWallAssemblyId()
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
 
-        const invalidBoundary = [
-          { x: 0, y: 0 },
-          { x: 100, y: 0 }
-        ]
+        const invalidBoundary = [newVec2(0, 0), newVec2(100, 0)]
 
         const success = slice.actions.updatePerimeterBoundary(perimeter.id, invalidBoundary)
 
@@ -552,11 +533,7 @@ describe('perimeterSlice - Basic CRUD', () => {
       })
 
       it('should return false for non-existent perimeter', () => {
-        const newBoundary = [
-          { x: 0, y: 0 },
-          { x: 100, y: 0 },
-          { x: 50, y: 100 }
-        ]
+        const newBoundary = [newVec2(0, 0), newVec2(100, 0), newVec2(50, 100)]
 
         const success = slice.actions.updatePerimeterBoundary('perimeter_fake' as any, newBoundary)
 
