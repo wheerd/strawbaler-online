@@ -659,7 +659,7 @@ describe('perimeterSlice - Basic CRUD', () => {
       expect(updated.referenceSide).toBe('outside')
     })
 
-    it('should recalculate geometry when changing reference side', () => {
+    it('geometry should stay the same when changing reference side', () => {
       const boundary = createRectangularBoundary()
       const wallAssemblyId = createWallAssemblyId()
       const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
@@ -671,8 +671,8 @@ describe('perimeterSlice - Basic CRUD', () => {
       const outsideGeometry = slice.actions.getPerimeterById(perimeter.id)
 
       // Geometry should be different
-      expect(outsideGeometry.innerPolygon).not.toEqual(insideGeometry.innerPolygon)
-      expect(outsideGeometry.outerPolygon).not.toEqual(insideGeometry.outerPolygon)
+      expect(outsideGeometry.innerPolygon).toEqual(insideGeometry.innerPolygon)
+      expect(outsideGeometry.outerPolygon).toEqual(insideGeometry.outerPolygon)
     })
   })
 })

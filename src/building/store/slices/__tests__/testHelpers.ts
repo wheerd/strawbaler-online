@@ -16,7 +16,7 @@ import { createPerimetersSlice } from '../perimeterSlice'
  */
 export function createRectangularBoundary(width = 10000, height = 5000): Polygon2D {
   return {
-    points: [newVec2(0, 0), newVec2(width, 0), newVec2(width, height), newVec2(0, height)]
+    points: [newVec2(0, 0), newVec2(0, height), newVec2(width, height), newVec2(width, 0)]
   }
 }
 
@@ -25,7 +25,7 @@ export function createRectangularBoundary(width = 10000, height = 5000): Polygon
  */
 export function createTriangularBoundary(): Polygon2D {
   return {
-    points: [newVec2(0, 0), newVec2(5000, 0), newVec2(2500, 4000)]
+    points: [newVec2(0, 0), newVec2(2500, 4000), newVec2(5000, 0)]
   }
 }
 
@@ -36,11 +36,11 @@ export function createLShapedBoundary(): Polygon2D {
   return {
     points: [
       newVec2(0, 0),
-      newVec2(10000, 0),
-      newVec2(10000, 5000),
-      newVec2(5000, 5000),
+      newVec2(0, 10000),
       newVec2(5000, 10000),
-      newVec2(0, 10000)
+      newVec2(5000, 5000),
+      newVec2(10000, 5000),
+      newVec2(10000, 0)
     ]
   }
 }

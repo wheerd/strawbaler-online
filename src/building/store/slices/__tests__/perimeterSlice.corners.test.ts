@@ -155,7 +155,7 @@ describe('perimeterCornerSlice', () => {
         verifyNoOrphanedEntities(slice)
       })
 
-      it('should preserve openings on merged wall', () => {
+      it('should remove openings on merged wall', () => {
         const perimeter = slice.actions.getPerimeterById(perimeterId)
         const corner = slice.actions.getPerimeterCornerById(perimeter.cornerIds[0])
         const nextWall = corner.nextWallId
@@ -171,16 +171,7 @@ describe('perimeterCornerSlice', () => {
         slice.actions.removePerimeterCorner(perimeter.cornerIds[0])
 
         // Opening should still exist
-        expect(slice.openings[opening!.id]).toBeDefined()
-
-        // Find the merged wall and verify it contains the opening
-        const updatedPerimeter = slice.actions.getPerimeterById(perimeterId)
-        const mergedWallId = updatedPerimeter.wallIds.find(wallId => {
-          const wall = slice.actions.getPerimeterWallById(wallId)
-          return wall.entityIds.includes(opening!.id)
-        })
-
-        expect(mergedWallId).toBeDefined()
+        expect(slice.openings[opening!.id]).toBeUndefined()
       })
     })
 

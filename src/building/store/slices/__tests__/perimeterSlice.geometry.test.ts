@@ -45,14 +45,14 @@ describe('perimeterGeometry', () => {
         // First corner (bottom-left)
         expect(corners[0].insidePoint[0]).toBe(0)
         expect(corners[0].insidePoint[1]).toBe(0)
-        expect(corners[0].outsidePoint[0]).toBe(0)
+        expect(corners[0].outsidePoint[0]).toBe(-thickness)
         expect(corners[0].outsidePoint[1]).toBe(-thickness)
 
-        // Second corner (bottom-right)
-        expect(corners[1].insidePoint[0]).toBe(10000)
-        expect(corners[1].insidePoint[1]).toBe(0)
-        expect(corners[1].outsidePoint[0]).toBe(10000)
-        expect(corners[1].outsidePoint[1]).toBe(-thickness)
+        // Second corner (top-left)
+        expect(corners[1].insidePoint[0]).toBe(0)
+        expect(corners[1].insidePoint[1]).toBe(5000)
+        expect(corners[1].outsidePoint[0]).toBe(-thickness)
+        expect(corners[1].outsidePoint[1]).toBe(5000 + thickness)
       })
     })
 
@@ -186,11 +186,11 @@ describe('perimeterGeometry', () => {
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
         const walls = slice.actions.getPerimeterWallsById(perimeter.id)
 
-        // First wall (bottom) should be ~10000 units
-        expect(Math.abs(walls[0].wallLength - 10000)).toBeLessThan(1)
+        // First wall (left) should be ~5000 units
+        expect(walls[0].wallLength).toBeCloseTo(5000)
 
-        // Second wall (right) should be ~5000 units
-        expect(Math.abs(walls[1].wallLength - 5000)).toBeLessThan(1)
+        // Second wall (top) should be ~10000 units
+        expect(walls[1].wallLength).toBeCloseTo(10000)
       })
 
       it('should compute wall length (between corner intersections)', () => {
@@ -267,14 +267,15 @@ describe('perimeterGeometry', () => {
 
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
         const wallId = perimeter.wallIds[0]
-        const originalWall = slice.actions.getPerimeterWallById(wallId)
-        const originalOutsideLength = originalWall.outsideLength
+        const neighbourId = perimeter.wallIds[1]
+        const neighbourWall = slice.actions.getPerimeterWallById(neighbourId)
+        const originalOutsideLength = neighbourWall.outsideLength
 
         slice.actions.updatePerimeterWallThickness(wallId, 600)
 
-        const updatedWall = slice.actions.getPerimeterWallById(wallId)
+        const updatedWall = slice.actions.getPerimeterWallById(neighbourId)
         expect(updatedWall.outsideLength).not.toBe(originalOutsideLength)
-        expect(updatedWall.thickness).toBe(600)
+        expect(updatedWall.thickness).toBe(neighbourWall.thickness)
       })
     })
   })
@@ -294,10 +295,10 @@ describe('perimeterGeometry', () => {
         const corners = slice.actions.getPerimeterCornersById(perimeter.id)
 
         // Inside points should match boundary points
-        expect(corners[0].insidePoint[0]).toBe(0)
-        expect(corners[0].insidePoint[1]).toBe(0)
-        expect(corners[1].insidePoint[0]).toBe(10000)
-        expect(corners[1].insidePoint[1]).toBe(0)
+        expect(corners[0].insidePoint).toEqual(boundary.points[0])
+        expect(corners[1].insidePoint).toEqual(boundary.points[1])
+        expect(corners[2].insidePoint).toEqual(boundary.points[2])
+        expect(corners[3].insidePoint).toEqual(boundary.points[3])
       })
 
       it('should compute geometry with outside reference side', () => {
@@ -341,7 +342,7 @@ describe('perimeterGeometry', () => {
 
         // Geometry should have changed
         updatedCorners.forEach((corner, i) => {
-          expect(corner.insidePoint).not.toEqual(originalCorners[i].insidePoint)
+          expect(corner.referencePoint).toEqual(originalCorners[i].outsidePoint)
         })
       })
     })

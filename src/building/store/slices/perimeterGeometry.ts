@@ -23,8 +23,10 @@ import {
   ZERO_VEC2,
   addVec2,
   copyVec2,
+  crossVec2,
   direction,
   distVec2,
+  dotVec2,
   eqVec2,
   lineFromPoints,
   lineIntersection,
@@ -167,37 +169,30 @@ const updateAllCornerInsidePoints = (
   }
 }
 
-// Calculate interior and exterior angles at a corner formed by three points (in degrees)
 const calculateCornerAngles = (
   previousPoint: Vec2,
   cornerPoint: Vec2,
   nextPoint: Vec2
 ): { interiorAngle: number; exteriorAngle: number } => {
-  // Vectors from corner to adjacent points
-  const toPrevious = direction(cornerPoint, previousPoint)
-  const toNext = direction(cornerPoint, nextPoint)
+  // Edge vectors
+  const n1 = direction(cornerPoint, previousPoint)
+  const n2 = direction(cornerPoint, nextPoint)
 
-  // Calculate the angle between the vectors using atan2 for full range
-  const angle1 = Math.atan2(toPrevious[1], toPrevious[0])
-  const angle2 = Math.atan2(toNext[1], toNext[0])
+  // Angle between vectors (0..180)
+  const dot = dotVec2(n1, n2)
+  const clampedDot = Math.max(-1, Math.min(1, dot))
+  const angleBetween = Math.acos(clampedDot) // radians
 
-  // Calculate the difference, ensuring positive result
-  let angleDiff = angle2 - angle1
-  if (angleDiff < 0) {
-    angleDiff += 2 * Math.PI
-  }
+  // Determine orientation using cross product (z-component)
+  let interiorAngleRad =
+    crossVec2(n1, n2) < 0
+      ? 2 * Math.PI - angleBetween // Reflex (concave) interior angle
+      : angleBetween // Convex interior angle
 
-  // Convert to degrees and round
-  const angleDegrees = Math.round(radiansToDegrees(angleDiff))
+  const interiorAngle = Math.round(radiansToDegrees(interiorAngleRad))
+  const exteriorAngle = 360 - interiorAngle
 
-  // Assume the angle calculated is the interior angle (this works for convex polygons)
-  const interiorAngleDegrees = angleDegrees
-  const exteriorAngleDegrees = 360 - angleDegrees
-
-  return {
-    interiorAngle: interiorAngleDegrees,
-    exteriorAngle: exteriorAngleDegrees
-  }
+  return { interiorAngle, exteriorAngle }
 }
 
 // Calculate angles for all corners

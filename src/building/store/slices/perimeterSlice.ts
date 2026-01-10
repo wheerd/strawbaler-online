@@ -227,7 +227,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
           perimeterId,
           previousWallId: wallIds[(i + n - 1) % n],
           nextWallId: wallIds[i],
-          referencePoint: copyVec2(point),
+          referencePoint: point,
           constructedByWall: 'next'
         }))
 
@@ -1104,19 +1104,26 @@ const removeCornerAndMergeWalls = (state: PerimetersState, perimeter: Perimeter,
 
   const geometry = state._perimeterCornerGeometry[corner.id]
 
+  const mergedId = createPerimeterWallId()
+
   // Check if corner is exactly straight (180°) to preserve openings
   let entityIds: WallEntityId[] = []
   if (geometry.interiorAngle === 180) {
-    entityIds.push(...wall1.entityIds, ...wall2.entityIds)
+    entityIds = [...wall1.entityIds, ...wall2.entityIds]
+    for (const id of wall1.entityIds) {
+      const entity = isOpeningId(id) ? state.openings[id] : state.wallPosts[id]
+      entity.wallId = mergedId
+    }
     const wall1Geometry = state._perimeterWallGeometry[wall1.id]
     for (const id of wall2.entityIds) {
       const entity = isOpeningId(id) ? state.openings[id] : state.wallPosts[id]
+      entity.wallId = mergedId
       entity.centerOffsetFromWallStart += wall1Geometry.wallLength
     }
   }
 
   const mergedWall: PerimeterWall = {
-    id: createPerimeterWallId(),
+    id: mergedId,
     perimeterId: corner.perimeterId,
     startCornerId: wall1.startCornerId,
     endCornerId: wall2.endCornerId,

@@ -6,6 +6,7 @@ import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/sh
 
 import type { PerimetersSlice } from '../perimeterSlice'
 import {
+  createLShapedBoundary,
   createRectangularBoundary,
   expectThrowsForInvalidId,
   mockPost,
@@ -109,16 +110,34 @@ describe('perimeterIntegration', () => {
     })
 
     describe('Add perimeter → remove corner → verify walls merged and entities preserved', () => {
-      it('should merge walls and preserve entities when corner is removed', () => {
+      it('should merge walls and remove all wall entities when corner is removed', () => {
         const boundary = createRectangularBoundary()
         const wallAssemblyId = createWallAssemblyId()
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
         const cornerToRemove = perimeter.cornerIds[0]
         const corner = slice.actions.getPerimeterCornerById(cornerToRemove)
-        const nextWall = corner.nextWallId
+        const firstWall = slice.actions.getPerimeterWallById(corner.previousWallId)
+        const secondWall = slice.actions.getPerimeterWallById(corner.nextWallId)
+
+        // Add opening to previous wall
+        const opening1 = slice.actions.addWallOpening(firstWall.id, {
+          openingType: 'door',
+          centerOffsetFromWallStart: 1000,
+          width: 900,
+          height: 2100
+        })
+
+        // Add post to previous wall
+        const post1 = slice.actions.addWallPost(
+          firstWall.id,
+          mockPost({
+            centerOffsetFromWallStart: 3000,
+            width: 100
+          })
+        )
 
         // Add opening to next wall
-        const opening = slice.actions.addWallOpening(nextWall, {
+        const opening2 = slice.actions.addWallOpening(secondWall.id, {
           openingType: 'door',
           centerOffsetFromWallStart: 1000,
           width: 900,
@@ -126,8 +145,8 @@ describe('perimeterIntegration', () => {
         })
 
         // Add post to next wall
-        const post = slice.actions.addWallPost(
-          nextWall,
+        const post2 = slice.actions.addWallPost(
+          secondWall.id,
           mockPost({
             centerOffsetFromWallStart: 3000,
             width: 100
@@ -143,21 +162,86 @@ describe('perimeterIntegration', () => {
         expect(updatedPerimeter.wallIds).toHaveLength(originalWallCount - 1)
         expect(updatedPerimeter.cornerIds).toHaveLength(originalCornerCount - 1)
 
+        // Opening and post should not exist anymore
+        expect(slice.openings[opening1.id]).toBeUndefined()
+        expect(slice.wallPosts[post1.id]).toBeUndefined()
+        expect(slice.openings[opening2.id]).toBeUndefined()
+        expect(slice.wallPosts[post2.id]).toBeUndefined()
+
+        verifyPerimeterReferences(slice, perimeter.id)
+        verifyNoOrphanedEntities(slice)
+      })
+
+      it('should merge walls and preserve entities when corner is removed between two colinear walls', () => {
+        const boundary = createRectangularBoundary()
+        const wallAssemblyId = createWallAssemblyId()
+        const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
+        const firstWall = slice.actions.getPerimeterWallById(perimeter.wallIds[0])
+        const secondWallId = slice.actions.splitPerimeterWall(firstWall.id, firstWall.wallLength / 2)!
+        const secondWall = slice.actions.getPerimeterWallById(secondWallId)
+        const cornerToRemove = secondWall.startCornerId
+
+        // Add opening to next wall
+        const opening1 = slice.actions.addWallOpening(firstWall.id, {
+          openingType: 'door',
+          centerOffsetFromWallStart: 1000,
+          width: 900,
+          height: 2100
+        })
+
+        // Add post to next wall
+        const post1 = slice.actions.addWallPost(
+          firstWall.id,
+          mockPost({
+            centerOffsetFromWallStart: 2000,
+            width: 100
+          })
+        )
+
+        // Add opening to next wall
+        const opening2 = slice.actions.addWallOpening(secondWall.id, {
+          openingType: 'door',
+          centerOffsetFromWallStart: 1000,
+          width: 900,
+          height: 2100
+        })
+
+        // Add post to next wall
+        const post2 = slice.actions.addWallPost(
+          secondWall.id,
+          mockPost({
+            centerOffsetFromWallStart: 2000,
+            width: 100
+          })
+        )
+
+        const originalWallCount = perimeter.wallIds.length
+        const originalCornerCount = perimeter.cornerIds.length
+
+        slice.actions.removePerimeterCorner(cornerToRemove)
+
+        const updatedPerimeter = slice.actions.getPerimeterById(perimeter.id)
+        expect(updatedPerimeter.wallIds).toHaveLength(originalWallCount - 1)
+        expect(updatedPerimeter.cornerIds).toHaveLength(originalCornerCount - 1)
+
         // Opening and post should still exist
-        expect(slice.openings[opening.id]).toBeDefined()
-        expect(slice.wallPosts[post.id]).toBeDefined()
+        expect(slice.openings[opening2.id]).toBeDefined()
+        expect(slice.wallPosts[post2.id]).toBeDefined()
 
         // Find merged wall
         const mergedWallId = updatedPerimeter.wallIds.find(wId => {
           const wall = slice.actions.getPerimeterWallById(wId)
-          return wall.entityIds.includes(opening.id)
+          return wall.entityIds.includes(opening2.id)
         })
 
         expect(mergedWallId).toBeDefined()
 
         const mergedWall = slice.actions.getPerimeterWallById(mergedWallId!)
-        expect(mergedWall.entityIds).toContain(opening.id)
-        expect(mergedWall.entityIds).toContain(post.id)
+        expect(mergedWall.entityIds).toHaveLength(4)
+        expect(mergedWall.entityIds).toContain(opening1.id)
+        expect(mergedWall.entityIds).toContain(post1.id)
+        expect(mergedWall.entityIds).toContain(opening2.id)
+        expect(mergedWall.entityIds).toContain(post2.id)
 
         verifyPerimeterReferences(slice, perimeter.id)
         verifyNoOrphanedEntities(slice)
@@ -492,7 +576,7 @@ describe('perimeterIntegration', () => {
 
     describe('Many entities on single wall', () => {
       it('should handle wall with many entities', () => {
-        const boundary = createRectangularBoundary(20000, 10000)
+        const boundary = createLShapedBoundary()
         const wallAssemblyId = createWallAssemblyId()
         const perimeter = slice.actions.addPerimeter(testStoreyId, boundary, wallAssemblyId, 420)
         const wallId = perimeter.wallIds[0]
@@ -502,8 +586,8 @@ describe('perimeterIntegration', () => {
         for (let i = 0; i < 5; i++) {
           const opening = slice.actions.addWallOpening(wallId, {
             openingType: i % 2 === 0 ? 'door' : 'window',
-            centerOffsetFromWallStart: 1000 + i * 3000,
-            width: 900,
+            centerOffsetFromWallStart: 200 + i * 400,
+            width: 300,
             height: 2100
           })
           if (opening) entityIds.push(opening.id)
