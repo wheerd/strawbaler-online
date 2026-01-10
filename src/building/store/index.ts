@@ -6,6 +6,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 
+export { InvalidOperationError, NotFoundError } from './errors'
+
 import type {
   FloorArea,
   FloorOpening,

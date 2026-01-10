@@ -20,6 +20,7 @@ import type {
   WallPostParams,
   WallPostWithGeometry
 } from '@/building/model'
+import { InvalidOperationError, NotFoundError } from '@/building/store/errors'
 import type {
   OpeningId,
   PerimeterCornerId,
@@ -103,7 +104,7 @@ export interface PerimetersActions {
   canSwitchCornerConstructedByWall: (cornerId: PerimeterCornerId) => boolean
 
   // Openings
-  addWallOpening: (wallId: PerimeterWallId, openingParams: OpeningParams) => Opening | null
+  addWallOpening: (wallId: PerimeterWallId, openingParams: OpeningParams) => OpeningWithGeometry
   removeWallOpening: (openingId: OpeningId) => void
   updateWallOpening: (openingId: OpeningId, updates: Partial<OpeningParams>) => void
   isWallOpeningPlacementValid: (
@@ -120,7 +121,7 @@ export interface PerimetersActions {
   ) => Length | null
 
   // Wall Posts
-  addWallPost: (wallId: PerimeterWallId, postParams: WallPostParams) => WallPost | null
+  addWallPost: (wallId: PerimeterWallId, postParams: WallPostParams) => WallPostWithGeometry
   removeWallPost: (postId: WallPostId) => void
   updateWallPost: (postId: WallPostId, updates: Partial<WallPostParams>) => void
   isWallPostPlacementValid: (
@@ -311,10 +312,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
     ): { canRemove: boolean; reason?: 'cannotDeleteMinCorners' | 'cannotDeleteSelfIntersect' } => {
       const state = get()
       const corner = state.perimeterCorners[cornerId]
-      if (!corner) throw new Error('Corner not found')
+      if (!corner) throw new NotFoundError('Perimeter corner', cornerId)
 
       const perimeter = state.perimeters[corner.perimeterId]
-      if (!perimeter) throw new Error('Perimeter not found')
+      if (!perimeter) throw new NotFoundError('Perimeter', corner.perimeterId)
 
       // Need at least 4 corners (triangle = 3 corners minimum)
       if (perimeter.cornerIds.length < 4) {
@@ -361,10 +362,10 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
     ): { canRemove: boolean; reason?: 'cannotDeleteMinWalls' | 'cannotDeleteSelfIntersect' } => {
       const state = get()
       const wall = state.perimeterWalls[wallId]
-      if (!wall) throw new Error('Wall not found')
+      if (!wall) throw new NotFoundError('Perimeter wall', wallId)
 
       const perimeter = state.perimeters[wall.perimeterId]
-      if (!perimeter) throw new Error('Perimeter not found')
+      if (!perimeter) throw new NotFoundError('Perimeter', wall.perimeterId)
 
       // Need at least 5 walls (triangle = 3 walls, removing 1 and merging = min 3 walls remaining, needs 5 to start)
       if (perimeter.wallIds.length < 5) {
@@ -589,25 +590,31 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
     // Opening operations
     addWallOpening: (wallId: PerimeterWallId, openingParams: OpeningParams) => {
       if (openingParams.width <= 0) {
-        console.error('Opening width must be greater than 0')
-        return null
+        throw new InvalidOperationError('Opening width must be greater than 0')
       }
       if (openingParams.height <= 0) {
-        console.error('Opening height must be greater than 0')
-        return null
+        throw new InvalidOperationError('Opening height must be greater than 0')
       }
       if (openingParams.sillHeight != null && openingParams.sillHeight < 0) {
-        console.error('Window sill height must be non-negative')
-        return null
+        throw new InvalidOperationError('Window sill height must be non-negative')
       }
 
       // Basic validation checks
       if (openingParams.centerOffsetFromWallStart < 0) {
-        console.error('Opening center offset from start must be non-negative')
-        return null
+        throw new InvalidOperationError('Opening center offset from start must be non-negative')
       }
 
-      let opening: Opening | null = null
+      const state = get()
+      const wall = state.perimeterWalls[wallId]
+      if (!wall) {
+        throw new NotFoundError('Perimeter wall', wallId)
+      }
+
+      if (!validateOpeningOnWall(state, wallId, openingParams.centerOffsetFromWallStart, openingParams.width)) {
+        throw new InvalidOperationError('Opening placement is not valid')
+      }
+
+      let result: OpeningWithGeometry = null as any
       set(state => {
         const wall = state.perimeterWalls[wallId]
 
@@ -622,14 +629,15 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
 
         wall.entityIds.push(newOpening.id)
         state.openings[newOpening.id] = newOpening
-        opening = newOpening
 
         const wallGeometry = state._perimeterWallGeometry[wallId]
-        const openingGeometry = updateEntityGeometry(wallGeometry, opening)
+        const openingGeometry = updateEntityGeometry(wallGeometry, newOpening)
         state._openingGeometry[newOpening.id] = openingGeometry
+
+        result = { ...newOpening, ...openingGeometry }
       })
 
-      return opening
+      return result
     },
 
     removeWallOpening: (openingId: OpeningId) => {
@@ -653,7 +661,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const perimeter = state.perimeters[perimeterId]
       const geometry = state._perimeterGeometry[perimeterId]
       if (!perimeter || !geometry) {
-        throw new Error(`Perimeter with id "${perimeterId}" not found`)
+        throw new NotFoundError('Perimeter', perimeterId)
       }
       return { ...perimeter, ...geometry }
     },
@@ -663,7 +671,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const wall = state.perimeterWalls[wallId]
       const geometry = state._perimeterWallGeometry[wallId]
       if (!wall || !geometry) {
-        throw new Error(`Perimeter wall with id "${wallId}" not found`)
+        throw new NotFoundError('Perimeter wall', wallId)
       }
       return { ...wall, ...geometry }
     },
@@ -673,7 +681,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const corner = state.perimeterCorners[cornerId]
       const geometry = state._perimeterCornerGeometry[cornerId]
       if (!corner || !geometry) {
-        throw new Error(`Perimeter corner with id "${cornerId}" not found`)
+        throw new NotFoundError('Perimeter corner', cornerId)
       }
       return { ...corner, ...geometry }
     },
@@ -683,7 +691,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const opening = state.openings[openingId]
       const geometry = state._openingGeometry[openingId]
       if (!opening || !geometry) {
-        throw new Error(`Wall opening with id "${openingId}" not found`)
+        throw new NotFoundError('Wall opening', openingId)
       }
       return { ...opening, ...geometry }
     },
@@ -752,7 +760,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         const wall = state.perimeterWalls[wallId]
         const geometry = state._perimeterWallGeometry[wallId]
         if (!wall || !geometry) {
-          throw new Error(`Perimeter wall with id "${wallId}" not found`)
+          throw new NotFoundError('Perimeter wall', wallId)
         }
         return { ...wall, ...geometry }
       })
@@ -766,7 +774,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         const corner = state.perimeterCorners[cornerId]
         const geometry = state._perimeterCornerGeometry[cornerId]
         if (!corner || !geometry) {
-          throw new Error(`Perimeter corner with id "${cornerId}" not found`)
+          throw new NotFoundError('Perimeter corner', cornerId)
         }
         return { ...corner, ...geometry }
       })
@@ -780,7 +788,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
         const opening = state.openings[openingId]
         const geometry = state._openingGeometry[openingId]
         if (!opening || !geometry) {
-          throw new Error(`Opening with id "${openingId}" not found`)
+          throw new NotFoundError('Wall opening', openingId)
         }
         return { ...opening, ...geometry }
       })
@@ -813,24 +821,24 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
     // Wall post operations
     addWallPost: (wallId: PerimeterWallId, postParams: WallPostParams) => {
       if (postParams.width <= 0) {
-        throw new Error('Post width must be greater than 0')
+        throw new InvalidOperationError('Post width must be greater than 0')
       }
       if (postParams.thickness <= 0) {
-        throw new Error('Post thickness must be greater than 0')
+        throw new InvalidOperationError('Post thickness must be greater than 0')
       }
 
       const state = get()
 
       const wall = state.perimeterWalls[wallId]
       if (!wall) {
-        throw new Error('Wall does not exist')
+        throw new NotFoundError('Perimeter wall', wallId)
       }
 
       if (!validatePostOnWall(state, wallId, postParams.centerOffsetFromWallStart, postParams.width)) {
-        throw new Error('Post placement is not valid')
+        throw new InvalidOperationError('Post placement is not valid')
       }
 
-      let post: WallPost | null = null
+      let result: WallPostWithGeometry = null as any
       set(state => {
         const wall = state.perimeterWalls[wallId]
 
@@ -844,14 +852,15 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
 
         wall.entityIds.push(newPost.id)
         state.wallPosts[newPost.id] = newPost
-        post = newPost
 
-        const wallGeometry = state._perimeterWallGeometry[post.wallId]
-        const geometry = updateEntityGeometry(wallGeometry, post)
-        state._wallPostGeometry[post.id] = geometry
+        const wallGeometry = state._perimeterWallGeometry[newPost.wallId]
+        const geometry = updateEntityGeometry(wallGeometry, newPost)
+        state._wallPostGeometry[newPost.id] = geometry
+
+        result = { ...newPost, ...geometry }
       })
 
-      return post
+      return result
     },
 
     removeWallPost: (postId: WallPostId) => {
@@ -896,7 +905,7 @@ export const createPerimetersSlice: StateCreator<PerimetersSlice, [['zustand/imm
       const post = state.wallPosts[postId]
       const geometry = state._wallPostGeometry[postId]
       if (!post || !geometry) {
-        throw new Error(`Wall post with id "${postId}" not found`)
+        throw new NotFoundError('Wall post', postId)
       }
       return { ...post, ...geometry }
     },
