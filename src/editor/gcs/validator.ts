@@ -25,10 +25,12 @@ import {
 } from '@/editor/gcs/constraintTranslator'
 import {
   type Length,
+  type Vec2,
   crossVec2,
   direction,
   distVec2,
   newVec2,
+  perpendicular,
   projectVec2,
   segmentsIntersect,
   wouldClosingPolygonSelfIntersect
@@ -36,10 +38,17 @@ import {
 
 const MIN_WALL_LENGTH_SQ = 50 * 50
 const COLLINEARITY_THRESHOLD = 1e-4
+export const COLLINEARITY_NUDGE_DISTANCE = 1
+
+export interface ColinearityNudge {
+  pointId: string
+  nudgeDirection: Vec2
+}
 
 export interface ValidationResult {
   valid: boolean
   reason?: string
+  nudges?: ColinearityNudge[]
 }
 
 interface WallEntityContext {
@@ -159,8 +168,9 @@ export function validateSolution(
     return { valid: false, reason: 'Wall side consistency violation' }
   }
 
-  if (!checkColinearity(points, cornerOrderMap, constraints)) {
-    return { valid: false, reason: 'Colinear corner detected' }
+  const colinearityResult = checkColinearity(points, cornerOrderMap, constraints)
+  if (!colinearityResult.valid) {
+    return { valid: false, reason: 'Colinear corner detected', nudges: colinearityResult.nudges }
   }
 
   if (!checkEntityPositions(points, constraints, linesMap)) {
@@ -260,7 +270,9 @@ function checkColinearity(
   points: Record<string, SketchPoint>,
   cornerOrderMap: Map<PerimeterId, PerimeterCornerId[]>,
   constraints: Record<string, Constraint>
-): boolean {
+): { valid: boolean; nudges: ColinearityNudge[] } {
+  const nudges: ColinearityNudge[] = []
+
   for (const cornerIds of cornerOrderMap.values()) {
     for (let i = 0; i < cornerIds.length; i++) {
       const currentId = cornerIds[i]
@@ -283,10 +295,14 @@ function checkColinearity(
       const cross = crossVec2(vecToNext, vecFromPrev)
 
       if (Math.abs(cross) < COLLINEARITY_THRESHOLD) {
-        return false
+        const nudgeDir = perpendicular(vecToNext)
+        nudges.push({
+          pointId: nodeRefSidePointId(currentId),
+          nudgeDirection: nudgeDir
+        })
       }
     }
   }
 
-  return true
+  return { valid: nudges.length === 0, nudges }
 }

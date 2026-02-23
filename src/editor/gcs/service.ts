@@ -7,14 +7,22 @@ import {
   type SketchPrimitive,
   SolveStatus
 } from '@salusoft89/planegcs'
+import { t } from 'i18next'
+import { toast } from 'sonner'
 
 import type { EntityId, PerimeterCornerId, PerimeterId, PerimeterWallId } from '@/building/model'
 import { isOpeningId, isWallPostId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { nodeRefSidePointId, wallEntityPointId, wallRefLineId } from '@/editor/gcs/constraintTranslator'
+import {
+  getLineIds,
+  getPointIds,
+  nodeRefSidePointId,
+  wallEntityPointId,
+  wallRefLineId
+} from '@/editor/gcs/constraintTranslator'
 import { createGcs } from '@/editor/gcs/gcsInstance'
 import { getGcsActions, getGcsState } from '@/editor/gcs/store'
-import { validateSolution } from '@/editor/gcs/validator'
+import { COLLINEARITY_NUDGE_DISTANCE, validateSolution } from '@/editor/gcs/validator'
 import { type Length, type Vec2, midpoint, newVec2, projectVec2 } from '@/shared/geometry'
 
 const DRAG_TEMP_POINT_ID = 'drag_wall_temp_point'
@@ -180,10 +188,13 @@ class GcsService {
       clearTimeout(this.solveTimeout)
     }
     this.solveTimeout = setTimeout(() => {
-      const { updatePerimeterBoundary } = getModelActions()
+      const { updatePerimeterBoundary, getActiveStoreyId, getPerimeterById } = getModelActions()
+      const activeStoreyId = getActiveStoreyId()
       const gcs = this.getGcs()
       if (gcs.solve()) {
         for (const perimeterId of Object.keys(getGcsState().perimeterRegistry) as PerimeterId[]) {
+          const perimeter = getPerimeterById(perimeterId)
+          if (perimeter.storeyId !== activeStoreyId) continue
           updatePerimeterBoundary(perimeterId, gcs.getPerimeterBoundary(perimeterId))
           gcs.applyWallEntityOffsets(perimeterId)
         }
@@ -197,21 +208,49 @@ class GcsService {
   getGcs(fixedNodeIds?: PerimeterCornerId[]): WrappedGcs {
     const gcsState = getGcsState()
     const modelActions = getModelActions()
+    const activeStoreyId = modelActions.getActiveStoreyId()
+
+    const activePerimeterIds: PerimeterId[] = []
+    for (const perimeterId of Object.keys(gcsState.perimeterRegistry) as PerimeterId[]) {
+      const perimeter = modelActions.getPerimeterById(perimeterId)
+      if (perimeter.storeyId === activeStoreyId) {
+        activePerimeterIds.push(perimeterId)
+      }
+    }
+
+    const activePointIds = new Set<string>()
+    const activeLineIds = new Set<string>()
+    for (const perimeterId of activePerimeterIds) {
+      const entry = gcsState.perimeterRegistry[perimeterId]
+      for (const pointId of entry.pointIds) activePointIds.add(pointId)
+      for (const lineId of entry.lineIds) activeLineIds.add(lineId)
+    }
 
     const fixedPointIds = (fixedNodeIds ?? []).map(id => nodeRefSidePointId(id))
-    const points = Object.values(gcsState.points)
+    const allPoints = Object.values(gcsState.points)
+    const points = allPoints.filter(p => activePointIds.has(p.id))
     const fixedPoints = points.map(p => (fixedPointIds.includes(p.id) ? { ...p, fixed: true } : p))
 
-    const constraints = transformAdjacentHVConstraints(gcsState.constraints, gcsState.lines)
-    const primitives: SketchPrimitive[] = [...gcsState.lines, ...Object.values(constraints)]
+    const lines = gcsState.lines.filter(l => activeLineIds.has(l.id))
+
+    const allConstraints = transformAdjacentHVConstraints(gcsState.constraints, gcsState.lines)
+    const constraints = Object.fromEntries(
+      Object.entries(allConstraints).filter(([, constraint]) => {
+        const pids = getPointIds(constraint)
+        const lids = getLineIds(constraint)
+        return pids.every(p => activePointIds.has(p)) && lids.every(l => activeLineIds.has(l))
+      })
+    )
+
+    const primitives: SketchPrimitive[] = [...lines, ...Object.values(constraints)]
 
     const cornerOrderMap = new Map<PerimeterId, PerimeterCornerId[]>()
-    for (const perimeterId of Object.keys(gcsState.perimeterRegistry) as PerimeterId[]) {
+    for (const perimeterId of activePerimeterIds) {
       const perimeter = modelActions.getPerimeterById(perimeterId)
       cornerOrderMap.set(perimeterId, [...perimeter.cornerIds])
     }
 
-    return new WrappedGcs(createGcs(), fixedPoints, primitives, cornerOrderMap, gcsState.lines, constraints)
+    return new WrappedGcs(createGcs(), fixedPoints, primitives, cornerOrderMap, lines, constraints)
   }
 }
 
@@ -305,10 +344,15 @@ export class WrappedGcs {
     gcs.gcs.set_p_param(paramXPos, mouseX, true)
     gcs.gcs.set_p_param(paramYPos, mouseY, true)
 
-    if (gcs.solve(Algorithm.DogLeg) === SolveStatus.Success) {
+    const solveStatus = gcs.solve(Algorithm.DogLeg)
+    if (solveStatus === SolveStatus.Success) {
+      this.dismissSolverFailureToast()
       if (!this.applySolution()) {
         this.installDragConstraints(this.dragState.pointId, newVec2(mouseX, mouseY))
       }
+    } else {
+      console.warn(`Solving GCS failed: ${solveStatus}`)
+      this.showSolverFailureToast()
     }
   }
 
@@ -316,8 +360,28 @@ export class WrappedGcs {
     const solveStatus = this.gcs.solve(Algorithm.DogLeg)
     if (solveStatus !== SolveStatus.Success) {
       console.warn(`Solving GCS failed: ${solveStatus}`)
+      this.showSolverFailureToast()
+      return false
     }
-    return solveStatus === SolveStatus.Success && this.applySolution()
+    this.dismissSolverFailureToast()
+    if (!this.applySolution()) {
+      return false
+    }
+    return true
+  }
+
+  private showSolverFailureToast(): void {
+    toast.error(
+      t($ => $.gcs.solverFailed, { ns: 'errors' }),
+      {
+        id: 'gcs-solver-failure',
+        duration: 10000
+      }
+    )
+  }
+
+  private dismissSolverFailureToast(): void {
+    toast.dismiss('gcs-solver-failure')
   }
 
   syncConstraintStatus(): void {
@@ -452,39 +516,58 @@ export class WrappedGcs {
     this.installDragConstraints(pointId, mousePos)
   }
 
-  private applySolution(): boolean {
-    this.gcs.apply_solution()
+  private applySolution(maxIterations = 3): boolean {
+    for (let iteration = 0; iteration < maxIterations; iteration++) {
+      this.gcs.apply_solution()
 
-    const primitives = this.gcs.sketch_index.get_primitives()
+      const primitives = this.gcs.sketch_index.get_primitives()
 
-    const updatePoints = (points: SketchPoint[]) =>
-      points.map(point => {
-        const newPoint = primitives.find(p => p.id === point.id) as SketchPoint | undefined
-        return newPoint != null
-          ? {
-              ...point,
-              x: newPoint.x,
-              y: newPoint.y
-            }
-          : point
-      })
+      const updatePoints = (points: SketchPoint[]) =>
+        points.map(point => {
+          const newPoint = primitives.find(p => p.id === point.id) as SketchPoint | undefined
+          return newPoint != null
+            ? {
+                ...point,
+                x: newPoint.x,
+                y: newPoint.y
+              }
+            : point
+        })
 
-    const newPoints = updatePoints(this.points)
-    const newTempPoints = updatePoints(this.tempPoints)
+      const newPoints = updatePoints(this.points)
+      const newTempPoints = updatePoints(this.tempPoints)
 
-    const pointsMap = Object.fromEntries(newPoints.map(p => [p.id, p]))
-    const linesMap = Object.fromEntries(this.lines.map(l => [l.id, l]))
-    const validation = validateSolution(pointsMap, this.cornerOrderMap, this.constraints, linesMap)
+      const pointsMap = Object.fromEntries(newPoints.map(p => [p.id, p]))
+      const linesMap = Object.fromEntries(this.lines.map(l => [l.id, l]))
+      const validation = validateSolution(pointsMap, this.cornerOrderMap, this.constraints, linesMap)
 
-    getGcsActions().setTmpPoints(pointsMap)
+      getGcsActions().setTmpPoints(pointsMap)
 
-    if (validation.valid) {
-      this.points = newPoints
-      this.tempPoints = newTempPoints
-      return true
+      if (validation.valid) {
+        this.points = newPoints
+        this.tempPoints = newTempPoints
+        return true
+      }
+
+      if (validation.nudges && validation.nudges.length > 0) {
+        for (const { pointId, nudgeDirection } of validation.nudges) {
+          const point = this.points.find(p => p.id === pointId)
+          if (point) {
+            point.x += nudgeDirection[0] * COLLINEARITY_NUDGE_DISTANCE
+            point.y += nudgeDirection[1] * COLLINEARITY_NUDGE_DISTANCE
+          }
+        }
+        this.resetGcs()
+        if (this.gcs.solve(Algorithm.DogLeg) !== SolveStatus.Success) {
+          this.showSolverFailureToast()
+          break
+        }
+        continue
+      }
+
+      console.warn(validation)
+      break
     }
-
-    console.warn(validation)
 
     this.resetGcs()
     return false

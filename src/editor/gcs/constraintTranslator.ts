@@ -345,3 +345,49 @@ export function getReferencedWallEntityIds(constraint: ConstraintInput): WallEnt
       return []
   }
 }
+
+export function getPointIds(constraint: Constraint) {
+  const pids = []
+  if ('p_id' in constraint) {
+    pids.push(constraint.p_id)
+  }
+  if ('p1_id' in constraint) {
+    pids.push(constraint.p1_id)
+  }
+  if ('p2_id' in constraint) {
+    pids.push(constraint.p2_id)
+  }
+  if ('l1p1_id' in constraint) {
+    pids.push(constraint.l1p1_id)
+  }
+  if ('l1p2_id' in constraint) {
+    pids.push(constraint.l1p2_id)
+  }
+  if ('l2p1_id' in constraint) {
+    pids.push(constraint.l2p1_id)
+  }
+  if ('l2p2_id' in constraint) {
+    pids.push(constraint.l2p2_id)
+  }
+  if ('lp1_id' in constraint) {
+    pids.push(constraint.lp1_id)
+  }
+  if ('lp2_id' in constraint) {
+    pids.push(constraint.lp2_id)
+  }
+  return pids
+}
+
+export function getLineIds(constraint: Constraint) {
+  const lineIds = []
+  if ('l_id' in constraint) {
+    lineIds.push(constraint.l_id)
+  }
+  if ('l1_id' in constraint) {
+    lineIds.push(constraint.l1_id)
+  }
+  if ('l2_id' in constraint) {
+    lineIds.push(constraint.l2_id)
+  }
+  return lineIds
+}
