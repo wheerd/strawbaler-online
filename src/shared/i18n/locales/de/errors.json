@@ -71,6 +71,9 @@
     "retry": "Erneut versuchen",
     "title": "Fehler"
   },
+  "gcs": {
+    "solverFailed": "Bedingungen konnten nicht gelöst werden. Einige Bedingungen widersprechen sich möglicherweise."
+  },
   "modal": {
     "defaultMessage": "Dieser Inhalt konnte aufgrund eines Fehlers nicht angezeigt werden.",
     "errorPrefix": "Fehler:",

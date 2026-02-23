@@ -1129,6 +1129,9 @@ interface Resources {
       "retry": "Retry",
       "title": "Error"
     },
+    "gcs": {
+      "solverFailed": "Constraints could not be solved. Some constraints may be conflicting."
+    },
     "modal": {
       "defaultMessage": "This content could not be displayed due to an error.",
       "errorPrefix": "Error:",
