@@ -9,7 +9,7 @@ export function AppSkeleton(): React.JSX.Element {
         <ToolbarSkeleton />
       </div>
 
-      <div className="grid min-h-0 grid-cols-[1fr_320px] overflow-hidden">
+      <div className="relative grid min-h-0 grid-cols-[1fr_320px] overflow-hidden">
         <EditorSkeleton />
         <SidePanelSkeleton />
       </div>

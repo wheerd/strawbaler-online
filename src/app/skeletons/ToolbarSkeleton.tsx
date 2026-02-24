@@ -7,9 +7,12 @@ import { Logo } from '@/shared/components/Logo'
 
 export function ToolbarSkeleton(): React.JSX.Element {
   return (
-    <div className="border-border flex items-center gap-4 border-b p-3" data-testid="toolbar-skeleton">
-      {/* Logo - Real logo loads immediately */}
-      <Logo />
+    <div className="border-border flex items-center gap-4 border-b p-2" data-testid="toolbar-skeleton">
+      {/* Logo + ProjectMenu */}
+      <div className="flex items-center gap-1">
+        <Logo compact />
+        <Skeleton className="bg-background h-8 w-50" />
+      </div>
 
       {/* Tools skeleton */}
       <Toolbar.Root>
@@ -43,10 +46,11 @@ export function ToolbarSkeleton(): React.JSX.Element {
       </Toolbar.Root>
 
       <div className="ml-auto flex items-center gap-2">
-        <Skeleton className="bg-primary/30 size-10" />
-        <Skeleton className="bg-primary/30 size-10" />
-        <Skeleton className="bg-primary/30 size-10" />
-        <Skeleton className="bg-background size-9" />
+        <Skeleton className="bg-background size-10" />
+        <Skeleton className="bg-background size-10" />
+        <Skeleton className="bg-background size-10" />
+        <Skeleton className="bg-background size-10" />
+        <Skeleton className="bg-background size-8 rounded-full" />
       </div>
     </div>
   )
