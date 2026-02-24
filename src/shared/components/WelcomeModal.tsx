@@ -1,6 +1,7 @@
 import { TriangleAlert } from 'lucide-react'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
@@ -71,7 +72,7 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
-                <h3>{t($ => $.keyFeatures.title)}</h3>
+                <h3 className="font-semibold">{t($ => $.keyFeatures.title)}</h3>
                 <div className="text-sm">
                   <ul className="m-0 list-disc pl-6">
                     {(
@@ -86,7 +87,7 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
               </div>
 
               <div className="flex flex-col gap-2">
-                <h3>{t($ => $.plannedFeatures.title)}</h3>
+                <h3 className="font-semibold">{t($ => $.plannedFeatures.title)}</h3>
                 <div className="text-sm">
                   <ul className="m-0 list-disc pl-6">
                     {(
@@ -103,7 +104,7 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
-                <h3>{t($ => $.demoVideo.title)}</h3>
+                <h3 className="font-semibold">{t($ => $.demoVideo.title)}</h3>
                 <span className="text-base">{t($ => $.demoVideo.description)}</span>
                 <div className="flex flex-row items-center gap-4">
                   <a
@@ -123,12 +124,12 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                     {t($ => $.demoVideo.demo02)}
                   </a>
                 </div>
-                <h3>{t($ => $.localStorage.title)}</h3>
+                <h3 className="font-semibold">{t($ => $.dataStorage.title)}</h3>
                 <div className="text-sm">
-                  {t($ => $.localStorage.description)}
+                  {t($ => $.dataStorage.description)}
                   <ul className="mt-2 pl-6">
                     {(
-                      t($ => $.localStorage.items, {
+                      t($ => $.dataStorage.items, {
                         returnObjects: true
                       }) as string[]
                     ).map((item, index) => (
@@ -136,7 +137,7 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                     ))}
                   </ul>
                 </div>
-                <span className="text-base">{t($ => $.localStorage.privacy)}</span>
+                <span className="text-base">{t($ => $.dataStorage.privacy)}</span>
               </div>
 
               <Callout color="orange" variant="soft">
@@ -183,6 +184,13 @@ export function WelcomeModal({ isOpen, mode, onAccept, trigger }: WelcomeModalPr
                     {t($ => $.viewOnGitHub)}
                   </a>
                 </div>
+                <span className="text-sm">
+                  <Trans
+                    t={t}
+                    i18nKey={$ => $.privacyLink}
+                    components={{ link: <Link to="/privacy" className="underline" /> }}
+                  />
+                </span>
               </div>
             </div>
           </div>

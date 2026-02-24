@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next'
 interface LogoProps {
   className?: string
   compact?: boolean
+  iconSize?: string | number
 }
 
-export function Logo({ className = '', compact = false }: LogoProps): React.JSX.Element {
+export function Logo({ className = '', compact = false, iconSize = 36 }: LogoProps): React.JSX.Element {
   const { t } = useTranslation('common')
-  const iconSize = 36
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="-3 -3 37 37">

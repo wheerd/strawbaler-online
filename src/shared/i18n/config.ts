@@ -17,6 +17,7 @@ import constructionDE from './locales/de/construction.json'
 import errorsDE from './locales/de/errors.json'
 import inspectorDE from './locales/de/inspector.json'
 import overlayDE from './locales/de/overlay.json'
+import privacyDE from './locales/de/privacy.json'
 import toolDE from './locales/de/tool.json'
 import toolbarDE from './locales/de/toolbar.json'
 import viewerDE from './locales/de/viewer.json'
@@ -27,6 +28,7 @@ import constructionEN from './locales/en/construction.json'
 import errorsEN from './locales/en/errors.json'
 import inspectorEN from './locales/en/inspector.json'
 import overlayEN from './locales/en/overlay.json'
+import privacyEN from './locales/en/privacy.json'
 import toolEN from './locales/en/tool.json'
 import toolbarEN from './locales/en/toolbar.json'
 import viewerEN from './locales/en/viewer.json'
@@ -43,7 +45,8 @@ const resources = {
     overlay: overlayEN,
     construction: constructionEN,
     errors: errorsEN,
-    viewer: viewerEN
+    viewer: viewerEN,
+    privacy: privacyEN
   },
   de: {
     common: commonDE,
@@ -55,7 +58,8 @@ const resources = {
     overlay: overlayDE,
     construction: constructionDE,
     errors: errorsDE,
-    viewer: viewerDE
+    viewer: viewerDE,
+    privacy: privacyDE
   }
 }
 
@@ -66,7 +70,19 @@ void i18n
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'welcome', 'toolbar', 'inspector', 'tool', 'config', 'overlay', 'construction', 'errors', 'viewer'],
+    ns: [
+      'common',
+      'welcome',
+      'toolbar',
+      'inspector',
+      'tool',
+      'config',
+      'overlay',
+      'construction',
+      'errors',
+      'viewer',
+      'privacy'
+    ],
 
     interpolation: {
       escapeValue: false // React already escapes

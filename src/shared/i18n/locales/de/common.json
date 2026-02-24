@@ -33,6 +33,7 @@
     "password": "Passwort",
     "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
     "passwordUpdated": "Passwort erfolgreich aktualisiert!",
+    "privacyAgreement": "Mit der Erstellung eines Kontos stimmst du unserer <privacyLink>Datenschutzerklärung</privacyLink> zu.",
     "resetEmailSent": "Überprüfe deine E-Mail für einen Link zum Zurücksetzen deines Passworts.",
     "savePassword": "Neues Passwort speichern",
     "savingPassword": "Wird gespeichert...",

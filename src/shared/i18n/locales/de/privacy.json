@@ -1,0 +1,65 @@
+{
+  "backLink": "← Zurück zu StrawBuild Studio",
+  "title": "Datenschutzerklärung",
+  "lastUpdated": "Zuletzt aktualisiert: Februar 2026",
+  "controller": {
+    "title": "1. Verantwortlicher",
+    "name": "StrawBuild Studio",
+    "contact": "Kontakt: {{email}}"
+  },
+  "dataCollected": {
+    "title": "2. Erfasste Daten",
+    "accountData": "Kontodaten: E-Mail-Adresse (erforderlich für die Authentifizierung)",
+    "projectData": "Projektdaten: Grundrisse, Konfigurationen und zugehörige Dateien (nur wenn du ein Konto erstellst)",
+    "noPayment": "Keine Zahlungsdaten (der Dienst ist kostenlos)"
+  },
+  "purpose": {
+    "title": "3. Zweck der Verarbeitung",
+    "provide": "Bereitstellung des StrawBuild Studio-Dienstes",
+    "store": "Speicherung und Synchronisation deiner Projekte zwischen Geräten",
+    "email": "Versand kontobezogener E-Mails (Verifizierung, Passwort-Zurücksetzen)"
+  },
+  "storage": {
+    "title": "4. Speicherorte der Daten",
+    "intro": "Deine Daten können bei folgenden Diensten gespeichert werden:",
+    "local": "Lokaler Speicher: Nur dein Browser (deine Wahl)",
+    "supabase": "Cloud-Speicher: Supabase (gehostet in der EU/Westeuropa)",
+    "resend": "E-Mail-Versand: Resend",
+    "netlify": "Hosting: Netlify"
+  },
+  "thirdParty": {
+    "title": "5. Drittanbieter",
+    "intro": "Wir nutzen folgende Drittanbieter-Dienste:",
+    "supabase": "Supabase (Datenbank und Authentifizierung, EU)",
+    "resend": "Resend (Transaktions-E-Mails)",
+    "netlify": "Netlify (Anwendungshosting)",
+    "note": "Wir verwenden keine Analyse-, Werbe- oder Tracking-Dienste."
+  },
+  "retention": {
+    "title": "6. Datenspeicherung",
+    "content": "Deine Daten werden gespeichert, solange dein Konto existiert.",
+    "deletion": "Um eine Löschung anzufordern, kontaktiere uns unter {{email}}."
+  },
+  "rights": {
+    "title": "7. Deine Rechte (DSGVO)",
+    "intro": "Du hast folgende Rechte:",
+    "access": "Auskunft: Anforderung einer Kopie deiner Daten",
+    "rectification": "Berichtigung: Korrektur ungenauer Daten",
+    "erasure": "Löschung: Löschen deines Kontos und deiner Daten",
+    "portability": "Datenübertragbarkeit: Export deiner Projekte",
+    "contact": "Um diese Rechte auszuüben, kontaktiere {{email}}"
+  },
+  "security": {
+    "title": "8. Sicherheit",
+    "hashed": "Passwörter werden sicher gehasht",
+    "https": "Alle Verbindungen verwenden HTTPS-Verschlüsselung"
+  },
+  "changes": {
+    "title": "9. Änderungen dieser Richtlinie",
+    "content": "Wir können diese Richtlinie aktualisieren. Wichtige Änderungen werden über die App oder per E-Mail mitgeteilt."
+  },
+  "contact": {
+    "title": "10. Kontakt",
+    "content": "Bei Fragen zum Datenschutz: {{email}}"
+  }
+}

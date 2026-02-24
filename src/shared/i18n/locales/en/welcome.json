@@ -1,5 +1,14 @@
 {
   "continueButton": "I Understand & Continue",
+  "dataStorage": {
+    "description": "Your data can be stored in two ways:",
+    "items": [
+      "Locally in your browser – works offline, no account needed",
+      "In your cloud account – requires sign-up, syncs across devices"
+    ],
+    "privacy": "You choose where your data is stored. No cookies, tracking, or third-party analytics are used.",
+    "title": "Data Storage"
+  },
   "demoVideo": {
     "demo01": "Demo 0.1",
     "demo02": "Demo 0.2",
@@ -11,7 +20,7 @@
     "items": [
       "No guarantees for accuracy of calculations, plans, or 3D models",
       "Breaking changes may occur between versions",
-      "Project data may be lost due to browser storage limitations or updates",
+      "Local project data may be lost due to browser storage limitations. Cloud-stored projects are persisted securely.",
       "Always save and export your work regularly",
       "This tool does not replace professional engineering consultation"
     ],
@@ -29,16 +38,6 @@
     ],
     "title": "Key Features"
   },
-  "localStorage": {
-    "description": "This application stores data locally in your browser to:",
-    "items": [
-      "Remember that you've seen this welcome message",
-      "Save your floor plans and projects",
-      "Preserve your configuration preferences"
-    ],
-    "privacy": "No cookies, tracking, or third-party analytics are used.",
-    "title": "Local Storage"
-  },
   "plannedFeatures": {
     "items": [
       "Cost and work hours estimations",
@@ -49,6 +48,7 @@
     ],
     "title": "Planned Features"
   },
+  "privacyLink": "View our <link>Privacy Policy</link>",
   "reviewInfo": "You can review this information anytime via the info icon in the toolbar",
   "version": "Version {{version}}",
   "viewOnGitHub": "View on GitHub"

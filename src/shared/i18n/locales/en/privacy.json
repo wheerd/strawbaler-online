@@ -1,0 +1,65 @@
+{
+  "backLink": "← Back to StrawBuild Studio",
+  "title": "Privacy Policy",
+  "lastUpdated": "Last updated: February 2026",
+  "controller": {
+    "title": "1. Controller",
+    "name": "StrawBuild Studio",
+    "contact": "Contact: {{email}}"
+  },
+  "dataCollected": {
+    "title": "2. Data We Collect",
+    "accountData": "Account data: Email address (required for authentication)",
+    "projectData": "Project data: Floor plans, configurations, and related files (only if you create an account)",
+    "noPayment": "No payment data (service is free)"
+  },
+  "purpose": {
+    "title": "3. Purpose of Processing",
+    "provide": "To provide the StrawBuild Studio service",
+    "store": "To store and sync your projects across devices",
+    "email": "To send account-related emails (verification, password reset)"
+  },
+  "storage": {
+    "title": "4. Data Storage Locations",
+    "intro": "Your data may be stored with the following services:",
+    "local": "Local storage: Your browser only (your choice)",
+    "supabase": "Cloud storage: Supabase (hosted in EU/West Europe)",
+    "resend": "Email delivery: Resend",
+    "netlify": "Hosting: Netlify"
+  },
+  "thirdParty": {
+    "title": "5. Third-Party Services",
+    "intro": "We use the following third-party services:",
+    "supabase": "Supabase (database and authentication, EU)",
+    "resend": "Resend (transactional emails)",
+    "netlify": "Netlify (application hosting)",
+    "note": "We do not use analytics, advertising, or tracking services."
+  },
+  "retention": {
+    "title": "6. Data Retention",
+    "content": "Your data is stored as long as your account exists.",
+    "deletion": "To request deletion, contact us at {{email}}."
+  },
+  "rights": {
+    "title": "7. Your Rights (GDPR)",
+    "intro": "You have the following rights:",
+    "access": "Access: Request a copy of your data",
+    "rectification": "Rectification: Correct inaccurate data",
+    "erasure": "Erasure: Delete your account and data",
+    "portability": "Portability: Export your projects",
+    "contact": "To exercise these rights, contact {{email}}"
+  },
+  "security": {
+    "title": "8. Security",
+    "hashed": "Passwords are securely hashed",
+    "https": "All connections use HTTPS encryption"
+  },
+  "changes": {
+    "title": "9. Changes to This Policy",
+    "content": "We may update this policy. Significant changes will be communicated via the app or email."
+  },
+  "contact": {
+    "title": "10. Contact",
+    "content": "For privacy-related questions: {{email}}"
+  }
+}
