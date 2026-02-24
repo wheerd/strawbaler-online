@@ -110,6 +110,7 @@ pnpm build        # Build for production
 - **State Management**: Zustand with immer, persist and zundo middlewares
 - **Geometry**: clipper2-wasm, gl-matrix, manifold-3d
 - **IFC**: web-ifc
+- **Infrastructure**: Supabase, Resend, and Netlify
 - **PWA**: with workbox and vite-pwa-plugin
 - **Testing**: Vitest + React Testing Library + jsdom, Playwright
 - **Build Tool**: Vite
@@ -133,17 +134,20 @@ StrawBuild Studio is under active development and provided as-is:
 
 - No guarantees for the precision of calculations, generated plans, or 3D models
 - Breaking changes may occur between releases
-- Browser storage can be cleared or migrate, which may remove project data
+- Local browser storage can be cleared, which may remove locally-stored project data. Cloud-stored projects are persisted securely.
 - Always export and back up your work frequently
 - This tool does not replace consultation with qualified building professionals
 
-## 💾 Local Storage
+## 💾 Data Storage
 
-The application stores data locally in your browser to:
+StrawBuild Studio offers flexible data storage options:
 
-- Remember whether the welcome information has been acknowledged
-- Persist floor plans, projects, and configuration preferences
-- Keep usage entirely local—no cookies, tracking, or third-party analytics
+- **Local Storage**: Works entirely offline, no account needed. Data is stored in your browser.
+- **Cloud Storage**: Create an account to sync projects across devices. Hosted securely in the EU.
+
+You choose where your data is stored. No cookies, tracking, or third-party analytics are used.
+
+See our [Privacy Policy](https://strawbuild.app/privacy) for details.
 
 ## 🔧 Development
 
