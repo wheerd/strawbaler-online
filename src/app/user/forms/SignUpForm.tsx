@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 
 import { getAuthErrorMessage } from '@/app/user/authErrors'
 import { getSupabaseClient, isSupabaseConfigured } from '@/app/user/supabaseClient'
@@ -108,6 +109,14 @@ export function SignUpForm({ onSuccess }: SignUpFormProps): React.JSX.Element {
       <Button type="submit" disabled={isLoading || !!successMessage} className="w-full">
         {isLoading ? t($ => $.auth.creatingAccount) : t($ => $.auth.createAccount)}
       </Button>
+
+      <p className="text-muted-foreground text-center text-xs">
+        <Trans
+          t={t}
+          i18nKey={$ => $.auth.privacyAgreement}
+          components={{ privacyLink: <Link to="/privacy" target="_blank" className="underline" /> }}
+        />
+      </p>
     </form>
   )
 }

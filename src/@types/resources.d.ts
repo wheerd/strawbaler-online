@@ -35,6 +35,7 @@ interface Resources {
       "password": "Password",
       "passwordUpdated": "Password updated successfully!",
       "passwordsDoNotMatch": "Passwords do not match",
+      "privacyAgreement": "By creating an account, you agree to our <privacyLink>Privacy Policy</privacyLink>.",
       "resetEmailSent": "Check your email for a link to reset your password.",
       "savePassword": "Save New Password",
       "savingPassword": "Saving...",
@@ -1413,6 +1414,71 @@ interface Resources {
       "titleNew": "Import plan image"
     }
   },
+  "privacy": {
+    "backLink": "← Back to StrawBuild Studio",
+    "changes": {
+      "content": "We may update this policy. Significant changes will be communicated via the app or email.",
+      "title": "9. Changes to This Policy"
+    },
+    "contact": {
+      "content": "For privacy-related questions: {{email}}",
+      "title": "10. Contact"
+    },
+    "controller": {
+      "contact": "Contact: {{email}}",
+      "name": "StrawBuild Studio",
+      "title": "1. Controller"
+    },
+    "dataCollected": {
+      "accountData": "Account data: Email address (required for authentication)",
+      "noPayment": "No payment data (service is free)",
+      "projectData": "Project data: Floor plans, configurations, and related files (only if you create an account)",
+      "title": "2. Data We Collect"
+    },
+    "lastUpdated": "Last updated: February 2026",
+    "purpose": {
+      "email": "To send account-related emails (verification, password reset)",
+      "provide": "To provide the StrawBuild Studio service",
+      "store": "To store and sync your projects across devices",
+      "title": "3. Purpose of Processing"
+    },
+    "retention": {
+      "content": "Your data is stored as long as your account exists.",
+      "deletion": "To request deletion, contact us at {{email}}.",
+      "title": "6. Data Retention"
+    },
+    "rights": {
+      "access": "Access: Request a copy of your data",
+      "contact": "To exercise these rights, contact {{email}}",
+      "erasure": "Erasure: Delete your account and data",
+      "intro": "You have the following rights:",
+      "portability": "Portability: Export your projects",
+      "rectification": "Rectification: Correct inaccurate data",
+      "title": "7. Your Rights (GDPR)"
+    },
+    "security": {
+      "hashed": "Passwords are securely hashed",
+      "https": "All connections use HTTPS encryption",
+      "title": "8. Security"
+    },
+    "storage": {
+      "intro": "Your data may be stored with the following services:",
+      "local": "Local storage: Your browser only (your choice)",
+      "netlify": "Hosting: Netlify",
+      "resend": "Email delivery: Resend",
+      "supabase": "Cloud storage: Supabase (hosted in EU/West Europe)",
+      "title": "4. Data Storage Locations"
+    },
+    "thirdParty": {
+      "intro": "We use the following third-party services:",
+      "netlify": "Netlify (application hosting)",
+      "note": "We do not use analytics, advertising, or tracking services.",
+      "resend": "Resend (transactional emails)",
+      "supabase": "Supabase (database and authentication, EU)",
+      "title": "5. Third-Party Services"
+    },
+    "title": "Privacy Policy"
+  },
   "tool": {
     "addOpening": {
       "copyConfigurationTooltip": "Copy this configuration",
@@ -1724,6 +1790,12 @@ interface Resources {
   },
   "welcome": {
     "continueButton": "I Understand & Continue",
+    "dataStorage": {
+      "description": "Your data can be stored in two ways:",
+      "items": ["Locally in your browser – works offline, no account needed", "In your cloud account – requires sign-up, syncs across devices"],
+      "privacy": "You choose where your data is stored. No cookies, tracking, or third-party analytics are used.",
+      "title": "Data Storage"
+    },
     "demoVideo": {
       "demo01": "Demo 0.1",
       "demo02": "Demo 0.2",
@@ -1732,7 +1804,7 @@ interface Resources {
     },
     "disclaimer": {
       "intro": "This tool is currently in active development and provided as-is:",
-      "items": ["No guarantees for accuracy of calculations, plans, or 3D models", "Breaking changes may occur between versions", "Project data may be lost due to browser storage limitations or updates", "Always save and export your work regularly", "This tool does not replace professional engineering consultation"],
+      "items": ["No guarantees for accuracy of calculations, plans, or 3D models", "Breaking changes may occur between versions", "Local project data may be lost due to browser storage limitations. Cloud-stored projects are persisted securely.", "Always save and export your work regularly", "This tool does not replace professional engineering consultation"],
       "title": "Important Disclaimer"
     },
     "introduction": "This is a tool specifically designed for strawbale construction planning. Create floor plans with walls, openings, roof and floors. Configure the construction and generate plans and 3D models. Get estimates for required materials. Export construction for use in other CAD tools.",
@@ -1740,16 +1812,11 @@ interface Resources {
       "items": ["Define perimeter walls in finished dimensions (with plasters) with windows and doors", "Add gable or shed roofs", "Configure your wall, floor and roof assembly (infill, strawhenge, modules)", "Generate 2D construction plans for invdividual walls or whole floors", "View and export 3D models of the construction (IFC)", "Get an overview of materials used in the construction"],
       "title": "Key Features"
     },
-    "localStorage": {
-      "description": "This application stores data locally in your browser to:",
-      "items": ["Remember that you've seen this welcome message", "Save your floor plans and projects", "Preserve your configuration preferences"],
-      "privacy": "No cookies, tracking, or third-party analytics are used.",
-      "title": "Local Storage"
-    },
     "plannedFeatures": {
       "items": ["Cost and work hours estimations", "Support for intermediate walls and foundations", "Translation in more languages", "Support for more irregular building shapes", "Support for multiple projects"],
       "title": "Planned Features"
     },
+    "privacyLink": "View our <link>Privacy Policy</link>",
     "reviewInfo": "You can review this information anytime via the info icon in the toolbar",
     "version": "Version {{version}}",
     "viewOnGitHub": "View on GitHub"

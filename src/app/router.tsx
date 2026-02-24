@@ -3,6 +3,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { createBrowserRouter } from 'react-router-dom'
 
 import { ErrorFallback } from '@/shared/components/ErrorBoundary'
+import { PrivacyPage } from '@/shared/components/PrivacyPage'
 
 import { Layout } from './Layout'
 import { AuthModalRoute } from './user/AuthModalRoute'
@@ -16,6 +17,14 @@ const FloorPlanEditor = React.lazy(
 )
 
 export const router = createBrowserRouter([
+  {
+    path: '/privacy',
+    element: (
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <PrivacyPage />
+      </ErrorBoundary>
+    )
+  },
   {
     path: '*',
     element: (

@@ -21,6 +21,10 @@ vi.mock('react-i18next', () => ({
       changeLanguage: () => new Promise(vi.fn())
     }
   })),
+  Trans: ({ i18nKey }: { i18nKey: () => string }) => {
+    const key = keyFromSelector(i18nKey)
+    return <span>{key}</span>
+  },
   initReactI18next: {
     type: '3rdParty',
     init: vi.fn()
@@ -52,12 +56,12 @@ describe('WelcomeModal', () => {
     expect(screen.getByText(/disclaimer.items.item2/)).toBeInTheDocument()
   })
 
-  it('shows local storage information', () => {
+  it('shows data storage information', () => {
     const onAccept = vi.fn()
     render(<WelcomeModal isOpen mode="first-visit" onAccept={onAccept} />)
 
-    expect(screen.getByText('localStorage.title')).toBeInTheDocument()
-    expect(screen.getByText(/localStorage.privacy/)).toBeInTheDocument()
+    expect(screen.getByText('dataStorage.title')).toBeInTheDocument()
+    expect(screen.getByText(/dataStorage.privacy/)).toBeInTheDocument()
   })
 
   it('calls onAccept when button is clicked', () => {

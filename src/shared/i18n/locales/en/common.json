@@ -33,6 +33,7 @@
     "password": "Password",
     "passwordsDoNotMatch": "Passwords do not match",
     "passwordUpdated": "Password updated successfully!",
+    "privacyAgreement": "By creating an account, you agree to our <privacyLink>Privacy Policy</privacyLink>.",
     "resetEmailSent": "Check your email for a link to reset your password.",
     "savePassword": "Save New Password",
     "savingPassword": "Saving...",

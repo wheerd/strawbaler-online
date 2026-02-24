@@ -1,5 +1,14 @@
 {
   "continueButton": "Ich verstehe und will loslegen",
+  "dataStorage": {
+    "description": "Deine Daten können auf zwei Arten gespeichert werden:",
+    "items": [
+      "Lokal in deinem Browser – funktioniert offline, kein Konto erforderlich",
+      "In deinem Cloud-Konto – erfordert Registrierung, synchronisiert zwischen Geräten"
+    ],
+    "privacy": "Du entscheidest, wo deine Daten gespeichert werden. Keine Cookies, Tracking oder Drittanbieter-Analysen.",
+    "title": "Datenspeicherung"
+  },
   "demoVideo": {
     "demo01": "Demo 0.1 (Englisch)",
     "demo02": "Demo 0.2 (Englisch)",
@@ -11,7 +20,7 @@
     "items": [
       "Keine Garantie für die Genauigkeit von Berechnungen, Plänen oder 3D-Modellen",
       "Zwischen Versionen können Breaking Changes auftreten",
-      "Projektdaten können aufgrund von Browser-Speicherbeschränkungen oder Updates verloren gehen",
+      "Lokale Projektdaten können durch Browser-Speicherbeschränkungen verloren gehen. Cloud-gespeicherte Projekte werden sicher persistiert.",
       "Speichere und exportiere deine Arbeit regelmäßig",
       "Dieses Werkzeug ersetzt keine professionelle Ingenieurberatung"
     ],
@@ -29,16 +38,6 @@
     ],
     "title": "Hauptfunktionen"
   },
-  "localStorage": {
-    "description": "Diese Anwendung speichert Daten lokal in deinem Browser, um:",
-    "items": [
-      "Zu merken, dass du diese Willkommensnachricht gesehen hast",
-      "Deine Grundrisse und Projekte zu speichern",
-      "Deine Konfigurationseinstellungen zu bewahren"
-    ],
-    "privacy": "Es werden keine Cookies, Tracking oder Drittanbieter-Analysen verwendet.",
-    "title": "Lokaler Speicher"
-  },
   "plannedFeatures": {
     "items": [
       "Kosten- und Arbeitsstundenschätzungen",
@@ -49,6 +48,7 @@
     ],
     "title": "Geplante Funktionen"
   },
+  "privacyLink": "Unsere <link>Datenschutzerklärung</link> ansehen",
   "reviewInfo": "Du kannst diese Informationen jederzeit über das Info-Symbol in der Symbolleiste einsehen",
   "version": "Version {{version}}",
   "viewOnGitHub": "Auf GitHub ansehen"
