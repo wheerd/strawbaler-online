@@ -185,7 +185,7 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
               {exportError?.details && (
                 <div className="flex flex-col gap-1">
                   <span className="text-base font-bold">{t($ => $.export.exportError.details)}</span>
-                  <Code size="sm" className="break-words whitespace-pre-wrap">
+                  <Code size="sm" className="wrap-break-word whitespace-pre-wrap">
                     {exportError.details}
                   </Code>
                 </div>

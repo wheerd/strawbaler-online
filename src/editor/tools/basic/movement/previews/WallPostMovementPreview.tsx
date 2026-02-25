@@ -1,8 +1,8 @@
-import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/MovementBehavior'
 import type {
   WallPostEntityContext,
   WallPostMovementState
 } from '@/editor/tools/basic/movement/behaviors/WallPostMovementBehavior'
+import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/types'
 import { addVec2, midpoint, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 

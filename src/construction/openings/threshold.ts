@@ -1,11 +1,12 @@
 import type { Opening } from '@/building/model'
 import type { WallConstructionArea } from '@/construction/geometry'
-import { BaseOpeningAssembly } from '@/construction/openings/base'
-import { resolveOpeningAssembly } from '@/construction/openings/resolver'
-import type { OpeningAssembly, ThresholdAssemblyConfig } from '@/construction/openings/types'
 import type { ConstructionResult } from '@/construction/results'
 import type { SegmentInfillMethod } from '@/construction/walls'
 import type { Length } from '@/shared/geometry'
+
+import { BaseOpeningAssembly } from './base'
+import { resolveOpeningAssembly } from './resolver'
+import type { OpeningAssembly, ThresholdAssemblyConfig } from './types'
 
 export class ThresholdOpeningAssembly extends BaseOpeningAssembly<ThresholdAssemblyConfig> {
   *construct(

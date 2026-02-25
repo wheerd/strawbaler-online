@@ -1,9 +1,8 @@
 import { getModelActions } from '@/building/store'
-import { polygonEdges } from '@/construction/helpers'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import type { SnappingContext } from '@/editor/services/snapping/types'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
-import type { LineSegment2D, Vec2 } from '@/shared/geometry'
+import { type LineSegment2D, type Vec2, polygonEdges } from '@/shared/geometry'
 
 const createPolygonSegments = (points: readonly Vec2[]): LineSegment2D[] => {
   if (points.length < 2) return []

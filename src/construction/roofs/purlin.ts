@@ -2,12 +2,7 @@ import type { Roof } from '@/building/model'
 import type { PurlinRoofAssemblyConfig } from '@/construction/config'
 import { getPerimeterContextsByStorey } from '@/construction/derived/perimeterContextCache'
 import { createConstructionElement } from '@/construction/elements'
-import {
-  PolygonWithBoundingRect,
-  type StripeOrGap,
-  partitionByAlignedEdges,
-  polygonEdges
-} from '@/construction/helpers'
+import { PolygonWithBoundingRect, type StripeOrGap, partitionByAlignedEdges } from '@/construction/helpers'
 import { transformManifold } from '@/construction/manifold/operations'
 import { constructStrawPolygon } from '@/construction/materials/straw'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
@@ -74,7 +69,7 @@ import {
   unionPolygons,
   vec3To2
 } from '@/shared/geometry'
-import { intersectLineWithPolygon } from '@/shared/geometry/polygon'
+import { intersectLineWithPolygon, polygonEdges } from '@/shared/geometry/polygon'
 
 import type { PurlinRoofConfig } from './types'
 

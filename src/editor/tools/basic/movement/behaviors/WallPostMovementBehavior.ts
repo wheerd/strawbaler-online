@@ -2,13 +2,13 @@ import type { PerimeterWallWithGeometry, WallPost } from '@/building/model'
 import type { SelectableId, WallEntityId } from '@/building/model/ids'
 import { isPerimeterId, isPerimeterWallId, isWallPostId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
+import { WallPostMovementPreview } from '@/editor/tools/basic/movement/previews/WallPostMovementPreview'
 import type {
   MovementBehavior,
   MovementContext,
   MovementState,
   PointerMovementState
-} from '@/editor/tools/basic/movement/MovementBehavior'
-import { WallPostMovementPreview } from '@/editor/tools/basic/movement/previews/WallPostMovementPreview'
+} from '@/editor/tools/basic/movement/types'
 import { type Length, type Vec2, ZERO_VEC2, dotVec2, newVec2, projectVec2, scaleAddVec2 } from '@/shared/geometry'
 
 // Wall post movement needs access to the wall, wall, and post

@@ -1,13 +1,12 @@
 import type { RoofAssemblyId, RoofType } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config/store'
-import { polygonEdges } from '@/construction/helpers'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import type { SnappingContext } from '@/editor/services/snapping/types'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import { PolygonToolOverlay } from '@/editor/tools/shared/polygon/PolygonToolOverlay'
 import type { ToolImplementation } from '@/editor/tools/system/types'
-import { type Length, type Polygon2D, type Vec2, polygonIsClockwise } from '@/shared/geometry'
+import { type Length, type Polygon2D, type Vec2, polygonEdges, polygonIsClockwise } from '@/shared/geometry'
 
 import { RoofToolInspector } from './RoofToolInspector'
 

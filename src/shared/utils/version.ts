@@ -1,3 +1,14 @@
+// These variables are defined by a vite plugin
+declare global {
+  const __APP_VERSION__: string
+  const __APP_COMMIT__: string
+  const __APP_COMMIT_FULL__: string
+  const __APP_BUILD_TIME__: string
+  const __APP_BRANCH__: string
+  const __GIT_TAG__: string | null
+  const __GIT_COMMITS_SINCE_TAG__: number
+}
+
 export interface VersionInfo {
   version: string
   commit: string

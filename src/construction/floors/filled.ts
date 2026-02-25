@@ -2,7 +2,6 @@ import { createConstructionElement, createConstructionElementId } from '@/constr
 import {
   PolygonWithBoundingRect,
   partitionByAlignedEdges,
-  polygonEdges,
   polygonFromLineIntersections,
   simplePolygonFrame,
   stripesPolygons
@@ -38,6 +37,7 @@ import {
   offsetLine,
   offsetPolygon,
   perpendicular,
+  polygonEdges,
   subtractPolygons
 } from '@/shared/geometry'
 

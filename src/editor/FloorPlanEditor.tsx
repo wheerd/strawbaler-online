@@ -3,9 +3,9 @@ import { ErrorBoundary } from 'react-error-boundary'
 
 import { ConfigurationModal } from '@/construction/config/components/ConfigurationModal'
 import { type ConfigTab, ConfigurationModalContext } from '@/construction/config/context/ConfigurationModalContext'
-import { FeatureErrorFallback } from '@/shared/components/ErrorBoundary'
 import { InitialSyncOverlay } from '@/shared/components/InitialSyncOverlay'
 import { WelcomeModal } from '@/shared/components/WelcomeModal'
+import { FeatureErrorFallback } from '@/shared/components/errors/FeatureErrorFallback'
 import { useWelcomeModal } from '@/shared/hooks/useWelcomeModal'
 import { initializeCloudSync } from '@/shared/services/CloudSyncManager'
 

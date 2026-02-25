@@ -3,7 +3,6 @@ import { RefreshCw, Square, Trash, TriangleAlert } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { RoofPreview } from '@/building/components/inspectors/RoofPreview'
 import type { RoofOverhang } from '@/building/model'
 import type { RoofId } from '@/building/model/ids'
 import { useModelActions, useRoofById, useRoofOverhangsByRoof } from '@/building/store'
@@ -32,6 +31,8 @@ import {
   radiansToDegrees
 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+
+import { RoofPreview } from '../RoofPreview'
 
 interface RoofInspectorProps {
   roofId: RoofId

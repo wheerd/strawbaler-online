@@ -3,13 +3,13 @@ import { type SelectableId, isPerimeterCornerId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import { type WrappedGcs, gcsService } from '@/editor/gcs/service'
 import type { SnapResult, SnappingContext } from '@/editor/services/snapping/types'
+import { PerimeterCornerMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterCornerMovementPreview'
 import type {
   MovementBehavior,
   MovementContext,
   MovementState,
   PointerMovementState
-} from '@/editor/tools/basic/movement/MovementBehavior'
-import { PerimeterCornerMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterCornerMovementPreview'
+} from '@/editor/tools/basic/movement/types'
 import { type LineSegment2D, type Vec2, addVec2, subVec2 } from '@/shared/geometry'
 
 // Corner movement needs access to the wall to update the boundary

@@ -4,7 +4,7 @@ import { Copy, Info } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { OpeningPreview } from '@/building/components/inspectors/OpeningPreview'
+import { OpeningPreview } from '@/building/components/OpeningPreview'
 import type { OpeningAssemblyId, OpeningType } from '@/building/model'
 import { useActiveStoreyId, useModelActions, useWallOpenings } from '@/building/store'
 import { Button } from '@/components/ui/button'

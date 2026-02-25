@@ -2,10 +2,9 @@ import type { FloorArea, FloorOpening, PerimeterWithGeometry } from '@/building/
 import type { SelectableId } from '@/building/model/ids'
 import { isFloorAreaId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import { polygonEdges } from '@/construction/helpers'
 import type { SnappingContext } from '@/editor/services/snapping/types'
-import type { MovementContext } from '@/editor/tools/basic/movement/MovementBehavior'
-import { type Polygon2D, type Vec2 } from '@/shared/geometry'
+import type { MovementContext } from '@/editor/tools/basic/movement/types'
+import { type Polygon2D, type Vec2, polygonEdges } from '@/shared/geometry'
 
 import {
   type PolygonEntityContext,

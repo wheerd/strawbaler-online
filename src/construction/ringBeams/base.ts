@@ -3,7 +3,7 @@ import type { StoreyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getRoofHeightLineCached } from '@/construction/derived'
 import { createConstructionElement } from '@/construction/elements'
-import { PolygonWithBoundingRect, polygonEdges } from '@/construction/helpers'
+import { PolygonWithBoundingRect } from '@/construction/helpers'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PartInfo } from '@/construction/parts/types'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
@@ -27,6 +27,7 @@ import {
   newVec3,
   normVec3,
   offsetLine,
+  polygonEdges,
   projectPointOntoLine,
   projectVec2,
   rotate,

@@ -1,8 +1,5 @@
 import type { PathsD, PolyPathD } from 'clipper2-wasm'
 
-import { lineSegmentIntersect, polygonEdges } from '@/construction/helpers'
-import { type Vec3, eqVec3 } from '@/shared/geometry'
-
 import {
   type Vec2,
   ZERO_VEC2,
@@ -20,6 +17,7 @@ import {
   scaleAddVec2,
   subVec2
 } from './2d'
+import { type Vec3, eqVec3 } from './3d'
 import { type Area, type Length, radiansToDegrees } from './basic'
 import { Bounds2D } from './bounds'
 import { createPathD, createPathsD, createPointD, getClipperModule, pathDToPoints } from './clipperInstance'
@@ -1137,4 +1135,38 @@ export function simplifyPolygonWithHoles(polygon: PolygonWithHoles2D) {
       .map(h => simplifyPolygon(h, 0.1))
       .filter(p => p.points.length > 2 && calculatePolygonArea(p) >= 10)
   }
+}
+
+export function* polygonEdges(polygon: Polygon2D): Generator<LineSegment2D> {
+  for (let i0 = 0; i0 < polygon.points.length; i0++) {
+    const i1 = (i0 + 1) % polygon.points.length
+    yield {
+      start: polygon.points[i0],
+      end: polygon.points[i1]
+    }
+  }
+}
+
+const EPSILON = 1e-5
+
+export function lineSegmentIntersect(line: Line2D, segment: LineSegment2D): Vec2 | null {
+  const segmentLine: Line2D = {
+    point: segment.start,
+    direction: direction(segment.start, segment.end)
+  }
+
+  const intersection = lineIntersection(line, segmentLine)
+  if (!intersection) return null
+
+  // Check if intersection is actually on the segment
+  const segmentLength = distVec2(segment.start, segment.end)
+  const distFromStart = distVec2(segment.start, intersection)
+  const distFromEnd = distVec2(segment.end, intersection)
+
+  // Point is on segment if distances sum to segment length (with epsilon tolerance)
+  if (Math.abs(distFromStart + distFromEnd - segmentLength) < EPSILON) {
+    return intersection
+  }
+
+  return null
 }

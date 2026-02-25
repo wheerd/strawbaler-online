@@ -1,16 +1,14 @@
 import { TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import {
-  FloorAreaInspector,
-  FloorOpeningInspector,
-  OpeningInspector,
-  PerimeterCornerInspector,
-  PerimeterInspector,
-  PerimeterWallInspector,
-  RoofInspector,
-  RoofOverhangInspector
-} from '@/building/components/inspectors'
+import { FloorAreaInspector } from '@/building/components/inspectors/FloorAreaInspector'
+import { FloorOpeningInspector } from '@/building/components/inspectors/FloorOpeningInspector'
+import { OpeningInspector } from '@/building/components/inspectors/OpeningInspector'
+import { PerimeterCornerInspector } from '@/building/components/inspectors/PerimeterCornerInspector'
+import { PerimeterInspector } from '@/building/components/inspectors/PerimeterInspector'
+import { PerimeterWallInspector } from '@/building/components/inspectors/PerimeterWallInspector'
+import { RoofInspector } from '@/building/components/inspectors/RoofInspector'
+import { RoofOverhangInspector } from '@/building/components/inspectors/RoofOverhangInspector'
 import { StoreyInspector } from '@/building/components/inspectors/StoreyInspector'
 import { WallPostInspector } from '@/building/components/inspectors/WallPostInspector'
 import {

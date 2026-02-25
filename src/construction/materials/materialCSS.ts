@@ -44,3 +44,13 @@ export function injectMaterialCSS(materials: Material[]): void {
 export function getMaterialCSSString(materials: Material[]): string {
   return generateMaterialCSS(materials)
 }
+
+export async function setupMaterialCss() {
+  const { getAllMaterials, subscribeToMaterials } = await import('@/construction/materials/store')
+
+  injectMaterialCSS(getAllMaterials())
+
+  subscribeToMaterials(materials => {
+    injectMaterialCSS(materials)
+  })
+}

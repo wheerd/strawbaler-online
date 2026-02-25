@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom'
 import { render } from '@testing-library/react'
 
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'

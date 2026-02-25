@@ -2,13 +2,13 @@ import type { PerimeterWallWithGeometry, PerimeterWithGeometry } from '@/buildin
 import { type SelectableId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import { type WrappedGcs, gcsService } from '@/editor/gcs/service'
+import { PerimeterWallMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterWallMovementPreview'
 import type {
   MovementBehavior,
   MovementContext,
   MovementState,
   PointerMovementState
-} from '@/editor/tools/basic/movement/MovementBehavior'
-import { PerimeterWallMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterWallMovementPreview'
+} from '@/editor/tools/basic/movement/types'
 import { type Vec2, addVec2, subVec2 } from '@/shared/geometry'
 
 // Perimeter wall movement needs access to the wall to update the boundary

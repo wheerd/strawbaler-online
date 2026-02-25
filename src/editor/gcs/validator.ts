@@ -14,7 +14,6 @@ import {
   isWallPostId
 } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { polygonEdges } from '@/construction/helpers'
 import {
   nodeNonRefSidePointForNextWall,
   nodeNonRefSidePointForPrevWall,
@@ -31,6 +30,7 @@ import {
   distVec2,
   newVec2,
   perpendicular,
+  polygonEdges,
   projectVec2,
   segmentsIntersect,
   wouldClosingPolygonSelfIntersect

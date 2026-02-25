@@ -1,19 +1,18 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react'
+import React, { Suspense, lazy, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { FullScreenModal } from '@/components/ui/full-screen-modal'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
-import { ConstructionModelRegenerateButton } from '@/construction/components/ConstructionModelRegenerateButton'
-import type { ConstructionModel } from '@/construction/model'
-import { type ConstructionModelId, useConstructionModel } from '@/construction/store'
+import { type ConstructionModelId } from '@/construction/store'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
 import { TagOpacityProvider } from './context/TagOpacityContext'
-import { acquireGeometryCache, prewarmGeometryCache, releaseGeometryCache } from './utils/geometryCache'
-import { acquireMaterialCache, releaseMaterialCache } from './utils/materialCache'
 
-const ConstructionViewer3D = lazy(() => import('./ConstructionViewer3D'))
+const ConstructionModelRegenerateButton = lazy(
+  () => import('@/construction/components/ConstructionModelRegenerateButton')
+)
+const ConstructionViewer3DContent = lazy(() => import('./ConstructionViewer3DContent'))
 
 export interface ConstructionViewer3DModalProps {
   modelId: ConstructionModelId
@@ -74,94 +73,12 @@ export function ConstructionViewer3DModal({ modelId, trigger }: ConstructionView
           </Suspense>
 
           <div className="absolute right-3 bottom-3 z-10 p-0">
-            <ConstructionModelRegenerateButton compact />
+            <Suspense>
+              <ConstructionModelRegenerateButton compact />
+            </Suspense>
           </div>
         </div>
       </div>
     </FullScreenModal>
   )
-}
-
-function ConstructionViewer3DContent({
-  modelId,
-  containerSize,
-  isOpen
-}: {
-  modelId: ConstructionModelId
-  containerSize: { width: number; height: number }
-  isOpen: boolean
-}) {
-  const constructionModel = useConstructionModel(modelId)
-  const geometryReady = useGeometryPrewarm(constructionModel)
-  const shouldRenderCanvas = useDeferredCanvasMount(
-    isOpen && geometryReady && containerSize.width > 0 && containerSize.height > 0
-  )
-
-  useEffect(() => {
-    if (!shouldRenderCanvas) {
-      return
-    }
-
-    acquireGeometryCache()
-    acquireMaterialCache()
-
-    return () => {
-      releaseMaterialCache()
-      releaseGeometryCache()
-    }
-  }, [shouldRenderCanvas])
-
-  if (!constructionModel || !shouldRenderCanvas) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    )
-  }
-
-  return <ConstructionViewer3D model={constructionModel} containerSize={containerSize} />
-}
-
-function useDeferredCanvasMount(isEnabled: boolean): boolean {
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    if (!isEnabled) {
-      setReady(false)
-      return
-    }
-
-    let cancelled = false
-    let frameId: number | null = requestAnimationFrame(() => {
-      if (!cancelled) {
-        setReady(true)
-      }
-    })
-
-    return () => {
-      cancelled = true
-      if (frameId !== null) {
-        cancelAnimationFrame(frameId)
-        frameId = null
-      }
-    }
-  }, [isEnabled])
-
-  return ready
-}
-
-function useGeometryPrewarm(model: ConstructionModel | null): boolean {
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    if (!model) {
-      setReady(false)
-      return
-    }
-
-    prewarmGeometryCache(model)
-    setReady(true)
-  }, [model])
-
-  return ready
 }

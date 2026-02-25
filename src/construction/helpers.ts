@@ -22,6 +22,7 @@ import {
   fromTrans,
   intersectPolygon,
   lineIntersection,
+  lineSegmentIntersect,
   newVec2,
   normVec2,
   offsetPolygon,
@@ -657,32 +658,6 @@ export function* simpleStripes(
   }
 }
 
-export function* tiledRectPolygons(
-  basePoint: Vec2,
-  direction: Vec2,
-  dirExtent: Length,
-  dirStep: Length,
-  perpDir: Vec2,
-  perpExtent: Length,
-  perpStep: Length,
-  clipPolygon: PolygonWithHoles2D
-): Generator<PolygonWithHoles2D> {
-  for (let offsetDir = 0; offsetDir < dirExtent; offsetDir += dirStep) {
-    const clippedLengthDir = Math.min(dirStep, dirExtent - offsetDir)
-    const base = scaleAddVec2(basePoint, direction, offsetDir)
-    for (let offsetPerp = 0; offsetPerp < perpExtent; offsetPerp += perpStep) {
-      const clippedLengthPerp = Math.min(perpStep, perpExtent - offsetPerp)
-      const p1 = scaleAddVec2(base, perpDir, offsetPerp)
-      const p2 = scaleAddVec2(p1, perpDir, clippedLengthPerp)
-      const p3 = scaleAddVec2(p2, direction, clippedLengthDir)
-      const p4 = scaleAddVec2(p1, direction, clippedLengthDir)
-
-      const rectPolygon: Polygon2D = { points: [p1, p2, p3, p4] }
-      yield* intersectPolygon(clipPolygon, { outer: rectPolygon, holes: [] })
-    }
-  }
-}
-
 export function* simplePolygonFrame(
   polygon: Polygon2D,
   thickness: Length,
@@ -746,39 +721,7 @@ export function closestPoint(reference: Vec2, points: Vec2[]): Vec2 {
   return copyVec2(closest)
 }
 
-export function* polygonEdges(polygon: Polygon2D): Generator<LineSegment2D> {
-  for (let i0 = 0; i0 < polygon.points.length; i0++) {
-    const i1 = (i0 + 1) % polygon.points.length
-    yield {
-      start: polygon.points[i0],
-      end: polygon.points[i1]
-    }
-  }
-}
-
 const EPSILON = 1e-5
-
-export function lineSegmentIntersect(line: Line2D, segment: LineSegment2D): Vec2 | null {
-  const segmentLine: Line2D = {
-    point: segment.start,
-    direction: direction(segment.start, segment.end)
-  }
-
-  const intersection = lineIntersection(line, segmentLine)
-  if (!intersection) return null
-
-  // Check if intersection is actually on the segment
-  const segmentLength = distVec2(segment.start, segment.end)
-  const distFromStart = distVec2(segment.start, intersection)
-  const distFromEnd = distVec2(segment.end, intersection)
-
-  // Point is on segment if distances sum to segment length (with epsilon tolerance)
-  if (Math.abs(distFromStart + distFromEnd - segmentLength) < EPSILON) {
-    return intersection
-  }
-
-  return null
-}
 
 export function splitPolygonAtIndices(
   polygon: Polygon2D,

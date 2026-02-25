@@ -1,7 +1,6 @@
 import type { PerimeterWithGeometry } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { getPerimeterContextCached } from '@/construction/derived'
-import { polygonEdges } from '@/construction/helpers'
 import type { RawMeasurement } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
 import { getWallStoreyContextCached } from '@/construction/storeys/context'
@@ -11,7 +10,15 @@ import {
   TAG_WALL_LENGTH_INSIDE,
   TAG_WALL_LENGTH_OUTSIDE
 } from '@/construction/tags'
-import { Bounds3D, direction, newVec3, perpendicularCCW, perpendicularCW, scaleAddVec2 } from '@/shared/geometry'
+import {
+  Bounds3D,
+  direction,
+  newVec3,
+  perpendicularCCW,
+  perpendicularCW,
+  polygonEdges,
+  scaleAddVec2
+} from '@/shared/geometry'
 
 export function createPerimeterMeasurementsModel(perimeter: PerimeterWithGeometry): ConstructionModel {
   const { getPerimeterWallById, getPerimeterCornerById } = getModelActions()

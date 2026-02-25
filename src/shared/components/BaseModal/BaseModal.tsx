@@ -4,7 +4,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import { FeatureErrorFallback } from '@/shared/components/ErrorBoundary'
+import { FeatureErrorFallback } from '@/shared/components/errors/FeatureErrorFallback'
 
 export interface BaseModalProps {
   open?: boolean

@@ -1,7 +1,7 @@
-import { RectIcon } from '@/editor/tools/perimeter/preset/presets/Icons'
-import { RectangularPresetDialog } from '@/editor/tools/perimeter/preset/presets/RectangularPresetDialog'
 import { type Vec2, newVec2 } from '@/shared/geometry'
 
+import { RectIcon } from './Icons'
+import { RectangularPresetDialog } from './RectangularPresetDialog'
 import type { PerimeterPreset, RectangularPresetConfig } from './types'
 
 /**

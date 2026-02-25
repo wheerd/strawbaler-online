@@ -1,10 +1,5 @@
 import { createConstructionElement, createConstructionElementId } from '@/construction/elements'
-import {
-  PolygonWithBoundingRect,
-  partitionByAlignedEdges,
-  polygonEdges,
-  simplePolygonFrame
-} from '@/construction/helpers'
+import { PolygonWithBoundingRect, partitionByAlignedEdges, simplePolygonFrame } from '@/construction/helpers'
 import { type ConstructionModel } from '@/construction/model'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import { type ConstructionResult, aggregateResults } from '@/construction/results'
@@ -26,6 +21,7 @@ import {
   offsetPolygon,
   perpendicular,
   perpendicularCW,
+  polygonEdges,
   subtractPolygons
 } from '@/shared/geometry'
 

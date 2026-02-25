@@ -1,11 +1,11 @@
 import type { OpeningAssemblyId } from '@/building/model'
 import { getConfigActions } from '@/construction/config/store'
-import { EmptyOpeningAssembly } from '@/construction/openings/empty'
-import { PlankedOpeningAssembly } from '@/construction/openings/planked'
-import { PostOpeningAssembly } from '@/construction/openings/post'
-import { SimpleOpeningAssembly } from '@/construction/openings/simple'
-import { ThresholdOpeningAssembly } from '@/construction/openings/threshold'
 
+import { EmptyOpeningAssembly } from './empty'
+import { PlankedOpeningAssembly } from './planked'
+import { PostOpeningAssembly } from './post'
+import { SimpleOpeningAssembly } from './simple'
+import { ThresholdOpeningAssembly } from './threshold'
 import type { OpeningAssembly, OpeningConfig } from './types'
 
 /**

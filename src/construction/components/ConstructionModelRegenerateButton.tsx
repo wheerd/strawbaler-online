@@ -7,7 +7,11 @@ import { Spinner } from '@/components/ui/spinner'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useConstructionActions, useHasConstructionModel, useIsConstructionOutdated } from '@/construction/store'
 
-export function ConstructionModelRegenerateButton({ compact }: { compact?: boolean }): React.JSX.Element | null {
+export default function ConstructionModelRegenerateButton({
+  compact
+}: {
+  compact?: boolean
+}): React.JSX.Element | null {
   const { t } = useTranslation('construction')
   const hasModel = useHasConstructionModel()
   const { rebuildModel } = useConstructionActions()

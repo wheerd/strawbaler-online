@@ -1,6 +1,5 @@
-import { type Vec3, newVec3 } from '@/shared/geometry'
-
 import { type Vec2 } from './2d'
+import { type Vec3, newVec3 } from './3d'
 
 export type Length = number
 export type Area = number

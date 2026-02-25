@@ -10,8 +10,8 @@ import { type Length, type Vec2, ZERO_VEC2, distSqrVec2, normVec2, scaleVec2, su
 
 import { MoveToolInspector } from './MoveToolInspector'
 import { MoveToolOverlay } from './MoveToolOverlay'
-import type { MovementBehavior, MovementContext, MovementState, PointerMovementState } from './MovementBehavior'
 import { getMovementBehavior } from './movementBehaviors'
+import type { MovementBehavior, MovementContext, MovementState, PointerMovementState } from './types'
 
 interface LastMovementRecord {
   behavior: MovementBehavior<unknown, MovementState>

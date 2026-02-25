@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { useIsAuthenticated } from '@/app/user/store'
+import { getModelActions } from '@/building/store'
 import { usePersistenceStore } from '@/building/store/persistenceStore'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,7 +20,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ConstructionModel } from '@/construction/model'
 import { clearSelection } from '@/editor/hooks/useSelectionStore'
-import { pushTool } from '@/editor/tools/system'
+import { viewportActions } from '@/editor/hooks/useViewportStore'
 import { cn } from '@/lib/utils'
 import { useProjectName } from '@/projects/store'
 import { SaveIcon } from '@/shared/components/Icons'
@@ -132,7 +133,8 @@ export function ProjectMenu(): React.JSX.Element {
       toast.success(t($ => $.projectMenu.createSuccess))
     }
 
-    pushTool('basic.fit-to-view')
+    const { getBounds, getActiveStoreyId } = getModelActions()
+    viewportActions().fitToView(getBounds(getActiveStoreyId()))
   }
 
   const performIfcImport = async (content: ArrayBuffer, choice: 'current' | 'new', projectName?: string) => {
@@ -152,7 +154,8 @@ export function ProjectMenu(): React.JSX.Element {
       toast.success(t($ => $.projectMenu.createSuccess))
     }
 
-    pushTool('basic.fit-to-view')
+    const { getBounds, getActiveStoreyId } = getModelActions()
+    viewportActions().fitToView(getBounds(getActiveStoreyId()))
   }
 
   const handleImport = async () => {

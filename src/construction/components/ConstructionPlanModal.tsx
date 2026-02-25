@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { lazy, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { FullScreenModal } from '@/components/ui/full-screen-modal'
@@ -14,10 +14,13 @@ import { type ConstructionModelId, useConstructionModel } from '@/construction/s
 import type { TagOrCategory } from '@/construction/tags'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
 
-import { ConstructionModelRegenerateButton } from './ConstructionModelRegenerateButton'
 import { ConstructionPlan, type ViewOption } from './plan/ConstructionPlan'
 import { PlanHighlightProvider, usePlanHighlight } from './plan/PlanHighlightContext'
 import { TagVisibilityProvider } from './plan/TagVisibilityContext'
+
+const ConstructionModelRegenerateButton = lazy(
+  () => import('@/construction/components/ConstructionModelRegenerateButton')
+)
 
 export interface ConstructionModalProps {
   title: string

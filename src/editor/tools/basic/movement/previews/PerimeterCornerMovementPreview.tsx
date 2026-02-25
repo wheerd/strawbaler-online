@@ -1,10 +1,10 @@
 import React from 'react'
 
-import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/MovementBehavior'
 import type {
   CornerEntityContext,
   CornerMovementState
 } from '@/editor/tools/basic/movement/behaviors/PerimeterCornerMovementBehavior'
+import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/types'
 import { SnappingLines } from '@/editor/utils/SnappingLines'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 

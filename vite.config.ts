@@ -92,41 +92,57 @@ export default defineConfig({
     manifest: 'manifest.json',
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunk for React and related libraries
-          'vendor-react': ['react', 'react-dom', 'react/jsx-runtime'],
+        manualChunks(id) {
+          if (!id.includes('node_modules/')) {
+            return undefined
+          }
 
-          // State management chunk
-          'vendor-store': ['zustand', 'zundo'],
+          if (
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/react/jsx-runtime') ||
+            id.includes('node_modules/scheduler/') ||
+            id.includes('node_modules/react-router-dom/') ||
+            id.includes('node_modules/@remix-run/')
+          ) {
+            return 'vendor-react'
+          }
 
-          // Radix UI chunk
-          'vendor-radix': [
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-hover-card',
-            '@radix-ui/react-label',
-            '@radix-ui/react-select',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toggle-group',
-            '@radix-ui/react-toolbar',
-            '@radix-ui/react-tooltip'
-          ],
+          if (
+            id.includes('/three/') ||
+            id.includes('/three-') ||
+            id.includes('/@react-three/') ||
+            id.includes('/troika-') ||
+            id.includes('/camera-controls') ||
+            id.includes('/maath') ||
+            id.includes('/meshline') ||
+            id.includes('/stats-gl') ||
+            id.includes('/detect-gpu')
+          ) {
+            return 'vendor-three'
+          }
 
-          // Geometry utilities chunk (Clipper + vector math)
-          'vendor-geometry': ['clipper2-wasm', 'gl-matrix'],
+          if (id.includes('node_modules/@radix-ui/')) {
+            return 'vendor-radix'
+          }
 
-          // Three.js chunk (lazy loaded for 3D viewer)
-          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
+          if (id.includes('node_modules/zustand/') || id.includes('node_modules/zundo/')) {
+            return 'vendor-store'
+          }
 
-          'vendor-manifold': ['manifold-3d'],
+          if (id.includes('node_modules/clipper2-wasm/') || id.includes('node_modules/gl-matrix/')) {
+            return 'vendor-geometry'
+          }
 
-          // IFC
-          'vendor-ifc': ['web-ifc']
+          if (id.includes('node_modules/manifold-3d/')) {
+            return 'vendor-manifold'
+          }
+
+          if (id.includes('node_modules/web-ifc/')) {
+            return 'vendor-ifc'
+          }
+
+          return 'vendor'
         }
       }
     },

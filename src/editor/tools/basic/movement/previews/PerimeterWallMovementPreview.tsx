@@ -1,10 +1,10 @@
 import React from 'react'
 
-import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/MovementBehavior'
 import type {
   PerimeterWallEntityContext,
   PerimeterWallMovementState
 } from '@/editor/tools/basic/movement/behaviors/PerimeterWallMovementBehavior'
+import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/types'
 import { addVec2, midpoint } from '@/shared/geometry'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 

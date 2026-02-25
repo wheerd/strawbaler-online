@@ -3,7 +3,7 @@ import { Info } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { RoofPreview } from '@/building/components/inspectors/RoofPreview'
+import { RoofPreview } from '@/building/components/RoofPreview'
 import type { RoofType } from '@/building/model'
 import { Button } from '@/components/ui/button'
 import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'

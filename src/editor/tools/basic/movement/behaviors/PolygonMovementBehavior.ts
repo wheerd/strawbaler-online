@@ -1,13 +1,13 @@
 import type { SelectableId } from '@/building/model'
 import type { StoreActions } from '@/building/store'
 import type { SnapResult, SnappingContext } from '@/editor/services/snapping/types'
+import { PolygonMovementPreview } from '@/editor/tools/basic/movement/previews/PolygonMovementPreview'
 import type {
   MovementBehavior,
   MovementContext,
   MovementState,
   PointerMovementState
-} from '@/editor/tools/basic/movement/MovementBehavior'
-import { PolygonMovementPreview } from '@/editor/tools/basic/movement/previews/PolygonMovementPreview'
+} from '@/editor/tools/basic/movement/types'
 import { type Vec2, addVec2, copyVec2, distSqrVec2, subVec2 } from '@/shared/geometry'
 
 export interface PolygonEntityContext {

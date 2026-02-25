@@ -3,7 +3,7 @@ import type { SelectableId } from '@/building/model/ids'
 import { isPerimeterId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import type { SnappingContext } from '@/editor/services/snapping/types'
-import type { MovementContext } from '@/editor/tools/basic/movement/MovementBehavior'
+import type { MovementContext } from '@/editor/tools/basic/movement/types'
 import { type Vec2 } from '@/shared/geometry'
 import { arePolygonsIntersecting } from '@/shared/geometry/polygon'
 

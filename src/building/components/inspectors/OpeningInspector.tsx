@@ -30,7 +30,7 @@ import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/components/OpeningIc
 import { Bounds2D, type Polygon2D, addVec2, offsetPolygon, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 
-import { OpeningPreview } from './OpeningPreview'
+import { OpeningPreview } from '../OpeningPreview'
 
 export function OpeningInspector({ openingId }: { openingId: OpeningId }): React.JSX.Element {
   const { t } = useTranslation('inspector')
