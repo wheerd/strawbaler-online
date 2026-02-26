@@ -10,7 +10,7 @@ import type {
   ParsedIfcModel
 } from '@/importers/ifc/types'
 import { type Polygon2D, copyVec2 } from '@/shared/geometry'
-import { ensureClipperModule } from '@/shared/geometry/clipperInstance'
+import { ensureClipperModule } from '@/shared/geometry/polygon/clipperInstance'
 
 export interface IfcImportResult {
   success: boolean

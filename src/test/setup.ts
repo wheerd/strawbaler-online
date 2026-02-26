@@ -22,7 +22,7 @@ vi.mock('@/shared/utils/version', () => ({
   }
 }))
 
-vi.mock('@/shared/geometry/clipperInstance', () => {
+vi.mock('@/shared/geometry/polygon/clipperInstance', () => {
   interface ClipperPoint {
     x: number
     y: number

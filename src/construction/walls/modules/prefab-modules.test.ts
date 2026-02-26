@@ -10,7 +10,7 @@ import { getMaterialsActions } from '@/construction/materials/store'
 import { aggregateResults } from '@/construction/results'
 import type { PrefabModulesWallConfig } from '@/construction/walls'
 import { newVec2, newVec3 } from '@/shared/geometry'
-import { ensureClipperModule } from '@/shared/geometry/clipperInstance'
+import { ensureClipperModule } from '@/shared/geometry/polygon/clipperInstance'
 
 import { PrefabModulesWallAssembly } from './prefab-modules'
 
@@ -18,7 +18,7 @@ vi.mock('@/construction/materials/store', () => ({
   getMaterialsActions: vi.fn()
 }))
 
-vi.unmock('@/shared/geometry/clipperInstance')
+vi.unmock('@/shared/geometry/polygon/clipperInstance')
 
 function resolveBundledAssetPath(assetUrl: string): string {
   const normalized = assetUrl.startsWith('/') ? assetUrl.slice(1) : assetUrl

@@ -6,9 +6,9 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { Storey } from '@/building/model'
 import { clearPersistence, getModelActions } from '@/building/store'
 import { importIfcIntoModel } from '@/importers/ifc/importService'
-import { ensureClipperModule } from '@/shared/geometry/clipperInstance'
+import { ensureClipperModule } from '@/shared/geometry/polygon/clipperInstance'
 
-vi.unmock('@/shared/geometry/clipperInstance')
+vi.unmock('@/shared/geometry/polygon/clipperInstance')
 
 const IFC_SAMPLE_PATH = path.resolve(process.cwd(), 'src', 'test', 'strawbaler-export.ifc')
 

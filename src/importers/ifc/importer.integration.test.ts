@@ -23,11 +23,11 @@ import {
   scaleVec2,
   subVec2
 } from '@/shared/geometry'
-import { ensureClipperModule } from '@/shared/geometry/clipperInstance'
+import { ensureClipperModule } from '@/shared/geometry/polygon/clipperInstance'
 
 const ROUNDING_PRECISION = 4
 
-vi.unmock('@/shared/geometry/clipperInstance')
+vi.unmock('@/shared/geometry/polygon/clipperInstance')
 
 const testFiles = [
   {

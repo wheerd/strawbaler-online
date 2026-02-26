@@ -4,10 +4,13 @@ import path from 'node:path'
 import { describe, expect, vi } from 'vitest'
 
 import { ZERO_VEC2, newVec2, normVec2 } from '@/shared/geometry/2d'
-import { ensureClipperModule } from '@/shared/geometry/clipperInstance'
-import { type Polygon2D, calculatePolygonArea, splitPolygonByLine } from '@/shared/geometry/polygon'
 
-vi.unmock('@/shared/geometry/clipperInstance')
+import { calculatePolygonArea } from './basic'
+import { ensureClipperModule } from './clipperInstance'
+import { splitPolygonByLine } from './split'
+import type { Polygon2D } from './types'
+
+vi.unmock('./clipperInstance')
 
 describe('splitPolygonByLine', () => {
   beforeAll(async () => {
