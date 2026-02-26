@@ -1,4 +1,3 @@
-import { render } from '@testing-library/react'
 import { beforeEach, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
@@ -6,6 +5,7 @@ import type { SnapResult } from '@/editor/services/snapping/types'
 import { PerimeterTool } from '@/editor/tools/perimeter/add/PerimeterTool'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
+import { renderSvg } from '@/test/helpers'
 
 import { PolygonToolOverlay } from './PolygonToolOverlay'
 
@@ -60,7 +60,7 @@ describe('PolygonToolOverlay', () => {
     it('renders only snap point when no polygon points exist', () => {
       mockTool.state.pointer = newVec2(100, 200)
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -71,7 +71,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.points = [newVec2(100, 100)]
       mockTool.state.pointer = newVec2(200, 200)
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -81,7 +81,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.pointer = newVec2(150, 150)
       mockTool.state.isCurrentSegmentValid = true
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -91,7 +91,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.pointer = newVec2(150, 150)
       mockTool.state.isCurrentSegmentValid = false
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -102,7 +102,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.points = [newVec2(100, 100), newVec2(200, 100), newVec2(200, 200)]
       mockTool.state.pointer = newVec2(100, 200)
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -111,7 +111,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.points = [newVec2(0, 0), newVec2(100, 0), newVec2(100, 100), newVec2(0, 100)]
       mockTool.state.pointer = newVec2(50, 50)
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -126,7 +126,7 @@ describe('PolygonToolOverlay', () => {
       vi.spyOn(mockTool, 'isSnappingToFirstPoint').mockReturnValue(true)
       mockTool.state.isClosingSegmentValid = true
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -135,7 +135,7 @@ describe('PolygonToolOverlay', () => {
       vi.spyOn(mockTool, 'isSnappingToFirstPoint').mockReturnValue(true)
       mockTool.state.isClosingSegmentValid = false
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -144,7 +144,7 @@ describe('PolygonToolOverlay', () => {
       vi.spyOn(mockTool, 'isSnappingToFirstPoint').mockReturnValue(false)
       mockTool.state.pointer = newVec2(300, 300)
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -160,7 +160,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.pointer = newVec2(120, 120)
       mockTool.state.snapResult = snapResult
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -184,7 +184,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.pointer = newVec2(145, 145)
       mockTool.state.snapResult = snapResult
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -197,7 +197,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.points = [newVec2(100, 100), newVec2(200, 100)]
       mockTool.state.pointer = newVec2(200, 200)
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -208,7 +208,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.points = [newVec2(100, 100), newVec2(200, 100)]
       mockTool.state.pointer = newVec2(200, 200)
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -230,7 +230,7 @@ describe('PolygonToolOverlay', () => {
 
       mockTool.state.snapResult = snapResult
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -241,7 +241,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.points = []
       mockTool.state.pointer = ZERO_VEC2
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })
@@ -250,7 +250,7 @@ describe('PolygonToolOverlay', () => {
       mockTool.state.points = [newVec2(0, 0), newVec2(100, 100)]
       mockTool.state.pointer = newVec2(200, 0)
 
-      const { container } = render(<PolygonToolOverlay tool={mockTool} />)
+      const { container } = renderSvg(<PolygonToolOverlay tool={mockTool} />)
 
       expect(container).toMatchSnapshot()
     })

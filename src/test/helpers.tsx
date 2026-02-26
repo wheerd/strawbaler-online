@@ -1,3 +1,5 @@
+import { type RenderResult, render } from '@testing-library/react'
+import React from 'react'
 import type { Mocked } from 'vitest'
 
 type Procedure = (...args: any[]) => any
@@ -25,4 +27,8 @@ export function partial<T>(partial: PartialDeep<T>): T {
 }
 export function partialMock<T>(partial: PartialDeep<T>): Mocked<T> {
   return partial as Mocked<T>
+}
+
+export function renderSvg(ui: React.ReactElement): RenderResult {
+  return render(<svg>{ui}</svg>)
 }

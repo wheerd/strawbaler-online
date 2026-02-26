@@ -1,7 +1,7 @@
-import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
+import { renderSvg } from '@/test/helpers'
 
 import { ClickableLengthIndicator } from './ClickableLengthIndicator'
 
@@ -9,7 +9,7 @@ describe('ClickableLengthIndicator', () => {
   const mockOnClick = vi.fn()
 
   it('should render without crashing', () => {
-    const { container } = render(
+    const { container } = renderSvg(
       <ClickableLengthIndicator startPoint={ZERO_VEC2} endPoint={newVec2(100, 0)} onClick={mockOnClick} />
     )
 
@@ -17,7 +17,7 @@ describe('ClickableLengthIndicator', () => {
   })
 
   it('should render with custom label', () => {
-    const { container } = render(
+    const { container } = renderSvg(
       <ClickableLengthIndicator
         startPoint={ZERO_VEC2}
         endPoint={newVec2(100, 0)}
@@ -30,7 +30,7 @@ describe('ClickableLengthIndicator', () => {
   })
 
   it('should handle zero-length measurement', () => {
-    const { container } = render(
+    const { container } = renderSvg(
       <ClickableLengthIndicator startPoint={ZERO_VEC2} endPoint={ZERO_VEC2} onClick={mockOnClick} />
     )
 
@@ -38,7 +38,7 @@ describe('ClickableLengthIndicator', () => {
   })
 
   it('should apply visual styling props', () => {
-    const { container } = render(
+    const { container } = renderSvg(
       <ClickableLengthIndicator
         startPoint={ZERO_VEC2}
         endPoint={newVec2(100, 0)}

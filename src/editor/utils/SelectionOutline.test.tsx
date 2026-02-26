@@ -1,7 +1,7 @@
-import { render } from '@testing-library/react'
 import { vi } from 'vitest'
 
 import { newVec2, offsetPolygon } from '@/shared/geometry'
+import { renderSvg } from '@/test/helpers'
 
 import { SelectionOutline } from './SelectionOutline'
 
@@ -30,7 +30,7 @@ describe('SelectionOutline', () => {
     const points = [newVec2(0, 0), newVec2(100, 0), newVec2(100, 100), newVec2(0, 100)]
 
     expect(() => {
-      render(<SelectionOutline points={points} />)
+      renderSvg(<SelectionOutline points={points} />)
     }).not.toThrow()
   })
 
@@ -40,7 +40,7 @@ describe('SelectionOutline', () => {
     const points = [newVec2(0, 0), newVec2(100, 0), newVec2(100, 100), newVec2(0, 100)]
 
     expect(() => {
-      render(<SelectionOutline points={points} />)
+      renderSvg(<SelectionOutline points={points} />)
     }).not.toThrow()
 
     expect(mockUseZoom).toHaveBeenCalled()
@@ -50,7 +50,7 @@ describe('SelectionOutline', () => {
     const points = [newVec2(0, 0), newVec2(100, 0), newVec2(100, 100), newVec2(0, 100)]
 
     expect(() => {
-      render(<SelectionOutline points={points} />)
+      renderSvg(<SelectionOutline points={points} />)
     }).not.toThrow()
   })
 })
