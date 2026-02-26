@@ -1,14 +1,14 @@
 import { render } from '@testing-library/react'
-import { vi } from 'vitest'
+import { beforeEach, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
 import type { SnapResult } from '@/editor/services/snapping/types'
 import { PerimeterTool } from '@/editor/tools/perimeter/add/PerimeterTool'
+import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { PolygonToolOverlay } from './PolygonToolOverlay'
 
-// Mock the viewport store
 const mockUseZoom = vi.fn()
 const mockUseStageWidth = vi.fn()
 const mockUseStageHeight = vi.fn()
@@ -21,13 +21,15 @@ vi.mock('@/editor/hooks/useViewportStore', () => ({
 
 describe('PolygonToolOverlay', () => {
   let mockTool: PerimeterTool
+  let toolSystem: ToolSystem
 
   beforeEach(() => {
     mockUseZoom.mockReturnValue(1.0)
     mockUseStageWidth.mockReturnValue(800)
     mockUseStageHeight.mockReturnValue(600)
 
-    mockTool = new PerimeterTool()
+    toolSystem = new ToolSystem()
+    mockTool = new PerimeterTool(toolSystem)
 
     // Reset tool state
     mockTool.state = {

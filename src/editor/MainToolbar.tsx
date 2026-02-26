@@ -13,8 +13,9 @@ import TopDownPlanModal from '@/construction/components/TopDownPlanModal'
 import { ConstructionPartsListModal } from '@/construction/components/parts/ConstructionPartsListModal'
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
+import { useToolSystem } from '@/editor/tools/system/ToolSystemContext'
+import { useActiveToolId } from '@/editor/tools/system/hooks/useToolState'
 import { TOOL_GROUPS, getToolInfoById } from '@/editor/tools/system/metadata'
-import { pushTool, useActiveToolId } from '@/editor/tools/system/store'
 import type { ToolId } from '@/editor/tools/system/types'
 import { ProjectMenu } from '@/projects/components'
 import { ConstructionPlanIcon, Model3DIcon } from '@/shared/components/Icons'
@@ -28,13 +29,17 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
   const { t } = useTranslation('toolbar')
   const activeToolId = useActiveToolId()
   const { openConfiguration } = useConfigurationModal()
+  const toolSystem = useToolSystem()
 
   const activeStoreyId = useActiveStoreyId()
   const activeStorey = useModelActions().getStoreyById(activeStoreyId)
 
-  const handleToolSelect = useCallback((toolId: ToolId) => {
-    pushTool(toolId)
-  }, [])
+  const handleToolSelect = useCallback(
+    (toolId: ToolId) => {
+      toolSystem.pushTool(toolId)
+    },
+    [toolSystem]
+  )
 
   return (
     <div className="border-border flex items-center gap-4 border-b p-2" data-testid="main-toolbar">

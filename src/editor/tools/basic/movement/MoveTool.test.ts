@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
 import { MoveTool } from './MoveTool'
@@ -8,7 +9,8 @@ describe('MoveTool', () => {
   const createMockKeydownEvent = (key: string) => new KeyboardEvent('keydown', { key })
 
   it('should handle escape key to cancel movement when waiting for movement', () => {
-    const tool = new MoveTool()
+    const toolSystem = new ToolSystem()
+    const tool = new MoveTool(toolSystem)
     const mockTriggerRender = vi.spyOn(tool as any, 'triggerRender')
 
     // Manually set tool state to waiting for movement (simulating pointerdown)
@@ -28,7 +30,8 @@ describe('MoveTool', () => {
   })
 
   it('should handle escape key to cancel movement when actively moving', () => {
-    const tool = new MoveTool()
+    const toolSystem = new ToolSystem()
+    const tool = new MoveTool(toolSystem)
     const mockTriggerRender = vi.spyOn(tool as any, 'triggerRender')
 
     // Manually set tool state to moving (simulating active movement)
@@ -59,7 +62,8 @@ describe('MoveTool', () => {
   })
 
   it('should not handle escape key when not moving', () => {
-    const tool = new MoveTool()
+    const toolSystem = new ToolSystem()
+    const tool = new MoveTool(toolSystem)
     const mockTriggerRender = vi.spyOn(tool as any, 'triggerRender')
 
     // Press escape key without any movement state
@@ -72,7 +76,8 @@ describe('MoveTool', () => {
   })
 
   it('should not handle non-escape keys', () => {
-    const tool = new MoveTool()
+    const toolSystem = new ToolSystem()
+    const tool = new MoveTool(toolSystem)
 
     // Manually set tool state to moving
     ;(tool as any).toolState.isMoving = true
@@ -83,6 +88,6 @@ describe('MoveTool', () => {
 
     // Verify other keys are not handled
     expect(handled).toBe(false)
-    expect((tool as any).toolState.isMoving).toBe(true) // State should remain unchanged
+    expect((tool as any).toolState.isMoving).toBe(true)
   })
 })

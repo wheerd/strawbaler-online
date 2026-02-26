@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { FloorArea, FloorOpening, Perimeter, PerimeterWithGeometry } from '@/building/model'
+import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { type Vec2, newVec2 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 
@@ -29,7 +30,8 @@ describe('FloorAreaTool', () => {
   })
 
   it('calls addFloorArea when polygon is completed', () => {
-    const tool = new FloorAreaTool()
+    const toolSystem = new ToolSystem()
+    const tool = new FloorAreaTool(toolSystem)
     const points = [newVec2(0, 0), newVec2(100, 0), newVec2(100, 100)]
     tool.state.points = points
     tool.state.isClosingSegmentValid = true
@@ -58,7 +60,8 @@ describe('FloorAreaTool', () => {
     mockModelActions.getFloorAreasByStorey.mockReturnValue([floorArea])
     mockModelActions.getFloorOpeningsByStorey.mockReturnValue([floorOpening])
 
-    const tool = new FloorAreaTool()
+    const toolSystem = new ToolSystem()
+    const tool = new FloorAreaTool(toolSystem)
     const baseContext = {
       snapPoints: [] as Vec2[],
       alignPoints: [] as Vec2[],

@@ -19,7 +19,7 @@ import { resolveWallAssembly } from '@/construction/walls'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
-import { pushTool } from '@/editor/tools/system/store'
+import { useToolSystem } from '@/editor/tools/system/ToolSystemContext'
 import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon } from '@/shared/components/Icons'
 import { LengthField } from '@/shared/components/LengthField'
 import { Bounds2D } from '@/shared/geometry'
@@ -28,6 +28,7 @@ import { useFormatters } from '@/shared/i18n/useFormatters'
 export function PerimeterWallInspector({ wallId }: { wallId: PerimeterWallId }): React.JSX.Element {
   const { t } = useTranslation('inspector')
   const { formatLength } = useFormatters()
+  const toolSystem = useToolSystem()
   const {
     updatePerimeterWallThickness: updateOuterWallThickness,
     updatePerimeterWallAssembly: updateOuterWallAssembly,
@@ -266,7 +267,7 @@ export function PerimeterWallInspector({ wallId }: { wallId: PerimeterWallId }):
             size="icon"
             title={t($ => $.perimeterWall.splitWall)}
             onClick={() => {
-              pushTool('perimeter.split-wall')
+              toolSystem.pushTool('perimeter.split-wall')
             }}
           >
             <SplitWallIcon width={20} height={20} />

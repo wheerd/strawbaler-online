@@ -5,6 +5,7 @@ import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import type { SnappingContext } from '@/editor/services/snapping/types'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import { PolygonToolOverlay } from '@/editor/tools/shared/polygon/PolygonToolOverlay'
+import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { ToolImplementation } from '@/editor/tools/system/types'
 import { type Length, type Polygon2D, type Vec2, polygonEdges, polygonIsClockwise } from '@/shared/geometry'
 
@@ -35,9 +36,9 @@ export class RoofTool extends BasePolygonTool<RoofToolState> implements ToolImpl
   readonly overlayComponent = PolygonToolOverlay
   readonly inspectorComponent = RoofToolInspector
 
-  constructor() {
+  constructor(toolSystem: ToolSystem) {
     const defaultAssemblyId = getConfigActions().getDefaultRoofAssemblyId()
-    super({
+    super(toolSystem, {
       type: 'gable',
       slope: 30,
       verticalOffset: 0,

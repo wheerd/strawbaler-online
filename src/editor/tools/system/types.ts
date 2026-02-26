@@ -1,6 +1,7 @@
 import type { Resources } from 'i18next'
-import React from 'react'
+import type { ComponentType } from 'react'
 
+import type { IconProps } from '@/shared/components/Icons'
 import { type Vec2 } from '@/shared/geometry'
 
 export type ToolId =
@@ -33,8 +34,7 @@ type ToolNameKey = keyof Resources['toolbar']['tools']
 
 export interface ToolMetadata {
   nameKey: ToolNameKey
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  iconComponent: React.ComponentType<any>
+  iconComponent: ComponentType<IconProps>
   hotkey?: string
 }
 
@@ -83,20 +83,26 @@ export function DummyToolInspector<TTool extends ToolImplementation>(
   return undefined
 }
 
-// Keyboard shortcut system
-export interface ShortcutDefinition {
-  key: string // e.g., 'Delete', 'Escape', 'Ctrl+C', 'Shift+R'
-  action: () => void
-  condition?: () => boolean // When this shortcut is active
-  priority: number // Higher priority wins conflicts
-  scope: 'global' | 'selection' | 'tool'
-  source: string // For debugging: 'builtin:delete' or 'tool:basic.select'
-  label?: string // For UI display
-}
-
 export interface EditorEvent {
   type: 'pointerdown' | 'pointermove' | 'pointerup' | 'wheel'
   originalEvent: PointerEvent | WheelEvent
   worldCoordinates: Vec2 // Transformed coordinates (accounting for pan/zoom)
   stageCoordinates: Vec2
+}
+
+export interface IToolSystem {
+  getActiveTool(): ToolImplementation
+  getActiveToolId(): ToolId
+
+  getPreviousToolId(): ToolId | null
+  canPop(): boolean
+  getStackDepth(): number
+  pushTool(toolId: ToolId): void
+  popTool(): void
+  replaceTool(toolId: ToolId): void
+  clearToDefault(): void
+
+  handlePointerEvent(event: EditorEvent): boolean
+
+  subscribe(listener: () => void): () => void
 }

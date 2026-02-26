@@ -9,7 +9,6 @@ import { isPerimeterWallId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getCurrentSelection, getSelectionActions } from '@/editor/hooks/useSelectionStore'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
-import { getToolActions } from '@/editor/tools/system'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { EditorEvent, ToolImplementation } from '@/editor/tools/system/types'
 import { findEditorEntityAt } from '@/editor/utils/editorHitTesting'
@@ -113,7 +112,7 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
       // Clear selection and deactivate tool
       const { clearSelection } = getSelectionActions()
       clearSelection()
-      getToolActions().popTool()
+      this.toolSystem.popTool()
       return true
     }
 
@@ -175,7 +174,7 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
   }
 
   public cancel(): void {
-    getToolActions().popTool()
+    this.toolSystem.popTool()
   }
 
   handlePointerDown(event: EditorEvent): boolean {

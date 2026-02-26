@@ -6,6 +6,7 @@ import {
   pushSelection,
   replaceSelection
 } from '@/editor/hooks/useSelectionStore'
+import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { EditorEvent, ToolImplementation } from '@/editor/tools/system/types'
 import { findEditorEntityAt } from '@/editor/utils/editorHitTesting'
 
@@ -14,6 +15,11 @@ import { SelectToolInspector } from './SelectToolInspector'
 export class SelectTool implements ToolImplementation {
   readonly id = 'basic.select'
   readonly inspectorComponent = SelectToolInspector
+  protected toolSystem: ToolSystem
+
+  constructor(toolSystem: ToolSystem) {
+    this.toolSystem = toolSystem
+  }
 
   // Event handlers
   handlePointerDown(event: EditorEvent): boolean {

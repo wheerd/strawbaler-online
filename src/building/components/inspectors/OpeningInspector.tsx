@@ -3,6 +3,7 @@ import { Info, Trash } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
+import { OpeningPreview } from '@/building/components/OpeningPreview'
 import type { OpeningType } from '@/building/model'
 import type { OpeningId } from '@/building/model/ids'
 import {
@@ -29,8 +30,6 @@ import { LengthField } from '@/shared/components/LengthField'
 import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/components/OpeningIcons'
 import { Bounds2D, type Polygon2D, addVec2, offsetPolygon, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
-
-import { OpeningPreview } from '../OpeningPreview'
 
 export function OpeningInspector({ openingId }: { openingId: OpeningId }): React.JSX.Element {
   const { t } = useTranslation('inspector')

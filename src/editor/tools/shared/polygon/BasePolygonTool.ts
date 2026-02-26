@@ -4,6 +4,7 @@ import { activateLengthInput, deactivateLengthInput } from '@/editor/services/le
 import { SnappingService } from '@/editor/services/snapping'
 import type { SnapResult, SnappingContext } from '@/editor/services/snapping/types'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
+import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { CursorStyle, EditorEvent } from '@/editor/tools/system/types'
 import {
   type Length,
@@ -40,8 +41,8 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
 
   private readonly snappingService: SnappingService
 
-  protected constructor(initialState: Omit<TState, keyof PolygonToolStateBase>) {
-    super()
+  protected constructor(toolSystem: ToolSystem, initialState: Omit<TState, keyof PolygonToolStateBase>) {
+    super(toolSystem)
     this.state = {
       points: [] as Vec2[],
       pointer: ZERO_VEC2,

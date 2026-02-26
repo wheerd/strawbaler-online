@@ -8,9 +8,9 @@ import { GcsLayer } from '@/editor/layers/GcsLayer'
 import { GridLayer } from '@/editor/layers/GridLayer'
 import { SelectionOverlay } from '@/editor/layers/SelectionOverlay'
 import { ToolOverlayLayer } from '@/editor/layers/ToolOverlayLayer'
+import { useToolSystem } from '@/editor/tools/system/ToolSystemContext'
 import { useSvgMouseTransform } from '@/editor/tools/system/hooks/useSvgMouseTransform'
 import { useToolCursor } from '@/editor/tools/system/hooks/useToolCursor'
-import { handleEditorEvent } from '@/editor/tools/system/store'
 import { EditorSvgPatterns } from '@/editor/utils/patterns'
 import type { Vec2 } from '@/shared/geometry'
 import { isDebug } from '@/shared/hooks/useDebug'
@@ -36,6 +36,7 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
   const pointerActions = usePointerPositionActions()
   const cursor = useToolCursor()
   const showDebugGcsLayer = isDebug
+  const toolSystem = useToolSystem()
 
   // Local state for panning (non-tool related)
   const [dragStart, setDragStart] = useState<Vec2 | null>(null)
@@ -105,7 +106,7 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
       }
 
       // Route to tool system
-      handleEditorEvent({
+      toolSystem.handlePointerEvent({
         type: 'pointerdown',
         originalEvent: e.nativeEvent,
         stageCoordinates: svgCoords,
@@ -134,7 +135,7 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
       }
 
       // Route to tool system
-      handleEditorEvent({
+      toolSystem.handlePointerEvent({
         type: 'pointermove',
         originalEvent: e.nativeEvent,
         stageCoordinates: svgCoords,
@@ -159,7 +160,7 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
       }
 
       // Route to tool system
-      handleEditorEvent({
+      toolSystem.handlePointerEvent({
         type: 'pointerup',
         originalEvent: e.nativeEvent,
         stageCoordinates: svgCoords,

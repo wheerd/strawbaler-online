@@ -1,4 +1,4 @@
-import { useActiveTool } from '@/editor/tools/system/store'
+import { useActiveTool } from '@/editor/tools/system/hooks/useToolState'
 
 import { SelectionOverlay } from './SelectionOverlay'
 

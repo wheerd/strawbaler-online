@@ -5,7 +5,7 @@ import { type StoreActions, getModelActions } from '@/building/store'
 import { replaceSelection } from '@/editor/hooks/useSelectionStore'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { getToolActions } from '@/editor/tools/system'
+import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { Bounds2D, newVec2 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 
@@ -17,11 +17,9 @@ describe('PerimeterPresetTool', () => {
   vi.mock('@/building/store', () => ({ getModelActions: vi.fn() }))
   vi.mock('@/editor/hooks/useSelectionStore', () => ({ replaceSelection: vi.fn() }))
   vi.mock('@/editor/hooks/useViewportStore', () => ({ viewportActions: vi.fn() }))
-  vi.mock('@/editor/tools/system', () => ({ getToolActions: vi.fn() }))
 
   const mockGetModelActions = vi.mocked(getModelActions)
   const mockViewportActions = vi.mocked(viewportActions)
-  const mockGetToolActions = vi.mocked(getToolActions)
 
   const mockGetActiveStoreyId = vi.fn<StoreActions['getActiveStoreyId']>()
   const mockAddPerimeter = vi.fn<StoreActions['addPerimeter']>()
@@ -30,7 +28,6 @@ describe('PerimeterPresetTool', () => {
   const mockAddBuildingConstraint = vi.fn<StoreActions['addBuildingConstraint']>()
   const mockReplaceSelection = vi.mocked(replaceSelection)
   const mockFitToView = vi.fn()
-  const mockPopTool = vi.fn()
 
   const mockPerimeter = partial<PerimeterWithGeometry>({
     id: 'perimeter_mock',
@@ -40,9 +37,11 @@ describe('PerimeterPresetTool', () => {
   })
 
   let tool: PerimeterPresetTool
+  let toolSystem: ToolSystem
 
   beforeEach(() => {
-    tool = new PerimeterPresetTool()
+    toolSystem = new ToolSystem()
+    tool = new PerimeterPresetTool(toolSystem)
 
     vi.resetAllMocks()
     mockGetModelActions.mockReturnValue({
@@ -53,7 +52,6 @@ describe('PerimeterPresetTool', () => {
       addBuildingConstraint: mockAddBuildingConstraint
     } as any)
     mockViewportActions.mockReturnValue({ fitToView: mockFitToView } as any)
-    mockGetToolActions.mockReturnValue({ popTool: mockPopTool } as any)
     mockAddPerimeter.mockReturnValue(mockPerimeter)
     mockGetActiveStoreyId.mockReturnValue('storey_active')
     mockGetPerimeterCornersById.mockReturnValue([])
@@ -146,9 +144,11 @@ describe('PerimeterPresetTool', () => {
     })
 
     it('should deactivate tool', () => {
+      const popToolSpy = vi.spyOn(toolSystem, 'popTool')
+
       tool.placePerimeter(rectangularPreset, config)
 
-      expect(mockPopTool).toHaveBeenCalled()
+      expect(popToolSpy).toHaveBeenCalled()
     })
   })
 

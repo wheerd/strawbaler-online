@@ -5,6 +5,7 @@ import { getConfigActions } from '@/construction/config/store'
 import { generateFreeformConstraints } from '@/editor/gcs/constraintGenerator'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
+import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { ToolImplementation } from '@/editor/tools/system/types'
 import { type Length, type Polygon2D, type Vec2, polygonIsClockwise } from '@/shared/geometry'
 
@@ -24,8 +25,8 @@ export class PerimeterTool extends BasePolygonTool<PerimeterToolState> implement
   readonly overlayComponent = PerimeterToolOverlay
   readonly inspectorComponent = PerimeterToolInspector
 
-  constructor() {
-    super({
+  constructor(toolSystem: ToolSystem) {
+    super(toolSystem, {
       wallAssemblyId: '' as WallAssemblyId,
       wallThickness: 420,
       referenceSide: 'inside'

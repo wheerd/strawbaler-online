@@ -1,4 +1,4 @@
-import { useActiveTool } from '@/editor/tools/system/store'
+import { useActiveTool } from '@/editor/tools/system/hooks/useToolState'
 
 export function SidePanel(): React.JSX.Element {
   const activeTool = useActiveTool()

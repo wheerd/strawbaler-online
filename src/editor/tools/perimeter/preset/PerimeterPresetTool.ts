@@ -3,7 +3,6 @@ import { generatePresetConstraints } from '@/editor/gcs/constraintGenerator'
 import { replaceSelection } from '@/editor/hooks/useSelectionStore'
 import { getViewModeActions } from '@/editor/hooks/useViewMode'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { getToolActions } from '@/editor/tools/system'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CursorStyle, ToolImplementation } from '@/editor/tools/system/types'
 import { Bounds2D, ensurePolygonIsClockwise, subVec2 } from '@/shared/geometry'
@@ -57,7 +56,7 @@ export class PerimeterPresetTool extends BaseTool implements ToolImplementation 
     } catch (error) {
       console.error('Failed to create perimeter from preset:', error)
     } finally {
-      getToolActions().popTool()
+      this.toolSystem.popTool()
     }
 
     return true
