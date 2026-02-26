@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
-import { type LineSegment2D, distanceToLineSegment } from './index'
+import { type LineSegment2D, distanceToLineSegment } from './line'
 
 describe('distanceToLineSegment', () => {
   it('should return 0 for a point on the line segment', () => {
