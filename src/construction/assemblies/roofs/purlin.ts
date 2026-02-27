@@ -1,5 +1,5 @@
 import type { Roof } from '@/building/model'
-import type { PurlinRoofAssemblyConfig } from '@/config'
+import type { PurlinRoofAssemblyConfig } from '@/config/types'
 import { type PerimeterConstructionContext, applyWallFaceOffsets } from '@/construction/assemblies/perimeters/context'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/assemblies/roofs/base'
 import { constructStrawPolygon } from '@/construction/assemblies/straw'

@@ -1,6 +1,6 @@
 import type { PerimeterId, RingBeamAssemblyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
 import { resolveRingBeamAssembly } from '@/construction/assemblies/ringBeams'
 import { getPerimeterContextCached } from '@/construction/context/perimeterContextCache'
 import { getWallStoreyContextCached } from '@/construction/context/storeys'

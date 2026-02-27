@@ -1,6 +1,6 @@
 import { type PerimeterWallWithGeometry, isOpeningId } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { getConfigActions, resolveLayerSetThickness } from '@/config'
+import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
 import { resolveRingBeamAssembly } from '@/construction/assemblies/ringBeams'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import type { NonStrawbaleWallConfig } from '@/construction/assemblies/walls'

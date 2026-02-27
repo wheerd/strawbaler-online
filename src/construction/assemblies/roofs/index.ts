@@ -1,6 +1,6 @@
 import type { Roof } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
 import { PurlinRoofAssembly } from '@/construction/assemblies/roofs/purlin'
 import { getPerimeterContextCached } from '@/construction/context/perimeterContextCache'
 import { type ConstructionModel, createUnsupportedModel } from '@/construction/model/model'

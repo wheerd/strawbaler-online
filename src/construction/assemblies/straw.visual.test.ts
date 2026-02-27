@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { type ConfigActions, getConfigActions } from '@/config'
+import { type ConfigActions, getConfigActions } from '@/config/store'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
@@ -15,7 +15,7 @@ import { Bounds3D, newVec3 } from '@/shared/geometry'
 
 import { constructStraw } from './straw'
 
-vi.mock('@/config', () => ({
+vi.mock('@/config/store', () => ({
   getConfigActions: vi.fn()
 }))
 vi.mock('@/materials/store', () => ({

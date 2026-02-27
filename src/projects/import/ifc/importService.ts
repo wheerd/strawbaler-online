@@ -1,7 +1,7 @@
 import type { PerimeterWithGeometry } from '@/building/model'
 import type { StoreyId } from '@/building/model/ids'
 import { clearPersistence, getModelActions } from '@/building/store'
-import { getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
 import { IfcImporter } from '@/projects/import/ifc/importer'
 import type {
   ImportedPerimeterCandidate,

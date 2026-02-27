@@ -10,7 +10,7 @@ import type {
   WallAssemblyId
 } from '@/building/model/ids'
 import { type StoreActions, getModelActions } from '@/building/store'
-import { getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
 import { direction, distVec2, newVec2, perpendicular, scaleAddVec2 } from '@/shared/geometry'
 import { partial, partialMock } from '@/test/helpers'
 
@@ -19,7 +19,7 @@ import { applyWallFaceOffsets, createWallFaceOffsets } from './context'
 const mockInsideThickness = { value: 50 }
 const mockOutsideThickness = { value: 100 }
 
-vi.mock('@/config', () => ({
+vi.mock('@/config/store', () => ({
   getConfigActions: vi.fn(),
   resolveLayerSetThickness: (id: LayerSetId | undefined) => {
     if (!id) return 0

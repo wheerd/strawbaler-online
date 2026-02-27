@@ -1,7 +1,7 @@
 import type { PerimeterWithGeometry } from '@/building/model'
 import type { PerimeterId, PerimeterWallId, RoofId, StoreyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
 import { constructRoof } from '@/construction/assemblies/roofs'
 import { resolveWallAssembly } from '@/construction/assemblies/walls'
 import { getPerimeterContextCached } from '@/construction/context/perimeterContextCache'

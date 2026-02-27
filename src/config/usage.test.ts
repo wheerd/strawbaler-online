@@ -8,7 +8,7 @@ import {
   createWallAssemblyId
 } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
 import type { OpeningAssemblyConfig } from '@/config/types'
 import { partial } from '@/test/helpers'
 
@@ -18,7 +18,7 @@ vi.mock('@/building/store', () => ({
   getModelActions: vi.fn()
 }))
 
-vi.mock('@/config', () => ({
+vi.mock('@/config/store', () => ({
   getConfigActions: vi.fn()
 }))
 

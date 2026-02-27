@@ -1,7 +1,7 @@
 import type { Manifold } from 'manifold-3d'
 
 import type { Roof } from '@/building/model'
-import type { RoofAssemblyConfig } from '@/config'
+import type { RoofAssemblyConfig } from '@/config/types'
 import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/assemblies/roofs/base'
 import type { VerticalOffsetMap } from '@/construction/context/offsets'

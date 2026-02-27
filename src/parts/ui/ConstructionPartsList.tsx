@@ -3,7 +3,7 @@ import { ArrowDownToLine, ArrowUpToLine, Pencil, TriangleAlert } from 'lucide-re
 import React, { Suspense, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useConfigurationModal } from '@/config/context/ConfigurationModalContext'
+import { useConfigurationModal } from '@/config/ui/ConfigurationModalContext'
 import { useGetMaterialTypeName } from '@/materials/components/MaterialSelect'
 import type { Material } from '@/materials/material'
 import { useMaterialName } from '@/materials/useMaterialName'

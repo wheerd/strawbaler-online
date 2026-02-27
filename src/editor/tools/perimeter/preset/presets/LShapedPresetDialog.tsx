@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next'
 
 import type { PerimeterReferenceSide } from '@/building/model'
 import type { WallAssemblyId } from '@/building/model/ids'
-import { RingBeamAssemblySelectWithEdit } from '@/config/components/RingBeamAssemblySelectWithEdit'
-import { WallAssemblySelectWithEdit } from '@/config/components/WallAssemblySelectWithEdit'
 import {
   useDefaultBaseRingBeamAssemblyId,
   useDefaultTopRingBeamAssemblyId,
   useDefaultWallAssemblyId
 } from '@/config/store'
+import { RingBeamAssemblySelectWithEdit } from '@/config/ui/ring-beam-assembly/RingBeamAssemblySelectWithEdit'
+import { WallAssemblySelectWithEdit } from '@/config/ui/wall-assembly/WallAssemblySelectWithEdit'
 import { BaseModal } from '@/shared/ui/BaseModal'
 import { LengthField } from '@/shared/ui/LengthField'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'

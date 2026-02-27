@@ -1,5 +1,5 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
-import { getConfigActions, resolveLayerSetThickness } from '@/config'
+import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import type { ModulesWallConfig } from '@/construction/assemblies/walls'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'

@@ -10,7 +10,7 @@ import type {
   WallAssemblyId
 } from '@/building/model/ids'
 import { type StoreActions, getModelActions } from '@/building/store'
-import { getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
 import {
   type LineSegment2D,
   direction,
@@ -26,7 +26,7 @@ import { computePerimeterConstructionPolygon } from './context'
 
 const outsideThicknessByLayerSetId = new Map<LayerSetId, number>()
 
-vi.mock('@/config', () => ({
+vi.mock('@/config/store', () => ({
   getConfigActions: vi.fn(),
   resolveLayerSetThickness: (id: LayerSetId | undefined) => {
     if (!id) return 0

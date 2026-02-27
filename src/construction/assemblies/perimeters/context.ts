@@ -1,6 +1,6 @@
 import type { FloorOpening, PerimeterWithGeometry } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { getConfigActions, resolveLayerSetThickness } from '@/config'
+import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
 import {
   type Length,
   type Line2D,

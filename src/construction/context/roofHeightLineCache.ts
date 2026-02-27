@@ -1,6 +1,6 @@
 import type { StoreyId } from '@/building/model/ids'
 import { getModelActions, subscribeToRoofs } from '@/building/store'
-import { getConfigActions, subscribeToRoofAssemblies } from '@/config'
+import { getConfigActions, subscribeToRoofAssemblies } from '@/config/store'
 import { resolveRoofAssembly } from '@/construction/assemblies/roofs'
 import type { HeightItem, HeightJumpItem, HeightLine } from '@/construction/assemblies/roofs/types'
 import { VerticalOffsetMap } from '@/construction/context/offsets'

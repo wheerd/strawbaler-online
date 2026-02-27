@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { UserMenu } from '@/app/user'
 import { useActiveStoreyId, useModelActions } from '@/building/store'
-import { useConfigurationModal } from '@/config/context/ConfigurationModalContext'
+import { useConfigurationModal } from '@/config/ui/ConfigurationModalContext'
 import { useToolSystem } from '@/editor/tools/system/ToolSystemContext'
 import { useActiveToolId } from '@/editor/tools/system/hooks/useToolState'
 import { TOOL_GROUPS, getToolInfoById } from '@/editor/tools/system/metadata'

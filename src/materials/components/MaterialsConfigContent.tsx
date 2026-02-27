@@ -3,8 +3,8 @@ import { Box, Circle, Copy, Droplet, Layers, Plus, Trash, TriangleAlert, Undo2, 
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { type EntityId, useEntityLabel } from '@/config/components/useEntityLabel'
 import { useConfigActions, useDefaultStrawMaterialId } from '@/config/store'
+import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
 import type {
   DimensionalMaterial,
   GenericMaterial,

@@ -8,7 +8,7 @@ import type {
   WallAssemblyId
 } from '@/building/model'
 import { createPerimeterWallId } from '@/building/model/ids'
-import { type WallAssemblyConfig } from '@/config'
+import type { WallAssemblyConfig } from '@/config/types'
 import { type Length, type Vec2, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 

@@ -3,7 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware'
 
 import type { PerimeterWallId } from '@/building/model/ids'
 import { getModelActions, subscribeToModelChanges } from '@/building/store'
-import { subscribeToConfigChanges } from '@/config'
+import { subscribeToConfigChanges } from '@/config/store'
 import { createPerimeterMeasurementsModel } from '@/construction/assemblies/perimeters/construction'
 import { constructBasePlate, constructTopPlate } from '@/construction/assemblies/ringBeams/construction'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model/model'

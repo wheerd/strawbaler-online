@@ -1,4 +1,5 @@
-import { type FloorAssemblyConfig, resolveLayerSetLayers, resolveLayerSetThickness } from '@/config'
+import { resolveLayerSetLayers, resolveLayerSetThickness } from '@/config/store'
+import type { FloorAssemblyConfig } from '@/config/types'
 import { runLayerConstruction } from '@/construction/assemblies/layers'
 import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'

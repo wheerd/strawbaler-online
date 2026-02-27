@@ -1,4 +1,4 @@
-import { getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import type { InfillWallSegmentConfig } from '@/construction/assemblies/walls'

@@ -1,7 +1,7 @@
 import { keyFromSelector } from 'i18next'
 import { describe, expect, it, vi } from 'vitest'
 
-import { type ConfigActions, getConfigActions } from '@/config'
+import { type ConfigActions, getConfigActions } from '@/config/store'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
@@ -13,7 +13,7 @@ import { strawbale } from '../../materials/material'
 import { getMaterialsActions } from '../../materials/store'
 import { constructStraw } from './straw'
 
-vi.mock('@/config', () => ({
+vi.mock('@/config/store', () => ({
   getConfigActions: vi.fn()
 }))
 vi.mock('@/materials/store', () => ({

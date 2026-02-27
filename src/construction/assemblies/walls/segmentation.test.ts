@@ -9,7 +9,8 @@ import {
 } from '@/building/model'
 import { type StoreyId, createOpeningId, createWallAssemblyId, createWallPostId } from '@/building/model/ids'
 import { type StoreActions, getModelActions } from '@/building/store'
-import { type OpeningAssemblyConfig, getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
+import type { OpeningAssemblyConfig } from '@/config/types'
 import type { FloorAssembly } from '@/construction/assemblies/floors'
 import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/assemblies/openings/resolver'
 import type { OpeningAssembly } from '@/construction/assemblies/openings/types'
@@ -53,7 +54,7 @@ vi.mock('@/construction/assemblies/floors', () => ({
   }
 }))
 
-vi.mock('@/config', () => ({
+vi.mock('@/config/store', () => ({
   getConfigActions: vi.fn(),
   resolveLayerSetThickness: (id: string) => {
     if (id === 'ls_inside') return 30

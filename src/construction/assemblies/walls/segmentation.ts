@@ -7,7 +7,7 @@ import {
   isWallPostId
 } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getConfigActions, resolveLayerSetThickness } from '@/config'
+import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
 import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/assemblies/openings/resolver'
 import { resolveRingBeamAssembly } from '@/construction/assemblies/ringBeams'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'

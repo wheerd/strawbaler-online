@@ -1,5 +1,5 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
-import { getConfigActions, resolveLayerSetThickness } from '@/config'
+import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import type { StrawhengeWallConfig } from '@/construction/assemblies/walls'

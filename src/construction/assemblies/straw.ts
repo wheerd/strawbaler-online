@@ -1,4 +1,4 @@
-import { getConfigActions } from '@/config'
+import { getConfigActions } from '@/config/store'
 import type { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/helpers'
 import { type ConstructionElement, createConstructionElement } from '@/construction/model/elements'
