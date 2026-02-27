@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { DuplicateStoreyOptions } from '@/building/store/services/StoreyManagementService'
+import type { DuplicateStoreyOptions } from '@/building/services/StoreyManagementService'
 import { Button } from '@/shared/ui/components/button'
 import { Checkbox } from '@/shared/ui/components/checkbox'
 import {

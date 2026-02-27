@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 import { useModelActions } from '@/building/store'
-import { useIsHydrated } from '@/building/store/persistenceStore'
+import { useIsHydrated } from '@/projects/services/persistenceStore'
 import { subscribeToProjectChanges } from '@/projects/store'
 
 import { useViewportActions } from './state/viewportStore'

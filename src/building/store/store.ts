@@ -5,10 +5,10 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 
 import { type PerimeterId, type StoreyId } from '@/building/model/ids'
+import { getPersistenceActions } from '@/projects/services/persistenceStore'
 import { Bounds2D } from '@/shared/geometry'
 
 import { MODEL_STORE_VERSION, applyMigrations } from './migrations'
-import { getPersistenceActions } from './persistenceStore'
 import { createConstraintsSlice, rebuildReverseIndex } from './slices/constraintsSlice'
 import { createFloorsSlice } from './slices/floorsSlice'
 import { updatePerimeterGeometry } from './slices/perimeterGeometry'

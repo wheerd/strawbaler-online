@@ -8,7 +8,6 @@ import {
   hydrateModelState,
   subscribeToModelChanges
 } from '@/building/store'
-import { getPersistenceActions } from '@/building/store/persistenceStore'
 import {
   CONFIG_STORE_VERSION,
   getConfigState,
@@ -35,6 +34,7 @@ import type { ProjectData, ProjectId, ProjectListItem } from '@/projects/types'
 import { createProjectId, parseTimestamp, timestampNow } from '@/projects/types'
 
 import { type ICloudSyncService, type StoreType, getCloudSyncService } from './SupabaseSyncService'
+import { getPersistenceActions } from './persistenceStore'
 
 const SYNC_DEBOUNCE_MS = 3000
 

@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { useInitialSyncError, useIsInitialSyncing } from '@/building/store/persistenceStore'
+import { useInitialSyncError, useIsInitialSyncing } from '@/projects/services/persistenceStore'
 
 export function InitialSyncOverlay(): React.JSX.Element | null {
   const { t } = useTranslation('common')

@@ -3,11 +3,11 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { Storey } from '@/building/model'
-import { useActiveStoreyId, useModelActions } from '@/building/store'
 import {
   type DuplicateStoreyOptions,
   defaultStoreyManagementService
-} from '@/building/store/services/StoreyManagementService'
+} from '@/building/services/StoreyManagementService'
+import { useActiveStoreyId, useModelActions } from '@/building/store'
 import { useStoreyName } from '@/building/ui/useStoreyName'
 import { FloorAssemblySelectWithEdit } from '@/construction/config/components/FloorAssemblySelectWithEdit'
 import { useFormatters } from '@/shared/i18n/useFormatters'
