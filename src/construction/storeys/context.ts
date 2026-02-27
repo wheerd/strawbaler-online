@@ -1,6 +1,6 @@
 import type { StoreyId } from '@/building/model'
 import { getModelActions, subscribeToStoreys } from '@/building/store'
-import { getConfigActions, subscribeToFloorAssemblies } from '@/construction/config'
+import { getConfigActions, subscribeToFloorAssemblies } from '@/config'
 import { type FloorAssembly, resolveFloorAssembly } from '@/construction/floors'
 import type { Length } from '@/shared/geometry'
 

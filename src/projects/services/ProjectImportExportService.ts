@@ -1,5 +1,5 @@
 import { MODEL_STORE_VERSION, type PartializedStoreState, exportModelState, hydrateModelState } from '@/building/store'
-import { CONFIG_STORE_VERSION, type ConfigState, getConfigState, hydrateConfigState } from '@/construction/config/store'
+import { CONFIG_STORE_VERSION, type ConfigState, getConfigState, hydrateConfigState } from '@/config/store'
 import {
   MATERIALS_STORE_VERSION,
   type MaterialsState,

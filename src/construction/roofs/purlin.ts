@@ -1,5 +1,5 @@
 import type { Roof } from '@/building/model'
-import type { PurlinRoofAssemblyConfig } from '@/construction/config'
+import type { PurlinRoofAssemblyConfig } from '@/config'
 import { getPerimeterContextsByStorey } from '@/construction/derived/perimeterContextCache'
 import { createConstructionElement } from '@/construction/elements'
 import { PolygonWithBoundingRect, type StripeOrGap, partitionByAlignedEdges } from '@/construction/helpers'

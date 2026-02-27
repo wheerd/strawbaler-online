@@ -1,6 +1,6 @@
 import { type PerimeterWallWithGeometry, isOpeningId } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { getConfigActions, resolveLayerSetThickness } from '@/construction/config'
+import { getConfigActions, resolveLayerSetThickness } from '@/config'
 import { getRoofHeightLineCached } from '@/construction/derived'
 import { createConstructionElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'

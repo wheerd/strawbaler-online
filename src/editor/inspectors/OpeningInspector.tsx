@@ -12,8 +12,8 @@ import {
   useStoreyById,
   useWallOpeningById
 } from '@/building/store'
-import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
-import { useWallAssemblyById } from '@/construction/config/store'
+import { OpeningAssemblySelectWithEdit } from '@/config/components/OpeningAssemblySelectWithEdit'
+import { useWallAssemblyById } from '@/config/store'
 import { resolveOpeningConfig } from '@/construction/openings/resolver'
 import { getWallStoreyContextCached } from '@/construction/storeys/context'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'

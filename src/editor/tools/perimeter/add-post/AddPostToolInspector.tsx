@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { WallPostType } from '@/building/model'
 import { useWallPosts } from '@/building/store'
-import { useWallAssemblies } from '@/construction/config/store'
+import { useWallAssemblies } from '@/config/store'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import { type MaterialId } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'

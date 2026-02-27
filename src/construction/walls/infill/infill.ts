@@ -1,4 +1,4 @@
-import { getConfigActions } from '@/construction/config'
+import { getConfigActions } from '@/config'
 import type { GroupOrElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
 import type { StrawbaleMaterial } from '@/construction/materials/material'

@@ -7,7 +7,7 @@ import {
   isPerimeterWallId
 } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/construction/config/store'
+import { getConfigActions } from '@/config/store'
 import { findEditorEntityAt } from '@/editor/canvas/services/editorHitTesting'
 import { getSelectionActions } from '@/editor/canvas/state/selectionStore'
 import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'

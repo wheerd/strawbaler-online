@@ -13,14 +13,14 @@ import {
   type WallPostId
 } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getConfigActions, setConfigState } from '@/construction/config/store'
-import { applyMigrations } from '@/construction/config/store/migrations'
+import { getConfigActions, setConfigState } from '@/config/store'
+import { applyMigrations } from '@/config/store/migrations'
 import type {
   FloorAssemblyConfig,
   RingBeamAssemblyConfig,
   RoofAssemblyConfig,
   WallAssemblyConfig
-} from '@/construction/config/types'
+} from '@/config/types'
 import { resolveFloorAssembly } from '@/construction/floors'
 import type { Material, MaterialId } from '@/construction/materials/material'
 import { setMaterialsState } from '@/construction/materials/store'

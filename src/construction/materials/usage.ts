@@ -17,14 +17,14 @@ import {
   useRingBeamAssemblies,
   useRoofAssemblies,
   useWallAssemblies
-} from '@/construction/config/store'
+} from '@/config/store'
 import type {
   FloorAssemblyConfig,
   OpeningAssemblyConfig,
   RingBeamAssemblyConfig,
   RoofAssemblyConfig,
   WallAssemblyConfig
-} from '@/construction/config/types'
+} from '@/config/types'
 import type { LayerConfig } from '@/construction/layers/types'
 import { assertUnreachable } from '@/shared/utils'
 

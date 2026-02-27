@@ -9,7 +9,7 @@ import {
 } from '@/building/services/StoreyManagementService'
 import { useActiveStoreyId, useModelActions } from '@/building/store'
 import { useStoreyName } from '@/building/ui/useStoreyName'
-import { FloorAssemblySelectWithEdit } from '@/construction/config/components/FloorAssemblySelectWithEdit'
+import { FloorAssemblySelectWithEdit } from '@/config/components/FloorAssemblySelectWithEdit'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { LengthField } from '@/shared/ui/LengthField'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'

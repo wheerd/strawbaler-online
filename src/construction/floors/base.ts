@@ -1,4 +1,4 @@
-import { type FloorAssemblyConfig, resolveLayerSetLayers, resolveLayerSetThickness } from '@/construction/config'
+import { type FloorAssemblyConfig, resolveLayerSetLayers, resolveLayerSetThickness } from '@/config'
 import { runLayerConstruction } from '@/construction/layers'
 import type { LayerConfig } from '@/construction/layers/types'
 import type { ConstructionModel } from '@/construction/model'

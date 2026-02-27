@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { type Mock, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
-import { ConfigurationModalContext } from '@/construction/config/context/ConfigurationModalContext'
+import { ConfigurationModalContext } from '@/config/context/ConfigurationModalContext'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2 } from '@/shared/geometry'
 

@@ -1,5 +1,5 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
-import { resolveLayerSetThickness } from '@/construction/config'
+import { resolveLayerSetThickness } from '@/config'
 import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
 import type { MaterialId, PrefabMaterial } from '@/construction/materials/material'

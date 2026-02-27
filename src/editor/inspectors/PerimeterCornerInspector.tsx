@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { PerimeterCornerId } from '@/building/model/ids'
 import { useModelActions, usePerimeterCornerById, usePerimeterWallById } from '@/building/store'
-import { useConfigActions } from '@/construction/config/store'
+import { useConfigActions } from '@/config/store'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { Bounds2D, midpoint } from '@/shared/geometry'
 import { Button } from '@/shared/ui/components/button'

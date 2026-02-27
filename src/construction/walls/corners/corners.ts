@@ -1,6 +1,6 @@
 import type { PerimeterCornerId, PerimeterCornerWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { getConfigActions, resolveLayerSetThickness } from '@/construction/config'
+import { getConfigActions, resolveLayerSetThickness } from '@/config'
 import { type Length, type LineSegment2D, distVec2, scaleAddVec2 } from '@/shared/geometry'
 
 export interface WallContext {

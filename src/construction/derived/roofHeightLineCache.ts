@@ -1,6 +1,6 @@
 import type { StoreyId } from '@/building/model/ids'
 import { getModelActions, subscribeToRoofs } from '@/building/store'
-import { getConfigActions, subscribeToRoofAssemblies } from '@/construction/config'
+import { getConfigActions, subscribeToRoofAssemblies } from '@/config'
 import {
   getPerimeterContextsByStorey,
   subscribeToPerimeterContextInvalidations

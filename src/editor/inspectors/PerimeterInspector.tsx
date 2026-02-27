@@ -12,11 +12,11 @@ import {
   usePerimeterWallsById,
   useRoofsOfActiveStorey
 } from '@/building/store'
+import { useDefaultRoofAssemblyId } from '@/config'
+import { RingBeamAssemblySelectWithEdit } from '@/config/components/RingBeamAssemblySelectWithEdit'
+import { WallAssemblySelectWithEdit } from '@/config/components/WallAssemblySelectWithEdit'
+import { useWallAssemblyById } from '@/config/store'
 import TopDownPlanModal from '@/construction/components/TopDownPlanModal'
-import { useDefaultRoofAssemblyId } from '@/construction/config'
-import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
-import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
-import { useWallAssemblyById } from '@/construction/config/store'
 import { formatThicknessRange } from '@/construction/materials/thickness'
 import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
 import { resolveWallAssembly } from '@/construction/walls'

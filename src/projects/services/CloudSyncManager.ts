@@ -14,7 +14,7 @@ import {
   getInitialConfigState,
   hydrateConfigState,
   subscribeToConfigChanges
-} from '@/construction/config/store'
+} from '@/config/store'
 import {
   MATERIALS_STORE_VERSION,
   getInitialMaterialsState,

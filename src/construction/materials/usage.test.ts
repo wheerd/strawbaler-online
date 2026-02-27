@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { WallPostWithGeometry } from '@/building/model'
 import { createLayerSetId, createRingBeamAssemblyId, createWallAssemblyId } from '@/building/model/ids'
-import type { RingBeamAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
+import type { RingBeamAssemblyConfig, WallAssemblyConfig } from '@/config/types'
 import type { LayerSetConfig } from '@/construction/layers/types'
 import { partial } from '@/test/helpers'
 

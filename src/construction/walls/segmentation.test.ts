@@ -9,7 +9,7 @@ import {
 } from '@/building/model'
 import { type StoreyId, createOpeningId, createWallAssemblyId, createWallPostId } from '@/building/model/ids'
 import { type StoreActions, getModelActions } from '@/building/store'
-import { type OpeningAssemblyConfig, getConfigActions } from '@/construction/config'
+import { type OpeningAssemblyConfig, getConfigActions } from '@/config'
 import type { FloorAssembly } from '@/construction/floors'
 import { WallConstructionArea } from '@/construction/geometry'
 import { constructWallPost } from '@/construction/materials/posts'

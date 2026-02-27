@@ -10,7 +10,7 @@ import type {
 } from '@/building/model/ids'
 import { isOpeningId, isWallPostId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/construction/config/store'
+import { getConfigActions } from '@/config/store'
 import { getMaterialsActions } from '@/construction/materials/store'
 
 export class BuildingTimestampDependencyService {

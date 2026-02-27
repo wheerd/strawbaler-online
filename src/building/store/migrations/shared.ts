@@ -1,6 +1,6 @@
 import type { FloorAssemblyId, OpeningAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import type { StoreState } from '@/building/store/types'
-import type { FloorAssemblyConfig, OpeningAssemblyConfig, WallAssemblyConfig } from '@/construction/config/types'
+import type { FloorAssemblyConfig, OpeningAssemblyConfig, WallAssemblyConfig } from '@/config/types'
 import { type Vec2, newVec2 } from '@/shared/geometry'
 
 export type MigrationState = Partial<StoreState> & Record<string, unknown>

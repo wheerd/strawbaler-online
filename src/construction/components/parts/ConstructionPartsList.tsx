@@ -3,6 +3,7 @@ import { ArrowDownToLine, ArrowUpToLine, Pencil, TriangleAlert } from 'lucide-re
 import React, { Suspense, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useConfigurationModal } from '@/config/context/ConfigurationModalContext'
 import DimensionalPartsTable from '@/construction/components/parts/DimensionalPartsTable'
 import GenericPartsTable from '@/construction/components/parts/GenericPartsTable'
 import { RegenerateLabelsButton } from '@/construction/components/parts/RegenerateLabelsButton'
@@ -17,7 +18,6 @@ import {
   subGroupKey,
   toMaterialGroup
 } from '@/construction/components/parts/utils/aggregation'
-import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
 import { useGetMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
 import type { Material } from '@/construction/materials/material'
 import { useMaterialName } from '@/construction/materials/useMaterialName'

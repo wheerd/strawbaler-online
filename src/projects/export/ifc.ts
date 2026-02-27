@@ -12,7 +12,7 @@ import {
   isOpeningId
 } from '@/building/model'
 import { type StoreActions, getModelActions } from '@/building/store'
-import { type ConfigActions, getConfigActions } from '@/construction/config'
+import { type ConfigActions, getConfigActions } from '@/config'
 import { type StoreyContext, getWallStoreyContextCached } from '@/construction/storeys/context'
 import {
   type Length,

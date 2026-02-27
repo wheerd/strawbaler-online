@@ -1,7 +1,7 @@
 import type { Manifold } from 'manifold-3d'
 
 import type { Roof } from '@/building/model'
-import type { RoofAssemblyConfig } from '@/construction/config'
+import type { RoofAssemblyConfig } from '@/config'
 import { createConstructionElement } from '@/construction/elements'
 import { transformManifold } from '@/construction/manifold/operations'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'

@@ -1,5 +1,5 @@
 import { clearPersistence as clearModelPersistence, getModelActions } from '@/building/store'
-import { clearPersistence as clearConfigPersistence, getConfigActions } from '@/construction/config'
+import { clearPersistence as clearConfigPersistence, getConfigActions } from '@/config'
 import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { CursorStyle, ToolImplementation } from '@/editor/tools/system/types'
 

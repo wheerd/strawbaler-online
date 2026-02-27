@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { type ConfigActions, getConfigActions } from '@/construction/config'
+import { type ConfigActions, getConfigActions } from '@/config'
 import type { ConstructionElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
 import type { StrawbaleMaterial } from '@/construction/materials/material'

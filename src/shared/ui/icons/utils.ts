@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 
-import type { WallAssemblyConfig } from '@/construction/config/types'
+import type { WallAssemblyConfig } from '@/config/types'
 import type { FloorAssemblyType } from '@/construction/floors/types'
 import type { LayerSetUse } from '@/construction/layers/types'
 import type { Material } from '@/construction/materials/material'

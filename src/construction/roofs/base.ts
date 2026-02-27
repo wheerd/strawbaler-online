@@ -2,7 +2,7 @@ import type { Manifold } from 'manifold-3d'
 
 import type { Roof } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { resolveLayerSetLayers, resolveLayerSetThickness } from '@/construction/config'
+import { resolveLayerSetLayers, resolveLayerSetThickness } from '@/config'
 import { LAYER_CONSTRUCTIONS } from '@/construction/layers'
 import type { LayerConfig } from '@/construction/layers/types'
 import { transformManifold } from '@/construction/manifold/operations'

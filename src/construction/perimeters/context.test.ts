@@ -10,7 +10,7 @@ import type {
   WallAssemblyId
 } from '@/building/model/ids'
 import { type StoreActions, getModelActions } from '@/building/store'
-import { getConfigActions } from '@/construction/config'
+import { getConfigActions } from '@/config'
 import {
   type LineSegment2D,
   direction,

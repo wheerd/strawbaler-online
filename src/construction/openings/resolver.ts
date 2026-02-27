@@ -1,5 +1,5 @@
 import type { OpeningAssemblyId } from '@/building/model'
-import { getConfigActions } from '@/construction/config/store'
+import { getConfigActions } from '@/config/store'
 
 import { EmptyOpeningAssembly } from './empty'
 import { PlankedOpeningAssembly } from './planked'

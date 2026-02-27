@@ -1,7 +1,7 @@
 import { keyFromSelector } from 'i18next'
 import { describe, expect, it, vi } from 'vitest'
 
-import { type ConfigActions, getConfigActions } from '@/construction/config'
+import { type ConfigActions, getConfigActions } from '@/config'
 import type { ConstructionElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
 import { aggregateResults } from '@/construction/results'

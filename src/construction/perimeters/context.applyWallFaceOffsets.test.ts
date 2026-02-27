@@ -10,7 +10,7 @@ import type {
   WallAssemblyId
 } from '@/building/model/ids'
 import { type StoreActions, getModelActions } from '@/building/store'
-import { getConfigActions } from '@/construction/config'
+import { getConfigActions } from '@/config'
 import { direction, distVec2, newVec2, perpendicular, scaleAddVec2 } from '@/shared/geometry'
 import { partial, partialMock } from '@/test/helpers'
 

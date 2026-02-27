@@ -1,5 +1,5 @@
 import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/construction/config/store'
+import { getConfigActions } from '@/config/store'
 import { getSelectionActions } from '@/editor/canvas/state/selectionStore'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { Bounds2D, newVec2, polygonIsClockwise } from '@/shared/geometry'

@@ -15,7 +15,7 @@ import {
   usePerimeterCornerById,
   usePerimeterWallById
 } from '@/building/store'
-import { useWallAssemblyById } from '@/construction/config/store'
+import { useWallAssemblyById } from '@/config/store'
 import { ClickableLengthIndicator } from '@/editor/canvas/components/ClickableLengthIndicator'
 import { LengthIndicator } from '@/editor/canvas/components/LengthIndicator'
 import {

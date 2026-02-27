@@ -7,7 +7,7 @@ import {
   isWallPostId
 } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getConfigActions, resolveLayerSetThickness } from '@/construction/config'
+import { getConfigActions, resolveLayerSetThickness } from '@/config'
 import { getRoofHeightLineCached } from '@/construction/derived'
 import { WallConstructionArea } from '@/construction/geometry'
 import { constructWallPost } from '@/construction/materials/posts'

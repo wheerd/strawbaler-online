@@ -14,7 +14,7 @@ import {
   usePerimeterCornerById,
   usePerimeterWallById
 } from '@/building/store'
-import { useWallAssemblyById } from '@/construction/config/store'
+import { useWallAssemblyById } from '@/config/store'
 import { AngleInput } from '@/editor/canvas/components/AngleInput'
 import { Arrow } from '@/editor/canvas/components/Arrow'
 import { ConstraintBadge } from '@/editor/canvas/overlay/ConstraintBadge'

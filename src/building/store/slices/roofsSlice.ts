@@ -8,7 +8,7 @@ import {
   removeTimestampDraft,
   updateTimestampDraft
 } from '@/building/store/slices/timestampsSlice'
-import { getConfigActions } from '@/construction/config/store'
+import { getConfigActions } from '@/config/store'
 import {
   type Length,
   type LineSegment2D,
