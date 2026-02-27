@@ -39,7 +39,7 @@ Object.defineProperty(Element.prototype, 'scrollIntoView', {
   writable: true
 })
 
-vi.mock('@/construction/walls')
+vi.mock('@/construction/assemblies/walls')
 
 describe('PerimeterToolInspector', () => {
   let mockTool: PerimeterTool

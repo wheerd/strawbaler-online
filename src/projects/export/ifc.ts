@@ -13,7 +13,7 @@ import {
 } from '@/building/model'
 import { type StoreActions, getModelActions } from '@/building/store'
 import { type ConfigActions, getConfigActions } from '@/config'
-import { type StoreyContext, getWallStoreyContextCached } from '@/construction/storeys/context'
+import { type StoreyContext, getWallStoreyContextCached } from '@/construction/context/storeys'
 import {
   type Length,
   type Polygon2D,

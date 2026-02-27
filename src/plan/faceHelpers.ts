@@ -1,5 +1,5 @@
+import type { Projection } from '@/construction/assemblies/utils/geometry'
 import type { GroupOrElement } from '@/construction/elements'
-import type { Projection } from '@/construction/geometry'
 import { getVisibleFacesInViewSpace } from '@/construction/manifold/faces'
 import { getConstructionElementClasses } from '@/plan/cssHelpers'
 import {

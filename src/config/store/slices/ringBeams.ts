@@ -4,7 +4,7 @@ import type { RingBeamAssemblyId } from '@/building/model/ids'
 import { createRingBeamAssemblyId } from '@/building/model/ids'
 import { type TimestampsState, removeTimestampDraft, updateTimestampDraft } from '@/config/store/slices/timestampsSlice'
 import type { RingBeamAssemblyConfig } from '@/config/types'
-import { type RingBeamConfig, validateRingBeamConfig } from '@/construction/ringBeams/types'
+import { type RingBeamConfig, validateRingBeamConfig } from '@/construction/assemblies/ringBeams/types'
 
 import {
   DEFAULT_RING_BEAM_ASSEMBLIES,

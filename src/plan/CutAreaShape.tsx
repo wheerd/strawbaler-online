@@ -1,4 +1,4 @@
-import { type Projection, projectPoint } from '@/construction/geometry'
+import { type Projection, projectPoint } from '@/construction/assemblies/utils/geometry'
 import type { HighlightedCut } from '@/construction/model'
 import { useAreaLabel } from '@/construction/useAreaLabel'
 import { type Bounds3D, newVec3 } from '@/shared/geometry'

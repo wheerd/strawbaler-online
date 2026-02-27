@@ -3,7 +3,7 @@ import { type StateCreator } from 'zustand'
 import { type WallAssemblyId, createWallAssemblyId } from '@/building/model/ids'
 import { type TimestampsState, removeTimestampDraft, updateTimestampDraft } from '@/config/store/slices/timestampsSlice'
 import type { WallAssemblyConfig } from '@/config/types'
-import { type WallConfig, validateWallConfig } from '@/construction/walls/types'
+import { type WallConfig, validateWallConfig } from '@/construction/assemblies/walls/types'
 
 import { DEFAULT_WALL_ASSEMBLIES, DEFAULT_WALL_ASSEMBLY_ID } from './walls.defaults'
 

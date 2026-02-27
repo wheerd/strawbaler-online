@@ -14,7 +14,7 @@ import type {
   RoofAssemblyConfig,
   WallAssemblyConfig
 } from '@/config/types'
-import type { LayerConfig, LayerSetConfig } from '@/construction/layers/types'
+import type { LayerConfig, LayerSetConfig } from '@/construction/assemblies/layers/types'
 import type { MaterialId } from '@/materials/material'
 import { subscribeRecords } from '@/shared/utils/subscription'
 

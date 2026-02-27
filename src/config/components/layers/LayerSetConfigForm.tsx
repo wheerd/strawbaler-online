@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import { LayerListEditor } from '@/config/components/layers/LayerListEditor'
 import { useConfigActions } from '@/config/store'
-import type { LayerSetConfig, LayerSetUse } from '@/construction/layers/types'
+import type { LayerSetConfig, LayerSetUse } from '@/construction/assemblies/layers/types'
 import { Select } from '@/shared/ui/components/select'
 import { TextField } from '@/shared/ui/components/text-field'
 import { useDebouncedInput } from '@/shared/ui/hooks/useDebouncedInput'

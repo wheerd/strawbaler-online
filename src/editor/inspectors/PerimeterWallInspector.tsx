@@ -8,7 +8,7 @@ import { useModelActions, usePerimeterWallById, useWallOpeningsById } from '@/bu
 import { RingBeamAssemblySelectWithEdit } from '@/config/components/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/config/components/WallAssemblySelectWithEdit'
 import { resolveLayerSetThickness, useWallAssemblyById } from '@/config/store'
-import { resolveWallAssembly } from '@/construction/walls'
+import { resolveWallAssembly } from '@/construction/assemblies/walls'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { useToolSystem } from '@/editor/tools/system/ToolSystemContext'
 import { formatThicknessRange } from '@/materials/thickness'

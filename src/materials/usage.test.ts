@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WallPostWithGeometry } from '@/building/model'
 import { createLayerSetId, createRingBeamAssemblyId, createWallAssemblyId } from '@/building/model/ids'
 import type { RingBeamAssemblyConfig, WallAssemblyConfig } from '@/config/types'
-import type { LayerSetConfig } from '@/construction/layers/types'
+import type { LayerSetConfig } from '@/construction/assemblies/layers/types'
 import { partial } from '@/test/helpers'
 
 import { concrete, createMaterialId, roughWood, strawbale, woodwool } from './material'

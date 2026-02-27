@@ -3,7 +3,7 @@ import { type StateCreator } from 'zustand'
 import { type FloorAssemblyId, createFloorAssemblyId } from '@/building/model/ids'
 import { type TimestampsState, removeTimestampDraft, updateTimestampDraft } from '@/config/store/slices/timestampsSlice'
 import type { FloorAssemblyConfig } from '@/config/types'
-import { type FloorConfig, validateFloorConfig } from '@/construction/floors/types'
+import { type FloorConfig, validateFloorConfig } from '@/construction/assemblies/floors/types'
 
 import { DEFAULT_FLOOR_ASSEMBLIES, DEFAULT_FLOOR_ASSEMBLY_ID } from './floors.defaults'
 

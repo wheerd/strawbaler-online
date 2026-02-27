@@ -12,9 +12,9 @@ import {
 import type { ComponentType } from 'react'
 
 import type { WallAssemblyConfig } from '@/config/types'
-import type { FloorAssemblyType } from '@/construction/floors/types'
-import type { LayerSetUse } from '@/construction/layers/types'
-import type { RoofAssemblyType } from '@/construction/roofs/types'
+import type { FloorAssemblyType } from '@/construction/assemblies/floors/types'
+import type { LayerSetUse } from '@/construction/assemblies/layers/types'
+import type { RoofAssemblyType } from '@/construction/assemblies/roofs/types'
 import type { Material } from '@/materials/material'
 
 import BasePlateIcon from './BasePlateIcon'

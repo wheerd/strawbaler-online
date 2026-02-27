@@ -1,7 +1,7 @@
 import type { Manifold } from 'manifold-3d'
 
+import { type WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import { type ConstructionElement, createConstructionElement, createCuboidElement } from '@/construction/elements'
-import { type WallConstructionArea } from '@/construction/geometry'
 import { buildAndCacheManifold } from '@/construction/manifold/builders'
 import type { Tag } from '@/construction/tags'
 import type { MaterialId } from '@/materials/material'

@@ -8,7 +8,7 @@ import type {
   MonolithicLayerConfig,
   StripeDirection,
   StripedLayerConfig
-} from '@/construction/layers/types'
+} from '@/construction/assemblies/layers/types'
 import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField'
 import { Button } from '@/shared/ui/components/button'

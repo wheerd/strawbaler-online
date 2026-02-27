@@ -2,8 +2,8 @@ import { type StateCreator } from 'zustand'
 
 import { type LayerSetId, createLayerSetId } from '@/building/model/ids'
 import { type TimestampsState, removeTimestampDraft, updateTimestampDraft } from '@/config/store/slices/timestampsSlice'
-import { sumLayerThickness } from '@/construction/layers'
-import type { LayerConfig, LayerSetConfig, LayerSetUse } from '@/construction/layers/types'
+import { sumLayerThickness } from '@/construction/assemblies/layers'
+import type { LayerConfig, LayerSetConfig, LayerSetUse } from '@/construction/assemblies/layers/types'
 import { assertUnreachable } from '@/shared/utils'
 
 import { DEFAULT_LAYER_SETS } from './layers.defaults'

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { OpeningAssemblyConfig } from '@/config'
 import { useConfigActions } from '@/config/store'
-import type { OpeningConfig } from '@/construction/openings/types'
+import type { OpeningConfig } from '@/construction/assemblies/openings/types'
 import { Card } from '@/shared/ui/components/card'
 import { Separator } from '@/shared/ui/components/separator'
 import { TextField } from '@/shared/ui/components/text-field'

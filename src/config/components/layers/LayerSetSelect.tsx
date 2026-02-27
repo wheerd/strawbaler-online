@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { LayerSetId } from '@/building/model/ids'
 import { useLayerSets } from '@/config/store'
-import type { LayerSetConfig, LayerSetUse } from '@/construction/layers/types'
+import type { LayerSetConfig, LayerSetUse } from '@/construction/assemblies/layers/types'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
 import { getLayerSetUseIcon } from '@/shared/ui/icons'

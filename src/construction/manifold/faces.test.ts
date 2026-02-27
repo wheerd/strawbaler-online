@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createProjectionMatrix } from '@/construction/geometry'
+import { createProjectionMatrix } from '@/construction/assemblies/utils/geometry'
 import { IDENTITY, composeTransform, lenVec3, rotateZ } from '@/shared/geometry'
 import { getManifoldModule } from '@/shared/geometry/manifoldInstance'
 

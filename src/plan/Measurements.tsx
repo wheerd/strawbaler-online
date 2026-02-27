@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { type Projection, allPoints, bounds3Dto2D, projectPoint } from '@/construction/geometry'
+import { type Projection, allPoints, bounds3Dto2D, projectPoint } from '@/construction/assemblies/utils/geometry'
 import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/measurements'
 import type { ConstructionModel } from '@/construction/model'
 import { SvgMeasurementIndicator } from '@/plan/SvgMeasurementIndicator'

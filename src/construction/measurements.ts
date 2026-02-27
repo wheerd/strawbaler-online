@@ -1,4 +1,4 @@
-import { type Projection, WallConstructionArea, projectPoint } from '@/construction/geometry'
+import { type Projection, WallConstructionArea, projectPoint } from '@/construction/assemblies/utils/geometry'
 import { type ConstructionResult, yieldMeasurement } from '@/construction/results'
 import {
   type Length,

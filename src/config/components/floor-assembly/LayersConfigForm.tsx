@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { FloorAssemblyId } from '@/building/model/ids'
 import { LayerSetSelect } from '@/config/components/layers/LayerSetSelect'
 import { useConfigActions } from '@/config/store'
-import type { FloorConfig } from '@/construction/floors/types'
+import type { FloorConfig } from '@/construction/assemblies/floors/types'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { Separator } from '@/shared/ui/components/separator'
 

@@ -2,7 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import type { JoistFloorConfig } from '@/construction/floors/types'
+import type { JoistFloorConfig } from '@/construction/assemblies/floors/types'
 import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { Button } from '@/shared/ui/components/button'

@@ -25,7 +25,7 @@ import type {
   RoofAssemblyConfig,
   WallAssemblyConfig
 } from '@/config/types'
-import type { LayerConfig } from '@/construction/layers/types'
+import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import { assertUnreachable } from '@/shared/utils'
 
 import type { MaterialId } from './material'

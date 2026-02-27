@@ -15,8 +15,8 @@ import {
 import { simplifyPolygon, unionPolygons } from '@/shared/geometry/polygon'
 import { assertUnreachable } from '@/shared/utils'
 
+import { transformBounds } from './assemblies/utils/geometry'
 import { type ConstructionGroup, type GroupOrElement, createConstructionElementId } from './elements'
-import { transformBounds } from './geometry'
 import type { RawMeasurement } from './measurements'
 import {
   type ConstructionIssue,

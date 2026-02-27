@@ -8,7 +8,7 @@ import { OpeningAssemblySelect } from '@/config/components/OpeningAssemblySelect
 import { type EntityId, useEntityLabel } from '@/config/components/useEntityLabel'
 import { useConfigActions, useDefaultOpeningAssemblyId, useOpeningAssemblies, useWallAssemblies } from '@/config/store'
 import { type OpeningAssemblyUsage, getOpeningAssemblyUsage } from '@/config/usage'
-import type { OpeningAssemblyType, OpeningConfig } from '@/construction/openings/types'
+import type { OpeningAssemblyType, OpeningConfig } from '@/construction/assemblies/openings/types'
 import type { MaterialId } from '@/materials/material'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'

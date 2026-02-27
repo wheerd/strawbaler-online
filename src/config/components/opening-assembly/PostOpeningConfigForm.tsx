@@ -1,7 +1,7 @@
 import * as Label from '@radix-ui/react-label'
 import { useTranslation } from 'react-i18next'
 
-import type { PostOpeningConfig } from '@/construction/openings/types'
+import type { PostOpeningConfig } from '@/construction/assemblies/openings/types'
 import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/materials/material'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'

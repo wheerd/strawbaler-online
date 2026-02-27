@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { RoofAssemblyId } from '@/building/model/ids'
 import { LayerSetSelect } from '@/config/components/layers/LayerSetSelect'
 import { useConfigActions } from '@/config/store'
-import type { RoofConfig } from '@/construction/roofs/types'
+import type { RoofConfig } from '@/construction/assemblies/roofs/types'
 import { RoofMeasurementInfo } from '@/shared/ui/RoofMeasurementInfo'
 import { Separator } from '@/shared/ui/components/separator'
 

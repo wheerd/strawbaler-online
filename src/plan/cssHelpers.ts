@@ -1,5 +1,5 @@
+import type { CutFunction } from '@/construction/assemblies/utils/geometry'
 import type { ConstructionElement, ConstructionGroup } from '@/construction/elements'
-import type { CutFunction } from '@/construction/geometry'
 import type { Tag } from '@/construction/tags'
 
 /**

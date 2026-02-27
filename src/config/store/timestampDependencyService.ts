@@ -13,7 +13,7 @@ import type {
   RoofAssemblyConfig,
   WallAssemblyConfig
 } from '@/config/types'
-import type { LayerConfig } from '@/construction/layers/types'
+import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import type { MaterialId } from '@/materials/material'
 import { getMaterialsActions } from '@/materials/store'
 

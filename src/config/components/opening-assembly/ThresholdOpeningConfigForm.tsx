@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { OpeningAssemblyId } from '@/building/model/ids'
 import { OpeningAssemblySelectWithEdit } from '@/config/components/OpeningAssemblySelectWithEdit'
-import type { ThresholdAssemblyConfig, ThresholdConfig } from '@/construction/openings/types'
+import type { ThresholdAssemblyConfig, ThresholdConfig } from '@/construction/assemblies/openings/types'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { Button } from '@/shared/ui/components/button'
 

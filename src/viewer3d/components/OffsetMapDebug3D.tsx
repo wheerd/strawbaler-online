@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { BufferGeometry } from 'three'
 
 import { useStoreysOrderedByLevel } from '@/building/store'
-import type { VerticalOffsetMap } from '@/construction/storeys/offsets'
+import type { VerticalOffsetMap } from '@/construction/context/offsets'
 import type { Length } from '@/shared/geometry'
 import { calculateSlopedAreaVertexHeights, createSlopedExtrudedGeometry } from '@/viewer3d/utils/offsetMapHelpers'
 

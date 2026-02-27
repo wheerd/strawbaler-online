@@ -1,8 +1,8 @@
 import { useId } from 'react'
 
-import { type Projection } from '@/construction/geometry'
+import { type Projection } from '@/construction/assemblies/utils/geometry'
 import { getVisibleFacesInViewSpace } from '@/construction/manifold/faces'
-import { asManifoldTransform } from '@/construction/manifoldUtils'
+import { asManifoldTransform } from '@/construction/manifold/transform'
 import type { HighlightedCuboid } from '@/construction/model'
 import { useAreaLabel } from '@/construction/useAreaLabel'
 import { Bounds2D, type Vec2, newVec2 } from '@/shared/geometry'

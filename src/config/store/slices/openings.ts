@@ -5,8 +5,8 @@ import { createOpeningAssemblyId } from '@/building/model/ids'
 import { DEFAULT_OPENING_ASSEMBLIES, DEFAULT_OPENING_ASSEMBLY_ID } from '@/config/store/slices/opening.defaults'
 import { type TimestampsState, removeTimestampDraft, updateTimestampDraft } from '@/config/store/slices/timestampsSlice'
 import type { OpeningAssemblyConfig } from '@/config/types'
-import type { OpeningConfig } from '@/construction/openings/types'
-import { validateOpeningConfig } from '@/construction/openings/types'
+import type { OpeningConfig } from '@/construction/assemblies/openings/types'
+import { validateOpeningConfig } from '@/construction/assemblies/openings/types'
 
 export interface OpeningAssembliesState {
   openingAssemblyConfigs: Record<OpeningAssemblyId, OpeningAssemblyConfig>

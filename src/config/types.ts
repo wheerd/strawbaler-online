@@ -12,23 +12,23 @@ import type {
   HangingJoistFloorConfig,
   JoistFloorConfig,
   MonolithicFloorConfig
-} from '@/construction/floors'
+} from '@/construction/assemblies/floors'
 import type {
   EmptyOpeningConfig,
   PlankedOpeningConfig,
   PostOpeningConfig,
   SimpleOpeningConfig,
   ThresholdAssemblyConfig
-} from '@/construction/openings/types'
-import type { BrickRingBeamConfig, DoubleRingBeamConfig, FullRingBeamConfig } from '@/construction/ringBeams'
-import type { MonolithicRoofConfig, PurlinRoofConfig } from '@/construction/roofs'
+} from '@/construction/assemblies/openings/types'
+import type { BrickRingBeamConfig, DoubleRingBeamConfig, FullRingBeamConfig } from '@/construction/assemblies/ringBeams'
+import type { MonolithicRoofConfig, PurlinRoofConfig } from '@/construction/assemblies/roofs'
 import type {
   InfillWallConfig,
   ModulesWallConfig,
   NonStrawbaleWallConfig,
   PrefabModulesWallConfig,
   StrawhengeWallConfig
-} from '@/construction/walls'
+} from '@/construction/assemblies/walls'
 
 /*
   This is what the wall + floor construction looks like from the side:

@@ -1,6 +1,6 @@
 import type { Manifold } from 'manifold-3d'
 
-import { asManifoldTransform } from '@/construction/manifoldUtils'
+import { asManifoldTransform } from '@/construction/manifold/transform'
 import { Bounds3D, type Transform, arrayToVec3 } from '@/shared/geometry'
 
 export function transformManifold(manifold: Manifold, transform: Transform): Manifold {

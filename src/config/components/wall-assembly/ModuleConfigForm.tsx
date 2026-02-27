@@ -2,7 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { ModuleConfig } from '@/construction/walls/modules/modules'
+import type { ModuleConfig } from '@/construction/assemblies/walls/modules/modules'
 import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 import { roughWood, woodwool } from '@/materials/material'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'

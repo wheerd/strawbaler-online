@@ -1,6 +1,6 @@
 import { useId } from 'react'
 
-import { type Projection, projectPoint } from '@/construction/geometry'
+import { type Projection, projectPoint } from '@/construction/assemblies/utils/geometry'
 import type { HighlightedPolygon } from '@/construction/model'
 import { useAreaLabel } from '@/construction/useAreaLabel'
 import { type Vec3, newVec3 } from '@/shared/geometry'

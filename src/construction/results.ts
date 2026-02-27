@@ -1,7 +1,7 @@
 import type { Resources, SelectorFn, SelectorOptions } from 'i18next'
 import type { Manifold } from 'manifold-3d'
 
-import { transformBounds } from '@/construction/geometry'
+import { transformBounds } from '@/construction/assemblies/utils/geometry'
 import { getBoundsFromManifold, transformManifold } from '@/construction/manifold/operations'
 import type { Tag } from '@/construction/tags'
 import type { PartInfo } from '@/parts/types'

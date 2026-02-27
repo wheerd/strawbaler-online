@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useConfigActions } from '@/config/store'
 import type { WallAssemblyConfig } from '@/config/types'
-import { type WallConfig, resolveWallAssembly } from '@/construction/walls'
+import { type WallConfig, resolveWallAssembly } from '@/construction/assemblies/walls'
 import { formatThicknessRange } from '@/materials/thickness'
 import { Card } from '@/shared/ui/components/card'
 import { Separator } from '@/shared/ui/components/separator'

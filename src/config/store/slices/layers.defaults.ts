@@ -1,5 +1,5 @@
 import type { LayerSetId } from '@/building/model/ids'
-import type { LayerConfig, LayerNameKey, LayerSetConfig, LayerSetUse } from '@/construction/layers/types'
+import type { LayerConfig, LayerNameKey, LayerSetConfig, LayerSetUse } from '@/construction/assemblies/layers/types'
 import {
   battens,
   boards,

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { LayerSetId } from '@/building/model/ids'
-import type { LayerConfig } from '@/construction/layers/types'
+import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import type { MaterialId } from '@/materials/material'
 
 import type { LayerSetsSlice } from './layers'

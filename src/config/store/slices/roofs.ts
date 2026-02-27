@@ -3,7 +3,7 @@ import { type StateCreator } from 'zustand'
 import { type RoofAssemblyId, createRoofAssemblyId } from '@/building/model/ids'
 import { type TimestampsState, removeTimestampDraft, updateTimestampDraft } from '@/config/store/slices/timestampsSlice'
 import type { RoofAssemblyConfig } from '@/config/types'
-import { type RoofConfig, validateRoofConfig } from '@/construction/roofs/types'
+import { type RoofConfig, validateRoofConfig } from '@/construction/assemblies/roofs/types'
 
 import { DEFAULT_ROOF_ASSEMBLIES, DEFAULT_ROOF_ASSEMBLY_ID } from './roofs.defaults'
 

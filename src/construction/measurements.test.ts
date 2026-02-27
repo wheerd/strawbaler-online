@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { type Projection, createProjectionMatrix } from '@/construction/geometry'
+import { type Projection, createProjectionMatrix } from '@/construction/assemblies/utils/geometry'
 import {
   type AutoMeasurement,
   type DirectMeasurement,
