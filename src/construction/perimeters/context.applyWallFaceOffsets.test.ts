@@ -19,7 +19,7 @@ import { applyWallFaceOffsets, createWallFaceOffsets } from './context'
 const mockInsideThickness = { value: 50 }
 const mockOutsideThickness = { value: 100 }
 
-vi.mock('@/construction/config', () => ({
+vi.mock('@/config', () => ({
   getConfigActions: vi.fn(),
   resolveLayerSetThickness: (id: LayerSetId | undefined) => {
     if (!id) return 0

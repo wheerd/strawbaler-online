@@ -3,7 +3,7 @@ import { Info } from 'lucide-react'
 import { type ComponentProps, type JSX, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
+import { SvgMeasurementIndicator } from '@/plan/SvgMeasurementIndicator'
 import { degreesToRadians, newVec2 } from '@/shared/geometry'
 import { BaseModal } from '@/shared/ui/BaseModal'
 import { Button } from '@/shared/ui/components/button'

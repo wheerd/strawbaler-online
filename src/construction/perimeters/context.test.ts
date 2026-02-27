@@ -26,7 +26,7 @@ import { computePerimeterConstructionPolygon } from './context'
 
 const outsideThicknessByLayerSetId = new Map<LayerSetId, number>()
 
-vi.mock('@/construction/config', () => ({
+vi.mock('@/config', () => ({
   getConfigActions: vi.fn(),
   resolveLayerSetThickness: (id: LayerSetId | undefined) => {
     if (!id) return 0

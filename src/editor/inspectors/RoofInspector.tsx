@@ -8,14 +8,13 @@ import type { RoofId } from '@/building/model/ids'
 import { useModelActions, useRoofById, useRoofOverhangsByRoof } from '@/building/store'
 import { RoofAssemblySelectWithEdit } from '@/config/components/RoofAssemblySelectWithEdit'
 import { useDefaultRoofAssemblyId } from '@/config/store'
-import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
-import { FRONT_VIEW, LEFT_VIEW, TOP_VIEW } from '@/construction/components/plan/ConstructionPlan'
 import { TAG_DECKING } from '@/construction/tags'
-import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
 import { replaceSelection } from '@/editor/canvas/state/selectionStore'
 import { useViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { RoofPreview } from '@/editor/shared/RoofPreview'
+import { FRONT_VIEW, LEFT_VIEW, TOP_VIEW } from '@/plan/ConstructionPlan'
+import { ConstructionPlanModal } from '@/plan/ConstructionPlanModal'
 import {
   Bounds2D,
   type Length,
@@ -32,6 +31,7 @@ import { DataList } from '@/shared/ui/components/data-list'
 import { Separator } from '@/shared/ui/components/separator'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon } from '@/shared/ui/icons'
+import { ConstructionViewer3DModal } from '@/viewer3d/ConstructionViewer3DModal'
 
 interface RoofInspectorProps {
   roofId: RoofId

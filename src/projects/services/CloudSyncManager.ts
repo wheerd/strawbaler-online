@@ -16,19 +16,19 @@ import {
   subscribeToConfigChanges
 } from '@/config/store'
 import {
-  PARTS_STORE_VERSION,
-  type PartializedPartsState,
-  exportPartsState,
-  hydratePartsState,
-  usePartsStore
-} from '@/construction/parts/store'
-import {
   MATERIALS_STORE_VERSION,
   getInitialMaterialsState,
   getMaterialsState,
   hydrateMaterialsState,
   subscribeToMaterials
 } from '@/materials/store'
+import {
+  PARTS_STORE_VERSION,
+  type PartializedPartsState,
+  exportPartsState,
+  hydratePartsState,
+  usePartsStore
+} from '@/parts/store'
 import { getProjectActions, getProjectMeta, useProjectsStore } from '@/projects/store'
 import type { ProjectData, ProjectId, ProjectListItem } from '@/projects/types'
 import { createProjectId, parseTimestamp, timestampNow } from '@/projects/types'

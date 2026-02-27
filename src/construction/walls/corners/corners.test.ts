@@ -17,7 +17,7 @@ import { type WallContext, calculateWallCornerInfo, getWallContext } from './cor
 // Mock layer set helpers to return test values
 const mockLayerSetThicknesses: Record<string, number> = {}
 
-vi.mock('@/construction/config', () => ({
+vi.mock('@/config/store', () => ({
   getConfigActions: () => ({
     getWallAssemblyById: (id: WallAssemblyId) => mockAssemblies.find(a => a.id === id) ?? null
   }),

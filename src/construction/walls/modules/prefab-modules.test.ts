@@ -14,7 +14,7 @@ import { ensureClipperModule } from '@/shared/geometry/polygon/clipperInstance'
 
 import { PrefabModulesWallAssembly } from './prefab-modules'
 
-vi.mock('@/construction/materials/store', () => ({
+vi.mock('@/materials/store', () => ({
   getMaterialsActions: vi.fn()
 }))
 

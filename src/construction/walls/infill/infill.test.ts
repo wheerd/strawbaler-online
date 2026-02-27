@@ -21,11 +21,11 @@ import { IDENTITY, type Length, type Vec3, newVec3 } from '@/shared/geometry'
 import { infillWallArea } from './infill'
 
 // Mock dependencies
-vi.mock('@/construction/materials/posts', () => ({
+vi.mock('@/materials/posts', () => ({
   constructPost: vi.fn()
 }))
 
-vi.mock('@/construction/materials/straw', () => ({
+vi.mock('@/materials/straw', () => ({
   constructStraw: vi.fn()
 }))
 

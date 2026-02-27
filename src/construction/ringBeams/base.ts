@@ -4,7 +4,6 @@ import { getModelActions } from '@/building/store'
 import { getRoofHeightLineCached } from '@/construction/derived'
 import { createConstructionElement } from '@/construction/elements'
 import { PolygonWithBoundingRect } from '@/construction/helpers'
-import type { PartInfo } from '@/construction/parts/types'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import { type ConstructionResult, yieldAndClip, yieldElement } from '@/construction/results'
 import type { HeightLine } from '@/construction/roofs/types'
@@ -12,6 +11,7 @@ import { createExtrudedPolygon } from '@/construction/shapes'
 import type { Tag } from '@/construction/tags'
 import { type WallTopOffsets } from '@/construction/walls/roofIntegration'
 import type { MaterialId } from '@/materials/material'
+import type { PartInfo } from '@/parts/types'
 import {
   type Length,
   type Line2D,

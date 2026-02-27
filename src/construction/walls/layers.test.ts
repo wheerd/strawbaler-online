@@ -80,7 +80,7 @@ const nextAssemblyId = createWallAssemblyId()
 let wallContext: WallContext
 let cornerInfo: WallCornerInfo
 
-vi.mock('@/construction/config', () => ({
+vi.mock('@/config', () => ({
   getConfigActions: () => ({
     getWallAssemblyById: (id: string) => mockAssemblies.get(id) ?? null,
     getRingBeamAssemblyById: () => null

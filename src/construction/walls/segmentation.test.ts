@@ -53,7 +53,7 @@ vi.mock('@/construction/floors', () => ({
   }
 }))
 
-vi.mock('@/construction/config', () => ({
+vi.mock('@/config', () => ({
   getConfigActions: vi.fn(),
   resolveLayerSetThickness: (id: string) => {
     if (id === 'ls_inside') return 30
@@ -75,7 +75,7 @@ vi.mock('@/construction/ringBeams', () => ({
   resolveRingBeamAssembly: vi.fn()
 }))
 
-vi.mock('@/construction/materials/posts', () => ({
+vi.mock('@/materials/posts', () => ({
   constructWallPost: vi.fn()
 }))
 

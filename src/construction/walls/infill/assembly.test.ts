@@ -49,11 +49,11 @@ vi.mock('@/construction/floors', () => ({
   }
 }))
 
-vi.mock('@/construction/materials/posts', () => ({
+vi.mock('@/materials/posts', () => ({
   constructPost: vi.fn()
 }))
 
-vi.mock('@/construction/materials/straw', () => ({
+vi.mock('@/materials/straw', () => ({
   constructStraw: vi.fn()
 }))
 

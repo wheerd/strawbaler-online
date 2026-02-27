@@ -15,10 +15,10 @@ import { Bounds3D, newVec3 } from '@/shared/geometry'
 
 import { constructStraw } from './straw'
 
-vi.mock('@/construction/config', () => ({
+vi.mock('@/config', () => ({
   getConfigActions: vi.fn()
 }))
-vi.mock('@/construction/materials/store', () => ({
+vi.mock('@/materials/store', () => ({
   getMaterialsActions: vi.fn()
 }))
 
@@ -69,10 +69,10 @@ const scenarios = lengths.flatMap(length => heights.map(height => ({ length, hei
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_STRAW_VISUALS === '1' || process.env.UPDATE_VISUAL_SNAPSHOTS === '1'
 
-const fixturesDir = path.resolve(process.cwd(), 'src', 'construction', 'materials', '__fixtures__', 'straw')
+const fixturesDir = path.resolve(process.cwd(), 'src', 'materials', '__fixtures__', 'straw')
 
-describe.each(scenarios)('constructStraw visual regression - $length x $height', ({ length, height }) => {
-  it('matches the expected SVG snapshot', async () => {
+describe('constructStraw visual regression', () => {
+  it.each(scenarios)('$length x $height - matches the expected SVG snapshot', async ({ length, height }) => {
     const position = newVec3(0, 0, 0)
     const size = newVec3(length, defaultMaterial.baleWidth, height)
 

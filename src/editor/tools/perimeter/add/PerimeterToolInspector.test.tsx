@@ -10,7 +10,7 @@ import { ZERO_VEC2 } from '@/shared/geometry'
 import { PerimeterTool } from './PerimeterTool'
 import { PerimeterToolInspector } from './PerimeterToolInspector'
 
-vi.mock('@/construction/config/store', () => ({
+vi.mock('@/config/store', () => ({
   useRingBeamAssemblies: () => [
     {
       id: 'test-ring-beam-assembly',

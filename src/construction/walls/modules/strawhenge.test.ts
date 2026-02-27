@@ -24,7 +24,7 @@ class TestStrawhengeWallAssembly extends StrawhengeWallAssembly {
 }
 
 // Mock dependencies
-vi.mock('@/construction/materials/straw', () => ({
+vi.mock('@/materials/straw', () => ({
   constructStraw: vi.fn()
 }))
 

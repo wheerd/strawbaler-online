@@ -6,10 +6,10 @@ import { MODEL_STORE_VERSION, exportModelState, hydrateModelState } from '@/buil
 import type { StoreState } from '@/building/store/types'
 import type { ConfigState } from '@/config/store'
 import { CONFIG_STORE_VERSION, getConfigState, hydrateConfigState } from '@/config/store'
-import type { PartializedPartsState } from '@/construction/parts/store'
-import { PARTS_STORE_VERSION, exportPartsState, hydratePartsState } from '@/construction/parts/store'
 import { MATERIALS_STORE_VERSION, getMaterialsState, hydrateMaterialsState } from '@/materials/store'
 import type { MaterialsState } from '@/materials/store'
+import type { PartializedPartsState } from '@/parts/store'
+import { PARTS_STORE_VERSION, exportPartsState, hydratePartsState } from '@/parts/store'
 import type { ExportedProjectMeta } from '@/projects/store'
 import { PROJECTS_STORE_VERSION, exportProjectMeta, hydrateProjectMeta } from '@/projects/store'
 
@@ -23,19 +23,19 @@ vi.mock('@/building/store', () => ({
   MODEL_STORE_VERSION: 5
 }))
 
-vi.mock('@/construction/config/store', () => ({
+vi.mock('@/config/store', () => ({
   getConfigState: vi.fn(),
   hydrateConfigState: vi.fn(),
   CONFIG_STORE_VERSION: 3
 }))
 
-vi.mock('@/construction/materials/store', () => ({
+vi.mock('@/materials/store', () => ({
   getMaterialsState: vi.fn(),
   hydrateMaterialsState: vi.fn(),
   MATERIALS_STORE_VERSION: 2
 }))
 
-vi.mock('@/construction/parts/store', () => ({
+vi.mock('@/parts/store', () => ({
   exportPartsState: vi.fn(),
   hydratePartsState: vi.fn(),
   PARTS_STORE_VERSION: 1

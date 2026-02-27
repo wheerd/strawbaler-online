@@ -18,7 +18,7 @@ vi.mock('@/building/store', () => ({
   getModelActions: vi.fn()
 }))
 
-vi.mock('@/construction/config', () => ({
+vi.mock('@/config', () => ({
   getConfigActions: vi.fn()
 }))
 

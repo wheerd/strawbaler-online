@@ -21,7 +21,7 @@ const mockUseLayerSets: any = vi.fn(() => [])
 const mockUseDefaultStrawMaterialId: any = vi.fn(() => defaultStrawMaterialId)
 const mockUseWallPosts: any = vi.fn(() => [])
 
-vi.mock('@/construction/config/store', () => ({
+vi.mock('@/config/store', () => ({
   useRingBeamAssemblies: () => mockUseRingBeamAssemblies(),
   useWallAssemblies: () => mockUseWallAssemblies(),
   useFloorAssemblies: () => mockUseFloorAssemblies(),

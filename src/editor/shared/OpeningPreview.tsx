@@ -1,7 +1,7 @@
 import { useId } from 'react'
 
 import type { OpeningParams } from '@/building/model'
-import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
+import { SvgMeasurementIndicator } from '@/plan/SvgMeasurementIndicator'
 import { type Length, newVec2 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 

@@ -1,4 +1,6 @@
 import type { RawMeasurement } from '@/construction/measurements'
+import type { MaterialId } from '@/materials/material'
+import type { InitialPartInfo } from '@/parts/types'
 import {
   type Area,
   type Length,
@@ -36,9 +38,7 @@ import {
   vec2To3
 } from '@/shared/geometry'
 
-import type { MaterialId } from '../materials/material'
 import { createConstructionElement } from './elements'
-import type { InitialPartInfo } from './parts/types'
 import { type ConstructionResult, yieldElement, yieldWarning } from './results'
 import { createExtrudedPolygon } from './shapes'
 import type { Tag } from './tags'

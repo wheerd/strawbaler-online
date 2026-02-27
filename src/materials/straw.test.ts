@@ -13,10 +13,10 @@ import { strawbale } from './material'
 import { getMaterialsActions } from './store'
 import { constructStraw } from './straw'
 
-vi.mock('@/construction/config', () => ({
+vi.mock('@/config', () => ({
   getConfigActions: vi.fn()
 }))
-vi.mock('@/construction/materials/store', () => ({
+vi.mock('@/materials/store', () => ({
   getMaterialsActions: vi.fn()
 }))
 
