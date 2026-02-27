@@ -157,12 +157,7 @@ export class ToolSystem implements IToolSystem {
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement
-    const isInputElement = target.matches(
-      'input[type=text], input[type=number], input:not([type]), select, textarea, [contenteditable="true"]'
-    )
-
-    if (isInputElement) return
+    if (this.isInputElement(event.target as HTMLElement)) return
 
     const key = this.normalizeKeyFromEvent(event)
 
@@ -184,17 +179,18 @@ export class ToolSystem implements IToolSystem {
   }
 
   private handleKeyUp(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement
-    const isInputElement = target.matches(
-      'input[type=text], input[type=number], input:not([type]), select, textarea, [contenteditable="true"]'
-    )
-
-    if (isInputElement) return
+    if (this.isInputElement(event.target as HTMLElement)) return
 
     const activeTool = this.getActiveTool()
     if (activeTool.handleKeyUp?.(event)) {
       event.preventDefault()
     }
+  }
+
+  private isInputElement(target: HTMLElement) {
+    return target.matches(
+      'input[type=text], input[type=number], input[type=email], input[type=password], input:not([type]), select, textarea, [contenteditable="true"]'
+    )
   }
 
   private normalizeKey(key: string): string {
