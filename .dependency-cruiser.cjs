@@ -193,7 +193,7 @@ module.exports = {
     // Which modules to exclude
     exclude: {
       // path: an array of regular expressions in strings to match against
-      path: ['\\.test\\.tsx?$', 'test/']
+      path: ['\\.test\\.tsx?$', 'test/', 'vite-env\\.d\\.ts', 'src/@types']
     },
 
     // Which modules to exclusively include (array of regular expressions in strings)
