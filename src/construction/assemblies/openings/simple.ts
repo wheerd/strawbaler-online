@@ -1,10 +1,8 @@
 import { BaseOpeningAssembly } from '@/construction/assemblies/openings/base'
 import type { SimpleOpeningConfig } from '@/construction/assemblies/openings/types'
-import { type WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { type WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { SegmentInfillMethod } from '@/construction/assemblies/walls/types'
-import { yieldMeasurementFromArea } from '@/construction/model/measurements'
 import { type ConstructionResult, yieldElement, yieldError } from '@/construction/model/results'
-import { createElementFromArea } from '@/construction/model/shapes'
 import {
   TAG_HEADER,
   TAG_HEADER_FROM_TOP,
@@ -37,17 +35,17 @@ export class SimpleOpeningAssembly extends BaseOpeningAssembly<SimpleOpeningConf
       yield yieldError($ => $.construction.opening.heightExceedsWall, { excess: adjustedHeader - wallTop }, [])
     }
 
-    yield* yieldMeasurementFromArea(rawOpeningArea, 'width', [TAG_OPENING_WIDTH])
+    yield* rawOpeningArea.yieldMeasurement('width', [TAG_OPENING_WIDTH])
 
     if (!headerArea.isEmpty) {
-      const headerElement = createElementFromArea(headerArea, this.config.headerMaterial, [TAG_HEADER], {
+      const headerElement = headerArea.extrude(this.config.headerMaterial, [TAG_HEADER], {
         type: 'header',
         requiresSinglePiece: true
       })
       yield* yieldElement(headerElement)
 
-      yield* yieldMeasurementFromArea(belowHeader, 'height', [TAG_HEADER_HEIGHT], -1)
-      yield* yieldMeasurementFromArea(topPart, 'height', [TAG_HEADER_FROM_TOP], -1)
+      yield* belowHeader.yieldMeasurement('height', [TAG_HEADER_HEIGHT], -1)
+      yield* topPart.yieldMeasurement('height', [TAG_HEADER_FROM_TOP], -1)
 
       if (headerTop > wallTop) {
         yield yieldError(
@@ -59,15 +57,15 @@ export class SimpleOpeningAssembly extends BaseOpeningAssembly<SimpleOpeningConf
     }
 
     if (!sillArea.isEmpty) {
-      const sillElement = createElementFromArea(sillArea, this.config.sillMaterial, [TAG_SILL], { type: 'sill' })
+      const sillElement = sillArea.extrude(this.config.sillMaterial, [TAG_SILL], { type: 'sill' })
       yield* yieldElement(sillElement)
 
-      yield* yieldMeasurementFromArea(bottomPart, 'height', [TAG_SILL_HEIGHT], 1, false)
+      yield* bottomPart.yieldMeasurement('height', [TAG_SILL_HEIGHT], 1, false)
 
       // Generate opening height measurement if both sill and header exist
       // Otherwise it would be the same as TAG_HEADER_HEIGHT
       if (!headerArea.isEmpty) {
-        yield* yieldMeasurementFromArea(rawOpeningArea, 'height', [TAG_OPENING_HEIGHT], 1, false)
+        yield* rawOpeningArea.yieldMeasurement('height', [TAG_OPENING_HEIGHT], 1, false)
       }
 
       if (sillBottom < 0) {

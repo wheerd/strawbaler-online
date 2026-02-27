@@ -2,7 +2,7 @@ import { keyFromSelector } from 'i18next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { constructStraw } from '@/construction/assemblies/straw'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { PostConfig } from '@/construction/assemblies/walls/posts'
 import { constructPost } from '@/construction/assemblies/walls/posts'
 import type { InfillWallSegmentConfig } from '@/construction/assemblies/walls/types'

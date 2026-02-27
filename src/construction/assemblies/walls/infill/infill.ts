@@ -1,14 +1,12 @@
 import { getConfigActions } from '@/config/store'
 import { constructStraw } from '@/construction/assemblies/straw'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { constructPost } from '@/construction/assemblies/walls/posts'
 import { constructTriangularBattens } from '@/construction/assemblies/walls/triangularBattens'
 import type { InfillWallSegmentConfig } from '@/construction/assemblies/walls/types'
 import type { GroupOrElement } from '@/construction/model/elements'
-import { yieldMeasurementFromArea } from '@/construction/model/measurements'
 import type { ConstructionResult, IssueMessageKey } from '@/construction/model/results'
 import { yieldAndCollectElements, yieldElement, yieldError, yieldWarning } from '@/construction/model/results'
-import { createElementFromArea } from '@/construction/model/shapes'
 import { TAG_INFILL, TAG_POST_SPACING } from '@/construction/model/tags'
 import type { StrawbaleMaterial } from '@/materials/material'
 import { getMaterialById } from '@/materials/store'
@@ -63,14 +61,14 @@ export function* infillWallArea(
 
   if ((inbetweenArea.size[2] < minStrawSpace || inbetweenArea.size[0] < minStrawSpace) && config.infillMaterial) {
     yield* yieldAndCollectElements(
-      yieldElement(createElementFromArea(inbetweenArea, config.infillMaterial, [TAG_INFILL])),
+      yieldElement(inbetweenArea.extrude(config.infillMaterial, [TAG_INFILL])),
       allElements
     )
     if (inbetweenArea.size[2] < minStrawSpace) {
-      yield* yieldMeasurementFromArea(inbetweenArea, 'height')
+      yield* inbetweenArea.yieldMeasurement('height')
     }
     if (inbetweenArea.size[0] < minStrawSpace) {
-      yield* yieldMeasurementFromArea(inbetweenArea, 'width', [TAG_POST_SPACING])
+      yield* inbetweenArea.yieldMeasurement('width', [TAG_POST_SPACING])
     }
   } else {
     yield* yieldAndCollectElements(
@@ -108,7 +106,7 @@ function* constructInfillRecursive(
       yield yieldWarning($ => $.construction.infill.notEnoughSpaceForStraw, undefined, strawElements)
     }
 
-    yield* yieldMeasurementFromArea(strawArea, 'width', [TAG_POST_SPACING])
+    yield* strawArea.yieldMeasurement('width', [TAG_POST_SPACING])
   }
 
   if (baleWidth + config.posts.width <= size[0]) {

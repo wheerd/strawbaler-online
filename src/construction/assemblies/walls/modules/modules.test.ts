@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { ConstructionElement, ConstructionGroup } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
 import { newVec3 } from '@/shared/geometry'

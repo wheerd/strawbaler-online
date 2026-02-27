@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { constructStraw } from '@/construction/assemblies/straw'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { infillWallArea } from '@/construction/assemblies/walls/infill/infill'
 import type { StrawhengeWallConfig } from '@/construction/assemblies/walls/types'
 import { createCuboidElement } from '@/construction/model/elements'

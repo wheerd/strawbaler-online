@@ -1,5 +1,5 @@
 import type { OpeningWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
-import type { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import type { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import {
   type Length,
   type LineSegment2D,

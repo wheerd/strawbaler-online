@@ -4,7 +4,7 @@ import path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type ConfigActions, getConfigActions } from '@/config/store'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
 import { TAG_FULL_BALE, TAG_PARTIAL_BALE, TAG_STRAW_FLAKES, TAG_STRAW_STUFFED } from '@/construction/model/tags'

@@ -1,12 +1,11 @@
 import { constructStraw } from '@/construction/assemblies/straw'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import {
   type TriangularBattenConfig,
   constructTriangularBattens
 } from '@/construction/assemblies/walls/triangularBattens'
 import { type ConstructionElement, createCuboidElement } from '@/construction/model/elements'
 import { type ConstructionResult, yieldAsGroup, yieldElement, yieldMeasurement } from '@/construction/model/results'
-import { createElementFromArea } from '@/construction/model/shapes'
 import {
   TAG_INFILL,
   TAG_MODULE,
@@ -331,6 +330,6 @@ export function* constructModule(
 
   if (area.minHeight < area.size[2] && fallbackMaterial) {
     const remainingArea = area.withZAdjustment(area.minHeight)
-    yield* yieldElement(createElementFromArea(remainingArea, fallbackMaterial, [TAG_INFILL]))
+    yield* yieldElement(remainingArea.extrude(fallbackMaterial, [TAG_INFILL]))
   }
 }

@@ -4,7 +4,7 @@ import type { Opening, PerimeterWallId, PerimeterWallWithGeometry } from '@/buil
 import { type StoreyId, createOpeningId, createWallAssemblyId } from '@/building/model/ids'
 import type { FloorAssembly } from '@/construction/assemblies/floors/types'
 import { constructStraw } from '@/construction/assemblies/straw'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { PostConfig } from '@/construction/assemblies/walls/posts'
 import { constructPost } from '@/construction/assemblies/walls/posts'
 import { segmentedWallConstruction } from '@/construction/assemblies/walls/segmentation'

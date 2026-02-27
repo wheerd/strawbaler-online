@@ -9,7 +9,10 @@ module.exports = {
         'your solution (i.e. use dependency inversion, make sure the modules have a single responsibility) ',
       from: {},
       to: {
-        circular: true
+        circular: true,
+        viaOnly: {
+          dependencyTypesNot: ['type-only']
+        }
       }
     },
     {
@@ -149,7 +152,7 @@ module.exports = {
         dependencyTypes: ['npm-dev'],
         // type only dependencies are not a problem as they don't end up in the
         // production code or are ignored by the runtime.
-        dependencyTypesNot: ['type-only'],
+        dependencyTypesNot: ['type-only', 'triple-slash-type-reference'],
         pathNot: ['node_modules/@types/']
       }
     },
@@ -228,7 +231,7 @@ module.exports = {
     // false (the default): ignore dependencies that only exist before typescript-to-javascript compilation
     // true: also detect dependencies that only exist before typescript-to-javascript compilation
     // 'specify': for each dependency identify whether it only exists before compilation or also after
-    tsPreCompilationDeps: false, //'specify',
+    tsPreCompilationDeps: 'specify',
 
     // list of extensions to scan that aren't javascript or compile-to-javascript.
     // Empty by default. Only put extensions in here that you want to take into
@@ -332,17 +335,7 @@ module.exports = {
           graph: {
             splines: 'ortho',
             rankdir: 'TD'
-          },
-          dependencies: [
-            {
-              criteria: {
-                matchesFocus: false
-              },
-              attributes: {
-                style: 'invis'
-              }
-            }
-          ]
+          }
         }
       },
       archi: {

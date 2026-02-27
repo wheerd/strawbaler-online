@@ -1,7 +1,7 @@
 import { keyFromSelector } from 'i18next'
 import { describe, expect, it, vi } from 'vitest'
 
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
 import type { CuboidShape } from '@/construction/model/shapes'

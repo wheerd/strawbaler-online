@@ -1,7 +1,7 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
 import { constructStraw } from '@/construction/assemblies/straw'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { infillWallArea } from '@/construction/assemblies/walls/infill/infill'
 import { type WallLayerSetIds, constructWallLayers } from '@/construction/assemblies/walls/layers'
@@ -9,7 +9,6 @@ import { segmentedWallConstruction } from '@/construction/assemblies/walls/segme
 import { constructTriangularBattens } from '@/construction/assemblies/walls/triangularBattens'
 import type { StrawhengeWallConfig } from '@/construction/assemblies/walls/types'
 import type { StoreyContext } from '@/construction/context/storeys'
-import { yieldMeasurementFromArea } from '@/construction/model/measurements'
 import type { ConstructionModel } from '@/construction/model/model'
 import { mergeModels } from '@/construction/model/model'
 import type { ConstructionResult } from '@/construction/model/results'
@@ -101,7 +100,7 @@ export class StrawhengeWallAssembly extends BaseWallAssembly<StrawhengeWallConfi
         return
       }
       yield* constructStraw(strawArea, infill.strawMaterial)
-      yield* yieldMeasurementFromArea(strawArea, 'width', [TAG_POST_SPACING])
+      yield* strawArea.yieldMeasurement('width', [TAG_POST_SPACING])
       yield* constructTriangularBattens(strawArea, infill.triangularBattens)
     }
 

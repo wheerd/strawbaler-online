@@ -1,6 +1,6 @@
 import type { OpeningAssemblyId, PerimeterWallWithGeometry } from '@/building/model'
 import type { LayerSetId } from '@/building/model/ids'
-import type { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import type { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { type PostConfig, validatePosts } from '@/construction/assemblies/walls/posts'
 import type { TriangularBattenConfig } from '@/construction/assemblies/walls/triangularBattens'
 import type { StoreyContext } from '@/construction/context/storeys'

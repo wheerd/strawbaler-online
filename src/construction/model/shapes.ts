@@ -1,10 +1,6 @@
 import type { Manifold } from 'manifold-3d'
 
-import { type WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import { buildAndCacheManifold } from '@/construction/manifold/builders'
-import type { Tag } from '@/construction/model/tags'
-import type { MaterialId } from '@/materials/material'
-import type { InitialPartInfo } from '@/parts/types'
 import {
   Bounds2D,
   Bounds3D,
@@ -13,11 +9,8 @@ import {
   type PolygonWithHoles2D,
   type Vec3,
   copyVec3,
-  fromTrans,
   newVec3
 } from '@/shared/geometry'
-
-import { type ConstructionElement, createConstructionElement, createCuboidElement } from './elements'
 
 export type BaseShape = CuboidShape | ExtrudedShape
 
@@ -75,37 +68,4 @@ export function createExtrudedPolygon(polygon: PolygonWithHoles2D, plane: Plane3
     base,
     bounds: bounds3D
   }
-}
-
-/**
- * Convert WallConstructionArea to ConstructionElement by extruding side profile along Y-axis
- * The side profile polygon is in the XZ plane and is extruded in the Y direction (wall depth)
- */
-export function createElementFromArea(
-  area: WallConstructionArea,
-  materialId: MaterialId,
-  tags?: Tag[],
-  partInfo?: InitialPartInfo
-): ConstructionElement | null {
-  if (area.isEmpty) return null
-
-  if (area.minHeight === area.size[2]) {
-    return createCuboidElement(materialId, area.position, area.size, tags, partInfo)
-  }
-
-  const sideProfile = area.getSideProfilePolygon()
-
-  // Create the polygon with holes structure (no holes for wall profiles)
-  const polygon: PolygonWithHoles2D = {
-    outer: sideProfile,
-    holes: []
-  }
-
-  // Extrude along Y-axis (wall depth)
-  const shape = createExtrudedPolygon(polygon, 'xz', area.size[1])
-
-  // Create transform to position at area's Y position
-  const transform = fromTrans(newVec3(0, area.position[1], 0))
-
-  return createConstructionElement(materialId, shape, transform, tags, partInfo)
 }

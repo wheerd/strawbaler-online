@@ -1,5 +1,5 @@
 import type { WallPost } from '@/building/model'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { GroupOrElement } from '@/construction/model/elements'
 import {
   type ConstructionResult,
@@ -8,7 +8,6 @@ import {
   yieldError,
   yieldWarning
 } from '@/construction/model/results'
-import { createElementFromArea } from '@/construction/model/shapes'
 import { TAG_INFILL, TAG_MODULE, TAG_POST, createTag } from '@/construction/model/tags'
 import type { DimensionalMaterial, MaterialId } from '@/materials/material'
 import { getMaterialById } from '@/materials/store'
@@ -52,7 +51,7 @@ const materialSupportsCrossSection = (
 
 function* constructFullPost(area: WallConstructionArea, config: FullPostConfig): Generator<ConstructionResult> {
   const { size } = area
-  const postElement = createElementFromArea(area, config.material, [TAG_POST], {
+  const postElement = area.extrude(config.material, [TAG_POST], {
     type: 'post',
     requiresSinglePiece: true
   })
@@ -85,7 +84,7 @@ function* constructDoublePost(area: WallConstructionArea, config: DoublePostConf
   // Check if wall is wide enough for two posts
   const minimumWallThickness = 2 * config.thickness
   if (size[1] < minimumWallThickness) {
-    const errorElement = createElementFromArea(area, config.material)
+    const errorElement = area.extrude(config.material)
 
     yield* yieldElement(errorElement)
     yield yieldError(
@@ -100,28 +99,23 @@ function* constructDoublePost(area: WallConstructionArea, config: DoublePostConf
     return
   }
 
-  const post1 = createElementFromArea(area.withYAdjustment(0, config.thickness), config.material, [TAG_POST], {
+  const post1 = area.withYAdjustment(0, config.thickness).extrude(config.material, [TAG_POST], {
     type: 'post'
   })
   yield* yieldElement(post1)
 
-  const post2 = createElementFromArea(
-    area.withYAdjustment(size[1] - config.thickness, config.thickness),
-    config.material,
-    [TAG_POST],
-    { type: 'post', requiresSinglePiece: true }
-  )
+  const post2 = area
+    .withYAdjustment(size[1] - config.thickness, config.thickness)
+    .extrude(config.material, [TAG_POST], { type: 'post', requiresSinglePiece: true })
   yield* yieldElement(post2)
 
   // Only add infill if there's space for it
   const infillThickness = size[1] - 2 * config.thickness
   if (infillThickness > 0) {
     yield* yieldElement(
-      createElementFromArea(
-        area.withYAdjustment(config.thickness, size[1] - minimumWallThickness),
-        config.infillMaterial,
-        [TAG_INFILL]
-      )
+      area
+        .withYAdjustment(config.thickness, size[1] - minimumWallThickness)
+        .extrude(config.infillMaterial, [TAG_INFILL])
     )
 
     // Check if post material is dimensional and dimensions match
@@ -193,17 +187,11 @@ export function* constructWallPost(area: WallConstructionArea, post: WallPost): 
       {
         const infillThickness = wallThickness - 2 * post.thickness
         const insideArea = area.withYAdjustment(0, post.thickness)
-        yield* yieldAndCollectElements(
-          yieldElement(createElementFromArea(insideArea, post.material, tags, partInfo)),
-          postElements
-        )
+        yield* yieldAndCollectElements(yieldElement(insideArea.extrude(post.material, tags, partInfo)), postElements)
         const infillArea = area.withYAdjustment(post.thickness, infillThickness)
-        yield* yieldElement(createElementFromArea(infillArea, post.infillMaterial, [TAG_INFILL]))
+        yield* yieldElement(infillArea.extrude(post.infillMaterial, [TAG_INFILL]))
         const outsideArea = area.withYAdjustment(wallThickness - post.thickness)
-        yield* yieldAndCollectElements(
-          yieldElement(createElementFromArea(outsideArea, post.material, tags, partInfo)),
-          postElements
-        )
+        yield* yieldAndCollectElements(yieldElement(outsideArea.extrude(post.material, tags, partInfo)), postElements)
       }
       break
 
@@ -211,37 +199,28 @@ export function* constructWallPost(area: WallConstructionArea, post: WallPost): 
       {
         const infillThickness = (wallThickness - post.thickness) / 2
         const infillInside = area.withYAdjustment(0, infillThickness)
-        yield* yieldElement(createElementFromArea(infillInside, post.infillMaterial, [TAG_INFILL]))
+        yield* yieldElement(infillInside.extrude(post.infillMaterial, [TAG_INFILL]))
         const centerArea = area.withYAdjustment(infillThickness, post.thickness)
-        yield* yieldAndCollectElements(
-          yieldElement(createElementFromArea(centerArea, post.material, tags, partInfo)),
-          postElements
-        )
+        yield* yieldAndCollectElements(yieldElement(centerArea.extrude(post.material, tags, partInfo)), postElements)
         const infillOutside = area.withYAdjustment(wallThickness - infillThickness)
-        yield* yieldElement(createElementFromArea(infillOutside, post.infillMaterial, [TAG_INFILL]))
+        yield* yieldElement(infillOutside.extrude(post.infillMaterial, [TAG_INFILL]))
       }
       break
     case 'inside':
       {
         const insideArea = area.withYAdjustment(0, post.thickness)
-        yield* yieldAndCollectElements(
-          yieldElement(createElementFromArea(insideArea, post.material, tags, partInfo)),
-          postElements
-        )
+        yield* yieldAndCollectElements(yieldElement(insideArea.extrude(post.material, tags, partInfo)), postElements)
         const infillArea = area.withYAdjustment(post.thickness)
-        yield* yieldElement(createElementFromArea(infillArea, post.infillMaterial, [TAG_INFILL]))
+        yield* yieldElement(infillArea.extrude(post.infillMaterial, [TAG_INFILL]))
       }
       break
     case 'outside':
       {
         const infillThickness = wallThickness - post.thickness
         const infillArea = area.withYAdjustment(0, infillThickness)
-        yield* yieldElement(createElementFromArea(infillArea, post.infillMaterial, [TAG_INFILL]))
+        yield* yieldElement(infillArea.extrude(post.infillMaterial, [TAG_INFILL]))
         const outsideArea = area.withYAdjustment(infillThickness)
-        yield* yieldAndCollectElements(
-          yieldElement(createElementFromArea(outsideArea, post.material, tags, partInfo)),
-          postElements
-        )
+        yield* yieldAndCollectElements(yieldElement(outsideArea.extrude(post.material, tags, partInfo)), postElements)
       }
       break
   }

@@ -1,4 +1,4 @@
-import type { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import type { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { createConstructionElement } from '@/construction/model/elements'
 import { type ConstructionResult, yieldElement } from '@/construction/model/results'
 import { createExtrudedPolygon } from '@/construction/model/shapes'

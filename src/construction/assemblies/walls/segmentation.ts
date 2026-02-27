@@ -10,7 +10,7 @@ import { getModelActions } from '@/building/store'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
 import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/assemblies/openings'
 import { resolveRingBeamAssembly } from '@/construction/assemblies/ringBeams'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { type WallLayerSetIds } from '@/construction/assemblies/walls/layers'
 import { constructWallPost } from '@/construction/assemblies/walls/posts'
 import {

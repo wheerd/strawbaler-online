@@ -1,18 +1,17 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { resolveLayerSetThickness } from '@/config/store'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { type WallLayerSetIds, constructWallLayers } from '@/construction/assemblies/walls/layers'
 import { segmentedWallConstruction } from '@/construction/assemblies/walls/segmentation'
 import type { PrefabModulesWallConfig } from '@/construction/assemblies/walls/types'
 import type { StoreyContext } from '@/construction/context/storeys'
 import { type ConstructionElement, createConstructionElement } from '@/construction/model/elements'
-import { yieldMeasurementFromArea } from '@/construction/model/measurements'
 import type { ConstructionModel } from '@/construction/model/model'
 import { mergeModels } from '@/construction/model/model'
 import type { ConstructionResult } from '@/construction/model/results'
 import { assignDeterministicIdsToResults, resultsToModel, yieldElement, yieldError } from '@/construction/model/results'
-import { createCuboid, createElementFromArea } from '@/construction/model/shapes'
+import { createCuboid } from '@/construction/model/shapes'
 import {
   TAG_INFILL_CONSTRUCTION,
   TAG_MODULE,
@@ -102,7 +101,7 @@ export class PrefabModulesWallAssembly extends BaseWallAssembly<PrefabModulesWal
         if (reinforceThickness > 0) {
           const reinforceArea = area.withXAdjustment(i * offset + moduleWidth, reinforceThickness)
           yield* yieldElement(
-            createElementFromArea(reinforceArea, this.config.tallReinforceMaterial, [TAG_WALL_REINFORCEMENT], {
+            reinforceArea.extrude(this.config.tallReinforceMaterial, [TAG_WALL_REINFORCEMENT], {
               type: 'reinforcement'
             })
           )
@@ -126,7 +125,7 @@ export class PrefabModulesWallAssembly extends BaseWallAssembly<PrefabModulesWal
           remainingArea = startAtEnd ? a : b
           const reinforceArea = startAtEnd ? b : a
           yield* yieldElement(
-            createElementFromArea(reinforceArea, this.config.tallReinforceMaterial, [TAG_WALL_REINFORCEMENT], {
+            reinforceArea.extrude(this.config.tallReinforceMaterial, [TAG_WALL_REINFORCEMENT], {
               type: 'reinforcement'
             })
           )
@@ -142,7 +141,7 @@ export class PrefabModulesWallAssembly extends BaseWallAssembly<PrefabModulesWal
         if (reinforceThickness > 0) {
           const reinforceArea = remainingArea.withXAdjustment(moduleWidth, reinforceThickness)
           yield* yieldElement(
-            createElementFromArea(reinforceArea, this.config.tallReinforceMaterial, [TAG_WALL_REINFORCEMENT], {
+            reinforceArea.extrude(this.config.tallReinforceMaterial, [TAG_WALL_REINFORCEMENT], {
               type: 'reinforcement'
             })
           )
@@ -288,8 +287,8 @@ export class PrefabModulesWallAssembly extends BaseWallAssembly<PrefabModulesWal
       type: 'module',
       subtype: material.id
     })
-    yield* yieldMeasurementFromArea(area, 'width', [TAG_MODULE_WIDTH])
-    yield* yieldMeasurementFromArea(area, 'height', [TAG_MODULE_HEIGHT])
+    yield* area.yieldMeasurement('width', [TAG_MODULE_WIDTH])
+    yield* area.yieldMeasurement('height', [TAG_MODULE_HEIGHT])
     yield* this.yieldWithValidation(element, material, validateFlipped ? flippedSize : area.size)
   }
 
@@ -333,14 +332,14 @@ export class PrefabModulesWallAssembly extends BaseWallAssembly<PrefabModulesWal
       material.id,
       nameKey ? t => t($ => $.materials.defaults[nameKey], { ns: 'config' }) : material.name
     )
-    const element = createElementFromArea(area, material.id, [TAG_MODULE, typeTag], {
+    const element = area.extrude(material.id, [TAG_MODULE, typeTag], {
       type: 'module',
       subtype: material.id
     })
 
     if (element) {
-      yield* yieldMeasurementFromArea(area, 'width', [TAG_MODULE_WIDTH])
-      yield* yieldMeasurementFromArea(area, 'height', [TAG_MODULE_HEIGHT])
+      yield* area.yieldMeasurement('width', [TAG_MODULE_WIDTH])
+      yield* area.yieldMeasurement('height', [TAG_MODULE_HEIGHT])
       yield* this.yieldWithValidation(element, material, area.size)
     }
   }

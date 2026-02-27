@@ -1,5 +1,5 @@
 import type { HeightItem, HeightJumpItem, HeightLine } from '@/construction/assemblies/roofs/types'
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { Vec2 } from '@/shared/geometry'
 import { newVec2 } from '@/shared/geometry'
 

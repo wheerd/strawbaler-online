@@ -1,7 +1,7 @@
 import { keyFromSelector } from 'i18next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { SegmentInfillMethod } from '@/construction/assemblies/walls/types'
 import { type ConstructionElement, type GroupOrElement, createCuboidElement } from '@/construction/model/elements'
 import type { RawMeasurement } from '@/construction/model/measurements'

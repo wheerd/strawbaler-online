@@ -1,5 +1,5 @@
 import type { Opening } from '@/building/model'
-import type { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
+import type { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { SegmentInfillMethod } from '@/construction/assemblies/walls/types'
 import type { ConstructionResult } from '@/construction/model/results'
 import type { Length } from '@/shared/geometry'
