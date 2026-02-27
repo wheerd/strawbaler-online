@@ -10,7 +10,6 @@ import { getModelActions } from '@/building/store'
 import { getConfigActions, resolveLayerSetThickness } from '@/config'
 import { getRoofHeightLineCached } from '@/construction/derived'
 import { WallConstructionArea } from '@/construction/geometry'
-import { constructWallPost } from '@/construction/materials/posts'
 import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/openings/resolver'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
 import { resolveRingBeamAssembly } from '@/construction/ringBeams'
@@ -31,6 +30,7 @@ import {
   convertHeightLineToWallOffsets,
   splitAtHeightJumps
 } from '@/construction/walls/roofIntegration'
+import { constructWallPost } from '@/materials/posts'
 import { type Length, ZERO_VEC2, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 import { type WallCornerInfo, calculateWallCornerInfo, getWallContext } from './corners/corners'

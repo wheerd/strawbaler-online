@@ -24,7 +24,7 @@ async function bootstrap() {
     import('@/shared/geometry/polygon/clipperInstance').then(({ ensureClipperModule }) => ensureClipperModule()),
     import('@/shared/geometry/manifoldInstance').then(({ ensureManifoldModule }) => ensureManifoldModule()),
     import('@/building/gcs/gcsInstance').then(({ ensureGcsModule }) => ensureGcsModule()),
-    import('@/construction/materials/materialCSS').then(({ setupMaterialCss }) => setupMaterialCss())
+    import('@/materials/materialCSS').then(({ setupMaterialCss }) => setupMaterialCss())
   ])
 
   const rootElement = document.getElementById('root')

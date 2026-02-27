@@ -1,8 +1,8 @@
 import { Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import type { VolumeMaterial } from '@/construction/materials/material'
 import type { AggregatedPartItem, PartId } from '@/construction/parts/types'
+import type { VolumeMaterial } from '@/materials/material'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
 import { Button } from '@/shared/ui/components/button'

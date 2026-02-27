@@ -5,10 +5,10 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ConstructionElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
-import type { MaterialId, PrefabMaterial } from '@/construction/materials/material'
-import { getMaterialsActions } from '@/construction/materials/store'
 import { aggregateResults } from '@/construction/results'
 import type { PrefabModulesWallConfig } from '@/construction/walls'
+import type { MaterialId, PrefabMaterial } from '@/materials/material'
+import { getMaterialsActions } from '@/materials/store'
 import { newVec2, newVec3 } from '@/shared/geometry'
 import { ensureClipperModule } from '@/shared/geometry/polygon/clipperInstance'
 

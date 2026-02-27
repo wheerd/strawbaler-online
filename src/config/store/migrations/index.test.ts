@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { roughWood, strawbale, woodwool } from '@/construction/materials/material'
+import { roughWood, strawbale, woodwool } from '@/materials/material'
 
 import { applyMigrations } from './index'
 

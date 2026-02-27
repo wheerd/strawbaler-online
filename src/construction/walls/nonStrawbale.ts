@@ -4,8 +4,6 @@ import { getConfigActions, resolveLayerSetThickness } from '@/config'
 import { getRoofHeightLineCached } from '@/construction/derived'
 import { createConstructionElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
-import { getMaterialById } from '@/construction/materials/store'
-import { type ThicknessRange, addThickness, getMaterialThickness } from '@/construction/materials/thickness'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import {
@@ -25,6 +23,8 @@ import { type WallLayerSetIds, constructWallLayers } from '@/construction/walls/
 import { WALL_POLYGON_PLANE, createWallPolygonWithOpenings } from '@/construction/walls/polygons'
 import { convertHeightLineToWallOffsets } from '@/construction/walls/roofIntegration'
 import { segmentedWallConstruction } from '@/construction/walls/segmentation'
+import { getMaterialById } from '@/materials/store'
+import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
 import { Bounds3D, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 export class NonStrawbaleWallAssembly extends BaseWallAssembly<NonStrawbaleWallConfig> {

@@ -1,15 +1,6 @@
 import { type TFunction, keyFromSelector } from 'i18next'
 import { describe, expect, it } from 'vitest'
 
-import type {
-  DimensionalMaterial,
-  Material,
-  MaterialId,
-  PrefabMaterial,
-  SheetMaterial,
-  StrawbaleMaterial,
-  VolumeMaterial
-} from '@/construction/materials/material'
 import {
   TAG_FLOOR_INFILL,
   TAG_FLOOR_LAYER_BOTTOM,
@@ -30,6 +21,15 @@ import {
   type Tag,
   createTag
 } from '@/construction/tags'
+import type {
+  DimensionalMaterial,
+  Material,
+  MaterialId,
+  PrefabMaterial,
+  SheetMaterial,
+  StrawbaleMaterial,
+  VolumeMaterial
+} from '@/materials/material'
 import { newVec2, newVec3 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 

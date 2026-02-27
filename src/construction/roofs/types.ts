@@ -1,9 +1,9 @@
 import type { Roof } from '@/building/model'
 import type { LayerSetId } from '@/building/model/ids'
-import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import type { VerticalOffsetMap } from '@/construction/storeys/offsets'
+import type { MaterialId } from '@/materials/material'
 import type { Length } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
 

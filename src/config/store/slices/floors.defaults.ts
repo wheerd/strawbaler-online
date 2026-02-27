@@ -1,7 +1,7 @@
 import { DEFAULT_FLOOR_ASSEMBLY_ID, type FloorAssemblyId } from '@/building/model/ids'
 import { LAYER_SET_CEILING_PLASTER, LAYER_SET_FLOOR_SCREED } from '@/config/store/slices/layers.defaults'
 import type { FloorAssemblyConfig } from '@/config/types'
-import { clt, concrete, glt, osb, roughWood, strawbale } from '@/construction/materials/material'
+import { clt, concrete, glt, osb, roughWood, strawbale } from '@/materials/material'
 
 const cltAssembly: FloorAssemblyConfig = {
   id: DEFAULT_FLOOR_ASSEMBLY_ID,

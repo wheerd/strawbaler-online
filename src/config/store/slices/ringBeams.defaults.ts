@@ -1,6 +1,6 @@
 import { type RingBeamAssemblyId } from '@/building/model/ids'
 import type { BrickRingBeamAssemblyConfig, FullRingBeamAssemblyConfig } from '@/config/types'
-import { bitumen, brick, cork, roughWood } from '@/construction/materials/material'
+import { bitumen, brick, cork, roughWood } from '@/materials/material'
 
 const fullRingBeamAssembly: FullRingBeamAssemblyConfig = {
   id: 'ringbeam_default' as RingBeamAssemblyId,

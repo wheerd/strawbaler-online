@@ -1,4 +1,4 @@
-import type { DimensionalMaterial, MaterialId } from '@/construction/materials/material'
+import type { DimensionalMaterial, MaterialId } from '@/materials/material'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 
 export const roughWood: DimensionalMaterial = {

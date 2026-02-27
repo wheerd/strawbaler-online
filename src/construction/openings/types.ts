@@ -1,9 +1,9 @@
 import type { Opening, OpeningAssemblyId } from '@/building/model'
 import type { WallConstructionArea } from '@/construction/geometry'
-import type { MaterialId } from '@/construction/materials/material'
-import { type PostConfig, validatePosts } from '@/construction/materials/posts'
 import type { ConstructionResult } from '@/construction/results'
 import { type SegmentInfillMethod } from '@/construction/walls/types'
+import type { MaterialId } from '@/materials/material'
+import { type PostConfig, validatePosts } from '@/materials/posts'
 import type { Length } from '@/shared/geometry'
 
 export interface OpeningAssembly {

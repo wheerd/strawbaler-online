@@ -11,7 +11,7 @@ import type {
 import { isOpeningId, isWallPostId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/config/store'
-import { getMaterialsActions } from '@/construction/materials/store'
+import { getMaterialsActions } from '@/materials/store'
 
 export class BuildingTimestampDependencyService {
   getEffectiveStoreyTimestamp(storeyId: StoreyId): number | null {

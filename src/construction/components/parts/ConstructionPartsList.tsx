@@ -18,10 +18,10 @@ import {
   subGroupKey,
   toMaterialGroup
 } from '@/construction/components/parts/utils/aggregation'
-import { useGetMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
-import type { Material } from '@/construction/materials/material'
-import { useMaterialName } from '@/construction/materials/useMaterialName'
 import { type ConstructionModelId, type PartId, getLabelGroupId, useMaterialParts } from '@/construction/parts'
+import { useGetMaterialTypeName } from '@/materials/components/MaterialSelect'
+import type { Material } from '@/materials/material'
+import { useMaterialName } from '@/materials/useMaterialName'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
 import { Badge } from '@/shared/ui/components/badge'

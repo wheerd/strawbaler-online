@@ -1,17 +1,17 @@
 import { MODEL_STORE_VERSION, type PartializedStoreState, exportModelState, hydrateModelState } from '@/building/store'
 import { CONFIG_STORE_VERSION, type ConfigState, getConfigState, hydrateConfigState } from '@/config/store'
 import {
-  MATERIALS_STORE_VERSION,
-  type MaterialsState,
-  getMaterialsState,
-  hydrateMaterialsState
-} from '@/construction/materials/store'
-import {
   PARTS_STORE_VERSION,
   type PartializedPartsState,
   exportPartsState,
   hydratePartsState
 } from '@/construction/parts/store'
+import {
+  MATERIALS_STORE_VERSION,
+  type MaterialsState,
+  getMaterialsState,
+  hydrateMaterialsState
+} from '@/materials/store'
 import {
   type ExportedProjectMeta,
   PROJECTS_STORE_VERSION,

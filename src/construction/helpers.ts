@@ -36,8 +36,8 @@ import {
   vec2To3
 } from '@/shared/geometry'
 
+import type { MaterialId } from '../materials/material'
 import { createConstructionElement } from './elements'
-import type { MaterialId } from './materials/material'
 import type { InitialPartInfo } from './parts/types'
 import { type ConstructionResult, yieldElement, yieldWarning } from './results'
 import { createExtrudedPolygon } from './shapes'

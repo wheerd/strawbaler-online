@@ -1,4 +1,4 @@
-import { roughWood, strawbale } from '@/construction/materials/material'
+import { roughWood, strawbale } from '@/materials/material'
 
 import type { MigrationState } from './shared'
 

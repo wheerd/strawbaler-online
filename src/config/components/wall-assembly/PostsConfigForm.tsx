@@ -2,9 +2,9 @@ import * as Label from '@radix-ui/react-label'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
-import type { MaterialId } from '@/construction/materials/material'
-import type { PostConfig } from '@/construction/materials/posts'
+import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
+import type { MaterialId } from '@/materials/material'
+import type { PostConfig } from '@/materials/posts'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { Select } from '@/shared/ui/components/select'
 

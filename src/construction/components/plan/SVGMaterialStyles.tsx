@@ -1,5 +1,5 @@
-import { getMaterialCSSString } from '@/construction/materials/materialCSS'
-import { useMaterials } from '@/construction/materials/store'
+import { getMaterialCSSString } from '@/materials/materialCSS'
+import { useMaterials } from '@/materials/store'
 
 /**
  * SVG style element that injects material CSS directly into SVG context

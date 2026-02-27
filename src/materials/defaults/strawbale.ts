@@ -1,4 +1,4 @@
-import type { MaterialId, StrawbaleMaterial } from '@/construction/materials/material'
+import type { MaterialId, StrawbaleMaterial } from '@/materials/material'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 
 export const strawbale: StrawbaleMaterial = {

@@ -14,8 +14,8 @@ import {
   useRingBeamAssemblies
 } from '@/config/store'
 import { type RingBeamAssemblyUsage, getRingBeamAssemblyUsage } from '@/config/usage'
-import { bitumen, brick, cork, roughWood, woodwool } from '@/construction/materials/material'
 import { type RingBeamAssemblyType, type RingBeamConfig } from '@/construction/ringBeams'
+import { bitumen, brick, cork, roughWood, woodwool } from '@/materials/material'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'

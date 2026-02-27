@@ -9,6 +9,7 @@ import { WallAssemblySelect } from '@/config/components/WallAssemblySelect'
 import { type EntityId, useEntityLabel } from '@/config/components/useEntityLabel'
 import { useConfigActions, useDefaultWallAssemblyId, useWallAssemblies } from '@/config/store'
 import { type WallAssemblyUsage, getWallAssemblyUsage } from '@/config/usage'
+import type { WallAssemblyType, WallConfig } from '@/construction/walls'
 import {
   battens,
   ecococonBox,
@@ -17,9 +18,8 @@ import {
   ecococonSill,
   ecococonStandard,
   lvl
-} from '@/construction/materials/material'
-import type { MaterialId } from '@/construction/materials/material'
-import type { WallAssemblyType, WallConfig } from '@/construction/walls'
+} from '@/materials/material'
+import type { MaterialId } from '@/materials/material'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'

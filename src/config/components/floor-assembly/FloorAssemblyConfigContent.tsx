@@ -10,7 +10,7 @@ import { type EntityId, useEntityLabel } from '@/config/components/useEntityLabe
 import { useConfigActions, useDefaultFloorAssemblyId, useFloorAssemblies } from '@/config/store'
 import { type FloorAssemblyUsage, getFloorAssemblyUsage } from '@/config/usage'
 import type { FloorAssemblyType, FloorConfig } from '@/construction/floors/types'
-import type { MaterialId } from '@/construction/materials/material'
+import type { MaterialId } from '@/materials/material'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'

@@ -3,7 +3,7 @@ import { Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { HangingJoistFloorConfig } from '@/construction/floors/types'
-import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
+import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { Button } from '@/shared/ui/components/button'
 import { Separator } from '@/shared/ui/components/separator'

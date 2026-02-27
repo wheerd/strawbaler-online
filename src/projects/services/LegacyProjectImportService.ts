@@ -22,10 +22,10 @@ import type {
   WallAssemblyConfig
 } from '@/config/types'
 import { resolveFloorAssembly } from '@/construction/floors'
-import type { Material, MaterialId } from '@/construction/materials/material'
-import { setMaterialsState } from '@/construction/materials/store'
-import { MATERIALS_STORE_VERSION, migrateMaterialsState } from '@/construction/materials/store/migrations'
 import { resolveOpeningConfig } from '@/construction/openings/resolver'
+import type { Material, MaterialId } from '@/materials/material'
+import { setMaterialsState } from '@/materials/store'
+import { MATERIALS_STORE_VERSION, migrateMaterialsState } from '@/materials/store/migrations'
 import { type Polygon2D, newVec2 } from '@/shared/geometry'
 
 interface ExportedStorey {

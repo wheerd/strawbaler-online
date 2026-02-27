@@ -1,8 +1,5 @@
 import { type ConstructionElement, createCuboidElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
-import type { MaterialId } from '@/construction/materials/material'
-import { constructStraw } from '@/construction/materials/straw'
-import { type TriangularBattenConfig, constructTriangularBattens } from '@/construction/materials/triangularBattens'
 import type { InitialPartInfo } from '@/construction/parts/types'
 import { type ConstructionResult, yieldAsGroup, yieldElement, yieldMeasurement } from '@/construction/results'
 import { createElementFromArea } from '@/construction/shapes'
@@ -15,6 +12,9 @@ import {
   TAG_MODULE_WIDTH,
   createTag
 } from '@/construction/tags'
+import type { MaterialId } from '@/materials/material'
+import { constructStraw } from '@/materials/straw'
+import { type TriangularBattenConfig, constructTriangularBattens } from '@/materials/triangularBattens'
 import { type Length, type Vec3, newVec3 } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
 

@@ -1,4 +1,4 @@
-import type { MaterialId, SheetMaterial } from '@/construction/materials/material'
+import type { MaterialId, SheetMaterial } from '@/materials/material'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 
 export const boards: SheetMaterial = {

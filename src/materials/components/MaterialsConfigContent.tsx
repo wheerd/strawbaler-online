@@ -15,10 +15,10 @@ import type {
   SheetType,
   StrawbaleMaterial,
   VolumeMaterial
-} from '@/construction/materials/material'
-import { strawbale } from '@/construction/materials/material'
-import { useMaterialActions, useMaterials } from '@/construction/materials/store'
-import { type MaterialUsage, useMaterialUsage } from '@/construction/materials/usage'
+} from '@/materials/material'
+import { strawbale } from '@/materials/material'
+import { useMaterialActions, useMaterials } from '@/materials/store'
+import { type MaterialUsage, useMaterialUsage } from '@/materials/usage'
 import type { Length } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'

@@ -2,8 +2,8 @@ import * as Label from '@radix-ui/react-label'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { NonStrawbaleWallConfig } from '@/construction/walls'
+import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 
 interface NonStrawbaleConfigFormProps {
   config: NonStrawbaleWallConfig

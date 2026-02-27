@@ -1,11 +1,11 @@
 import type { PolygonWithBoundingRect } from '@/construction/helpers'
-import type { Material } from '@/construction/materials/material'
-import { getMaterialById } from '@/construction/materials/store'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import { type ConstructionResult } from '@/construction/results'
 import { BaseRingBeamAssembly } from '@/construction/ringBeams/base'
 import type { StoreyContext } from '@/construction/storeys/context'
 import { TAG_PLATE, TAG_RB_INSULATION, TAG_STUD_WALL, TAG_WATERPROOFING } from '@/construction/tags'
+import type { Material } from '@/materials/material'
+import { getMaterialById } from '@/materials/store'
 import { type Transform, fromTrans, newVec3 } from '@/shared/geometry'
 
 import type { BrickRingBeamConfig, RingBeamSegment } from './types'

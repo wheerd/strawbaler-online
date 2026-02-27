@@ -8,10 +8,10 @@ import type {
   ConstructionGroup,
   GroupOrElement
 } from '@/construction/elements'
-import type { Material, MaterialId } from '@/construction/materials/material'
-import { getMaterialById } from '@/construction/materials/store'
 import type { ConstructionModel } from '@/construction/model'
 import type { Tag } from '@/construction/tags'
+import type { Material, MaterialId } from '@/materials/material'
+import { getMaterialById } from '@/materials/store'
 import { Bounds3D, IDENTITY, type Vec3, newVec3 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 

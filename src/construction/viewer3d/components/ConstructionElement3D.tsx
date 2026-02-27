@@ -1,9 +1,9 @@
 import type { ConstructionElement } from '@/construction/elements'
-import { getMaterialById } from '@/construction/materials/store'
 import { useEffectiveOpacity } from '@/construction/viewer3d/context/TagOpacityContext'
 import { toThreeTransform } from '@/construction/viewer3d/utils/geometry'
 import { getShapeGeometry } from '@/construction/viewer3d/utils/geometryCache'
 import { getLineMaterial, getMeshMaterial } from '@/construction/viewer3d/utils/materialCache'
+import { getMaterialById } from '@/materials/store'
 
 interface ConstructionElement3DProps {
   element: ConstructionElement

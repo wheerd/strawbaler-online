@@ -1,8 +1,8 @@
 import * as Label from '@radix-ui/react-label'
 import { useTranslation } from 'react-i18next'
 
-import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { CornerHandling, RingBeamConfig } from '@/construction/ringBeams'
+import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'

@@ -4,7 +4,6 @@ import { getPerimeterContextsByStorey } from '@/construction/derived/perimeterCo
 import { createConstructionElement } from '@/construction/elements'
 import { PolygonWithBoundingRect, type StripeOrGap, partitionByAlignedEdges } from '@/construction/helpers'
 import { transformManifold } from '@/construction/manifold/operations'
-import { constructStrawPolygon } from '@/construction/materials/straw'
 import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
 import { type PerimeterConstructionContext, applyWallFaceOffsets } from '@/construction/perimeters/context'
 import {
@@ -36,6 +35,7 @@ import {
   TAG_ROOF_SIDE_RIGHT,
   createTag
 } from '@/construction/tags'
+import { constructStrawPolygon } from '@/materials/straw'
 import {
   IDENTITY,
   type Length,

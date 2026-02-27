@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { DEFAULT_MATERIALS } from '@/construction/materials/defaults'
-import { createMaterialId } from '@/construction/materials/material'
+import { DEFAULT_MATERIALS } from '@/materials/defaults'
+import { createMaterialId } from '@/materials/material'
 
 import { getMaterialsActions, getMaterialsState, setMaterialsState } from './store'
 

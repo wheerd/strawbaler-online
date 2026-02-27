@@ -1,5 +1,5 @@
-import type { MaterialId } from '@/construction/materials/material'
-import type { MaterialsState } from '@/construction/materials/store'
+import type { MaterialId } from '@/materials/material'
+import type { MaterialsState } from '@/materials/store'
 
 export const migrateToVersion3 = (state: MaterialsState): MaterialsState => {
   if (!('timestamps' in state) || typeof state.timestamps !== 'object') {

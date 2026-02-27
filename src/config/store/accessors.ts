@@ -15,7 +15,7 @@ import type {
   WallAssemblyConfig
 } from '@/config/types'
 import type { LayerConfig, LayerSetConfig } from '@/construction/layers/types'
-import type { MaterialId } from '@/construction/materials/material'
+import type { MaterialId } from '@/materials/material'
 import { subscribeRecords } from '@/shared/utils/subscription'
 
 import { CONFIG_STORE_VERSION, applyMigrations } from './migrations'

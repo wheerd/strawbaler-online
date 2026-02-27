@@ -1,5 +1,5 @@
 import { DEFAULT_ROOF_ASSEMBLIES, DEFAULT_ROOF_ASSEMBLY_ID } from '@/config/store/slices/roofs.defaults'
-import { type MaterialId } from '@/construction/materials/material'
+import { type MaterialId } from '@/materials/material'
 
 import type { MigrationState } from './shared'
 

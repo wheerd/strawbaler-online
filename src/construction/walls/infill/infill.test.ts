@@ -2,10 +2,6 @@ import { keyFromSelector } from 'i18next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WallConstructionArea } from '@/construction/geometry'
-import type { MaterialId } from '@/construction/materials/material'
-import type { PostConfig } from '@/construction/materials/posts'
-import { constructPost } from '@/construction/materials/posts'
-import { constructStraw } from '@/construction/materials/straw'
 import {
   type IssueMessageKey,
   aggregateResults,
@@ -16,6 +12,10 @@ import {
 } from '@/construction/results'
 import { TAG_POST_SPACING } from '@/construction/tags'
 import type { InfillWallSegmentConfig } from '@/construction/walls'
+import type { MaterialId } from '@/materials/material'
+import type { PostConfig } from '@/materials/posts'
+import { constructPost } from '@/materials/posts'
+import { constructStraw } from '@/materials/straw'
 import { IDENTITY, type Length, type Vec3, newVec3 } from '@/shared/geometry'
 
 import { infillWallArea } from './infill'

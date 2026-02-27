@@ -1,8 +1,6 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getConfigActions, resolveLayerSetThickness } from '@/config'
 import { WallConstructionArea } from '@/construction/geometry'
-import { getMaterialById } from '@/construction/materials/store'
-import { type ThicknessRange, addThickness, getMaterialThickness } from '@/construction/materials/thickness'
 import type { ConstructionModel } from '@/construction/model'
 import { mergeModels } from '@/construction/model'
 import type { ConstructionResult } from '@/construction/results'
@@ -14,6 +12,8 @@ import { BaseWallAssembly } from '@/construction/walls/base'
 import { infillWallArea } from '@/construction/walls/infill/infill'
 import { type WallLayerSetIds, constructWallLayers } from '@/construction/walls/layers'
 import { segmentedWallConstruction } from '@/construction/walls/segmentation'
+import { getMaterialById } from '@/materials/store'
+import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
 
 import { constructModule } from './modules'
 

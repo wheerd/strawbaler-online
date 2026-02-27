@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createCuboidElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
-import type { MaterialId } from '@/construction/materials/material'
-import { constructStraw } from '@/construction/materials/straw'
 import { aggregateResults, yieldElement } from '@/construction/results'
 import type { StrawhengeWallConfig } from '@/construction/walls'
 import { infillWallArea } from '@/construction/walls/infill/infill'
+import type { MaterialId } from '@/materials/material'
+import { constructStraw } from '@/materials/straw'
 import { type Vec3, newVec3 } from '@/shared/geometry'
 
 import { constructModule } from './modules'

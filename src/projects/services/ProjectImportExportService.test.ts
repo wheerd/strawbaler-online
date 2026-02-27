@@ -6,10 +6,10 @@ import { MODEL_STORE_VERSION, exportModelState, hydrateModelState } from '@/buil
 import type { StoreState } from '@/building/store/types'
 import type { ConfigState } from '@/config/store'
 import { CONFIG_STORE_VERSION, getConfigState, hydrateConfigState } from '@/config/store'
-import { MATERIALS_STORE_VERSION, getMaterialsState, hydrateMaterialsState } from '@/construction/materials/store'
-import type { MaterialsState } from '@/construction/materials/store'
 import type { PartializedPartsState } from '@/construction/parts/store'
 import { PARTS_STORE_VERSION, exportPartsState, hydratePartsState } from '@/construction/parts/store'
+import { MATERIALS_STORE_VERSION, getMaterialsState, hydrateMaterialsState } from '@/materials/store'
+import type { MaterialsState } from '@/materials/store'
 import type { ExportedProjectMeta } from '@/projects/store'
 import { PROJECTS_STORE_VERSION, exportProjectMeta, hydrateProjectMeta } from '@/projects/store'
 

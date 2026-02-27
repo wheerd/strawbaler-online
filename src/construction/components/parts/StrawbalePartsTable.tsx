@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ceilDiv, summarizeStrawbaleParts } from '@/construction/components/parts/utils/aggregation'
-import type { StrawbaleMaterial } from '@/construction/materials/material'
 import type { AggregatedPartItem } from '@/construction/parts/types'
+import type { StrawbaleMaterial } from '@/materials/material'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { Table } from '@/shared/ui/components/table'
 

@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type ConstructionElement, type GroupOrElement, createCuboidElement } from '@/construction/elements'
 import { WallConstructionArea } from '@/construction/geometry'
-import { createMaterialId } from '@/construction/materials/material'
 import type { RawMeasurement } from '@/construction/measurements'
 import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
 import {
@@ -16,6 +15,7 @@ import {
   type Tag
 } from '@/construction/tags'
 import type { SegmentInfillMethod } from '@/construction/walls'
+import { createMaterialId } from '@/materials/material'
 import { type Length, newVec3 } from '@/shared/geometry'
 
 import { SimpleOpeningAssembly } from './simple'

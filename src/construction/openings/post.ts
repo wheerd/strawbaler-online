@@ -1,5 +1,4 @@
 import { type WallConstructionArea } from '@/construction/geometry'
-import { constructPost } from '@/construction/materials/posts'
 import { yieldMeasurementFromArea } from '@/construction/measurements'
 import { BaseOpeningAssembly } from '@/construction/openings/base'
 import type { PostOpeningConfig } from '@/construction/openings/types'
@@ -15,6 +14,7 @@ import {
   TAG_SILL_HEIGHT
 } from '@/construction/tags'
 import type { SegmentInfillMethod } from '@/construction/walls'
+import { constructPost } from '@/materials/posts'
 import { type Length } from '@/shared/geometry'
 
 export class PostOpeningAssembly extends BaseOpeningAssembly<PostOpeningConfig> {

@@ -3,9 +3,9 @@ import type { Manifold } from 'manifold-3d'
 import { type ConstructionElement, createConstructionElement, createCuboidElement } from '@/construction/elements'
 import { type WallConstructionArea } from '@/construction/geometry'
 import { buildAndCacheManifold } from '@/construction/manifold/builders'
-import type { MaterialId } from '@/construction/materials/material'
 import type { InitialPartInfo } from '@/construction/parts/types'
 import type { Tag } from '@/construction/tags'
+import type { MaterialId } from '@/materials/material'
 import {
   Bounds2D,
   Bounds3D,

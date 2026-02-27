@@ -1,9 +1,9 @@
 import type { LayerSetId } from '@/building/model/ids'
-import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionModel } from '@/construction/model'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import type { ConstructionResult } from '@/construction/results'
 import type { Tag } from '@/construction/tags'
+import type { MaterialId } from '@/materials/material'
 import type { Length, PolygonWithHoles2D } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
 

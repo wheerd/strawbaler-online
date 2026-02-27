@@ -17,7 +17,7 @@ import {
   lvl,
   roughWood,
   strawbale
-} from '@/construction/materials/material'
+} from '@/materials/material'
 
 import { LAYER_SET_CLAY_PLASTER, LAYER_SET_LIME_PLASTER, LAYER_SET_XPS_LIME_PLASTER } from './layers.defaults'
 import { DEFAULT_EMPTY_ASSEMBLY, prefabThresholdAssembly } from './opening.defaults'

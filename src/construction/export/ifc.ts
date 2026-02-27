@@ -8,8 +8,6 @@ import { getVersionString } from '@/app/version'
 import { isOpeningId } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import type { ConstructionElement, ConstructionGroup, GroupOrElement } from '@/construction/elements'
-import type { Material, MaterialId } from '@/construction/materials/material'
-import { getMaterialsActions } from '@/construction/materials/store'
 import type { ConstructionModel, HighlightedCuboid } from '@/construction/model'
 import type { Shape } from '@/construction/shapes'
 import type { Tag } from '@/construction/tags'
@@ -51,6 +49,8 @@ import {
   TAG_WALL_LAYER_OUTSIDE,
   TAG_WATERPROOFING
 } from '@/construction/tags'
+import type { Material, MaterialId } from '@/materials/material'
+import { getMaterialsActions } from '@/materials/store'
 import { type Transform, composeTransform, getPosition, getXAxis, getZAxis } from '@/shared/geometry'
 import { transString } from '@/shared/i18n/TranslatableString'
 import { downloadFile } from '@/shared/utils/downloadFile'

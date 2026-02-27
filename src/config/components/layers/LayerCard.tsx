@@ -9,7 +9,7 @@ import type {
   StripeDirection,
   StripedLayerConfig
 } from '@/construction/layers/types'
-import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
+import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField'
 import { Button } from '@/shared/ui/components/button'
 import { Card } from '@/shared/ui/components/card'

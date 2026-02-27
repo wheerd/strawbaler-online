@@ -1,8 +1,8 @@
 import type { Resources, SelectorFn, SelectorOptions } from 'i18next'
 
 import type { LayerSetId } from '@/building/model/ids'
-import type { MaterialId } from '@/construction/materials/material'
 import type { ConstructionResult } from '@/construction/results'
+import type { MaterialId } from '@/materials/material'
 import { type Length, type Plane3D, type PolygonWithHoles2D, type Vec2 } from '@/shared/geometry'
 
 export interface LayerConstruction<TConfig extends BaseLayerConfig> {

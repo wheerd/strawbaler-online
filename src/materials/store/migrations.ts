@@ -1,4 +1,4 @@
-import type { MaterialsState } from '@/construction/materials/store'
+import type { MaterialsState } from '@/materials/store'
 
 import { migrateToVersion3 } from './migrations/toVersion3'
 

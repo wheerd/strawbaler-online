@@ -2,8 +2,8 @@ import * as Label from '@radix-ui/react-label'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { PrefabModulesWallConfig } from '@/construction/walls'
+import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { Checkbox } from '@/shared/ui/components/checkbox'
 

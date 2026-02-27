@@ -1,12 +1,12 @@
 import type { PerimeterCornerWithGeometry } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { PolygonWithBoundingRect } from '@/construction/helpers'
-import type { MaterialId } from '@/construction/materials/material'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import { type ConstructionResult } from '@/construction/results'
 import type { StoreyContext } from '@/construction/storeys/context'
 import { TAG_PLATE, TAG_RB_INFILL } from '@/construction/tags'
 import type { Tag } from '@/construction/tags'
+import type { MaterialId } from '@/materials/material'
 import {
   type Length,
   type Line2D,

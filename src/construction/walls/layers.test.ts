@@ -12,12 +12,12 @@ import {
 import type { ConstructionElement, GroupOrElement } from '@/construction/elements'
 import type { FloorAssembly } from '@/construction/floors'
 import type { LayerConfig } from '@/construction/layers/types'
-import { clayPlasterBase, limePlasterBase } from '@/construction/materials/material'
 import type { ExtrudedShape } from '@/construction/shapes'
 import type { StoreyContext } from '@/construction/storeys/context'
 import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE } from '@/construction/tags'
 import type { WallContext, WallCornerInfo } from '@/construction/walls/corners/corners'
 import type { WallLayerSetIds } from '@/construction/walls/layers'
+import { clayPlasterBase, limePlasterBase } from '@/materials/material'
 import { type Polygon2D, type PolygonWithHoles2D, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 

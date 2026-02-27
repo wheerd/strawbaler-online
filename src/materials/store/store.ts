@@ -11,7 +11,7 @@ import {
   type StrawbaleMaterial,
   type VolumeMaterial,
   createMaterialId
-} from '@/construction/materials/material'
+} from '@/materials/material'
 
 import { MATERIALS_STORE_VERSION, migrateMaterialsState } from './migrations'
 

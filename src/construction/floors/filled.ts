@@ -6,7 +6,6 @@ import {
   simplePolygonFrame,
   stripesPolygons
 } from '@/construction/helpers'
-import { constructStrawPolygon } from '@/construction/materials/straw'
 import type { ConstructionModel } from '@/construction/model'
 import type { PerimeterConstructionContext } from '@/construction/perimeters/context'
 import { type ConstructionResult, aggregateResults, yieldMeasurement } from '@/construction/results'
@@ -21,6 +20,7 @@ import {
   TAG_JOIST_SPACING,
   TAG_SUBFLOOR
 } from '@/construction/tags'
+import { constructStrawPolygon } from '@/materials/straw'
 import {
   Bounds2D,
   type Polygon2D,

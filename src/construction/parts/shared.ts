@@ -1,4 +1,3 @@
-import type { CrossSection, DimensionalMaterial, Material, SheetMaterial } from '@/construction/materials/material'
 import {
   TAG_FLOOR_INFILL,
   TAG_FLOOR_LAYER_BOTTOM,
@@ -20,6 +19,7 @@ import {
   type TagCategoryId,
   isCustomTag
 } from '@/construction/tags'
+import type { CrossSection, DimensionalMaterial, Material, SheetMaterial } from '@/materials/material'
 import {
   type Area,
   type Length,
