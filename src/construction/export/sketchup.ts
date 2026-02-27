@@ -20,7 +20,7 @@ import type {
   MaterialDto,
   Transform as TransformDto,
   Vector3
-} from './api'
+} from './sketchupApi'
 
 export const SKETCHUP_ENABLED = !!import.meta.env.VITE_SKETCHUP_API_URL
 

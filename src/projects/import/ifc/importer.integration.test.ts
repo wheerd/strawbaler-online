@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { beforeAll, describe, expect, test, vi } from 'vitest'
 
-import { IfcImporter } from '@/importers/ifc'
+import { IfcImporter } from '@/projects/import/ifc'
 import type {
   ExtrudedProfile,
   ImportedOpening,
@@ -12,7 +12,7 @@ import type {
   ImportedSlab,
   ImportedStorey,
   ImportedWall
-} from '@/importers/ifc/types'
+} from '@/projects/import/ifc/types'
 import {
   type Polygon2D,
   type PolygonWithHoles2D,

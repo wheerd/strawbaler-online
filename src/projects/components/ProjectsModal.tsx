@@ -21,10 +21,10 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { createProject, deleteProject, switchProject } from '@/projects/services/CloudSyncManager'
 import { useProjectId, useProjectList, useProjectListLoading } from '@/projects/store'
 import type { ProjectListItem } from '@/projects/types'
 import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
-import { createProject, deleteProject, switchProject } from '@/shared/services/CloudSyncManager'
 
 interface ProjectsModalProps {
   open: boolean

@@ -33,7 +33,8 @@ import {
 import { getProjectActions, getProjectMeta, useProjectsStore } from '@/projects/store'
 import type { ProjectData, ProjectId, ProjectListItem } from '@/projects/types'
 import { createProjectId, parseTimestamp, timestampNow } from '@/projects/types'
-import { type ICloudSyncService, type StoreType, getCloudSyncService } from '@/shared/services/SupabaseSyncService'
+
+import { type ICloudSyncService, type StoreType, getCloudSyncService } from './SupabaseSyncService'
 
 const SYNC_DEBOUNCE_MS = 3000
 

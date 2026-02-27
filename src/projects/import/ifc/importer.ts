@@ -46,7 +46,7 @@ import type {
   ImportedWall,
   ParsedIfcModel,
   RawIfcStorey
-} from '@/importers/ifc/types'
+} from '@/projects/import/ifc/types'
 import {
   Bounds2D,
   Bounds3D,

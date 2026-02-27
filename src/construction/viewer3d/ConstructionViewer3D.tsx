@@ -11,9 +11,9 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Code } from '@/components/ui/code'
 import { getRoofOffsetMapsDebug } from '@/construction/derived'
+import { type SketchUpErrorCode, SketchUpExportError } from '@/construction/export/sketchup'
 import type { ConstructionModel } from '@/construction/model'
 import { matAppToThree, toThreeTransform } from '@/construction/viewer3d/utils/geometry'
-import { type SketchUpErrorCode, SketchUpExportError } from '@/exporters/sketchup'
 import { isDebug } from '@/shared/hooks/useDebug'
 
 import ConstructionElement3D from './components/ConstructionElement3D'
@@ -73,12 +73,12 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
   const handleExport = async (format: ExportFormat): Promise<void> => {
     try {
       if (format === 'ifc') {
-        const { exportConstructionGeometryToIfc } = await import('@/exporters/ifc')
+        const { exportConstructionGeometryToIfc } = await import('@/construction/export/ifc')
         await exportConstructionGeometryToIfc(model)
       }
 
       if (format === 'sketchup') {
-        const { exportToSketchUp } = await import('@/exporters/sketchup')
+        const { exportToSketchUp } = await import('@/construction/export/sketchup')
         await exportToSketchUp(model)
       }
 

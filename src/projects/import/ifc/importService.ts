@@ -2,13 +2,13 @@ import type { PerimeterWithGeometry } from '@/building/model'
 import type { StoreyId } from '@/building/model/ids'
 import { clearPersistence, getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config'
-import { IfcImporter } from '@/importers/ifc/importer'
+import { IfcImporter } from '@/projects/import/ifc/importer'
 import type {
   ImportedPerimeterCandidate,
   ImportedPerimeterSegment,
   ImportedStorey,
   ParsedIfcModel
-} from '@/importers/ifc/types'
+} from '@/projects/import/ifc/types'
 import { type Polygon2D, copyVec2 } from '@/shared/geometry'
 import { ensureClipperModule } from '@/shared/geometry/polygon/clipperInstance'
 

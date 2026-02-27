@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { SKETCHUP_ENABLED } from '@/exporters/sketchup'
+import { SKETCHUP_ENABLED } from '@/construction/export/sketchup'
 
 export type ExportFormat = 'collada' | 'gltf' | 'obj' | 'stl' | 'ifc' | 'sketchup'
 

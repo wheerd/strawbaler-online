@@ -22,10 +22,10 @@ import type { ConstructionModel } from '@/construction/model'
 import { clearSelection } from '@/editor/hooks/useSelectionStore'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
 import { cn } from '@/lib/utils'
+import { createProject } from '@/projects/services/CloudSyncManager'
 import { useProjectName } from '@/projects/store'
 import { SaveIcon } from '@/shared/components/Icons'
 import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
-import { createProject } from '@/shared/services/CloudSyncManager'
 import { FileInputCancelledError, createBinaryFileInput, createFileInput } from '@/shared/utils/createFileInput'
 import { downloadFile } from '@/shared/utils/downloadFile'
 
@@ -69,7 +69,7 @@ export function ProjectMenu(): React.JSX.Element {
     setExportError(null)
 
     try {
-      const { ProjectImportExportService } = await import('@/shared/services/ProjectImportExportService')
+      const { ProjectImportExportService } = await import('@/projects/services/ProjectImportExportService')
 
       const result = ProjectImportExportService.exportToString()
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0]
@@ -88,7 +88,7 @@ export function ProjectMenu(): React.JSX.Element {
     setExportError(null)
 
     try {
-      const { exportCurrentModelToIfc } = await import('@/exporters/ifc')
+      const { exportCurrentModelToIfc } = await import('@/projects/export/ifc')
       await exportCurrentModelToIfc()
     } catch (error) {
       setExportError(error instanceof Error ? error.message : t($ => $.autoSave.errors.failedIFCExport))
@@ -102,7 +102,7 @@ export function ProjectMenu(): React.JSX.Element {
     setExportError(null)
 
     try {
-      const { exportConstructionGeometryToIfc } = await import('@/exporters/ifc')
+      const { exportConstructionGeometryToIfc } = await import('@/construction/export/ifc')
       const { getConstructionModel } = await import('@/construction/store')
       let model: ConstructionModel
       try {
@@ -122,7 +122,7 @@ export function ProjectMenu(): React.JSX.Element {
   const performJsonImport = async (content: string, choice: 'current' | 'new', projectName?: string) => {
     clearSelection()
 
-    const { ProjectImportExportService } = await import('@/shared/services/ProjectImportExportService')
+    const { ProjectImportExportService } = await import('@/projects/services/ProjectImportExportService')
     ProjectImportExportService.importFromString(content)
 
     if (choice === 'new') {
@@ -140,7 +140,7 @@ export function ProjectMenu(): React.JSX.Element {
   const performIfcImport = async (content: ArrayBuffer, choice: 'current' | 'new', projectName?: string) => {
     clearSelection()
 
-    const { importIfcIntoModel } = await import('@/importers/ifc/importService')
+    const { importIfcIntoModel } = await import('@/projects/import/ifc/importService')
     const result = await importIfcIntoModel(content)
     if (!result.success) {
       throw new Error(result.error ?? t($ => $.autoSave.errors.failedIFCImport))

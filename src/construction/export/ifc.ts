@@ -55,7 +55,7 @@ import { transString } from '@/shared/i18n/TranslatableString'
 import { downloadFile } from '@/shared/utils/downloadFile'
 import { getVersionString } from '@/shared/utils/version'
 
-import { ManifoldToIfcConverter } from './geometryConverter'
+import { ManifoldToIfcConverter } from './ifcGeometryConverter'
 
 type IfcElementType =
   | 'IfcWall'
