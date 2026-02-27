@@ -6,7 +6,8 @@ import type { LayerSetConfig, LayerSetUse } from '@/construction/assemblies/laye
 import { Select } from '@/shared/ui/components/select'
 import { TextField } from '@/shared/ui/components/text-field'
 import { useDebouncedInput } from '@/shared/ui/hooks/useDebouncedInput'
-import { getLayerSetUseIcon } from '@/shared/ui/icons'
+
+import { getLayerSetUseIcon } from './icons'
 
 interface LayerSetConfigFormProps {
   layerSet: LayerSetConfig

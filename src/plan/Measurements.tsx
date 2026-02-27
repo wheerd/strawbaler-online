@@ -3,11 +3,11 @@ import { useMemo } from 'react'
 import { type Projection, allPoints, bounds3Dto2D, projectPoint } from '@/construction/assemblies/utils/geometry'
 import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/model/measurements'
 import type { ConstructionModel } from '@/construction/model/model'
-import { SvgMeasurementIndicator } from '@/plan/SvgMeasurementIndicator'
 import { useVisibleItems } from '@/plan/TagVisibilityContext'
 import { getTagClasses } from '@/plan/cssHelpers'
 import { Bounds2D, IDENTITY, type Vec3, distVec2, newVec2, newVec3 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { SvgMeasurementIndicator } from '@/shared/ui/svg/SvgMeasurementIndicator'
 import { assertUnreachable } from '@/shared/utils'
 
 export interface MeasurementsProps {

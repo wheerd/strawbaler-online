@@ -11,11 +11,11 @@ import { Card } from '@/shared/ui/components/card'
 import { Separator } from '@/shared/ui/components/separator'
 import { TextField } from '@/shared/ui/components/text-field'
 import { useDebouncedInput } from '@/shared/ui/hooks/useDebouncedInput'
-import { getRoofAssemblyTypeIcon } from '@/shared/ui/icons'
 
 import { LayersConfigForm } from './LayersConfigForm'
 import { MonolithicRoofConfigForm } from './MonolithicRoofConfigForm'
 import { PurlinRoofConfigForm } from './PurlinRoofConfigForm'
+import { getRoofAssemblyTypeIcon } from './icons'
 
 interface ConfigFormProps {
   assembly: RoofAssemblyConfig

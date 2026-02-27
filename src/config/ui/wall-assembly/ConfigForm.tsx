@@ -11,7 +11,6 @@ import { Card } from '@/shared/ui/components/card'
 import { Separator } from '@/shared/ui/components/separator'
 import { TextField } from '@/shared/ui/components/text-field'
 import { useDebouncedInput } from '@/shared/ui/hooks/useDebouncedInput'
-import { getPerimeterConfigTypeIcon } from '@/shared/ui/icons'
 
 import { CommonConfigForm } from './CommonConfigForm'
 import { InfillConfigForm } from './InfillConfigForm'
@@ -19,6 +18,7 @@ import { ModulesConfigForm } from './ModulesConfigForm'
 import { NonStrawbaleConfigForm } from './NonStrawbaleConfigForm'
 import { PrefabModulesConfigForm } from './PrefabModulesConfigForm'
 import { StrawhengeConfigForm } from './StrawhengeConfigForm'
+import { getWallAssemblyTypeIcon } from './icons'
 
 interface ConfigFormProps {
   assembly: WallAssemblyConfig
@@ -74,7 +74,7 @@ export function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
               <span className="text-base font-medium">{t($ => $.common.type)}</span>
             </Label.Root>
             <div className="flex items-center gap-2">
-              {React.createElement(getPerimeterConfigTypeIcon(assembly.type))}
+              {React.createElement(getWallAssemblyTypeIcon(assembly.type))}
               <span className="text-base">{t($ => $.walls.types[assembly.type])}</span>
             </div>
           </div>

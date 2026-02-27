@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next'
 import type { Material, MaterialId, MaterialType } from '@/materials/material'
 import { useMaterials } from '@/materials/store'
 import { Select, SelectValue } from '@/shared/ui/components/select'
-import { getMaterialTypeIcon } from '@/shared/ui/icons'
+
+import { getMaterialTypeIcon } from './icons'
 
 const NONE_VALUE = '__material_none__'
 

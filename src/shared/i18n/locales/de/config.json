@@ -93,10 +93,10 @@
       "verticalOffset": "Vertikaler Versatz zwischen Oberkante der Balken und Unterkante der Fußschwelle. Positive Werte verschieben den Boden nach oben."
     },
     "types": {
-      "hangingJoist": "Aufgehängter Balkenboden",
+      "hanging-joist": "Aufgehängter Balkenboden",
       "joist": "Balkenboden",
       "monolithic": "Massivboden",
-      "straw": "Strohgefüllter Boden"
+      "filled": "Strohgefüllter Boden"
     }
   },
   "layers": {

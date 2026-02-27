@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
 
 import { type ICoordinateMapper, IdentityCoordinateMapper } from '@/parts/utils/coordinateMapper'
-import { type LabelOrientation, SvgMeasurementIndicator } from '@/plan/SvgMeasurementIndicator'
 import { type Bounds2D, type PolygonWithHoles2D, newVec2 } from '@/shared/geometry'
+import { type LabelOrientation, SvgMeasurementIndicator } from '@/shared/ui/svg/SvgMeasurementIndicator'
 
 interface GridMeasurementSystemProps {
   polygon: PolygonWithHoles2D

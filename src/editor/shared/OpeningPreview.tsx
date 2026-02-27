@@ -1,9 +1,9 @@
 import { useId } from 'react'
 
 import type { OpeningParams } from '@/building/model'
-import { SvgMeasurementIndicator } from '@/plan/SvgMeasurementIndicator'
 import { type Length, newVec2 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { SvgMeasurementIndicator } from '@/shared/ui/svg/SvgMeasurementIndicator'
 
 export interface OpeningPreviewProps {
   opening: Omit<OpeningParams, 'centerOffsetFromWallStart'>

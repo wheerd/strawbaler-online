@@ -18,7 +18,7 @@ export function HangingJoistConfigForm({ config, onUpdate }: HangingJoistConfigF
   const { t } = useTranslation('config')
   return (
     <>
-      <h3>{t($ => $.floors.types.hangingJoist)}</h3>
+      <h3>{t($ => $.floors.types['hanging-joist'])}</h3>
 
       <h2>{t($ => $.floors.sections.joists)}</h2>
       <div className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-2 gap-x-3">

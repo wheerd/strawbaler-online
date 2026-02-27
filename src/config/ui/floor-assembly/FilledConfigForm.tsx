@@ -18,7 +18,7 @@ export function FilledConfigForm({ config, onUpdate }: FilledConfigFormProps) {
   const { t } = useTranslation('config')
   return (
     <>
-      <h2 className="font-medium">{t($ => $.floors.types.straw)}</h2>
+      <h2 className="font-medium">{t($ => $.floors.types.filled)}</h2>
 
       <div className="grid grid-cols-[auto_1fr] items-center gap-2 gap-x-3">
         <div className="flex items-center gap-1">

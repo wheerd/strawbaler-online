@@ -9,9 +9,9 @@ import {
   ensurePolygonIsCounterClockwise,
   newVec2
 } from '@/shared/geometry'
-import { SVGViewport, type SVGViewportRef } from '@/shared/ui/SVGViewport'
 import { FullScreenModal } from '@/shared/ui/components/full-screen-modal'
 import { elementSizeRef } from '@/shared/ui/hooks/useElementSize'
+import { SVGViewport, type SVGViewportRef } from '@/shared/ui/svg/SVGViewport'
 
 import { PolygonAngleIndicators } from './AngleIndicators'
 import { DiagonalEdgeMeasurements } from './DiagonalEdgeMeasurements'

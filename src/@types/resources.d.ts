@@ -263,10 +263,10 @@ interface Resources {
         "verticalOffset": "Vertical offset of the top of the joists relative to the bottom of the base plate. Positive values move the floor up."
       },
       "types": {
-        "hangingJoist": "Hanging Joist Floor",
+        "filled": "Straw Filled Floor",
+        "hanging-joist": "Hanging Joist Floor",
         "joist": "Joist Floor",
-        "monolithic": "Monolithic Floor",
-        "straw": "Straw Filled Floor"
+        "monolithic": "Monolithic Floor"
       }
     },
     "layerSets": {
@@ -1813,7 +1813,7 @@ interface Resources {
       "title": "Key Features"
     },
     "plannedFeatures": {
-      "items": ["Cost and work hours estimations", "Support for intermediate walls and foundations", "Translation in more languages", "Support for more irregular building shapes", "Support for multiple projects"],
+      "items": ["Cost and work hours estimations", "Support for intermediate walls and foundations", "Translation in more languages", "Support for more irregular building shapes"],
       "title": "Planned Features"
     },
     "privacyLink": "View our <link>Privacy Policy</link>",

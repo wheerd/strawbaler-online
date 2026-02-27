@@ -2,8 +2,8 @@ import React, { useMemo } from 'react'
 
 import { type ICoordinateMapper, IdentityCoordinateMapper } from '@/parts/utils/coordinateMapper'
 import { getAllPolygonEdges, isAxisAligned } from '@/parts/utils/edgeUtils'
-import { SvgMeasurementIndicator } from '@/plan/SvgMeasurementIndicator'
 import { type PolygonWithHoles2D, type Vec2, newVec2 } from '@/shared/geometry'
+import { SvgMeasurementIndicator } from '@/shared/ui/svg/SvgMeasurementIndicator'
 
 interface DiagonalEdge {
   startDisplay: Vec2

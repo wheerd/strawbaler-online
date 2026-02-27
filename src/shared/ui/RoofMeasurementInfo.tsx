@@ -3,11 +3,11 @@ import { Info } from 'lucide-react'
 import { type ComponentProps, type JSX, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { SvgMeasurementIndicator } from '@/plan/SvgMeasurementIndicator'
 import { degreesToRadians, newVec2 } from '@/shared/geometry'
 import { BaseModal } from '@/shared/ui/BaseModal'
 import { Button } from '@/shared/ui/components/button'
 import { HoverCard, HoverCardContent } from '@/shared/ui/components/hover-card'
+import { SvgMeasurementIndicator } from '@/shared/ui/svg/SvgMeasurementIndicator'
 
 export type Measurement = 'roofInsideOverlap' | 'roofOutsideOverlap' | 'totalRoofThickness'
 

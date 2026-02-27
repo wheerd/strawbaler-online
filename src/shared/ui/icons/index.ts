@@ -42,14 +42,3 @@ export { default as WallLayersIcon } from './WallLayersIcon'
 export { default as WallToggleIcon } from './WallToggleIcon'
 export { default as WideDoorPresetIcon } from './WideDoorPresetIcon'
 export { default as WindowIcon } from './WindowIcon'
-
-export {
-  getFloorAssemblyTypeIcon,
-  getLayerSetUseIcon,
-  getMaterialTypeIcon,
-  getOpeningTypeIcon,
-  getPerimeterConfigTypeIcon,
-  getRingBeamTypeIcon,
-  getRoofAssemblyTypeIcon,
-  getWallPlateIcon
-} from './utils'

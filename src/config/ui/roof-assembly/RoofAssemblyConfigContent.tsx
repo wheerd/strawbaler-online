@@ -1,5 +1,5 @@
 import * as Label from '@radix-ui/react-label'
-import { Copy, Plus, Square, Trash, Undo2 } from 'lucide-react'
+import { Copy, Plus, Trash, Undo2 } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -16,9 +16,9 @@ import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'
 import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
-import { FilledIcon } from '@/shared/ui/icons'
 
 import { ConfigForm } from './ConfigForm'
+import { getRoofAssemblyTypeIcon } from './icons'
 
 export interface RoofAssemblyConfigContentProps {
   initialSelectionId?: string
@@ -137,6 +137,8 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
     }
   }, [resetRoofAssembliesToDefaults, selectedAssemblyId, roofAssemblies])
 
+  const roofTypes: RoofAssemblyType[] = ['monolithic', 'purlin']
+
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -158,26 +160,19 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
                 </Button>
               </DropdownMenu.Trigger>
               <DropdownMenu.Content>
-                <DropdownMenu.Item
-                  onSelect={() => {
-                    handleAddNew('monolithic')
-                  }}
-                >
-                  <div className="flex items-center gap-1">
-                    <Square />
-                    {t($ => $.roofs.types.monolithic)}
-                  </div>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  onSelect={() => {
-                    handleAddNew('purlin')
-                  }}
-                >
-                  <div className="flex items-center gap-1">
-                    <FilledIcon />
-                    {t($ => $.roofs.types.purlin)}
-                  </div>
-                </DropdownMenu.Item>
+                {roofTypes.map(type => (
+                  <DropdownMenu.Item
+                    key={type}
+                    onSelect={() => {
+                      handleAddNew(type)
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      {React.createElement(getRoofAssemblyTypeIcon(type))}
+                      {t($ => $.roofs.types[type])}
+                    </div>
+                  </DropdownMenu.Item>
+                ))}
               </DropdownMenu.Content>
             </DropdownMenu>
 

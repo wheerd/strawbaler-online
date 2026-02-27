@@ -11,11 +11,11 @@ import { Card } from '@/shared/ui/components/card'
 import { Separator } from '@/shared/ui/components/separator'
 import { TextField } from '@/shared/ui/components/text-field'
 import { useDebouncedInput } from '@/shared/ui/hooks/useDebouncedInput'
-import { getRingBeamTypeIcon } from '@/shared/ui/icons'
 
 import { BrickRingBeamConfigForm } from './BrickRingBeamConfigForm'
 import { DoubleRingBeamConfigForm } from './DoubleRingBeamConfigForm'
 import { FullRingBeamConfigForm } from './FullRingBeamConfigForm'
+import { getRingBeamTypeIcon } from './icons'
 
 interface ConfigFormProps {
   assembly: RingBeamAssemblyConfig

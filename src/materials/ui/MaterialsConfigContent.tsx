@@ -34,9 +34,9 @@ import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 import { TextField } from '@/shared/ui/components/text-field'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 import { Tooltip } from '@/shared/ui/components/tooltip'
-import { getMaterialTypeIcon } from '@/shared/ui/icons'
 
 import { MaterialSelect, useGetMaterialTypeName } from './MaterialSelect'
+import { getMaterialTypeIcon } from './icons'
 
 export interface MaterialsConfigModalProps {
   trigger: React.ReactNode

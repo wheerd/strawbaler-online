@@ -25,9 +25,9 @@ import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'
 import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
-import { InfillIcon, ModulesIcon, NonStrawbaleIcon, PrefabIcon, StrawhengeIcon } from '@/shared/ui/icons'
 
 import { ConfigForm } from './ConfigForm'
+import { getWallAssemblyTypeIcon } from './icons'
 
 export interface WallAssemblyContentProps {
   initialSelectionId?: string
@@ -251,6 +251,8 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
     }
   }, [resetWallAssembliesToDefaults, selectedAssemblyId, wallAssemblies])
 
+  const wallTypes = ['infill', 'strawhenge', 'non-strawbale', 'modules', 'prefab-modules'] as const
+
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -272,56 +274,19 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                 </Button>
               </DropdownMenu.Trigger>
               <DropdownMenu.Content>
-                <DropdownMenu.Item
-                  onSelect={() => {
-                    handleAddNew('infill')
-                  }}
-                >
-                  <div className="flex items-center gap-1">
-                    <InfillIcon />
-                    {t($ => $.walls.types.infill)}
-                  </div>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  onSelect={() => {
-                    handleAddNew('strawhenge')
-                  }}
-                >
-                  <div className="flex items-center gap-1">
-                    <StrawhengeIcon />
-                    {t($ => $.walls.types.strawhenge)}
-                  </div>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  onSelect={() => {
-                    handleAddNew('modules')
-                  }}
-                >
-                  <div className="flex items-center gap-1">
-                    <ModulesIcon />
-                    {t($ => $.walls.types.modules)}
-                  </div>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  onSelect={() => {
-                    handleAddNew('non-strawbale')
-                  }}
-                >
-                  <div className="flex items-center gap-1">
-                    <NonStrawbaleIcon />
-                    {t($ => $.walls.types['non-strawbale'])}
-                  </div>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  onSelect={() => {
-                    handleAddNew('prefab-modules')
-                  }}
-                >
-                  <div className="flex items-center gap-1">
-                    <PrefabIcon />
-                    {t($ => $.walls.types['prefab-modules'])}
-                  </div>
-                </DropdownMenu.Item>
+                {wallTypes.map(type => (
+                  <DropdownMenu.Item
+                    key={type}
+                    onSelect={() => {
+                      handleAddNew(type)
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      {React.createElement(getWallAssemblyTypeIcon(type))}
+                      {t($ => $.walls.types[type])}
+                    </div>
+                  </DropdownMenu.Item>
+                ))}
               </DropdownMenu.Content>
             </DropdownMenu>
 

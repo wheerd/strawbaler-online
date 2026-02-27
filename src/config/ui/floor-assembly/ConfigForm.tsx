@@ -10,13 +10,13 @@ import { useFormatters } from '@/shared/i18n/useFormatters'
 import { Separator } from '@/shared/ui/components/separator'
 import { TextField } from '@/shared/ui/components/text-field'
 import { useDebouncedInput } from '@/shared/ui/hooks/useDebouncedInput'
-import { getFloorAssemblyTypeIcon } from '@/shared/ui/icons'
 
 import { FilledConfigForm } from './FilledConfigForm'
 import { HangingJoistConfigForm } from './HangingJoistConfigForm'
 import { JoistConfigForm } from './JoistConfigForm'
 import { LayersConfigForm } from './LayersConfigForm'
 import { MonolithicConfigForm } from './MonolithicConfigForm'
+import { getFloorAssemblyTypeIcon } from './icons'
 
 interface ConfigFormProps {
   assembly: FloorAssemblyConfig
@@ -85,8 +85,8 @@ export function ConfigForm({ assembly }: ConfigFormProps): React.JSX.Element {
                   : assembly.type === 'joist'
                     ? t($ => $.floors.types.joist)
                     : assembly.type === 'hanging-joist'
-                      ? t($ => $.floors.types.hangingJoist)
-                      : t($ => $.floors.types.straw)}
+                      ? t($ => $.floors.types['hanging-joist'])
+                      : t($ => $.floors.types.filled)}
               </span>
             </div>
           </div>

@@ -5,8 +5,9 @@ import type { WallAssemblyId } from '@/building/model/ids'
 import { useWallAssemblies } from '@/config/store'
 import type { NamedAssembly } from '@/config/types'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
-import { getPerimeterConfigTypeIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/ui/utils'
+
+import { getWallAssemblyTypeIcon } from './icons'
 
 export interface WallAssemblySelectProps {
   value: WallAssemblyId | null | undefined
@@ -58,7 +59,7 @@ export function WallAssemblySelect({
           </SelectItem>
         ) : (
           wallAssemblies.map(assembly => {
-            const Icon = getPerimeterConfigTypeIcon(assembly.type)
+            const Icon = getWallAssemblyTypeIcon(assembly.type)
             const isDefault = showDefaultIndicator && assembly.id === defaultAssemblyId
             const label = getDisplayName(assembly)
             return (

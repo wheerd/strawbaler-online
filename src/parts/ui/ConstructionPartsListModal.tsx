@@ -7,7 +7,7 @@ import { ConstructionVirtualPartsList } from '@/parts/ui/ConstructionVirtualPart
 import { FullScreenModal } from '@/shared/ui/components/full-screen-modal'
 import { Tabs } from '@/shared/ui/components/tabs'
 
-const ConstructionModelRegenerateButton = lazy(() => import('@/plan/ConstructionModelRegenerateButton'))
+const ConstructionModelRegenerateButton = lazy(() => import('@/construction/ui/ConstructionModelRegenerateButton'))
 
 export interface ConstructionPartsListModalProps {
   title?: string

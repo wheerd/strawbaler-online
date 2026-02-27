@@ -18,7 +18,7 @@ import { ConstructionPlan, type ViewOption } from './ConstructionPlan'
 import { PlanHighlightProvider, usePlanHighlight } from './PlanHighlightContext'
 import { TagVisibilityProvider } from './TagVisibilityContext'
 
-const ConstructionModelRegenerateButton = lazy(() => import('@/plan/ConstructionModelRegenerateButton'))
+const ConstructionModelRegenerateButton = lazy(() => import('@/construction/ui/ConstructionModelRegenerateButton'))
 
 export interface ConstructionModalProps {
   title: string

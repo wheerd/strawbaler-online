@@ -9,7 +9,7 @@ import { elementSizeRef } from '@/shared/ui/hooks/useElementSize'
 
 import { TagOpacityProvider } from './context/TagOpacityContext'
 
-const ConstructionModelRegenerateButton = lazy(() => import('@/plan/ConstructionModelRegenerateButton'))
+const ConstructionModelRegenerateButton = lazy(() => import('@/construction/ui/ConstructionModelRegenerateButton'))
 const ConstructionViewer3DContent = lazy(() => import('./ConstructionViewer3DContent'))
 
 export interface ConstructionViewer3DModalProps {

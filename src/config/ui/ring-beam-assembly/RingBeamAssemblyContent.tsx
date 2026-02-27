@@ -22,9 +22,9 @@ import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'
 import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 import { Separator } from '@/shared/ui/components/separator'
-import { getRingBeamTypeIcon } from '@/shared/ui/icons'
 
 import { ConfigForm } from './ConfigForm'
+import { getRingBeamTypeIcon } from './icons'
 
 export interface RingBeamAssemblyContentProps {
   initialSelectionId?: string
@@ -145,6 +145,8 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
     }
   }, [resetRingBeamAssembliesToDefaults, selectedAssemblyId, ringBeamAssemblies])
 
+  const ringBeamTypes: RingBeamAssemblyType[] = ['full', 'double', 'brick']
+
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex w-full flex-col gap-2">
@@ -167,36 +169,19 @@ export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssembly
               </Button>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
-              <DropdownMenu.Item
-                onSelect={() => {
-                  handleAddNew('full')
-                }}
-              >
-                <div className="flex items-center gap-1">
-                  {React.createElement(getRingBeamTypeIcon('full'))}
-                  {t($ => $.ringBeams.types.full)}
-                </div>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                onSelect={() => {
-                  handleAddNew('double')
-                }}
-              >
-                <div className="flex items-center gap-1">
-                  {React.createElement(getRingBeamTypeIcon('double'))}
-                  {t($ => $.ringBeams.types.double)}
-                </div>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                onSelect={() => {
-                  handleAddNew('brick')
-                }}
-              >
-                <div className="flex items-center gap-1">
-                  {React.createElement(getRingBeamTypeIcon('brick'))}
-                  {t($ => $.ringBeams.types.brick)}
-                </div>
-              </DropdownMenu.Item>
+              {ringBeamTypes.map(type => (
+                <DropdownMenu.Item
+                  key={type}
+                  onSelect={() => {
+                    handleAddNew(type)
+                  }}
+                >
+                  <div className="flex items-center gap-1">
+                    {React.createElement(getRingBeamTypeIcon(type))}
+                    {t($ => $.ringBeams.types[type])}
+                  </div>
+                </DropdownMenu.Item>
+              ))}
             </DropdownMenu.Content>
           </DropdownMenu>
 

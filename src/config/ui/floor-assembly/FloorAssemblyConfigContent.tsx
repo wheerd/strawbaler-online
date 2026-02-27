@@ -17,9 +17,9 @@ import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'
 import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 import { Separator } from '@/shared/ui/components/separator'
-import { getFloorAssemblyTypeIcon } from '@/shared/ui/icons'
 
 import { ConfigForm } from './ConfigForm'
+import { getFloorAssemblyTypeIcon } from './icons'
 
 export interface FloorAssemblyConfigContentProps {
   initialSelectionId?: string
@@ -172,6 +172,8 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
     }
   }, [resetFloorAssembliesToDefaults, selectedConfigId, floorAssemblies])
 
+  const floorTypes = ['monolithic', 'joist', 'filled', 'hanging-joist'] as const
+
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -194,46 +196,19 @@ export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssembly
               </Button>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
-              <DropdownMenu.Item
-                onSelect={() => {
-                  handleAddNew('monolithic')
-                }}
-              >
-                <div className="flex items-center gap-1">
-                  {React.createElement(getFloorAssemblyTypeIcon('monolithic'))}
-                  {t($ => $.floors.types.monolithic)}
-                </div>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                onSelect={() => {
-                  handleAddNew('joist')
-                }}
-              >
-                <div className="flex items-center gap-1">
-                  {React.createElement(getFloorAssemblyTypeIcon('joist'))}
-                  {t($ => $.floors.types.joist)}
-                </div>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                onSelect={() => {
-                  handleAddNew('filled')
-                }}
-              >
-                <div className="flex items-center gap-1">
-                  {React.createElement(getFloorAssemblyTypeIcon('filled'))}
-                  {t($ => $.floors.types.straw)}
-                </div>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                onSelect={() => {
-                  handleAddNew('hanging-joist')
-                }}
-              >
-                <div className="flex items-center gap-1">
-                  {React.createElement(getFloorAssemblyTypeIcon('hanging-joist'))}
-                  {t($ => $.floors.types.hangingJoist)}
-                </div>
-              </DropdownMenu.Item>
+              {floorTypes.map(type => (
+                <DropdownMenu.Item
+                  key={type}
+                  onSelect={() => {
+                    handleAddNew(type)
+                  }}
+                >
+                  <div className="flex items-center gap-1">
+                    {React.createElement(getFloorAssemblyTypeIcon(type))}
+                    {t($ => $.floors.types[type])}
+                  </div>
+                </DropdownMenu.Item>
+              ))}
             </DropdownMenu.Content>
           </DropdownMenu>
 
