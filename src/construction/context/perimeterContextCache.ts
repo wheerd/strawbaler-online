@@ -1,7 +1,7 @@
 import type { PerimeterId, StoreyId } from '@/building/model/ids'
 import { getModelActions, subscribeToFloorOpenings, subscribeToPerimeters, subscribeToWalls } from '@/building/store'
-import { computePerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
-import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
+import { computePerimeterConstructionContext } from '@/construction/context/perimeter'
+import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 
 type InvalidationCallback = (perimeterId: PerimeterId) => void
 

@@ -1,6 +1,6 @@
 import type { SelectableId } from '@/building/model'
 import type { StoreActions } from '@/building/store'
-import type { SnapResult, SnappingContext } from '@/editor/canvas/services/snapping/types'
+import type { SnapResult, SnappingContext } from '@/editor/canvas/services/SnappingService'
 import { PolygonMovementPreview } from '@/editor/tools/basic/movement/previews/PolygonMovementPreview'
 import type {
   MovementBehavior,

@@ -3,7 +3,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { PrefabModulesWallConfig } from '@/construction/assemblies/walls/types'
-import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
+import { MaterialSelectWithEdit } from '@/materials/ui/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { Checkbox } from '@/shared/ui/components/checkbox'
 

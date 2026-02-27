@@ -1,9 +1,9 @@
-import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
 import {
   PolygonWithBoundingRect,
   partitionByAlignedEdges,
   simplePolygonFrame
 } from '@/construction/assemblies/utils/helpers'
+import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import { createConstructionElement, createConstructionElementId } from '@/construction/model/elements'
 import { type ConstructionModel } from '@/construction/model/model'
 import { type ConstructionResult, aggregateResults } from '@/construction/model/results'

@@ -19,7 +19,7 @@ import {
   splitAtHeightJumps
 } from '@/construction/assemblies/walls/roofIntegration'
 import type { SegmentInfillMethod } from '@/construction/assemblies/walls/types'
-import { getRoofHeightLineCached } from '@/construction/context'
+import { getRoofHeightLineCached } from '@/construction/context/roofHeightLineCache'
 import type { StoreyContext } from '@/construction/context/storeys'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/model/results'
 import {

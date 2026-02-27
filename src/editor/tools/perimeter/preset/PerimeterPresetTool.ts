@@ -8,8 +8,9 @@ import type { CursorStyle, ToolImplementation } from '@/editor/tools/system/type
 import { Bounds2D, ensurePolygonIsClockwise, subVec2 } from '@/shared/geometry'
 
 import { PerimeterPresetToolInspector } from './PerimeterPresetToolInspector'
-import type { BasePresetConfig, PerimeterPreset } from './presets'
-import { LShapedPreset, RectangularPreset } from './presets'
+import { LShapedPreset } from './presets/LShapedPreset'
+import { RectangularPreset } from './presets/RectangularPreset'
+import type { BasePresetConfig, PerimeterPreset } from './presets/types'
 
 export class PerimeterPresetTool extends BaseTool implements ToolImplementation {
   readonly id = 'perimeter.preset'

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import type { SnapResult } from '@/editor/canvas/services/snapping/types'
+import type { SnapResult } from '@/editor/canvas/services/SnappingService'
 import { useStageHeight, useStageWidth, useZoom } from '@/editor/canvas/state/viewportStore'
 import { eqVec2, newVec2 } from '@/shared/geometry'
 

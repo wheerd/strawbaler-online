@@ -2,7 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { useTranslation } from 'react-i18next'
 
 import type { MonolithicRoofConfig } from '@/construction/assemblies/roofs/types'
-import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
+import { MaterialSelectWithEdit } from '@/materials/ui/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 
 interface MonolithicRoofConfigFormProps {

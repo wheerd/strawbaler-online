@@ -2,7 +2,7 @@ import type { PerimeterWithGeometry, Roof } from '@/building/model'
 import type { SelectableId } from '@/building/model/ids'
 import { isRoofId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import type { SnappingContext } from '@/editor/canvas/services/snapping/types'
+import type { SnappingContext } from '@/editor/canvas/services/SnappingService'
 import type { MovementContext } from '@/editor/tools/basic/movement/types'
 import { type Polygon2D, type Vec2, polygonEdges } from '@/shared/geometry'
 

@@ -67,7 +67,7 @@ vi.mock('@/shared/utils/formatLength', () => ({
   formatLength: vi.fn((length: Length) => `${length}mm`)
 }))
 
-vi.mock('@/construction/assemblies/openings/resolver', () => ({
+vi.mock('@/construction/assemblies/openings', () => ({
   resolveOpeningAssembly: vi.fn(),
   resolveOpeningConfig: vi.fn()
 }))
@@ -80,9 +80,7 @@ vi.mock('@/construction/assemblies/walls/posts', () => ({
   constructWallPost: vi.fn()
 }))
 
-vi.mock('@/construction/context', () => ({
-  getPerimeterContextCached: vi.fn(),
-  subscribeToPerimeterContextInvalidations: vi.fn(() => vi.fn()),
+vi.mock('@/construction/context/roofHeightLineCache', () => ({
   getRoofHeightLineCached: vi.fn(() => [])
 }))
 

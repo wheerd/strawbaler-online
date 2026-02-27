@@ -10,8 +10,9 @@ import { Bounds2D, newVec2 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 
 import { PerimeterPresetTool } from './PerimeterPresetTool'
-import { LShapedPreset, RectangularPreset } from './presets'
-import type { RectangularPresetConfig } from './presets'
+import { LShapedPreset } from './presets/LShapedPreset'
+import { RectangularPreset } from './presets/RectangularPreset'
+import type { RectangularPresetConfig } from './presets/types'
 
 describe('PerimeterPresetTool', () => {
   vi.mock('@/building/store', () => ({ getModelActions: vi.fn() }))

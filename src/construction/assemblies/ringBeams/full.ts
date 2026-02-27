@@ -1,6 +1,6 @@
 import { getModelActions } from '@/building/store'
-import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
 import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/helpers'
+import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import type { StoreyContext } from '@/construction/context/storeys'
 import { type ConstructionResult } from '@/construction/model/results'
 import { TAG_PLATE } from '@/construction/model/tags'

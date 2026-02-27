@@ -3,7 +3,7 @@ import { Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { JoistFloorConfig } from '@/construction/assemblies/floors/types'
-import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
+import { MaterialSelectWithEdit } from '@/materials/ui/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { Button } from '@/shared/ui/components/button'
 import { Separator } from '@/shared/ui/components/separator'

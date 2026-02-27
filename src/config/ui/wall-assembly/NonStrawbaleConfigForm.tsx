@@ -3,7 +3,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { NonStrawbaleWallConfig } from '@/construction/assemblies/walls/types'
-import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
+import { MaterialSelectWithEdit } from '@/materials/ui/MaterialSelectWithEdit'
 
 interface NonStrawbaleConfigFormProps {
   config: NonStrawbaleWallConfig

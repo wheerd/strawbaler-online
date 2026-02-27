@@ -22,7 +22,7 @@ import {
 } from '@/shared/geometry'
 import { partial, partialMock } from '@/test/helpers'
 
-import { computePerimeterConstructionPolygon } from './context'
+import { computePerimeterConstructionPolygon } from './perimeter'
 
 const outsideThicknessByLayerSetId = new Map<LayerSetId, number>()
 

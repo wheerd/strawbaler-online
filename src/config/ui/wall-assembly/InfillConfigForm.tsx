@@ -4,7 +4,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { InfillWallSegmentConfig } from '@/construction/assemblies/walls/types'
-import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
+import { MaterialSelectWithEdit } from '@/materials/ui/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { Separator } from '@/shared/ui/components/separator'
 import { Tooltip } from '@/shared/ui/components/tooltip'

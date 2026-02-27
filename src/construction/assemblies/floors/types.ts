@@ -1,5 +1,5 @@
 import type { LayerSetId } from '@/building/model/ids'
-import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
+import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import type { ConstructionModel } from '@/construction/model/model'
 import type { ConstructionResult } from '@/construction/model/results'
 import type { Tag } from '@/construction/model/tags'

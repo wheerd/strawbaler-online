@@ -3,7 +3,7 @@ import { FileText, Settings } from 'lucide-react'
 import React, { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { UserMenu } from '@/app/user'
+import { UserMenu } from '@/app/user/UserMenu'
 import { useActiveStoreyId, useModelActions } from '@/building/store'
 import { useConfigurationModal } from '@/config/ui/ConfigurationModalContext'
 import { useToolSystem } from '@/editor/tools/system/ToolSystemContext'

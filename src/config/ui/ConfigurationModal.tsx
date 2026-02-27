@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { ConfigTab } from '@/config/ui/ConfigurationModalContext'
 import { LayerSetsContent } from '@/config/ui/layers/LayerSetsContent'
-import { MaterialsConfigContent } from '@/materials/components/MaterialsConfigContent'
+import { MaterialsConfigContent } from '@/materials/ui/MaterialsConfigContent'
 import { FullScreenModal } from '@/shared/ui/components/full-screen-modal'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/components/tabs'
 

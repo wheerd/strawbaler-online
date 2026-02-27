@@ -1,4 +1,4 @@
-import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
+import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import { createConstructionElement } from '@/construction/model/elements'
 import type { ConstructionModel } from '@/construction/model/model'
 import { createExtrudedPolygon } from '@/construction/model/shapes'

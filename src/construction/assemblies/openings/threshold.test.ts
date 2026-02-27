@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Opening } from '@/building/model'
-import { resolveOpeningAssembly } from '@/construction/assemblies/openings'
-import { ThresholdOpeningAssembly } from '@/construction/assemblies/openings/threshold'
-import type { OpeningAssembly, ThresholdAssemblyConfig } from '@/construction/assemblies/openings/types'
 import { partial } from '@/test/helpers'
+
+import { resolveOpeningAssembly } from '.'
+import { ThresholdOpeningAssembly } from './threshold'
+import type { OpeningAssembly, ThresholdAssemblyConfig } from './types'
 
 class TestThresholdOpeningAssembly extends ThresholdOpeningAssembly {
   public selectAssemblyByWidth(openings: Opening[]): OpeningAssembly {
@@ -12,7 +13,7 @@ class TestThresholdOpeningAssembly extends ThresholdOpeningAssembly {
   }
 }
 
-vi.mock('@/construction/assemblies/openings/resolver', () => ({
+vi.mock('.', () => ({
   resolveOpeningAssembly: vi.fn()
 }))
 

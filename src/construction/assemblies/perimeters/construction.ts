@@ -1,6 +1,6 @@
 import type { PerimeterWithGeometry } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { getPerimeterContextCached } from '@/construction/context'
+import { getPerimeterContextCached } from '@/construction/context/perimeterContextCache'
 import { getWallStoreyContextCached } from '@/construction/context/storeys'
 import type { RawMeasurement } from '@/construction/model/measurements'
 import type { ConstructionModel } from '@/construction/model/model'

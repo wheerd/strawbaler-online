@@ -2,8 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { type LineSegment2D, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 
-import { SnappingService } from './SnappingService'
-import type { SnapConfig, SnappingContext } from './types'
+import { type SnapConfig, type SnappingContext, SnappingService } from './SnappingService'
 
 describe('SnappingService', () => {
   let service: SnappingService

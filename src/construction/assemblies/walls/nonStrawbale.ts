@@ -10,7 +10,7 @@ import { WALL_POLYGON_PLANE, createWallPolygonWithOpenings } from '@/constructio
 import { convertHeightLineToWallOffsets } from '@/construction/assemblies/walls/roofIntegration'
 import { segmentedWallConstruction } from '@/construction/assemblies/walls/segmentation'
 import type { NonStrawbaleWallConfig } from '@/construction/assemblies/walls/types'
-import { getRoofHeightLineCached } from '@/construction/context'
+import { getRoofHeightLineCached } from '@/construction/context/roofHeightLineCache'
 import type { StoreyContext } from '@/construction/context/storeys'
 import { createConstructionElement } from '@/construction/model/elements'
 import type { ConstructionModel } from '@/construction/model/model'

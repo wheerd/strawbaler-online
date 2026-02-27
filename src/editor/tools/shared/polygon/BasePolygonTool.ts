@@ -1,7 +1,6 @@
+import { type SnapResult, type SnappingContext, SnappingService } from '@/editor/canvas/services/SnappingService'
 import type { LengthInputPosition } from '@/editor/canvas/services/length-input'
 import { activateLengthInput, deactivateLengthInput } from '@/editor/canvas/services/length-input'
-import { SnappingService } from '@/editor/canvas/services/snapping'
-import type { SnapResult, SnappingContext } from '@/editor/canvas/services/snapping/types'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { ToolSystem } from '@/editor/tools/system/ToolSystem'

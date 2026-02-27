@@ -14,7 +14,7 @@ import { getConfigActions } from '@/config/store'
 import { direction, distVec2, newVec2, perpendicular, scaleAddVec2 } from '@/shared/geometry'
 import { partial, partialMock } from '@/test/helpers'
 
-import { applyWallFaceOffsets, createWallFaceOffsets } from './context'
+import { applyWallFaceOffsets, createWallFaceOffsets } from './perimeter'
 
 const mockInsideThickness = { value: 50 }
 const mockOutsideThickness = { value: 100 }

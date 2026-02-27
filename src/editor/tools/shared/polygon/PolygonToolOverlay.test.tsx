@@ -1,7 +1,7 @@
 import { beforeEach, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
-import type { SnapResult } from '@/editor/canvas/services/snapping/types'
+import type { SnapResult } from '@/editor/canvas/services/SnappingService'
 import { PerimeterTool } from '@/editor/tools/perimeter/add/PerimeterTool'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'

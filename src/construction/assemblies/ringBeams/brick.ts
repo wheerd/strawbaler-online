@@ -1,6 +1,6 @@
-import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
 import { BaseRingBeamAssembly } from '@/construction/assemblies/ringBeams/base'
 import type { PolygonWithBoundingRect } from '@/construction/assemblies/utils/helpers'
+import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import type { StoreyContext } from '@/construction/context/storeys'
 import { type ConstructionResult } from '@/construction/model/results'
 import { TAG_PLATE, TAG_RB_INSULATION, TAG_STUD_WALL, TAG_WATERPROOFING } from '@/construction/model/tags'

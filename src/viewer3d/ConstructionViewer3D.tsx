@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useActiveStoreyId } from '@/building/store'
-import { getRoofOffsetMapsDebug } from '@/construction/context'
+import { getRoofOffsetMapsDebug } from '@/construction/context/roofHeightLineCache'
 import { type SketchUpErrorCode, SketchUpExportError } from '@/construction/export/sketchup'
 import type { ConstructionModel } from '@/construction/model/model'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'

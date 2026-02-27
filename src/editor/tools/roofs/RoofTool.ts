@@ -1,7 +1,7 @@
 import type { RoofAssemblyId, RoofType } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/config/store'
-import type { SnappingContext } from '@/editor/canvas/services/snapping/types'
+import type { SnappingContext } from '@/editor/canvas/services/SnappingService'
 import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import { PolygonToolOverlay } from '@/editor/tools/shared/polygon/PolygonToolOverlay'

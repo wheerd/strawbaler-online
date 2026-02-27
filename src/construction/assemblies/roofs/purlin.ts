@@ -1,6 +1,5 @@
 import type { Roof } from '@/building/model'
 import type { PurlinRoofAssemblyConfig } from '@/config/types'
-import { type PerimeterConstructionContext, applyWallFaceOffsets } from '@/construction/assemblies/perimeters/context'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/assemblies/roofs/base'
 import { constructStrawPolygon } from '@/construction/assemblies/straw'
 import {
@@ -9,6 +8,7 @@ import {
   partitionByAlignedEdges
 } from '@/construction/assemblies/utils/helpers'
 import type { VerticalOffsetMap } from '@/construction/context/offsets'
+import { type PerimeterConstructionContext, applyWallFaceOffsets } from '@/construction/context/perimeter'
 import { getPerimeterContextsByStorey } from '@/construction/context/perimeterContextCache'
 import { transformManifold } from '@/construction/manifold/operations'
 import { createConstructionElement } from '@/construction/model/elements'
