@@ -16,7 +16,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint:format": "pnpm format && pnpm lint:fix",
     "depcheck": "depcruise src --ignore-known",
-    "check": "pnpm format:check && pnpm lint && depcheck",
+    "check": "pnpm format:check && pnpm lint && pnpm depcheck",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest watch",
