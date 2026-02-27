@@ -18,15 +18,17 @@ import { DialogClose } from '@/shared/ui/components/dialog'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 
 import { PolygonReferencePreview } from './PolygonReferencePreview'
-import { RectangularPreset } from './RectangularPreset'
 import type { PresetDialogProps, RectangularPresetConfig } from './types'
 
-export function RectangularPresetDialog({ onConfirm, trigger }: PresetDialogProps): React.JSX.Element {
+export function RectangularPresetDialog({
+  preset,
+  onConfirm,
+  trigger
+}: PresetDialogProps<RectangularPresetConfig>): React.JSX.Element {
   const { t } = useTranslation('tool')
   const defaultWallAssemblyId = useDefaultWallAssemblyId()
   const defaultBaseRingBeamAssemblyId = useDefaultBaseRingBeamAssemblyId()
   const defaultTopRingBeamAssemblyId = useDefaultTopRingBeamAssemblyId()
-  const preset = useMemo(() => new RectangularPreset(), [])
 
   // Form state with defaults from config store
   const [config, setConfig] = useState<RectangularPresetConfig>(() => ({

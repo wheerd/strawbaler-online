@@ -2,7 +2,7 @@ import { RefreshCw, TriangleAlert } from 'lucide-react'
 import type React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useHasUnusedLabels, usePartActions } from '@/parts'
+import { useHasUnusedLabels, usePartActions } from '@/parts/hooks'
 import { Button } from '@/shared/ui/components/button'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 

@@ -3,8 +3,10 @@ import { ArrowDownToLine, ArrowUpToLine, Eye } from 'lucide-react'
 import React, { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { type ConstructionModelId, type PartId, getLabelGroupId, useVirtualParts } from '@/parts'
-import { RegenerateLabelsButton } from '@/parts/ui/RegenerateLabelsButton'
+import type { ConstructionModelId } from '@/construction/store'
+import { useVirtualParts } from '@/parts/hooks'
+import { getLabelGroupId } from '@/parts/store'
+import type { PartId } from '@/parts/types'
 import type { VirtualGroup } from '@/parts/utils/aggregation'
 import { toVirtualGroup, virtualGroupKey } from '@/parts/utils/aggregation'
 import { useFormatters } from '@/shared/i18n/useFormatters'
@@ -12,6 +14,8 @@ import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
 import { Button } from '@/shared/ui/components/button'
 import { Card, CardContent, CardHeader } from '@/shared/ui/components/card'
 import { Table } from '@/shared/ui/components/table'
+
+import { RegenerateLabelsButton } from './RegenerateLabelsButton'
 
 interface ConstructionVirtualPartsListProps {
   modelId?: ConstructionModelId

@@ -1,6 +1,8 @@
 import React from 'react'
 
-import { EditorSkeleton, SidePanelSkeleton, ToolbarSkeleton } from '.'
+import { EditorSkeleton } from './EditorSkeleton'
+import { SidePanelSkeleton } from './SidePanelSkeleton'
+import { ToolbarSkeleton } from './ToolbarSkeleton'
 
 export function AppSkeleton(): React.JSX.Element {
   return (

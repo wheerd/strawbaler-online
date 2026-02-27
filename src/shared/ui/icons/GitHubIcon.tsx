@@ -1,4 +1,4 @@
-import type { IconProps } from './IconProps'
+import type { IconProps } from './types'
 
 function GitHubIcon({ width = 24, height = 24, ...props }: IconProps): React.JSX.Element {
   return (

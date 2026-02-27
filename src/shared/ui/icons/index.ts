@@ -43,7 +43,6 @@ export { default as WallToggleIcon } from './WallToggleIcon'
 export { default as WideDoorPresetIcon } from './WideDoorPresetIcon'
 export { default as WindowIcon } from './WindowIcon'
 
-export type { IconProps } from './IconProps'
 export {
   getFloorAssemblyTypeIcon,
   getLayerSetUseIcon,

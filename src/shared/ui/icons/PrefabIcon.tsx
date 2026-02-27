@@ -1,4 +1,4 @@
-import type { IconProps } from './IconProps'
+import type { IconProps } from './types'
 
 function PrefabIcon({ width = 15, height = 15, ...props }: IconProps): React.JSX.Element {
   return (

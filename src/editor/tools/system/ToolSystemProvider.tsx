@@ -19,7 +19,7 @@ import { TestDataTool } from '@/editor/tools/test-data/TestDataTool'
 import { ToolSystem } from './ToolSystem'
 import { ToolSystemContext } from './ToolSystemContext'
 
-export function createAndInitializeToolSystem(): ToolSystem {
+function createAndInitializeToolSystem(): ToolSystem {
   const system = new ToolSystem()
 
   system.registerTool(SelectTool)

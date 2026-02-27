@@ -1,2 +1,2 @@
-export { IfcImporter } from '@/projects/import/ifc/importer'
-export type { ParsedIfcModel, ImportedStorey, ImportedWall, ImportedSlab } from '@/projects/import/ifc/types'
+export { IfcImporter } from './importer'
+export type { ParsedIfcModel, ImportedStorey, ImportedWall, ImportedSlab } from './types'

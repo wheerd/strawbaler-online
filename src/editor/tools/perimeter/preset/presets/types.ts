@@ -3,6 +3,7 @@ import type { Resources } from 'i18next'
 import type { PerimeterReferenceSide } from '@/building/model'
 import type { RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import { type Length, type Vec2 } from '@/shared/geometry'
+import type { IconProps } from '@/shared/ui/icons/types'
 
 /**
  * Base configuration interface for all perimeter presets
@@ -34,13 +35,11 @@ export interface LShapedPresetConfig extends BasePresetConfig {
   rotation: 0 | 90 | 180 | 270 // Rotation in degrees
 }
 
-interface IconProps extends React.SVGAttributes<SVGElement> {
-  children?: never
-}
 type IconComponent = React.ComponentType<IconProps>
 
-export interface PresetDialogProps {
-  onConfirm: (config: BasePresetConfig) => void
+export interface PresetDialogProps<TConfig extends BasePresetConfig = BasePresetConfig> {
+  preset: PerimeterPreset<TConfig>
+  onConfirm: (config: TConfig) => void
   trigger: React.ReactNode
 }
 type DialogComponent = React.ComponentType<PresetDialogProps>

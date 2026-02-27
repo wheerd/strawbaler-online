@@ -21,7 +21,6 @@ import BasePlateIcon from './BasePlateIcon'
 import BrickIcon from './BrickIcon'
 import DoorIcon from './DoorIcon'
 import FilledIcon from './FilledIcon'
-import type { IconProps } from './IconProps'
 import InfillIcon from './InfillIcon'
 import JoistIcon from './JoistIcon'
 import Model3DIcon from './Model3DIcon'
@@ -35,6 +34,7 @@ import StrawbaleIcon from './StrawbaleIcon'
 import StrawhengeIcon from './StrawhengeIcon'
 import TopPlateIcon from './TopPlateIcon'
 import WindowIcon from './WindowIcon'
+import type { IconProps } from './types'
 
 export function getPerimeterConfigTypeIcon(type: WallAssemblyConfig['type']): ComponentType<IconProps> {
   switch (type) {

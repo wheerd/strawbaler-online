@@ -28,6 +28,7 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
         {tool.availablePresets.map(preset => (
           <preset.dialog
             key={preset.type}
+            preset={preset}
             trigger={
               <Button className="w-full" size="default">
                 <preset.icon />

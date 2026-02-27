@@ -6,7 +6,7 @@ import { useWelcomeModal } from '@/app/welcome/useWelcomeModal'
 import { ConfigurationModal } from '@/config/ui/ConfigurationModal'
 import { type ConfigTab, ConfigurationModalContext } from '@/config/ui/ConfigurationModalContext'
 import { useAutoClearSelection } from '@/editor/canvas/useAutoClearSelection'
-import { ToolSystemProvider } from '@/editor/tools/system'
+import { ToolSystemProvider } from '@/editor/tools/system/ToolSystemProvider'
 import { initializeCloudSync } from '@/projects/services/CloudSyncManager'
 import { FeatureErrorFallback } from '@/shared/ui/errors/FeatureErrorFallback'
 

@@ -9,8 +9,8 @@ import {
   subVec2
 } from '@/shared/geometry/2d'
 import { type Line2D, type LineSegment2D, lineIntersection, lineSegmentIntersect } from '@/shared/geometry/line'
-import { isPointInPolygon, isPointStrictlyInPolygon, polygonEdges, simplifyPolygon } from '@/shared/geometry/polygon'
 
+import { isPointInPolygon, isPointStrictlyInPolygon, polygonEdges, simplifyPolygon } from './basic'
 import { createPathD, createPathsD, getClipperModule } from './clipperInstance'
 import type { LinePolygonIntersection, Polygon2D } from './types'
 

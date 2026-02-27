@@ -4,16 +4,13 @@ import React, { Suspense, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useConfigurationModal } from '@/config/ui/ConfigurationModalContext'
+import type { ConstructionModelId } from '@/construction/store'
 import type { Material } from '@/materials/material'
 import { useGetMaterialTypeName } from '@/materials/ui/MaterialSelect'
 import { useMaterialName } from '@/materials/useMaterialName'
-import { type ConstructionModelId, type PartId, getLabelGroupId, useMaterialParts } from '@/parts'
-import DimensionalPartsTable from '@/parts/ui/DimensionalPartsTable'
-import GenericPartsTable from '@/parts/ui/GenericPartsTable'
-import { RegenerateLabelsButton } from '@/parts/ui/RegenerateLabelsButton'
-import SheetPartsTable from '@/parts/ui/SheetPartsTable'
-import StrawbalePartsTable from '@/parts/ui/StrawbalePartsTable'
-import VolumePartsTable from '@/parts/ui/VolumePartsTable'
+import { useMaterialParts } from '@/parts/hooks'
+import { getLabelGroupId } from '@/parts/store'
+import type { PartId } from '@/parts/types'
 import {
   type MaterialGroup,
   type PartSubGroup,
@@ -32,6 +29,13 @@ import { Spinner } from '@/shared/ui/components/spinner'
 import { Table } from '@/shared/ui/components/table'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 import { getMaterialTypeIcon } from '@/shared/ui/icons'
+
+import DimensionalPartsTable from './DimensionalPartsTable'
+import GenericPartsTable from './GenericPartsTable'
+import { RegenerateLabelsButton } from './RegenerateLabelsButton'
+import SheetPartsTable from './SheetPartsTable'
+import StrawbalePartsTable from './StrawbalePartsTable'
+import VolumePartsTable from './VolumePartsTable'
 
 interface ConstructionPartsListProps {
   modelId?: ConstructionModelId

@@ -18,16 +18,18 @@ import { DialogClose } from '@/shared/ui/components/dialog'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 import { LShape0Icon, LShape90Icon, LShape180Icon, LShape270Icon } from '@/shared/ui/icons'
 
-import { LShapedPreset } from './LShapedPreset'
 import { PolygonReferencePreview } from './PolygonReferencePreview'
 import type { LShapedPresetConfig, PresetDialogProps } from './types'
 
-export function LShapedPresetDialog({ onConfirm, trigger }: PresetDialogProps): React.JSX.Element {
+export function LShapedPresetDialog({
+  preset,
+  onConfirm,
+  trigger
+}: PresetDialogProps<LShapedPresetConfig>): React.JSX.Element {
   const { t } = useTranslation('tool')
   const defaultWallAssemblyId = useDefaultWallAssemblyId()
   const defaultBaseRingBeamAssemblyId = useDefaultBaseRingBeamAssemblyId()
   const defaultTopRingBeamAssemblyId = useDefaultTopRingBeamAssemblyId()
-  const preset = useMemo(() => new LShapedPreset(), [])
 
   // Form state with defaults from config store
   const [config, setConfig] = useState<LShapedPresetConfig>(() => ({
