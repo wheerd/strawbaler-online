@@ -12,7 +12,7 @@ import {
   usePerimeterWallsById,
   useRoofsOfActiveStorey
 } from '@/building/store'
-import { useDefaultRoofAssemblyId, useWallAssemblyById  } from '@/config/store'
+import { useDefaultRoofAssemblyId, useWallAssemblyById } from '@/config/store'
 import { RingBeamAssemblySelectWithEdit } from '@/config/ui/ring-beam-assembly/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/config/ui/wall-assembly/WallAssemblySelectWithEdit'
 import { resolveWallAssembly } from '@/construction/assemblies/walls'

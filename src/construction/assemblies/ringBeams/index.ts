@@ -15,8 +15,3 @@ export function resolveRingBeamAssembly(config: RingBeamConfig): RingBeamAssembl
       throw new Error(`Unknown ring beam assembly type: ${(config as RingBeamConfig).type}`)
   }
 }
-
-export * from './types'
-export * from './full'
-export * from './double'
-export * from './brick'

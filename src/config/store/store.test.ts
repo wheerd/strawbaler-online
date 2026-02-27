@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import type { FloorConfig } from '@/construction/assemblies/floors/types'
-import type { InfillWallConfig, WallConfig } from '@/construction/assemblies/walls'
+import type { InfillWallConfig, WallConfig } from '@/construction/assemblies/walls/types'
 import { createMaterialId } from '@/materials/material'
 
-import { _clearAllAssemblies, getConfigActions } from '.'
+import { getConfigActions } from './accessors'
+import { _clearAllAssemblies } from './store'
 
 describe('ConfigStore', () => {
   describe('Floor Assemblies', () => {

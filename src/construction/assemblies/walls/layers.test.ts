@@ -9,7 +9,7 @@ import {
   createPerimeterWallId,
   createWallAssemblyId
 } from '@/building/model/ids'
-import type { FloorAssembly } from '@/construction/assemblies/floors'
+import type { FloorAssembly } from '@/construction/assemblies/floors/types'
 import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import type { WallContext, WallCornerInfo } from '@/construction/assemblies/walls/corners/corners'
 import type { WallLayerSetIds } from '@/construction/assemblies/walls/layers'

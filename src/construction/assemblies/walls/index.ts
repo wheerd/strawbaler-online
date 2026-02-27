@@ -21,5 +21,3 @@ export function resolveWallAssembly(config: WallConfig): WallAssembly {
       throw new Error(`Unknown wall assembly type: ${(config as WallConfig).type}`)
   }
 }
-
-export * from './types'

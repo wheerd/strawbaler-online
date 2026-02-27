@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Opening } from '@/building/model'
-import { resolveOpeningAssembly } from '@/construction/assemblies/openings/resolver'
+import { resolveOpeningAssembly } from '@/construction/assemblies/openings'
 import { ThresholdOpeningAssembly } from '@/construction/assemblies/openings/threshold'
 import type { OpeningAssembly, ThresholdAssemblyConfig } from '@/construction/assemblies/openings/types'
 import { partial } from '@/test/helpers'

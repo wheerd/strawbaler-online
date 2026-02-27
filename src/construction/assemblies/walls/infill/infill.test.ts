@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
-import type { InfillWallSegmentConfig } from '@/construction/assemblies/walls'
 import type { PostConfig } from '@/construction/assemblies/walls/posts'
 import { constructPost } from '@/construction/assemblies/walls/posts'
+import type { InfillWallSegmentConfig } from '@/construction/assemblies/walls/types'
 import {
   type IssueMessageKey,
   aggregateResults,

@@ -20,5 +20,3 @@ export function resolveFloorAssembly(config: FloorConfig): FloorAssembly {
       assertUnreachable(config, `Unknown floor assembly type: ${(config as FloorConfig).type}`)
   }
 }
-
-export * from './types'

@@ -1,4 +1,4 @@
-import type { HeightLine } from '@/construction/assemblies/roofs'
+import type { HeightLine } from '@/construction/assemblies/roofs/types'
 import {
   type Length,
   type LineSegment2D,

@@ -114,16 +114,6 @@ export function hydrateConfigState(state: unknown, version: number): ConfigState
   return migratedState
 }
 
-// Only for the tests
-export const _clearAllAssemblies = () =>
-  useConfigStore.setState({
-    ringBeamAssemblyConfigs: {},
-    wallAssemblyConfigs: {},
-    floorAssemblyConfigs: {},
-    roofAssemblyConfigs: {},
-    openingAssemblyConfigs: {}
-  })
-
 // Layer set helpers
 export const getLayerSetById = (id: LayerSetId | undefined): LayerSetConfig | null => {
   if (!id) return null

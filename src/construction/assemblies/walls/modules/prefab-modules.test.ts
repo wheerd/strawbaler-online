@@ -4,7 +4,7 @@ import path from 'node:path'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
-import type { PrefabModulesWallConfig } from '@/construction/assemblies/walls'
+import type { PrefabModulesWallConfig } from '@/construction/assemblies/walls/types'
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
 import type { MaterialId, PrefabMaterial } from '@/materials/material'

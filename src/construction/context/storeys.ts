@@ -1,7 +1,8 @@
 import type { StoreyId } from '@/building/model'
 import { getModelActions, subscribeToStoreys } from '@/building/store'
 import { getConfigActions, subscribeToFloorAssemblies } from '@/config/store'
-import { type FloorAssembly, resolveFloorAssembly } from '@/construction/assemblies/floors'
+import { resolveFloorAssembly } from '@/construction/assemblies/floors'
+import type { FloorAssembly } from '@/construction/assemblies/floors/types'
 import type { Length } from '@/shared/geometry'
 
 export type ZOffset = number

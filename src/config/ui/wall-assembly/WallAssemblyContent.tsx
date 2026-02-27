@@ -9,7 +9,7 @@ import { useConfigActions, useDefaultWallAssemblyId, useWallAssemblies } from '@
 import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
 import { WallAssemblySelect } from '@/config/ui/wall-assembly/WallAssemblySelect'
 import { type WallAssemblyUsage, getWallAssemblyUsage } from '@/config/usage'
-import type { WallAssemblyType, WallConfig } from '@/construction/assemblies/walls'
+import type { WallAssemblyType, WallConfig } from '@/construction/assemblies/walls/types'
 import {
   battens,
   ecococonBox,

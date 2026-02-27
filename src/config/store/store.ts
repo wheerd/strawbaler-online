@@ -86,3 +86,13 @@ export const useConfigStore = create<ConfigStore>()(
     )
   )
 )
+
+// Only for the tests
+export const _clearAllAssemblies = () =>
+  useConfigStore.setState({
+    ringBeamAssemblyConfigs: {},
+    wallAssemblyConfigs: {},
+    floorAssemblyConfigs: {},
+    roofAssemblyConfigs: {},
+    openingAssemblyConfigs: {}
+  })

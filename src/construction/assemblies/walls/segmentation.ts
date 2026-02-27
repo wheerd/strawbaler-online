@@ -8,10 +8,9 @@ import {
 } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
-import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/assemblies/openings/resolver'
+import { resolveOpeningAssembly, resolveOpeningConfig } from '@/construction/assemblies/openings'
 import { resolveRingBeamAssembly } from '@/construction/assemblies/ringBeams'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
-import type { SegmentInfillMethod } from '@/construction/assemblies/walls'
 import { type WallLayerSetIds } from '@/construction/assemblies/walls/layers'
 import { constructWallPost } from '@/construction/assemblies/walls/posts'
 import {
@@ -19,6 +18,7 @@ import {
   convertHeightLineToWallOffsets,
   splitAtHeightJumps
 } from '@/construction/assemblies/walls/roofIntegration'
+import type { SegmentInfillMethod } from '@/construction/assemblies/walls/types'
 import { getRoofHeightLineCached } from '@/construction/context'
 import type { StoreyContext } from '@/construction/context/storeys'
 import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/model/results'

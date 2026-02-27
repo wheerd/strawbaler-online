@@ -1,7 +1,7 @@
 import * as Label from '@radix-ui/react-label'
 import { useTranslation } from 'react-i18next'
 
-import type { RingBeamConfig } from '@/construction/assemblies/ringBeams'
+import type { RingBeamConfig } from '@/construction/assemblies/ringBeams/types'
 import { MaterialSelectWithEdit } from '@/materials/components/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'

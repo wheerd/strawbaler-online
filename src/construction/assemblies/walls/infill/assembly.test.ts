@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Opening, PerimeterWallId, PerimeterWallWithGeometry } from '@/building/model'
 import { type StoreyId, createOpeningId, createWallAssemblyId } from '@/building/model/ids'
-import type { FloorAssembly } from '@/construction/assemblies/floors'
+import type { FloorAssembly } from '@/construction/assemblies/floors/types'
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
-import type { InfillWallConfig, InfillWallSegmentConfig } from '@/construction/assemblies/walls'
 import type { PostConfig } from '@/construction/assemblies/walls/posts'
 import { constructPost } from '@/construction/assemblies/walls/posts'
 import { segmentedWallConstruction } from '@/construction/assemblies/walls/segmentation'
+import type { InfillWallConfig, InfillWallSegmentConfig } from '@/construction/assemblies/walls/types'
 import type { StoreyContext } from '@/construction/context/storeys'
 import {
   type IssueMessageKey,

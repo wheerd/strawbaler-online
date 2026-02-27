@@ -19,8 +19,6 @@ export function resolveRoofAssembly(config: RoofConfig): RoofAssembly {
   }
 }
 
-export * from './types'
-
 export function constructRoof(roof: Roof): ConstructionModel {
   const { getRoofAssemblyById } = getConfigActions()
   const assemblyConfig = getRoofAssemblyById(roof.assemblyId)

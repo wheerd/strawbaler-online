@@ -22,7 +22,7 @@ import type {
   WallAssemblyConfig
 } from '@/config/types'
 import { resolveFloorAssembly } from '@/construction/assemblies/floors'
-import { resolveOpeningConfig } from '@/construction/assemblies/openings/resolver'
+import { resolveOpeningConfig } from '@/construction/assemblies/openings'
 import type { Material, MaterialId } from '@/materials/material'
 import { setMaterialsState } from '@/materials/store'
 import { MATERIALS_STORE_VERSION, migrateMaterialsState } from '@/materials/store/migrations'

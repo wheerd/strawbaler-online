@@ -14,7 +14,7 @@ import {
 } from '@/building/store'
 import { useWallAssemblyById } from '@/config/store'
 import { OpeningAssemblySelectWithEdit } from '@/config/ui/opening-assembly/OpeningAssemblySelectWithEdit'
-import { resolveOpeningConfig } from '@/construction/assemblies/openings/resolver'
+import { resolveOpeningConfig } from '@/construction/assemblies/openings'
 import { getWallStoreyContextCached } from '@/construction/context/storeys'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'

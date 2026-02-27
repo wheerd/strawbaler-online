@@ -12,7 +12,7 @@ import type {
   HangingJoistFloorConfig,
   JoistFloorConfig,
   MonolithicFloorConfig
-} from '@/construction/assemblies/floors'
+} from '@/construction/assemblies/floors/types'
 import type {
   EmptyOpeningConfig,
   PlankedOpeningConfig,
@@ -20,15 +20,19 @@ import type {
   SimpleOpeningConfig,
   ThresholdAssemblyConfig
 } from '@/construction/assemblies/openings/types'
-import type { BrickRingBeamConfig, DoubleRingBeamConfig, FullRingBeamConfig } from '@/construction/assemblies/ringBeams'
-import type { MonolithicRoofConfig, PurlinRoofConfig } from '@/construction/assemblies/roofs'
+import type {
+  BrickRingBeamConfig,
+  DoubleRingBeamConfig,
+  FullRingBeamConfig
+} from '@/construction/assemblies/ringBeams/types'
+import type { MonolithicRoofConfig, PurlinRoofConfig } from '@/construction/assemblies/roofs/types'
 import type {
   InfillWallConfig,
   ModulesWallConfig,
   NonStrawbaleWallConfig,
   PrefabModulesWallConfig,
   StrawhengeWallConfig
-} from '@/construction/assemblies/walls'
+} from '@/construction/assemblies/walls/types'
 
 export type AssemblyNameKey = SelectorFn<Resources['config'], string, SelectorOptions<'config'>>
 
