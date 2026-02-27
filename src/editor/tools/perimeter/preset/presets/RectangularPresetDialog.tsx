@@ -10,9 +10,9 @@ import {
   useDefaultTopRingBeamAssemblyId,
   useDefaultWallAssemblyId
 } from '@/construction/config/store'
-import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { BaseModal } from '@/shared/ui/BaseModal'
 import { LengthField } from '@/shared/ui/LengthField'
+import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { Button } from '@/shared/ui/components/button'
 import { DialogClose } from '@/shared/ui/components/dialog'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { WelcomeModal } from './WelcomeModal'
 
-vi.mock('./Logo', () => ({
+vi.mock('@/shared/ui/Logo', () => ({
   Logo: () => <div data-testid="logo" />
 }))
 

@@ -12,7 +12,7 @@ import { useConfigActions, useDefaultFloorAssemblyId, useFloorAssemblies } from 
 import { type FloorAssemblyUsage, getFloorAssemblyUsage } from '@/construction/config/usage'
 import type { FloorAssemblyType, FloorConfig } from '@/construction/floors/types'
 import type { MaterialId } from '@/construction/materials/material'
-import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
+import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'

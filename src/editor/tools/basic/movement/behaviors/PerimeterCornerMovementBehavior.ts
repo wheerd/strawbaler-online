@@ -1,8 +1,8 @@
+import { type WrappedGcs, gcsService } from '@/building/gcs/service'
 import type { PerimeterCornerWithGeometry } from '@/building/model'
 import { type SelectableId, isPerimeterCornerId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import { type WrappedGcs, gcsService } from '@/editor/gcs/service'
-import type { SnapResult, SnappingContext } from '@/editor/services/snapping/types'
+import type { SnapResult, SnappingContext } from '@/editor/canvas/services/snapping/types'
 import { PerimeterCornerMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterCornerMovementPreview'
 import type {
   MovementBehavior,

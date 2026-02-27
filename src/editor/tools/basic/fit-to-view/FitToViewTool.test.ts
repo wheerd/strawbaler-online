@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { StoreyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { viewportActions } from '@/editor/hooks/useViewportStore'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { Bounds2D, newVec2 } from '@/shared/geometry'
 
 import { FitToViewTool } from './FitToViewTool'
 
-vi.mock('@/editor/hooks/useViewportStore')
+vi.mock('@/editor/canvas/state/viewportStore')
 vi.mock('@/building/store')
 
 describe('FitToViewTool', () => {

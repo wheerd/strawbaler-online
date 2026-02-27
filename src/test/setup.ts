@@ -10,7 +10,7 @@ import { newVec2 } from '@/shared/geometry/2d'
 import { loadManifoldModule } from '@/shared/geometry/manifoldInstance'
 import { partial } from '@/test/helpers'
 
-vi.mock('@/shared/utils/version', () => ({
+vi.mock('@/app/version', () => ({
   VERSION_INFO: {
     version: 'test',
     commit: 'test',
@@ -141,7 +141,7 @@ vi.mock('@/shared/geometry/polygon/clipperInstance', () => {
   }
 })
 
-vi.mock('@/editor/gcs/gcsInstance', () => ({
+vi.mock('@/building/gcs/gcsInstance', () => ({
   createGcs: () =>
     partial<GcsWrapper>({
       clear_data: vi.fn(),

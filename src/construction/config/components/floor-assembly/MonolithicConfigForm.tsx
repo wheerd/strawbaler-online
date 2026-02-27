@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import type { MonolithicFloorConfig } from '@/construction/floors/types'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
-import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 
 interface MonolithicConfigFormProps {
   config: MonolithicFloorConfig

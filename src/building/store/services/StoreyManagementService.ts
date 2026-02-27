@@ -17,7 +17,6 @@ import {
 } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import type { StoreActions } from '@/building/store/types'
-import { clearSelection } from '@/editor/hooks/useSelectionStore'
 
 export interface DuplicateStoreyOptions {
   copyOpenings?: boolean
@@ -311,8 +310,6 @@ export class StoreyManagementService {
 
     // 2. Delete the storey
     this.actions.removeStorey(storeyId)
-
-    clearSelection()
   }
 }
 

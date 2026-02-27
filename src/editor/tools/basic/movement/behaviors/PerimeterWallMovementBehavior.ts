@@ -1,7 +1,7 @@
+import { type WrappedGcs, gcsService } from '@/building/gcs/service'
 import type { PerimeterWallWithGeometry, PerimeterWithGeometry } from '@/building/model'
 import { type SelectableId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import { type WrappedGcs, gcsService } from '@/editor/gcs/service'
 import { PerimeterWallMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterWallMovementPreview'
 import type {
   MovementBehavior,

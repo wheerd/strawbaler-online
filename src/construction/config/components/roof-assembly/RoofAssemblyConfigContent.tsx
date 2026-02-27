@@ -11,7 +11,7 @@ import { useConfigActions, useDefaultRoofAssemblyId, useRoofAssemblies } from '@
 import { type RoofAssemblyUsage, getRoofAssemblyUsage } from '@/construction/config/usage'
 import type { MaterialId } from '@/construction/materials/material'
 import type { RoofAssemblyType, RoofConfig } from '@/construction/roofs/types'
-import { RoofMeasurementInfo } from '@/editor/components/RoofMeasurementInfo'
+import { RoofMeasurementInfo } from '@/shared/ui/RoofMeasurementInfo'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'

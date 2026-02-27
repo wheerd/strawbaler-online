@@ -1,7 +1,7 @@
 import { MousePointer } from 'lucide-react'
 import React from 'react'
 
-import { usePointerWorldPosition } from '@/editor/hooks/usePointerPosition'
+import { usePointerWorldPosition } from '@/editor/canvas/state/pointerPositionStore'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 
 export function PointerPositionDisplay(): React.JSX.Element {

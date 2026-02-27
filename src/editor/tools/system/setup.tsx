@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import { getCanRedo, getCanUndo, getRedoFunction, getUndoFunction } from '@/building/store'
 import { deleteEntity } from '@/building/store/helpers'
-import { getCurrentSelection, popSelection } from '@/editor/hooks/useSelectionStore'
+import { getCurrentSelection } from '@/editor/canvas/state/selectionStore'
 import { SelectTool } from '@/editor/tools/basic/SelectTool'
 import { FitToViewTool } from '@/editor/tools/basic/fit-to-view/FitToViewTool'
 import { MoveTool } from '@/editor/tools/basic/movement/MoveTool'
@@ -36,11 +36,7 @@ export function createAndInitializeToolSystem(): ToolSystem {
   const handleDelete = () => {
     const selectedId = getCurrentSelection()
     if (selectedId) {
-      const success = deleteEntity(selectedId)
-      if (success) {
-        popSelection()
-      }
-      return success
+      return deleteEntity(selectedId)
     }
     return false
   }

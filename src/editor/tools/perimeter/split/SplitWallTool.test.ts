@@ -13,7 +13,7 @@ vi.mock('@/building/store', () => ({
     splitPerimeterWall: vi.fn()
   })
 }))
-vi.mock('@/editor/hooks/useSelectionStore', () => ({
+vi.mock('@/editor/canvas/state/selectionStore', () => ({
   getCurrentSelection: vi.fn(),
   getSelectionActions: vi.fn(() => ({
     clearSelection: vi.fn()

@@ -5,23 +5,25 @@ import { WelcomeModal } from '@/app/welcome/WelcomeModal'
 import { useWelcomeModal } from '@/app/welcome/useWelcomeModal'
 import { ConfigurationModal } from '@/construction/config/components/ConfigurationModal'
 import { type ConfigTab, ConfigurationModalContext } from '@/construction/config/context/ConfigurationModalContext'
-import { InitialSyncOverlay } from '@/editor/components/InitialSyncOverlay'
+import { useAutoClearSelection } from '@/editor/canvas/useAutoClearSelection'
 import { ToolSystemProvider } from '@/editor/tools/system'
 import { initializeCloudSync } from '@/projects/services/CloudSyncManager'
 import { FeatureErrorFallback } from '@/shared/ui/errors/FeatureErrorFallback'
 
 import { MainToolbar } from './MainToolbar'
 import { SidePanel } from './SidePanel'
-import { ConstraintStatusOverlay } from './components/ConstraintStatusOverlay'
-import { ViewModeToggle } from './components/ViewModeToggle'
-import { useAutoFitOnProjectChange } from './hooks/useAutoFitOnProjectChange'
-import { FloorPlanStage } from './layers/FloorPlanStage'
-import { LengthInputComponent } from './services/length-input'
+import { FloorPlanStage } from './canvas/FloorPlanStage'
+import { ConstraintStatusOverlay } from './canvas/overlay/ConstraintStatusOverlay'
+import { InitialSyncOverlay } from './canvas/overlay/InitialSyncOverlay'
+import { ViewModeToggle } from './canvas/overlay/ViewModeToggle'
+import { LengthInputComponent } from './canvas/services/length-input'
+import { useAutoFitOnProjectChange } from './canvas/useAutoFitOnProjectChange'
 import { StatusBar } from './status-bar/StatusBar'
 
 export function FloorPlanEditor(): React.JSX.Element {
   useEffect(() => void initializeCloudSync(), [])
   useAutoFitOnProjectChange()
+  useAutoClearSelection()
   const { isOpen, mode, openManually, handleAccept } = useWelcomeModal()
 
   const containerRef = useRef<HTMLDivElement>(null)

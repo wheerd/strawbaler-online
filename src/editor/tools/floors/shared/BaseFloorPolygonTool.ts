@@ -1,6 +1,6 @@
 import { getModelActions } from '@/building/store'
-import { getViewModeActions } from '@/editor/hooks/useViewMode'
-import type { SnappingContext } from '@/editor/services/snapping/types'
+import type { SnappingContext } from '@/editor/canvas/services/snapping/types'
+import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import { type LineSegment2D, type Vec2, polygonEdges } from '@/shared/geometry'
 

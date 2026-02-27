@@ -23,7 +23,7 @@ async function bootstrap() {
   await Promise.all([
     import('@/shared/geometry/polygon/clipperInstance').then(({ ensureClipperModule }) => ensureClipperModule()),
     import('@/shared/geometry/manifoldInstance').then(({ ensureManifoldModule }) => ensureManifoldModule()),
-    import('@/editor/gcs/gcsInstance').then(({ ensureGcsModule }) => ensureGcsModule()),
+    import('@/building/gcs/gcsInstance').then(({ ensureGcsModule }) => ensureGcsModule()),
     import('@/construction/materials/materialCSS').then(({ setupMaterialCss }) => setupMaterialCss())
   ])
 

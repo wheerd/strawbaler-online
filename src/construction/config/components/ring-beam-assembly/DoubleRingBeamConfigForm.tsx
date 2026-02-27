@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { CornerHandling, RingBeamConfig } from '@/construction/ringBeams'
-import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 
 interface DoubleRingBeamConfigFormProps {

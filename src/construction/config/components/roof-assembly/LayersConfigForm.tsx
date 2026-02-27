@@ -5,7 +5,7 @@ import type { RoofAssemblyId } from '@/building/model/ids'
 import { LayerSetSelect } from '@/construction/config/components/layers/LayerSetSelect'
 import { useConfigActions } from '@/construction/config/store'
 import type { RoofConfig } from '@/construction/roofs/types'
-import { RoofMeasurementInfo } from '@/editor/components/RoofMeasurementInfo'
+import { RoofMeasurementInfo } from '@/shared/ui/RoofMeasurementInfo'
 import { Separator } from '@/shared/ui/components/separator'
 
 interface LayersConfigFormProps {

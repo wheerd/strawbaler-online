@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import * as useViewportStore from '@/editor/hooks/useViewportStore'
-import * as lengthInputService from '@/editor/services/length-input'
+import * as lengthInputService from '@/editor/canvas/services/length-input'
+import * as useViewportStore from '@/editor/canvas/state/viewportStore'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { EditorEvent } from '@/editor/tools/system/types'
 import { type Vec2, ZERO_VEC2, newVec2 } from '@/shared/geometry'

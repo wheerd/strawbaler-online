@@ -1,7 +1,7 @@
 import { beforeEach, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
-import type { SnapResult } from '@/editor/services/snapping/types'
+import type { SnapResult } from '@/editor/canvas/services/snapping/types'
 import { PerimeterTool } from '@/editor/tools/perimeter/add/PerimeterTool'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
@@ -13,7 +13,7 @@ const mockUseZoom = vi.fn()
 const mockUseStageWidth = vi.fn()
 const mockUseStageHeight = vi.fn()
 
-vi.mock('@/editor/hooks/useViewportStore', () => ({
+vi.mock('@/editor/canvas/state/viewportStore', () => ({
   useZoom: () => mockUseZoom(),
   useStageWidth: () => mockUseStageWidth(),
   useStageHeight: () => mockUseStageHeight()

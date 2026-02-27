@@ -1,7 +1,7 @@
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/construction/config/store'
-import { getSelectionActions } from '@/editor/hooks/useSelectionStore'
-import { viewportActions } from '@/editor/hooks/useViewportStore'
+import { getSelectionActions } from '@/editor/canvas/state/selectionStore'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { Bounds2D, newVec2, polygonIsClockwise } from '@/shared/geometry'
 
 import { CommonDoors, CommonWindows, type DoorSpec, type WindowSpec, addDoors, addWindows } from './openings'

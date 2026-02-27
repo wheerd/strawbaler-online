@@ -2,7 +2,7 @@ import { Frame } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useGridActions, useGridSize, useShowGrid } from '@/editor/hooks/useGrid'
+import { useGridActions, useGridSize, useShowGrid } from '@/editor/canvas/state/gridStore'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { Button } from '@/shared/ui/components/button'
 

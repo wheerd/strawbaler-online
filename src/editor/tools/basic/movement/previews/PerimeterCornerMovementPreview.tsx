@@ -1,11 +1,11 @@
 import React from 'react'
 
+import { SnappingLines } from '@/editor/canvas/components/SnappingLines'
 import type {
   CornerEntityContext,
   CornerMovementState
 } from '@/editor/tools/basic/movement/behaviors/PerimeterCornerMovementBehavior'
 import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/types'
-import { SnappingLines } from '@/editor/utils/SnappingLines'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 
 export function PerimeterCornerMovementPreview({

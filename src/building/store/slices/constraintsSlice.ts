@@ -1,14 +1,14 @@
 import type { StateCreator } from 'zustand'
 
-import type { Constraint, ConstraintInput } from '@/building/model'
-import type { ConstraintEntityId, ConstraintId, PerimeterCornerId, PerimeterWallId, WallId } from '@/building/model/ids'
-import { createConstraintId } from '@/building/model/ids'
 import {
   buildingConstraintKey,
   getReferencedCornerIds,
   getReferencedWallEntityIds,
   getReferencedWallIds
-} from '@/editor/gcs/constraintTranslator'
+} from '@/building/gcs/constraintTranslator'
+import type { Constraint, ConstraintInput } from '@/building/model'
+import type { ConstraintEntityId, ConstraintId, PerimeterCornerId, PerimeterWallId, WallId } from '@/building/model/ids'
+import { createConstraintId } from '@/building/model/ids'
 import type { Length } from '@/shared/geometry'
 
 export interface ConstraintsState {

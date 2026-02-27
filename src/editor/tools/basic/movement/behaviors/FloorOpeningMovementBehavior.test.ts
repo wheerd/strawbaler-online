@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { FloorOpening } from '@/building/model'
 import type { StoreActions } from '@/building/store/types'
-import { SnappingService } from '@/editor/services/snapping/SnappingService'
+import { SnappingService } from '@/editor/canvas/services/snapping/SnappingService'
 import { type Vec2, copyVec2, newVec2 } from '@/shared/geometry'
 
 import { FloorOpeningMovementBehavior, type FloorOpeningMovementState } from './FloorOpeningMovementBehavior'

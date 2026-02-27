@@ -1,3 +1,4 @@
+import { findEditorEntityAt } from '@/editor/canvas/services/editorHitTesting'
 import {
   clearSelection,
   getCurrentSelection,
@@ -5,10 +6,9 @@ import {
   popSelection,
   pushSelection,
   replaceSelection
-} from '@/editor/hooks/useSelectionStore'
+} from '@/editor/canvas/state/selectionStore'
 import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { EditorEvent, ToolImplementation } from '@/editor/tools/system/types'
-import { findEditorEntityAt } from '@/editor/utils/editorHitTesting'
 
 import { SelectToolInspector } from './SelectToolInspector'
 

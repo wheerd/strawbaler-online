@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type PerimeterWithGeometry } from '@/building/model'
 import { type StoreActions, getModelActions } from '@/building/store'
-import { replaceSelection } from '@/editor/hooks/useSelectionStore'
-import { getViewModeActions } from '@/editor/hooks/useViewMode'
-import { viewportActions } from '@/editor/hooks/useViewportStore'
+import { replaceSelection } from '@/editor/canvas/state/selectionStore'
+import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { Bounds2D, newVec2 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
@@ -15,8 +15,8 @@ import type { RectangularPresetConfig } from './presets'
 
 describe('PerimeterPresetTool', () => {
   vi.mock('@/building/store', () => ({ getModelActions: vi.fn() }))
-  vi.mock('@/editor/hooks/useSelectionStore', () => ({ replaceSelection: vi.fn() }))
-  vi.mock('@/editor/hooks/useViewportStore', () => ({ viewportActions: vi.fn() }))
+  vi.mock('@/editor/canvas/state/selectionStore', () => ({ replaceSelection: vi.fn() }))
+  vi.mock('@/editor/canvas/state/viewportStore', () => ({ viewportActions: vi.fn() }))
 
   const mockGetModelActions = vi.mocked(getModelActions)
   const mockViewportActions = vi.mocked(viewportActions)
@@ -153,7 +153,7 @@ describe('PerimeterPresetTool', () => {
   })
 
   describe('lifecycle assemblies', () => {
-    vi.mock('@/editor/hooks/useViewMode', () => ({ getViewModeActions: vi.fn() }))
+    vi.mock('@/editor/canvas/state/viewModeStore', () => ({ getViewModeActions: vi.fn() }))
     const mockGetViewModeActions = vi.mocked(getViewModeActions)
     it('should switch to wall mode on activation', () => {
       const mockEnsureMode = vi.fn()

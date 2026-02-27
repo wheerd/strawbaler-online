@@ -20,7 +20,7 @@ import {
 } from '@/construction/materials/material'
 import type { MaterialId } from '@/construction/materials/material'
 import type { WallAssemblyType, WallConfig } from '@/construction/walls'
-import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
+import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'

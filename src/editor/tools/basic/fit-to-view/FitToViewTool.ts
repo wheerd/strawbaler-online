@@ -1,5 +1,5 @@
 import { getModelActions } from '@/building/store'
-import { viewportActions } from '@/editor/hooks/useViewportStore'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { DummyToolInspector, type EditorEvent, type ToolImplementation } from '@/editor/tools/system/types'
 

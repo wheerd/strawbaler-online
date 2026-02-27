@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 
-import { useStoreyName } from '@/building/hooks/useStoreyName'
 import {
   type FloorAssemblyId,
   type LayerSetId,
@@ -18,6 +17,7 @@ import {
   isWallAssemblyId
 } from '@/building/model/ids'
 import { useStoreyById } from '@/building/store'
+import { useStoreyName } from '@/building/ui/useStoreyName'
 import {
   useFloorAssemblyById,
   useLayerSetById,

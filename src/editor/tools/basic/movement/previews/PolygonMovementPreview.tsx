@@ -1,8 +1,8 @@
 import React from 'react'
 
+import { SnappingLines } from '@/editor/canvas/components/SnappingLines'
 import type { PolygonMovementState } from '@/editor/tools/basic/movement/behaviors/PolygonMovementBehavior'
 import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/types'
-import { SnappingLines } from '@/editor/utils/SnappingLines'
 import type { Vec2 } from '@/shared/geometry'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 

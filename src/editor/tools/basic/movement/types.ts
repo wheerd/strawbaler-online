@@ -2,7 +2,7 @@ import type React from 'react'
 
 import type { SelectableId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import type { SnappingService } from '@/editor/services/snapping/SnappingService'
+import type { SnappingService } from '@/editor/canvas/services/snapping/SnappingService'
 import { type Vec2 } from '@/shared/geometry'
 
 export interface MovementContext<T> {

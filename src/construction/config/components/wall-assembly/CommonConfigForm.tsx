@@ -6,7 +6,7 @@ import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/
 import { LayerSetSelect } from '@/construction/config/components/layers/LayerSetSelect'
 import { useConfigActions } from '@/construction/config/store'
 import type { WallAssemblyConfig } from '@/construction/config/types'
-import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
+import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { Separator } from '@/shared/ui/components/separator'
 
 interface CommonConfigFormProps {
