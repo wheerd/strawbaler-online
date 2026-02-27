@@ -1,6 +1,6 @@
 import { constructStrawPolygon } from '@/construction/assemblies/straw'
+import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/PolygonWithBoundingRect'
 import {
-  PolygonWithBoundingRect,
   partitionByAlignedEdges,
   polygonFromLineIntersections,
   simplePolygonFrame,

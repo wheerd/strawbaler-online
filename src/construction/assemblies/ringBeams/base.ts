@@ -2,7 +2,7 @@ import type { PerimeterCornerWithGeometry, PerimeterWallWithGeometry } from '@/b
 import type { StoreyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import type { HeightLine } from '@/construction/assemblies/roofs/types'
-import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/helpers'
+import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/PolygonWithBoundingRect'
 import { type WallTopOffsets } from '@/construction/assemblies/walls/roofIntegration'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import { getRoofHeightLineCached } from '@/construction/context/roofHeightLineCache'

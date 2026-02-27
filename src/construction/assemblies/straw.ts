@@ -1,6 +1,6 @@
 import { getConfigActions } from '@/config/store'
+import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/PolygonWithBoundingRect'
 import type { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
-import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/helpers'
 import { type ConstructionElement, createConstructionElement } from '@/construction/model/elements'
 import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/model/results'
 import { createExtrudedPolygon } from '@/construction/model/shapes'

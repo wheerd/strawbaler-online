@@ -2,11 +2,8 @@ import type { Roof } from '@/building/model'
 import type { PurlinRoofAssemblyConfig } from '@/config/types'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/assemblies/roofs/base'
 import { constructStrawPolygon } from '@/construction/assemblies/straw'
-import {
-  PolygonWithBoundingRect,
-  type StripeOrGap,
-  partitionByAlignedEdges
-} from '@/construction/assemblies/utils/helpers'
+import { PolygonWithBoundingRect, type StripeOrGap } from '@/construction/assemblies/utils/PolygonWithBoundingRect'
+import { partitionByAlignedEdges } from '@/construction/assemblies/utils/helpers'
 import type { VerticalOffsetMap } from '@/construction/context/offsets'
 import { type PerimeterConstructionContext, applyWallFaceOffsets } from '@/construction/context/perimeter'
 import { getPerimeterContextsByStorey } from '@/construction/context/perimeterContextCache'

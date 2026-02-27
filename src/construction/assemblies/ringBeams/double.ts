@@ -1,6 +1,6 @@
 import type { PerimeterCornerWithGeometry } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/helpers'
+import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/PolygonWithBoundingRect'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import type { StoreyContext } from '@/construction/context/storeys'
 import { type ConstructionResult } from '@/construction/model/results'

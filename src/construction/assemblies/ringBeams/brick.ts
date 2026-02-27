@@ -1,5 +1,5 @@
 import { BaseRingBeamAssembly } from '@/construction/assemblies/ringBeams/base'
-import type { PolygonWithBoundingRect } from '@/construction/assemblies/utils/helpers'
+import type { PolygonWithBoundingRect } from '@/construction/assemblies/utils/PolygonWithBoundingRect'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import type { StoreyContext } from '@/construction/context/storeys'
 import { type ConstructionResult } from '@/construction/model/results'
