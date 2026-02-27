@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Spinner } from '@/components/ui/spinner'
+import { Spinner } from '@/shared/ui/components/spinner'
 
 import { StatusBarSkeleton } from './StatusBarSkeleton'
 

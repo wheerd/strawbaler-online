@@ -1,8 +1,8 @@
 import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Button } from '@/shared/ui/components/button'
+import { Card } from '@/shared/ui/components/card'
 
 import { usePlanHighlight } from './PlanHighlightContext'
 

@@ -7,10 +7,6 @@ import { RoofPreview } from '@/building/components/RoofPreview'
 import type { RoofOverhang } from '@/building/model'
 import type { RoofId } from '@/building/model/ids'
 import { useModelActions, useRoofById, useRoofOverhangsByRoof } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { DataList } from '@/components/ui/data-list'
-import { Separator } from '@/components/ui/separator'
-import { Tooltip } from '@/components/ui/tooltip'
 import { ConstructionPlanModal } from '@/construction/components/ConstructionPlanModal'
 import { FRONT_VIEW, LEFT_VIEW, TOP_VIEW } from '@/construction/components/plan/ConstructionPlan'
 import { RoofAssemblySelectWithEdit } from '@/construction/config/components/RoofAssemblySelectWithEdit'
@@ -20,9 +16,6 @@ import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionV
 import { popSelection, replaceSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewModeActions } from '@/editor/hooks/useViewMode'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
-import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon } from '@/shared/components/Icons'
-import { LengthField } from '@/shared/components/LengthField'
-import { NumberField } from '@/shared/components/NumberField'
 import {
   Bounds2D,
   type Length,
@@ -32,6 +25,13 @@ import {
   radiansToDegrees
 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon } from '@/shared/ui/Icons'
+import { LengthField } from '@/shared/ui/LengthField'
+import { NumberField } from '@/shared/ui/NumberField'
+import { Button } from '@/shared/ui/components/button'
+import { DataList } from '@/shared/ui/components/data-list'
+import { Separator } from '@/shared/ui/components/separator'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 interface RoofInspectorProps {
   roofId: RoofId

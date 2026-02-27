@@ -3,13 +3,6 @@ import { ArrowDownToLine, ArrowUpToLine, Pencil, TriangleAlert } from 'lucide-re
 import React, { Suspense, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Spinner } from '@/components/ui/spinner'
-import { Table } from '@/components/ui/table'
-import { Tooltip } from '@/components/ui/tooltip'
 import DimensionalPartsTable from '@/construction/components/parts/DimensionalPartsTable'
 import GenericPartsTable from '@/construction/components/parts/GenericPartsTable'
 import { RegenerateLabelsButton } from '@/construction/components/parts/RegenerateLabelsButton'
@@ -31,6 +24,13 @@ import { useMaterialName } from '@/construction/materials/useMaterialName'
 import { type ConstructionModelId, type PartId, getLabelGroupId, useMaterialParts } from '@/construction/parts'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
+import { Badge } from '@/shared/ui/components/badge'
+import { Button } from '@/shared/ui/components/button'
+import { Card, CardContent, CardHeader } from '@/shared/ui/components/card'
+import { Skeleton } from '@/shared/ui/components/skeleton'
+import { Spinner } from '@/shared/ui/components/spinner'
+import { Table } from '@/shared/ui/components/table'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 interface ConstructionPartsListProps {
   modelId?: ConstructionModelId

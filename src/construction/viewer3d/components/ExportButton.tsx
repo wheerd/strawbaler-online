@@ -1,9 +1,14 @@
 import { Download } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { SKETCHUP_ENABLED } from '@/construction/export/sketchup'
+import { Button } from '@/shared/ui/components/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/shared/ui/components/dropdown-menu'
 
 export type ExportFormat = 'collada' | 'gltf' | 'obj' | 'stl' | 'ifc' | 'sketchup'
 

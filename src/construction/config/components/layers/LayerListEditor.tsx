@@ -3,13 +3,13 @@ import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { LayerSetId } from '@/building/model/ids'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { useConfigActions } from '@/construction/config/store'
 import { sumLayerThickness } from '@/construction/layers'
 import type { LayerConfig, LayerType } from '@/construction/layers/types'
 import type { MaterialId } from '@/construction/materials/material'
+import { Button } from '@/shared/ui/components/button'
+import { Card } from '@/shared/ui/components/card'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 
 import { LayerCard, LayerTypeIcon } from './LayerCard'
 

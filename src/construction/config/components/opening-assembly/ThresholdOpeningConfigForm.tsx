@@ -3,10 +3,10 @@ import { Plus, Trash } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { OpeningAssemblyId } from '@/building/model/ids'
-import { Button } from '@/components/ui/button'
 import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
 import type { ThresholdAssemblyConfig, ThresholdConfig } from '@/construction/openings/types'
-import { LengthField } from '@/shared/components/LengthField/LengthField'
+import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { Button } from '@/shared/ui/components/button'
 
 interface ThresholdOpeningConfigFormProps {
   config: ThresholdAssemblyConfig

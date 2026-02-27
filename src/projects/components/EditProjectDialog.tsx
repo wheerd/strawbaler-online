@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { useProjectDescription, useProjectName, useProjectsActions } from '@/projects/store'
+import { Button } from '@/shared/ui/components/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/components/dialog'
+import { Input } from '@/shared/ui/components/input'
+import { Label } from '@/shared/ui/components/label'
+import { Textarea } from '@/shared/ui/components/textarea'
 
 interface EditProjectDialogProps {
   open: boolean

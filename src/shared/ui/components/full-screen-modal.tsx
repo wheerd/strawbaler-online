@@ -3,7 +3,7 @@ import { X } from 'lucide-react'
 import * as React from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import { FeatureErrorFallback } from '@/shared/components/errors/FeatureErrorFallback'
+import { FeatureErrorFallback } from '@/shared/ui/errors/FeatureErrorFallback'
 
 interface FullScreenModalProps {
   open?: boolean

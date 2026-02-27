@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { type ViewMode, useViewMode, useViewModeActions } from '@/editor/hooks/useViewMode'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 
 export function ViewModeToggle(): React.JSX.Element {
   const { t } = useTranslation('common')

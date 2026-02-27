@@ -12,9 +12,9 @@ import {
   AlertDialogFooter,
   AlertDialogTitle,
   AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
+} from '@/shared/ui/components/alert-dialog'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 import { hardReset } from '@/shared/utils/hardReset'
 
 export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps): React.JSX.Element {

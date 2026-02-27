@@ -5,20 +5,25 @@ import { useTranslation } from 'react-i18next'
 
 import type { WallPostType } from '@/building/model'
 import { useWallPosts } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
-import { Switch } from '@/components/ui/switch'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useWallAssemblies } from '@/construction/config/store'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import { type MaterialId } from '@/construction/materials/material'
 import type { PostConfig } from '@/construction/materials/posts'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
-import { LengthField } from '@/shared/components/LengthField'
 import { type Length } from '@/shared/geometry'
+import { LengthField } from '@/shared/ui/LengthField'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/shared/ui/components/dropdown-menu'
+import { Separator } from '@/shared/ui/components/separator'
+import { Switch } from '@/shared/ui/components/switch'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 import { assertUnreachable } from '@/shared/utils'
 
 import type { AddPostTool } from './AddPostTool'

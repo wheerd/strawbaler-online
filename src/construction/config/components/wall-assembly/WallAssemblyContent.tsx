@@ -5,10 +5,6 @@ import { useTranslation } from 'react-i18next'
 
 import type { OpeningAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import { usePerimeterWalls } from '@/building/store'
-import { AlertDialog } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { WallAssemblySelect } from '@/construction/config/components/WallAssemblySelect'
 import { type EntityId, useEntityLabel } from '@/construction/config/components/useEntityLabel'
 import { useConfigActions, useDefaultWallAssemblyId, useWallAssemblies } from '@/construction/config/store'
@@ -25,6 +21,10 @@ import {
 import type { MaterialId } from '@/construction/materials/material'
 import type { WallAssemblyType, WallConfig } from '@/construction/walls'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
+import { AlertDialog } from '@/shared/ui/components/alert-dialog'
+import { Badge } from '@/shared/ui/components/badge'
+import { Button } from '@/shared/ui/components/button'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 
 import { ConfigForm } from './ConfigForm'
 

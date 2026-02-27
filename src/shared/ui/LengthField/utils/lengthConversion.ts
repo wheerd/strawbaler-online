@@ -1,6 +1,6 @@
-import type { LengthUnit } from '@/shared/components/LengthField/types'
 import type { Length } from '@/shared/geometry'
 import { formatNumberForInputCompact, parseLocaleNumber } from '@/shared/i18n/numberParsing'
+import type { LengthUnit } from '@/shared/ui/LengthField/types'
 
 /**
  * Convert a length value from millimeters to the specified unit for display.

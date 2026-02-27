@@ -3,13 +3,12 @@ import React from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher'
+import { Logo } from '@/shared/ui/Logo'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/shared/ui/components/dialog'
 import { VERSION_INFO } from '@/shared/utils/version'
-
-import { LanguageSwitcher } from './LanguageSwitcher'
-import { Logo } from './Logo'
 
 function GitHubIcon({ width = 24, height = 24, ...props }: React.SVGProps<SVGSVGElement>) {
   return (

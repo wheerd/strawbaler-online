@@ -2,9 +2,9 @@ import { RefreshCw, TriangleAlert } from 'lucide-react'
 import type React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useHasUnusedLabels, usePartActions } from '@/construction/parts'
+import { Button } from '@/shared/ui/components/button'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 interface RegenerateLabelsButtonProps {
   groupId?: string

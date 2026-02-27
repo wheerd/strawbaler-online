@@ -2,12 +2,12 @@ import * as Label from '@radix-ui/react-label'
 import { useTranslation } from 'react-i18next'
 
 import type { WallAssemblyId } from '@/building/model/ids'
-import { Separator } from '@/components/ui/separator'
 import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
 import { LayerSetSelect } from '@/construction/config/components/layers/LayerSetSelect'
 import { useConfigActions } from '@/construction/config/store'
 import type { WallAssemblyConfig } from '@/construction/config/types'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
+import { Separator } from '@/shared/ui/components/separator'
 
 interface CommonConfigFormProps {
   assemblyId: WallAssemblyId

@@ -2,10 +2,10 @@ import { Info } from 'lucide-react'
 import { type ComponentProps, type JSX, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { HoverCard } from '@/components/ui/hover-card'
 import { SvgMeasurementIndicator } from '@/construction/components/SvgMeasurementIndicator'
 import { newVec2 } from '@/shared/geometry'
+import { Button } from '@/shared/ui/components/button'
+import { HoverCard } from '@/shared/ui/components/hover-card'
 
 export type Measurement =
   | 'storeyHeight'

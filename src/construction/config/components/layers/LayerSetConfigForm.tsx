@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next'
 
-import { Select } from '@/components/ui/select'
-import { TextField } from '@/components/ui/text-field'
 import { LayerListEditor } from '@/construction/config/components/layers/LayerListEditor'
 import { useConfigActions } from '@/construction/config/store'
 import type { LayerSetConfig, LayerSetUse } from '@/construction/layers/types'
 import { useDebouncedInput } from '@/shared/hooks/useDebouncedInput'
+import { Select } from '@/shared/ui/components/select'
+import { TextField } from '@/shared/ui/components/text-field'
 
 import { getLayerSetUseIcon } from './LayerSetSelect'
 

@@ -1,9 +1,9 @@
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
+import { Button } from '@/shared/ui/components/button'
+import { Separator } from '@/shared/ui/components/separator'
 import { hardReset } from '@/shared/utils/hardReset'
 
 import type { TestDataTool } from './TestDataTool'

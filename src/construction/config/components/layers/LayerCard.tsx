@@ -2,12 +2,6 @@ import { ChevronDown, ChevronUp, Columns, MoveHorizontal, MoveVertical, Square, 
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Select } from '@/components/ui/select'
-import { TextField } from '@/components/ui/text-field'
-import { Tooltip } from '@/components/ui/tooltip'
 import type {
   LayerConfig,
   LayerType,
@@ -16,7 +10,13 @@ import type {
   StripedLayerConfig
 } from '@/construction/layers/types'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
-import { LengthField } from '@/shared/components/LengthField'
+import { LengthField } from '@/shared/ui/LengthField'
+import { Button } from '@/shared/ui/components/button'
+import { Card } from '@/shared/ui/components/card'
+import { Checkbox } from '@/shared/ui/components/checkbox'
+import { Select } from '@/shared/ui/components/select'
+import { TextField } from '@/shared/ui/components/text-field'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 interface LayerCardProps {
   index: number

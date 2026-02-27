@@ -5,10 +5,6 @@ import { useTranslation } from 'react-i18next'
 
 import type { RoofAssemblyId } from '@/building/model/ids'
 import { useRoofs } from '@/building/store'
-import { AlertDialog } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { RoofAssemblySelect } from '@/construction/config/components/RoofAssemblySelect'
 import { type EntityId, useEntityLabel } from '@/construction/config/components/useEntityLabel'
 import { useConfigActions, useDefaultRoofAssemblyId, useRoofAssemblies } from '@/construction/config/store'
@@ -16,6 +12,10 @@ import { type RoofAssemblyUsage, getRoofAssemblyUsage } from '@/construction/con
 import type { MaterialId } from '@/construction/materials/material'
 import type { RoofAssemblyType, RoofConfig } from '@/construction/roofs/types'
 import { RoofMeasurementInfo } from '@/editor/components/RoofMeasurementInfo'
+import { AlertDialog } from '@/shared/ui/components/alert-dialog'
+import { Badge } from '@/shared/ui/components/badge'
+import { Button } from '@/shared/ui/components/button'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 
 import { ConfigForm } from './ConfigForm'
 

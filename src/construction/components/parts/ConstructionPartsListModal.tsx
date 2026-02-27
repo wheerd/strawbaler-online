@@ -1,11 +1,11 @@
 import React, { lazy, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { FullScreenModal } from '@/components/ui/full-screen-modal'
-import { Tabs } from '@/components/ui/tabs'
 import { ConstructionPartsList } from '@/construction/components/parts/ConstructionPartsList'
 import { ConstructionVirtualPartsList } from '@/construction/components/parts/ConstructionVirtualPartsList'
 import { type ConstructionModelId } from '@/construction/store'
+import { FullScreenModal } from '@/shared/ui/components/full-screen-modal'
+import { Tabs } from '@/shared/ui/components/tabs'
 
 const ConstructionModelRegenerateButton = lazy(
   () => import('@/construction/components/ConstructionModelRegenerateButton')

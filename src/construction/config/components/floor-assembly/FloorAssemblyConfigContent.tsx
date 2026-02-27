@@ -5,11 +5,6 @@ import { useTranslation } from 'react-i18next'
 
 import type { FloorAssemblyId } from '@/building/model/ids'
 import { useStoreysOrderedByLevel } from '@/building/store'
-import { AlertDialog } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
 import { FloorAssemblySelect } from '@/construction/config/components/FloorAssemblySelect'
 import { getFloorAssemblyTypeIcon } from '@/construction/config/components/Icons'
 import { type EntityId, useEntityLabel } from '@/construction/config/components/useEntityLabel'
@@ -18,6 +13,11 @@ import { type FloorAssemblyUsage, getFloorAssemblyUsage } from '@/construction/c
 import type { FloorAssemblyType, FloorConfig } from '@/construction/floors/types'
 import type { MaterialId } from '@/construction/materials/material'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
+import { AlertDialog } from '@/shared/ui/components/alert-dialog'
+import { Badge } from '@/shared/ui/components/badge'
+import { Button } from '@/shared/ui/components/button'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+import { Separator } from '@/shared/ui/components/separator'
 
 import { ConfigForm } from './ConfigForm'
 

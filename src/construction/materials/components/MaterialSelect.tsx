@@ -2,9 +2,9 @@ import { Box, Circle, Droplet, Layers } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Select, SelectValue } from '@/components/ui/select'
 import type { Material, MaterialId, MaterialType } from '@/construction/materials/material'
 import { useMaterials } from '@/construction/materials/store'
+import { Select, SelectValue } from '@/shared/ui/components/select'
 
 const NONE_VALUE = '__material_none__'
 

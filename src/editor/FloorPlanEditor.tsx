@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
+import { WelcomeModal } from '@/app/welcome/WelcomeModal'
+import { useWelcomeModal } from '@/app/welcome/useWelcomeModal'
 import { ConfigurationModal } from '@/construction/config/components/ConfigurationModal'
 import { type ConfigTab, ConfigurationModalContext } from '@/construction/config/context/ConfigurationModalContext'
 import { ToolSystemProvider } from '@/editor/tools/system'
 import { initializeCloudSync } from '@/projects/services/CloudSyncManager'
-import { InitialSyncOverlay } from '@/shared/components/InitialSyncOverlay'
-import { WelcomeModal } from '@/shared/components/WelcomeModal'
-import { FeatureErrorFallback } from '@/shared/components/errors/FeatureErrorFallback'
-import { useWelcomeModal } from '@/shared/hooks/useWelcomeModal'
+import { InitialSyncOverlay } from '@/shared/ui/InitialSyncOverlay'
+import { FeatureErrorFallback } from '@/shared/ui/errors/FeatureErrorFallback'
 
 import { MainToolbar } from './MainToolbar'
 import { SidePanel } from './SidePanel'

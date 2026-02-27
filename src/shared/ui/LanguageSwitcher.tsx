@@ -2,14 +2,14 @@ import { Languages } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/shared/ui/components/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+} from '@/shared/ui/components/dropdown-menu'
 
 interface Language {
   code: string

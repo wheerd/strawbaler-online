@@ -2,9 +2,6 @@ import { Box, Group, Ruler, TriangleAlert } from 'lucide-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CutAreaShape } from '@/construction/components/plan/CutAreaShape'
 import { Measurements } from '@/construction/components/plan/Measurements'
 import { sanitizeForCssClass } from '@/construction/components/plan/cssHelpers'
@@ -16,8 +13,6 @@ import { type ProjectedOutline, projectManifoldToView } from '@/construction/man
 import type { ConstructionModel, HighlightedPolygon } from '@/construction/model'
 import type { ConstructionIssue } from '@/construction/results'
 import type { TagOrCategory } from '@/construction/tags'
-import { MidCutXIcon, MidCutYIcon } from '@/shared/components/Icons'
-import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
 import {
   Bounds2D,
   IDENTITY,
@@ -27,6 +22,11 @@ import {
   type Transform,
   composeTransform
 } from '@/shared/geometry'
+import { MidCutXIcon, MidCutYIcon } from '@/shared/ui/Icons'
+import { SVGViewport, type SVGViewportRef } from '@/shared/ui/SVGViewport'
+import { Button } from '@/shared/ui/components/button'
+import { Card } from '@/shared/ui/components/card'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 
 import { CuboidAreaShape } from './CuboidAreaShape'
 import { usePlanHighlight } from './PlanHighlightContext'

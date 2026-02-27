@@ -4,16 +4,16 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { StoreyId } from '@/building/model/ids'
-import { Button } from '@/components/ui/button'
-import { FullScreenModal } from '@/components/ui/full-screen-modal'
-import { Separator } from '@/components/ui/separator'
-import { Tooltip } from '@/components/ui/tooltip'
 import { PlanCalibrationCanvas } from '@/editor/plan-overlay/components/PlanCalibrationCanvas'
 import { useFloorPlanActions } from '@/editor/plan-overlay/store'
 import type { FloorPlanOverlay, ImagePoint } from '@/editor/plan-overlay/types'
 import { calculatePixelDistance } from '@/editor/plan-overlay/utils/calibration'
-import { LengthField } from '@/shared/components/LengthField'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { LengthField } from '@/shared/ui/LengthField'
+import { Button } from '@/shared/ui/components/button'
+import { FullScreenModal } from '@/shared/ui/components/full-screen-modal'
+import { Separator } from '@/shared/ui/components/separator'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 interface PlanImportModalProps {
   floorId: StoreyId

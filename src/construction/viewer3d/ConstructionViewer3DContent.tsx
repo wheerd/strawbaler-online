@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
-import { Spinner } from '@/components/ui/spinner'
 import type { ConstructionModel } from '@/construction/model'
 import { type ConstructionModelId, useConstructionModel } from '@/construction/store'
+import { Spinner } from '@/shared/ui/components/spinner'
 
 import ConstructionViewer3D from './ConstructionViewer3D'
 import { acquireGeometryCache, prewarmGeometryCache, releaseGeometryCache } from './utils/geometryCache'

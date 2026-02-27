@@ -2,8 +2,8 @@ import { Expand } from 'lucide-react'
 import React, { type RefAttributes, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
 import { type Bounds2D } from '@/shared/geometry'
+import { Button } from '@/shared/ui/components/button'
 
 export interface SVGViewportRef {
   fitToContent: () => void

@@ -3,9 +3,6 @@ import { useTranslation } from 'react-i18next'
 
 import type { PerimeterReferenceSide } from '@/building/model'
 import type { WallAssemblyId } from '@/building/model/ids'
-import { Button } from '@/components/ui/button'
-import { DialogClose } from '@/components/ui/dialog'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import {
@@ -14,8 +11,11 @@ import {
   useDefaultWallAssemblyId
 } from '@/construction/config/store'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
-import { BaseModal } from '@/shared/components/BaseModal'
-import { LengthField } from '@/shared/components/LengthField'
+import { BaseModal } from '@/shared/ui/BaseModal'
+import { LengthField } from '@/shared/ui/LengthField'
+import { Button } from '@/shared/ui/components/button'
+import { DialogClose } from '@/shared/ui/components/dialog'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 
 import { PolygonReferencePreview } from './PolygonReferencePreview'
 import { RectangularPreset } from './RectangularPreset'

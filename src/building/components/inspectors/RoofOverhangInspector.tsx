@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next'
 
 import type { RoofOverhangId } from '@/building/model/ids'
 import { useModelActions, useRoofOverhangById } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutText } from '@/components/ui/callout'
-import { Separator } from '@/components/ui/separator'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
-import { FitToViewIcon } from '@/shared/components/Icons'
-import { LengthField } from '@/shared/components/LengthField'
 import { Bounds2D } from '@/shared/geometry'
+import { FitToViewIcon } from '@/shared/ui/Icons'
+import { LengthField } from '@/shared/ui/LengthField'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutText } from '@/shared/ui/components/callout'
+import { Separator } from '@/shared/ui/components/separator'
 
 export function RoofOverhangInspector({ overhangId }: { overhangId: RoofOverhangId }): React.JSX.Element {
   const { t } = useTranslation('inspector')

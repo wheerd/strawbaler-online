@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { SimpleOpeningConfig } from '@/construction/openings/types'
-import { LengthField } from '@/shared/components/LengthField/LengthField'
+import { LengthField } from '@/shared/ui/LengthField/LengthField'
 
 interface SimpleOpeningConfigFormProps {
   config: SimpleOpeningConfig

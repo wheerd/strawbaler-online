@@ -1,8 +1,8 @@
 import { Frame } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
 import { useGrid3DActions, useShowGrid3D } from '@/construction/viewer3d/hooks/useGrid3D'
+import { Button } from '@/shared/ui/components/button'
 
 export function GridToggleButton(): React.JSX.Element {
   const { t } = useTranslation('viewer')

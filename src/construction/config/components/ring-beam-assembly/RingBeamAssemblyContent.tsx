@@ -5,11 +5,6 @@ import { useTranslation } from 'react-i18next'
 
 import type { RingBeamAssemblyId } from '@/building/model/ids'
 import { usePerimeterWalls } from '@/building/store'
-import { AlertDialog } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
 import { getRingBeamTypeIcon } from '@/construction/config/components/Icons'
 import { RingBeamAssemblySelect } from '@/construction/config/components/RingBeamAssemblySelect'
 import { type EntityId, useEntityLabel } from '@/construction/config/components/useEntityLabel'
@@ -23,6 +18,11 @@ import { type RingBeamAssemblyUsage, getRingBeamAssemblyUsage } from '@/construc
 import { bitumen, brick, cork, roughWood, woodwool } from '@/construction/materials/material'
 import { type RingBeamAssemblyType, type RingBeamConfig } from '@/construction/ringBeams'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
+import { AlertDialog } from '@/shared/ui/components/alert-dialog'
+import { Badge } from '@/shared/ui/components/badge'
+import { Button } from '@/shared/ui/components/button'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+import { Separator } from '@/shared/ui/components/separator'
 
 import { ConfigForm } from './ConfigForm'
 

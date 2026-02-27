@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { LengthFieldOptions, LengthFieldState, LengthUnit } from '@/shared/components/LengthField/types'
+import type { Length } from '@/shared/geometry'
+import type { LengthFieldOptions, LengthFieldState, LengthUnit } from '@/shared/ui/LengthField/types'
 import {
   clampLength,
   displayValueToLength,
   getDefaultPrecision,
   getDefaultStepSize,
   lengthToDisplayValue
-} from '@/shared/components/LengthField/utils/lengthConversion'
+} from '@/shared/ui/LengthField/utils/lengthConversion'
 import {
   formatDisplayValue,
   isCompleteNumber,
   isValidNumericInput
-} from '@/shared/components/LengthField/utils/lengthFormatting'
-import type { Length } from '@/shared/geometry'
+} from '@/shared/ui/LengthField/utils/lengthFormatting'
 
 /**
  * Core hook for managing LengthField state and behavior.

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { OpenMode } from '@/shared/components/WelcomeModal'
+import type { OpenMode } from './WelcomeModal'
 
 interface WelcomeState {
   accepted: boolean

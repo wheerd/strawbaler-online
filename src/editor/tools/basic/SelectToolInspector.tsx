@@ -23,8 +23,8 @@ import {
   isWallPostId
 } from '@/building/model/ids'
 import { useActiveStoreyId } from '@/building/store'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
 import { useCurrentSelection } from '@/editor/hooks/useSelectionStore'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 
 export function SelectToolInspector(): React.JSX.Element {
   const { t } = useTranslation('tool')

@@ -2,9 +2,9 @@ import { DialogTrigger } from '@radix-ui/react-dialog'
 import React from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import { FeatureErrorFallback } from '@/shared/components/errors/FeatureErrorFallback'
+import { Dialog, DialogContent, DialogTitle } from '@/shared/ui/components/dialog'
+import { FeatureErrorFallback } from '@/shared/ui/errors/FeatureErrorFallback'
 
 export interface BaseModalProps {
   open?: boolean

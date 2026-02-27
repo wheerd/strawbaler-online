@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Button } from '@/shared/ui/components/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/components/dialog'
+import { Input } from '@/shared/ui/components/input'
+import { Label } from '@/shared/ui/components/label'
+import { RadioGroup, RadioGroupItem } from '@/shared/ui/components/radio-group'
 
 interface ImportChoiceDialogProps {
   open: boolean

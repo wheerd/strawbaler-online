@@ -2,10 +2,10 @@ import React from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import type { FloorAssemblyId } from '@/building/model/ids'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { NamedAssembly } from '@/construction/config'
 import { useFloorAssemblies } from '@/construction/config/store'
 import { cn } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
 
 import { getFloorAssemblyTypeIcon } from './Icons'
 

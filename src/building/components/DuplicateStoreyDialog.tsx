@@ -3,8 +3,8 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { DuplicateStoreyOptions } from '@/building/store/services/StoreyManagementService'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/shared/ui/components/button'
+import { Checkbox } from '@/shared/ui/components/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger
-} from '@/components/ui/dialog'
+} from '@/shared/ui/components/dialog'
 
 export interface DuplicateStoreyDialogProps {
   open: boolean

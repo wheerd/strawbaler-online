@@ -1,13 +1,13 @@
 import * as Label from '@radix-ui/react-label'
 import { useTranslation } from 'react-i18next'
 
-import { Checkbox } from '@/components/ui/checkbox'
-import { Select } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { MaterialId } from '@/construction/materials/material'
 import type { PostOpeningConfig } from '@/construction/openings/types'
-import { LengthField } from '@/shared/components/LengthField/LengthField'
+import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { Checkbox } from '@/shared/ui/components/checkbox'
+import { Select } from '@/shared/ui/components/select'
+import { Switch } from '@/shared/ui/components/switch'
 
 interface PostOpeningConfigFormProps {
   config: PostOpeningConfig

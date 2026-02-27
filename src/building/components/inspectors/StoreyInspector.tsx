@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next'
 import { useStoreyName } from '@/building/hooks/useStoreyName'
 import type { StoreyId } from '@/building/model/ids'
 import { usePerimeters, useStoreyById } from '@/building/store'
-import { Callout, CalloutText } from '@/components/ui/callout'
 import { getPerimeterStats } from '@/construction/perimeters/stats'
 import { getLevelColor } from '@/editor/status-bar/StoreySelector'
 import { cn } from '@/lib/utils'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { Callout, CalloutText } from '@/shared/ui/components/callout'
 
 interface StoreyInspectorProps {
   selectedId: StoreyId

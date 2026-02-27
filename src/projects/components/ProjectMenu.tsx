@@ -6,7 +6,15 @@ import { toast } from 'sonner'
 import { useIsAuthenticated } from '@/app/user/store'
 import { getModelActions } from '@/building/store'
 import { usePersistenceStore } from '@/building/store/persistenceStore'
-import { Button } from '@/components/ui/button'
+import type { ConstructionModel } from '@/construction/model'
+import { clearSelection } from '@/editor/hooks/useSelectionStore'
+import { viewportActions } from '@/editor/hooks/useViewportStore'
+import { cn } from '@/lib/utils'
+import { createProject } from '@/projects/services/CloudSyncManager'
+import { useProjectName } from '@/projects/store'
+import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
+import { SaveIcon } from '@/shared/ui/Icons'
+import { Button } from '@/shared/ui/components/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,16 +24,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import type { ConstructionModel } from '@/construction/model'
-import { clearSelection } from '@/editor/hooks/useSelectionStore'
-import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { cn } from '@/lib/utils'
-import { createProject } from '@/projects/services/CloudSyncManager'
-import { useProjectName } from '@/projects/store'
-import { SaveIcon } from '@/shared/components/Icons'
-import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
+} from '@/shared/ui/components/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/components/tooltip'
 import { FileInputCancelledError, createBinaryFileInput, createFileInput } from '@/shared/utils/createFileInput'
 import { downloadFile } from '@/shared/utils/downloadFile'
 

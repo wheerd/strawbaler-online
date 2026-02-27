@@ -1,10 +1,10 @@
-import type { LengthUnit } from '@/shared/components/LengthField/types'
 import {
   formatNumberForInputCompact,
   isCompleteLocaleNumber,
   isValidLocaleNumericInput,
   parseLocaleNumber
 } from '@/shared/i18n/numberParsing'
+import type { LengthUnit } from '@/shared/ui/LengthField/types'
 
 /**
  * Format a display value by removing trailing zeros and ensuring proper precision.

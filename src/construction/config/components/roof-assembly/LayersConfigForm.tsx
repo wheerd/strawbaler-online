@@ -2,11 +2,11 @@ import * as Label from '@radix-ui/react-label'
 import { useTranslation } from 'react-i18next'
 
 import type { RoofAssemblyId } from '@/building/model/ids'
-import { Separator } from '@/components/ui/separator'
 import { LayerSetSelect } from '@/construction/config/components/layers/LayerSetSelect'
 import { useConfigActions } from '@/construction/config/store'
 import type { RoofConfig } from '@/construction/roofs/types'
 import { RoofMeasurementInfo } from '@/editor/components/RoofMeasurementInfo'
+import { Separator } from '@/shared/ui/components/separator'
 
 interface LayersConfigFormProps {
   assemblyId: RoofAssemblyId

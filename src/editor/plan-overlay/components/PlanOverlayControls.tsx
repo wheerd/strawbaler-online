@@ -3,12 +3,12 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useActiveStoreyId, useStoreyById } from '@/building/store'
-import { AlertDialog } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { PlanImportModal } from '@/editor/plan-overlay/components/PlanImportModal'
 import { useFloorPlanActions, useFloorPlanForStorey } from '@/editor/plan-overlay/store'
 import type { FloorPlanPlacement } from '@/editor/plan-overlay/types'
+import { AlertDialog } from '@/shared/ui/components/alert-dialog'
+import { Button } from '@/shared/ui/components/button'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 
 export function PlanOverlayControls(): React.JSX.Element | null {
   const { t } = useTranslation('overlay')

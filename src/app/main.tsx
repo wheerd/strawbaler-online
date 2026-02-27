@@ -5,11 +5,11 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { RouterProvider } from 'react-router-dom'
 
 import { router } from '@/app/router'
-import { Toaster } from '@/components/ui/sonner.tsx'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { ErrorFallback } from '@/shared/components/errors/ErrorFallback'
 import '@/shared/i18n/config'
 import { registerServiceWorker } from '@/shared/services/serviceWorkerRegistration'
+import { Toaster } from '@/shared/ui/components/sonner'
+import { TooltipProvider } from '@/shared/ui/components/tooltip'
+import { ErrorFallback } from '@/shared/ui/errors/ErrorFallback'
 
 import './index.css'
 

@@ -2,12 +2,12 @@ import * as Label from '@radix-ui/react-label'
 import { Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Tooltip } from '@/components/ui/tooltip'
 import type { FilledFloorConfig } from '@/construction/floors/types'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
-import { LengthField } from '@/shared/components/LengthField/LengthField'
+import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { Button } from '@/shared/ui/components/button'
+import { Separator } from '@/shared/ui/components/separator'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 interface FilledConfigFormProps {
   config: FilledFloorConfig

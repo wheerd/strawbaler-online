@@ -3,9 +3,9 @@ import React, { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useModelActions, useStoreysOrderedByLevel } from '@/building/store'
-import { Button } from '@/components/ui/button'
 import { useConfigActions } from '@/construction/config/store'
-import { BaseModal } from '@/shared/components/BaseModal'
+import { BaseModal } from '@/shared/ui/BaseModal'
+import { Button } from '@/shared/ui/components/button'
 
 import { StoreyListItem } from './StoreyListItem'
 

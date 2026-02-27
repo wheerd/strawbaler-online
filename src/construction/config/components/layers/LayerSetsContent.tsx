@@ -4,13 +4,13 @@ import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { LayerSetId } from '@/building/model/ids'
-import { AlertDialog } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { LayerSetSelect } from '@/construction/config/components/layers/LayerSetSelect'
 import { type EntityId, useEntityLabel } from '@/construction/config/components/useEntityLabel'
 import { useLayerSetUsage } from '@/construction/config/layerSetUsage'
 import { useConfigActions, useLayerSets } from '@/construction/config/store'
+import { AlertDialog } from '@/shared/ui/components/alert-dialog'
+import { Badge } from '@/shared/ui/components/badge'
+import { Button } from '@/shared/ui/components/button'
 
 import { LayerSetConfigForm } from './LayerSetConfigForm'
 

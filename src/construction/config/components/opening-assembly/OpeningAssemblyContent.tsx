@@ -4,12 +4,6 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { OpeningAssemblyId } from '@/building/model/ids'
-import { AlertDialog } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutText } from '@/components/ui/callout'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
 import { OpeningAssemblySelect } from '@/construction/config/components/OpeningAssemblySelect'
 import { type EntityId, useEntityLabel } from '@/construction/config/components/useEntityLabel'
 import {
@@ -21,6 +15,12 @@ import {
 import { type OpeningAssemblyUsage, getOpeningAssemblyUsage } from '@/construction/config/usage'
 import type { MaterialId } from '@/construction/materials/material'
 import type { OpeningAssemblyType, OpeningConfig } from '@/construction/openings/types'
+import { AlertDialog } from '@/shared/ui/components/alert-dialog'
+import { Badge } from '@/shared/ui/components/badge'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutText } from '@/shared/ui/components/callout'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+import { Separator } from '@/shared/ui/components/separator'
 
 import { ConfigForm } from './ConfigForm'
 

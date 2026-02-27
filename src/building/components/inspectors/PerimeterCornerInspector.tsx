@@ -4,15 +4,15 @@ import { useTranslation } from 'react-i18next'
 
 import type { PerimeterCornerId } from '@/building/model/ids'
 import { useModelActions, usePerimeterCornerById, usePerimeterWallById } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
-import { DataList } from '@/components/ui/data-list'
-import { Separator } from '@/components/ui/separator'
 import { useConfigActions } from '@/construction/config/store'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
-import { FitToViewIcon, SplitWallIcon } from '@/shared/components/Icons'
 import { Bounds2D, midpoint } from '@/shared/geometry'
+import { FitToViewIcon, SplitWallIcon } from '@/shared/ui/Icons'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
+import { DataList } from '@/shared/ui/components/data-list'
+import { Separator } from '@/shared/ui/components/separator'
 
 export function PerimeterCornerInspector({ cornerId }: { cornerId: PerimeterCornerId }): React.JSX.Element {
   const { t } = useTranslation('inspector')

@@ -1,11 +1,11 @@
 import React, { type PointerEvent, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Card } from '@/components/ui/card'
 import type { ImagePoint } from '@/editor/plan-overlay/types'
-import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
 import { Bounds2D, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
+import { SVGViewport, type SVGViewportRef } from '@/shared/ui/SVGViewport'
+import { Card } from '@/shared/ui/components/card'
 
 export type SelectionMode = 'measure' | 'origin' | 'idle'
 

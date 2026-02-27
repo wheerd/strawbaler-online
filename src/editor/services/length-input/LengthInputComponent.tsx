@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { TextField } from '@/components/ui/text-field'
 import { useStageHeight, useStageWidth } from '@/editor/hooks/useViewportStore'
+import { TextField } from '@/shared/ui/components/text-field'
 
 import { lengthInputService } from './LengthInputService'
 import type { LengthInputState } from './types'

@@ -2,13 +2,13 @@ import * as Label from '@radix-ui/react-label'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Select } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { TextField } from '@/components/ui/text-field'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import { roughWood, woodwool } from '@/construction/materials/material'
 import type { ModuleConfig } from '@/construction/walls/modules/modules'
-import { LengthField } from '@/shared/components/LengthField/LengthField'
+import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { Select } from '@/shared/ui/components/select'
+import { Separator } from '@/shared/ui/components/separator'
+import { TextField } from '@/shared/ui/components/text-field'
 
 import { TriangularBattensConfigForm } from './TriangularBattensConfigForm'
 

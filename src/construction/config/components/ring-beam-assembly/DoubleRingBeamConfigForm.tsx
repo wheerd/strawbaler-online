@@ -1,11 +1,11 @@
 import * as Label from '@radix-ui/react-label'
 import { useTranslation } from 'react-i18next'
 
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { CornerHandling, RingBeamConfig } from '@/construction/ringBeams'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
-import { LengthField } from '@/shared/components/LengthField/LengthField'
+import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 
 interface DoubleRingBeamConfigFormProps {
   config: RingBeamConfig & { type: 'double' }

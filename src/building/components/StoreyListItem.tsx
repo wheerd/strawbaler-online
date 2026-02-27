@@ -9,14 +9,14 @@ import {
   type DuplicateStoreyOptions,
   defaultStoreyManagementService
 } from '@/building/store/services/StoreyManagementService'
-import { AlertDialog } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { TextField } from '@/components/ui/text-field'
 import { FloorAssemblySelectWithEdit } from '@/construction/config/components/FloorAssemblySelectWithEdit'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
-import { LengthField } from '@/shared/components/LengthField'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { LengthField } from '@/shared/ui/LengthField'
+import { AlertDialog } from '@/shared/ui/components/alert-dialog'
+import { Button } from '@/shared/ui/components/button'
+import { Card } from '@/shared/ui/components/card'
+import { TextField } from '@/shared/ui/components/text-field'
 
 import { DuplicateStoreyDialog } from './DuplicateStoreyDialog'
 

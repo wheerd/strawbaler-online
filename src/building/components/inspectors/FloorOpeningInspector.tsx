@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next'
 
 import type { FloorOpeningId } from '@/building/model/ids'
 import { useFloorOpeningById, useModelActions } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { DataList } from '@/components/ui/data-list'
-import { Separator } from '@/components/ui/separator'
 import { popSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
-import { FitToViewIcon } from '@/shared/components/Icons'
 import { Bounds2D, calculatePolygonArea, polygonPerimeter } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { FitToViewIcon } from '@/shared/ui/Icons'
+import { Button } from '@/shared/ui/components/button'
+import { DataList } from '@/shared/ui/components/data-list'
+import { Separator } from '@/shared/ui/components/separator'
 
 interface FloorOpeningInspectorProps {
   floorOpeningId: FloorOpeningId

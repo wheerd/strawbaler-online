@@ -1,16 +1,16 @@
 import { Eye, TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Table } from '@/components/ui/table'
-import { Tooltip } from '@/components/ui/tooltip'
 import { SheetPartModal } from '@/construction/components/parts/SheetPartModal'
 import type { SheetMaterial } from '@/construction/materials/material'
 import type { AggregatedPartItem, PartId } from '@/construction/parts/types'
-import { SawIcon } from '@/shared/components/Icons'
 import { type Vec3, isZeroVec3 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
+import { SawIcon } from '@/shared/ui/Icons'
+import { Button } from '@/shared/ui/components/button'
+import { Table } from '@/shared/ui/components/table'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import { calculateWeight, canHighlightPart, getIssueSeverity } from './utils'
 

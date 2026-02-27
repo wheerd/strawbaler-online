@@ -1,12 +1,12 @@
 import { Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Table } from '@/components/ui/table'
 import type { VolumeMaterial } from '@/construction/materials/material'
 import type { AggregatedPartItem, PartId } from '@/construction/parts/types'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
+import { Button } from '@/shared/ui/components/button'
+import { Table } from '@/shared/ui/components/table'
 
 import { calculateWeight, canHighlightPart, getIssueSeverity } from './utils'
 

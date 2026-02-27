@@ -1,8 +1,8 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/components/tooltip'
 
 export function OfflineStatusIndicator(): React.JSX.Element {
   const { t } = useTranslation('toolbar')

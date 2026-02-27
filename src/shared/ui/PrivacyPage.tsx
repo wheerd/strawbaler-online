@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher'
-import { Logo } from '@/shared/components/Logo'
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher'
+import { Logo } from '@/shared/ui/Logo'
 
 const PRIVACY_EMAIL = 'contact@strawbuild.app'
 

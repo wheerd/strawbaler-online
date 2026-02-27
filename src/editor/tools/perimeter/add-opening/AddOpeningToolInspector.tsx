@@ -7,18 +7,14 @@ import { useTranslation } from 'react-i18next'
 import { OpeningPreview } from '@/building/components/OpeningPreview'
 import type { OpeningAssemblyId, OpeningType } from '@/building/model'
 import { useActiveStoreyId, useModelActions, useWallOpenings } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Tooltip } from '@/components/ui/tooltip'
 import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
 import { useDefaultOpeningAssemblyId, useOpeningAssemblyById } from '@/construction/config/store'
 import { getWallStoreyContextCached } from '@/construction/storeys/context'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
-import { LengthField } from '@/shared/components/LengthField'
+import { type Length } from '@/shared/geometry'
+import { useFormatters } from '@/shared/i18n/useFormatters'
+import { LengthField } from '@/shared/ui/LengthField'
 import {
   DoorIcon,
   DoubleDoorPresetIcon,
@@ -29,9 +25,13 @@ import {
   StandardWindowPresetIcon,
   WideDoorPresetIcon,
   WindowIcon
-} from '@/shared/components/OpeningIcons'
-import { type Length } from '@/shared/geometry'
-import { useFormatters } from '@/shared/i18n/useFormatters'
+} from '@/shared/ui/OpeningIcons'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+import { Separator } from '@/shared/ui/components/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import type { AddOpeningTool } from './AddOpeningTool'
 

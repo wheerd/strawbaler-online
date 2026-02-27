@@ -3,6 +3,11 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { cn } from '@/lib/utils'
+import { createProject, deleteProject, switchProject } from '@/projects/services/CloudSyncManager'
+import { useProjectId, useProjectList, useProjectListLoading } from '@/projects/store'
+import type { ProjectListItem } from '@/projects/types'
+import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,18 +18,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
-import { createProject, deleteProject, switchProject } from '@/projects/services/CloudSyncManager'
-import { useProjectId, useProjectList, useProjectListLoading } from '@/projects/store'
-import type { ProjectListItem } from '@/projects/types'
-import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
+} from '@/shared/ui/components/alert-dialog'
+import { Button } from '@/shared/ui/components/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/components/dialog'
+import { Input } from '@/shared/ui/components/input'
+import { Label } from '@/shared/ui/components/label'
+import { RadioGroup, RadioGroupItem } from '@/shared/ui/components/radio-group'
+import { Textarea } from '@/shared/ui/components/textarea'
 
 interface ProjectsModalProps {
   open: boolean

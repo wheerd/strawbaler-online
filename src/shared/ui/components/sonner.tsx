@@ -2,7 +2,7 @@ import { CircleCheck, CircleX, Info, TriangleAlert } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Toaster as Sonner } from 'sonner'
 
-import { Spinner } from '@/components/ui/spinner'
+import { Spinner } from '@/shared/ui/components/spinner'
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 

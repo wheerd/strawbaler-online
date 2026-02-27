@@ -3,8 +3,8 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogTitle } from '@/shared/ui/components/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/components/tabs'
 
 import { ForgotPasswordForm, SignInForm, SignUpForm } from './forms'
 import type { AuthView } from './types'

@@ -2,7 +2,7 @@ import { Portal } from '@radix-ui/react-portal'
 import { useEffect, useRef, useState } from 'react'
 
 import { useStageHeight, useStageWidth } from '@/editor/hooks/useViewportStore'
-import { NumberField } from '@/shared/components/NumberField/NumberField'
+import { NumberField } from '@/shared/ui/NumberField/NumberField'
 
 interface AngleInputProps {
   isOpen: boolean

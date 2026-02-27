@@ -2,8 +2,8 @@ import { Pencil } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
+import { Button } from '@/shared/ui/components/button'
 
 import { FloorAssemblySelect, type FloorAssemblySelectProps } from './FloorAssemblySelect'
 

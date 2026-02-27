@@ -2,10 +2,10 @@ import { RefreshCw, TriangleAlert } from 'lucide-react'
 import type React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
-import { Tooltip } from '@/components/ui/tooltip'
 import { useConstructionActions, useHasConstructionModel, useIsConstructionOutdated } from '@/construction/store'
+import { Button } from '@/shared/ui/components/button'
+import { Spinner } from '@/shared/ui/components/spinner'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 export default function ConstructionModelRegenerateButton({
   compact

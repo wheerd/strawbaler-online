@@ -1,10 +1,10 @@
 import React, { useId, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { FullScreenModal } from '@/components/ui/full-screen-modal'
-import { SVGViewport, type SVGViewportRef } from '@/shared/components/SVGViewport'
 import { Bounds2D, type Polygon2D, type PolygonWithHoles2D, newVec2 } from '@/shared/geometry'
 import { elementSizeRef } from '@/shared/hooks/useElementSize'
+import { SVGViewport, type SVGViewportRef } from '@/shared/ui/SVGViewport'
+import { FullScreenModal } from '@/shared/ui/components/full-screen-modal'
 
 import { PolygonAngleIndicators } from './AngleIndicators'
 import { DiagonalEdgeMeasurements } from './DiagonalEdgeMeasurements'

@@ -13,23 +13,23 @@ import {
   useStoreyById,
   useWallOpeningById
 } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
-import { Kbd } from '@/components/ui/kbd'
-import { Separator } from '@/components/ui/separator'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Tooltip } from '@/components/ui/tooltip'
 import { OpeningAssemblySelectWithEdit } from '@/construction/config/components/OpeningAssemblySelectWithEdit'
 import { useWallAssemblyById } from '@/construction/config/store'
 import { resolveOpeningConfig } from '@/construction/openings/resolver'
 import { getWallStoreyContextCached } from '@/construction/storeys/context'
 import { useSelectionStore } from '@/editor/hooks/useSelectionStore'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
-import { FitToViewIcon } from '@/shared/components/Icons'
-import { LengthField } from '@/shared/components/LengthField'
-import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/components/OpeningIcons'
 import { Bounds2D, type Polygon2D, addVec2, offsetPolygon, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { FitToViewIcon } from '@/shared/ui/Icons'
+import { LengthField } from '@/shared/ui/LengthField'
+import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/ui/OpeningIcons'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
+import { Kbd } from '@/shared/ui/components/kbd'
+import { Separator } from '@/shared/ui/components/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 export function OpeningInspector({ openingId }: { openingId: OpeningId }): React.JSX.Element {
   const { t } = useTranslation('inspector')

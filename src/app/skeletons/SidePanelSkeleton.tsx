@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/shared/ui/components/skeleton'
 
 export function SidePanelSkeleton(): React.JSX.Element {
   return (

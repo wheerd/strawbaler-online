@@ -2,8 +2,8 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { forwardRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { Button } from '@/shared/ui/components/button'
 
 import { useLengthFieldState } from './hooks/useLengthFieldState'
 import type { LengthFieldProps } from './types'

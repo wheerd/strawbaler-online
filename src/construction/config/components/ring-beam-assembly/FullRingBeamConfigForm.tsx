@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { RingBeamConfig } from '@/construction/ringBeams'
 import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
-import { LengthField } from '@/shared/components/LengthField/LengthField'
+import { LengthField } from '@/shared/ui/LengthField/LengthField'
 
 interface FullRingBeamConfigFormProps {
   config: RingBeamConfig & { type: 'full' }

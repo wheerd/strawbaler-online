@@ -3,11 +3,11 @@ import { Info } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Checkbox } from '@/components/ui/checkbox'
-import { Tooltip } from '@/components/ui/tooltip'
 import { MaterialSelectWithEdit } from '@/construction/materials/components/MaterialSelectWithEdit'
 import type { TriangularBattenConfig } from '@/construction/materials/triangularBattens'
-import { LengthField } from '@/shared/components/LengthField/LengthField'
+import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { Checkbox } from '@/shared/ui/components/checkbox'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 interface TriangularBattensConfigFormProps {
   triangularBattens: TriangularBattenConfig

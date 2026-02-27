@@ -2,8 +2,8 @@ import { RefreshCw, TriangleAlert } from 'lucide-react'
 import type { FallbackProps } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 
 export function ModalErrorFallback({ error, resetErrorBoundary }: FallbackProps): React.JSX.Element {
   const { t } = useTranslation('errors')

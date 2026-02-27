@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { NumberFieldOptions, NumberFieldState } from '@/shared/components/NumberField/types'
 import {
   formatNumberForInputCompact,
   isCompleteLocaleNumber,
   isValidLocaleNumericInput,
   parseLocaleNumber
 } from '@/shared/i18n/numberParsing'
+import type { NumberFieldOptions, NumberFieldState } from '@/shared/ui/NumberField/types'
 
 /**
  * Clamp a number to min/max bounds.

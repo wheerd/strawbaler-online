@@ -12,13 +12,6 @@ import {
   usePerimeterWallsById,
   useRoofsOfActiveStorey
 } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
-import { DataList } from '@/components/ui/data-list'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Tooltip } from '@/components/ui/tooltip'
 import TopDownPlanModal from '@/construction/components/TopDownPlanModal'
 import { useDefaultRoofAssemblyId } from '@/construction/config'
 import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
@@ -31,10 +24,17 @@ import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
 import { popSelection, replaceSelection } from '@/editor/hooks/useSelectionStore'
 import { useViewModeActions } from '@/editor/hooks/useViewMode'
 import { useViewportActions } from '@/editor/hooks/useViewportStore'
-import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon, RoofIcon } from '@/shared/components/Icons'
-import { LengthField } from '@/shared/components/LengthField'
 import { Bounds2D, type Length, calculatePolygonArea, polygonPerimeter } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon, RoofIcon } from '@/shared/ui/Icons'
+import { LengthField } from '@/shared/ui/LengthField'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
+import { DataList } from '@/shared/ui/components/data-list'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+import { Separator } from '@/shared/ui/components/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 
 interface PerimeterInspectorProps {
   selectedId: PerimeterId

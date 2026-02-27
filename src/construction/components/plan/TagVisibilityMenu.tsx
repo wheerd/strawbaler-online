@@ -2,13 +2,13 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import type { GroupOrElement } from '@/construction/elements'
 import type { ConstructionModel } from '@/construction/model'
 import { type Tag, type TagCategoryId, type TagId } from '@/construction/tags'
 import { useCategoryLabel } from '@/construction/useCategoryLabel'
 import { useTagLabel } from '@/construction/useTagLabel'
+import { Button } from '@/shared/ui/components/button'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 
 import { useTagVisibilityActions, useTagVisibilityForceUpdate } from './TagVisibilityContext'
 
