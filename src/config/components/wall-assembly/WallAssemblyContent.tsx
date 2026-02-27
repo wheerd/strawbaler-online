@@ -1,5 +1,5 @@
 import * as Label from '@radix-ui/react-label'
-import { Box, Circle, Copy, Layers, Plus, Trash, Undo2 } from 'lucide-react'
+import { Copy, Plus, Trash, Undo2 } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -25,6 +25,7 @@ import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'
 import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+import { InfillIcon, ModulesIcon, NonStrawbaleIcon, PrefabIcon, StrawhengeIcon } from '@/shared/ui/icons'
 
 import { ConfigForm } from './ConfigForm'
 
@@ -277,7 +278,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                   }}
                 >
                   <div className="flex items-center gap-1">
-                    <Layers />
+                    <InfillIcon />
                     {t($ => $.walls.types.infill)}
                   </div>
                 </DropdownMenu.Item>
@@ -287,7 +288,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                   }}
                 >
                   <div className="flex items-center gap-1">
-                    <Box />
+                    <StrawhengeIcon />
                     {t($ => $.walls.types.strawhenge)}
                   </div>
                 </DropdownMenu.Item>
@@ -297,7 +298,7 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                   }}
                 >
                   <div className="flex items-center gap-1">
-                    <Circle />
+                    <ModulesIcon />
                     {t($ => $.walls.types.modules)}
                   </div>
                 </DropdownMenu.Item>
@@ -307,8 +308,18 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
                   }}
                 >
                   <div className="flex items-center gap-1">
-                    <Trash />
+                    <NonStrawbaleIcon />
                     {t($ => $.walls.types['non-strawbale'])}
+                  </div>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  onSelect={() => {
+                    handleAddNew('prefab-modules')
+                  }}
+                >
+                  <div className="flex items-center gap-1">
+                    <PrefabIcon />
+                    {t($ => $.walls.types['prefab-modules'])}
                   </div>
                 </DropdownMenu.Item>
               </DropdownMenu.Content>

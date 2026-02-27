@@ -1,5 +1,5 @@
 import * as Label from '@radix-ui/react-label'
-import { Component, Copy, Plus, Square, Trash, Undo2 } from 'lucide-react'
+import { Copy, Plus, Square, Trash, Undo2 } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -16,6 +16,7 @@ import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'
 import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+import { FilledIcon } from '@/shared/ui/icons'
 
 import { ConfigForm } from './ConfigForm'
 
@@ -173,7 +174,7 @@ export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyCo
                   }}
                 >
                   <div className="flex items-center gap-1">
-                    <Component />
+                    <FilledIcon />
                     {t($ => $.roofs.types.purlin)}
                   </div>
                 </DropdownMenu.Item>
