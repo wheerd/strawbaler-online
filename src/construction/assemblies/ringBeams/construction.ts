@@ -4,9 +4,9 @@ import { getConfigActions } from '@/config'
 import { resolveRingBeamAssembly } from '@/construction/assemblies/ringBeams'
 import { getPerimeterContextCached } from '@/construction/context/perimeterContextCache'
 import { getWallStoreyContextCached } from '@/construction/context/storeys'
-import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
-import { assignDeterministicIdsToResults, resultsToModel } from '@/construction/results'
-import { TAG_BASE_PLATE, TAG_TOP_PLATE } from '@/construction/tags'
+import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model/model'
+import { assignDeterministicIdsToResults, resultsToModel } from '@/construction/model/results'
+import { TAG_BASE_PLATE, TAG_TOP_PLATE } from '@/construction/model/tags'
 import { fromTrans, newVec3 } from '@/shared/geometry'
 
 export function constructBasePlate(perimeterId: PerimeterId): ConstructionModel {

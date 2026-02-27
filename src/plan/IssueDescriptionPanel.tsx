@@ -1,7 +1,7 @@
 import { CircleCheck, CircleX, TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import type { ConstructionModel } from '@/construction/model'
+import type { ConstructionModel } from '@/construction/model/model'
 import { Callout, CalloutIcon } from '@/shared/ui/components/callout'
 
 import { usePlanHighlight } from './PlanHighlightContext'

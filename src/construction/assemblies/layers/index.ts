@@ -1,6 +1,6 @@
 import { MonolithicLayerConstruction } from '@/construction/assemblies/layers/monolithic'
 import { StripedLayerConstruction } from '@/construction/assemblies/layers/stripe'
-import type { ConstructionResult } from '@/construction/results'
+import type { ConstructionResult } from '@/construction/model/results'
 import type { Length, Plane3D, PolygonWithHoles2D } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
 

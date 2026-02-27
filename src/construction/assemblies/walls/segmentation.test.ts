@@ -19,15 +19,15 @@ import type { SegmentInfillMethod } from '@/construction/assemblies/walls'
 import type { WallLayerSetIds } from '@/construction/assemblies/walls/layers'
 import { constructWallPost } from '@/construction/assemblies/walls/posts'
 import type { StoreyContext } from '@/construction/context/storeys'
-import { aggregateResults, yieldElement } from '@/construction/results'
-import { createCuboid } from '@/construction/shapes'
+import { aggregateResults, yieldElement } from '@/construction/model/results'
+import { createCuboid } from '@/construction/model/shapes'
 import {
   TAG_OPENING_SPACING,
   TAG_RING_BEAM_HEIGHT,
   TAG_WALL_CONSTRUCTION_HEIGHT,
   TAG_WALL_HEIGHT,
   TAG_WALL_LENGTH
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import { Bounds3D, IDENTITY, type Length, type Vec3, ZERO_VEC2, newVec2, newVec3 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 

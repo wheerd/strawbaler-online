@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
+import type { Tag } from '@/construction/model/tags'
+import { isCustomTag } from '@/construction/model/tags'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
-
-import type { Tag } from './tags'
-import { isCustomTag } from './tags'
 
 export function useTagLabel(tag: Tag | null | undefined): string {
   const { t } = useTranslation()

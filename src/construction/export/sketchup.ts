@@ -1,9 +1,9 @@
 import type { Resources } from 'i18next'
 import type { Manifold } from 'manifold-3d'
 
-import type { ConstructionElement, ConstructionGroup, GroupOrElement } from '@/construction/elements'
 import { getFacesFromManifoldIndexed } from '@/construction/manifold/faces'
-import type { ConstructionModel } from '@/construction/model'
+import type { ConstructionElement, ConstructionGroup, GroupOrElement } from '@/construction/model/elements'
+import type { ConstructionModel } from '@/construction/model/model'
 import type { MaterialId } from '@/materials/material'
 import { getMaterialById } from '@/materials/store'
 import { IDENTITY, type Transform } from '@/shared/geometry'
@@ -277,7 +277,7 @@ function getGroupName(group: ConstructionGroup): string {
 }
 
 // Get layer name from tags
-function getLayerFromTags(tags?: import('@/construction/tags').Tag[]): string | undefined {
+function getLayerFromTags(tags?: import('@/construction/model/tags').Tag[]): string | undefined {
   if (!tags || tags.length === 0) return undefined
 
   // Use the first tag's category as layer

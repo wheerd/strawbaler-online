@@ -1,9 +1,8 @@
 import type { Manifold } from 'manifold-3d'
 
 import { type WallConstructionArea } from '@/construction/assemblies/utils/geometry'
-import { type ConstructionElement, createConstructionElement, createCuboidElement } from '@/construction/elements'
 import { buildAndCacheManifold } from '@/construction/manifold/builders'
-import type { Tag } from '@/construction/tags'
+import type { Tag } from '@/construction/model/tags'
 import type { MaterialId } from '@/materials/material'
 import type { InitialPartInfo } from '@/parts/types'
 import {
@@ -17,6 +16,8 @@ import {
   fromTrans,
   newVec3
 } from '@/shared/geometry'
+
+import { type ConstructionElement, createConstructionElement, createCuboidElement } from './elements'
 
 export type BaseShape = CuboidShape | ExtrudedShape
 

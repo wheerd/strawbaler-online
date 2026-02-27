@@ -3,7 +3,7 @@ import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/config'
 import { PurlinRoofAssembly } from '@/construction/assemblies/roofs/purlin'
 import { getPerimeterContextCached } from '@/construction/context/perimeterContextCache'
-import { type ConstructionModel, createUnsupportedModel } from '@/construction/model'
+import { type ConstructionModel, createUnsupportedModel } from '@/construction/model/model'
 
 import { MonolithicRoofAssembly } from './monolithic'
 import type { RoofAssembly, RoofConfig } from './types'

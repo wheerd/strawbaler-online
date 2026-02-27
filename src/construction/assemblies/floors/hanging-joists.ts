@@ -4,11 +4,11 @@ import {
   partitionByAlignedEdges,
   simplePolygonFrame
 } from '@/construction/assemblies/utils/helpers'
-import { createConstructionElement, createConstructionElementId } from '@/construction/elements'
-import { type ConstructionModel } from '@/construction/model'
-import { type ConstructionResult, aggregateResults } from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_FLOOR_OPENING_FRAME, TAG_HANGING_JOIST_FLOOR, TAG_JOIST, TAG_SUBFLOOR } from '@/construction/tags'
+import { createConstructionElement, createConstructionElementId } from '@/construction/model/elements'
+import { type ConstructionModel } from '@/construction/model/model'
+import { type ConstructionResult, aggregateResults } from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
+import { TAG_FLOOR_OPENING_FRAME, TAG_HANGING_JOIST_FLOOR, TAG_JOIST, TAG_SUBFLOOR } from '@/construction/model/tags'
 import {
   Bounds2D,
   type Polygon2D,

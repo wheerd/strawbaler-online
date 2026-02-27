@@ -5,7 +5,7 @@ import {
   type ConstructionIssueId,
   type ConstructionResult,
   aggregateResults
-} from '@/construction/results'
+} from '@/construction/model/results'
 
 const issueId = (suffix: string): ConstructionIssueId => `ci_${suffix}` as ConstructionIssueId
 

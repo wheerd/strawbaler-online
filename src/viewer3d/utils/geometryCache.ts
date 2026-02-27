@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 
-import type { GroupOrElement } from '@/construction/elements'
-import type { ConstructionModel } from '@/construction/model'
-import type { Shape } from '@/construction/shapes'
+import type { GroupOrElement } from '@/construction/model/elements'
+import type { ConstructionModel } from '@/construction/model/model'
+import type { Shape } from '@/construction/model/shapes'
 import type { Manifold } from '@/shared/geometry/manifoldInstance'
 
 type IdleCallback = (deadline?: { didTimeout: boolean; timeRemaining(): number }) => void

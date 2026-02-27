@@ -21,7 +21,7 @@ import {
 } from '@/construction/assemblies/walls/roofIntegration'
 import { getRoofHeightLineCached } from '@/construction/context'
 import type { StoreyContext } from '@/construction/context/storeys'
-import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/results'
+import { type ConstructionResult, yieldArea, yieldMeasurement } from '@/construction/model/results'
 import {
   TAG_OPENING_DOOR,
   TAG_OPENING_SPACING,
@@ -30,7 +30,7 @@ import {
   TAG_WALL_CONSTRUCTION_HEIGHT,
   TAG_WALL_HEIGHT,
   TAG_WALL_LENGTH
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import { type Length, ZERO_VEC2, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 import { type WallCornerInfo, calculateWallCornerInfo, getWallContext } from './corners/corners'

@@ -2,14 +2,14 @@ import type { PerimeterWithGeometry } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { getPerimeterContextCached } from '@/construction/context'
 import { getWallStoreyContextCached } from '@/construction/context/storeys'
-import type { RawMeasurement } from '@/construction/measurements'
-import type { ConstructionModel } from '@/construction/model'
+import type { RawMeasurement } from '@/construction/model/measurements'
+import type { ConstructionModel } from '@/construction/model/model'
 import {
   TAG_WALL_CONSTRUCTION_LENGTH_INSIDE,
   TAG_WALL_CONSTRUCTION_LENGTH_OUTSIDE,
   TAG_WALL_LENGTH_INSIDE,
   TAG_WALL_LENGTH_OUTSIDE
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import {
   Bounds3D,
   direction,

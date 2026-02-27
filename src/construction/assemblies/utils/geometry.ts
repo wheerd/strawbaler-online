@@ -1,4 +1,4 @@
-import type { GroupOrElement } from '@/construction/elements'
+import type { GroupOrElement } from '@/construction/model/elements'
 import {
   type Axis3D,
   Bounds2D,

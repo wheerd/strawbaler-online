@@ -1,6 +1,6 @@
 import type { PerimeterId, PerimeterWallId, RoofId, StoreyId } from '@/building/model'
-import type { ConstructionModel } from '@/construction/model'
-import type { Tag } from '@/construction/tags'
+import type { ConstructionModel } from '@/construction/model/model'
+import type { Tag } from '@/construction/model/tags'
 import type { InitialPartInfo } from '@/parts/types'
 import type { Transform } from '@/shared/geometry'
 

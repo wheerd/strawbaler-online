@@ -1,7 +1,7 @@
 import type { Resources, SelectorFn, SelectorOptions } from 'i18next'
 
 import type { LayerSetId } from '@/building/model/ids'
-import type { ConstructionResult } from '@/construction/results'
+import type { ConstructionResult } from '@/construction/model/results'
 import type { MaterialId } from '@/materials/material'
 import { type Length, type Plane3D, type PolygonWithHoles2D, type Vec2 } from '@/shared/geometry'
 

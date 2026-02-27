@@ -8,16 +8,16 @@ import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
 import { VerticalOffsetMap } from '@/construction/context/offsets'
 import { transformManifold } from '@/construction/manifold/operations'
-import { type ConstructionModel } from '@/construction/model'
-import { type ConstructionResult, yieldAsGroup, yieldWithDeterministicIds } from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
+import { type ConstructionModel } from '@/construction/model/model'
+import { type ConstructionResult, yieldAsGroup, yieldWithDeterministicIds } from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
 import {
   TAG_LAYERS,
   TAG_ROOF_LAYER_INSIDE,
   TAG_ROOF_LAYER_OVERHANG,
   TAG_ROOF_LAYER_TOP,
   createTag
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import {
   type Length,
   type LineSegment2D,

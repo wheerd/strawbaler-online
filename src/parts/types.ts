@@ -1,5 +1,5 @@
 import type { PerimeterId, RoofId, StoreyId, WallId } from '@/building/model/ids'
-import type { ConstructionElementId } from '@/construction/elements'
+import type { ConstructionElementId } from '@/construction/model/elements'
 import type { CrossSection, Material, MaterialId } from '@/materials/material'
 import type { Area, Length, PolygonWithHoles2D, Vec3, Volume } from '@/shared/geometry'
 import type { TranslatableString } from '@/shared/i18n/TranslatableString'

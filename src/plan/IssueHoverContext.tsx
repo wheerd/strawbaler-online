@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react'
 
-import type { ConstructionIssueId } from '@/construction/results'
+import type { ConstructionIssueId } from '@/construction/model/results'
 
 interface IssueHoverContextValue {
   hoveredIssueId: ConstructionIssueId | null

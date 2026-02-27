@@ -1,6 +1,6 @@
 import type { CutFunction } from '@/construction/assemblies/utils/geometry'
-import type { ConstructionElement, ConstructionGroup } from '@/construction/elements'
-import type { Tag } from '@/construction/tags'
+import type { ConstructionElement, ConstructionGroup } from '@/construction/model/elements'
+import type { Tag } from '@/construction/model/tags'
 
 /**
  * Sanitize a string to be safe for use as a CSS class name

@@ -1,6 +1,6 @@
 import type { Manifold } from 'manifold-3d'
 
-import type { BaseShape, CuboidShape, ExtrudedShape } from '@/construction/shapes'
+import type { BaseShape, CuboidShape, ExtrudedShape } from '@/construction/model/shapes'
 import { ensurePolygonIsClockwise, ensurePolygonIsCounterClockwise } from '@/shared/geometry'
 import { getManifoldModule } from '@/shared/geometry/manifoldInstance'
 

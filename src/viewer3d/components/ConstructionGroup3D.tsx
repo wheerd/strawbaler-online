@@ -1,4 +1,4 @@
-import type { ConstructionGroup, GroupOrElement } from '@/construction/elements'
+import type { ConstructionGroup, GroupOrElement } from '@/construction/model/elements'
 import { useEffectiveOpacity } from '@/viewer3d/context/TagOpacityContext'
 import { toThreeTransform } from '@/viewer3d/utils/geometry'
 

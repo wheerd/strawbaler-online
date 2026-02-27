@@ -3,9 +3,9 @@ import type { PostOpeningConfig } from '@/construction/assemblies/openings/types
 import { type WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import type { SegmentInfillMethod } from '@/construction/assemblies/walls'
 import { constructPost } from '@/construction/assemblies/walls/posts'
-import { yieldMeasurementFromArea } from '@/construction/measurements'
-import { type ConstructionResult, yieldElement, yieldError } from '@/construction/results'
-import { createElementFromArea } from '@/construction/shapes'
+import { yieldMeasurementFromArea } from '@/construction/model/measurements'
+import { type ConstructionResult, yieldElement, yieldError } from '@/construction/model/results'
+import { createElementFromArea } from '@/construction/model/shapes'
 import {
   TAG_HEADER,
   TAG_HEADER_FROM_TOP,
@@ -14,7 +14,7 @@ import {
   TAG_OPENING_WIDTH,
   TAG_SILL,
   TAG_SILL_HEIGHT
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import { type Length } from '@/shared/geometry'
 
 export class PostOpeningAssembly extends BaseOpeningAssembly<PostOpeningConfig> {

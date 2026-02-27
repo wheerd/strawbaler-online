@@ -20,7 +20,7 @@ import {
   TAG_WALL_LAYER_OUTSIDE,
   type Tag,
   createTag
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import type {
   DimensionalMaterial,
   Material,

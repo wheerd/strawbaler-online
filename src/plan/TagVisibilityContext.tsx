@@ -1,6 +1,6 @@
 import { type ReactNode, createContext, useContext, useEffect, useMemo, useReducer, useRef } from 'react'
 
-import type { Tag, TagCategoryId, TagId, TagOrCategory } from '@/construction/tags'
+import type { Tag, TagCategoryId, TagId, TagOrCategory } from '@/construction/model/tags'
 
 import { type TagVisibilityStore, createTagVisibilityStore } from './tagVisibilityStore'
 

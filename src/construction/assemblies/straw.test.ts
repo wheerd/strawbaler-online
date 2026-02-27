@@ -3,9 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { type ConfigActions, getConfigActions } from '@/config'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
-import type { ConstructionElement } from '@/construction/elements'
-import { aggregateResults } from '@/construction/results'
-import type { CuboidShape } from '@/construction/shapes'
+import type { ConstructionElement } from '@/construction/model/elements'
+import { aggregateResults } from '@/construction/model/results'
+import type { CuboidShape } from '@/construction/model/shapes'
 import { getPosition, newVec3 } from '@/shared/geometry'
 
 import type { MaterialId, StrawbaleMaterial } from '../../materials/material'

@@ -2,9 +2,9 @@ import { type FloorAssemblyConfig, resolveLayerSetLayers, resolveLayerSetThickne
 import { runLayerConstruction } from '@/construction/assemblies/layers'
 import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
-import type { ConstructionModel } from '@/construction/model'
-import { type ConstructionResult, yieldAsGroup, yieldWithDeterministicIds } from '@/construction/results'
-import { TAG_FLOOR_LAYER_BOTTOM, TAG_FLOOR_LAYER_TOP, TAG_LAYERS, type Tag, createTag } from '@/construction/tags'
+import type { ConstructionModel } from '@/construction/model/model'
+import { type ConstructionResult, yieldAsGroup, yieldWithDeterministicIds } from '@/construction/model/results'
+import { TAG_FLOOR_LAYER_BOTTOM, TAG_FLOOR_LAYER_TOP, TAG_LAYERS, type Tag, createTag } from '@/construction/model/tags'
 import { type Length, type PolygonWithHoles2D } from '@/shared/geometry'
 
 import type { FloorAssembly, FloorAssemblyConfigBase } from './types'

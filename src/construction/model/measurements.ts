@@ -1,5 +1,5 @@
 import { type Projection, WallConstructionArea, projectPoint } from '@/construction/assemblies/utils/geometry'
-import { type ConstructionResult, yieldMeasurement } from '@/construction/results'
+import { type ConstructionResult, yieldMeasurement } from '@/construction/model/results'
 import {
   type Length,
   type Line2D,

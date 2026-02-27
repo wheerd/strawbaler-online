@@ -1,7 +1,7 @@
 import type { PerimeterWithGeometry } from '@/building/model'
 import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
 import type { StoreyContext } from '@/construction/context/storeys'
-import type { ConstructionResult } from '@/construction/results'
+import type { ConstructionResult } from '@/construction/model/results'
 import type { MaterialId } from '@/materials/material'
 import type { Length } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'

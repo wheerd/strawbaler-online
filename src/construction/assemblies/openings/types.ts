@@ -2,7 +2,7 @@ import type { Opening, OpeningAssemblyId } from '@/building/model'
 import type { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import { type PostConfig, validatePosts } from '@/construction/assemblies/walls/posts'
 import { type SegmentInfillMethod } from '@/construction/assemblies/walls/types'
-import type { ConstructionResult } from '@/construction/results'
+import type { ConstructionResult } from '@/construction/model/results'
 import type { MaterialId } from '@/materials/material'
 import type { Length } from '@/shared/geometry'
 

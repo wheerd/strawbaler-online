@@ -1,8 +1,15 @@
 import type React from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  TAG_BASE_PLATE,
+  TAG_DECKING,
+  TAG_ROOF,
+  TAG_SUBFLOOR,
+  TAG_TOP_PLATE,
+  TAG_WALLS
+} from '@/construction/model/tags'
 import type { ConstructionModelId } from '@/construction/store'
-import { TAG_BASE_PLATE, TAG_DECKING, TAG_ROOF, TAG_SUBFLOOR, TAG_TOP_PLATE, TAG_WALLS } from '@/construction/tags'
 
 import { TOP_VIEW } from './ConstructionPlan'
 import { ConstructionPlanModal } from './ConstructionPlanModal'

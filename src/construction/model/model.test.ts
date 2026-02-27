@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ConstructionIssueId } from '@/construction/results'
+import type { ConstructionIssueId } from '@/construction/model/results'
 import { Bounds3D, IDENTITY, fromTrans, getPosition, newVec2, newVec3 } from '@/shared/geometry'
 
 import { type ConstructionModel, mergeModels, transformModel } from './model'

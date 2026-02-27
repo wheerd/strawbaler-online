@@ -1,8 +1,8 @@
 import type { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
-import { createConstructionElement } from '@/construction/elements'
-import { type ConstructionResult, yieldElement } from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_TRIANGLE_BATTON as TAG_TRIANGLE_BATTEN } from '@/construction/tags'
+import { createConstructionElement } from '@/construction/model/elements'
+import { type ConstructionResult, yieldElement } from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
+import { TAG_TRIANGLE_BATTON as TAG_TRIANGLE_BATTEN } from '@/construction/model/tags'
 import type { MaterialId } from '@/materials/material'
 import { type Length, type PolygonWithHoles2D, addVec3, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 

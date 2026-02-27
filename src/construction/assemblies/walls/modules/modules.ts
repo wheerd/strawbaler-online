@@ -4,9 +4,9 @@ import {
   type TriangularBattenConfig,
   constructTriangularBattens
 } from '@/construction/assemblies/walls/triangularBattens'
-import { type ConstructionElement, createCuboidElement } from '@/construction/elements'
-import { type ConstructionResult, yieldAsGroup, yieldElement, yieldMeasurement } from '@/construction/results'
-import { createElementFromArea } from '@/construction/shapes'
+import { type ConstructionElement, createCuboidElement } from '@/construction/model/elements'
+import { type ConstructionResult, yieldAsGroup, yieldElement, yieldMeasurement } from '@/construction/model/results'
+import { createElementFromArea } from '@/construction/model/shapes'
 import {
   TAG_INFILL,
   TAG_MODULE,
@@ -15,7 +15,7 @@ import {
   TAG_MODULE_SPACER,
   TAG_MODULE_WIDTH,
   createTag
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import type { MaterialId } from '@/materials/material'
 import type { InitialPartInfo } from '@/parts/types'
 import { type Length, type Vec3, newVec3 } from '@/shared/geometry'

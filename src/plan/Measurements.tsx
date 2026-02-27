@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 
 import { type Projection, allPoints, bounds3Dto2D, projectPoint } from '@/construction/assemblies/utils/geometry'
-import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/measurements'
-import type { ConstructionModel } from '@/construction/model'
+import { type AutoMeasurement, type DirectMeasurement, processMeasurements } from '@/construction/model/measurements'
+import type { ConstructionModel } from '@/construction/model/model'
 import { SvgMeasurementIndicator } from '@/plan/SvgMeasurementIndicator'
 import { useVisibleItems } from '@/plan/TagVisibilityContext'
 import { getTagClasses } from '@/plan/cssHelpers'

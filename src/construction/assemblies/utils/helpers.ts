@@ -1,8 +1,8 @@
-import { createConstructionElement } from '@/construction/elements'
-import type { RawMeasurement } from '@/construction/measurements'
-import { type ConstructionResult, yieldElement } from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
-import type { Tag } from '@/construction/tags'
+import { createConstructionElement } from '@/construction/model/elements'
+import type { RawMeasurement } from '@/construction/model/measurements'
+import { type ConstructionResult, yieldElement } from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
+import type { Tag } from '@/construction/model/tags'
 import type { MaterialId } from '@/materials/material'
 import type { InitialPartInfo } from '@/parts/types'
 import {

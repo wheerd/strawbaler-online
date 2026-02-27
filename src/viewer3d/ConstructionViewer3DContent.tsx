@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import type { ConstructionModel } from '@/construction/model'
+import type { ConstructionModel } from '@/construction/model/model'
 import { type ConstructionModelId, useConstructionModel } from '@/construction/store'
 import { Spinner } from '@/shared/ui/components/spinner'
 

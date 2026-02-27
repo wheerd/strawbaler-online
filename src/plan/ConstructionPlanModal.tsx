@@ -1,8 +1,8 @@
 import React, { lazy, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import type { TagOrCategory } from '@/construction/model/tags'
 import { type ConstructionModelId, useConstructionModel } from '@/construction/store'
-import type { TagOrCategory } from '@/construction/tags'
 import type { PartId } from '@/parts/types'
 import { ConstructionPartsList } from '@/parts/ui/ConstructionPartsList'
 import { ConstructionVirtualPartsList } from '@/parts/ui/ConstructionVirtualPartsList'

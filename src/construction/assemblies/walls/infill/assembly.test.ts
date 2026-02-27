@@ -10,8 +10,14 @@ import type { PostConfig } from '@/construction/assemblies/walls/posts'
 import { constructPost } from '@/construction/assemblies/walls/posts'
 import { segmentedWallConstruction } from '@/construction/assemblies/walls/segmentation'
 import type { StoreyContext } from '@/construction/context/storeys'
-import { type IssueMessageKey, yieldElement, yieldError, yieldMeasurement, yieldWarning } from '@/construction/results'
-import { TAG_POST_SPACING } from '@/construction/tags'
+import {
+  type IssueMessageKey,
+  yieldElement,
+  yieldError,
+  yieldMeasurement,
+  yieldWarning
+} from '@/construction/model/results'
+import { TAG_POST_SPACING } from '@/construction/model/tags'
 import type { MaterialId } from '@/materials/material'
 import { IDENTITY, type Length, type Vec3, ZERO_VEC2, newVec2, newVec3 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'

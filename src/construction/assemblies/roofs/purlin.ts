@@ -10,9 +10,9 @@ import {
 } from '@/construction/assemblies/utils/helpers'
 import type { VerticalOffsetMap } from '@/construction/context/offsets'
 import { getPerimeterContextsByStorey } from '@/construction/context/perimeterContextCache'
-import { createConstructionElement } from '@/construction/elements'
 import { transformManifold } from '@/construction/manifold/operations'
-import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
+import { createConstructionElement } from '@/construction/model/elements'
+import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model/model'
 import {
   type ConstructionResult,
   assignDeterministicIdsToResults,
@@ -21,8 +21,8 @@ import {
   yieldAndClip,
   yieldElement,
   yieldMeasurement
-} from '@/construction/results'
-import { type ExtrudedShape, createExtrudedPolygon } from '@/construction/shapes'
+} from '@/construction/model/results'
+import { type ExtrudedShape, createExtrudedPolygon } from '@/construction/model/shapes'
 import {
   TAG_DECKING,
   TAG_INSIDE_SHEATHING,
@@ -39,7 +39,7 @@ import {
   TAG_ROOF_SIDE_LEFT,
   TAG_ROOF_SIDE_RIGHT,
   createTag
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import {
   IDENTITY,
   type Length,

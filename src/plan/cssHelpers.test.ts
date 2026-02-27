@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ConstructionElement, ConstructionGroup } from '@/construction/elements'
+import type { ConstructionElement, ConstructionGroup } from '@/construction/model/elements'
 import type { MaterialId } from '@/materials/material'
 import { Bounds3D, IDENTITY } from '@/shared/geometry'
 

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import type { HighlightedAreaType } from './model'
+import type { HighlightedAreaType } from '@/construction/model/model'
 
 /**
  * Hook to get the display label for a highlighted area type.

@@ -1,7 +1,7 @@
 import { isPerimeterId, isPerimeterWallId, isRoofId, isStoreyId } from '@/building/model'
-import type { ConstructionElement, ConstructionGroup, GroupOrElement } from '@/construction/elements'
-import type { ConstructionModel } from '@/construction/model'
-import { type Tag, isCustomTag } from '@/construction/tags'
+import type { ConstructionElement, ConstructionGroup, GroupOrElement } from '@/construction/model/elements'
+import type { ConstructionModel } from '@/construction/model/model'
+import { type Tag, isCustomTag } from '@/construction/model/tags'
 import { getMaterialById } from '@/materials/store'
 import { type Vec3, arrayToVec3, calculatePolygonWithHolesArea, copyVec3 } from '@/shared/geometry'
 

@@ -7,10 +7,10 @@ import {
   simplePolygonFrame,
   stripesPolygons
 } from '@/construction/assemblies/utils/helpers'
-import { createConstructionElement, createConstructionElementId } from '@/construction/elements'
-import type { ConstructionModel } from '@/construction/model'
-import { type ConstructionResult, aggregateResults, yieldMeasurement } from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
+import { createConstructionElement, createConstructionElementId } from '@/construction/model/elements'
+import type { ConstructionModel } from '@/construction/model/model'
+import { type ConstructionResult, aggregateResults, yieldMeasurement } from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
 import {
   TAG_FILLED_FLOOR,
   TAG_FLOOR_CEILING_SHEATHING,
@@ -20,7 +20,7 @@ import {
   TAG_JOIST_LENGTH,
   TAG_JOIST_SPACING,
   TAG_SUBFLOOR
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import {
   Bounds2D,
   type Polygon2D,

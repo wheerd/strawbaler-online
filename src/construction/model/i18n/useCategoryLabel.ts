@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import type { TagCategoryId } from './tags'
+import type { TagCategoryId } from '@/construction/model/tags'
 
 /**
  * Hook to get the display label for a tag category.

@@ -3,9 +3,9 @@ import { getModelActions } from '@/building/store'
 import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
 import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/helpers'
 import type { StoreyContext } from '@/construction/context/storeys'
-import { type ConstructionResult } from '@/construction/results'
-import { TAG_PLATE, TAG_RB_INFILL } from '@/construction/tags'
-import type { Tag } from '@/construction/tags'
+import { type ConstructionResult } from '@/construction/model/results'
+import { TAG_PLATE, TAG_RB_INFILL } from '@/construction/model/tags'
+import type { Tag } from '@/construction/model/tags'
 import type { MaterialId } from '@/materials/material'
 import {
   type Length,

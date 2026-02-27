@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import type { SegmentInfillMethod } from '@/construction/assemblies/walls'
-import { type ConstructionElement, type GroupOrElement, createCuboidElement } from '@/construction/elements'
-import type { RawMeasurement } from '@/construction/measurements'
-import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/results'
+import { type ConstructionElement, type GroupOrElement, createCuboidElement } from '@/construction/model/elements'
+import type { RawMeasurement } from '@/construction/model/measurements'
+import { type ConstructionResult, aggregateResults, yieldElement } from '@/construction/model/results'
 import {
   TAG_HEADER,
   TAG_HEADER_HEIGHT,
@@ -14,7 +14,7 @@ import {
   TAG_SILL,
   TAG_SILL_HEIGHT,
   type Tag
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import { createMaterialId } from '@/materials/material'
 import { type Length, newVec3 } from '@/shared/geometry'
 

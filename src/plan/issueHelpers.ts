@@ -1,8 +1,8 @@
 import type { Manifold } from 'manifold-3d'
 
-import type { GroupOrElement } from '@/construction/elements'
 import { asManifoldTransform } from '@/construction/manifold/transform'
-import type { ConstructionIssueId } from '@/construction/results'
+import type { GroupOrElement } from '@/construction/model/elements'
+import type { ConstructionIssueId } from '@/construction/model/results'
 import { IDENTITY, type Transform, composeTransform } from '@/shared/geometry'
 
 /**

@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { ConstructionModel, HighlightedCuboid, HighlightedPolygon } from '@/construction/model'
+import type { ConstructionModel, HighlightedCuboid, HighlightedPolygon } from '@/construction/model/model'
 import { PlanHighlightProvider } from '@/plan/PlanHighlightContext'
 import { Bounds3D, IDENTITY, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 

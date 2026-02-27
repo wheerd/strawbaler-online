@@ -7,10 +7,14 @@ import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import { getRoofHeightLineCached } from '@/construction/context'
 import type { StoreyContext } from '@/construction/context/storeys'
-import type { GroupOrElement } from '@/construction/elements'
-import { type ConstructionModel, createConstructionGroup } from '@/construction/model'
-import { type ConstructionResult, aggregateResults, assignDeterministicIdsToResults } from '@/construction/results'
-import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE, createTag } from '@/construction/tags'
+import type { GroupOrElement } from '@/construction/model/elements'
+import { type ConstructionModel, createConstructionGroup } from '@/construction/model/model'
+import {
+  type ConstructionResult,
+  aggregateResults,
+  assignDeterministicIdsToResults
+} from '@/construction/model/results'
+import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE, createTag } from '@/construction/model/tags'
 import {
   Bounds3D,
   IDENTITY,

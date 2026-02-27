@@ -1,3 +1,4 @@
+import { transformBounds } from '@/construction/assemblies/utils/geometry'
 import type { InitialPartInfo } from '@/parts/types'
 import {
   type Axis3D,
@@ -15,7 +16,6 @@ import {
 import { simplifyPolygon, unionPolygons } from '@/shared/geometry/polygon'
 import { assertUnreachable } from '@/shared/utils'
 
-import { transformBounds } from './assemblies/utils/geometry'
 import { type ConstructionGroup, type GroupOrElement, createConstructionElementId } from './elements'
 import type { RawMeasurement } from './measurements'
 import {

@@ -12,17 +12,17 @@ import { convertHeightLineToWallOffsets } from '@/construction/assemblies/walls/
 import { segmentedWallConstruction } from '@/construction/assemblies/walls/segmentation'
 import { getRoofHeightLineCached } from '@/construction/context'
 import type { StoreyContext } from '@/construction/context/storeys'
-import { createConstructionElement } from '@/construction/elements'
-import type { ConstructionModel } from '@/construction/model'
-import { mergeModels } from '@/construction/model'
+import { createConstructionElement } from '@/construction/model/elements'
+import type { ConstructionModel } from '@/construction/model/model'
+import { mergeModels } from '@/construction/model/model'
 import {
   type ConstructionResult,
   aggregateResults,
   assignDeterministicIdsToResults,
   yieldElement
-} from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_NON_STRAWBALE_CONSTRUCTION } from '@/construction/tags'
+} from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
+import { TAG_NON_STRAWBALE_CONSTRUCTION } from '@/construction/model/tags'
 import { getMaterialById } from '@/materials/store'
 import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
 import { Bounds3D, fromTrans, newVec2, newVec3 } from '@/shared/geometry'

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import type { TagOrCategory } from '@/construction/tags'
+import type { TagOrCategory } from '@/construction/model/tags'
 
 import { useTagVisibilityActions, useTagVisibilityForceUpdate } from './TagVisibilityContext'
 

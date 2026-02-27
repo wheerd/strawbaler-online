@@ -5,9 +5,9 @@ import type { RoofAssemblyConfig } from '@/config'
 import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/assemblies/roofs/base'
 import type { VerticalOffsetMap } from '@/construction/context/offsets'
-import { createConstructionElement } from '@/construction/elements'
 import { transformManifold } from '@/construction/manifold/operations'
-import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
+import { createConstructionElement } from '@/construction/model/elements'
+import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model/model'
 import {
   type ConstructionResult,
   assignDeterministicIdsToResults,
@@ -15,9 +15,15 @@ import {
   resultsToModel,
   yieldAndClip,
   yieldElement
-} from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_MONOLITHIC_ROOF, TAG_ROOF, TAG_ROOF_SIDE_LEFT, TAG_ROOF_SIDE_RIGHT, createTag } from '@/construction/tags'
+} from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
+import {
+  TAG_MONOLITHIC_ROOF,
+  TAG_ROOF,
+  TAG_ROOF_SIDE_LEFT,
+  TAG_ROOF_SIDE_RIGHT,
+  createTag
+} from '@/construction/model/tags'
 import { IDENTITY, type Length, negVec2 } from '@/shared/geometry'
 
 import type { MonolithicRoofConfig } from './types'

@@ -7,10 +7,10 @@ import wasmUrl from 'web-ifc/web-ifc.wasm?url'
 import { getVersionString } from '@/app/version'
 import { isOpeningId } from '@/building/model'
 import { getModelActions } from '@/building/store'
-import type { ConstructionElement, ConstructionGroup, GroupOrElement } from '@/construction/elements'
-import type { ConstructionModel, HighlightedCuboid } from '@/construction/model'
-import type { Shape } from '@/construction/shapes'
-import type { Tag } from '@/construction/tags'
+import type { ConstructionElement, ConstructionGroup, GroupOrElement } from '@/construction/model/elements'
+import type { ConstructionModel, HighlightedCuboid } from '@/construction/model/model'
+import type { Shape } from '@/construction/model/shapes'
+import type { Tag } from '@/construction/model/tags'
 import {
   TAG_BASE_PLATE,
   TAG_DECKING,
@@ -48,7 +48,7 @@ import {
   TAG_WALL_LAYER_INSIDE,
   TAG_WALL_LAYER_OUTSIDE,
   TAG_WATERPROOFING
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import type { Material, MaterialId } from '@/materials/material'
 import { getMaterialsActions } from '@/materials/store'
 import { type Transform, composeTransform, getPosition, getXAxis, getZAxis } from '@/shared/geometry'

@@ -1,7 +1,7 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import type { StoreyContext } from '@/construction/context/storeys'
-import type { ConstructionModel } from '@/construction/model'
-import type { Tag } from '@/construction/tags'
+import type { ConstructionModel } from '@/construction/model/model'
+import type { Tag } from '@/construction/model/tags'
 import type { ThicknessRange } from '@/materials/thickness'
 
 import type { WallAssembly, WallBaseConfig } from './types'

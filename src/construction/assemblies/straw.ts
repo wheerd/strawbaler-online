@@ -1,9 +1,9 @@
 import { getConfigActions } from '@/config'
 import type { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
 import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/helpers'
-import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
-import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/results'
-import { createElementFromArea, createExtrudedPolygon } from '@/construction/shapes'
+import { type ConstructionElement, createConstructionElement } from '@/construction/model/elements'
+import { type ConstructionResult, yieldElement, yieldError, yieldWarning } from '@/construction/model/results'
+import { createElementFromArea, createExtrudedPolygon } from '@/construction/model/shapes'
 import {
   TAG_FULL_BALE,
   TAG_PARTIAL_BALE,
@@ -11,7 +11,7 @@ import {
   TAG_STRAW_INFILL,
   TAG_STRAW_STUFFED,
   type Tag
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import type { MaterialId, StrawbaleMaterial } from '@/materials/material'
 import { getMaterialsActions } from '@/materials/store'
 import { type Length, type Plane3D, type Vec3 } from '@/shared/geometry'

@@ -1,8 +1,8 @@
 import type { PerimeterConstructionContext } from '@/construction/assemblies/perimeters/context'
-import { createConstructionElement } from '@/construction/elements'
-import type { ConstructionModel } from '@/construction/model'
-import { createExtrudedPolygon } from '@/construction/shapes'
-import { TAG_FLOOR_SLAB, TAG_MONOLITHIC_FLOOR } from '@/construction/tags'
+import { createConstructionElement } from '@/construction/model/elements'
+import type { ConstructionModel } from '@/construction/model/model'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
+import { TAG_FLOOR_SLAB, TAG_MONOLITHIC_FLOOR } from '@/construction/model/tags'
 import { fromTrans, newVec3 } from '@/shared/geometry'
 
 import { BaseFloorAssembly } from './base'

@@ -6,13 +6,13 @@ import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { type WallLayerSetIds, constructWallLayers } from '@/construction/assemblies/walls/layers'
 import { segmentedWallConstruction } from '@/construction/assemblies/walls/segmentation'
 import type { StoreyContext } from '@/construction/context/storeys'
-import { type ConstructionElement, createConstructionElement } from '@/construction/elements'
-import { yieldMeasurementFromArea } from '@/construction/measurements'
-import type { ConstructionModel } from '@/construction/model'
-import { mergeModels } from '@/construction/model'
-import type { ConstructionResult } from '@/construction/results'
-import { assignDeterministicIdsToResults, resultsToModel, yieldElement, yieldError } from '@/construction/results'
-import { createCuboid, createElementFromArea } from '@/construction/shapes'
+import { type ConstructionElement, createConstructionElement } from '@/construction/model/elements'
+import { yieldMeasurementFromArea } from '@/construction/model/measurements'
+import type { ConstructionModel } from '@/construction/model/model'
+import { mergeModels } from '@/construction/model/model'
+import type { ConstructionResult } from '@/construction/model/results'
+import { assignDeterministicIdsToResults, resultsToModel, yieldElement, yieldError } from '@/construction/model/results'
+import { createCuboid, createElementFromArea } from '@/construction/model/shapes'
 import {
   TAG_INFILL_CONSTRUCTION,
   TAG_MODULE,
@@ -20,7 +20,7 @@ import {
   TAG_MODULE_WIDTH,
   TAG_WALL_REINFORCEMENT,
   createTag
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import type { MaterialId, PrefabMaterial } from '@/materials/material'
 import { getMaterialsActions } from '@/materials/store'
 import type { ThicknessRange } from '@/materials/thickness'

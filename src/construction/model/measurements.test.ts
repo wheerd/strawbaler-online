@@ -10,8 +10,8 @@ import {
   type MeasurementLines,
   type ProjectedMeasurement,
   processMeasurements
-} from '@/construction/measurements'
-import type { Tag } from '@/construction/tags'
+} from '@/construction/model/measurements'
+import type { Tag } from '@/construction/model/tags'
 import { type Vec2, ZERO_VEC2, newVec2, newVec3 } from '@/shared/geometry'
 
 describe('measurements', () => {

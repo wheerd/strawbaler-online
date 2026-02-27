@@ -1,15 +1,15 @@
 import type { WallPost } from '@/building/model'
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
-import type { GroupOrElement } from '@/construction/elements'
+import type { GroupOrElement } from '@/construction/model/elements'
 import {
   type ConstructionResult,
   yieldAndCollectElements,
   yieldElement,
   yieldError,
   yieldWarning
-} from '@/construction/results'
-import { createElementFromArea } from '@/construction/shapes'
-import { TAG_INFILL, TAG_MODULE, TAG_POST, createTag } from '@/construction/tags'
+} from '@/construction/model/results'
+import { createElementFromArea } from '@/construction/model/shapes'
+import { TAG_INFILL, TAG_MODULE, TAG_POST, createTag } from '@/construction/model/tags'
 import type { DimensionalMaterial, MaterialId } from '@/materials/material'
 import { getMaterialById } from '@/materials/store'
 import { type Length } from '@/shared/geometry'

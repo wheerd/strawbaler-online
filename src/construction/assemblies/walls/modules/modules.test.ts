@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { WallConstructionArea } from '@/construction/assemblies/utils/geometry'
-import type { ConstructionElement, ConstructionGroup } from '@/construction/elements'
-import { aggregateResults } from '@/construction/results'
+import type { ConstructionElement, ConstructionGroup } from '@/construction/model/elements'
+import { aggregateResults } from '@/construction/model/results'
 import { newVec3 } from '@/shared/geometry'
 
 import { type DoubleFrameModuleConfig, type SingleFrameModuleConfig, constructModule } from './modules'

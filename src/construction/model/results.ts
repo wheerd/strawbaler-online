@@ -3,7 +3,7 @@ import type { Manifold } from 'manifold-3d'
 
 import { transformBounds } from '@/construction/assemblies/utils/geometry'
 import { getBoundsFromManifold, transformManifold } from '@/construction/manifold/operations'
-import type { Tag } from '@/construction/tags'
+import type { Tag } from '@/construction/model/tags'
 import type { PartInfo } from '@/parts/types'
 import { Bounds3D, IDENTITY, type Transform, invertTransform } from '@/shared/geometry'
 

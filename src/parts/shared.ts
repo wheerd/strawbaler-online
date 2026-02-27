@@ -18,7 +18,7 @@ import {
   type Tag,
   type TagCategoryId,
   isCustomTag
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import type { CrossSection, DimensionalMaterial, Material, SheetMaterial } from '@/materials/material'
 import {
   type Area,

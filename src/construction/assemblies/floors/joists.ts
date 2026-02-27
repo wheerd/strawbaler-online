@@ -6,10 +6,10 @@ import {
   simplePolygonFrame,
   stripesPolygons
 } from '@/construction/assemblies/utils/helpers'
-import { createConstructionElement, createConstructionElementId } from '@/construction/elements'
-import { type ConstructionModel } from '@/construction/model'
-import { type ConstructionResult, aggregateResults } from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
+import { createConstructionElement, createConstructionElementId } from '@/construction/model/elements'
+import { type ConstructionModel } from '@/construction/model/model'
+import { type ConstructionResult, aggregateResults } from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
 import {
   TAG_FLOOR_INFILL,
   TAG_FLOOR_OPENING_FRAME,
@@ -17,7 +17,7 @@ import {
   TAG_JOIST,
   TAG_JOIST_FLOOR,
   TAG_SUBFLOOR
-} from '@/construction/tags'
+} from '@/construction/model/tags'
 import {
   Bounds2D,
   type Polygon2D,

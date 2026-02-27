@@ -1,7 +1,7 @@
 import type { LayerConstruction, StripedLayerConfig } from '@/construction/assemblies/layers/types'
-import { createConstructionElement } from '@/construction/elements'
-import { type ConstructionResult, yieldElement, yieldWarning } from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
+import { createConstructionElement } from '@/construction/model/elements'
+import { type ConstructionResult, yieldElement, yieldWarning } from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
 import {
   type Length,
   type Line2D,

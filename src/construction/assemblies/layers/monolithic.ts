@@ -1,7 +1,7 @@
 import type { LayerConstruction, MonolithicLayerConfig } from '@/construction/assemblies/layers/types'
-import { createConstructionElement } from '@/construction/elements'
-import { type ConstructionResult, yieldElement } from '@/construction/results'
-import { createExtrudedPolygon } from '@/construction/shapes'
+import { createConstructionElement } from '@/construction/model/elements'
+import { type ConstructionResult, yieldElement } from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
 import { type Length, type Plane3D, type PolygonWithHoles2D, fromTrans, newVec3 } from '@/shared/geometry'
 
 export class MonolithicLayerConstruction implements LayerConstruction<MonolithicLayerConfig> {
