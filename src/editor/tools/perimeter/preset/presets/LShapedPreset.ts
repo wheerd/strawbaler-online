@@ -1,6 +1,6 @@
-import { LShape0Icon } from '@/editor/tools/perimeter/preset/presets/Icons'
 import { LShapedPresetDialog } from '@/editor/tools/perimeter/preset/presets/LShapedPresetDialog'
 import { type Vec2, newVec2, offsetPolygon } from '@/shared/geometry'
+import { LShape0Icon } from '@/shared/ui/icons'
 
 import type { LShapedPresetConfig, PerimeterPreset } from './types'
 

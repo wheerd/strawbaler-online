@@ -5,9 +5,8 @@ import type { FloorAssemblyId } from '@/building/model/ids'
 import type { NamedAssembly } from '@/construction/config'
 import { useFloorAssemblies } from '@/construction/config/store'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
+import { getFloorAssemblyTypeIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/ui/utils'
-
-import { getFloorAssemblyTypeIcon } from './Icons'
 
 export interface FloorAssemblySelectProps {
   value: FloorAssemblyId | null | undefined

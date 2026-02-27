@@ -1,6 +1,6 @@
 import { type Vec2, newVec2 } from '@/shared/geometry'
+import { RectIcon } from '@/shared/ui/icons'
 
-import { RectIcon } from './Icons'
 import { RectangularPresetDialog } from './RectangularPresetDialog'
 import type { PerimeterPreset, RectangularPresetConfig } from './types'
 

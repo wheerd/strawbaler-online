@@ -7,10 +7,10 @@ import { useFloorAreaById, useModelActions } from '@/building/store'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { Bounds2D, calculatePolygonArea, polygonPerimeter } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
-import { FitToViewIcon } from '@/shared/ui/Icons'
 import { Button } from '@/shared/ui/components/button'
 import { DataList } from '@/shared/ui/components/data-list'
 import { Separator } from '@/shared/ui/components/separator'
+import { FitToViewIcon } from '@/shared/ui/icons'
 
 interface FloorAreaInspectorProps {
   floorAreaId: FloorAreaId

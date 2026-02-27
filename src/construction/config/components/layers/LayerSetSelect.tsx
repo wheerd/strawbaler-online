@@ -1,25 +1,11 @@
-import { ArrowDownToLineIcon, ArrowUpToLineIcon, BrickWallIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { LayerSetId } from '@/building/model/ids'
 import { useLayerSets } from '@/construction/config/store'
 import type { LayerSetConfig, LayerSetUse } from '@/construction/layers/types'
 import { useFormatters } from '@/shared/i18n/useFormatters'
-import { RoofIcon } from '@/shared/ui/Icons'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
-
-export function getLayerSetUseIcon(use: LayerSetUse) {
-  switch (use) {
-    case 'wall':
-      return BrickWallIcon
-    case 'floor':
-      return ArrowDownToLineIcon
-    case 'ceiling':
-      return ArrowUpToLineIcon
-    case 'roof':
-      return RoofIcon
-  }
-}
+import { getLayerSetUseIcon } from '@/shared/ui/icons'
 
 export interface LayerSetSelectProps {
   value: LayerSetId | undefined

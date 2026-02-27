@@ -10,7 +10,6 @@ import { MaterialSelectWithEdit } from '@/construction/materials/components/Mate
 import { type MaterialId } from '@/construction/materials/material'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { Bounds2D, offsetPolygon } from '@/shared/geometry'
-import { FitToViewIcon } from '@/shared/ui/Icons'
 import { LengthField } from '@/shared/ui/LengthField'
 import { Button } from '@/shared/ui/components/button'
 import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
@@ -18,6 +17,7 @@ import { Kbd } from '@/shared/ui/components/kbd'
 import { Separator } from '@/shared/ui/components/separator'
 import { Switch } from '@/shared/ui/components/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
+import { FitToViewIcon } from '@/shared/ui/icons'
 
 export function WallPostInspector({ postId }: { postId: WallPostId }): React.JSX.Element {
   const { t } = useTranslation('inspector')

@@ -22,11 +22,11 @@ import {
   type Transform,
   composeTransform
 } from '@/shared/geometry'
-import { MidCutXIcon, MidCutYIcon } from '@/shared/ui/Icons'
 import { SVGViewport, type SVGViewportRef } from '@/shared/ui/SVGViewport'
 import { Button } from '@/shared/ui/components/button'
 import { Card } from '@/shared/ui/components/card'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
+import { MidCutXIcon, MidCutYIcon } from '@/shared/ui/icons'
 
 import { CuboidAreaShape } from './CuboidAreaShape'
 import { usePlanHighlight } from './PlanHighlightContext'

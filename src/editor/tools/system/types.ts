@@ -2,7 +2,7 @@ import type { Resources } from 'i18next'
 import type { ComponentType } from 'react'
 
 import { type Vec2 } from '@/shared/geometry'
-import type { IconProps } from '@/shared/ui/Icons'
+import type { IconProps } from '@/shared/ui/icons'
 
 export type ToolId =
   | 'basic.select'

@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 
 import type { RingBeamAssemblyId } from '@/building/model/ids'
 import { usePerimeterWalls } from '@/building/store'
-import { getRingBeamTypeIcon } from '@/construction/config/components/Icons'
 import { RingBeamAssemblySelect } from '@/construction/config/components/RingBeamAssemblySelect'
 import { type EntityId, useEntityLabel } from '@/construction/config/components/useEntityLabel'
 import {
@@ -23,6 +22,7 @@ import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'
 import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 import { Separator } from '@/shared/ui/components/separator'
+import { getRingBeamTypeIcon } from '@/shared/ui/icons'
 
 import { ConfigForm } from './ConfigForm'
 

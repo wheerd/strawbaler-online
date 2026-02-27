@@ -5,9 +5,8 @@ import type { WallAssemblyId } from '@/building/model/ids'
 import type { NamedAssembly } from '@/construction/config'
 import { useWallAssemblies } from '@/construction/config/store'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
+import { getPerimeterConfigTypeIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/ui/utils'
-
-import { getPerimeterConfigTypeIcon } from './Icons'
 
 export interface WallAssemblySelectProps {
   value: WallAssemblyId | null | undefined

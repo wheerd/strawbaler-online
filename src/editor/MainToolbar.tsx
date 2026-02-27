@@ -14,12 +14,12 @@ import { useActiveToolId } from '@/editor/tools/system/hooks/useToolState'
 import { TOOL_GROUPS, getToolInfoById } from '@/editor/tools/system/metadata'
 import type { ToolId } from '@/editor/tools/system/types'
 import { ProjectMenu } from '@/projects/ui/ProjectMenu'
-import { ConstructionPlanIcon, Model3DIcon } from '@/shared/ui/Icons'
 import { Logo } from '@/shared/ui/Logo'
 import { Button } from '@/shared/ui/components/button'
 import { Kbd } from '@/shared/ui/components/kbd'
 import { Separator } from '@/shared/ui/components/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/components/tooltip'
+import { ConstructionPlanIcon, Model3DIcon } from '@/shared/ui/icons'
 
 export interface MainToolbarProps {
   onInfoClick?: () => void

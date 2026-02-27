@@ -1,10 +1,10 @@
-import { Box, Circle, Droplet, Layers } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { Material, MaterialId, MaterialType } from '@/construction/materials/material'
 import { useMaterials } from '@/construction/materials/store'
 import { Select, SelectValue } from '@/shared/ui/components/select'
+import { getMaterialTypeIcon } from '@/shared/ui/icons'
 
 const NONE_VALUE = '__material_none__'
 
@@ -21,56 +21,6 @@ export interface MaterialSelectProps {
   onlyTypes?: MaterialType[]
 }
 
-interface IconProps extends React.SVGAttributes<SVGElement> {
-  children?: never
-}
-type IconComponent = React.ComponentType<IconProps>
-
-function StrawbaleIcon(props: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M6 9 12 6 18 9 12 12 6 9Z" />
-      <path d="M6 9v6l6 3v-6L6 9Z" />
-      <path d="M18 9v6l-6 3v-6l6-3Z" />
-      <path d="M8.5 7.3v6.7" />
-      <path d="M15.5 8.3v6.7" />
-      <path d="M6 12.2l6 2.9 6-2.9" />
-      <path d="M9 15.1l-3-.9" />
-      <path d="m15 15.1 3-.9" />
-    </svg>
-  )
-}
-
-export function getMaterialTypeIcon(type: Material['type']): IconComponent {
-  switch (type) {
-    case 'dimensional':
-      return Box
-    case 'sheet':
-      return Layers
-    case 'volume':
-      return Droplet
-    case 'generic':
-      return Circle
-    case 'strawbale':
-      return StrawbaleIcon
-    case 'prefab':
-      return Box
-    default:
-      return Circle
-  }
-}
-
-/**
- * Hook to get translated material type names
- */
 export function useGetMaterialTypeName() {
   const { t } = useTranslation('construction')
   return (type: Material['type']) => {

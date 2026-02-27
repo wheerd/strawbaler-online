@@ -12,7 +12,6 @@ import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { createProject } from '@/projects/services/CloudSyncManager'
 import { usePersistenceStore } from '@/projects/services/persistenceStore'
 import { useProjectName } from '@/projects/store'
-import { SaveIcon } from '@/shared/ui/Icons'
 import { Button } from '@/shared/ui/components/button'
 import {
   DropdownMenu,
@@ -25,6 +24,7 @@ import {
   DropdownMenuTrigger
 } from '@/shared/ui/components/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/components/tooltip'
+import { SaveIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/ui/utils'
 import { FileInputCancelledError, createBinaryFileInput, createFileInput } from '@/shared/utils/createFileInput'
 import { downloadFile } from '@/shared/utils/downloadFile'

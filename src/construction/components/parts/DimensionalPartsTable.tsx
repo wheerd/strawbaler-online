@@ -8,10 +8,10 @@ import type { AggregatedPartItem, PartId } from '@/construction/parts/types'
 import { Bounds2D, type Polygon2D } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
-import { SawIcon } from '@/shared/ui/Icons'
 import { Button } from '@/shared/ui/components/button'
 import { Table } from '@/shared/ui/components/table'
 import { Tooltip } from '@/shared/ui/components/tooltip'
+import { SawIcon } from '@/shared/ui/icons'
 
 import { calculateWeight, canHighlightPart, getIssueSeverity } from './utils'
 

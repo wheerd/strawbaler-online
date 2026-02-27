@@ -18,7 +18,7 @@ import {
   toMaterialGroup
 } from '@/construction/components/parts/utils/aggregation'
 import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
-import { getMaterialTypeIcon, useGetMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
+import { useGetMaterialTypeName } from '@/construction/materials/components/MaterialSelect'
 import type { Material } from '@/construction/materials/material'
 import { useMaterialName } from '@/construction/materials/useMaterialName'
 import { type ConstructionModelId, type PartId, getLabelGroupId, useMaterialParts } from '@/construction/parts'
@@ -31,6 +31,7 @@ import { Skeleton } from '@/shared/ui/components/skeleton'
 import { Spinner } from '@/shared/ui/components/spinner'
 import { Table } from '@/shared/ui/components/table'
 import { Tooltip } from '@/shared/ui/components/tooltip'
+import { getMaterialTypeIcon } from '@/shared/ui/icons'
 
 interface ConstructionPartsListProps {
   modelId?: ConstructionModelId

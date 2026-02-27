@@ -5,9 +5,8 @@ import type { RingBeamAssemblyId } from '@/building/model/ids'
 import type { NamedAssembly } from '@/construction/config'
 import { useRingBeamAssemblies } from '@/construction/config/store'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
+import { getRingBeamTypeIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/ui/utils'
-
-import { getRingBeamTypeIcon } from './Icons'
 
 export interface RingBeamAssemblySelectProps {
   value: RingBeamAssemblyId | null | undefined

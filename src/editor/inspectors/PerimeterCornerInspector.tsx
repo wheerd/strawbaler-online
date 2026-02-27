@@ -7,11 +7,11 @@ import { useModelActions, usePerimeterCornerById, usePerimeterWallById } from '@
 import { useConfigActions } from '@/construction/config/store'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { Bounds2D, midpoint } from '@/shared/geometry'
-import { FitToViewIcon, SplitWallIcon } from '@/shared/ui/Icons'
 import { Button } from '@/shared/ui/components/button'
 import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 import { DataList } from '@/shared/ui/components/data-list'
 import { Separator } from '@/shared/ui/components/separator'
+import { FitToViewIcon, SplitWallIcon } from '@/shared/ui/icons'
 
 export function PerimeterCornerInspector({ cornerId }: { cornerId: PerimeterCornerId }): React.JSX.Element {
   const { t } = useTranslation('inspector')

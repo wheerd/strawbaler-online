@@ -5,9 +5,8 @@ import type { RoofAssemblyId } from '@/building/model/ids'
 import type { NamedAssembly } from '@/construction/config'
 import { useRoofAssemblies } from '@/construction/config/store'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
+import { getRoofAssemblyTypeIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/ui/utils'
-
-import { getRoofAssemblyTypeIcon } from './Icons'
 
 export interface RoofAssemblySelectProps {
   value: RoofAssemblyId | null | undefined

@@ -15,6 +15,12 @@ import type { ToolInspectorProps } from '@/editor/tools/system/types'
 import { type Length } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { LengthField } from '@/shared/ui/LengthField'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+import { Separator } from '@/shared/ui/components/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
+import { Tooltip } from '@/shared/ui/components/tooltip'
 import {
   DoorIcon,
   DoubleDoorPresetIcon,
@@ -25,13 +31,7 @@ import {
   StandardWindowPresetIcon,
   WideDoorPresetIcon,
   WindowIcon
-} from '@/shared/ui/OpeningIcons'
-import { Button } from '@/shared/ui/components/button'
-import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
-import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
-import { Separator } from '@/shared/ui/components/separator'
-import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
-import { Tooltip } from '@/shared/ui/components/tooltip'
+} from '@/shared/ui/icons'
 
 import type { AddOpeningTool } from './AddOpeningTool'
 

@@ -25,7 +25,6 @@ import { useViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { Bounds2D, type Length, calculatePolygonArea, polygonPerimeter } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
-import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon, RoofIcon } from '@/shared/ui/Icons'
 import { LengthField } from '@/shared/ui/LengthField'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { Button } from '@/shared/ui/components/button'
@@ -35,6 +34,7 @@ import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 import { Separator } from '@/shared/ui/components/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 import { Tooltip } from '@/shared/ui/components/tooltip'
+import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon, RoofIcon } from '@/shared/ui/icons'
 
 interface PerimeterInspectorProps {
   selectedId: PerimeterId

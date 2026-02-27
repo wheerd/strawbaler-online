@@ -16,13 +16,13 @@ import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { useToolSystem } from '@/editor/tools/system/ToolSystemContext'
 import { Bounds2D } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
-import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon } from '@/shared/ui/Icons'
 import { LengthField } from '@/shared/ui/LengthField'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { Button } from '@/shared/ui/components/button'
 import { Card } from '@/shared/ui/components/card'
 import { DataList } from '@/shared/ui/components/data-list'
 import { Separator } from '@/shared/ui/components/separator'
+import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon } from '@/shared/ui/icons'
 
 export function PerimeterWallInspector({ wallId }: { wallId: PerimeterWallId }): React.JSX.Element {
   const { t } = useTranslation('inspector')

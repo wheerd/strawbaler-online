@@ -25,13 +25,13 @@ import {
   radiansToDegrees
 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
-import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon } from '@/shared/ui/Icons'
 import { LengthField } from '@/shared/ui/LengthField'
 import { NumberField } from '@/shared/ui/NumberField'
 import { Button } from '@/shared/ui/components/button'
 import { DataList } from '@/shared/ui/components/data-list'
 import { Separator } from '@/shared/ui/components/separator'
 import { Tooltip } from '@/shared/ui/components/tooltip'
+import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon } from '@/shared/ui/icons'
 
 interface RoofInspectorProps {
   roofId: RoofId

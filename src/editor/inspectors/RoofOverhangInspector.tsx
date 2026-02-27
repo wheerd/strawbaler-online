@@ -6,11 +6,11 @@ import type { RoofOverhangId } from '@/building/model/ids'
 import { useModelActions, useRoofOverhangById } from '@/building/store'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { Bounds2D } from '@/shared/geometry'
-import { FitToViewIcon } from '@/shared/ui/Icons'
 import { LengthField } from '@/shared/ui/LengthField'
 import { Button } from '@/shared/ui/components/button'
 import { Callout, CalloutText } from '@/shared/ui/components/callout'
 import { Separator } from '@/shared/ui/components/separator'
+import { FitToViewIcon } from '@/shared/ui/icons'
 
 export function RoofOverhangInspector({ overhangId }: { overhangId: RoofOverhangId }): React.JSX.Element {
   const { t } = useTranslation('inspector')

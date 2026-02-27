@@ -21,15 +21,14 @@ import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { OpeningPreview } from '@/editor/shared/OpeningPreview'
 import { Bounds2D, type Polygon2D, addVec2, offsetPolygon, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
-import { FitToViewIcon } from '@/shared/ui/Icons'
 import { LengthField } from '@/shared/ui/LengthField'
-import { DoorIcon, PassageIcon, WindowIcon } from '@/shared/ui/OpeningIcons'
 import { Button } from '@/shared/ui/components/button'
 import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 import { Kbd } from '@/shared/ui/components/kbd'
 import { Separator } from '@/shared/ui/components/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 import { Tooltip } from '@/shared/ui/components/tooltip'
+import { DoorIcon, FitToViewIcon, PassageIcon, WindowIcon } from '@/shared/ui/icons'
 
 export function OpeningInspector({ openingId }: { openingId: OpeningId }): React.JSX.Element {
   const { t } = useTranslation('inspector')
