@@ -2,6 +2,7 @@
 import { Handle, IFC4, IfcAPI, type IfcLineObject } from 'web-ifc'
 import wasmUrl from 'web-ifc/web-ifc.wasm?url'
 
+import { getVersionString } from '@/app/version'
 import {
   type OpeningWithGeometry,
   type PerimeterCornerWithGeometry,
@@ -25,7 +26,6 @@ import {
 } from '@/shared/geometry'
 import { arePolygonsIntersecting, subtractPolygons, unionPolygons } from '@/shared/geometry/polygon'
 import { downloadFile } from '@/shared/utils/downloadFile'
-import { getVersionString } from '@/shared/utils/version'
 
 interface IfcStoreyContext extends StoreyContext {
   elevation: Length

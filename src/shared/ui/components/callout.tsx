@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/ui/utils'
 
 const calloutVariants = cva('flex gap-3 rounded-lg border p-4', {
   variants: {

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/ui/utils'
 
 const DataList = React.forwardRef<HTMLDListElement, React.HTMLAttributes<HTMLDListElement>>(
   ({ className, ...props }, ref) => <dl ref={ref} className={cn('grid gap-2', className)} {...props} />

@@ -6,9 +6,9 @@ import type { StoreyId } from '@/building/model/ids'
 import { usePerimeters, useStoreyById } from '@/building/store'
 import { getPerimeterStats } from '@/construction/perimeters/stats'
 import { getLevelColor } from '@/editor/status-bar/StoreySelector'
-import { cn } from '@/lib/utils'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { Callout, CalloutText } from '@/shared/ui/components/callout'
+import { cn } from '@/shared/ui/utils'
 
 interface StoreyInspectorProps {
   selectedId: StoreyId

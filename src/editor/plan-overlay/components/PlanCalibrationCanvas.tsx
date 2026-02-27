@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next'
 
 import type { ImagePoint } from '@/editor/plan-overlay/types'
 import { Bounds2D, ZERO_VEC2, newVec2 } from '@/shared/geometry'
-import { elementSizeRef } from '@/shared/hooks/useElementSize'
 import { SVGViewport, type SVGViewportRef } from '@/shared/ui/SVGViewport'
 import { Card } from '@/shared/ui/components/card'
+import { elementSizeRef } from '@/shared/ui/hooks/useElementSize'
 
 export type SelectionMode = 'measure' | 'origin' | 'idle'
 

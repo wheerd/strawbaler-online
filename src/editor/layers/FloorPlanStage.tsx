@@ -13,7 +13,7 @@ import { useSvgMouseTransform } from '@/editor/tools/system/hooks/useSvgMouseTra
 import { useToolCursor } from '@/editor/tools/system/hooks/useToolCursor'
 import { EditorSvgPatterns } from '@/editor/utils/patterns'
 import type { Vec2 } from '@/shared/geometry'
-import { isDebug } from '@/shared/hooks/useDebug'
+import { isDebug } from '@/shared/ui/hooks/useDebug'
 
 import { FloorLayer } from './FloorLayer'
 import { PerimeterLayer } from './PerimeterLayer'

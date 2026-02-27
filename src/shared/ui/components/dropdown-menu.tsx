@@ -2,7 +2,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { Check, ChevronRight, CircleDot } from 'lucide-react'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/ui/utils'
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 

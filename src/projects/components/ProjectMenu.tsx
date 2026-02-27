@@ -3,16 +3,15 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { useOfflineStatus } from '@/app/pwa/useOfflineStatus'
 import { useIsAuthenticated } from '@/app/user/store'
 import { getModelActions } from '@/building/store'
 import { usePersistenceStore } from '@/building/store/persistenceStore'
 import type { ConstructionModel } from '@/construction/model'
 import { clearSelection } from '@/editor/hooks/useSelectionStore'
 import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { cn } from '@/lib/utils'
 import { createProject } from '@/projects/services/CloudSyncManager'
 import { useProjectName } from '@/projects/store'
-import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
 import { SaveIcon } from '@/shared/ui/Icons'
 import { Button } from '@/shared/ui/components/button'
 import {
@@ -26,6 +25,7 @@ import {
   DropdownMenuTrigger
 } from '@/shared/ui/components/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/components/tooltip'
+import { cn } from '@/shared/ui/utils'
 import { FileInputCancelledError, createBinaryFileInput, createFileInput } from '@/shared/utils/createFileInput'
 import { downloadFile } from '@/shared/utils/downloadFile'
 

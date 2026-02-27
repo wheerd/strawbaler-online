@@ -1,4 +1,5 @@
 import type React from 'react'
+import type { Ref } from 'react'
 
 import type { Length } from '@/shared/geometry'
 
@@ -35,6 +36,7 @@ export interface LengthFieldProps {
   onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
 
+  ref?: Ref<HTMLInputElement>
   children?: React.ReactNode
 }
 

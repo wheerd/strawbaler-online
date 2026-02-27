@@ -7,10 +7,10 @@ import { getFloorAssemblyTypeIcon } from '@/construction/config/components/Icons
 import { useConfigActions } from '@/construction/config/store'
 import { resolveFloorAssembly } from '@/construction/floors'
 import type { FloorConfig } from '@/construction/floors/types'
-import { useDebouncedInput } from '@/shared/hooks/useDebouncedInput'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { Separator } from '@/shared/ui/components/separator'
 import { TextField } from '@/shared/ui/components/text-field'
+import { useDebouncedInput } from '@/shared/ui/hooks/useDebouncedInput'
 
 import { FilledConfigForm } from './FilledConfigForm'
 import { HangingJoistConfigForm } from './HangingJoistConfigForm'

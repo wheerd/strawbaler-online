@@ -2,9 +2,9 @@ import React, { useId, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Bounds2D, type Polygon2D, type PolygonWithHoles2D, newVec2 } from '@/shared/geometry'
-import { elementSizeRef } from '@/shared/hooks/useElementSize'
 import { SVGViewport, type SVGViewportRef } from '@/shared/ui/SVGViewport'
 import { FullScreenModal } from '@/shared/ui/components/full-screen-modal'
+import { elementSizeRef } from '@/shared/ui/hooks/useElementSize'
 
 import { PolygonAngleIndicators } from './AngleIndicators'
 import { DiagonalEdgeMeasurements } from './DiagonalEdgeMeasurements'

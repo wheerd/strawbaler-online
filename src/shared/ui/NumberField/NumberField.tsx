@@ -3,8 +3,8 @@ import * as React from 'react'
 import { forwardRef, useContext } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { cn } from '@/lib/utils'
 import { Button } from '@/shared/ui/components/button'
+import { cn } from '@/shared/ui/utils'
 
 import { useNumberFieldState } from './hooks/useNumberFieldState'
 import type { NumberFieldProps, NumberFieldState } from './types'

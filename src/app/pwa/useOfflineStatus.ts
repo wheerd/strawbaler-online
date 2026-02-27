@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { getPreloadProgress, subscribeToPreloadProgress } from '@/shared/services/chunkPreloader'
-import { isServiceWorkerReady, subscribeToServiceWorkerReady } from '@/shared/services/serviceWorkerRegistration'
+import { getPreloadProgress, subscribeToPreloadProgress } from '@/app/pwa/chunkPreloader'
+import { isServiceWorkerReady, subscribeToServiceWorkerReady } from '@/app/pwa/serviceWorkerRegistration'
 
 export type OfflineStatus = 'offline' | 'loading' | 'ready'
 

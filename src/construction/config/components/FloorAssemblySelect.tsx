@@ -4,8 +4,8 @@ import { Trans, useTranslation } from 'react-i18next'
 import type { FloorAssemblyId } from '@/building/model/ids'
 import type { NamedAssembly } from '@/construction/config'
 import { useFloorAssemblies } from '@/construction/config/store'
-import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
+import { cn } from '@/shared/ui/utils'
 
 import { getFloorAssemblyTypeIcon } from './Icons'
 

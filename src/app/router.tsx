@@ -2,7 +2,7 @@ import React from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { createBrowserRouter } from 'react-router-dom'
 
-import { PrivacyPage } from '@/shared/ui/PrivacyPage'
+import { PrivacyPage } from '@/app/PrivacyPage'
 import { ErrorFallback } from '@/shared/ui/errors/ErrorFallback'
 
 import { Layout } from './Layout'

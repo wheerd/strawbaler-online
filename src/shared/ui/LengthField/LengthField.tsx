@@ -1,9 +1,8 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { forwardRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { cn } from '@/lib/utils'
 import { Button } from '@/shared/ui/components/button'
+import { cn } from '@/shared/ui/utils'
 
 import { useLengthFieldState } from './hooks/useLengthFieldState'
 import type { LengthFieldProps } from './types'
@@ -30,28 +29,26 @@ import type { LengthFieldProps } from './types'
  * />
  * ```
  */
-export const LengthField = forwardRef<HTMLInputElement, LengthFieldProps>(function LengthField(
-  {
-    value,
-    onChange,
-    onCommit,
-    unit,
-    step,
-    precision,
-    min,
-    max,
-    size = 'base',
-    placeholder,
-    disabled = false,
-    className,
-    style,
-    onFocus,
-    onBlur,
-    children,
-    ...props
-  },
-  ref
-) {
+export function LengthField({
+  value,
+  onChange,
+  onCommit,
+  unit,
+  step,
+  precision,
+  min,
+  max,
+  size = 'base',
+  placeholder,
+  disabled = false,
+  className,
+  style,
+  onFocus,
+  onBlur,
+  children,
+  ref,
+  ...props
+}: LengthFieldProps) {
   const { i18n } = useTranslation()
   const locale = i18n.language
 
@@ -141,4 +138,4 @@ export const LengthField = forwardRef<HTMLInputElement, LengthFieldProps>(functi
       </div>
     </div>
   )
-})
+}

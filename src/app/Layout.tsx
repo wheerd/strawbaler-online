@@ -1,9 +1,9 @@
 import React, { Suspense, useEffect } from 'react'
 import { Outlet, Route, Routes, useLocation, useMatches } from 'react-router-dom'
 
+import { startChunkPreloading } from '@/app/pwa/chunkPreloader'
 import { AppSkeleton } from '@/app/skeletons/AppSkeleton'
 import { useAuth } from '@/app/user/useAuth'
-import { startChunkPreloading } from '@/shared/services/chunkPreloader'
 
 const FloorPlanEditor = React.lazy(async () => {
   const module = await import('@/editor/FloorPlanEditor')

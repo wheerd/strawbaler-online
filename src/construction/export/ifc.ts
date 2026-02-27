@@ -4,6 +4,7 @@ import type { Manifold } from 'manifold-3d'
 import { Handle, IFC4, IfcAPI, type IfcLineObject } from 'web-ifc'
 import wasmUrl from 'web-ifc/web-ifc.wasm?url'
 
+import { getVersionString } from '@/app/version'
 import { isOpeningId } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import type { ConstructionElement, ConstructionGroup, GroupOrElement } from '@/construction/elements'
@@ -53,7 +54,6 @@ import {
 import { type Transform, composeTransform, getPosition, getXAxis, getZAxis } from '@/shared/geometry'
 import { transString } from '@/shared/i18n/TranslatableString'
 import { downloadFile } from '@/shared/utils/downloadFile'
-import { getVersionString } from '@/shared/utils/version'
 
 import { ManifoldToIfcConverter } from './ifcGeometryConverter'
 

@@ -3,11 +3,10 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { cn } from '@/lib/utils'
+import { useOfflineStatus } from '@/app/pwa/useOfflineStatus'
 import { createProject, deleteProject, switchProject } from '@/projects/services/CloudSyncManager'
 import { useProjectId, useProjectList, useProjectListLoading } from '@/projects/store'
 import type { ProjectListItem } from '@/projects/types'
-import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +24,7 @@ import { Input } from '@/shared/ui/components/input'
 import { Label } from '@/shared/ui/components/label'
 import { RadioGroup, RadioGroupItem } from '@/shared/ui/components/radio-group'
 import { Textarea } from '@/shared/ui/components/textarea'
+import { cn } from '@/shared/ui/utils'
 
 interface ProjectsModalProps {
   open: boolean

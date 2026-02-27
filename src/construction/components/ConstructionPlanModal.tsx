@@ -8,11 +8,11 @@ import { PartHighlightPanel } from '@/construction/components/plan/PartHighlight
 import type { PartId } from '@/construction/parts/types'
 import { type ConstructionModelId, useConstructionModel } from '@/construction/store'
 import type { TagOrCategory } from '@/construction/tags'
-import { elementSizeRef } from '@/shared/hooks/useElementSize'
 import { FullScreenModal } from '@/shared/ui/components/full-screen-modal'
 import { Skeleton } from '@/shared/ui/components/skeleton'
 import { Spinner } from '@/shared/ui/components/spinner'
 import { Tabs } from '@/shared/ui/components/tabs'
+import { elementSizeRef } from '@/shared/ui/hooks/useElementSize'
 
 import { ConstructionPlan, type ViewOption } from './plan/ConstructionPlan'
 import { PlanHighlightProvider, usePlanHighlight } from './plan/PlanHighlightContext'

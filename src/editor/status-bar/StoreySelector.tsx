@@ -8,9 +8,9 @@ import type { Storey } from '@/building/model'
 import type { StoreyId } from '@/building/model/ids'
 import { useActiveStoreyId, useModelActions, useStoreysOrderedByLevel } from '@/building/store'
 import { clearSelection } from '@/editor/hooks/useSelectionStore'
-import { cn } from '@/lib/utils'
 import { Button } from '@/shared/ui/components/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
+import { cn } from '@/shared/ui/utils'
 
 export function getLevelColor(level: number): string {
   if (level === 0) {

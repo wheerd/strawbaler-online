@@ -2,10 +2,10 @@ import React, { Suspense, lazy, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { type ConstructionModelId } from '@/construction/store'
-import { elementSizeRef } from '@/shared/hooks/useElementSize'
 import { FullScreenModal } from '@/shared/ui/components/full-screen-modal'
 import { Skeleton } from '@/shared/ui/components/skeleton'
 import { Spinner } from '@/shared/ui/components/spinner'
+import { elementSizeRef } from '@/shared/ui/hooks/useElementSize'
 
 import { TagOpacityProvider } from './context/TagOpacityContext'
 

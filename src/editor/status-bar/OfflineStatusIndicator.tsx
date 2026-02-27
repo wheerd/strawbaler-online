@@ -1,7 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus'
+import { useOfflineStatus } from '@/app/pwa/useOfflineStatus'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/components/tooltip'
 
 export function OfflineStatusIndicator(): React.JSX.Element {

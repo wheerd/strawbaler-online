@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/ui/utils'
 
 export type VolumeUnit = 'liter' | 'm3'
 
