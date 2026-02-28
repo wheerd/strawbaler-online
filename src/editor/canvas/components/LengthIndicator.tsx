@@ -83,7 +83,6 @@ export function LengthIndicator({
   const textRef = useRef<SVGTextElement>(null)
   useEffect(() => {
     if (textRef.current) {
-      console.log('update bbox')
       setTextSize(textRef.current.getBBox())
     }
   }, [textRef.current, setTextSize, longestLineLength, calculatedFontSize, lineCount])
@@ -181,7 +180,7 @@ export function LengthIndicator({
           style={{
             filter: 'drop-shadow(0 0 0.1em var(--color-background))'
           }}
-          className="font-sans font-bold"
+          className="font-mono font-bold"
         >
           {lines.map((line, index) => (
             <tspan key={`line-${index}`} x={0} dy={index === 0 ? 0 : `1.2em`}>
