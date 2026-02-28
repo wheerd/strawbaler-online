@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useState } from 'react'
+import { useDeferredValue, useEffect, useRef, useState } from 'react'
 
 import { DIMENSION_DEFAULT_FONT_SIZE, DIMENSION_DEFAULT_STROKE_WIDTH } from '@/editor/canvas/dimensions'
 import { useUiScale } from '@/editor/canvas/state/viewportStore'
@@ -80,16 +80,12 @@ export function LengthIndicator({
     height: lineCount * calculatedFontSize
   })
   const deferredTextSize = useDeferredValue(textSize)
-  const [refHasRun, setRefHasRun] = useState(false)
-  const textRef = useCallback(
-    (textRef: SVGTextElement | null) => {
-      if (textRef && !refHasRun) {
-        setTextSize(textRef.getBBox())
-        setRefHasRun(true)
-      }
-    },
-    [setTextSize, refHasRun, setRefHasRun]
-  )
+  const textRef = useRef<SVGTextElement>(null)
+  useEffect(() => {
+    if (textRef.current) {
+      setTextSize(textRef.current.getBBox())
+    }
+  }, [setTextSize, longestLineLength, calculatedFontSize, lineCount])
 
   const connectionStrokeWidth = scaledStrokeWidth / 2
   const actualEndMarkerSize = deferredTextSize.height
@@ -177,7 +173,6 @@ export function LengthIndicator({
           ref={textRef}
           y={0}
           fontSize={calculatedFontSize}
-          fontWeight="bold"
           fill={actualColor}
           textAnchor="middle"
           dominantBaseline="central"
@@ -185,6 +180,7 @@ export function LengthIndicator({
           style={{
             filter: 'drop-shadow(0 0 0.1em var(--color-background))'
           }}
+          className="font-sans font-bold"
         >
           {lines.map((line, index) => (
             <tspan key={`line-${index}`} x={0} dy={index === 0 ? 0 : `1.2em`}>
