@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useCallback, useDeferredValue, useState } from 'react'
 
 import { DIMENSION_DEFAULT_FONT_SIZE, DIMENSION_DEFAULT_STROKE_WIDTH } from '@/editor/canvas/dimensions'
 import { useUiScale } from '@/editor/canvas/state/viewportStore'
@@ -36,7 +36,6 @@ export function LengthIndicator({
   strokeWidth = DIMENSION_DEFAULT_STROKE_WIDTH
 }: LengthIndicatorProps): React.JSX.Element {
   const { formatLength } = useFormatters()
-  const textRef = useRef<SVGTextElement>(null)
   const uiScale = useUiScale()
 
   const scaledFontSize = fontSize * uiScale
@@ -76,15 +75,24 @@ export function LengthIndicator({
       ? Math.max(12, scaledFontSize * (maxTextWidth / estimatedTextWidth))
       : scaledFontSize
 
-  const textSize: { width: number; height: number } = useMemo(() => {
-    if (textRef.current) {
-      return textRef.current.getBBox()
-    }
-    return { width: longestLineLength * calculatedFontSize * 0.6, height: lineCount * calculatedFontSize }
-  }, [textRef.current, displayLabel, calculatedFontSize])
+  const [textSize, setTextSize] = useState({
+    width: longestLineLength * calculatedFontSize * 0.6,
+    height: lineCount * calculatedFontSize
+  })
+  const deferredTextSize = useDeferredValue(textSize)
+  const [refHasRun, setRefHasRun] = useState(false)
+  const textRef = useCallback(
+    (textRef: SVGTextElement | null) => {
+      if (textRef && !refHasRun) {
+        setTextSize(textRef.getBBox())
+        setRefHasRun(true)
+      }
+    },
+    [setTextSize, refHasRun, setRefHasRun]
+  )
 
   const connectionStrokeWidth = scaledStrokeWidth / 2
-  const actualEndMarkerSize = textSize.height
+  const actualEndMarkerSize = deferredTextSize.height
 
   const perpendicular = measurementLength > 0 ? perpendicularCCW(dir) : ZERO_VEC2
 
@@ -95,8 +103,8 @@ export function LengthIndicator({
 
   const endMarkerDirection = scaleVec2(perpendicular, actualEndMarkerSize / 2)
 
-  const leftEndpoint = scaleAddVec2(lineMidpoint, dir, -textSize.width * 0.6)
-  const rightEndpoint = scaleAddVec2(lineMidpoint, dir, textSize.width * 0.6)
+  const leftEndpoint = scaleAddVec2(lineMidpoint, dir, -deferredTextSize.width * 0.6)
+  const rightEndpoint = scaleAddVec2(lineMidpoint, dir, deferredTextSize.width * 0.6)
 
   const verticalOffset = ((lines.length - 1) * scaledFontSize * 1.2) / 2
 
