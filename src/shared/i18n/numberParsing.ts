@@ -183,7 +183,8 @@ export function formatNumberForInputCompact(value: number, maxDecimals: number, 
 
   // Remove trailing zeros after decimal point
   if (formatted.includes(separator)) {
-    return formatted.replace(new RegExp(`\\${separator}?0+$`), '')
+    const escaped = separator === '.' ? '\\.' : separator
+    return formatted.replace(new RegExp(`${escaped}?0+$`), '')
   }
 
   return formatted

@@ -2,9 +2,9 @@ import { Frame } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { useGridActions, useGridSize, useShowGrid } from '@/editor/hooks/useGrid'
+import { useGridActions, useGridSize, useShowGrid } from '@/editor/canvas/state/gridStore'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { Button } from '@/shared/ui/components/button'
 
 export function GridSizeDisplay(): React.JSX.Element {
   const { t } = useTranslation('toolbar')

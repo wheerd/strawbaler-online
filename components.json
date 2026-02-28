@@ -11,8 +11,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils"
+    "components": "@/shared/ui",
+    "ui": "@/shared/ui/components",
+    "lib": "@/shared",
+    "hooks": "@/shared/ui/hooks",
+    "utils": "@/shared/utils"
   },
   "registries": {
     "@supabase": "https://supabase.com/ui/r/{name}.json"

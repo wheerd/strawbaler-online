@@ -3,7 +3,7 @@ import { useTheme } from 'next-themes'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/shared/ui/components/button'
 
 export function ThemeToggle(): React.JSX.Element {
   const { t } = useTranslation('toolbar')

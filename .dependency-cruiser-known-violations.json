@@ -1,0 +1,27 @@
+[
+  {
+    "type": "cycle",
+    "from": "src/construction/assemblies/openings/index.ts",
+    "to": "src/construction/assemblies/openings/threshold.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/construction/assemblies/openings/threshold.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/construction/assemblies/openings/index.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      }
+    ]
+  }
+]

@@ -2,18 +2,6 @@ import { TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
-  FloorAreaInspector,
-  FloorOpeningInspector,
-  OpeningInspector,
-  PerimeterCornerInspector,
-  PerimeterInspector,
-  PerimeterWallInspector,
-  RoofInspector,
-  RoofOverhangInspector
-} from '@/building/components/inspectors'
-import { StoreyInspector } from '@/building/components/inspectors/StoreyInspector'
-import { WallPostInspector } from '@/building/components/inspectors/WallPostInspector'
-import {
   isFloorAreaId,
   isFloorOpeningId,
   isOpeningId,
@@ -25,8 +13,18 @@ import {
   isWallPostId
 } from '@/building/model/ids'
 import { useActiveStoreyId } from '@/building/store'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
-import { useCurrentSelection } from '@/editor/hooks/useSelectionStore'
+import { useCurrentSelection } from '@/editor/canvas/state/selectionStore'
+import { FloorAreaInspector } from '@/editor/inspectors/FloorAreaInspector'
+import { FloorOpeningInspector } from '@/editor/inspectors/FloorOpeningInspector'
+import { OpeningInspector } from '@/editor/inspectors/OpeningInspector'
+import { PerimeterCornerInspector } from '@/editor/inspectors/PerimeterCornerInspector'
+import { PerimeterInspector } from '@/editor/inspectors/PerimeterInspector'
+import { PerimeterWallInspector } from '@/editor/inspectors/PerimeterWallInspector'
+import { RoofInspector } from '@/editor/inspectors/RoofInspector'
+import { RoofOverhangInspector } from '@/editor/inspectors/RoofOverhangInspector'
+import { StoreyInspector } from '@/editor/inspectors/StoreyInspector'
+import { WallPostInspector } from '@/editor/inspectors/WallPostInspector'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 
 export function SelectToolInspector(): React.JSX.Element {
   const { t } = useTranslation('tool')

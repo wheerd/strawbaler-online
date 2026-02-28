@@ -1,9 +1,9 @@
-import { viewportActions } from '@/editor/hooks/useViewportStore'
-import type { LengthInputPosition } from '@/editor/services/length-input'
-import { activateLengthInput, deactivateLengthInput } from '@/editor/services/length-input'
-import { SnappingService } from '@/editor/services/snapping'
-import type { SnapResult, SnappingContext } from '@/editor/services/snapping/types'
+import { type SnapResult, type SnappingContext, SnappingService } from '@/editor/canvas/services/SnappingService'
+import type { LengthInputPosition } from '@/editor/canvas/services/length-input'
+import { activateLengthInput, deactivateLengthInput } from '@/editor/canvas/services/length-input'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
+import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { CursorStyle, EditorEvent } from '@/editor/tools/system/types'
 import {
   type Length,
@@ -40,8 +40,8 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
 
   private readonly snappingService: SnappingService
 
-  protected constructor(initialState: Omit<TState, keyof PolygonToolStateBase>) {
-    super()
+  protected constructor(toolSystem: ToolSystem, initialState: Omit<TState, keyof PolygonToolStateBase>) {
+    super(toolSystem)
     this.state = {
       points: [] as Vec2[],
       pointer: ZERO_VEC2,

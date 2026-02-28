@@ -1,3 +1,4 @@
+import type { ToolSystem } from './ToolSystem'
 import type { ToolImplementation } from './types'
 
 /**
@@ -25,6 +26,11 @@ import type { ToolImplementation } from './types'
  */
 export abstract class BaseTool implements Pick<ToolImplementation, 'onRenderNeeded'> {
   private listeners: (() => void)[] = []
+  protected toolSystem: ToolSystem
+
+  constructor(toolSystem: ToolSystem) {
+    this.toolSystem = toolSystem
+  }
 
   /**
    * Register a listener that will be called whenever the tool's state changes.

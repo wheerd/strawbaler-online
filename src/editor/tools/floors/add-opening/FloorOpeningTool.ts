@@ -2,6 +2,7 @@ import { getModelActions } from '@/building/store'
 import { BaseFloorPolygonTool } from '@/editor/tools/floors/shared/BaseFloorPolygonTool'
 import type { PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import { PolygonToolOverlay } from '@/editor/tools/shared/polygon/PolygonToolOverlay'
+import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { ToolImplementation } from '@/editor/tools/system/types'
 import type { Polygon2D } from '@/shared/geometry'
 
@@ -12,8 +13,8 @@ export class FloorOpeningTool extends BaseFloorPolygonTool<PolygonToolStateBase>
   readonly overlayComponent = PolygonToolOverlay
   readonly inspectorComponent = FloorOpeningToolInspector
 
-  constructor() {
-    super({})
+  constructor(toolSystem: ToolSystem) {
+    super(toolSystem, {})
   }
 
   protected onPolygonCompleted(polygon: Polygon2D): void {

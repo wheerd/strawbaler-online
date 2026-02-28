@@ -1,10 +1,10 @@
 import React from 'react'
 
-import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/MovementBehavior'
 import type {
   OpeningEntityContext,
   OpeningMovementState
 } from '@/editor/tools/basic/movement/behaviors/OpeningMovementBehavior'
+import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/types'
 import { scaleAddVec2 } from '@/shared/geometry'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 

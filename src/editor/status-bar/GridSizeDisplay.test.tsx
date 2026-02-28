@@ -11,7 +11,7 @@ vi.mock('@/shared/i18n/useFormatters', () => ({
 }))
 
 // Mock the grid hooks
-vi.mock('@/editor/hooks/useGrid', () => ({
+vi.mock('@/editor/canvas/state/gridStore', () => ({
   useShowGrid: () => true,
   useGridSize: () => 500,
   useGridActions: () => ({

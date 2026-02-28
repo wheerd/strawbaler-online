@@ -1,10 +1,10 @@
 import { Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 
 import type { PerimeterPresetTool } from './PerimeterPresetTool'
 
@@ -28,6 +28,7 @@ export function PerimeterPresetToolInspector({ tool }: ToolInspectorProps<Perime
         {tool.availablePresets.map(preset => (
           <preset.dialog
             key={preset.type}
+            preset={preset}
             trigger={
               <Button className="w-full" size="default">
                 <preset.icon />

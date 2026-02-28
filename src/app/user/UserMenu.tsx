@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { getAuthErrorMessage } from '@/app/user/authErrors'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/shared/ui/components/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+} from '@/shared/ui/components/dropdown-menu'
 
 import { useIsAuthenticated, useUserEmail } from './store'
 import { getSupabaseClient, isSupabaseConfigured } from './supabaseClient'

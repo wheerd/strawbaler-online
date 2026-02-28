@@ -1,8 +1,8 @@
 import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/construction/config/store'
-import { roughWood, woodwool } from '@/construction/materials/material'
-import { getSelectionActions } from '@/editor/hooks/useSelectionStore'
-import { viewportActions } from '@/editor/hooks/useViewportStore'
+import { getConfigActions } from '@/config/store'
+import { getSelectionActions } from '@/editor/canvas/state/selectionStore'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
+import { roughWood, woodwool } from '@/materials/material'
 import { Bounds2D, newVec2, polygonIsClockwise } from '@/shared/geometry'
 
 import { CommonDoors, CommonWindows, type DoorSpec, type WindowSpec, addDoors, addWindows } from './openings'

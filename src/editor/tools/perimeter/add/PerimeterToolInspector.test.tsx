@@ -1,15 +1,16 @@
+import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { type Mock, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
-import { ConfigurationModalContext } from '@/construction/config/context/ConfigurationModalContext'
+import { ConfigurationModalContext } from '@/config/ui/ConfigurationModalContext'
+import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2 } from '@/shared/geometry'
 
 import { PerimeterTool } from './PerimeterTool'
 import { PerimeterToolInspector } from './PerimeterToolInspector'
 
-// Mock the config store
-vi.mock('@/construction/config/store', () => ({
+vi.mock('@/config/store', () => ({
   useRingBeamAssemblies: () => [
     {
       id: 'test-ring-beam-assembly',
@@ -38,10 +39,11 @@ Object.defineProperty(Element.prototype, 'scrollIntoView', {
   writable: true
 })
 
-vi.mock('@/construction/walls')
+vi.mock('@/construction/assemblies/walls')
 
 describe('PerimeterToolInspector', () => {
   let mockTool: PerimeterTool
+  let toolSystem: ToolSystem
   let mockOnRenderNeeded: Mock<(listener: () => void) => () => void>
   let mockSetAssembly: Mock<typeof PerimeterTool.prototype.setAssembly>
   let mockSetWallThickness: Mock<typeof PerimeterTool.prototype.setWallThickness>
@@ -50,6 +52,7 @@ describe('PerimeterToolInspector', () => {
   let mockClearLengthOverride: Mock<typeof PerimeterTool.prototype.clearLengthOverride>
 
   beforeEach(() => {
+    toolSystem = new ToolSystem()
     mockOnRenderNeeded = vi.fn()
     mockSetAssembly = vi.fn()
     mockSetWallThickness = vi.fn()
@@ -57,7 +60,7 @@ describe('PerimeterToolInspector', () => {
     mockSetTopRingBeam = vi.fn()
     mockClearLengthOverride = vi.fn()
 
-    mockTool = new PerimeterTool()
+    mockTool = new PerimeterTool(toolSystem)
 
     // Reset tool state
     mockTool.state = {

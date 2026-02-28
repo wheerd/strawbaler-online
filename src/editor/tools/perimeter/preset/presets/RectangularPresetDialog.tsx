@@ -3,30 +3,32 @@ import { useTranslation } from 'react-i18next'
 
 import type { PerimeterReferenceSide } from '@/building/model'
 import type { WallAssemblyId } from '@/building/model/ids'
-import { Button } from '@/components/ui/button'
-import { DialogClose } from '@/components/ui/dialog'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { RingBeamAssemblySelectWithEdit } from '@/construction/config/components/RingBeamAssemblySelectWithEdit'
-import { WallAssemblySelectWithEdit } from '@/construction/config/components/WallAssemblySelectWithEdit'
 import {
   useDefaultBaseRingBeamAssemblyId,
   useDefaultTopRingBeamAssemblyId,
   useDefaultWallAssemblyId
-} from '@/construction/config/store'
-import { MeasurementInfo } from '@/editor/components/MeasurementInfo'
-import { BaseModal } from '@/shared/components/BaseModal'
-import { LengthField } from '@/shared/components/LengthField'
+} from '@/config/store'
+import { RingBeamAssemblySelectWithEdit } from '@/config/ui/ring-beam-assembly/RingBeamAssemblySelectWithEdit'
+import { WallAssemblySelectWithEdit } from '@/config/ui/wall-assembly/WallAssemblySelectWithEdit'
+import { BaseModal } from '@/shared/ui/BaseModal'
+import { LengthField } from '@/shared/ui/LengthField'
+import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
+import { Button } from '@/shared/ui/components/button'
+import { DialogClose } from '@/shared/ui/components/dialog'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 
 import { PolygonReferencePreview } from './PolygonReferencePreview'
-import { RectangularPreset } from './RectangularPreset'
 import type { PresetDialogProps, RectangularPresetConfig } from './types'
 
-export function RectangularPresetDialog({ onConfirm, trigger }: PresetDialogProps): React.JSX.Element {
+export function RectangularPresetDialog({
+  preset,
+  onConfirm,
+  trigger
+}: PresetDialogProps<RectangularPresetConfig>): React.JSX.Element {
   const { t } = useTranslation('tool')
   const defaultWallAssemblyId = useDefaultWallAssemblyId()
   const defaultBaseRingBeamAssemblyId = useDefaultBaseRingBeamAssemblyId()
   const defaultTopRingBeamAssemblyId = useDefaultTopRingBeamAssemblyId()
-  const preset = useMemo(() => new RectangularPreset(), [])
 
   // Form state with defaults from config store
   const [config, setConfig] = useState<RectangularPresetConfig>(() => ({

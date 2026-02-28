@@ -1,11 +1,16 @@
 import { getModelActions } from '@/building/store'
-import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { getToolActions } from '@/editor/tools/system'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
+import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { DummyToolInspector, type EditorEvent, type ToolImplementation } from '@/editor/tools/system/types'
 
 export class FitToViewTool implements ToolImplementation {
   readonly id = 'basic.fit-to-view'
   readonly inspectorComponent = DummyToolInspector
+  protected toolSystem: ToolSystem
+
+  constructor(toolSystem: ToolSystem) {
+    this.toolSystem = toolSystem
+  }
 
   handlePointerDown(_event: EditorEvent): boolean {
     return false
@@ -25,7 +30,7 @@ export class FitToViewTool implements ToolImplementation {
 
       viewportActions().fitToView(bounds)
     } finally {
-      getToolActions().popTool()
+      this.toolSystem.popTool()
     }
   }
 

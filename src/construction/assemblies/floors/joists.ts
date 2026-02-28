@@ -1,0 +1,271 @@
+import {
+  infiniteBeamPolygon,
+  partitionByAlignedEdges,
+  polygonFromLineIntersections,
+  simplePolygonFrame,
+  stripesPolygons
+} from '@/construction/assemblies/utils/helpers'
+import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
+import { createConstructionElement, createConstructionElementId } from '@/construction/model/elements'
+import { type ConstructionModel } from '@/construction/model/model'
+import { type ConstructionResult, aggregateResults } from '@/construction/model/results'
+import { createExtrudedPolygon } from '@/construction/model/shapes'
+import {
+  TAG_FLOOR_INFILL,
+  TAG_FLOOR_OPENING_FRAME,
+  TAG_FLOOR_WALL_BEAM,
+  TAG_JOIST,
+  TAG_JOIST_FLOOR,
+  TAG_SUBFLOOR
+} from '@/construction/model/tags'
+import {
+  Bounds2D,
+  type Polygon2D,
+  type PolygonWithHoles2D,
+  type Vec2,
+  direction,
+  dotAbsVec2,
+  dotVec2,
+  ensurePolygonIsClockwise,
+  fromTrans,
+  intersectPolygon,
+  isPointStrictlyInPolygon,
+  midpoint,
+  minimumAreaBoundingBox,
+  newVec3,
+  offsetLine,
+  offsetPolygon,
+  perpendicular,
+  perpendicularCW,
+  subtractPolygons
+} from '@/shared/geometry'
+
+import { BaseFloorAssembly } from './base'
+import type { JoistFloorConfig } from './types'
+
+const EPSILON = 1e-5
+
+/**
+ * Detects whether wall beams exist on the left and right sides of a partition.
+ * Checks if midpoints of wall beam polygon edges are strictly inside the partition.
+ */
+function detectBeamEdges(
+  partition: Polygon2D,
+  joistDirection: Vec2,
+  wallBeamCheckPoints: Vec2[]
+): { leftHasBeam: boolean; rightHasBeam: boolean } {
+  if (partition.points.length === 0 || wallBeamCheckPoints.length === 0) {
+    return { leftHasBeam: false, rightHasBeam: false }
+  }
+
+  const perpDir = perpendicular(joistDirection)
+
+  // Find left and right boundaries of partition (min/max perpendicular projections)
+  const projections = partition.points.map(p => dotVec2(p, perpDir))
+  const leftProjection = Math.min(...projections)
+  const rightProjection = Math.max(...projections)
+  const centerProjection = (leftProjection + rightProjection) / 2
+
+  let leftHasBeam = false
+  let rightHasBeam = false
+
+  for (const checkPoint of wallBeamCheckPoints) {
+    if (isPointStrictlyInPolygon(checkPoint, partition)) {
+      const projection = dotVec2(checkPoint, perpDir)
+
+      if (projection < centerProjection) {
+        leftHasBeam = true
+      } else {
+        rightHasBeam = true
+      }
+    }
+
+    if (leftHasBeam && rightHasBeam) break
+  }
+
+  return { leftHasBeam, rightHasBeam }
+}
+
+export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
+  construct = (context: PerimeterConstructionContext): ConstructionModel => {
+    const bbox = minimumAreaBoundingBox(context.outerPolygon)
+    const joistDirection = bbox.smallestDirection
+
+    const wallBeamCheckPoints: Vec2[] = []
+    const wallBeamPolygons: PolygonWithHoles2D[] = []
+    const lineCount = context.innerLines.length
+    for (let i = 0; i < lineCount; i++) {
+      const insideLine = context.innerLines[i]
+      if (1 - dotAbsVec2(insideLine.direction, joistDirection) > EPSILON) continue
+      const outsideLine = context.outerLines[i]
+      const prevClip = context.outerLines[(i - 1 + lineCount) % lineCount]
+      const nextClip = context.outerLines[(i + 1) % lineCount]
+
+      const insideBeam = infiniteBeamPolygon(
+        insideLine,
+        prevClip,
+        nextClip,
+        this.config.wallBeamInsideOffset,
+        this.config.wallBeamThickness - this.config.wallBeamInsideOffset
+      )
+
+      if (insideBeam) {
+        const clippedBeam = subtractPolygons([insideBeam], context.floorOpenings)
+        wallBeamPolygons.push(...clippedBeam)
+        const leftDir = perpendicularCW(insideLine.direction)
+        const leftPoints = insideBeam.points.filter(p => dotVec2(direction(insideLine.point, p), leftDir) > 0)
+        wallBeamCheckPoints.push(midpoint(leftPoints[0], leftPoints[1]))
+      }
+
+      const outsideBeam = infiniteBeamPolygon(outsideLine, prevClip, nextClip, this.config.wallBeamThickness, 0)
+
+      if (outsideBeam) {
+        const clippedBeam = subtractPolygons([outsideBeam], context.floorOpenings)
+        wallBeamPolygons.push(...clippedBeam)
+      }
+    }
+
+    const joistArea = polygonFromLineIntersections(
+      context.innerLines.map((l, i) =>
+        1 - dotAbsVec2(l.direction, joistDirection) < EPSILON ? l : context.outerLines[i]
+      )
+    )
+    const holeClip = polygonFromLineIntersections(
+      context.innerLines.map((l, i) =>
+        1 - dotAbsVec2(l.direction, joistDirection) < EPSILON
+          ? offsetLine(l, this.config.wallBeamInsideOffset)
+          : context.outerLines[i]
+      )
+    )
+    const partitions = Array.from(partitionByAlignedEdges(joistArea, joistDirection))
+
+    const expandedHoles = context.floorOpenings.map(h => offsetPolygon(h, this.config.openingSideThickness))
+
+    const joistPolygons = partitions.flatMap(p => {
+      const { leftHasBeam, rightHasBeam } = detectBeamEdges(p, joistDirection, wallBeamCheckPoints)
+
+      return subtractPolygons([p], expandedHoles).flatMap(p =>
+        Array.from(
+          stripesPolygons(
+            p,
+            joistDirection,
+            this.config.joistThickness,
+            this.config.joistSpacing,
+            leftHasBeam ? this.config.joistSpacing : 0,
+            rightHasBeam ? this.config.joistSpacing : 0,
+            3000
+          )
+        )
+      )
+    })
+
+    const clippedHoles = expandedHoles
+      .map(ensurePolygonIsClockwise)
+      .flatMap(p => intersectPolygon({ outer: p, holes: [] }, { outer: joistArea, holes: [] }))
+      .map(p => p.outer)
+
+    const infillPolygons = subtractPolygons(
+      [context.outerPolygon],
+      [context.innerPolygon, ...joistPolygons.map(p => p.outer), ...wallBeamPolygons.map(p => p.outer), ...clippedHoles]
+    )
+
+    const wallBeams = wallBeamPolygons.map(
+      p =>
+        ({
+          type: 'element',
+          element: createConstructionElement(
+            this.config.wallBeamMaterial,
+            createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
+            undefined,
+            [TAG_FLOOR_WALL_BEAM],
+            { type: 'wall-beam' }
+          )
+        }) satisfies ConstructionResult
+    )
+    const joists = joistPolygons.map(
+      p =>
+        ({
+          type: 'element',
+          element: createConstructionElement(
+            this.config.joistMaterial,
+            createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
+            undefined,
+            [TAG_JOIST],
+            { type: 'joist', requiresSinglePiece: true }
+          )
+        }) satisfies ConstructionResult
+    )
+    const wallInfill = infillPolygons.map(
+      p =>
+        ({
+          type: 'element',
+          element: createConstructionElement(
+            this.config.wallInfillMaterial,
+            createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
+            undefined,
+            [TAG_FLOOR_INFILL]
+          )
+        }) satisfies ConstructionResult
+    )
+    const openingFrames = context.floorOpenings.flatMap(h =>
+      Array.from(
+        simplePolygonFrame(
+          h,
+          this.config.openingSideThickness,
+          this.config.constructionHeight,
+          this.config.openingSideMaterial,
+          holeClip,
+          { type: 'floor-opening-frame' },
+          [TAG_FLOOR_OPENING_FRAME],
+          false
+        )
+      )
+    )
+
+    const subfloorPolygons = subtractPolygons([context.innerPolygon], context.floorOpenings)
+    const subfloor = subfloorPolygons.map(
+      p =>
+        ({
+          type: 'element',
+          element: createConstructionElement(
+            this.config.subfloorMaterial,
+            createExtrudedPolygon(p, 'xy', this.config.subfloorThickness),
+            fromTrans(newVec3(0, 0, this.config.constructionHeight)),
+            [TAG_SUBFLOOR],
+            { type: 'subfloor' }
+          )
+        }) satisfies ConstructionResult
+    )
+
+    const results = [...wallBeams, ...joists, ...wallInfill, ...openingFrames, ...subfloor]
+    const aggregatedResults = aggregateResults(results)
+
+    const bounds = Bounds2D.fromPoints(context.outerPolygon.points).toBounds3D('xy', 0, this.config.constructionHeight)
+    return {
+      elements: [
+        {
+          id: createConstructionElementId(),
+          bounds,
+          transform: fromTrans(newVec3(0, 0, -this.config.constructionHeight)),
+          children: aggregatedResults.elements
+        }
+      ],
+      areas: aggregatedResults.areas,
+      bounds,
+      errors: aggregatedResults.errors,
+      measurements: aggregatedResults.measurements,
+      warnings: aggregatedResults.warnings
+    }
+  }
+
+  get topOffset() {
+    return this.config.subfloorThickness
+  }
+
+  bottomOffset = 0
+  get constructionThickness() {
+    return this.config.constructionHeight
+  }
+
+  protected tag = TAG_JOIST_FLOOR
+}

@@ -1,17 +1,17 @@
 import type { SelectableId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import type { LengthInputConfig } from '@/editor/services/length-input'
-import { activateLengthInput, deactivateLengthInput } from '@/editor/services/length-input'
-import { defaultSnappingService } from '@/editor/services/snapping/SnappingService'
+import { defaultSnappingService } from '@/editor/canvas/services/SnappingService'
+import { findEditorEntityAt } from '@/editor/canvas/services/editorHitTesting'
+import type { LengthInputConfig } from '@/editor/canvas/services/length-input'
+import { activateLengthInput, deactivateLengthInput } from '@/editor/canvas/services/length-input'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CursorStyle, EditorEvent, ToolImplementation } from '@/editor/tools/system/types'
-import { findEditorEntityAt } from '@/editor/utils/editorHitTesting'
 import { type Length, type Vec2, ZERO_VEC2, distSqrVec2, normVec2, scaleVec2, subVec2 } from '@/shared/geometry'
 
 import { MoveToolInspector } from './MoveToolInspector'
 import { MoveToolOverlay } from './MoveToolOverlay'
-import type { MovementBehavior, MovementContext, MovementState, PointerMovementState } from './MovementBehavior'
 import { getMovementBehavior } from './movementBehaviors'
+import type { MovementBehavior, MovementContext, MovementState, PointerMovementState } from './types'
 
 interface LastMovementRecord {
   behavior: MovementBehavior<unknown, MovementState>

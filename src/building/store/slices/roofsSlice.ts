@@ -8,8 +8,7 @@ import {
   removeTimestampDraft,
   updateTimestampDraft
 } from '@/building/store/slices/timestampsSlice'
-import { getConfigActions } from '@/construction/config/store'
-import { polygonEdges } from '@/construction/helpers'
+import { getConfigActions } from '@/config/store'
 import {
   type Length,
   type LineSegment2D,
@@ -29,6 +28,7 @@ import {
   perpendicularCCW,
   perpendicularCW,
   polygonEdgeOffset,
+  polygonEdges,
   projectVec2,
   simplifyPolygon,
   subVec2,

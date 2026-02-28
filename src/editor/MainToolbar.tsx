@@ -3,22 +3,23 @@ import { FileText, Settings } from 'lucide-react'
 import React, { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { UserMenu } from '@/app/user'
+import { UserMenu } from '@/app/user/UserMenu'
 import { useActiveStoreyId, useModelActions } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { Kbd } from '@/components/ui/kbd'
-import { Separator } from '@/components/ui/separator'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import TopDownPlanModal from '@/construction/components/TopDownPlanModal'
-import { ConstructionPartsListModal } from '@/construction/components/parts/ConstructionPartsListModal'
-import { useConfigurationModal } from '@/construction/config/context/ConfigurationModalContext'
-import { ConstructionViewer3DModal } from '@/construction/viewer3d/ConstructionViewer3DModal'
+import { useConfigurationModal } from '@/config/ui/ConfigurationModalContext'
+import { useToolSystem } from '@/editor/tools/system/ToolSystemContext'
+import { useActiveToolId } from '@/editor/tools/system/hooks/useToolState'
 import { TOOL_GROUPS, getToolInfoById } from '@/editor/tools/system/metadata'
-import { pushTool, useActiveToolId } from '@/editor/tools/system/store'
 import type { ToolId } from '@/editor/tools/system/types'
-import { ProjectMenu } from '@/projects/components'
-import { ConstructionPlanIcon, Model3DIcon } from '@/shared/components/Icons'
-import { Logo } from '@/shared/components/Logo'
+import { ConstructionPartsListModal } from '@/parts/ui/ConstructionPartsListModal'
+import TopDownPlanModal from '@/plan/TopDownPlanModal'
+import { ProjectMenu } from '@/projects/ui/ProjectMenu'
+import { Logo } from '@/shared/ui/Logo'
+import { Button } from '@/shared/ui/components/button'
+import { Kbd } from '@/shared/ui/components/kbd'
+import { Separator } from '@/shared/ui/components/separator'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/components/tooltip'
+import { ConstructionPlanIcon, Model3DIcon } from '@/shared/ui/icons'
+import { ConstructionViewer3DModal } from '@/viewer3d/ConstructionViewer3DModal'
 
 export interface MainToolbarProps {
   onInfoClick?: () => void
@@ -28,13 +29,17 @@ export function MainToolbar({ onInfoClick }: MainToolbarProps): React.JSX.Elemen
   const { t } = useTranslation('toolbar')
   const activeToolId = useActiveToolId()
   const { openConfiguration } = useConfigurationModal()
+  const toolSystem = useToolSystem()
 
   const activeStoreyId = useActiveStoreyId()
   const activeStorey = useModelActions().getStoreyById(activeStoreyId)
 
-  const handleToolSelect = useCallback((toolId: ToolId) => {
-    pushTool(toolId)
-  }, [])
+  const handleToolSelect = useCallback(
+    (toolId: ToolId) => {
+      toolSystem.pushTool(toolId)
+    },
+    [toolSystem]
+  )
 
   return (
     <div className="border-border flex items-center gap-4 border-b p-2" data-testid="main-toolbar">

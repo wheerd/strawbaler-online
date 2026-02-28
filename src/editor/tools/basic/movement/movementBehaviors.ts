@@ -1,6 +1,5 @@
 import type { EntityType } from '@/building/model/ids'
 
-import type { MovementBehavior, MovementState } from './MovementBehavior'
 import { FloorAreaMovementBehavior } from './behaviors/FloorAreaMovementBehavior'
 import { FloorOpeningMovementBehavior } from './behaviors/FloorOpeningMovementBehavior'
 import { OpeningMovementBehavior } from './behaviors/OpeningMovementBehavior'
@@ -9,6 +8,7 @@ import { PerimeterMovementBehavior } from './behaviors/PerimeterMovementBehavior
 import { PerimeterWallMovementBehavior } from './behaviors/PerimeterWallMovementBehavior'
 import { RoofMovementBehavior } from './behaviors/RoofMovementBehavior'
 import { WallPostMovementBehavior } from './behaviors/WallPostMovementBehavior'
+import type { MovementBehavior, MovementState } from './types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MOVEMENT_BEHAVIORS: Record<EntityType, MovementBehavior<any, any> | null> = {

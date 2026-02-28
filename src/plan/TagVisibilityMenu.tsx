@@ -1,0 +1,177 @@
+import { Eye, EyeOff } from 'lucide-react'
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import type { GroupOrElement } from '@/construction/model/elements'
+import { useCategoryLabel } from '@/construction/model/i18n/useCategoryLabel'
+import { useTagLabel } from '@/construction/model/i18n/useTagLabel'
+import type { ConstructionModel } from '@/construction/model/model'
+import { type Tag, type TagCategoryId, type TagId } from '@/construction/model/tags'
+import { Button } from '@/shared/ui/components/button'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+
+import { useTagVisibilityActions, useTagVisibilityForceUpdate } from './TagVisibilityContext'
+
+export interface TagVisibilityMenuProps {
+  model: ConstructionModel
+}
+
+function collectTagsFromModel(model: ConstructionModel): Map<TagCategoryId, Tag[]> {
+  const tagMap = new Map<TagId, Tag>()
+
+  const addTags = (tags?: Tag[]) => {
+    tags?.forEach(tag => {
+      if (!tagMap.has(tag.id)) {
+        tagMap.set(tag.id, tag)
+      }
+    })
+  }
+
+  // Recursively collect from elements/groups
+  const collectFromElement = (el: GroupOrElement) => {
+    addTags(el.tags)
+    if ('children' in el) {
+      el.children.forEach(collectFromElement)
+    }
+  }
+
+  model.elements.forEach(collectFromElement)
+  model.areas.forEach(area => {
+    addTags(area.tags)
+  })
+  model.measurements.forEach(m => {
+    addTags(m.tags)
+  })
+
+  // Group by category
+  const categoryMap = new Map<TagCategoryId, Tag[]>()
+  tagMap.forEach(tag => {
+    const existing = categoryMap.get(tag.category)
+    if (existing) {
+      existing.push(tag)
+    } else {
+      categoryMap.set(tag.category, [tag])
+    }
+  })
+
+  return categoryMap
+}
+
+// Helper component to render a category label using translations
+function CategoryLabel({ categoryId }: { categoryId: TagCategoryId }) {
+  const label = useCategoryLabel(categoryId)
+  return <>{label}</>
+}
+
+// Helper component to render a tag label using translations
+function TagLabel({ tag }: { tag: Tag }) {
+  const label = useTagLabel(tag)
+  return <>{label}</>
+}
+
+export function TagVisibilityMenu({ model }: TagVisibilityMenuProps): React.JSX.Element {
+  const { t } = useTranslation('construction')
+
+  // Re-render on any tag visibility change to update the menu UI
+  useTagVisibilityForceUpdate()
+
+  const { isTagOrCategoryVisible, getCategoryVisibilityState, toggleTagOrCategory } = useTagVisibilityActions()
+
+  const tagsByCategory = useMemo(() => collectTagsFromModel(model), [model])
+
+  // Get category IDs (sorted alphabetically by ID for now - will be sorted by translated label in render)
+  const sortedCategories = useMemo(() => {
+    return Array.from(tagsByCategory.entries()).sort(([catA], [catB]) => catA.localeCompare(catB))
+  }, [tagsByCategory])
+
+  const renderVisibilityIcon = (state: 'visible' | 'partial' | 'hidden') => {
+    switch (state) {
+      case 'visible':
+        return <Eye />
+      case 'partial':
+        return <Eye className="opacity-50" />
+      case 'hidden':
+        return <EyeOff />
+    }
+  }
+
+  if (sortedCategories.length === 0) {
+    return (
+      <DropdownMenu>
+        <DropdownMenu.Trigger asChild>
+          <Button size="icon-xs" variant="outline" title={t($ => $.tagVisibility.title)} disabled>
+            <Eye />
+          </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <DropdownMenu.Item disabled>
+            <span className="text-sm">{t($ => $.tagVisibility.noTags)}</span>
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu>
+    )
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenu.Trigger asChild>
+        <Button size="icon-xs" variant="default" title={t($ => $.tagVisibility.title)}>
+          <Eye />
+        </Button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        {sortedCategories.map(([categoryId, tags]) => {
+          const tagIds = tags.map(t => t.id as TagId)
+          const categoryState = getCategoryVisibilityState(categoryId, tagIds)
+
+          return (
+            <DropdownMenu.Sub key={categoryId}>
+              <DropdownMenu.SubTrigger>
+                <div className="flex w-full items-center justify-between gap-2">
+                  <span className="text-sm">
+                    <CategoryLabel categoryId={categoryId} />
+                  </span>
+                  {renderVisibilityIcon(categoryState)}
+                </div>
+              </DropdownMenu.SubTrigger>
+              <DropdownMenu.SubContent>
+                {/* Category-wide toggle */}
+                <DropdownMenu.Item
+                  onSelect={e => {
+                    e.preventDefault()
+                    toggleTagOrCategory(categoryId)
+                  }}
+                  className="flex w-full items-center justify-between gap-2"
+                >
+                  <span className="text-sm font-bold">
+                    {isTagOrCategoryVisible(categoryId)
+                      ? t($ => $.tagVisibility.hideCategory)
+                      : t($ => $.tagVisibility.showCategory)}
+                  </span>
+                  {isTagOrCategoryVisible(categoryId) ? <Eye /> : <EyeOff />}
+                </DropdownMenu.Item>
+                <DropdownMenu.Separator />
+                {/* Individual tag toggles */}
+                {tags.map(tag => (
+                  <DropdownMenu.Item
+                    key={tag.id}
+                    onSelect={e => {
+                      e.preventDefault()
+                      toggleTagOrCategory(tag.id)
+                    }}
+                    className="flex w-full items-center justify-between gap-2"
+                  >
+                    <span className="text-sm">
+                      <TagLabel tag={tag} />
+                    </span>
+                    {isTagOrCategoryVisible(tag.id) ? <Eye /> : <EyeOff />}
+                  </DropdownMenu.Item>
+                ))}
+              </DropdownMenu.SubContent>
+            </DropdownMenu.Sub>
+          )
+        })}
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  )
+}

@@ -1,9 +1,9 @@
 import React from 'react'
 
-import { useZoom } from '@/editor/hooks/useViewportStore'
+import { SnappingLines } from '@/editor/canvas/components/SnappingLines'
+import { useZoom } from '@/editor/canvas/state/viewportStore'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolImplementation, ToolOverlayComponentProps } from '@/editor/tools/system/types'
-import { SnappingLines } from '@/editor/utils/SnappingLines'
 
 import type { BasePolygonTool, PolygonToolStateBase } from './BasePolygonTool'
 

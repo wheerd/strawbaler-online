@@ -1,16 +1,16 @@
+import { generatePresetConstraints } from '@/building/gcs/constraintGenerator'
 import { getModelActions } from '@/building/store'
-import { generatePresetConstraints } from '@/editor/gcs/constraintGenerator'
-import { replaceSelection } from '@/editor/hooks/useSelectionStore'
-import { getViewModeActions } from '@/editor/hooks/useViewMode'
-import { viewportActions } from '@/editor/hooks/useViewportStore'
-import { getToolActions } from '@/editor/tools/system'
+import { replaceSelection } from '@/editor/canvas/state/selectionStore'
+import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { CursorStyle, ToolImplementation } from '@/editor/tools/system/types'
 import { Bounds2D, ensurePolygonIsClockwise, subVec2 } from '@/shared/geometry'
 
 import { PerimeterPresetToolInspector } from './PerimeterPresetToolInspector'
-import type { BasePresetConfig, PerimeterPreset } from './presets'
-import { LShapedPreset, RectangularPreset } from './presets'
+import { LShapedPreset } from './presets/LShapedPreset'
+import { RectangularPreset } from './presets/RectangularPreset'
+import type { BasePresetConfig, PerimeterPreset } from './presets/types'
 
 export class PerimeterPresetTool extends BaseTool implements ToolImplementation {
   readonly id = 'perimeter.preset'
@@ -57,7 +57,7 @@ export class PerimeterPresetTool extends BaseTool implements ToolImplementation 
     } catch (error) {
       console.error('Failed to create perimeter from preset:', error)
     } finally {
-      getToolActions().popTool()
+      this.toolSystem.popTool()
     }
 
     return true

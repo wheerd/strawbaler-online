@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import * as useViewportStore from '@/editor/hooks/useViewportStore'
-import * as lengthInputService from '@/editor/services/length-input'
+import * as lengthInputService from '@/editor/canvas/services/length-input'
+import * as useViewportStore from '@/editor/canvas/state/viewportStore'
+import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { EditorEvent } from '@/editor/tools/system/types'
 import { type Vec2, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
@@ -9,20 +10,25 @@ import { partial } from '@/test/helpers'
 import { PerimeterTool } from './PerimeterTool'
 
 describe('PerimeterTool', () => {
+  let toolSystem: ToolSystem
+
   it('should have correct id', () => {
-    const tool = new PerimeterTool()
+    toolSystem = new ToolSystem()
+    const tool = new PerimeterTool(toolSystem)
 
     expect(tool.id).toBe('perimeter.add')
   })
 
   it('should initialize with empty state', () => {
-    const tool = new PerimeterTool()
+    toolSystem = new ToolSystem()
+    const tool = new PerimeterTool(toolSystem)
 
     expect(tool.state.points).toEqual([])
   })
 
   it('should reset state on activation', () => {
-    const tool = new PerimeterTool()
+    toolSystem = new ToolSystem()
+    const tool = new PerimeterTool(toolSystem)
     tool.state.points = [{ x: 100, y: 100 } as any]
 
     tool.onActivate()
@@ -35,7 +41,8 @@ describe('PerimeterTool', () => {
     let activateLengthInputSpy: any
     let deactivateLengthInputSpy: any
     beforeEach(() => {
-      tool = new PerimeterTool()
+      toolSystem = new ToolSystem()
+      tool = new PerimeterTool(toolSystem)
       activateLengthInputSpy = vi.spyOn(lengthInputService, 'activateLengthInput').mockImplementation(vi.fn())
       deactivateLengthInputSpy = vi.spyOn(lengthInputService, 'deactivateLengthInput').mockImplementation(vi.fn())
 
@@ -166,7 +173,6 @@ describe('PerimeterTool', () => {
     })
 
     it('uses length override in the direction of the pointer for preview', () => {
-      const tool = new PerimeterTool()
       tool.state.points = [ZERO_VEC2]
       tool.setLengthOverride(100)
       tool.state.pointer = newVec2(0, 50)
@@ -177,7 +183,6 @@ describe('PerimeterTool', () => {
     })
 
     it('places new point using length override in pointer direction on click', () => {
-      const tool = new PerimeterTool()
       tool.state.points = [ZERO_VEC2]
       tool.setLengthOverride(120)
 

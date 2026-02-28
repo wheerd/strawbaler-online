@@ -1,6 +1,6 @@
 import type { Manifold } from 'manifold-3d'
 
-import type { BaseShape } from '@/construction/shapes'
+import type { BaseShape } from '@/construction/model/shapes'
 import { type Vec3 } from '@/shared/geometry'
 
 /**

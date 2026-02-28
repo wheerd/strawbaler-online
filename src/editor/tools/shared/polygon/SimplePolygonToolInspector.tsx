@@ -2,13 +2,13 @@ import { Info, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Callout, CalloutIcon, CalloutText } from '@/components/ui/callout'
-import { Kbd } from '@/components/ui/kbd'
-import { Separator } from '@/components/ui/separator'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolImplementation, ToolInspectorProps } from '@/editor/tools/system/types'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
+import { Kbd } from '@/shared/ui/components/kbd'
+import { Separator } from '@/shared/ui/components/separator'
 
 import type { BasePolygonTool, PolygonToolStateBase } from './BasePolygonTool'
 

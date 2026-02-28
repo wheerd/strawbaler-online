@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import { getAuthErrorMessage } from '@/app/user/authErrors'
 import { getSupabaseClient, isSupabaseConfigured } from '@/app/user/supabaseClient'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/shared/ui/components/button'
+import { Input } from '@/shared/ui/components/input'
 
 export interface SignInFormProps {
   onSuccess: () => void

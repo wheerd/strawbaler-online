@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
-import { LShape0Icon } from '@/editor/tools/perimeter/preset/presets/Icons'
 import { LShapedPresetDialog } from '@/editor/tools/perimeter/preset/presets/LShapedPresetDialog'
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
+import { LShape0Icon } from '@/shared/ui/icons'
 
 import { LShapedPreset } from './LShapedPreset'
 import type { LShapedPresetConfig } from './types'

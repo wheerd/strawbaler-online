@@ -9,7 +9,7 @@ import {
   PerimeterPresetsIcon,
   RoofIcon,
   SplitWallIcon
-} from '@/shared/components/Icons'
+} from '@/shared/ui/icons'
 
 import type { ToolGroup, ToolId, ToolMetadata } from './types'
 

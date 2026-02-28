@@ -1,14 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { newVec2 } from '@/shared/geometry'
 
 import { AddOpeningTool } from './AddOpeningTool'
 
 describe('AddOpeningTool', () => {
   let addOpeningTool: AddOpeningTool
+  let toolSystem: ToolSystem
 
   beforeEach(() => {
-    addOpeningTool = new AddOpeningTool()
+    toolSystem = new ToolSystem()
+    addOpeningTool = new AddOpeningTool(toolSystem)
   })
 
   it('should have correct id', () => {

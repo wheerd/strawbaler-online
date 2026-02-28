@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { PlanOverlayControls } from '@/editor/plan-overlay/components/PlanOverlayControls'
-import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher'
+import { PlanOverlayControls } from '@/editor/canvas/plan-overlay/PlanOverlayControls'
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher'
 
 import { GridSizeDisplay } from './GridSizeDisplay'
 import { OfflineStatusIndicator } from './OfflineStatusIndicator'

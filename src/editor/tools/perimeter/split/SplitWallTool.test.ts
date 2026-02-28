@@ -2,18 +2,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Opening, PerimeterWallWithGeometry } from '@/building/model'
 import { createPerimeterWallId } from '@/building/model/ids'
+import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { partial } from '@/test/helpers'
 
 import { SplitWallTool } from './SplitWallTool'
 
-// Simple mocks
 vi.mock('@/building/store', () => ({
   getModelActions: () => ({
     getPerimeterById: vi.fn(),
     splitPerimeterWall: vi.fn()
   })
 }))
-vi.mock('@/editor/hooks/useSelectionStore', () => ({
+vi.mock('@/editor/canvas/state/selectionStore', () => ({
   getCurrentSelection: vi.fn(),
   getSelectionActions: vi.fn(() => ({
     clearSelection: vi.fn()
@@ -23,20 +23,14 @@ vi.mock('@/editor/hooks/useSelectionStore', () => ({
 vi.mock('@/editor/services/length-input', () => ({
   activateLengthInput: vi.fn()
 }))
-vi.mock('@/editor/tools/system', () => ({
-  getToolActions: vi.fn(() => ({
-    popTool: vi.fn(),
-    pushTool: vi.fn(),
-    replaceTool: vi.fn(),
-    clearToDefault: vi.fn()
-  }))
-}))
 
 describe('SplitWallTool', () => {
   let tool: SplitWallTool
+  let toolSystem: ToolSystem
 
   beforeEach(() => {
-    tool = new SplitWallTool()
+    toolSystem = new ToolSystem()
+    tool = new SplitWallTool(toolSystem)
     vi.clearAllMocks()
   })
 

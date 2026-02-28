@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 
-import { useActiveTool } from '@/editor/tools/system/store'
 import type { CursorStyle } from '@/editor/tools/system/types'
+
+import { useActiveTool } from './useToolState'
 
 export function useToolCursor(): CursorStyle {
   const activeTool = useActiveTool()

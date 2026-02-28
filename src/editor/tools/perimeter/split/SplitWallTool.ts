@@ -7,12 +7,11 @@ import type {
 import type { PerimeterWallId } from '@/building/model/ids'
 import { isPerimeterWallId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getCurrentSelection, getSelectionActions } from '@/editor/hooks/useSelectionStore'
-import { getViewModeActions } from '@/editor/hooks/useViewMode'
-import { getToolActions } from '@/editor/tools/system'
+import { findEditorEntityAt } from '@/editor/canvas/services/editorHitTesting'
+import { getCurrentSelection, getSelectionActions } from '@/editor/canvas/state/selectionStore'
+import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { EditorEvent, ToolImplementation } from '@/editor/tools/system/types'
-import { findEditorEntityAt } from '@/editor/utils/editorHitTesting'
 import { type Length, type Vec2, distanceToLineSegment, dotVec2, subVec2 } from '@/shared/geometry'
 
 import { SplitWallToolInspector } from './SplitWallToolInspector'
@@ -113,7 +112,7 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
       // Clear selection and deactivate tool
       const { clearSelection } = getSelectionActions()
       clearSelection()
-      getToolActions().popTool()
+      this.toolSystem.popTool()
       return true
     }
 
@@ -175,7 +174,7 @@ export class SplitWallTool extends BaseTool implements ToolImplementation {
   }
 
   public cancel(): void {
-    getToolActions().popTool()
+    this.toolSystem.popTool()
   }
 
   handlePointerDown(event: EditorEvent): boolean {

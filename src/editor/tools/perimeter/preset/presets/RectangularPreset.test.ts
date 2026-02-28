@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { RectIcon } from '@/editor/tools/perimeter/preset/presets/Icons'
 import { RectangularPresetDialog } from '@/editor/tools/perimeter/preset/presets/RectangularPresetDialog'
+import { RectIcon } from '@/shared/ui/icons'
 
 import { RectangularPreset } from './RectangularPreset'
 import type { RectangularPresetConfig } from './types'

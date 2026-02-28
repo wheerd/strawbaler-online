@@ -4,17 +4,12 @@ import { createRoot } from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
 import { RouterProvider } from 'react-router-dom'
 
+import { registerServiceWorker } from '@/app/pwa/serviceWorkerRegistration'
 import { router } from '@/app/router'
-import { Toaster } from '@/components/ui/sonner.tsx'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { injectMaterialCSS } from '@/construction/materials/materialCSS'
-import { getAllMaterials, subscribeToMaterials } from '@/construction/materials/store'
-import { ensureGcsModule } from '@/editor/gcs/gcsInstance.ts'
-import { ErrorFallback } from '@/shared/components/ErrorBoundary'
-import { ensureClipperModule } from '@/shared/geometry/clipperInstance'
-import { ensureManifoldModule } from '@/shared/geometry/manifoldInstance'
 import '@/shared/i18n/config'
-import { registerServiceWorker } from '@/shared/services/serviceWorkerRegistration'
+import { Toaster } from '@/shared/ui/components/sonner'
+import { TooltipProvider } from '@/shared/ui/components/tooltip'
+import { ErrorFallback } from '@/shared/ui/errors/ErrorFallback'
 
 import './index.css'
 
@@ -25,15 +20,12 @@ function removeInitialLoadingScreen() {
 
 async function bootstrap() {
   // Load both geometry modules in parallel
-  await Promise.all([ensureClipperModule(), ensureManifoldModule(), ensureGcsModule()])
-
-  // Initialize material CSS styles
-  injectMaterialCSS(getAllMaterials())
-
-  // Re-inject CSS whenever materials change
-  subscribeToMaterials(materials => {
-    injectMaterialCSS(materials)
-  })
+  await Promise.all([
+    import('@/shared/geometry/polygon/clipperInstance').then(({ ensureClipperModule }) => ensureClipperModule()),
+    import('@/shared/geometry/manifoldInstance').then(({ ensureManifoldModule }) => ensureManifoldModule()),
+    import('@/building/gcs/gcsInstance').then(({ ensureGcsModule }) => ensureGcsModule()),
+    import('@/materials/materialCSS').then(({ setupMaterialCss }) => setupMaterialCss())
+  ])
 
   const rootElement = document.getElementById('root')
   if (rootElement === null) {

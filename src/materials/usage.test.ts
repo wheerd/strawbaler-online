@@ -1,0 +1,498 @@
+import { renderHook } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { WallPostWithGeometry } from '@/building/model'
+import { createLayerSetId, createRingBeamAssemblyId, createWallAssemblyId } from '@/building/model/ids'
+import type { RingBeamAssemblyConfig, WallAssemblyConfig } from '@/config/types'
+import type { LayerSetConfig } from '@/construction/assemblies/layers/types'
+import { partial } from '@/test/helpers'
+
+import { concrete, createMaterialId, roughWood, strawbale, woodwool } from './material'
+import { useMaterialUsage } from './usage'
+
+const defaultStrawMaterialId = strawbale.id
+
+const mockUseRingBeamAssemblies: any = vi.fn(() => [])
+const mockUseWallAssemblies: any = vi.fn(() => [])
+const mockUseFloorAssemblies: any = vi.fn(() => [])
+const mockUseRoofAssemblies: any = vi.fn(() => [])
+const mockUseOpeningAssemblies: any = vi.fn(() => [])
+const mockUseLayerSets: any = vi.fn(() => [])
+const mockUseDefaultStrawMaterialId: any = vi.fn(() => defaultStrawMaterialId)
+const mockUseWallPosts: any = vi.fn(() => [])
+
+vi.mock('@/config/store', () => ({
+  useRingBeamAssemblies: () => mockUseRingBeamAssemblies(),
+  useWallAssemblies: () => mockUseWallAssemblies(),
+  useFloorAssemblies: () => mockUseFloorAssemblies(),
+  useRoofAssemblies: () => mockUseRoofAssemblies(),
+  useOpeningAssemblies: () => mockUseOpeningAssemblies(),
+  useLayerSets: () => mockUseLayerSets(),
+  useDefaultStrawMaterialId: () => mockUseDefaultStrawMaterialId()
+}))
+
+vi.mock('@/building/store', () => ({
+  useWallPosts: () => mockUseWallPosts()
+}))
+
+describe('Material Usage Detection', () => {
+  describe('useMaterialUsage', () => {
+    beforeEach(() => {
+      mockUseRingBeamAssemblies.mockReturnValue([])
+      mockUseWallAssemblies.mockReturnValue([])
+      mockUseFloorAssemblies.mockReturnValue([])
+      mockUseRoofAssemblies.mockReturnValue([])
+      mockUseOpeningAssemblies.mockReturnValue([])
+      mockUseLayerSets.mockReturnValue([])
+      mockUseDefaultStrawMaterialId.mockReturnValue(defaultStrawMaterialId)
+      mockUseWallPosts.mockReturnValue([])
+    })
+
+    it('detects material not in use', () => {
+      const { result } = renderHook(() => useMaterialUsage(roughWood.id))
+
+      expect(result.current.isUsed).toBe(false)
+      expect(result.current.isDefaultStraw).toBe(false)
+      expect(result.current.assemblyIds).toEqual([])
+      expect(result.current.usedInWallPosts).toBe(false)
+    })
+
+    it('detects default straw material usage', () => {
+      const { result } = renderHook(() => useMaterialUsage(defaultStrawMaterialId))
+
+      expect(result.current.isUsed).toBe(true)
+      expect(result.current.isDefaultStraw).toBe(true)
+      expect(result.current.assemblyIds).toEqual([])
+      expect(result.current.usedInWallPosts).toBe(false)
+    })
+
+    it('detects ring beam material usage', () => {
+      const ringBeamAssembly: RingBeamAssemblyConfig = {
+        id: createRingBeamAssemblyId(),
+        name: 'Test Ring Beam',
+        type: 'full',
+        material: roughWood.id,
+        height: 60,
+        width: 360,
+        offsetFromEdge: 30
+      }
+
+      mockUseRingBeamAssemblies.mockReturnValue([ringBeamAssembly])
+
+      const { result } = renderHook(() => useMaterialUsage(roughWood.id))
+
+      expect(result.current.isUsed).toBe(true)
+      expect(result.current.isDefaultStraw).toBe(false)
+      expect(result.current.assemblyIds).toEqual([ringBeamAssembly.id])
+      expect(result.current.usedInWallPosts).toBe(false)
+    })
+
+    it('detects wall assembly post materials', () => {
+      const wallAssembly: WallAssemblyConfig = {
+        id: createWallAssemblyId(),
+        name: 'Test Infill',
+        type: 'infill',
+        maxPostSpacing: 900,
+        desiredPostSpacing: 800,
+        minStrawSpace: 70,
+        posts: {
+          type: 'double',
+          width: 60,
+          thickness: 120,
+          material: roughWood.id,
+          infillMaterial: strawbale.id
+        },
+        triangularBattens: {
+          size: 30,
+          material: 'batten' as any,
+          inside: false,
+          outside: false,
+          minLength: 100
+        },
+        insideLayerSetId: undefined,
+        outsideLayerSetId: undefined
+      }
+
+      mockUseWallAssemblies.mockReturnValue([wallAssembly])
+
+      const { result } = renderHook(() => useMaterialUsage(roughWood.id))
+
+      expect(result.current.isUsed).toBe(true)
+      expect(result.current.isDefaultStraw).toBe(false)
+      expect(result.current.assemblyIds).toEqual([wallAssembly.id])
+      expect(result.current.usedInWallPosts).toBe(false) // No actual posts in building model
+    })
+
+    it('detects strawhenge module usage', () => {
+      const wallAssembly: WallAssemblyConfig = {
+        id: createWallAssemblyId(),
+        name: 'Test Strawhenge',
+        type: 'strawhenge',
+        module: {
+          minWidth: 920,
+          maxWidth: 920,
+          type: 'single',
+          frameThickness: 60,
+          frameMaterial: roughWood.id,
+          strawMaterial: strawbale.id,
+          triangularBattens: {
+            size: 30,
+            material: 'batten' as any,
+            inside: false,
+            outside: false,
+            minLength: 100
+          }
+        },
+        infill: {
+          maxPostSpacing: 900,
+          desiredPostSpacing: 800,
+          minStrawSpace: 70,
+          posts: {
+            type: 'full',
+            width: 60,
+            material: roughWood.id
+          },
+          triangularBattens: {
+            size: 30,
+            material: 'batten' as any,
+            inside: false,
+            outside: false,
+            minLength: 100
+          }
+        },
+        insideLayerSetId: undefined,
+        outsideLayerSetId: undefined
+      }
+
+      mockUseWallAssemblies.mockReturnValue([wallAssembly])
+
+      const { result } = renderHook(() => useMaterialUsage(roughWood.id))
+
+      expect(result.current.isUsed).toBe(true)
+      expect(result.current.isDefaultStraw).toBe(false)
+      expect(result.current.assemblyIds).toEqual([wallAssembly.id])
+      expect(result.current.usedInWallPosts).toBe(false) // No actual posts in building model
+    })
+
+    it('detects spacer and infill materials in double modules', () => {
+      const spacerMaterialId = createMaterialId()
+      const wallAssembly: WallAssemblyConfig = {
+        id: createWallAssemblyId(),
+        name: 'Double Module Wall',
+        type: 'strawhenge',
+        module: {
+          minWidth: 920,
+          maxWidth: 920,
+          type: 'double',
+          frameThickness: 60,
+          frameWidth: 120,
+          frameMaterial: roughWood.id,
+          strawMaterial: strawbale.id,
+          spacerSize: 120,
+          spacerCount: 3,
+          spacerMaterial: spacerMaterialId,
+          infillMaterial: woodwool.id,
+          triangularBattens: {
+            size: 30,
+            material: 'batten' as any,
+            inside: false,
+            outside: false,
+            minLength: 100
+          }
+        },
+        infill: {
+          maxPostSpacing: 900,
+          desiredPostSpacing: 800,
+          minStrawSpace: 70,
+          posts: {
+            type: 'full',
+            width: 60,
+            material: roughWood.id
+          },
+          triangularBattens: {
+            size: 30,
+            material: 'batten' as any,
+            inside: false,
+            outside: false,
+            minLength: 100
+          }
+        },
+        insideLayerSetId: undefined,
+        outsideLayerSetId: undefined
+      }
+
+      mockUseWallAssemblies.mockReturnValue([wallAssembly])
+
+      const { result: spacerResult } = renderHook(() => useMaterialUsage(spacerMaterialId))
+      expect(spacerResult.current.isUsed).toBe(true)
+      expect(spacerResult.current.isDefaultStraw).toBe(false)
+      expect(spacerResult.current.assemblyIds).toEqual([wallAssembly.id])
+      expect(spacerResult.current.usedInWallPosts).toBe(false)
+
+      const { result: infillResult } = renderHook(() => useMaterialUsage(woodwool.id))
+      expect(infillResult.current.isUsed).toBe(true)
+      expect(infillResult.current.isDefaultStraw).toBe(false)
+      expect(infillResult.current.assemblyIds).toEqual([wallAssembly.id])
+      expect(infillResult.current.usedInWallPosts).toBe(false)
+    })
+
+    it('detects triangular batten material usage in infill walls', () => {
+      const battenMaterialId = createMaterialId()
+
+      const wallAssembly: WallAssemblyConfig = {
+        id: createWallAssemblyId(),
+        name: 'Infill with Battens',
+        type: 'infill',
+        maxPostSpacing: 900,
+        desiredPostSpacing: 800,
+        minStrawSpace: 70,
+        posts: {
+          type: 'full',
+          width: 60,
+          material: roughWood.id
+        },
+        triangularBattens: {
+          size: 30,
+          material: battenMaterialId,
+          inside: true,
+          outside: true,
+          minLength: 100
+        },
+        insideLayerSetId: undefined,
+        outsideLayerSetId: undefined
+      }
+
+      mockUseWallAssemblies.mockReturnValue([wallAssembly])
+
+      const { result } = renderHook(() => useMaterialUsage(battenMaterialId))
+
+      expect(result.current.isUsed).toBe(true)
+      expect(result.current.isDefaultStraw).toBe(false)
+      expect(result.current.assemblyIds).toEqual([wallAssembly.id])
+      expect(result.current.usedInWallPosts).toBe(false)
+    })
+
+    it('detects triangular batten material in module and infill segments', () => {
+      const moduleBattenId = createMaterialId()
+      const infillBattenId = createMaterialId()
+
+      const wallAssembly = partial<WallAssemblyConfig>({
+        id: createWallAssemblyId(),
+        type: 'modules',
+        module: {
+          frameMaterial: roughWood.id,
+          strawMaterial: strawbale.id,
+          triangularBattens: {
+            material: moduleBattenId
+          }
+        },
+        infill: {
+          posts: {
+            material: roughWood.id
+          },
+          triangularBattens: {
+            material: infillBattenId
+          }
+        }
+      })
+
+      mockUseWallAssemblies.mockReturnValue([wallAssembly])
+
+      // Test module batten material
+      const { result: moduleResult } = renderHook(() => useMaterialUsage(moduleBattenId))
+      expect(moduleResult.current.isUsed).toBe(true)
+      expect(moduleResult.current.assemblyIds).toEqual([wallAssembly.id])
+
+      // Test infill batten material
+      const { result: infillResult } = renderHook(() => useMaterialUsage(infillBattenId))
+      expect(infillResult.current.isUsed).toBe(true)
+      expect(infillResult.current.assemblyIds).toEqual([wallAssembly.id])
+    })
+
+    it('detects wall post materials', () => {
+      const postMaterial = createMaterialId()
+      const infillMaterial = createMaterialId()
+
+      const wallPost = partial<WallPostWithGeometry>({
+        material: postMaterial,
+        infillMaterial
+      })
+
+      mockUseWallPosts.mockReturnValue([wallPost])
+
+      const { result: postResult } = renderHook(() => useMaterialUsage(postMaterial))
+      expect(postResult.current.isUsed).toBe(true)
+      expect(postResult.current.usedInWallPosts).toBe(true)
+
+      const { result: infillResult } = renderHook(() => useMaterialUsage(infillMaterial))
+      expect(infillResult.current.isUsed).toBe(true)
+      expect(infillResult.current.usedInWallPosts).toBe(true)
+
+      const { result: otherResult } = renderHook(() => useMaterialUsage(concrete.id))
+      expect(otherResult.current.isUsed).toBe(false)
+      expect(otherResult.current.usedInWallPosts).toBe(false)
+    })
+
+    it('detects materials used across multiple configs', () => {
+      const ringBeamAssembly: RingBeamAssemblyConfig = {
+        id: createRingBeamAssemblyId(),
+        name: 'Test Ring Beam',
+        type: 'full',
+        material: roughWood.id,
+        height: 60,
+        width: 360,
+        offsetFromEdge: 30
+      }
+
+      const wallAssembly: WallAssemblyConfig = {
+        id: createWallAssemblyId(),
+        name: 'Test Infill',
+        type: 'infill',
+        maxPostSpacing: 900,
+        desiredPostSpacing: 800,
+        minStrawSpace: 70,
+        posts: {
+          type: 'full',
+          width: 60,
+          material: roughWood.id
+        },
+        triangularBattens: {
+          size: 30,
+          material: 'batten' as any,
+          inside: false,
+          outside: false,
+          minLength: 100
+        },
+        insideLayerSetId: undefined,
+        outsideLayerSetId: undefined
+      }
+
+      mockUseRingBeamAssemblies.mockReturnValue([ringBeamAssembly])
+      mockUseWallAssemblies.mockReturnValue([wallAssembly])
+
+      const { result } = renderHook(() => useMaterialUsage(roughWood.id))
+
+      expect(result.current.isUsed).toBe(true)
+      expect(result.current.isDefaultStraw).toBe(false)
+      expect(result.current.assemblyIds).toHaveLength(2)
+      expect(result.current.assemblyIds).toContain(ringBeamAssembly.id)
+      expect(result.current.assemblyIds).toContain(wallAssembly.id)
+      expect(result.current.usedInWallPosts).toBe(false) // No actual posts in building model
+    })
+
+    it('detects prefab-modules wall assembly materials', () => {
+      const defaultMaterial = createMaterialId()
+      const fallbackMaterial = createMaterialId()
+      const inclinedMaterial = createMaterialId()
+      const lintelMaterial = createMaterialId()
+      const sillMaterial = createMaterialId()
+      const tallReinforceMaterial = createMaterialId()
+
+      const wallAssembly: WallAssemblyConfig = {
+        id: createWallAssemblyId(),
+        name: 'Prefab Modules Wall',
+        type: 'prefab-modules',
+        defaultMaterial,
+        fallbackMaterial,
+        inclinedMaterial,
+        lintelMaterial,
+        sillMaterial,
+        maxWidth: 1000,
+        targetWidth: 900,
+        preferEqualWidths: false,
+        tallReinforceThreshold: 3000,
+        tallReinforceThickness: 60,
+        tallReinforceStagger: 150,
+        tallReinforceMaterial,
+        insideLayerSetId: undefined,
+        outsideLayerSetId: undefined
+      }
+
+      mockUseWallAssemblies.mockReturnValue([wallAssembly])
+
+      const { result: defaultResult } = renderHook(() => useMaterialUsage(defaultMaterial))
+      expect(defaultResult.current.isUsed).toBe(true)
+      expect(defaultResult.current.assemblyIds).toEqual([wallAssembly.id])
+
+      const { result: fallbackResult } = renderHook(() => useMaterialUsage(fallbackMaterial))
+      expect(fallbackResult.current.isUsed).toBe(true)
+      expect(fallbackResult.current.assemblyIds).toEqual([wallAssembly.id])
+
+      const { result: inclinedResult } = renderHook(() => useMaterialUsage(inclinedMaterial))
+      expect(inclinedResult.current.isUsed).toBe(true)
+      expect(inclinedResult.current.assemblyIds).toEqual([wallAssembly.id])
+
+      const { result: lintelResult } = renderHook(() => useMaterialUsage(lintelMaterial))
+      expect(lintelResult.current.isUsed).toBe(true)
+      expect(lintelResult.current.assemblyIds).toEqual([wallAssembly.id])
+
+      const { result: sillResult } = renderHook(() => useMaterialUsage(sillMaterial))
+      expect(sillResult.current.isUsed).toBe(true)
+      expect(sillResult.current.assemblyIds).toEqual([wallAssembly.id])
+
+      const { result: reinforceResult } = renderHook(() => useMaterialUsage(tallReinforceMaterial))
+      expect(reinforceResult.current.isUsed).toBe(true)
+      expect(reinforceResult.current.assemblyIds).toEqual([wallAssembly.id])
+    })
+
+    it('detects layer set material usage', () => {
+      const layerSetMaterialId = createMaterialId()
+
+      const layerSet: LayerSetConfig = {
+        id: createLayerSetId(),
+        name: 'Test Layer Set',
+        use: 'wall',
+        totalThickness: 30,
+        layers: [
+          {
+            type: 'monolithic',
+            name: 'Test Layer',
+            material: layerSetMaterialId,
+            thickness: 30
+          }
+        ]
+      }
+
+      mockUseLayerSets.mockReturnValue([layerSet])
+
+      const { result } = renderHook(() => useMaterialUsage(layerSetMaterialId))
+
+      expect(result.current.isUsed).toBe(true)
+      expect(result.current.assemblyIds).toEqual([layerSet.id])
+    })
+
+    it('detects striped layer material usage', () => {
+      const stripeMaterialId = createMaterialId()
+      const gapMaterialId = createMaterialId()
+
+      const layerSet: LayerSetConfig = {
+        id: createLayerSetId(),
+        name: 'Striped Layer Set',
+        use: 'wall',
+        totalThickness: 40,
+        layers: [
+          {
+            type: 'striped',
+            name: 'Striped Layer',
+            direction: 'diagonal',
+            stripeMaterial: stripeMaterialId,
+            stripeWidth: 30,
+            gapMaterial: gapMaterialId,
+            gapWidth: 10,
+            thickness: 40
+          }
+        ]
+      }
+
+      mockUseLayerSets.mockReturnValue([layerSet])
+
+      const { result: stripeResult } = renderHook(() => useMaterialUsage(stripeMaterialId))
+      expect(stripeResult.current.isUsed).toBe(true)
+      expect(stripeResult.current.assemblyIds).toEqual([layerSet.id])
+
+      const { result: gapResult } = renderHook(() => useMaterialUsage(gapMaterialId))
+      expect(gapResult.current.isUsed).toBe(true)
+      expect(gapResult.current.assemblyIds).toEqual([layerSet.id])
+    })
+  })
+})

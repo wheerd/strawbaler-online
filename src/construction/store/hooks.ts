@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 
 import type { PerimeterId, PerimeterWallId, RoofId, StoreyId } from '@/building/model/ids'
 import { isPerimeterId, isPerimeterWallId, isRoofId, isStoreyId } from '@/building/model/ids'
-import type { ConstructionModel } from '@/construction/model'
+import type { ConstructionModel } from '@/construction/model/model'
 
 import { ensureConstructionLoaded, getConstructionActions, useConstructionStore } from './store'
 import type { ConstructionStoreState, ModelId } from './types'

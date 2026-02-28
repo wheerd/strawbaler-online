@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
 
-import { useZoom } from '@/editor/hooks/useViewportStore'
+import { SnappingLines } from '@/editor/canvas/components/SnappingLines'
+import { useZoom } from '@/editor/canvas/state/viewportStore'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolOverlayComponentProps } from '@/editor/tools/system/types'
-import { SnappingLines } from '@/editor/utils/SnappingLines'
 import { type Vec2, addVec2, copyVec2, direction, offsetPolygon, perpendicularCCW, scaleVec2 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise } from '@/shared/geometry/polygon'
 

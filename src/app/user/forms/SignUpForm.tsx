@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 
 import { getAuthErrorMessage } from '@/app/user/authErrors'
 import { getSupabaseClient, isSupabaseConfigured } from '@/app/user/supabaseClient'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/shared/ui/components/button'
+import { Input } from '@/shared/ui/components/input'
 
 export interface SignUpFormProps {
   onSuccess: (message: string) => void

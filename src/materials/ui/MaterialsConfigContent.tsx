@@ -1,0 +1,1232 @@
+import * as Label from '@radix-ui/react-label'
+import { Box, Circle, Copy, Droplet, Layers, Plus, Trash, TriangleAlert, Undo2, X } from 'lucide-react'
+import React, { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { useConfigActions, useDefaultStrawMaterialId } from '@/config/store'
+import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
+import type {
+  DimensionalMaterial,
+  GenericMaterial,
+  Material,
+  MaterialId,
+  PrefabMaterial,
+  SheetMaterial,
+  SheetType,
+  StrawbaleMaterial,
+  VolumeMaterial
+} from '@/materials/material'
+import { strawbale } from '@/materials/material'
+import { useMaterialActions, useMaterials } from '@/materials/store'
+import { type MaterialUsage, useMaterialUsage } from '@/materials/usage'
+import type { Length } from '@/shared/geometry'
+import { useFormatters } from '@/shared/i18n/useFormatters'
+import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { NumberField } from '@/shared/ui/NumberField'
+import { VolumeField } from '@/shared/ui/VolumeField/VolumeField'
+import { AlertDialog } from '@/shared/ui/components/alert-dialog'
+import { Badge } from '@/shared/ui/components/badge'
+import { Button } from '@/shared/ui/components/button'
+import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
+import { Card } from '@/shared/ui/components/card'
+import { Checkbox } from '@/shared/ui/components/checkbox'
+import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
+import { TextField } from '@/shared/ui/components/text-field'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
+import { Tooltip } from '@/shared/ui/components/tooltip'
+
+import { MaterialSelect, useGetMaterialTypeName } from './MaterialSelect'
+import { getMaterialTypeIcon } from './icons'
+
+export interface MaterialsConfigModalProps {
+  trigger: React.ReactNode
+}
+
+export interface MaterialsConfigContentProps {
+  initialSelectionId?: string
+}
+
+type MaterialType = Material['type']
+
+export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigContentProps): React.JSX.Element {
+  const { t } = useTranslation('config')
+  const getMaterialTypeName = useGetMaterialTypeName()
+  const materials = useMaterials()
+  const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial, reset } = useMaterialActions()
+  const defaultStrawMaterialId = useDefaultStrawMaterialId()
+  const { updateDefaultStrawMaterial } = useConfigActions()
+
+  const [selectedMaterialId, setSelectedMaterialId] = useState<MaterialId | null>(() => {
+    if (initialSelectionId && materials.some(m => m.id === initialSelectionId)) {
+      return initialSelectionId as MaterialId
+    }
+    return materials.length > 0 ? materials[0].id : null
+  })
+
+  const selectedMaterial = materials.find(m => m.id === selectedMaterialId) ?? null
+
+  // Use the hook to get material usage - it will return empty usage if selectedMaterial is null
+  const usage = useMaterialUsage(selectedMaterial?.id ?? ('' as MaterialId))
+
+  const handleAddNew = useCallback(
+    (type: MaterialType) => {
+      let newMaterial: Material
+
+      switch (type) {
+        case 'dimensional':
+          newMaterial = addMaterial({
+            name: t($ => $.materials.newName_dimensional),
+            type: 'dimensional',
+            color: '#808080',
+            crossSections: [],
+            lengths: []
+          } satisfies Omit<DimensionalMaterial, 'id'>)
+          break
+        case 'sheet':
+          newMaterial = addMaterial({
+            name: t($ => $.materials.newName_sheet),
+            type: 'sheet',
+            color: '#808080',
+            sizes: [],
+            thicknesses: [],
+            sheetType: 'solid'
+          } satisfies Omit<SheetMaterial, 'id'>)
+          break
+        case 'volume':
+          newMaterial = addMaterial({
+            name: t($ => $.materials.newName_volume),
+            type: 'volume',
+            color: '#808080',
+            availableVolumes: []
+          } satisfies Omit<VolumeMaterial, 'id'>)
+          break
+        case 'generic':
+          newMaterial = addMaterial({
+            name: t($ => $.materials.newName_generic),
+            type: 'generic',
+            color: '#808080'
+          } satisfies Omit<GenericMaterial, 'id'>)
+          break
+        case 'strawbale':
+          newMaterial = addMaterial({
+            name: t($ => $.materials.newName_strawbale),
+            type: 'strawbale',
+            color: strawbale.color,
+            baleMinLength: strawbale.baleMinLength,
+            baleMaxLength: strawbale.baleMaxLength,
+            baleHeight: strawbale.baleHeight,
+            baleWidth: strawbale.baleWidth,
+            tolerance: strawbale.tolerance,
+            topCutoffLimit: strawbale.topCutoffLimit,
+            flakeSize: strawbale.flakeSize,
+            density: strawbale.density
+          } as Omit<StrawbaleMaterial, 'id'>)
+          break
+        case 'prefab':
+          newMaterial = addMaterial({
+            name: t($ => $.materials.newName_prefab),
+            type: 'prefab',
+            color: '#555555',
+            minHeight: 400,
+            maxHeight: 3000,
+            minThickness: 300,
+            maxThickness: 400,
+            minWidth: 400,
+            maxWidth: 850,
+            isFlipped: false
+          } satisfies Omit<PrefabMaterial, 'id'>)
+          break
+        default:
+          return
+      }
+
+      setSelectedMaterialId(newMaterial.id)
+    },
+    [addMaterial, updateDefaultStrawMaterial]
+  )
+
+  const handleDuplicate = useCallback(() => {
+    if (!selectedMaterial) return
+
+    const duplicated = duplicateMaterial(
+      selectedMaterial.id,
+      t($ => $.materials.duplicateNamePattern, { name: selectedMaterial.name, defaultValue: '{{name}} (Copy)' })
+    )
+    setSelectedMaterialId(duplicated.id)
+  }, [selectedMaterial, duplicateMaterial])
+
+  const handleDelete = useCallback(() => {
+    if (!selectedMaterial || usage.isUsed) return
+
+    const currentIndex = materials.findIndex(m => m.id === selectedMaterialId)
+    removeMaterial(selectedMaterial.id)
+
+    if (materials.length > 1) {
+      const nextMaterial = materials[currentIndex + 1] ?? materials[currentIndex - 1]
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      setSelectedMaterialId(nextMaterial?.id ?? null)
+    } else {
+      setSelectedMaterialId(null)
+    }
+  }, [selectedMaterial, selectedMaterialId, materials, removeMaterial, usage.isUsed])
+
+  const handleUpdate = useCallback(
+    (updates: Partial<Omit<Material, 'id' | 'type'>>) => {
+      if (!selectedMaterial) return
+      updateMaterial(selectedMaterial.id, updates)
+    },
+    [selectedMaterial, updateMaterial]
+  )
+
+  const handleReset = useCallback(() => {
+    reset()
+    const stillExists = materials.some(a => a.id === selectedMaterialId)
+    if (!stillExists && materials.length > 0) {
+      setSelectedMaterialId(materials[0].id)
+    }
+  }, [reset, setSelectedMaterialId, materials, selectedMaterialId])
+
+  const Icon = selectedMaterial ? getMaterialTypeIcon(selectedMaterial.type) : null
+
+  const nameKey = selectedMaterial?.nameKey
+  return (
+    <div className="flex w-full flex-col gap-4">
+      <div className="grid grid-cols-2 gap-2">
+        {/* Selector + Actions */}
+        <div className="flex w-full items-center gap-2">
+          <div className="flex grow flex-col">
+            <MaterialSelect
+              value={selectedMaterialId ?? null}
+              onValueChange={materialId => {
+                setSelectedMaterialId(materialId ?? null)
+              }}
+              placeholder={t($ => $.common.placeholders.selectMaterial)}
+            />
+          </div>
+          <DropdownMenu>
+            <DropdownMenu.Trigger asChild>
+              <Button size="icon" title={t($ => $.common.addNew)}>
+                <Plus />
+              </Button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content>
+              <DropdownMenu.Item
+                onSelect={() => {
+                  handleAddNew('dimensional')
+                }}
+              >
+                <div className="flex items-center gap-1">
+                  <Box />
+                  {t($ => $.materials.typeDimensional)}
+                </div>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                onSelect={() => {
+                  handleAddNew('strawbale')
+                }}
+              >
+                <div className="flex items-center gap-1">
+                  <Box />
+                  {t($ => $.materials.typeStrawbale)}
+                </div>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                onSelect={() => {
+                  handleAddNew('sheet')
+                }}
+              >
+                <div className="flex items-center gap-1">
+                  <Layers />
+                  {t($ => $.materials.typeSheet)}
+                </div>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                onSelect={() => {
+                  handleAddNew('volume')
+                }}
+              >
+                <div className="flex items-center gap-1">
+                  <Droplet />
+                  {t($ => $.materials.typeVolume)}
+                </div>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                onSelect={() => {
+                  handleAddNew('generic')
+                }}
+              >
+                <div className="flex items-center gap-1">
+                  <Circle />
+                  {t($ => $.materials.typeGeneric)}
+                </div>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                onSelect={() => {
+                  handleAddNew('prefab')
+                }}
+              >
+                <div className="flex items-center gap-1">
+                  <Box />
+                  {t($ => $.materials.typePrefab)}
+                </div>
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu>
+          <Button
+            size="icon"
+            onClick={handleDuplicate}
+            disabled={!selectedMaterial}
+            title={t($ => $.common.duplicate)}
+            variant="soft"
+          >
+            <Copy />
+          </Button>
+          <AlertDialog.Root>
+            <AlertDialog.Trigger asChild>
+              <Button
+                variant="destructive"
+                size="icon"
+                disabled={!selectedMaterial || usage.isUsed}
+                title={usage.isUsed ? t($ => $.common.inUseCannotDelete) : t($ => $.common.delete)}
+              >
+                <Trash />
+              </Button>
+            </AlertDialog.Trigger>
+            <AlertDialog.Content>
+              <AlertDialog.Title>{t($ => $.materials.deleteTitle)}</AlertDialog.Title>
+              <AlertDialog.Description>
+                {t($ => $.materials.deleteConfirm, {
+                  name: selectedMaterial?.name
+                })}
+              </AlertDialog.Description>
+              <div className="mt-4 flex justify-end gap-3">
+                <AlertDialog.Cancel asChild>
+                  <Button variant="soft" className="">
+                    {t($ => $.common.cancel)}
+                  </Button>
+                </AlertDialog.Cancel>
+                <AlertDialog.Action asChild>
+                  <Button variant="destructive" onClick={handleDelete}>
+                    {t($ => $.common.delete)}
+                  </Button>
+                </AlertDialog.Action>
+              </div>
+            </AlertDialog.Content>
+          </AlertDialog.Root>
+          <AlertDialog.Root>
+            <AlertDialog.Trigger asChild>
+              <Button
+                size="icon"
+                className="text-destructive"
+                variant="outline"
+                title={t($ => $.common.resetToDefaults)}
+              >
+                <Undo2 />
+              </Button>
+            </AlertDialog.Trigger>
+            <AlertDialog.Content>
+              <AlertDialog.Title>{t($ => $.materials.resetTitle)}</AlertDialog.Title>
+              <AlertDialog.Description>{t($ => $.materials.resetConfirm)}</AlertDialog.Description>
+              <div className="mt-4 flex justify-end gap-3">
+                <AlertDialog.Cancel asChild>
+                  <Button variant="soft" className="">
+                    {t($ => $.common.cancel)}
+                  </Button>
+                </AlertDialog.Cancel>
+                <AlertDialog.Action asChild>
+                  <Button variant="destructive" onClick={handleReset}>
+                    {t($ => $.common.reset)}
+                  </Button>
+                </AlertDialog.Action>
+              </div>
+            </AlertDialog.Content>
+          </AlertDialog.Root>
+        </div>
+
+        <div className="grid grid-cols-[auto_1fr] items-center gap-2">
+          <Label.Root>
+            <span className="text-sm font-medium">{t($ => $.materials.defaultStrawMaterial)}</span>
+          </Label.Root>
+          <MaterialSelect
+            value={defaultStrawMaterialId}
+            onValueChange={materialId => {
+              if (materialId) {
+                updateDefaultStrawMaterial(materialId)
+              }
+            }}
+            placeholder={t($ => $.materials.selectStrawMaterial)}
+            materials={materials}
+          />
+        </div>
+      </div>
+      {/* Form */}
+      {selectedMaterial && (
+        <Card className="flex flex-col gap-3 p-3">
+          <div className="grid grid-cols-[4em_1fr] items-center gap-2 gap-x-3">
+            <Label.Root>
+              <span className="text-base font-medium">{t($ => $.common.name)}</span>
+            </Label.Root>
+            <TextField.Root
+              value={nameKey ? t($ => $.materials.defaults[nameKey]) : selectedMaterial.name}
+              onChange={e => {
+                handleUpdate({ name: e.target.value })
+              }}
+              placeholder={t($ => $.materials.materialName)}
+            />
+          </div>
+          <div className="grid grid-cols-[4em_1fr_auto_1fr_auto_auto] items-center gap-2 gap-x-3">
+            <Label.Root>
+              <span className="text-base font-medium">{t($ => $.common.type)}</span>
+            </Label.Root>
+            <div className="flex items-center gap-2">
+              {Icon && <Icon width="12" height="12" />}
+              <span className="text-base">{getMaterialTypeName(selectedMaterial.type)}</span>
+            </div>
+
+            <Label.Root>
+              <span className="text-base font-medium">{t($ => $.common.color)}</span>
+            </Label.Root>
+            <input
+              type="color"
+              value={selectedMaterial.color}
+              onChange={e => {
+                handleUpdate({ color: e.target.value })
+              }}
+              className="h-[24px] w-[60px] cursor-pointer"
+            />
+            <Label.Root>
+              <span className="text-base font-medium">{t($ => $.common.density)}</span>
+            </Label.Root>
+            <NumberField.Root
+              value={selectedMaterial.density}
+              onChange={value => {
+                handleUpdate({ density: value })
+              }}
+              placeholder="—"
+            >
+              <NumberField.Input min="0" step="1" className="w-20 text-right" />
+              <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+                <span className="text-muted-foreground pointer-events-none text-sm">
+                  {t($ => $.common.densityUnit)}
+                </span>
+              </NumberField.Slot>
+            </NumberField.Root>
+          </div>
+
+          {selectedMaterial.type === 'dimensional' && (
+            <DimensionalMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
+          )}
+
+          {selectedMaterial.type === 'sheet' && (
+            <SheetMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
+          )}
+
+          {selectedMaterial.type === 'volume' && (
+            <VolumeMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
+          )}
+
+          {selectedMaterial.type === 'strawbale' && (
+            <StrawbaleMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
+          )}
+
+          {selectedMaterial.type === 'prefab' && (
+            <PrefabMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
+          )}
+        </Card>
+      )}
+      {!selectedMaterial && materials.length === 0 && (
+        <div className="flex items-center justify-center p-5">
+          <span className="">{t($ => $.materials.noMaterialsYet)}</span>
+        </div>
+      )}
+      {usage.isUsed && <UsageDisplay usage={usage} />}
+    </div>
+  )
+}
+
+function UsageBadge({ id }: { id: EntityId }) {
+  const label = useEntityLabel(id)
+  return (
+    <Badge key={id} variant="soft" color="blue">
+      {label}
+    </Badge>
+  )
+}
+
+function UsageDisplay({ usage }: { usage: MaterialUsage }): React.JSX.Element {
+  const { t } = useTranslation('config')
+
+  return (
+    <div className="grid grid-cols-[auto_1fr] items-baseline gap-2 gap-x-3">
+      <Label.Root>
+        <span className="text-base font-medium">{t($ => $.usage.usedBy)}</span>
+      </Label.Root>
+      <div className="flex flex-wrap gap-1">
+        {usage.isDefaultStraw && (
+          <Badge variant="soft" color="blue">
+            {t($ => $.usage.globalDefault_straw)}
+          </Badge>
+        )}
+        {usage.assemblyIds.map(id => (
+          <UsageBadge key={id} id={id} />
+        ))}
+        {usage.usedInWallPosts && (
+          <Badge variant="soft" color="blue">
+            {t($ => $.usage.usedInWallPosts)}
+          </Badge>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function DimensionalMaterialFields({
+  material,
+  onUpdate
+}: {
+  material: DimensionalMaterial
+  onUpdate: (updates: Partial<DimensionalMaterial>) => void
+}) {
+  const { t } = useTranslation('config')
+  const { formatLength, formatDimensions2D } = useFormatters()
+
+  const [newDim1, setNewDim1] = useState<Length>(material.crossSections[0]?.smallerLength ?? 50)
+  const [newDim2, setNewDim2] = useState<Length>(material.crossSections[0]?.biggerLength ?? 100)
+  const [newLengthInput, setNewLengthInput] = useState<Length>(material.lengths[0] ?? 3000)
+
+  const handleAddCrossSection = useCallback(() => {
+    if (newDim1 <= 0 || newDim2 <= 0) return
+    const normalized = {
+      smallerLength: Math.min(newDim1, newDim2),
+      biggerLength: Math.max(newDim1, newDim2)
+    }
+    if (
+      material.crossSections.some(
+        section =>
+          section.smallerLength === normalized.smallerLength && section.biggerLength === normalized.biggerLength
+      )
+    ) {
+      return
+    }
+    const updated = [...material.crossSections, normalized].sort(
+      (a, b) => a.smallerLength - b.smallerLength || a.biggerLength - b.biggerLength
+    )
+    onUpdate({ crossSections: updated })
+  }, [material.crossSections, newDim2, newDim1, onUpdate])
+
+  const handleRemoveCrossSection = useCallback(
+    (sectionToRemove: DimensionalMaterial['crossSections'][number]) => {
+      const updated = material.crossSections.filter(
+        section =>
+          section.smallerLength !== sectionToRemove.smallerLength ||
+          section.biggerLength !== sectionToRemove.biggerLength
+      )
+      onUpdate({ crossSections: updated })
+    },
+    [material.crossSections, onUpdate]
+  )
+
+  const handleAddLength = useCallback(() => {
+    if (newLengthInput <= 0 || material.lengths.includes(newLengthInput)) {
+      return
+    }
+    const updated = [...material.lengths, newLengthInput].sort((a, b) => a - b)
+    onUpdate({ lengths: updated })
+    setNewLengthInput(3000)
+  }, [material.lengths, newLengthInput, onUpdate])
+
+  const handleRemoveLength = useCallback(
+    (lengthToRemove: Length) => {
+      const updated = material.lengths.filter(l => l !== lengthToRemove)
+      onUpdate({ lengths: updated })
+    },
+    [material.lengths, onUpdate]
+  )
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-row items-end justify-between">
+        <div className="flex flex-col gap-2">
+          <span className="text-base font-medium" id="crossSections">
+            {t($ => $.materials.crossSections)}
+          </span>
+          <div className="flex grow flex-wrap gap-2" role="list" aria-labelledby="crossSections">
+            {material.crossSections.map(section => (
+              <Badge
+                size="sm"
+                role="listitem"
+                key={`${section.smallerLength}x${section.biggerLength}`}
+                variant="soft"
+                color="blue"
+              >
+                <div className="flex items-center gap-1">
+                  {formatDimensions2D([section.smallerLength, section.biggerLength], false)}
+                  <Button
+                    size="icon-xs"
+                    variant="ghost"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      handleRemoveCrossSection(section)
+                    }}
+                    aria-label={t($ => $.materials.removeCrossSection)}
+                  >
+                    <X width="10" height="10" />
+                  </Button>
+                </div>
+              </Badge>
+            ))}
+            {material.crossSections.length === 0 && (
+              <Callout color="orange" size="sm">
+                <CalloutIcon>
+                  <TriangleAlert />
+                </CalloutIcon>
+                <CalloutText>{t($ => $.materials.noCrossSections)}</CalloutText>
+              </Callout>
+            )}
+          </div>
+        </div>
+        <div className="grid grow-0 grid-cols-[auto_auto_auto_auto] items-center justify-end gap-2">
+          <LengthField
+            value={newDim1}
+            onChange={setNewDim1}
+            unit="cm"
+            aria-label={t($ => $.materials.crossSectionSmaller)}
+          />
+          <span>x</span>
+          <LengthField
+            value={newDim2}
+            onChange={setNewDim2}
+            unit="cm"
+            aria-label={t($ => $.materials.crossSectionLarger)}
+          />
+          <Button
+            size="icon-sm"
+            title={t($ => $.common.add)}
+            aria-label={t($ => $.materials.addCrossSection)}
+            onClick={handleAddCrossSection}
+            variant="soft"
+          >
+            <Plus />
+          </Button>
+        </div>
+      </div>
+      <div className="flex flex-row items-end justify-between">
+        <div className="flex flex-col gap-2">
+          <span className="text-base font-medium" id="stock-lengths">
+            {t($ => $.materials.stockLengths)}
+          </span>
+          <div className="flex flex-wrap gap-2" role="list" aria-labelledby="stock-lengths">
+            {material.lengths.map(length => (
+              <Badge role="listitem" key={length} variant="soft" size="sm" color="blue">
+                <div className="flex items-center gap-1">
+                  {formatLength(length)}
+                  <Button
+                    size="icon-xs"
+                    variant="ghost"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      handleRemoveLength(length)
+                    }}
+                    aria-label={t($ => $.materials.removeStockLength)}
+                  >
+                    <X width="10" height="10" />
+                  </Button>
+                </div>
+              </Badge>
+            ))}
+            {material.lengths.length === 0 && (
+              <Callout color="orange" size="sm">
+                <CalloutIcon>
+                  <TriangleAlert />
+                </CalloutIcon>
+                <CalloutText>{t($ => $.materials.noLengths)}</CalloutText>
+              </Callout>
+            )}
+          </div>
+        </div>
+        <div className="flex items-end gap-2">
+          <LengthField
+            value={newLengthInput}
+            onChange={setNewLengthInput}
+            unit="cm"
+            className="w-[8em]"
+            aria-label={t($ => $.materials.stockLengthInput)}
+          />
+          <Button
+            size="icon-sm"
+            title={t($ => $.materials.add)}
+            aria-label={t($ => $.materials.addStockLength)}
+            onClick={handleAddLength}
+            variant="soft"
+          >
+            <Plus />
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SheetMaterialFields({
+  material,
+  onUpdate
+}: {
+  material: SheetMaterial
+  onUpdate: (updates: Partial<SheetMaterial>) => void
+}) {
+  const { t } = useTranslation('config')
+  const { formatLength, formatDimensions2D } = useFormatters()
+  const [newWidth, setNewWidth] = useState<Length>(material.sizes[0]?.smallerLength ?? 600)
+  const [newLength, setNewLength] = useState<Length>(material.sizes[0]?.biggerLength ?? 1200)
+  const [newThickness, setNewThickness] = useState<Length>(material.thicknesses[0] ?? 18)
+
+  const handleAddSize = useCallback(() => {
+    if (newWidth <= 0 || newLength <= 0) return
+    const normalized = {
+      smallerLength: Math.min(newWidth, newLength),
+      biggerLength: Math.max(newWidth, newLength)
+    }
+    if (
+      material.sizes.some(
+        size => size.smallerLength === normalized.smallerLength && size.biggerLength === normalized.biggerLength
+      )
+    ) {
+      return
+    }
+    const updated = [...material.sizes, normalized].sort(
+      (a, b) => a.smallerLength - b.smallerLength || a.biggerLength - b.biggerLength
+    )
+    onUpdate({ sizes: updated })
+  }, [material.sizes, newLength, newWidth, onUpdate])
+
+  const handleRemoveSize = useCallback(
+    (sizeToRemove: SheetMaterial['sizes'][number]) => {
+      const updated = material.sizes.filter(
+        size => size.smallerLength !== sizeToRemove.smallerLength || size.biggerLength !== sizeToRemove.biggerLength
+      )
+      onUpdate({ sizes: updated })
+    },
+    [material.sizes, onUpdate]
+  )
+
+  const handleAddThickness = useCallback(() => {
+    if (newThickness <= 0 || material.thicknesses.includes(newThickness)) {
+      return
+    }
+    const updated = [...material.thicknesses, newThickness].sort((a, b) => a - b)
+    onUpdate({ thicknesses: updated })
+  }, [material.thicknesses, newThickness, onUpdate])
+
+  const handleRemoveThickness = useCallback(
+    (thicknessToRemove: Length) => {
+      const updated = material.thicknesses.filter(t => t !== thicknessToRemove)
+      onUpdate({ thicknesses: updated })
+    },
+    [material.thicknesses, onUpdate]
+  )
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-row items-end justify-between">
+        <div className="flex flex-col gap-2">
+          <span className="text-base font-medium" id="sheet-sizes">
+            {t($ => $.materials.sheetSizes)}
+          </span>
+          <div className="flex flex-wrap gap-2" role="list" aria-labelledby="sheet-sizes">
+            {material.sizes.map(size => (
+              <Badge
+                size="sm"
+                role="listitem"
+                key={`${size.smallerLength}x${size.biggerLength}`}
+                variant="soft"
+                color="blue"
+              >
+                <div className="flex items-center gap-1">
+                  {formatDimensions2D([size.smallerLength, size.biggerLength], false)}
+                  <Button
+                    size="icon-xs"
+                    variant="ghost"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      handleRemoveSize(size)
+                    }}
+                    aria-label={t($ => $.materials.removeSheetSize)}
+                  >
+                    <X width="10" height="10" />
+                  </Button>
+                </div>
+              </Badge>
+            ))}
+            {material.sizes.length === 0 && (
+              <Callout color="orange" size="sm">
+                <CalloutIcon>
+                  <TriangleAlert />
+                </CalloutIcon>
+                <CalloutText>{t($ => $.materials.noSizes)}</CalloutText>
+              </Callout>
+            )}
+          </div>
+        </div>
+        <div className="grid grid-cols-[6em_auto_6em_auto] items-center justify-end gap-2">
+          <LengthField value={newWidth} onChange={setNewWidth} unit="cm" aria-label={t($ => $.materials.sheetWidth)} />
+          <span>x</span>
+          <LengthField
+            value={newLength}
+            onChange={setNewLength}
+            unit="cm"
+            aria-label={t($ => $.materials.sheetLength)}
+          />
+          <Button
+            size="icon-sm"
+            title={t($ => $.materials.addSize)}
+            aria-label={t($ => $.materials.addSheetSize)}
+            onClick={handleAddSize}
+            variant="soft"
+          >
+            <Plus />
+          </Button>
+        </div>
+      </div>
+      <div className="flex flex-row items-end justify-between">
+        <div className="flex flex-col gap-2">
+          <span className="text-base font-medium" id="sheet-thicknesses">
+            {t($ => $.materials.thicknesses)}
+          </span>
+          <div className="flex flex-wrap gap-2" role="list" aria-labelledby="sheet-thicknesses">
+            {material.thicknesses.map(thickness => (
+              <Badge role="listitem" key={thickness} variant="soft" size="sm" color="blue">
+                <div className="flex items-center gap-1">
+                  {formatLength(thickness)}
+                  <Button
+                    size="icon-xs"
+                    variant="ghost"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      handleRemoveThickness(thickness)
+                    }}
+                    aria-label={t($ => $.materials.removeThickness)}
+                  >
+                    <X width="10" height="10" />
+                  </Button>
+                </div>
+              </Badge>
+            ))}
+            {material.thicknesses.length === 0 && (
+              <Callout color="orange" size="sm">
+                <CalloutIcon>
+                  <TriangleAlert />
+                </CalloutIcon>
+                <CalloutText>{t($ => $.materials.noThicknesses)}</CalloutText>
+              </Callout>
+            )}
+          </div>
+        </div>
+        <div className="flex items-end gap-2">
+          <LengthField
+            value={newThickness}
+            onChange={setNewThickness}
+            unit="mm"
+            className="w-[8em]"
+            aria-label={t($ => $.materials.thicknessInput)}
+          />
+          <Button
+            size="icon-sm"
+            title={t($ => $.materials.addThickness)}
+            aria-label={t($ => $.materials.addThickness)}
+            onClick={handleAddThickness}
+            variant="soft"
+          >
+            <Plus />
+          </Button>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <span className="text-base font-medium">{t($ => $.materials.sheetType)}</span>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          value={material.sheetType}
+          onValueChange={value => {
+            if (value) {
+              onUpdate({ sheetType: value as SheetType })
+            }
+          }}
+        >
+          <ToggleGroupItem value="solid">{t($ => $.materials.sheetTypeSolid)}</ToggleGroupItem>
+          <ToggleGroupItem value="tongueAndGroove">{t($ => $.materials.sheetTypeTongueAndGroove)}</ToggleGroupItem>
+          <ToggleGroupItem value="flexible">{t($ => $.materials.sheetTypeFlexible)}</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+    </div>
+  )
+}
+
+function VolumeMaterialFields({
+  material,
+  onUpdate
+}: {
+  material: VolumeMaterial
+  onUpdate: (updates: Partial<VolumeMaterial>) => void
+}) {
+  const { t } = useTranslation('config')
+  const { formatVolume, formatVolumeInLiters } = useFormatters()
+  const [newVolumeInput, setNewVolumeInput] = useState<number>(1_000_000)
+  const [volumeUnit, setVolumeUnit] = useState<'liter' | 'm3'>('liter')
+
+  const handleAddVolume = useCallback(() => {
+    if (material.availableVolumes.includes(newVolumeInput)) {
+      return
+    }
+
+    const updated = [...material.availableVolumes, newVolumeInput].sort((a, b) => a - b)
+    onUpdate({ availableVolumes: updated })
+    setNewVolumeInput(1000_000)
+  }, [material.availableVolumes, newVolumeInput, onUpdate])
+
+  const handleRemoveVolume = useCallback(
+    (volumeToRemove: number) => {
+      const updated = material.availableVolumes.filter(v => v !== volumeToRemove)
+      onUpdate({ availableVolumes: updated })
+    },
+    [material.availableVolumes, onUpdate]
+  )
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-row items-end justify-between">
+        <div className="flex flex-col gap-2">
+          <span className="text-base font-medium" id="available-volumes">
+            {t($ => $.materials.availableVolumes)}
+          </span>
+          <div className="flex flex-wrap gap-2" role="list" aria-labelledby="available-volumes">
+            {material.availableVolumes.map(volume => (
+              <Badge role="listitem" key={volume} variant="soft" size="sm" color="blue">
+                <div className="flex items-center gap-1">
+                  {volumeUnit === 'liter' ? formatVolumeInLiters(volume) : formatVolume(volume)}
+                  <Button
+                    size="icon-xs"
+                    variant="ghost"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      handleRemoveVolume(volume)
+                    }}
+                    aria-label={t($ => $.materials.removeVolume)}
+                  >
+                    <X width="10" height="10" />
+                  </Button>
+                </div>
+              </Badge>
+            ))}
+            {material.availableVolumes.length === 0 && (
+              <Callout color="orange" size="sm">
+                <CalloutIcon>
+                  <TriangleAlert />
+                </CalloutIcon>
+                <CalloutText>{t($ => $.materials.noVolumes)}</CalloutText>
+              </Callout>
+            )}
+          </div>
+        </div>
+
+        <div className="flex min-w-[14em] flex-col items-end gap-2">
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={volumeUnit}
+            onValueChange={value => {
+              if (value) {
+                setVolumeUnit(value as 'liter' | 'm3')
+              }
+            }}
+            size="sm"
+          >
+            <ToggleGroupItem value="liter">{t($ => $.units.liter, { ns: 'common' })}</ToggleGroupItem>
+            <ToggleGroupItem value="m3">{t($ => $.units.m3, { ns: 'common' })}</ToggleGroupItem>
+          </ToggleGroup>
+          <div className="flex items-end gap-2">
+            <VolumeField
+              value={newVolumeInput}
+              onChange={setNewVolumeInput}
+              unit={volumeUnit}
+              className="w-[8em]"
+              aria-label={t($ => $.materials.volumeInput)}
+            />
+            <Button
+              size="icon-sm"
+              title={t($ => $.materials.addVolume)}
+              aria-label={t($ => $.materials.addVolumeOption)}
+              onClick={handleAddVolume}
+              variant="soft"
+            >
+              <Plus />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StrawbaleMaterialFields({
+  material,
+  onUpdate
+}: {
+  material: StrawbaleMaterial
+  onUpdate: (updates: Partial<StrawbaleMaterial>) => void
+}) {
+  const { t } = useTranslation('config')
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-[8em_1fr_8em_1fr] gap-3 gap-x-4">
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.minBaleLength)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.baleMinLength}
+          onChange={baleMinLength => {
+            onUpdate({ baleMinLength })
+          }}
+          unit="cm"
+        />
+
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.maxBaleLength)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.baleMaxLength}
+          onChange={baleMaxLength => {
+            onUpdate({ baleMaxLength })
+          }}
+          unit="cm"
+        />
+
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.baleHeight)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.baleHeight}
+          onChange={baleHeight => {
+            onUpdate({ baleHeight })
+          }}
+          unit="cm"
+        />
+
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.baleWidth)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.baleWidth}
+          onChange={baleWidth => {
+            onUpdate({ baleWidth })
+          }}
+          unit="cm"
+        />
+      </div>
+      <div className="grid grid-cols-[8em_1fr_8em_1fr] gap-3 gap-x-4">
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.tolerance)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.tolerance}
+          onChange={tolerance => {
+            onUpdate({ tolerance })
+          }}
+          unit="mm"
+        />
+
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.topCutoffLimit)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.topCutoffLimit}
+          onChange={topCutoffLimit => {
+            onUpdate({ topCutoffLimit })
+          }}
+          unit="cm"
+        />
+
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.flakeSize)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.flakeSize}
+          onChange={flakeSize => {
+            onUpdate({ flakeSize })
+          }}
+          unit="cm"
+        />
+      </div>
+    </div>
+  )
+}
+
+function PrefabMaterialFields({
+  material,
+  onUpdate
+}: {
+  material: PrefabMaterial
+  onUpdate: (updates: Partial<PrefabMaterial>) => void
+}) {
+  const { t } = useTranslation('config')
+
+  const handleSlopedToggle = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        onUpdate({
+          sloped: {
+            minAngleDegrees: 0,
+            maxAngleDegrees: 90
+          }
+        })
+      } else {
+        onUpdate({ sloped: undefined })
+      }
+    },
+    [material.sloped, onUpdate]
+  )
+
+  const sloped = material.sloped
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-[8em_1fr_8em_1fr] gap-3 gap-x-4">
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.minHeight)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.minHeight}
+          onChange={minHeight => {
+            onUpdate({ minHeight })
+          }}
+          unit="mm"
+        />
+
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.maxHeight)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.maxHeight}
+          onChange={maxHeight => {
+            onUpdate({ maxHeight })
+          }}
+          unit="mm"
+        />
+
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.minThickness)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.minThickness}
+          onChange={minThickness => {
+            onUpdate({ minThickness })
+          }}
+          unit="mm"
+        />
+
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.maxThickness)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.maxThickness}
+          onChange={maxThickness => {
+            onUpdate({ maxThickness })
+          }}
+          unit="mm"
+        />
+      </div>
+
+      <div className="grid grid-cols-[8em_1fr_8em_1fr] gap-3 gap-x-4">
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.minWidth)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.minWidth}
+          onChange={minWidth => {
+            onUpdate({ minWidth })
+          }}
+          unit="mm"
+        />
+
+        <Label.Root>
+          <span className="text-sm font-medium">{t($ => $.materials.maxWidth)}</span>
+        </Label.Root>
+        <LengthField
+          value={material.maxWidth}
+          onChange={maxWidth => {
+            onUpdate({ maxWidth })
+          }}
+          unit="mm"
+        />
+      </div>
+
+      <Label.Root className="flex w-auto shrink items-center gap-2">
+        <Checkbox
+          checked={material.isFlipped}
+          onCheckedChange={value => {
+            onUpdate({ isFlipped: value === true })
+          }}
+        />
+        <Tooltip content={<span>{t($ => $.materials.isFlippedTooltip)}</span>}>
+          <span>{t($ => $.materials.isFlippedLabel)}</span>
+        </Tooltip>
+      </Label.Root>
+
+      <Label.Root className="flex w-auto shrink items-center gap-2">
+        <Checkbox
+          checked={sloped != null}
+          onCheckedChange={value => {
+            handleSlopedToggle(value === true)
+          }}
+        />
+        {t($ => $.materials.enableSloped)}
+      </Label.Root>
+
+      {sloped && (
+        <div className="grid grid-cols-[8em_1fr_8em_1fr] gap-3 gap-x-4">
+          <Label.Root>
+            <span className="text-sm font-medium">{t($ => $.materials.minAngleDegrees)}</span>
+          </Label.Root>
+          <NumberField.Root
+            value={sloped.minAngleDegrees}
+            onChange={value => {
+              if (value != null) {
+                onUpdate({
+                  sloped: {
+                    minAngleDegrees: value,
+                    maxAngleDegrees: sloped.maxAngleDegrees
+                  }
+                })
+              }
+            }}
+          >
+            <NumberField.Input min="0" max="90" className="w-20" />
+            <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+              <span className="text-muted-foreground pointer-events-none text-sm">°</span>
+            </NumberField.Slot>
+          </NumberField.Root>
+
+          <Label.Root>
+            <span className="text-sm font-medium">{t($ => $.materials.maxAngleDegrees)}</span>
+          </Label.Root>
+          <NumberField.Root
+            value={sloped.maxAngleDegrees}
+            onChange={value => {
+              if (value != null) {
+                onUpdate({
+                  sloped: {
+                    minAngleDegrees: sloped.minAngleDegrees,
+                    maxAngleDegrees: value
+                  }
+                })
+              }
+            }}
+          >
+            <NumberField.Input min="0" max="90" className="w-20" />
+            <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+              <span className="text-muted-foreground pointer-events-none text-sm">°</span>
+            </NumberField.Slot>
+          </NumberField.Root>
+        </div>
+      )}
+    </div>
+  )
+}

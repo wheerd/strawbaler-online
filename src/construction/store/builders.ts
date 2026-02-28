@@ -1,14 +1,14 @@
 import type { PerimeterWithGeometry } from '@/building/model'
 import type { PerimeterId, PerimeterWallId, RoofId, StoreyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/construction/config'
-import { getPerimeterContextCached } from '@/construction/derived/perimeterContextCache'
-import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model'
-import { assignDeterministicIdsToModel, resultsToModel } from '@/construction/results'
-import { constructRoof } from '@/construction/roofs'
-import { getWallStoreyContextCached } from '@/construction/storeys/context'
-import { TAG_FLOOR, TAG_WALLS, createTag } from '@/construction/tags'
-import { resolveWallAssembly } from '@/construction/walls'
+import { getConfigActions } from '@/config/store'
+import { constructRoof } from '@/construction/assemblies/roofs'
+import { resolveWallAssembly } from '@/construction/assemblies/walls'
+import { getPerimeterContextCached } from '@/construction/context/perimeterContextCache'
+import { getWallStoreyContextCached } from '@/construction/context/storeys'
+import { type ConstructionModel, mergeModels, transformModel } from '@/construction/model/model'
+import { assignDeterministicIdsToModel, resultsToModel } from '@/construction/model/results'
+import { TAG_FLOOR, TAG_WALLS, createTag } from '@/construction/model/tags'
 import {
   IDENTITY,
   dirAngle,

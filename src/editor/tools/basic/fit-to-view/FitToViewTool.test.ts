@@ -2,43 +2,34 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { StoreyId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { viewportActions } from '@/editor/hooks/useViewportStore'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
+import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { Bounds2D, newVec2 } from '@/shared/geometry'
 
 import { FitToViewTool } from './FitToViewTool'
 
-// Mock the store hooks
-vi.mock('@/editor/hooks/useViewportStore')
+vi.mock('@/editor/canvas/state/viewportStore')
 vi.mock('@/building/store')
-vi.mock('@/editor/tools/system', () => ({
-  getToolActions: vi.fn(() => ({
-    popTool: vi.fn(),
-    pushTool: vi.fn(),
-    replaceTool: vi.fn(),
-    clearToDefault: vi.fn()
-  }))
-}))
 
 describe('FitToViewTool', () => {
+  let toolSystem: ToolSystem
   let fitToViewTool: FitToViewTool
   let mockGetBounds: ReturnType<typeof vi.fn>
   let mockFitToView: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    fitToViewTool = new FitToViewTool()
+    toolSystem = new ToolSystem()
+    fitToViewTool = new FitToViewTool(toolSystem)
 
-    // Create only the specific mocks we need for these tests
     mockGetBounds = vi.fn()
     mockFitToView = vi.fn()
 
-    // Mock model actions accessor
     const mockedGetModelActions = vi.mocked(getModelActions)
     mockedGetModelActions.mockReturnValue({
       getActiveStoreyId: () => 'floor1' as StoreyId,
       getBounds: mockGetBounds
     } as any)
 
-    // Mock viewport actions
     const mockedViewportActions = vi.mocked(viewportActions)
     mockedViewportActions.mockReturnValue({
       fitToView: mockFitToView

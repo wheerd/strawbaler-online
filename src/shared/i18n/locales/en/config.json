@@ -93,10 +93,10 @@
       "verticalOffset": "Vertical offset of the top of the joists relative to the bottom of the base plate. Positive values move the floor up."
     },
     "types": {
-      "hangingJoist": "Hanging Joist Floor",
+      "filled": "Straw Filled Floor",
+      "hanging-joist": "Hanging Joist Floor",
       "joist": "Joist Floor",
-      "monolithic": "Monolithic Floor",
-      "straw": "Straw Filled Floor"
+      "monolithic": "Monolithic Floor"
     }
   },
   "layers": {

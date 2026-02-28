@@ -2,15 +2,14 @@ import { Pencil } from 'lucide-react'
 import React, { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { StoreyManagementModal } from '@/building/components/StoreyManagementModal'
-import { useStoreyName } from '@/building/hooks/useStoreyName'
 import type { Storey } from '@/building/model'
 import type { StoreyId } from '@/building/model/ids'
 import { useActiveStoreyId, useModelActions, useStoreysOrderedByLevel } from '@/building/store'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { clearSelection } from '@/editor/hooks/useSelectionStore'
-import { cn } from '@/lib/utils'
+import { StoreyManagementModal } from '@/building/ui/StoreyManagementModal'
+import { useStoreyName } from '@/building/ui/useStoreyName'
+import { Button } from '@/shared/ui/components/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
+import { cn } from '@/shared/ui/utils'
 
 export function getLevelColor(level: number): string {
   if (level === 0) {
@@ -38,9 +37,7 @@ export function StoreySelector(): React.JSX.Element {
 
   const handleStoreyChange = useCallback(
     (newStoreyId: string) => {
-      console.log('Changing active storey to', newStoreyId)
       setActiveStoreyId(newStoreyId as StoreyId)
-      clearSelection()
     },
     [setActiveStoreyId]
   )

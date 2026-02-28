@@ -1,6 +1,6 @@
 import { clearPersistence as clearModelPersistence, getModelActions } from '@/building/store'
-import { clearPersistence as clearConfigPersistence, getConfigActions } from '@/construction/config'
-import { popTool } from '@/editor/tools/system'
+import { clearPersistence as clearConfigPersistence, getConfigActions } from '@/config/store'
+import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { CursorStyle, ToolImplementation } from '@/editor/tools/system/types'
 
 import { TestDataToolInspector } from './TestDataToolInspector'
@@ -8,48 +8,35 @@ import { createCrossShapedPerimeter } from './generators/crossShaped'
 import { createHexagonalPerimeter } from './generators/hexagonal'
 import { createRectangularPerimeter } from './generators/rectangular'
 
-/**
- * Tool for creating test perimeter data with various configurations.
- * Provides an inspector interface with buttons for different test scenarios.
- */
 export class TestDataTool implements ToolImplementation {
   readonly id = 'test.data'
   readonly inspectorComponent = TestDataToolInspector
+  protected toolSystem: ToolSystem
 
-  /**
-   * Create cross-shaped perimeter with extensive openings
-   */
+  constructor(toolSystem: ToolSystem) {
+    this.toolSystem = toolSystem
+  }
+
   public createCrossShapedTestData(): void {
     createCrossShapedPerimeter()
-    popTool()
+    this.toolSystem.popTool()
   }
 
-  /**
-   * Create hexagonal perimeter with 3m sides
-   */
   public createHexagonalTestData(): void {
     createHexagonalPerimeter()
-    popTool()
+    this.toolSystem.popTool()
   }
 
-  /**
-   * Create rectangular 8x5m perimeter with openings
-   */
   public createRectangularTestData(): void {
     createRectangularPerimeter()
-    popTool()
+    this.toolSystem.popTool()
   }
 
-  /**
-   * Reset all model data and clear persistence
-   */
   public resetAllData(): void {
     try {
-      // Clear the model data
       getModelActions().reset()
       getConfigActions().reset()
 
-      // Clear localStorage persistence
       clearModelPersistence()
       clearConfigPersistence()
 

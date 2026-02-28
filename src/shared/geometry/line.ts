@@ -167,3 +167,27 @@ export function offsetLine(line: Line2D, offset: Length): Line2D {
     direction: line.direction
   }
 }
+
+const EPSILON = 1e-5
+
+export function lineSegmentIntersect(line: Line2D, segment: LineSegment2D): Vec2 | null {
+  const segmentLine: Line2D = {
+    point: segment.start,
+    direction: direction(segment.start, segment.end)
+  }
+
+  const intersection = lineIntersection(line, segmentLine)
+  if (!intersection) return null
+
+  // Check if intersection is actually on the segment
+  const segmentLength = distVec2(segment.start, segment.end)
+  const distFromStart = distVec2(segment.start, intersection)
+  const distFromEnd = distVec2(segment.end, intersection)
+
+  // Point is on segment if distances sum to segment length (with epsilon tolerance)
+  if (Math.abs(distFromStart + distFromEnd - segmentLength) < EPSILON) {
+    return intersection
+  }
+
+  return null
+}

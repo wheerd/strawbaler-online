@@ -9,7 +9,7 @@ import {
   type PerimetersState,
   createPerimetersSlice
 } from '@/building/store/slices/perimeterSlice'
-import type { MaterialId } from '@/construction/materials/material'
+import type { MaterialId } from '@/materials/material'
 import type { Polygon2D } from '@/shared/geometry'
 import { newVec2 } from '@/shared/geometry'
 

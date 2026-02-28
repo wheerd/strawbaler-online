@@ -1,9 +1,9 @@
 import * as Toolbar from '@radix-ui/react-toolbar'
 import React from 'react'
 
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Logo } from '@/shared/components/Logo'
+import { Logo } from '@/shared/ui/Logo'
+import { Separator } from '@/shared/ui/components/separator'
+import { Skeleton } from '@/shared/ui/components/skeleton'
 
 export function ToolbarSkeleton(): React.JSX.Element {
   return (
