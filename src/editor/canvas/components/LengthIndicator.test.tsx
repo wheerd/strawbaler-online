@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom'
+import { fireEvent } from '@testing-library/react'
+import { vi } from 'vitest'
 
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
 import { renderSvg } from '@/test/helpers'
@@ -67,5 +69,52 @@ describe('LengthIndicator', () => {
     const { container } = renderSvg(<LengthIndicator startPoint={samePoint} endPoint={samePoint} />)
 
     expect(container).toBeTruthy()
+  })
+
+  describe('clickable behavior', () => {
+    it('has data-testid when onClick is provided', () => {
+      const { getByTestId } = renderSvg(
+        <LengthIndicator startPoint={startPoint} endPoint={endPoint} onClick={vi.fn()} />
+      )
+
+      expect(getByTestId('clickable-length-indicator')).toBeTruthy()
+    })
+
+    it('does not have data-testid when onClick is not provided', () => {
+      const { queryByTestId } = renderSvg(<LengthIndicator startPoint={startPoint} endPoint={endPoint} />)
+
+      expect(queryByTestId('clickable-length-indicator')).toBeNull()
+    })
+
+    it('has hit area polygon when onClick is provided', () => {
+      const { container } = renderSvg(<LengthIndicator startPoint={startPoint} endPoint={endPoint} onClick={vi.fn()} />)
+
+      expect(container.querySelector('polygon')).toBeTruthy()
+    })
+
+    it('does not have hit area polygon when onClick is not provided', () => {
+      const { container } = renderSvg(<LengthIndicator startPoint={startPoint} endPoint={endPoint} />)
+
+      expect(container.querySelector('polygon')).toBeNull()
+    })
+
+    it('calls onClick handler with measurement when clicked', () => {
+      const mockOnClick = vi.fn()
+      const { getByTestId } = renderSvg(
+        <LengthIndicator startPoint={startPoint} endPoint={endPoint} onClick={mockOnClick} />
+      )
+
+      fireEvent.click(getByTestId('clickable-length-indicator'))
+
+      expect(mockOnClick).toHaveBeenCalledWith(1000)
+    })
+
+    it('has pointer cursor when onClick is provided', () => {
+      const { getByTestId } = renderSvg(
+        <LengthIndicator startPoint={startPoint} endPoint={endPoint} onClick={vi.fn()} />
+      )
+
+      expect(getByTestId('clickable-length-indicator')).toHaveStyle({ cursor: 'pointer' })
+    })
   })
 })

@@ -19,7 +19,6 @@ import {
   usePerimeterCornerById,
   usePerimeterWallById
 } from '@/building/store'
-import { ClickableLengthIndicator } from '@/editor/canvas/components/ClickableLengthIndicator'
 import { LengthIndicator } from '@/editor/canvas/components/LengthIndicator'
 import {
   DIMENSION_DEFAULT_FONT_SIZE,
@@ -240,7 +239,7 @@ function ConstrainableCornerDistance({
   const offset = inside ? -dimensionLayer * WALL_DIM_LAYER_OFFSET : dimensionLayer * WALL_DIM_LAYER_OFFSET
 
   return (
-    <ClickableLengthIndicator
+    <LengthIndicator
       startPoint={startPoint}
       endPoint={endPoint}
       offset={offset}
@@ -302,7 +301,7 @@ function ConstrainableEntityDistance({
   const label = constraint ? `${formatLength(constraint.distance)} \uD83D\uDD12` : undefined
 
   return (
-    <ClickableLengthIndicator
+    <LengthIndicator
       startPoint={startPoint}
       endPoint={endPoint}
       offset={dimensionLayer * WALL_DIM_LAYER_OFFSET}

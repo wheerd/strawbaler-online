@@ -1,4 +1,4 @@
-import { ClickableLengthIndicator } from '@/editor/canvas/components/ClickableLengthIndicator'
+import { LengthIndicator } from '@/editor/canvas/components/LengthIndicator'
 import { WALL_DIM_LAYER_OFFSET } from '@/editor/canvas/dimensions'
 import { activateLengthInput } from '@/editor/canvas/services/length-input'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
@@ -88,25 +88,25 @@ export function SplitWallToolOverlay({ tool }: ToolOverlayComponentProps<SplitWa
           />
 
           {/* Clickable Distance Measurements */}
-          <ClickableLengthIndicator
+          <LengthIndicator
             startPoint={insideStart}
             endPoint={insideSplit}
             offset={-3 * WALL_DIM_LAYER_OFFSET}
             onClick={handleMeasurementClick(insideStart, insideSplit, 1)}
           />
-          <ClickableLengthIndicator
+          <LengthIndicator
             startPoint={insideEnd}
             endPoint={insideSplit}
             offset={3 * WALL_DIM_LAYER_OFFSET}
             onClick={handleMeasurementClick(insideEnd, insideSplit, -1)}
           />
-          <ClickableLengthIndicator
+          <LengthIndicator
             startPoint={outsideStart}
             endPoint={outsideSplit}
             offset={3 * WALL_DIM_LAYER_OFFSET}
             onClick={handleMeasurementClick(outsideStart, outsideSplit, 1)}
           />
-          <ClickableLengthIndicator
+          <LengthIndicator
             startPoint={outsideEnd}
             endPoint={outsideSplit}
             offset={-3 * WALL_DIM_LAYER_OFFSET}
