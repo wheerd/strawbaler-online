@@ -16,7 +16,6 @@ import {
   usePerimeterWallById
 } from '@/building/store'
 import { useWallAssemblyById } from '@/config/store'
-import { ClickableLengthIndicator } from '@/editor/canvas/components/ClickableLengthIndicator'
 import { LengthIndicator } from '@/editor/canvas/components/LengthIndicator'
 import {
   DIMENSION_DEFAULT_FONT_SIZE,
@@ -145,20 +144,7 @@ function WallLengthIndicator({
   const label = constraint ? `${formatLength(constraint.length)} \uD83D\uDD12` : formatLength(currentLength)
   const offset = side === 'left' ? dimLayer * WALL_DIM_LAYER_OFFSET : -dimLayer * WALL_DIM_LAYER_OFFSET
 
-  return isSelected ? (
-    <ClickableLengthIndicator
-      startPoint={startPoint}
-      endPoint={endPoint}
-      label={label}
-      offset={offset}
-      color={color}
-      fontSize={DIMENSION_DEFAULT_FONT_SIZE}
-      strokeWidth={DIMENSION_DEFAULT_STROKE_WIDTH}
-      onClick={() => {
-        handleDistanceConstraintClick(side, constraint, currentLength, startPoint, endPoint, wallId)
-      }}
-    />
-  ) : (
+  return (
     <LengthIndicator
       startPoint={startPoint}
       endPoint={endPoint}
@@ -167,6 +153,13 @@ function WallLengthIndicator({
       color={color}
       fontSize={DIMENSION_DEFAULT_FONT_SIZE}
       strokeWidth={DIMENSION_DEFAULT_STROKE_WIDTH}
+      onClick={
+        isSelected
+          ? () => {
+              handleDistanceConstraintClick(side, constraint, currentLength, startPoint, endPoint, wallId)
+            }
+          : undefined
+      }
     />
   )
 }

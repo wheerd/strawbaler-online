@@ -220,6 +220,14 @@ beforeAll(() => {
       right: 100
     }))
   })
+
+  Object.defineProperty(SVGElement.prototype, 'getBBox', {
+    writable: true,
+    value: vi.fn(() => ({
+      width: 42,
+      height: 42
+    }))
+  })
 })
 
 // Load Manifold WASM module
