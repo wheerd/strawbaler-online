@@ -83,9 +83,10 @@ export function LengthIndicator({
   const textRef = useRef<SVGTextElement>(null)
   useEffect(() => {
     if (textRef.current) {
+      console.log('update bbox')
       setTextSize(textRef.current.getBBox())
     }
-  }, [setTextSize, longestLineLength, calculatedFontSize, lineCount])
+  }, [textRef.current, setTextSize, longestLineLength, calculatedFontSize, lineCount])
 
   const connectionStrokeWidth = scaledStrokeWidth / 2
   const actualEndMarkerSize = deferredTextSize.height

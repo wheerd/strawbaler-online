@@ -91,7 +91,7 @@ export function ClickableLengthIndicator({
     if (textRef.current) {
       setTextSize(textRef.current.getBBox())
     }
-  }, [setTextSize, longestLineLength, calculatedFontSize, lineCount])
+  }, [textRef.current, setTextSize, longestLineLength, calculatedFontSize, lineCount])
 
   const connectionStrokeWidth = scaledStrokeWidth / 2
   const actualEndMarkerSize = deferredTextSize.height
