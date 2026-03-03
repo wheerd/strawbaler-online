@@ -6,7 +6,10 @@ import { AppLayout } from '@/app/AppLayout'
 import { PrivacyPage } from '@/app/PrivacyPage'
 import { EditorPageSkeleton } from '@/app/skeletons/EditorPageSkeleton'
 import { configRoutes } from '@/config/ui/routes'
+import { partsRoutes } from '@/parts/ui/partsRoutes'
+import { ConstructionPlanPageSkeleton } from '@/plan/ConstructionPlanPageSkeleton'
 import { ErrorFallback } from '@/shared/ui/errors/ErrorFallback'
+import { Viewer3DPageSkeleton } from '@/viewer3d/Viewer3DPageSkeleton'
 
 import { AuthModalRoute } from './user/AuthModalRoute'
 import { UpdatePasswordModalRoute } from './user/UpdatePasswordModalRoute'
@@ -30,13 +33,6 @@ const Viewer3DPage = React.lazy(
   async () =>
     await import('@/viewer3d/Viewer3DPage').then(module => ({
       default: module.Viewer3DPage
-    }))
-)
-
-const PartsListPage = React.lazy(
-  async () =>
-    await import('@/parts/ui/PartsListPage').then(module => ({
-      default: module.PartsListPage
     }))
 )
 
@@ -69,7 +65,7 @@ export const router = createBrowserRouter([
       {
         path: 'plan/:focusId?',
         element: (
-          <Suspense fallback={null}>
+          <Suspense fallback={<ConstructionPlanPageSkeleton />}>
             <ConstructionPlanPage />
           </Suspense>
         )
@@ -77,19 +73,12 @@ export const router = createBrowserRouter([
       {
         path: '3d-view/:focusId?',
         element: (
-          <Suspense fallback={null}>
+          <Suspense fallback={<Viewer3DPageSkeleton />}>
             <Viewer3DPage />
           </Suspense>
         )
       },
-      {
-        path: 'parts',
-        element: (
-          <Suspense fallback={null}>
-            <PartsListPage />
-          </Suspense>
-        )
-      },
+      partsRoutes,
       configRoutes,
       { path: 'auth/:tab', element: <AuthModalRoute />, handle: { isModal: true } },
       { path: 'auth/update-password', element: <UpdatePasswordModalRoute />, handle: { isModal: true } }
