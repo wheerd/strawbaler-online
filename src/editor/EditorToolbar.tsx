@@ -28,6 +28,12 @@ export function EditorToolbar(): React.JSX.Element {
 
   return (
     <div className="border-border flex items-center gap-4 border-b px-4 py-2" data-testid="editor-toolbar">
+      <StoreySelector />
+
+      <PlanOverlayControls />
+
+      <Separator orientation="vertical" className="h-6" />
+
       <Toolbar.Root>
         <div className="flex items-center gap-2">
           {TOOL_GROUPS.map((group, groupIndex) => (
@@ -71,12 +77,6 @@ export function EditorToolbar(): React.JSX.Element {
           ))}
         </div>
       </Toolbar.Root>
-
-      <Separator orientation="vertical" className="h-6" />
-
-      <StoreySelector />
-
-      <PlanOverlayControls />
     </div>
   )
 }

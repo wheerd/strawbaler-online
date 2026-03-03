@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { createBrowserRouter } from 'react-router-dom'
 
 import { AppLayout } from '@/app/AppLayout'
 import { PrivacyPage } from '@/app/PrivacyPage'
+import { EditorPageSkeleton } from '@/app/skeletons/EditorPageSkeleton'
 import { ErrorFallback } from '@/shared/ui/errors/ErrorFallback'
 
 import { AuthModalRoute } from './user/AuthModalRoute'
@@ -63,7 +64,14 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <WelcomePage /> },
-      { path: 'editor', element: <FloorPlanEditor /> },
+      {
+        path: 'editor',
+        element: (
+          <Suspense fallback={<EditorPageSkeleton />}>
+            <FloorPlanEditor />
+          </Suspense>
+        )
+      },
       { path: 'plan', element: <ConstructionPlanPage /> },
       { path: '3d-view', element: <Viewer3DPage /> },
       { path: 'parts', element: <PartsListPage /> },

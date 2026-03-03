@@ -45,7 +45,7 @@ export function StoreySelector(): React.JSX.Element {
   return (
     <div className="flex items-center gap-2">
       <Select value={activeStoreyId} onValueChange={handleStoreyChange}>
-        <SelectTrigger className="h-7 text-xs">
+        <SelectTrigger className="h-9 w-50 text-sm">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
