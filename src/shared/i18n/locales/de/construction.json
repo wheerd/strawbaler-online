@@ -179,6 +179,10 @@
       "warningsTitle_other": "Warnungen ({{count}})"
     },
     "midCut": "Mittelschnitt",
+    "nav": {
+      "nextWall": "Nächste Wand",
+      "previousWall": "Vorherige Wand"
+    },
     "partHighlight": {
       "clearHighlight": "Hervorhebung entfernen",
       "partHighlighted": "Teil hervorgehoben"

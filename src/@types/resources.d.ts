@@ -907,6 +907,10 @@ interface Resources {
         "warningsTitle_other": "Warnings ({{count}})"
       },
       "midCut": "Mid Cut",
+      "nav": {
+        "nextWall": "Next wall",
+        "previousWall": "Previous wall"
+      },
       "partHighlight": {
         "clearHighlight": "Clear highlight",
         "partHighlighted": "Part highlighted"
