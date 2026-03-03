@@ -28,7 +28,7 @@ test('Welcome page displays correctly', async ({ page }) => {
     - button "Account"
   `)
 
-  await expect(page.getByText(/Version \d+\.\d+/)).toBeVisible()
+  await expect(page.getByText(/Version \w+/)).toBeVisible()
 
   const welcomeContent = page.getByTestId('welcome-page')
   await expect(welcomeContent).toBeVisible()

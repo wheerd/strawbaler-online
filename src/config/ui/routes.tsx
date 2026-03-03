@@ -3,10 +3,7 @@ import { Navigate } from 'react-router-dom'
 
 import { Skeleton } from '@/shared/ui/components/skeleton'
 
-const ConfigLayout = lazy(async () => {
-  const module = await import('./ConfigLayout')
-  return { default: module.ConfigLayout }
-})
+import { ConfigLayout } from './ConfigLayout'
 
 const MaterialsConfigContent = lazy(async () => {
   const module = await import('@/materials/ui/MaterialsConfigContent')
@@ -61,7 +58,7 @@ export const configRoutes = {
   children: [
     { index: true, element: <Navigate to="materials" replace /> },
     {
-      path: 'materials',
+      path: 'materials/:itemId?',
       element: (
         <Suspense fallback={<ConfigContentSkeleton />}>
           <MaterialsConfigContent />
@@ -69,15 +66,7 @@ export const configRoutes = {
       )
     },
     {
-      path: 'materials/:itemId',
-      element: (
-        <Suspense fallback={<ConfigContentSkeleton />}>
-          <MaterialsConfigContent />
-        </Suspense>
-      )
-    },
-    {
-      path: 'layers',
+      path: 'layers/:itemId?',
       element: (
         <Suspense fallback={<ConfigContentSkeleton />}>
           <LayerSetsContent />
@@ -85,15 +74,7 @@ export const configRoutes = {
       )
     },
     {
-      path: 'layers/:itemId',
-      element: (
-        <Suspense fallback={<ConfigContentSkeleton />}>
-          <LayerSetsContent />
-        </Suspense>
-      )
-    },
-    {
-      path: 'walls',
+      path: 'walls/:itemId?',
       element: (
         <Suspense fallback={<ConfigContentSkeleton />}>
           <WallAssemblyContent />
@@ -101,15 +82,7 @@ export const configRoutes = {
       )
     },
     {
-      path: 'walls/:itemId',
-      element: (
-        <Suspense fallback={<ConfigContentSkeleton />}>
-          <WallAssemblyContent />
-        </Suspense>
-      )
-    },
-    {
-      path: 'openings',
+      path: 'openings/:itemId?',
       element: (
         <Suspense fallback={<ConfigContentSkeleton />}>
           <OpeningAssemblyContent />
@@ -117,15 +90,7 @@ export const configRoutes = {
       )
     },
     {
-      path: 'openings/:itemId',
-      element: (
-        <Suspense fallback={<ConfigContentSkeleton />}>
-          <OpeningAssemblyContent />
-        </Suspense>
-      )
-    },
-    {
-      path: 'floors',
+      path: 'floors/:itemId?',
       element: (
         <Suspense fallback={<ConfigContentSkeleton />}>
           <FloorAssemblyConfigContent />
@@ -133,15 +98,7 @@ export const configRoutes = {
       )
     },
     {
-      path: 'floors/:itemId',
-      element: (
-        <Suspense fallback={<ConfigContentSkeleton />}>
-          <FloorAssemblyConfigContent />
-        </Suspense>
-      )
-    },
-    {
-      path: 'roofs',
+      path: 'roofs/:itemId?',
       element: (
         <Suspense fallback={<ConfigContentSkeleton />}>
           <RoofAssemblyConfigContent />
@@ -149,23 +106,7 @@ export const configRoutes = {
       )
     },
     {
-      path: 'roofs/:itemId',
-      element: (
-        <Suspense fallback={<ConfigContentSkeleton />}>
-          <RoofAssemblyConfigContent />
-        </Suspense>
-      )
-    },
-    {
-      path: 'ringbeams',
-      element: (
-        <Suspense fallback={<ConfigContentSkeleton />}>
-          <RingBeamAssemblyContent />
-        </Suspense>
-      )
-    },
-    {
-      path: 'ringbeams/:itemId',
+      path: 'ringbeams/:itemId?',
       element: (
         <Suspense fallback={<ConfigContentSkeleton />}>
           <RingBeamAssemblyContent />

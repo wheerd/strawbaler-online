@@ -40,10 +40,9 @@ export function StoreySelector({
 
   const handleStoreyChange = useCallback(
     (newStoreyId: string) => {
+      setActiveStoreyId(newStoreyId as StoreyId)
       if (onStoreyChange) {
         onStoreyChange(newStoreyId as StoreyId)
-      } else {
-        setActiveStoreyId(newStoreyId as StoreyId)
       }
     },
     [setActiveStoreyId, onStoreyChange]
