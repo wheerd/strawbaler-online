@@ -24,7 +24,7 @@ export function Header(): React.JSX.Element {
   const { t } = useTranslation('common')
 
   return (
-    <header className="border-border bg-card flex h-14 items-center justify-between border-b px-4">
+    <header data-testid="header" className="border-border bg-card flex h-14 items-center justify-between border-b px-4">
       <div className="flex items-center gap-4">
         <Link to="/" className="flex items-center">
           <Logo compact />
@@ -32,7 +32,7 @@ export function Header(): React.JSX.Element {
         <ProjectMenu />
       </div>
 
-      <nav className="flex items-center gap-1">
+      <nav data-testid="header-nav" className="flex items-center gap-1">
         {navItems.map(item => (
           <NavLink
             key={item.path}
@@ -44,7 +44,7 @@ export function Header(): React.JSX.Element {
               )
             }
           >
-            <item.icon className="inline-block h-5 w-5" />
+            <item.icon className="inline-block h-5 w-5" aria-hidden="true" />
             {t($ => $.nav[item.labelKey])}
           </NavLink>
         ))}
@@ -58,7 +58,7 @@ export function Header(): React.JSX.Element {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <GitHubIcon width="14" height="14" />
+          <GitHubIcon width="14" height="14" aria-hidden="true" />
         </a>
         <OfflineStatusIndicator />
         <LanguageSwitcher size="sm" />

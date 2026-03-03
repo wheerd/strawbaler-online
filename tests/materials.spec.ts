@@ -1,107 +1,89 @@
-import { type Locator, type Page, expect, test } from '@playwright/test'
+import { type Page, expect, test } from '@playwright/test'
 
-async function openMaterialsConfig(page: Page): Promise<Locator> {
-  await page.goto('/')
-
-  await page.evaluate(() => {
-    localStorage.setItem(
-      'strawbuild-welcome-state',
-      '{"accepted":true,"acceptedAt":"2025-10-22T06:21:42.893Z","version":"0.2"}'
-    )
-  })
-  await expect(page.getByTestId('main-toolbar')).toBeVisible({ timeout: 15000 })
-  await page.getByRole('button', { name: 'Configuration' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Configuration' })
-  await expect(dialog).toBeVisible()
-  await dialog.getByRole('tab', { name: 'Materials' }).click()
-  return dialog
+async function setupMaterialsPage(page: Page): Promise<void> {
+  await page.goto('/config/materials')
+  await expect(page.getByRole('link', { name: 'Materials' }).first()).toBeVisible({ timeout: 15000 })
 }
 
-async function addMaterialOfType(dialog: Locator, typeLabel: string) {
-  await dialog.getByRole('button', { name: 'Add New' }).click()
-  await dialog.page().getByRole('menuitem', { name: typeLabel }).click()
+async function addMaterialOfType(page: Page, typeLabel: string) {
+  await page.getByRole('button', { name: 'Add New' }).click()
+  await page.getByRole('menuitem', { name: typeLabel }).click()
 }
 
 test('materials configuration journey', async ({ page }) => {
   test.setTimeout(60000)
 
-  const dialog = await openMaterialsConfig(page)
-  const nameField = dialog.getByPlaceholder('Material name')
+  await setupMaterialsPage(page)
+  const nameField = page.getByPlaceholder('Material name')
 
-  // Dimensional material CRUD
-  await addMaterialOfType(dialog, 'Dimensional')
+  await addMaterialOfType(page, 'Dimensional')
   await nameField.fill('E2E Dimensional')
 
-  await dialog.getByLabel('Cross section smaller dimension').fill('6')
-  await dialog.getByLabel('Cross section larger dimension').fill('12')
-  await dialog.getByRole('button', { name: 'Add cross section' }).click()
-  await expect(dialog.getByRole('listitem').filter({ hasText: /6cm × 12cm/ })).toBeVisible()
-  await expect(dialog.getByRole('button', { name: 'Remove cross section' })).toHaveCount(1)
-  await dialog.getByRole('button', { name: 'Remove cross section' }).click()
-  await expect(dialog.getByText('No cross sections configured')).toBeVisible()
+  await page.getByLabel('Cross section smaller dimension').fill('6')
+  await page.getByLabel('Cross section larger dimension').fill('12')
+  await page.getByRole('button', { name: 'Add cross section' }).click()
+  await expect(page.getByRole('listitem').filter({ hasText: /6cm × 12cm/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Remove cross section' })).toHaveCount(1)
+  await page.getByRole('button', { name: 'Remove cross section' }).click()
+  await expect(page.getByText('No cross sections configured')).toBeVisible()
 
-  await dialog.getByLabel('Stock length input').fill('450')
-  await dialog.getByRole('button', { name: 'Add stock length' }).click()
-  await expect(dialog.getByRole('listitem').filter({ hasText: /4\.5m/ })).toBeVisible()
-  await expect(dialog.getByRole('button', { name: 'Remove stock length' })).toHaveCount(1)
-  await dialog.getByRole('button', { name: 'Remove stock length' }).click()
-  await expect(dialog.getByText('No lengths configured')).toBeVisible()
+  await page.getByLabel('Stock length input').fill('450')
+  await page.getByRole('button', { name: 'Add stock length' }).click()
+  await expect(page.getByRole('listitem').filter({ hasText: /4\.5m/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Remove stock length' })).toHaveCount(1)
+  await page.getByRole('button', { name: 'Remove stock length' }).click()
+  await expect(page.getByText('No lengths configured')).toBeVisible()
 
-  // Sheet material CRUD
-  await addMaterialOfType(dialog, 'Sheet')
+  await addMaterialOfType(page, 'Sheet')
   await nameField.fill('E2E Sheet')
 
-  await dialog.getByLabel('Sheet width').fill('60')
-  await dialog.getByLabel('Sheet length').fill('120')
-  await dialog.getByRole('button', { name: 'Add sheet size' }).click()
-  await expect(dialog.getByRole('listitem').filter({ hasText: /0.6m × 1.2m/ })).toBeVisible()
-  await expect(dialog.getByRole('button', { name: 'Remove sheet size' })).toHaveCount(1)
-  await dialog.getByRole('button', { name: 'Remove sheet size' }).click()
-  await expect(dialog.getByText('No sheet sizes configured')).toBeVisible()
+  await page.getByLabel('Sheet width').fill('60')
+  await page.getByLabel('Sheet length').fill('120')
+  await page.getByRole('button', { name: 'Add sheet size' }).click()
+  await expect(page.getByRole('listitem').filter({ hasText: /0.6m × 1.2m/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Remove sheet size' })).toHaveCount(1)
+  await page.getByRole('button', { name: 'Remove sheet size' }).click()
+  await expect(page.getByText('No sheet sizes configured')).toBeVisible()
 
-  await dialog.getByLabel('Thickness input').fill('30')
-  await dialog.getByRole('button', { name: 'Add thickness' }).click()
-  await expect(dialog.getByRole('listitem').filter({ hasText: /3cm/ })).toBeVisible()
-  await expect(dialog.getByRole('button', { name: 'Remove thickness' })).toHaveCount(1)
-  await dialog.getByRole('button', { name: 'Remove thickness' }).click()
-  await expect(dialog.getByText('No thicknesses configured')).toBeVisible()
+  await page.getByLabel('Thickness input').fill('30')
+  await page.getByRole('button', { name: 'Add thickness' }).click()
+  await expect(page.getByRole('listitem').filter({ hasText: /3cm/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Remove thickness' })).toHaveCount(1)
+  await page.getByRole('button', { name: 'Remove thickness' }).click()
+  await expect(page.getByText('No thicknesses configured')).toBeVisible()
 
-  // Volume material CRUD
-  await addMaterialOfType(dialog, 'Volume')
+  await addMaterialOfType(page, 'Volume')
   await nameField.fill('E2E Volume')
 
   await expect(page.getByRole('radio', { name: 'L' })).toBeChecked()
-  await expect(dialog.getByText('No volumes configured')).toBeVisible()
+  await expect(page.getByText('No volumes configured')).toBeVisible()
 
-  await dialog.getByLabel('Volume input').fill('1500')
-  await dialog.getByRole('button', { name: 'Add volume option' }).click()
-  await expect(dialog.getByRole('listitem').filter({ hasText: /1,500L/ })).toBeVisible()
+  await page.getByLabel('Volume input').fill('1500')
+  await page.getByRole('button', { name: 'Add volume option' }).click()
+  await expect(page.getByRole('listitem').filter({ hasText: /1,500L/ })).toBeVisible()
 
   await page.getByRole('radio', { name: 'm³' }).click()
 
-  await dialog.getByLabel('Volume input').fill('1.3')
-  await dialog.getByRole('button', { name: 'Add volume option' }).click()
-  await expect(dialog.getByRole('listitem').filter({ hasText: /1\.30m³/ })).toBeVisible()
+  await page.getByLabel('Volume input').fill('1.3')
+  await page.getByRole('button', { name: 'Add volume option' }).click()
+  await expect(page.getByRole('listitem').filter({ hasText: /1\.30m³/ })).toBeVisible()
 
-  await expect(dialog.getByRole('listitem')).toHaveCount(2)
-  await expect(dialog.getByRole('listitem').filter({ hasText: /1\.50m³/ })).toBeVisible()
+  await expect(page.getByRole('listitem')).toHaveCount(2)
+  await expect(page.getByRole('listitem').filter({ hasText: /1\.50m³/ })).toBeVisible()
 
-  await dialog.getByRole('button', { name: 'Remove volume option' }).first().click()
-  await expect(dialog.getByRole('listitem')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Remove volume option' }).first().click()
+  await expect(page.getByRole('listitem')).toHaveCount(1)
 
-  // Generic material rename
-  await addMaterialOfType(dialog, 'Generic')
+  await addMaterialOfType(page, 'Generic')
   await nameField.fill('E2E Generic')
 
-  // Strawbale material rename
-  await addMaterialOfType(dialog, 'Strawbale')
+  await addMaterialOfType(page, 'Strawbale')
   await nameField.fill('E2E Strawbale')
 
-  // Duplicate & delete flow
-  await dialog.getByRole('button', { name: 'Duplicate' }).click()
+  await page.getByRole('button', { name: 'Duplicate' }).click()
   await expect(nameField).toHaveValue(/Copy/)
 
-  await dialog.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Delete' }).click()
   const alert = page.getByRole('alertdialog', { name: 'Delete Material' })
   await alert.getByRole('button', { name: 'Delete' }).click()
   await expect(alert).toBeHidden()

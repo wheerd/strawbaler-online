@@ -70,7 +70,7 @@ test.describe('Move Tool', () => {
     // Step 4: Move opening
     const opening = editorSvg.locator('[data-entity-type="opening"]').nth(3)
     const openingWall = editorSvg.locator('[data-entity-type="perimeter-wall"]').nth(1)
-    await dragEntityInEditor(page, opening, { dx: 0, dy: -90 })
+    await dragEntityInEditor(page, opening, { dx: 0, dy: -80 })
     await takeEditorScreenshot(page, '08-opening-dragging-snap-wall-end.png')
 
     await openingWall.hover({ position: { x: 20, y: 150 }, force: true })
@@ -92,10 +92,10 @@ test.describe('Move Tool', () => {
     await bottomWall.hover({ position: { x: 150, y: 20 }, force: true })
     await takeEditorScreenshot(page, '13-post-dragging-snap-opening.png')
 
-    await bottomWall.hover({ position: { x: 380, y: 20 }, force: true })
+    await bottomWall.hover({ position: { x: 370, y: 20 }, force: true })
     await takeEditorScreenshot(page, '14-post-dragging-invalid-opening.png')
 
-    await bottomWall.hover({ position: { x: 600, y: 20 }, force: true })
+    await bottomWall.hover({ position: { x: 550, y: 20 }, force: true })
     await takeEditorScreenshot(page, '15-post-dragging-corner.png')
 
     await bottomWall.hover({ position: { x: 200, y: 20 }, force: true })
@@ -118,7 +118,7 @@ test.describe('Move Tool', () => {
     await takeEditorScreenshot(page, '19-floor-opening-dragging.png')
 
     const perimeterOutline = editorSvg.locator('[data-entity-type="perimeter"]').first()
-    await perimeterOutline.hover({ position: { x: 620, y: 430 }, force: true })
+    await perimeterOutline.hover({ position: { x: 570, y: 400 }, force: true })
     await takeEditorScreenshot(page, '20-floor-opening-dragging-snap-wall.png')
 
     await page.mouse.up()

@@ -46,7 +46,7 @@
     ],
     "title": "Planned Features"
   },
-  "privacyLink": "View our <link>Privacy Policy</link>",
+  "privacyLink": "View our <privacyLink>Privacy Policy</privacyLink>",
   "version": "Version {{version}}",
   "viewOnGitHub": "View on GitHub"
 }

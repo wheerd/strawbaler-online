@@ -1818,7 +1818,7 @@ interface Resources {
       "items": ["Cost and work hours estimations", "Support for intermediate walls and foundations", "Translation in more languages", "Support for more irregular building shapes"],
       "title": "Planned Features"
     },
-    "privacyLink": "View our <link>Privacy Policy</link>",
+    "privacyLink": "View our <privacyLink>Privacy Policy</privacyLink>",
     "version": "Version {{version}}",
     "viewOnGitHub": "View on GitHub"
   }

@@ -14,7 +14,7 @@ export function ConfigLayout(): React.JSX.Element {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <div className="shrink-0 border-b px-4">
-        <nav className="flex gap-1">
+        <nav data-testid="config-tabs" className="flex gap-1">
           {tabs.map(tab => (
             <NavLink
               key={tab}

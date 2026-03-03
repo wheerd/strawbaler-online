@@ -46,7 +46,7 @@
     ],
     "title": "Geplante Funktionen"
   },
-  "privacyLink": "Unsere <link>Datenschutzerklärung</link> ansehen",
+  "privacyLink": "Unsere <privacyLink>Datenschutzerklärung</privacyLink> ansehen",
   "version": "Version {{version}}",
   "viewOnGitHub": "Auf GitHub ansehen"
 }

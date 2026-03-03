@@ -11,7 +11,7 @@ export function WelcomePage(): React.JSX.Element {
   const { t } = useTranslation('welcome')
 
   return (
-    <div className="flex h-full w-full flex-col overflow-y-auto">
+    <div data-testid="welcome-page" className="flex h-full w-full flex-col overflow-y-auto">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-6">
         <div className="flex flex-col gap-3">
           <span>{t($ => $.introduction)}</span>
@@ -130,7 +130,7 @@ export function WelcomePage(): React.JSX.Element {
                 <Trans
                   t={t}
                   i18nKey={$ => $.privacyLink}
-                  components={{ link: <Link to="/privacy" className="underline" /> }}
+                  components={{ privacyLink: <Link to="/privacy" className="underline" /> }}
                 />
               </span>
             </div>
