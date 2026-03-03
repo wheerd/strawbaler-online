@@ -1,15 +1,9 @@
 {
+  "fitToView": "Fit to View",
   "gridSizeDisplay": {
     "hideGrid": "Hide Grid",
     "off": "Off",
     "showGrid": "Show Grid"
-  },
-  "groups": {
-    "basic": "Basic",
-    "floors": "Floors",
-    "perimeter": "Perimeter",
-    "roofs": "Roofs",
-    "test": "Test Data"
   },
   "offlineStatus": {
     "loading": "Caching assets ({{loaded}}/{{total}})…",
@@ -17,6 +11,7 @@
     "offline": "Offline. Changes will sync once connection returns.",
     "ready": "All assets cached. Ready for offline use."
   },
+  "redo": "Redo",
   "themeToggle": {
     "changeTheme": "Change theme",
     "dark": "Dark",
@@ -24,7 +19,6 @@
     "system": "System"
   },
   "tools": {
-    "basicFitToView": "Fit to View",
     "basicMove": "Move",
     "basicSelect": "Select",
     "floorsAddArea": "Floor Area",
@@ -36,5 +30,6 @@
     "perimeterSplitWall": "Split Wall",
     "roofsAddRoof": "Roof",
     "testData": "Test Data"
-  }
+  },
+  "undo": "Undo"
 }

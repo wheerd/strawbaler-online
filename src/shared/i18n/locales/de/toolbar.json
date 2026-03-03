@@ -1,15 +1,9 @@
 {
+  "fitToView": "Auf Ansicht anpassen",
   "gridSizeDisplay": {
     "hideGrid": "Raster ausblenden",
     "off": "Aus",
     "showGrid": "Raster anzeigen"
-  },
-  "groups": {
-    "basic": "Grundlagen",
-    "floors": "Boden",
-    "perimeter": "Gebäudekontur",
-    "roofs": "Dächer",
-    "test": "Testdaten"
   },
   "offlineStatus": {
     "loading": "Assets werden gecacht ({{loaded}}/{{total}})…",
@@ -17,6 +11,7 @@
     "offline": "Offline. Änderungen werden synchronisiert, sobald die Verbindung wiederhergestellt ist.",
     "ready": "Alle Assets gecacht. Bereit für Offline-Nutzung."
   },
+  "redo": "Wiederholen",
   "themeToggle": {
     "changeTheme": "Design ändern",
     "dark": "Dunkel",
@@ -24,7 +19,6 @@
     "system": "System"
   },
   "tools": {
-    "basicFitToView": "Auf Ansicht anpassen",
     "basicMove": "Verschieben",
     "basicSelect": "Auswählen",
     "floorsAddArea": "Bodenfläche zeichnen",
@@ -36,5 +30,6 @@
     "perimeterSplitWall": "Wand teilen",
     "roofsAddRoof": "Dach zeichnen",
     "testData": "Testdaten"
-  }
+  },
+  "undo": "Rückgängig"
 }

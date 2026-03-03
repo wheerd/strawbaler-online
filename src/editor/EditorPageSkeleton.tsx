@@ -6,12 +6,10 @@ import { Spinner } from '@/shared/ui/components/spinner'
 
 function EditorToolbarSkeleton(): React.JSX.Element {
   return (
-    <div className="border-border flex items-center gap-4 border-b px-4 py-2">
-      <Skeleton className="h-8 w-32" />
-
+    <div className="border-border flex items-center gap-4 border-b px-4 py-1">
       <div className="flex items-center gap-2">
-        <Skeleton className="h-8 w-8" />
-        <Skeleton className="h-8 w-8" />
+        <Skeleton className="bg-background h-8 w-50" />
+        <Skeleton className="bg-background size-7" />
       </div>
 
       <div className="bg-border h-6 w-px" />
@@ -19,28 +17,35 @@ function EditorToolbarSkeleton(): React.JSX.Element {
       <Toolbar.Root>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1">
-            <Skeleton className="size-10" />
-            <Skeleton className="size-10" />
+            <Skeleton className="bg-background size-10" />
+            <Skeleton className="bg-background size-10" />
           </div>
           <div className="bg-border h-6 w-px" />
           <div className="flex items-center gap-1">
-            <Skeleton className="size-10" />
-            <Skeleton className="size-10" />
-            <Skeleton className="size-10" />
-            <Skeleton className="size-10" />
-            <Skeleton className="size-10" />
+            <Skeleton className="bg-background size-10" />
+            <Skeleton className="bg-background size-10" />
+            <Skeleton className="bg-background size-10" />
+            <Skeleton className="bg-background size-10" />
           </div>
           <div className="bg-border h-6 w-px" />
           <div className="flex items-center gap-1">
-            <Skeleton className="size-10" />
+            <Skeleton className="bg-background size-10" />
+            <Skeleton className="bg-background size-10" />
+            <Skeleton className="bg-background size-10" />
+            <Skeleton className="bg-background size-10" />
+            <Skeleton className="bg-background size-10" />
           </div>
           <div className="bg-border h-6 w-px" />
           <div className="flex items-center gap-1">
-            <Skeleton className="size-10" />
+            <Skeleton className="bg-background size-10" />
           </div>
           <div className="bg-border h-6 w-px" />
           <div className="flex items-center gap-1">
-            <Skeleton className="size-10" />
+            <Skeleton className="bg-background size-10" />
+          </div>
+          <div className="bg-border h-6 w-px" />
+          <div className="flex items-center gap-1">
+            <Skeleton className="bg-background size-10" />
           </div>
         </div>
       </Toolbar.Root>

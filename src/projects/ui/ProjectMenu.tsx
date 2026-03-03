@@ -5,10 +5,9 @@ import { toast } from 'sonner'
 
 import { useOfflineStatus } from '@/app/pwa/useOfflineStatus'
 import { useIsAuthenticated } from '@/app/user/store'
-import { getModelActions } from '@/building/store'
 import type { ConstructionModel } from '@/construction/model/model'
+import { fitActiveStoreyToView } from '@/editor/canvas/helpers/fitActiveStoreyToView'
 import { clearSelection } from '@/editor/canvas/state/selectionStore'
-import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { createProject } from '@/projects/services/CloudSyncManager'
 import { usePersistenceStore } from '@/projects/services/persistenceStore'
 import { useProjectName } from '@/projects/store'
@@ -133,8 +132,7 @@ export function ProjectMenu(): React.JSX.Element {
       toast.success(t($ => $.projectMenu.createSuccess))
     }
 
-    const { getBounds, getActiveStoreyId } = getModelActions()
-    viewportActions().fitToView(getBounds(getActiveStoreyId()))
+    fitActiveStoreyToView()
   }
 
   const performIfcImport = async (content: ArrayBuffer, choice: 'current' | 'new', projectName?: string) => {
@@ -154,8 +152,7 @@ export function ProjectMenu(): React.JSX.Element {
       toast.success(t($ => $.projectMenu.createSuccess))
     }
 
-    const { getBounds, getActiveStoreyId } = getModelActions()
-    viewportActions().fitToView(getBounds(getActiveStoreyId()))
+    fitActiveStoreyToView()
   }
 
   const handleImport = async () => {
@@ -320,7 +317,7 @@ export function ProjectMenu(): React.JSX.Element {
               <Button
                 size="default"
                 variant="ghost"
-                className={cn('h-auto w-50 justify-between gap-2 px-2 py-2', statusInfo.colorClass)}
+                className={cn('bg-secondary/50 h-auto w-50 justify-between gap-2 px-2 py-2', statusInfo.colorClass)}
                 aria-label={t($ => $.projectMenu.buttonTitle)}
               >
                 <span className="text-foreground text-l truncate font-medium">{projectName}</span>

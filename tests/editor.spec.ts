@@ -9,11 +9,14 @@ test('Editor page loads with correct toolbar', async ({ page }) => {
   await expect(page.getByTestId('editor-toolbar')).toMatchAriaSnapshot(`
     - combobox: L0 Ground Floor
     - button "Manage floors"
-    - button "Import plan image"
     - toolbar:
+      - button "Undo" [disabled]
+      - button "Redo" [disabled]
+      - separator
       - button "Select"
       - button "Move"
       - button "Fit to View"
+      - button "Import plan image"
       - separator
       - button "Building Perimeter"
       - button "Perimeter Presets"

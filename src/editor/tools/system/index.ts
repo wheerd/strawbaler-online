@@ -1,12 +1,4 @@
-export { DEFAULT_TOOL, TOOL_GROUPS, TOOL_METADATA, getToolInfoById } from './metadata'
+export { DEFAULT_TOOL, TOOL_METADATA, getToolInfoById } from './metadata'
 export { ToolSystemProvider } from './ToolSystemProvider'
 export { useToolSystem } from './ToolSystemContext'
-export type {
-  ToolImplementation,
-  ToolMetadata,
-  ToolGroup,
-  ToolId,
-  EditorEvent,
-  CursorStyle,
-  IToolSystem
-} from './types'
+export type { ToolImplementation, ToolMetadata, ToolId, EditorEvent, CursorStyle, IToolSystem } from './types'

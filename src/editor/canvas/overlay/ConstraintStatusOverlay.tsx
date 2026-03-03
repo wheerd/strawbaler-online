@@ -25,7 +25,11 @@ export function ConstraintStatusOverlay(): React.JSX.Element | null {
     : t($ => $.constraint.redundantStatus, { count })
 
   return (
-    <div className={`absolute top-2 right-2 rounded-lg p-2 ${colorClass} cursor-help select-none`} title={tooltipText}>
+    <div
+      data-testid="constraint-status"
+      className={`absolute top-2 right-2 rounded-lg p-2 ${colorClass} cursor-help select-none`}
+      title={tooltipText}
+    >
       <TriangleAlert className="h-6 w-6" />
     </div>
   )

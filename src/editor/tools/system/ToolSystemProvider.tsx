@@ -2,9 +2,9 @@ import { useEffect, useRef } from 'react'
 
 import { getCanRedo, getCanUndo, getRedoFunction, getUndoFunction } from '@/building/store'
 import { deleteEntity } from '@/building/store/helpers'
+import { fitActiveStoreyToView } from '@/editor/canvas/helpers/fitActiveStoreyToView'
 import { getCurrentSelection } from '@/editor/canvas/state/selectionStore'
 import { SelectTool } from '@/editor/tools/basic/SelectTool'
-import { FitToViewTool } from '@/editor/tools/basic/fit-to-view/FitToViewTool'
 import { MoveTool } from '@/editor/tools/basic/movement/MoveTool'
 import { FloorAreaTool } from '@/editor/tools/floors/add-area/FloorAreaTool'
 import { FloorOpeningTool } from '@/editor/tools/floors/add-opening/FloorOpeningTool'
@@ -24,7 +24,6 @@ function createAndInitializeToolSystem(): ToolSystem {
 
   system.registerTool(SelectTool)
   system.registerTool(MoveTool)
-  system.registerTool(FitToViewTool)
   system.registerTool(FloorAreaTool)
   system.registerTool(FloorOpeningTool)
   system.registerTool(PerimeterTool)
@@ -67,6 +66,11 @@ function createAndInitializeToolSystem(): ToolSystem {
       return true
     }
     return false
+  })
+
+  system.registerShortcut('F', () => {
+    fitActiveStoreyToView()
+    return true
   })
 
   return system

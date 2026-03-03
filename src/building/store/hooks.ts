@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react'
+import { useStore } from 'zustand'
 
 import type {
   Constraint,
@@ -47,10 +48,8 @@ import type { Store, StoreActions } from './types'
 export { InvalidOperationError, NotFoundError } from './errors'
 
 // Undo/redo hooks
-export const useUndo = (): (() => void) => useModelStore.temporal.getState().undo
-export const useRedo = (): (() => void) => useModelStore.temporal.getState().redo
-export const useCanUndo = (): boolean => useModelStore.temporal.getState().pastStates.length > 0
-export const useCanRedo = (): boolean => useModelStore.temporal.getState().futureStates.length > 0
+export const useCanUndo = () => useStore(useModelStore.temporal, state => state.pastStates.length > 0)
+export const useCanRedo = () => useStore(useModelStore.temporal, state => state.futureStates.length > 0)
 
 // Entity selector hooks
 export const useActiveStoreyId = (): StoreyId => useModelStore(state => state.activeStoreyId)

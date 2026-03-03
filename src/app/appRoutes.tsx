@@ -1,8 +1,8 @@
 import React, { Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
 
-import { EditorPageSkeleton } from '@/app/skeletons/EditorPageSkeleton'
 import { configRoutes } from '@/config/ui/routes'
+import { EditorPageSkeleton } from '@/editor/EditorPageSkeleton'
 import { partsRoutes } from '@/parts/ui/partsRoutes'
 import { ConstructionPlanPageSkeleton } from '@/plan/ConstructionPlanPageSkeleton'
 import { Viewer3DPageSkeleton } from '@/viewer3d/Viewer3DPageSkeleton'

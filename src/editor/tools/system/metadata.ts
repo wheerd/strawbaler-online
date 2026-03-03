@@ -1,7 +1,6 @@
 import { BetweenVerticalStart, MousePointer, Move, Rocket } from 'lucide-react'
 
 import {
-  FitToViewIcon,
   FloorAreaIcon,
   FloorOpeningIcon,
   OpeningsIcon,
@@ -11,7 +10,7 @@ import {
   SplitWallIcon
 } from '@/shared/ui/icons'
 
-import type { ToolGroup, ToolId, ToolMetadata } from './types'
+import type { ToolId, ToolMetadata } from './types'
 
 export const TOOL_METADATA: Record<ToolId, ToolMetadata> = {
   'basic.select': {
@@ -23,11 +22,6 @@ export const TOOL_METADATA: Record<ToolId, ToolMetadata> = {
     nameKey: 'basicMove',
     iconComponent: Move,
     hotkey: 'm'
-  },
-  'basic.fit-to-view': {
-    nameKey: 'basicFitToView',
-    iconComponent: FitToViewIcon,
-    hotkey: 'f'
   },
   'floors.add-area': {
     nameKey: 'floorsAddArea',
@@ -73,35 +67,6 @@ export const TOOL_METADATA: Record<ToolId, ToolMetadata> = {
     hotkey: 't'
   }
 } as const
-
-export const TOOL_GROUPS: ToolGroup[] = [
-  {
-    nameKey: 'basic',
-    tools: ['basic.select', 'basic.move', 'basic.fit-to-view'] as const
-  },
-  {
-    nameKey: 'perimeter',
-    tools: [
-      'perimeter.add',
-      'perimeter.preset',
-      'perimeter.add-opening',
-      'perimeter.add-post',
-      'perimeter.split-wall'
-    ] as const
-  },
-  {
-    nameKey: 'floors',
-    tools: ['floors.add-opening'] as const
-  },
-  {
-    nameKey: 'roofs',
-    tools: ['roofs.add-roof'] satisfies ToolId[]
-  },
-  {
-    nameKey: 'test',
-    tools: ['test.data'] as const
-  }
-] as const
 
 export const DEFAULT_TOOL: ToolId = 'basic.select'
 
