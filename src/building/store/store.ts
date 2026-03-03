@@ -176,6 +176,7 @@ export function exportModelState() {
 }
 
 function regeneratePartializedState(state: PartializedStoreState): void {
+  console.log('Regenerating partialized state...', JSON.stringify(state.perimeters))
   const restoredState = state as StoreState
   restoredState._perimeterGeometry = {}
   restoredState._perimeterWallGeometry = {}
@@ -183,8 +184,14 @@ function regeneratePartializedState(state: PartializedStoreState): void {
   restoredState._openingGeometry = {}
   restoredState._wallPostGeometry = {}
   for (const perimeterId of Object.keys(restoredState.perimeters)) {
-    updatePerimeterGeometry(restoredState, perimeterId as PerimeterId)
+    try {
+      updatePerimeterGeometry(restoredState, perimeterId as PerimeterId)
+    } catch (error) {
+      console.error('Error updating perimeter geometry for perimeterId:', perimeterId, error)
+    }
+    console.log('perimeter', perimeterId)
   }
+  console.log('after', JSON.stringify(restoredState._perimeterWallGeometry))
 
   restoredState._constraintsByEntity = {}
   rebuildReverseIndex(restoredState)

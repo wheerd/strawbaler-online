@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import { WelcomeModal } from '@/app/welcome/WelcomeModal'
-import { useWelcomeModal } from '@/app/welcome/useWelcomeModal'
 import { ConfigurationModal } from '@/config/ui/ConfigurationModal'
 import { type ConfigTab, ConfigurationModalContext } from '@/config/ui/ConfigurationModalContext'
 import { useAutoClearSelection } from '@/editor/canvas/useAutoClearSelection'
@@ -10,7 +8,8 @@ import { ToolSystemProvider } from '@/editor/tools/system/ToolSystemProvider'
 import { initializeCloudSync } from '@/projects/services/CloudSyncManager'
 import { FeatureErrorFallback } from '@/shared/ui/errors/FeatureErrorFallback'
 
-import { MainToolbar } from './MainToolbar'
+import { EditorStatusOverlay } from './EditorStatusOverlay'
+import { EditorToolbar } from './EditorToolbar'
 import { SidePanel } from './SidePanel'
 import { FloorPlanStage } from './canvas/FloorPlanStage'
 import { ConstraintStatusOverlay } from './canvas/overlay/ConstraintStatusOverlay'
@@ -18,13 +17,11 @@ import { InitialSyncOverlay } from './canvas/overlay/InitialSyncOverlay'
 import { ViewModeToggle } from './canvas/overlay/ViewModeToggle'
 import { LengthInputComponent } from './canvas/services/length-input'
 import { useAutoFitOnProjectChange } from './canvas/useAutoFitOnProjectChange'
-import { StatusBar } from './status-bar/StatusBar'
 
 export function FloorPlanEditor(): React.JSX.Element {
   useEffect(() => void initializeCloudSync(), [])
   useAutoFitOnProjectChange()
   useAutoClearSelection()
-  const { isOpen, mode, openManually, handleAccept } = useWelcomeModal()
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -42,7 +39,7 @@ export function FloorPlanEditor(): React.JSX.Element {
   const updateDimensions = useCallback(() => {
     if (containerRef.current != null) {
       const { offsetWidth, offsetHeight } = containerRef.current
-      const toolbarHeight = 64
+      const toolbarHeight = 56
       const sidePanelWidth = 320
 
       const newDimensions = {
@@ -78,13 +75,11 @@ export function FloorPlanEditor(): React.JSX.Element {
       <ConfigurationModalContext.Provider value={{ openConfiguration }}>
         <div
           ref={containerRef}
-          className="bg-muted m-0 grid h-screen w-screen grid-rows-[auto_1fr] p-0"
+          className="bg-muted m-0 grid h-full w-full grid-rows-[auto_1fr] p-0"
           tabIndex={0}
           data-testid="floor-plan-editor"
         >
-          <div className="border-border border-b">
-            <MainToolbar onInfoClick={openManually} />
-          </div>
+          <EditorToolbar />
 
           <ConfigurationModal
             open={configModalOpen}
@@ -94,8 +89,6 @@ export function FloorPlanEditor(): React.JSX.Element {
             initialSelectionId={configSelectedItemId}
           />
 
-          <WelcomeModal isOpen={isOpen} mode={mode} onAccept={handleAccept} />
-
           <div className="relative grid grid-cols-[1fr_320px] gap-0 overflow-hidden p-0">
             <InitialSyncOverlay />
             <div className="bg-background border-border relative overflow-hidden border-r">
@@ -103,7 +96,7 @@ export function FloorPlanEditor(): React.JSX.Element {
                 <ViewModeToggle />
                 <FloorPlanStage width={dimensions.width} height={dimensions.height} />
                 <ConstraintStatusOverlay />
-                <StatusBar />
+                <EditorStatusOverlay />
                 <LengthInputComponent />
               </ErrorBoundary>
             </div>

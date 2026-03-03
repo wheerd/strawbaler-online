@@ -74,6 +74,14 @@ interface Resources {
       "saveToFile": "Save to File"
     },
     "currentLanguageWithLabel": "Current language: {{language}}",
+    "nav": {
+      "3dView": "3D View",
+      "config": "Config",
+      "editor": "Editor",
+      "parts": "Parts",
+      "plan": "Plan",
+      "welcome": "Welcome"
+    },
     "projectMenu": {
       "buttonTitle": "Project",
       "copyCurrent": "Copy current project",

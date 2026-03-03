@@ -2,6 +2,14 @@
   "actions": {
     "cancel": "Abbrechen"
   },
+  "nav": {
+    "welcome": "Willkommen",
+    "editor": "Editor",
+    "plan": "Plan",
+    "3dView": "3D Ansicht",
+    "parts": "Teile",
+    "config": "Konfig"
+  },
   "app": {
     "appName": "StrawBuild Studio",
     "changeLanguage": "Sprache ändern",
