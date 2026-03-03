@@ -1731,8 +1731,10 @@ interface Resources {
       "ready": "All assets cached. Ready for offline use."
     },
     "themeToggle": {
-      "switchToDark": "Switch to dark mode",
-      "switchToLight": "Switch to light mode"
+      "changeTheme": "Change theme",
+      "dark": "Dark",
+      "light": "Light",
+      "system": "System"
     },
     "tools": {
       "basicFitToView": "Fit to View",

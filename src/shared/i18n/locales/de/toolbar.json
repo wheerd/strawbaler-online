@@ -18,8 +18,10 @@
     "ready": "Alle Assets gecacht. Bereit für Offline-Nutzung."
   },
   "themeToggle": {
-    "switchToDark": "Zu dunklem Modus wechseln",
-    "switchToLight": "Zu hellem Modus wechseln"
+    "changeTheme": "Design ändern",
+    "dark": "Dunkel",
+    "light": "Hell",
+    "system": "System"
   },
   "tools": {
     "basicFitToView": "Auf Ansicht anpassen",
