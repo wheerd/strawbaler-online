@@ -2,8 +2,9 @@ import { Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { VolumeMaterial } from '@/materials/material'
-import type { AggregatedPartItem, PartId } from '@/parts/types'
+import type { AggregatedPartItem } from '@/parts/types'
 import { calculateWeight, canHighlightPart, getIssueSeverity } from '@/parts/utils'
+import { usePlanNavigation } from '@/plan/ui/hooks/usePlanNavigation'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
 import { Button } from '@/shared/ui/components/button'
@@ -11,12 +12,10 @@ import { Table } from '@/shared/ui/components/table'
 
 export default function VolumePartsTable({
   parts,
-  material,
-  onViewInPlan
+  material
 }: {
   parts: AggregatedPartItem[]
   material: VolumeMaterial
-  onViewInPlan?: (partId: PartId) => void
 }) {
   const { t } = useTranslation('construction')
   return (
@@ -50,23 +49,16 @@ export default function VolumePartsTable({
       </Table.Header>
       <Table.Body>
         {parts.map(part => (
-          <VolumePartsTableRow key={part.partId} part={part} material={material} onViewInPlan={onViewInPlan} />
+          <VolumePartsTableRow key={part.partId} part={part} material={material} />
         ))}
       </Table.Body>
     </Table.Root>
   )
 }
 
-function VolumePartsTableRow({
-  part,
-  material,
-  onViewInPlan
-}: {
-  part: AggregatedPartItem
-  material: VolumeMaterial
-  onViewInPlan?: (partId: PartId) => void
-}) {
+function VolumePartsTableRow({ part, material }: { part: AggregatedPartItem; material: VolumeMaterial }) {
   const { t } = useTranslation('construction')
+  const { viewPartInPlan } = usePlanNavigation()
   const { formatWeight, formatArea, formatVolume, formatLength } = useFormatters()
   const description = useTranslatableString(part.description)
 
@@ -86,13 +78,11 @@ function VolumePartsTableRow({
       <Table.Cell className="text-end">{formatVolume(part.totalVolume)}</Table.Cell>
       <Table.Cell className="text-end">{partWeight ? formatWeight(partWeight) : '-'}</Table.Cell>
       <Table.Cell className="text-center">
-        {canHighlightPart(part.partId) && onViewInPlan && (
+        {canHighlightPart(part.partId) && (
           <Button
             size="icon-sm"
             variant="ghost"
-            onClick={() => {
-              onViewInPlan(part.partId)
-            }}
+            onClick={() => void viewPartInPlan(part.partId)}
             title={t($ => $.partsList.actions.viewInPlan)}
             className="-my-2"
           >

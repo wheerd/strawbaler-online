@@ -3,7 +3,6 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { type Mock, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
-import { ConfigurationModalContext } from '@/config/ui/ConfigurationModalContext'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2 } from '@/shared/geometry'
 
@@ -93,12 +92,7 @@ describe('PerimeterToolInspector', () => {
   })
 
   const renderInspector = (tool = mockTool) => {
-    const mockOpenConfiguration = vi.fn()
-    return render(
-      <ConfigurationModalContext.Provider value={{ openConfiguration: mockOpenConfiguration }}>
-        <PerimeterToolInspector tool={tool} />
-      </ConfigurationModalContext.Provider>
-    )
+    return render(<PerimeterToolInspector tool={tool} />)
   }
 
   describe('rendering', () => {

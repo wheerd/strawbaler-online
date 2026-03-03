@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Copy, Plus, Trash, Undo2 } from 'lucide-react'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
 
 import type { LayerSetId } from '@/building/model/ids'
 import { useConfigActions, useLayerSets } from '@/config/store'
@@ -18,11 +19,14 @@ export interface LayerSetsContentProps {
   initialSelectionId?: string
 }
 
-export function LayerSetsContent({ initialSelectionId }: LayerSetsContentProps): React.JSX.Element {
+export function LayerSetsContent(props?: LayerSetsContentProps): React.JSX.Element {
   const layerSets = useLayerSets()
   const { addLayerSet, duplicateLayerSet, removeLayerSet, resetLayerSetsToDefaults } = useConfigActions()
 
   const { t } = useTranslation('config')
+  const params = useParams<{ itemId?: string }>()
+  const initialSelectionId = params.itemId ?? props?.initialSelectionId
+
   const [selectedLayerSetId, setSelectedLayerSetId] = useState<LayerSetId | null>(() => {
     if (initialSelectionId && layerSets.some(ls => ls.id === initialSelectionId)) {
       return initialSelectionId as LayerSetId

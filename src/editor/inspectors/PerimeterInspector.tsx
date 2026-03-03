@@ -20,7 +20,6 @@ import { replaceSelection } from '@/editor/canvas/state/selectionStore'
 import { useViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { formatThicknessRange } from '@/materials/thickness'
-import TopDownPlanModal from '@/plan/TopDownPlanModal'
 import { Bounds2D, type Length, calculatePolygonArea, polygonPerimeter } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { LengthField } from '@/shared/ui/LengthField'
@@ -251,15 +250,10 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
       )}
 
       <div className="flex flex-row items-center justify-center gap-3 pt-1">
-        <TopDownPlanModal
-          title={t($ => $.perimeter.constructionPlanTitle)}
-          modelId={perimeter.id}
-          trigger={
-            <Button size="icon" title={t($ => $.perimeter.viewConstructionPlan)}>
-              <ConstructionPlanIcon width={24} height={24} />
-            </Button>
-          }
-        />
+        {/* TODO: Add link to construction plan view */}
+        <Button size="icon" title={t($ => $.perimeter.viewConstructionPlan)}>
+          <ConstructionPlanIcon width={24} height={24} />
+        </Button>
         <ConstructionViewer3DModal
           modelId={perimeter.id}
           trigger={

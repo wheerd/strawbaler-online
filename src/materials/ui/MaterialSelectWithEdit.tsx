@@ -2,7 +2,7 @@ import { Pencil } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useConfigurationModal } from '@/config/ui/ConfigurationModalContext'
+import { useConfigNavigation } from '@/config/ui/useConfigNavigation'
 import { Button } from '@/shared/ui/components/button'
 
 import { MaterialSelect, type MaterialSelectProps } from './MaterialSelect'
@@ -11,7 +11,7 @@ export type MaterialSelectWithEditProps = MaterialSelectProps
 
 export function MaterialSelectWithEdit(props: MaterialSelectWithEditProps): React.JSX.Element {
   const { t } = useTranslation('config')
-  const { openConfiguration } = useConfigurationModal()
+  const { navigateToConfig } = useConfigNavigation()
 
   return (
     <div className="flex items-center gap-0.5">
@@ -23,7 +23,7 @@ export function MaterialSelectWithEdit(props: MaterialSelectWithEditProps): Reac
         title={t($ => $.materials.configure)}
         variant="ghost"
         onClick={() => {
-          openConfiguration('materials', props.value ?? undefined)
+          void navigateToConfig('materials', props.value ?? undefined)
         }}
       >
         <Pencil />

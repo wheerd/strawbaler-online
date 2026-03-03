@@ -3,7 +3,7 @@ import { ArrowDownToLine, ArrowUpToLine, Pencil, TriangleAlert } from 'lucide-re
 import React, { Suspense, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useConfigurationModal } from '@/config/ui/ConfigurationModalContext'
+import { useConfigNavigation } from '@/config/ui/useConfigNavigation'
 import type { ConstructionModelId } from '@/construction/store'
 import type { Material } from '@/materials/material'
 import { useGetMaterialTypeName } from '@/materials/ui/MaterialSelect'
@@ -11,7 +11,6 @@ import { getMaterialTypeIcon } from '@/materials/ui/icons'
 import { useMaterialName } from '@/materials/useMaterialName'
 import { useMaterialParts } from '@/parts/hooks'
 import { getLabelGroupId } from '@/parts/store'
-import type { PartId } from '@/parts/types'
 import {
   type MaterialGroup,
   type PartSubGroup,
@@ -39,7 +38,6 @@ import VolumePartsTable from './VolumePartsTable'
 
 interface ConstructionPartsListProps {
   modelId?: ConstructionModelId
-  onViewInPlan?: (partId: PartId) => void
 }
 
 function MaterialTypeIndicator({ material, size = 18 }: { material: Material; size?: number }) {
@@ -127,12 +125,11 @@ interface MaterialGroupCardProps {
   material: Material
   group: PartSubGroup
   onBackToTop: () => void
-  onViewInPlan?: (partId: PartId) => void
 }
 
-function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan }: MaterialGroupCardProps) {
+function MaterialGroupCard({ material, group, onBackToTop }: MaterialGroupCardProps) {
   const { t } = useTranslation('construction')
-  const { openConfiguration } = useConfigurationModal()
+  const { navigateToConfig } = useConfigNavigation()
   const materialName = useMaterialName(material)
   const badgeLabel = useTranslatableString(group.badgeLabel)
   const issueMessage = useTranslatableString(group.issueMessage)
@@ -148,9 +145,7 @@ function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan }: Mater
               size="icon-xs"
               title={t($ => $.partsList.actions.configureMaterial)}
               variant="ghost"
-              onClick={() => {
-                openConfiguration('materials', material.id)
-              }}
+              onClick={() => void navigateToConfig('materials', material.id)}
             >
               <Pencil />
             </Button>
@@ -176,23 +171,17 @@ function MaterialGroupCard({ material, group, onBackToTop, onViewInPlan }: Mater
         </div>
       </CardHeader>
       <CardContent className="px-3">
-        {material.type === 'dimensional' && (
-          <DimensionalPartsTable parts={group.parts} material={material} onViewInPlan={onViewInPlan} />
-        )}
-        {material.type === 'sheet' && (
-          <SheetPartsTable parts={group.parts} material={material} onViewInPlan={onViewInPlan} />
-        )}
-        {material.type === 'volume' && (
-          <VolumePartsTable parts={group.parts} material={material} onViewInPlan={onViewInPlan} />
-        )}
-        {material.type === 'generic' && <GenericPartsTable parts={group.parts} onViewInPlan={onViewInPlan} />}
+        {material.type === 'dimensional' && <DimensionalPartsTable parts={group.parts} material={material} />}
+        {material.type === 'sheet' && <SheetPartsTable parts={group.parts} material={material} />}
+        {material.type === 'volume' && <VolumePartsTable parts={group.parts} material={material} />}
+        {material.type === 'generic' && <GenericPartsTable parts={group.parts} />}
         {material.type === 'strawbale' && <StrawbalePartsTable parts={group.parts} material={material} />}
       </CardContent>
     </Card>
   )
 }
 
-export function ConstructionPartsList({ modelId, onViewInPlan }: ConstructionPartsListProps): React.JSX.Element {
+export function ConstructionPartsList({ modelId }: ConstructionPartsListProps): React.JSX.Element {
   const { t } = useTranslation('construction')
   const topRef = useRef<HTMLDivElement | null>(null)
   const detailRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -245,12 +234,7 @@ export function ConstructionPartsList({ modelId, onViewInPlan }: ConstructionPar
             .flatMap(g => g.subGroups.map(s => [g.material, s] as const))
             .map(([material, group]) => (
               <div key={group.key} ref={setDetailRef(group.key)}>
-                <MaterialGroupCard
-                  material={material}
-                  group={group}
-                  onBackToTop={scrollToTop}
-                  onViewInPlan={onViewInPlan}
-                />
+                <MaterialGroupCard material={material} group={group} onBackToTop={scrollToTop} />
               </div>
             ))}
         </div>

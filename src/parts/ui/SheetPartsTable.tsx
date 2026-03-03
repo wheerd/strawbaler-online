@@ -2,9 +2,10 @@ import { Eye, TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { SheetMaterial } from '@/materials/material'
-import type { AggregatedPartItem, PartId } from '@/parts/types'
+import type { AggregatedPartItem } from '@/parts/types'
 import { SheetPartModal } from '@/parts/ui/SheetPartModal'
 import { calculateWeight, canHighlightPart, getIssueSeverity } from '@/parts/utils'
+import { usePlanNavigation } from '@/plan/ui/hooks/usePlanNavigation'
 import { type Vec3, isZeroVec3 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
@@ -39,15 +40,7 @@ const formatSheetDimensions = (
   return formatters.formatDimensions3D([size[0], size[1], size[2]])
 }
 
-export default function SheetPartsTable({
-  parts,
-  material,
-  onViewInPlan
-}: {
-  parts: AggregatedPartItem[]
-  material: SheetMaterial
-  onViewInPlan?: (partId: PartId) => void
-}) {
+export default function SheetPartsTable({ parts, material }: { parts: AggregatedPartItem[]; material: SheetMaterial }) {
   const { t } = useTranslation('construction')
 
   return (
@@ -84,23 +77,16 @@ export default function SheetPartsTable({
       </Table.Header>
       <Table.Body>
         {parts.map(part => (
-          <SheetPartsTableRow key={part.partId} part={part} material={material} onViewInPlan={onViewInPlan} />
+          <SheetPartsTableRow key={part.partId} part={part} material={material} />
         ))}
       </Table.Body>
     </Table.Root>
   )
 }
 
-function SheetPartsTableRow({
-  part,
-  material,
-  onViewInPlan
-}: {
-  part: AggregatedPartItem
-  material: SheetMaterial
-  onViewInPlan?: (partId: PartId) => void
-}) {
+function SheetPartsTableRow({ part, material }: { part: AggregatedPartItem; material: SheetMaterial }) {
   const { t } = useTranslation('construction')
+  const { viewPartInPlan } = usePlanNavigation()
   const { formatWeight, formatVolume, formatArea, formatDimensions2D, formatDimensions3D } = useFormatters()
   const description = useTranslatableString(part.description)
 
@@ -160,13 +146,11 @@ function SheetPartsTableRow({
       <Table.Cell className="text-end">{formatVolume(part.totalVolume)}</Table.Cell>
       <Table.Cell className="text-end">{partWeight ? formatWeight(partWeight) : '—'}</Table.Cell>
       <Table.Cell className="text-center">
-        {canHighlightPart(part.partId) && onViewInPlan && (
+        {canHighlightPart(part.partId) && (
           <Button
             size="icon-sm"
             variant="ghost"
-            onClick={() => {
-              onViewInPlan(part.partId)
-            }}
+            onClick={() => void viewPartInPlan(part.partId)}
             title={t($ => $.partsList.actions.viewInPlan)}
             className="-my-2"
           >

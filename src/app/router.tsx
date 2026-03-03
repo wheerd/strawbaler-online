@@ -5,6 +5,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from '@/app/AppLayout'
 import { PrivacyPage } from '@/app/PrivacyPage'
 import { EditorPageSkeleton } from '@/app/skeletons/EditorPageSkeleton'
+import { configRoutes } from '@/config/ui/routes'
 import { ErrorFallback } from '@/shared/ui/errors/ErrorFallback'
 
 import { AuthModalRoute } from './user/AuthModalRoute'
@@ -39,13 +40,6 @@ const PartsListPage = React.lazy(
     }))
 )
 
-const ConfigPage = React.lazy(
-  async () =>
-    await import('@/config/ui/ConfigPage').then(module => ({
-      default: module.ConfigPage
-    }))
-)
-
 export const router = createBrowserRouter([
   {
     path: '/privacy',
@@ -72,10 +66,31 @@ export const router = createBrowserRouter([
           </Suspense>
         )
       },
-      { path: 'plan', element: <ConstructionPlanPage /> },
-      { path: '3d-view', element: <Viewer3DPage /> },
-      { path: 'parts', element: <PartsListPage /> },
-      { path: 'config', element: <ConfigPage /> },
+      {
+        path: 'plan',
+        element: (
+          <Suspense fallback={null}>
+            <ConstructionPlanPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '3d-view',
+        element: (
+          <Suspense fallback={null}>
+            <Viewer3DPage />
+          </Suspense>
+        )
+      },
+      {
+        path: 'parts',
+        element: (
+          <Suspense fallback={null}>
+            <PartsListPage />
+          </Suspense>
+        )
+      },
+      configRoutes,
       { path: 'auth/:tab', element: <AuthModalRoute />, handle: { isModal: true } },
       { path: 'auth/update-password', element: <UpdatePasswordModalRoute />, handle: { isModal: true } }
     ]

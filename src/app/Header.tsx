@@ -1,3 +1,4 @@
+import { HandIcon, PencilIcon, SettingsIcon, TablePropertiesIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router-dom'
 
@@ -7,16 +8,16 @@ import { ThemeToggle } from '@/editor/status-bar/ThemeToggle'
 import { ProjectMenu } from '@/projects/ui/ProjectMenu'
 import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher'
 import { Logo } from '@/shared/ui/Logo'
-import { GitHubIcon } from '@/shared/ui/icons'
+import { ConstructionPlanIcon, GitHubIcon, Model3DIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/ui/utils'
 
 const navItems = [
-  { path: '/', labelKey: 'welcome' },
-  { path: '/editor', labelKey: 'editor' },
-  { path: '/plan', labelKey: 'plan' },
-  { path: '/3d-view', labelKey: '3dView' },
-  { path: '/parts', labelKey: 'parts' },
-  { path: '/config', labelKey: 'config' }
+  { path: '/', labelKey: 'welcome', icon: HandIcon },
+  { path: '/editor', labelKey: 'editor', icon: PencilIcon },
+  { path: '/plan', labelKey: 'plan', icon: ConstructionPlanIcon },
+  { path: '/3d-view', labelKey: '3dView', icon: Model3DIcon },
+  { path: '/parts', labelKey: 'parts', icon: TablePropertiesIcon },
+  { path: '/config', labelKey: 'config', icon: SettingsIcon }
 ] as const
 
 export function Header(): React.JSX.Element {
@@ -38,11 +39,12 @@ export function Header(): React.JSX.Element {
             to={item.path}
             className={({ isActive }) =>
               cn(
-                'text-muted-foreground hover:text-foreground rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'text-muted-foreground hover:text-foreground flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                 isActive && 'bg-primary/10 text-primary'
               )
             }
           >
+            <item.icon className="inline-block h-5 w-5" />
             {t($ => $.nav[item.labelKey])}
           </NavLink>
         ))}

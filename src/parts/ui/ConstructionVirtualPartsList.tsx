@@ -9,6 +9,7 @@ import { getLabelGroupId } from '@/parts/store'
 import type { PartId } from '@/parts/types'
 import type { VirtualGroup } from '@/parts/utils/aggregation'
 import { toVirtualGroup, virtualGroupKey } from '@/parts/utils/aggregation'
+import { usePlanNavigation } from '@/plan/ui/hooks/usePlanNavigation'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
 import { Button } from '@/shared/ui/components/button'
@@ -19,7 +20,6 @@ import { RegenerateLabelsButton } from './RegenerateLabelsButton'
 
 interface ConstructionVirtualPartsListProps {
   modelId?: ConstructionModelId
-  onViewInPlan?: (partId: PartId) => void
 }
 
 const canHighlightPart = (partId: PartId): boolean => !partId.startsWith('auto_')
@@ -45,14 +45,9 @@ function ModuleSummaryTableRow({ group, onNavigate }: { group: VirtualGroup; onN
   )
 }
 
-function ModulePartsTable({
-  parts,
-  onViewInPlan
-}: {
-  parts: VirtualGroup['parts']
-  onViewInPlan?: (partId: PartId) => void
-}) {
+function ModulePartsTable({ parts }: { parts: VirtualGroup['parts'] }) {
   const { t } = useTranslation('construction')
+  const { viewPartInPlan } = usePlanNavigation()
   const { formatDimensions3D, formatArea } = useFormatters()
 
   return (
@@ -92,13 +87,11 @@ function ModulePartsTable({
               <span>{part.quantity}</span>
             </Table.Cell>
             <Table.Cell className="text-center">
-              {canHighlightPart(part.partId) && onViewInPlan && (
+              {canHighlightPart(part.partId) && (
                 <Button
                   size="icon-sm"
                   variant="ghost"
-                  onClick={() => {
-                    onViewInPlan(part.partId)
-                  }}
+                  onClick={() => void viewPartInPlan(part.partId)}
                   title={t($ => $.modulesList.actions.viewInPlan)}
                   className="-my-2"
                 >
@@ -113,15 +106,7 @@ function ModulePartsTable({
   )
 }
 
-function ModuleGroupCard({
-  group,
-  onBackToTop,
-  onViewInPlan
-}: {
-  group: VirtualGroup
-  onBackToTop: () => void
-  onViewInPlan?: (partId: PartId) => void
-}) {
+function ModuleGroupCard({ group, onBackToTop }: { group: VirtualGroup; onBackToTop: () => void }) {
   const { t } = useTranslation('construction')
   const groupId = getLabelGroupId(group.parts[0])
   const description = useTranslatableString(group.description)
@@ -147,16 +132,13 @@ function ModuleGroupCard({
         </div>
       </CardHeader>
       <CardContent className="px-3">
-        <ModulePartsTable parts={group.parts} onViewInPlan={onViewInPlan} />
+        <ModulePartsTable parts={group.parts} />
       </CardContent>
     </Card>
   )
 }
 
-export function ConstructionVirtualPartsList({
-  modelId,
-  onViewInPlan
-}: ConstructionVirtualPartsListProps): React.JSX.Element {
+export function ConstructionVirtualPartsList({ modelId }: ConstructionVirtualPartsListProps): React.JSX.Element {
   const { t } = useTranslation('construction')
   const topRef = useRef<HTMLDivElement | null>(null)
   const detailRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -206,7 +188,7 @@ export function ConstructionVirtualPartsList({
       <div className="flex flex-col gap-4">
         {groups.map(group => (
           <div key={group.key} ref={setDetailRef(group.key)}>
-            <ModuleGroupCard group={group} onBackToTop={scrollToTop} onViewInPlan={onViewInPlan} />
+            <ModuleGroupCard group={group} onBackToTop={scrollToTop} />
           </div>
         ))}
       </div>

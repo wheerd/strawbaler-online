@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Copy, Plus, Trash, Undo2 } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
 
 import type { RingBeamAssemblyId } from '@/building/model/ids'
 import { usePerimeterWalls } from '@/building/store'
@@ -30,8 +31,11 @@ export interface RingBeamAssemblyContentProps {
   initialSelectionId?: string
 }
 
-export function RingBeamAssemblyContent({ initialSelectionId }: RingBeamAssemblyContentProps): React.JSX.Element {
+export function RingBeamAssemblyContent(props?: RingBeamAssemblyContentProps): React.JSX.Element {
   const { t } = useTranslation('config')
+  const params = useParams<{ itemId?: string }>()
+  const initialSelectionId = params.itemId ?? props?.initialSelectionId
+
   const ringBeamAssemblies = useRingBeamAssemblies()
   const walls = usePerimeterWalls()
   const {

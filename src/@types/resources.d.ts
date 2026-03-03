@@ -216,6 +216,13 @@ interface Resources {
       "copyNameTemplate": "{{name}} (Copy)",
       "defaultFloorAssembly": "Default Floor Assembly",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
+      "defaults": {
+        "clt18cm": "CLT 18cm (6cm)",
+        "concrete20cm": "Concrete 20cm (6cm)",
+        "filledJoist8x36cm": "Filled Joist 8x36cm (6cm)",
+        "hangingJoist8x24cm": "Hanging Joist 8x24cm (6cm)",
+        "joist8x24cm": "Joist 8x24cm (6cm)"
+      },
       "delete": {
         "cannotDeleteInUse": "In Use - Cannot Delete",
         "cannotDeleteLast": "Cannot delete the last config",
@@ -272,6 +279,21 @@ interface Resources {
     },
     "layerSets": {
       "copyNameTemplate": "{{name}} (Copy)",
+      "defaults": {
+        "ceilingClayPlaster": "Clay Plaster",
+        "ceilingLimePlaster": "Lime Plaster",
+        "clayPlaster": "Clay Plaster",
+        "clayPlasterDiagonal": "Clay Plaster with Diagonal Bracing",
+        "gypsumBoards": "Gypsum Boards",
+        "limePlaster": "Lime Plaster",
+        "limePlasterDhf": "Lime Plaster with DHF",
+        "limePlasterDiagonal": "Lime Plaster with Diagonal Bracing",
+        "screed": "Screed",
+        "tiles": "Roof Tiles",
+        "woodenPlanking": "Wooden Planking",
+        "woodenPlankingDhf": "Wooden Planking with DHF",
+        "xpsLimePlaster": "XPS Insulation + Lime Plaster"
+      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Layer Set",
       "emptyList": "No layer sets available",
@@ -291,6 +313,25 @@ interface Resources {
     "layers": {
       "defaultName_monolithic": "Monolithic Layer",
       "defaultName_striped": "Striped Layer",
+      "defaults": {
+        "battens": "Battens",
+        "clayPlasterBase": "Base Plaster (Clay)",
+        "clayPlasterFine": "Fine Plaster (Clay)",
+        "counterBattens": "Counter Battens",
+        "dhf": "DHF",
+        "diagonalBracing": "Diagonal Bracing",
+        "gypsumBoards": "Gypsum Boards",
+        "impactSoundInsulation": "Impact Sound Insulation",
+        "insulation": "Insulation",
+        "limePlasterBase": "Base Plaster (Lime)",
+        "limePlasterFine": "Fine Plaster (Lime)",
+        "plasterGroundReed": "Plaster Ground (Reed)",
+        "screed": "Screed",
+        "tiles": "Tiles",
+        "windBarrier": "Wind Barrier",
+        "windPaper": "Wind Paper",
+        "woodPlanking": "Wood Planking"
+      },
       "direction": "Direction",
       "directions": {
         "colinear": "Colinear",
@@ -337,6 +378,42 @@ interface Resources {
       "crossSectionSmaller": "Cross section smaller dimension",
       "crossSections": "Cross Sections",
       "defaultStrawMaterial": "Default Straw Material",
+      "defaults": {
+        "battens": "Battens",
+        "bitumen": "Bitumen",
+        "boards": "Boards",
+        "brick": "Brick",
+        "cementScreed": "Cement Screed",
+        "clayPlasterBase": "Clay Plaster (Base)",
+        "clayPlasterFine": "Clay Plaster (Fine)",
+        "clt": "Cross-laminated Timber (CLT)",
+        "concrete": "Concrete",
+        "cork": "Cork",
+        "dhf": "DHF (Wood Fiber Board)",
+        "ecococon-box": "Ecococon Box Element",
+        "ecococon-braced": "Ecococon Braced",
+        "ecococon-column": "Ecococon Column",
+        "ecococon-inclined": "Ecococon Inclined",
+        "ecococon-inclined-braced": "Ecococon Inclined Braced",
+        "ecococon-lintel": "Ecococon Lintel",
+        "ecococon-sill": "Ecococon Sill",
+        "ecococon-standard": "Ecococon Standard",
+        "fireProtectionBoarding": "Fire Protection Boarding",
+        "glt": "Glulam (GLT)",
+        "gypsum": "Gypsum Board",
+        "impactSoundInsulation": "Impact Sound Insulation",
+        "limePlasterBase": "Lime Plaster (Base)",
+        "limePlasterFine": "Lime Plaster (Fine)",
+        "lvl": "LVL (Laminated Veneer Lumber)",
+        "osb": "OSB",
+        "reed": "Reed Matting",
+        "roughWood": "Rough-sawn Timber",
+        "strawbale": "Strawbales",
+        "structuralWood": "Structural Timber",
+        "windBarrier": "Wind Barrier",
+        "woodwool": "Woodwool",
+        "xps": "XPS (Extruded Polystyrene)"
+      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Material",
       "duplicateNamePattern": "{{name}} (Copy)",
@@ -396,21 +473,21 @@ interface Resources {
       "typeVolume": "Volume",
       "volumeInput": "Volume input"
     },
-    "modal": {
-      "tabFloors": "Floor Assemblies",
-      "tabLayerSets": "Layer Sets",
-      "tabMaterials": "Materials",
-      "tabOpenings": "Opening Assemblies",
-      "tabRingBeams": "Ring Beam Assemblies",
-      "tabRoofs": "Roof Assemblies",
-      "tabWalls": "Wall Assemblies",
-      "title": "Configuration"
-    },
     "openings": {
       "configure": "Configure Opening Assembly",
       "copyNameTemplate": "{{name}} (Copy)",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultOpeningAssembly": "Default Opening Assembly",
+      "defaults": {
+        "emptyOpening": "Empty Opening",
+        "prefabDefaultOpening": "Default Prefab Opening",
+        "prefabOpeningWithPlanking": "Prefab Opening with Planking",
+        "prefabOpeningWithPosts": "Prefab Opening with Posts",
+        "prefabSimpleOpening": "Prefab Opening without Planking",
+        "standardOpening": "Standard Opening",
+        "standardOpeningWithPlanking": "Standard Opening with Planking",
+        "standardOpeningWithPosts": "Standard Opening with Posts"
+      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Opening Assembly",
       "emptyList": "No opening assemblies available",
@@ -460,6 +537,10 @@ interface Resources {
       "defaultBasePlate": "Default Base Plate",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultTopPlate": "Default Top Plate",
+      "defaults": {
+        "brickRingBeam": "Brick Ring Beam",
+        "full36x6cm": "Full 36x6cm"
+      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Ring Beam Assembly",
       "emptyList": "No ring beam assemblies available",
@@ -495,6 +576,10 @@ interface Resources {
       "copyNameTemplate": "{{name}} (Copy)",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultRoofAssembly": "Default Roof Assembly",
+      "defaults": {
+        "cltMonolithic18cm": "CLT Monolithic 18cm",
+        "purlinRoofStraw": "Purlin Roof (Straw)"
+      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Roof Assembly",
       "emptyList": "No roof assemblies available",
@@ -529,6 +614,15 @@ interface Resources {
         "purlin": "Purlin"
       }
     },
+    "tabs": {
+      "floors": "Floor Assemblies",
+      "layers": "Layer Sets",
+      "materials": "Materials",
+      "openings": "Opening Assemblies",
+      "ringbeams": "Ring Beam Assemblies",
+      "roofs": "Roof Assemblies",
+      "walls": "Wall Assemblies"
+    },
     "usage": {
       "globalDefault_floor": "Global Default",
       "globalDefault_opening": "Global Default",
@@ -557,6 +651,13 @@ interface Resources {
       "copyNameTemplate": "{{name}} (Copy)",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultWallAssembly": "Default Wall Assembly",
+      "defaults": {
+        "concreteWall": "Concrete Wall",
+        "defaultModule": "Default Module",
+        "ecococonModules": "Ecococon Modules",
+        "standardInfill": "Standard Infill",
+        "strawhengeModule": "Strawhenge Module"
+      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Wall Assembly",
       "desiredPostSpacing": "Desired Post Spacing",

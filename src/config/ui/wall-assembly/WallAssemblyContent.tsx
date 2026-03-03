@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Copy, Plus, Trash, Undo2 } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
 
 import type { OpeningAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import { usePerimeterWalls } from '@/building/store'
@@ -33,7 +34,7 @@ export interface WallAssemblyContentProps {
   initialSelectionId?: string
 }
 
-export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentProps): React.JSX.Element {
+export function WallAssemblyContent(props?: WallAssemblyContentProps): React.JSX.Element {
   const wallAssemblies = useWallAssemblies()
   const walls = usePerimeterWalls()
   const {
@@ -47,6 +48,9 @@ export function WallAssemblyContent({ initialSelectionId }: WallAssemblyContentP
   const defaultAssemblyId = useDefaultWallAssemblyId()
 
   const { t } = useTranslation('config')
+  const params = useParams<{ itemId?: string }>()
+  const initialSelectionId = params.itemId ?? props?.initialSelectionId
+
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<string | null>(() => {
     if (initialSelectionId && wallAssemblies.some(m => m.id === initialSelectionId)) {
       return initialSelectionId

@@ -8,13 +8,10 @@ import type { RoofId } from '@/building/model/ids'
 import { useModelActions, useRoofById, useRoofOverhangsByRoof } from '@/building/store'
 import { useDefaultRoofAssemblyId } from '@/config/store'
 import { RoofAssemblySelectWithEdit } from '@/config/ui/roof-assembly/RoofAssemblySelectWithEdit'
-import { TAG_DECKING } from '@/construction/model/tags'
 import { replaceSelection } from '@/editor/canvas/state/selectionStore'
 import { useViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { RoofPreview } from '@/editor/shared/RoofPreview'
-import { FRONT_VIEW, LEFT_VIEW, TOP_VIEW } from '@/plan/ConstructionPlan'
-import { ConstructionPlanModal } from '@/plan/ConstructionPlanModal'
 import {
   Bounds2D,
   type Length,
@@ -248,9 +245,7 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
 
       {/* Construction Views */}
       <div className="flex flex-row items-center justify-center gap-3 pt-1">
-        <ConstructionPlanModal
-          title={t($ => $.roof.constructionPlanTitle)}
-          modelId={roofId}
+        {/* TODO: Add link to construction plan view
           midCutActiveDefault={false}
           views={[
             { view: TOP_VIEW, label: t($ => $.roof.viewTop), toggleHideTags: [TAG_DECKING.id] },
@@ -258,12 +253,10 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
             { view: LEFT_VIEW, label: t($ => $.roof.viewLeft) }
           ]}
           defaultHiddenTags={['roof-layer']}
-          trigger={
-            <Button size="icon" title={t($ => $.roof.viewConstructionPlan)}>
-              <ConstructionPlanIcon width={24} height={24} />
-            </Button>
-          }
-        />
+        */}
+        <Button size="icon" title={t($ => $.roof.viewConstructionPlan)}>
+          <ConstructionPlanIcon width={24} height={24} />
+        </Button>
         <ConstructionViewer3DModal
           modelId={roofId}
           trigger={

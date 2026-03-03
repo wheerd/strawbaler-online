@@ -2,14 +2,14 @@ import { Pencil } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useConfigurationModal } from '@/config/ui/ConfigurationModalContext'
+import { useConfigNavigation } from '@/config/ui/useConfigNavigation'
 import { Button } from '@/shared/ui/components/button'
 
 import { RoofAssemblySelect, type RoofAssemblySelectProps } from './RoofAssemblySelect'
 
 export function RoofAssemblySelectWithEdit(props: RoofAssemblySelectProps): React.JSX.Element {
   const { t } = useTranslation('config')
-  const { openConfiguration } = useConfigurationModal()
+  const { navigateToConfig } = useConfigNavigation()
 
   return (
     <div className="flex items-center gap-1">
@@ -21,7 +21,7 @@ export function RoofAssemblySelectWithEdit(props: RoofAssemblySelectProps): Reac
         title={t($ => $.roofs.configure)}
         variant="ghost"
         onClick={() => {
-          openConfiguration('roofs', props.value ?? undefined)
+          void navigateToConfig('roofs', props.value ?? undefined)
         }}
       >
         <Pencil />

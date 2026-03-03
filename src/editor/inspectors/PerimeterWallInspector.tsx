@@ -12,8 +12,6 @@ import { resolveWallAssembly } from '@/construction/assemblies/walls'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { useToolSystem } from '@/editor/tools/system/ToolSystemContext'
 import { formatThicknessRange } from '@/materials/thickness'
-import { BACK_VIEW, FRONT_VIEW, TOP_VIEW } from '@/plan/ConstructionPlan'
-import { ConstructionPlanModal } from '@/plan/ConstructionPlanModal'
 import { Bounds2D } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { LengthField } from '@/shared/ui/LengthField'
@@ -245,21 +243,17 @@ export function PerimeterWallInspector({ wallId }: { wallId: PerimeterWallId }):
       {/* Actions */}
       <div className="flex flex-col gap-2">
         <div className="flex justify-end gap-2">
-          <ConstructionPlanModal
-            title={t($ => $.perimeterWall.constructionPlanTitle)}
-            modelId={wallId}
+          {/* TODO: Add link to construction plan view
             views={[
               { view: FRONT_VIEW, label: t($ => $.perimeterWall.viewOutside) },
               { view: BACK_VIEW, label: t($ => $.perimeterWall.viewInside) },
               { view: TOP_VIEW, label: t($ => $.perimeterWall.viewTop) }
             ]}
             defaultHiddenTags={['wall-layer']}
-            trigger={
-              <Button size="icon" title={t($ => $.perimeterWall.viewConstructionPlan)}>
-                <ConstructionPlanIcon width={20} height={20} />
-              </Button>
-            }
-          />
+          */}
+          <Button size="icon" title={t($ => $.perimeterWall.viewConstructionPlan)}>
+            <ConstructionPlanIcon width={20} height={20} />
+          </Button>
 
           <Button
             size="icon"

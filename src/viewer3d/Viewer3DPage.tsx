@@ -17,7 +17,9 @@ export function Viewer3DPage(): React.JSX.Element {
 
   useEffect(() => {
     setObserverActive(true)
-    return () => setObserverActive(false)
+    return () => {
+      setObserverActive(false)
+    }
   }, [setObserverActive])
 
   const modelId = undefined as ConstructionModelId | undefined
@@ -53,7 +55,7 @@ export function Viewer3DPage(): React.JSX.Element {
           }
         >
           <TagOpacityProvider>
-            <ConstructionViewer3DContent modelId={modelId} containerSize={containerSize} isOpen={true} />
+            <ConstructionViewer3DContent modelId={modelId} containerSize={containerSize} isOpen />
           </TagOpacityProvider>
         </Suspense>
 

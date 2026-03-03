@@ -1,6 +1,8 @@
-import { Suspense, lazy, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router-dom'
 
+import { useActiveStoreyId } from '@/building/store'
 import {
   TAG_BASE_PLATE,
   TAG_DECKING,
@@ -9,15 +11,12 @@ import {
   TAG_TOP_PLATE,
   TAG_WALLS
 } from '@/construction/model/tags'
-import { type ConstructionModelId, useConstructionModel } from '@/construction/store'
+import { useConstructionModel } from '@/construction/store'
 import type { PartId } from '@/parts/types'
-import { ConstructionPartsList } from '@/parts/ui/ConstructionPartsList'
-import { ConstructionVirtualPartsList } from '@/parts/ui/ConstructionVirtualPartsList'
 import { IssueDescriptionPanel } from '@/plan/IssueDescriptionPanel'
 import { PartHighlightPanel } from '@/plan/PartHighlightPanel'
 import { Skeleton } from '@/shared/ui/components/skeleton'
 import { Spinner } from '@/shared/ui/components/spinner'
-import { Tabs } from '@/shared/ui/components/tabs'
 import { elementSizeRef } from '@/shared/ui/hooks/useElementSize'
 
 import { ConstructionPlan, TOP_VIEW, type ViewOption } from './ConstructionPlan'
@@ -56,13 +55,22 @@ const defaultViews: ViewOption[] = [
 
 function ConstructionPlanPageContent() {
   const { t } = useTranslation('construction')
+  const location = useLocation()
   const { setHighlightedPartId } = usePlanHighlight()
-  const [activeTab, setActiveTab] = useState<'plan' | 'parts' | 'modules'>('plan')
   const [currentViewIndex, setCurrentViewIndex] = useState(0)
   const [containerSize, containerRef] = elementSizeRef()
 
-  const modelId = undefined as ConstructionModelId | undefined
-  const model = useConstructionModel(modelId)
+  const storeyId = useActiveStoreyId()
+  const model = useConstructionModel(storeyId)
+
+  const state = location.state as { highlightedPartId?: PartId } | null
+  const highlightedPartIdFromNav = state?.highlightedPartId
+
+  useEffect(() => {
+    if (highlightedPartIdFromNav) {
+      setHighlightedPartId(highlightedPartIdFromNav)
+    }
+  }, [highlightedPartIdFromNav, setHighlightedPartId])
 
   const viewsWithLabels: ViewOption[] = defaultViews.map(view => ({
     ...view,
@@ -74,71 +82,38 @@ function ConstructionPlanPageContent() {
           : t($ => $.planModal.views.floor)
   }))
 
-  const handleViewInPlan = (partId: string) => {
-    setHighlightedPartId(partId as PartId)
-    setActiveTab('plan')
-  }
-
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <Tabs.Root
-        value={activeTab}
-        onValueChange={value => {
-          setActiveTab(value as 'plan' | 'parts' | 'modules')
-        }}
-        className="flex h-full w-full flex-col"
-      >
-        <div className="flex shrink-0 items-center justify-between border-b px-4 py-2">
-          <Tabs.List>
-            <Tabs.Trigger value="plan">{t($ => $.planModal.tabs.planIssues)}</Tabs.Trigger>
-            <Tabs.Trigger value="parts">{t($ => $.planModal.tabs.partsList)}</Tabs.Trigger>
-            <Tabs.Trigger value="modules">{t($ => $.planModal.tabs.modules)}</Tabs.Trigger>
-          </Tabs.List>
-          <Suspense fallback={null}>
-            <ConstructionModelRegenerateButton />
-          </Suspense>
+      <div className="flex shrink-0 items-center justify-between border-b px-4 py-2">
+        TODO: Wall mode
+        <Suspense fallback={null}>
+          <ConstructionModelRegenerateButton />
+        </Suspense>
+      </div>
+
+      {model ? (
+        <div className="flex h-full w-full flex-col gap-2 overflow-hidden">
+          <div ref={containerRef} className="relative flex min-h-0 flex-1 overflow-hidden border-b">
+            <TagVisibilityProvider defaultHidden={['floor-layer', 'wall-layer', 'roof-layer', 'finished-measurement']}>
+              <ConstructionPlan
+                model={model}
+                views={viewsWithLabels}
+                containerSize={containerSize}
+                midCutActiveDefault
+                currentViewIndex={currentViewIndex}
+                setCurrentViewIndex={setCurrentViewIndex}
+              />
+            </TagVisibilityProvider>
+            <PartHighlightPanel />
+          </div>
+
+          <div className="flex w-full shrink-0 px-2">
+            <IssueDescriptionPanel model={model} />
+          </div>
         </div>
-
-        <Tabs.Content value="plan" className="flex min-h-0 flex-1 p-0">
-          {model ? (
-            <div className="flex h-full w-full flex-col gap-2 overflow-hidden p-4">
-              <div ref={containerRef} className="relative flex min-h-0 flex-1 overflow-hidden rounded-md border">
-                <TagVisibilityProvider
-                  defaultHidden={['floor-layer', 'wall-layer', 'roof-layer', 'finished-measurement']}
-                >
-                  <ConstructionPlan
-                    model={model}
-                    views={viewsWithLabels}
-                    containerSize={containerSize}
-                    midCutActiveDefault
-                    currentViewIndex={currentViewIndex}
-                    setCurrentViewIndex={setCurrentViewIndex}
-                  />
-                </TagVisibilityProvider>
-                <PartHighlightPanel />
-              </div>
-
-              <div className="flex w-full shrink-0">
-                <IssueDescriptionPanel model={model} />
-              </div>
-            </div>
-          ) : (
-            <PlanSkeleton />
-          )}
-        </Tabs.Content>
-
-        <Tabs.Content value="parts" className="flex min-h-0 flex-1 flex-col overflow-auto p-4">
-          {model ? <ConstructionPartsList modelId={modelId} onViewInPlan={handleViewInPlan} /> : <PartsSkeleton />}
-        </Tabs.Content>
-
-        <Tabs.Content value="modules" className="flex min-h-0 flex-1 flex-col overflow-auto p-4">
-          {model ? (
-            <ConstructionVirtualPartsList modelId={modelId} onViewInPlan={handleViewInPlan} />
-          ) : (
-            <PartsSkeleton />
-          )}
-        </Tabs.Content>
-      </Tabs.Root>
+      ) : (
+        <PlanSkeleton />
+      )}
     </div>
   )
 }
@@ -163,17 +138,4 @@ function PlanSkeleton() {
       </div>
     </div>
   )
-}
-
-function PartsSkeleton() {
-  return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <CardSkeleton />
-      <CardSkeleton />
-    </div>
-  )
-}
-
-function CardSkeleton() {
-  return <Skeleton className="h-[160px] rounded-lg" />
 }
