@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { RefreshCw, Square, Trash, TriangleAlert } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import type { RoofOverhang } from '@/building/model'
 import type { RoofId } from '@/building/model/ids'
@@ -61,6 +62,7 @@ function MixedStateIndicator({ tooltip }: { tooltip: string }) {
 
 export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element | null {
   const { t } = useTranslation('inspector')
+  const navigate = useNavigate()
   const { formatArea, formatLength } = useFormatters()
   const roof = useRoofById(roofId)
   const overhangs = useRoofOverhangsByRoof(roofId)
@@ -245,16 +247,13 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
 
       {/* Construction Views */}
       <div className="flex flex-row items-center justify-center gap-3 pt-1">
-        {/* TODO: Add link to construction plan view
-          midCutActiveDefault={false}
-          views={[
-            { view: TOP_VIEW, label: t($ => $.roof.viewTop), toggleHideTags: [TAG_DECKING.id] },
-            { view: FRONT_VIEW, label: t($ => $.roof.viewFront) },
-            { view: LEFT_VIEW, label: t($ => $.roof.viewLeft) }
-          ]}
-          defaultHiddenTags={['roof-layer']}
-        */}
-        <Button size="icon" title={t($ => $.roof.viewConstructionPlan)}>
+        <Button
+          size="icon"
+          title={t($ => $.roof.viewConstructionPlan)}
+          onClick={() => {
+            void navigate(`/plan/${roofId}`)
+          }}
+        >
           <ConstructionPlanIcon width={24} height={24} />
         </Button>
         <ConstructionViewer3DModal

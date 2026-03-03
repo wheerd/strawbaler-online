@@ -68,7 +68,6 @@
     "addRoofBasedOnPerimeter": "Dach basierend auf Gebäudekontur hinzufügen",
     "addShedRoof": "Pultdach",
     "basePlate": "Fußschwelle",
-    "constructionPlanTitle": "Konstruktionsplan",
     "deletePerimeter": "Gebäudekontur löschen",
     "fitToView": "Auf Ansicht anpassen",
     "mixedPlaceholder": "Gemischt",
@@ -118,7 +117,6 @@
     "basePlate": "Fußschwelle",
     "cannotDeleteMinWalls": "Kann nicht löschen - Gebäudekontur benötigt mindestens 3 Wände",
     "cannotDeleteSelfIntersect": "Kann nicht löschen - würde selbstschneidendes Polygon erzeugen",
-    "constructionPlanTitle": "Wand-Konstruktionsplan",
     "constructionThickness": "Konstruktionsdicke",
     "deleteWall": "Wand löschen",
     "doors": "Türen",
@@ -136,16 +134,12 @@
     "thickness": "Dicke",
     "topPlate": "Kopfschwelle",
     "viewConstructionPlan": "Konstruktionsplan anzeigen",
-    "viewInside": "Innen",
-    "viewOutside": "Außen",
-    "viewTop": "Oben",
     "wallAssembly": "Wandaufbau",
     "windows": "Fenster"
   },
   "roof": {
     "area": "Fläche",
     "assembly": "Aufbau",
-    "constructionPlanTitle": "Dach-Konstruktionsplan",
     "cycleMainSide": "Hauptseite durchlaufen (ändert Dachrichtung)",
     "fitToView": "Auf Ansicht anpassen",
     "mixedPlaceholder": "Gemischt",
@@ -162,10 +156,7 @@
     "verticalOffset": "Vertikaler Versatz",
     "view3DConstruction": "3D-Konstruktion anzeigen",
     "viewAssociatedPerimeter": "Zugehörige Gebäudekontur anzeigen",
-    "viewConstructionPlan": "Konstruktionsplan anzeigen",
-    "viewFront": "Vorne",
-    "viewLeft": "Links",
-    "viewTop": "Oben"
+    "viewConstructionPlan": "Konstruktionsplan anzeigen"
   },
   "roofOverhang": {
     "fitToView": "Auf Ansicht anpassen",

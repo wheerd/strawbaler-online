@@ -886,8 +886,7 @@ interface Resources {
       "tabs": {
         "materials": "Materials",
         "modules": "Modules"
-      },
-      "title": "Parts List"
+      }
     },
     "plan": {
       "hideAreas": "Hide Areas",
@@ -904,6 +903,12 @@ interface Resources {
       "strawTypesHeading": "Straw Types"
     },
     "planModal": {
+      "clearFocus": "Clear focus",
+      "focus": {
+        "perimeter": "Focus: Perimeter",
+        "roof": "Focus: Roof",
+        "wall": "Focus: Wall"
+      },
       "issuesPanel": {
         "errorsTitle_one": "Errors ({{count}})",
         "errorsTitle_other": "Errors ({{count}})",
@@ -916,14 +921,14 @@ interface Resources {
         "clearHighlight": "Clear highlight",
         "partHighlighted": "Part highlighted"
       },
-      "tabs": {
-        "modules": "Modules",
-        "partsList": "Parts List",
-        "planIssues": "Plan & Issues"
-      },
       "views": {
         "floor": "Floor",
+        "front": "Front",
+        "inside": "Inside",
+        "left": "Left",
+        "outside": "Outside",
         "roof": "Roof",
+        "top": "Top",
         "walls": "Walls"
       }
     },
@@ -1218,7 +1223,6 @@ interface Resources {
       "addRoofBasedOnPerimeter": "Add roof based on perimeter",
       "addShedRoof": "Shed Roof",
       "basePlate": "Base Plate",
-      "constructionPlanTitle": "Perimeter Construction Plan",
       "deletePerimeter": "Delete perimeter",
       "fitToView": "Fit to view",
       "mixedPlaceholder": "Mixed",
@@ -1268,7 +1272,6 @@ interface Resources {
       "basePlate": "Base Plate",
       "cannotDeleteMinWalls": "Cannot delete - perimeter needs at least 3 walls",
       "cannotDeleteSelfIntersect": "Cannot delete - would create self-intersecting polygon",
-      "constructionPlanTitle": "Wall Construction Plan",
       "constructionThickness": "Construction Thickness",
       "deleteWall": "Delete Wall",
       "doors": "Doors",
@@ -1286,16 +1289,12 @@ interface Resources {
       "thickness": "Thickness",
       "topPlate": "Top Plate",
       "viewConstructionPlan": "View Construction Plan",
-      "viewInside": "Inside",
-      "viewOutside": "Outside",
-      "viewTop": "Top",
       "wallAssembly": "Wall Assembly",
       "windows": "Windows"
     },
     "roof": {
       "area": "Area",
       "assembly": "Assembly",
-      "constructionPlanTitle": "Roof Construction Plan",
       "cycleMainSide": "Cycle main side (changes roof direction)",
       "fitToView": "Fit to view",
       "mixedPlaceholder": "Mixed",
@@ -1312,10 +1311,7 @@ interface Resources {
       "verticalOffset": "Vertical Offset",
       "view3DConstruction": "View 3D Construction",
       "viewAssociatedPerimeter": "View associated perimeter",
-      "viewConstructionPlan": "View Construction Plan",
-      "viewFront": "Front",
-      "viewLeft": "Left",
-      "viewTop": "Top"
+      "viewConstructionPlan": "View Construction Plan"
     },
     "roofOverhang": {
       "fitToView": "Fit to view",

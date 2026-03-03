@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Trash } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import type { PerimeterWallId, RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
 import { useModelActions, usePerimeterWallById, useWallOpeningsById } from '@/building/store'
@@ -24,6 +25,7 @@ import { ConstructionPlanIcon, FitToViewIcon, SplitWallIcon } from '@/shared/ui/
 
 export function PerimeterWallInspector({ wallId }: { wallId: PerimeterWallId }): React.JSX.Element {
   const { t } = useTranslation('inspector')
+  const navigate = useNavigate()
   const { formatLength } = useFormatters()
   const toolSystem = useToolSystem()
   const {
@@ -243,15 +245,13 @@ export function PerimeterWallInspector({ wallId }: { wallId: PerimeterWallId }):
       {/* Actions */}
       <div className="flex flex-col gap-2">
         <div className="flex justify-end gap-2">
-          {/* TODO: Add link to construction plan view
-            views={[
-              { view: FRONT_VIEW, label: t($ => $.perimeterWall.viewOutside) },
-              { view: BACK_VIEW, label: t($ => $.perimeterWall.viewInside) },
-              { view: TOP_VIEW, label: t($ => $.perimeterWall.viewTop) }
-            ]}
-            defaultHiddenTags={['wall-layer']}
-          */}
-          <Button size="icon" title={t($ => $.perimeterWall.viewConstructionPlan)}>
+          <Button
+            size="icon"
+            title={t($ => $.perimeterWall.viewConstructionPlan)}
+            onClick={() => {
+              void navigate(`/plan/${wallId}`)
+            }}
+          >
             <ConstructionPlanIcon width={20} height={20} />
           </Button>
 

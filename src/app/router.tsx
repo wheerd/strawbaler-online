@@ -67,7 +67,7 @@ export const router = createBrowserRouter([
         )
       },
       {
-        path: 'plan',
+        path: 'plan/:focusId?',
         element: (
           <Suspense fallback={null}>
             <ConstructionPlanPage />

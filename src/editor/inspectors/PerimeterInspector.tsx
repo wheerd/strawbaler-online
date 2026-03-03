@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Trash, TriangleAlert } from 'lucide-react'
 import React, { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import type { PerimeterReferenceSide, PerimeterWallWithGeometry, RoofType } from '@/building/model'
 import type { PerimeterId, RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
@@ -96,6 +97,7 @@ function MixedStateIndicator({ tooltip }: { tooltip: string }) {
 
 export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): React.JSX.Element {
   const { t } = useTranslation('inspector')
+  const navigate = useNavigate()
   // Get perimeter data from model store
   const {
     setAllWallsBaseRingBeam,
@@ -250,8 +252,13 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
       )}
 
       <div className="flex flex-row items-center justify-center gap-3 pt-1">
-        {/* TODO: Add link to construction plan view */}
-        <Button size="icon" title={t($ => $.perimeter.viewConstructionPlan)}>
+        <Button
+          size="icon"
+          title={t($ => $.perimeter.viewConstructionPlan)}
+          onClick={() => {
+            void navigate(`/plan/${selectedId}`)
+          }}
+        >
           <ConstructionPlanIcon width={24} height={24} />
         </Button>
         <ConstructionViewer3DModal

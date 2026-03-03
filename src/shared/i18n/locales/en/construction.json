@@ -158,8 +158,7 @@
     "tabs": {
       "materials": "Materials",
       "modules": "Modules"
-    },
-    "title": "Parts List"
+    }
   },
   "plan": {
     "hideAreas": "Hide Areas",
@@ -176,6 +175,12 @@
     "strawTypesHeading": "Straw Types"
   },
   "planModal": {
+    "clearFocus": "Clear focus",
+    "focus": {
+      "perimeter": "Focus: Perimeter",
+      "roof": "Focus: Roof",
+      "wall": "Focus: Wall"
+    },
     "issuesPanel": {
       "errorsTitle_one": "Errors ({{count}})",
       "errorsTitle_other": "Errors ({{count}})",
@@ -188,14 +193,14 @@
       "clearHighlight": "Clear highlight",
       "partHighlighted": "Part highlighted"
     },
-    "tabs": {
-      "modules": "Modules",
-      "partsList": "Parts List",
-      "planIssues": "Plan & Issues"
-    },
     "views": {
       "floor": "Floor",
+      "front": "Front",
+      "inside": "Inside",
+      "left": "Left",
+      "outside": "Outside",
       "roof": "Roof",
+      "top": "Top",
       "walls": "Walls"
     }
   },

@@ -158,8 +158,7 @@
     "tabs": {
       "materials": "Materialien",
       "modules": "Module"
-    },
-    "title": "Teileliste"
+    }
   },
   "plan": {
     "hideAreas": "Bereiche ausblenden",
@@ -176,6 +175,12 @@
     "strawTypesHeading": "Strohfüllung Details"
   },
   "planModal": {
+    "clearFocus": "Fokus entfernen",
+    "focus": {
+      "perimeter": "Fokus: Gebäudekontur",
+      "roof": "Fokus: Dach",
+      "wall": "Fokus: Wand"
+    },
     "issuesPanel": {
       "errorsTitle_one": "Fehler ({{count}})",
       "errorsTitle_other": "Fehler ({{count}})",
@@ -188,14 +193,14 @@
       "clearHighlight": "Hervorhebung entfernen",
       "partHighlighted": "Teil hervorgehoben"
     },
-    "tabs": {
-      "modules": "Module",
-      "partsList": "Teileliste",
-      "planIssues": "Plan & Probleme"
-    },
     "views": {
       "floor": "Boden",
+      "front": "Vorne",
+      "inside": "Innen",
+      "left": "Links",
+      "outside": "Außen",
       "roof": "Dach",
+      "top": "Oben",
       "walls": "Wände"
     }
   },
