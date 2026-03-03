@@ -1,5 +1,4 @@
 {
-  "continueButton": "I Understand & Continue",
   "dataStorage": {
     "description": "Your data can be stored in two ways:",
     "items": [
@@ -48,7 +47,6 @@
     "title": "Planned Features"
   },
   "privacyLink": "View our <link>Privacy Policy</link>",
-  "reviewInfo": "You can review this information anytime via the info icon in the toolbar",
   "version": "Version {{version}}",
   "viewOnGitHub": "View on GitHub"
 }

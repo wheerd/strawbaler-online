@@ -2,14 +2,6 @@
   "actions": {
     "cancel": "Cancel"
   },
-  "nav": {
-    "welcome": "Welcome",
-    "editor": "Editor",
-    "plan": "Plan",
-    "3dView": "3D View",
-    "parts": "Parts",
-    "config": "Config"
-  },
   "app": {
     "appName": "StrawBuild Studio",
     "changeLanguage": "Change language",
@@ -80,6 +72,14 @@
     "saveToFile": "Save to File"
   },
   "currentLanguageWithLabel": "Current language: {{language}}",
+  "nav": {
+    "3dView": "3D View",
+    "config": "Config",
+    "editor": "Editor",
+    "parts": "Parts",
+    "plan": "Plan",
+    "welcome": "Welcome"
+  },
   "projectMenu": {
     "buttonTitle": "Project",
     "copyCurrent": "Copy current project",

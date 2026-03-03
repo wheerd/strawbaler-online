@@ -1,8 +1,4 @@
 {
-  "about": "About StrawBuild Studio",
-  "configuration": "Configuration",
-  "constructionPlanForActiveStorey": "Construction Plan for active storey",
-  "constructionPlanForStorey": "Construction Plan for {{storeyName}}",
   "gridSizeDisplay": {
     "hideGrid": "Hide Grid",
     "off": "Off",
@@ -21,7 +17,6 @@
     "offline": "Offline. Changes will sync once connection returns.",
     "ready": "All assets cached. Ready for offline use."
   },
-  "partsListForEntireModel": "Parts List for Entire Model",
   "themeToggle": {
     "switchToDark": "Switch to dark mode",
     "switchToLight": "Switch to light mode"
@@ -39,8 +34,5 @@
     "perimeterSplitWall": "Split Wall",
     "roofsAddRoof": "Roof",
     "testData": "Test Data"
-  },
-  "view3DConstruction": "View 3D Construction",
-  "viewConstructionPlan": "View Construction Plan",
-  "viewPartsList": "View Parts List"
+  }
 }

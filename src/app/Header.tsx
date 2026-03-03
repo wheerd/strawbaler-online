@@ -2,13 +2,13 @@ import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router-dom'
 
 import { UserMenu } from '@/app/user/UserMenu'
+import { OfflineStatusIndicator } from '@/editor/status-bar/OfflineStatusIndicator'
+import { ThemeToggle } from '@/editor/status-bar/ThemeToggle'
 import { ProjectMenu } from '@/projects/ui/ProjectMenu'
 import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher'
 import { Logo } from '@/shared/ui/Logo'
+import { GitHubIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/ui/utils'
-
-import { OfflineStatusIndicator } from '../editor/status-bar/OfflineStatusIndicator'
-import { ThemeToggle } from '../editor/status-bar/ThemeToggle'
 
 const navItems = [
   { path: '/', labelKey: 'welcome' },
@@ -49,9 +49,18 @@ export function Header(): React.JSX.Element {
       </nav>
 
       <div className="flex items-center gap-2">
+        <a
+          title={t($ => $.viewOnGitHub, { ns: 'welcome' })}
+          className="text-sm"
+          href="https://github.com/wheerd/strawbuild-studio"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <GitHubIcon width="14" height="14" />
+        </a>
+        <OfflineStatusIndicator />
         <LanguageSwitcher size="sm" />
         <ThemeToggle />
-        <OfflineStatusIndicator />
         <UserMenu />
       </div>
     </header>

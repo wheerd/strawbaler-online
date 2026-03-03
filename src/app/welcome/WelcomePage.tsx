@@ -1,35 +1,18 @@
 import { TriangleAlert } from 'lucide-react'
 import React from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { VERSION_INFO } from '@/app/version'
-import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher'
-import { Logo } from '@/shared/ui/Logo'
-import { Button } from '@/shared/ui/components/button'
 import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 import { GitHubIcon } from '@/shared/ui/icons'
 
 export function WelcomePage(): React.JSX.Element {
   const { t } = useTranslation('welcome')
-  const navigate = useNavigate()
-
-  const handleContinue = () => {
-    navigate('/editor')
-  }
 
   return (
     <div className="flex h-full w-full flex-col overflow-y-auto">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Logo />
-          </div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher size="lg" />
-          </div>
-        </div>
-
         <div className="flex flex-col gap-3">
           <span>{t($ => $.introduction)}</span>
 
@@ -126,10 +109,6 @@ export function WelcomePage(): React.JSX.Element {
           </div>
 
           <div className="flex flex-col items-center gap-2">
-            <Button size="lg" onClick={handleContinue} className="w-full">
-              {t($ => $.continueButton)}
-            </Button>
-            <span className="flex items-center text-sm">{t($ => $.reviewInfo)}</span>
             <div className="mt-2 flex flex-col items-center gap-1">
               <span className="flex items-center text-sm">
                 {t($ => $.version, {

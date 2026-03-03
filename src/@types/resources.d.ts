@@ -216,13 +216,6 @@ interface Resources {
       "copyNameTemplate": "{{name}} (Copy)",
       "defaultFloorAssembly": "Default Floor Assembly",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
-      "defaults": {
-        "clt18cm": "CLT 18cm (6cm)",
-        "concrete20cm": "Concrete 20cm (6cm)",
-        "filledJoist8x36cm": "Filled Joist 8x36cm (6cm)",
-        "hangingJoist8x24cm": "Hanging Joist 8x24cm (6cm)",
-        "joist8x24cm": "Joist 8x24cm (6cm)"
-      },
       "delete": {
         "cannotDeleteInUse": "In Use - Cannot Delete",
         "cannotDeleteLast": "Cannot delete the last config",
@@ -279,21 +272,6 @@ interface Resources {
     },
     "layerSets": {
       "copyNameTemplate": "{{name}} (Copy)",
-      "defaults": {
-        "ceilingClayPlaster": "Clay Plaster",
-        "ceilingLimePlaster": "Lime Plaster",
-        "clayPlaster": "Clay Plaster",
-        "clayPlasterDiagonal": "Clay Plaster with Diagonal Bracing",
-        "gypsumBoards": "Gypsum Boards",
-        "limePlaster": "Lime Plaster",
-        "limePlasterDhf": "Lime Plaster with DHF",
-        "limePlasterDiagonal": "Lime Plaster with Diagonal Bracing",
-        "screed": "Screed",
-        "tiles": "Roof Tiles",
-        "woodenPlanking": "Wooden Planking",
-        "woodenPlankingDhf": "Wooden Planking with DHF",
-        "xpsLimePlaster": "XPS Insulation + Lime Plaster"
-      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Layer Set",
       "emptyList": "No layer sets available",
@@ -313,25 +291,6 @@ interface Resources {
     "layers": {
       "defaultName_monolithic": "Monolithic Layer",
       "defaultName_striped": "Striped Layer",
-      "defaults": {
-        "battens": "Battens",
-        "clayPlasterBase": "Base Plaster (Clay)",
-        "clayPlasterFine": "Fine Plaster (Clay)",
-        "counterBattens": "Counter Battens",
-        "dhf": "DHF",
-        "diagonalBracing": "Diagonal Bracing",
-        "gypsumBoards": "Gypsum Boards",
-        "impactSoundInsulation": "Impact Sound Insulation",
-        "insulation": "Insulation",
-        "limePlasterBase": "Base Plaster (Lime)",
-        "limePlasterFine": "Fine Plaster (Lime)",
-        "plasterGroundReed": "Plaster Ground (Reed)",
-        "screed": "Screed",
-        "tiles": "Tiles",
-        "windBarrier": "Wind Barrier",
-        "windPaper": "Wind Paper",
-        "woodPlanking": "Wood Planking"
-      },
       "direction": "Direction",
       "directions": {
         "colinear": "Colinear",
@@ -378,42 +337,6 @@ interface Resources {
       "crossSectionSmaller": "Cross section smaller dimension",
       "crossSections": "Cross Sections",
       "defaultStrawMaterial": "Default Straw Material",
-      "defaults": {
-        "battens": "Battens",
-        "bitumen": "Bitumen",
-        "boards": "Boards",
-        "brick": "Brick",
-        "cementScreed": "Cement Screed",
-        "clayPlasterBase": "Clay Plaster (Base)",
-        "clayPlasterFine": "Clay Plaster (Fine)",
-        "clt": "Cross-laminated Timber (CLT)",
-        "concrete": "Concrete",
-        "cork": "Cork",
-        "dhf": "DHF (Wood Fiber Board)",
-        "ecococon-box": "Ecococon Box Element",
-        "ecococon-braced": "Ecococon Braced",
-        "ecococon-column": "Ecococon Column",
-        "ecococon-inclined": "Ecococon Inclined",
-        "ecococon-inclined-braced": "Ecococon Inclined Braced",
-        "ecococon-lintel": "Ecococon Lintel",
-        "ecococon-sill": "Ecococon Sill",
-        "ecococon-standard": "Ecococon Standard",
-        "fireProtectionBoarding": "Fire Protection Boarding",
-        "glt": "Glulam (GLT)",
-        "gypsum": "Gypsum Board",
-        "impactSoundInsulation": "Impact Sound Insulation",
-        "limePlasterBase": "Lime Plaster (Base)",
-        "limePlasterFine": "Lime Plaster (Fine)",
-        "lvl": "LVL (Laminated Veneer Lumber)",
-        "osb": "OSB",
-        "reed": "Reed Matting",
-        "roughWood": "Rough-sawn Timber",
-        "strawbale": "Strawbales",
-        "structuralWood": "Structural Timber",
-        "windBarrier": "Wind Barrier",
-        "woodwool": "Woodwool",
-        "xps": "XPS (Extruded Polystyrene)"
-      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Material",
       "duplicateNamePattern": "{{name}} (Copy)",
@@ -488,16 +411,6 @@ interface Resources {
       "copyNameTemplate": "{{name}} (Copy)",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultOpeningAssembly": "Default Opening Assembly",
-      "defaults": {
-        "emptyOpening": "Empty Opening",
-        "prefabDefaultOpening": "Default Prefab Opening",
-        "prefabOpeningWithPlanking": "Prefab Opening with Planking",
-        "prefabOpeningWithPosts": "Prefab Opening with Posts",
-        "prefabSimpleOpening": "Prefab Opening without Planking",
-        "standardOpening": "Standard Opening",
-        "standardOpeningWithPlanking": "Standard Opening with Planking",
-        "standardOpeningWithPosts": "Standard Opening with Posts"
-      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Opening Assembly",
       "emptyList": "No opening assemblies available",
@@ -547,10 +460,6 @@ interface Resources {
       "defaultBasePlate": "Default Base Plate",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultTopPlate": "Default Top Plate",
-      "defaults": {
-        "brickRingBeam": "Brick Ring Beam",
-        "full36x6cm": "Full 36x6cm"
-      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Ring Beam Assembly",
       "emptyList": "No ring beam assemblies available",
@@ -586,10 +495,6 @@ interface Resources {
       "copyNameTemplate": "{{name}} (Copy)",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultRoofAssembly": "Default Roof Assembly",
-      "defaults": {
-        "cltMonolithic18cm": "CLT Monolithic 18cm",
-        "purlinRoofStraw": "Purlin Roof (Straw)"
-      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Roof Assembly",
       "emptyList": "No roof assemblies available",
@@ -652,13 +557,6 @@ interface Resources {
       "copyNameTemplate": "{{name}} (Copy)",
       "defaultLabel": "{{label}} <gray>(default)</gray>",
       "defaultWallAssembly": "Default Wall Assembly",
-      "defaults": {
-        "concreteWall": "Concrete Wall",
-        "defaultModule": "Default Module",
-        "ecococonModules": "Ecococon Modules",
-        "standardInfill": "Standard Infill",
-        "strawhengeModule": "Strawhenge Module"
-      },
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Wall Assembly",
       "desiredPostSpacing": "Desired Post Spacing",
@@ -1718,10 +1616,6 @@ interface Resources {
     }
   },
   "toolbar": {
-    "about": "About StrawBuild Studio",
-    "configuration": "Configuration",
-    "constructionPlanForActiveStorey": "Construction Plan for active storey",
-    "constructionPlanForStorey": "Construction Plan for {{storeyName}}",
     "gridSizeDisplay": {
       "hideGrid": "Hide Grid",
       "off": "Off",
@@ -1740,7 +1634,6 @@ interface Resources {
       "offline": "Offline. Changes will sync once connection returns.",
       "ready": "All assets cached. Ready for offline use."
     },
-    "partsListForEntireModel": "Parts List for Entire Model",
     "themeToggle": {
       "switchToDark": "Switch to dark mode",
       "switchToLight": "Switch to light mode"
@@ -1758,10 +1651,7 @@ interface Resources {
       "perimeterSplitWall": "Split Wall",
       "roofsAddRoof": "Roof",
       "testData": "Test Data"
-    },
-    "view3DConstruction": "View 3D Construction",
-    "viewConstructionPlan": "View Construction Plan",
-    "viewPartsList": "View Parts List"
+    }
   },
   "viewer": {
     "export": {
@@ -1797,7 +1687,6 @@ interface Resources {
     }
   },
   "welcome": {
-    "continueButton": "I Understand & Continue",
     "dataStorage": {
       "description": "Your data can be stored in two ways:",
       "items": ["Locally in your browser – works offline, no account needed", "In your cloud account – requires sign-up, syncs across devices"],
@@ -1825,7 +1714,6 @@ interface Resources {
       "title": "Planned Features"
     },
     "privacyLink": "View our <link>Privacy Policy</link>",
-    "reviewInfo": "You can review this information anytime via the info icon in the toolbar",
     "version": "Version {{version}}",
     "viewOnGitHub": "View on GitHub"
   }
