@@ -7,7 +7,6 @@ import type { IconProps } from '@/shared/ui/icons/types'
 export type ToolId =
   | 'basic.select'
   | 'basic.move'
-  | 'basic.fit-to-view'
   | 'floors.add-area'
   | 'floors.add-opening'
   | 'perimeter.add'
@@ -36,13 +35,6 @@ export interface ToolMetadata {
   nameKey: ToolNameKey
   iconComponent: ComponentType<IconProps>
   hotkey?: string
-}
-
-type ToolGroupNameKey = keyof Resources['toolbar']['groups']
-
-export interface ToolGroup {
-  nameKey: ToolGroupNameKey
-  tools: ToolId[]
 }
 
 export interface ToolImplementation {

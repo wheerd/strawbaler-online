@@ -1,19 +1,9 @@
 {
-  "about": "Über StrawBuild Studio",
-  "configuration": "Konfiguration",
-  "constructionPlanForActiveStorey": "Konstruktionsplan für aktives Geschoss",
-  "constructionPlanForStorey": "Konstruktionsplan für {{storeyName}}",
+  "fitToView": "Auf Ansicht anpassen",
   "gridSizeDisplay": {
     "hideGrid": "Raster ausblenden",
     "off": "Aus",
     "showGrid": "Raster anzeigen"
-  },
-  "groups": {
-    "basic": "Grundlagen",
-    "floors": "Boden",
-    "perimeter": "Gebäudekontur",
-    "roofs": "Dächer",
-    "test": "Testdaten"
   },
   "offlineStatus": {
     "loading": "Assets werden gecacht ({{loaded}}/{{total}})…",
@@ -21,13 +11,14 @@
     "offline": "Offline. Änderungen werden synchronisiert, sobald die Verbindung wiederhergestellt ist.",
     "ready": "Alle Assets gecacht. Bereit für Offline-Nutzung."
   },
-  "partsListForEntireModel": "Teileliste für gesamtes Modell",
+  "redo": "Wiederholen",
   "themeToggle": {
-    "switchToDark": "Zu dunklem Modus wechseln",
-    "switchToLight": "Zu hellem Modus wechseln"
+    "changeTheme": "Design ändern",
+    "dark": "Dunkel",
+    "light": "Hell",
+    "system": "System"
   },
   "tools": {
-    "basicFitToView": "Auf Ansicht anpassen",
     "basicMove": "Verschieben",
     "basicSelect": "Auswählen",
     "floorsAddArea": "Bodenfläche zeichnen",
@@ -40,7 +31,5 @@
     "roofsAddRoof": "Dach zeichnen",
     "testData": "Testdaten"
   },
-  "view3DConstruction": "3D-Konstruktion anzeigen",
-  "viewConstructionPlan": "Konstruktionsplan anzeigen",
-  "viewPartsList": "Teileliste anzeigen"
+  "undo": "Rückgängig"
 }

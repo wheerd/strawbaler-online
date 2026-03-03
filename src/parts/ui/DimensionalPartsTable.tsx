@@ -3,9 +3,10 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { DimensionalMaterial } from '@/materials/material'
-import type { AggregatedPartItem, PartId } from '@/parts/types'
+import type { AggregatedPartItem } from '@/parts/types'
 import { PartCutModal } from '@/parts/ui/PartCutModal'
 import { calculateWeight, canHighlightPart, getIssueSeverity } from '@/parts/utils'
+import { usePlanNavigation } from '@/plan/ui/hooks/usePlanNavigation'
 import { Bounds2D, type Polygon2D } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
@@ -83,12 +84,10 @@ function SpecialCutTooltip({ polygon }: { polygon: Polygon2D }): React.JSX.Eleme
 
 export default function DimensionalPartsTable({
   parts,
-  material,
-  onViewInPlan
+  material
 }: {
   parts: AggregatedPartItem[]
   material: DimensionalMaterial
-  onViewInPlan?: (partId: PartId) => void
 }) {
   const { t } = useTranslation('construction')
 
@@ -123,24 +122,17 @@ export default function DimensionalPartsTable({
       </Table.Header>
       <Table.Body>
         {parts.map(part => (
-          <DimensionalPartsTableRow key={part.partId} part={part} material={material} onViewInPlan={onViewInPlan} />
+          <DimensionalPartsTableRow key={part.partId} part={part} material={material} />
         ))}
       </Table.Body>
     </Table.Root>
   )
 }
 
-function DimensionalPartsTableRow({
-  part,
-  material,
-  onViewInPlan
-}: {
-  part: AggregatedPartItem
-  material: DimensionalMaterial
-  onViewInPlan?: (partId: PartId) => void
-}) {
+function DimensionalPartsTableRow({ part, material }: { part: AggregatedPartItem; material: DimensionalMaterial }) {
   const { t } = useTranslation('construction')
   const { formatWeight, formatVolume, formatLengthInMeters } = useFormatters()
+  const { viewPartInPlan } = usePlanNavigation()
   const description = useTranslatableString(part.description)
 
   const partWeight = calculateWeight(part.totalVolume, material)
@@ -194,13 +186,11 @@ function DimensionalPartsTableRow({
       <Table.Cell className="text-end">{formatVolume(part.totalVolume)}</Table.Cell>
       <Table.Cell className="text-end">{partWeight ? formatWeight(partWeight) : '—'}</Table.Cell>
       <Table.Cell className="text-center">
-        {canHighlightPart(part.partId) && onViewInPlan && (
+        {canHighlightPart(part.partId) && (
           <Button
             size="icon-sm"
             variant="ghost"
-            onClick={() => {
-              onViewInPlan(part.partId)
-            }}
+            onClick={() => void viewPartInPlan(part.partId)}
             title={t($ => $.partsList.actions.viewInPlan)}
             className="-my-2"
           >

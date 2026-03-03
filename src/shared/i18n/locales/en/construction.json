@@ -158,24 +158,18 @@
     "tabs": {
       "materials": "Materials",
       "modules": "Modules"
-    },
-    "title": "Parts List"
+    }
   },
   "plan": {
+    "clearFocus": "Clear focus",
+    "focus": {
+      "perimeter": "Focus: Perimeter",
+      "roof": "Focus: Roof",
+      "wall": "Focus: Wall"
+    },
     "hideAreas": "Hide Areas",
     "hideIssues": "Hide Issues",
     "hideMeasurements": "Hide Measurements",
-    "midCut": "Mid Cut",
-    "showStrawTypes": "Show Straw Types",
-    "strawTypes": {
-      "flakes": "Flakes",
-      "fullBale": "Full Bale",
-      "partialBale": "Partial Bale",
-      "stuffed": "Stuffed"
-    },
-    "strawTypesHeading": "Straw Types"
-  },
-  "planModal": {
     "issuesPanel": {
       "errorsTitle_one": "Errors ({{count}})",
       "errorsTitle_other": "Errors ({{count}})",
@@ -184,18 +178,31 @@
       "warningsTitle_one": "Warnings ({{count}})",
       "warningsTitle_other": "Warnings ({{count}})"
     },
+    "midCut": "Mid Cut",
+    "nav": {
+      "nextWall": "Next wall",
+      "previousWall": "Previous wall"
+    },
     "partHighlight": {
       "clearHighlight": "Clear highlight",
       "partHighlighted": "Part highlighted"
     },
-    "tabs": {
-      "modules": "Modules",
-      "partsList": "Parts List",
-      "planIssues": "Plan & Issues"
+    "showStrawTypes": "Show Straw Types",
+    "strawTypes": {
+      "flakes": "Flakes",
+      "fullBale": "Full Bale",
+      "partialBale": "Partial Bale",
+      "stuffed": "Stuffed"
     },
+    "strawTypesHeading": "Straw Types",
     "views": {
       "floor": "Floor",
+      "front": "Front",
+      "inside": "Inside",
+      "left": "Left",
+      "outside": "Outside",
       "roof": "Roof",
+      "top": "Top",
       "walls": "Walls"
     }
   },
@@ -331,8 +338,5 @@
     "noTags": "No tags available",
     "showCategory": "Show Category",
     "title": "Tag Visibility"
-  },
-  "viewer3DModal": {
-    "title": "3D Construction View"
   }
 }

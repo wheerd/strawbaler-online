@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Trash, TriangleAlert } from 'lucide-react'
 import React, { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import type { PerimeterReferenceSide, PerimeterWallWithGeometry, RoofType } from '@/building/model'
 import type { PerimeterId, RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
@@ -20,7 +21,6 @@ import { replaceSelection } from '@/editor/canvas/state/selectionStore'
 import { useViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { formatThicknessRange } from '@/materials/thickness'
-import TopDownPlanModal from '@/plan/TopDownPlanModal'
 import { Bounds2D, type Length, calculatePolygonArea, polygonPerimeter } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { LengthField } from '@/shared/ui/LengthField'
@@ -33,7 +33,6 @@ import { Separator } from '@/shared/ui/components/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon, RoofIcon } from '@/shared/ui/icons'
-import { ConstructionViewer3DModal } from '@/viewer3d/ConstructionViewer3DModal'
 
 interface PerimeterInspectorProps {
   selectedId: PerimeterId
@@ -97,6 +96,7 @@ function MixedStateIndicator({ tooltip }: { tooltip: string }) {
 
 export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): React.JSX.Element {
   const { t } = useTranslation('inspector')
+  const navigate = useNavigate()
   // Get perimeter data from model store
   const {
     setAllWallsBaseRingBeam,
@@ -251,23 +251,25 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
       )}
 
       <div className="flex flex-row items-center justify-center gap-3 pt-1">
-        <TopDownPlanModal
-          title={t($ => $.perimeter.constructionPlanTitle)}
-          modelId={perimeter.id}
-          trigger={
-            <Button size="icon" title={t($ => $.perimeter.viewConstructionPlan)}>
-              <ConstructionPlanIcon width={24} height={24} />
-            </Button>
-          }
-        />
-        <ConstructionViewer3DModal
-          modelId={perimeter.id}
-          trigger={
-            <Button size="icon" title={t($ => $.perimeter.view3DConstruction)} variant="outline">
-              <Model3DIcon width={24} height={24} />
-            </Button>
-          }
-        />
+        <Button
+          size="icon"
+          title={t($ => $.perimeter.viewConstructionPlan)}
+          onClick={() => {
+            void navigate(`/plan/${selectedId}`)
+          }}
+        >
+          <ConstructionPlanIcon width={24} height={24} />
+        </Button>
+        <Button
+          size="icon"
+          title={t($ => $.perimeter.view3DConstruction)}
+          variant="outline"
+          onClick={() => {
+            void navigate(`/3d-view/${selectedId}`)
+          }}
+        >
+          <Model3DIcon width={24} height={24} />
+        </Button>
       </div>
 
       <Separator />

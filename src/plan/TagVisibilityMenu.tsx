@@ -103,7 +103,7 @@ export function TagVisibilityMenu({ model }: TagVisibilityMenuProps): React.JSX.
             <Eye />
           </Button>
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
+        <DropdownMenu.Content side="right" align="end">
           <DropdownMenu.Item disabled>
             <span className="text-sm">{t($ => $.tagVisibility.noTags)}</span>
           </DropdownMenu.Item>

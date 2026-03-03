@@ -3,7 +3,6 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { type Mock, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
-import { ConfigurationModalContext } from '@/config/ui/ConfigurationModalContext'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2 } from '@/shared/geometry'
 
@@ -40,6 +39,14 @@ Object.defineProperty(Element.prototype, 'scrollIntoView', {
 })
 
 vi.mock('@/construction/assemblies/walls')
+
+vi.mock('react-router-dom', async importOriginal => {
+  return {
+    ...(await importOriginal()),
+    useNavigate: () => vi.fn(),
+    useParams: () => ({})
+  }
+})
 
 describe('PerimeterToolInspector', () => {
   let mockTool: PerimeterTool
@@ -93,12 +100,7 @@ describe('PerimeterToolInspector', () => {
   })
 
   const renderInspector = (tool = mockTool) => {
-    const mockOpenConfiguration = vi.fn()
-    return render(
-      <ConfigurationModalContext.Provider value={{ openConfiguration: mockOpenConfiguration }}>
-        <PerimeterToolInspector tool={tool} />
-      </ConfigurationModalContext.Provider>
-    )
+    return render(<PerimeterToolInspector tool={tool} />)
   }
 
   describe('rendering', () => {

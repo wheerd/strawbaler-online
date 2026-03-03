@@ -1,19 +1,14 @@
 import { Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import type { AggregatedPartItem, PartId } from '@/parts/types'
+import type { AggregatedPartItem } from '@/parts/types'
 import { canHighlightPart } from '@/parts/utils'
+import { usePlanNavigation } from '@/plan/ui/hooks/usePlanNavigation'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
 import { Button } from '@/shared/ui/components/button'
 import { Table } from '@/shared/ui/components/table'
 
-export default function GenericPartsTable({
-  parts,
-  onViewInPlan
-}: {
-  parts: AggregatedPartItem[]
-  onViewInPlan?: (partId: PartId) => void
-}) {
+export default function GenericPartsTable({ parts }: { parts: AggregatedPartItem[] }) {
   const { t } = useTranslation('construction')
   return (
     <Table.Root variant="surface" className="min-w-full">
@@ -34,21 +29,16 @@ export default function GenericPartsTable({
       </Table.Header>
       <Table.Body>
         {parts.map(part => (
-          <GenericPartsTableRow key={part.partId} part={part} onViewInPlan={onViewInPlan} />
+          <GenericPartsTableRow key={part.partId} part={part} />
         ))}
       </Table.Body>
     </Table.Root>
   )
 }
 
-function GenericPartsTableRow({
-  part,
-  onViewInPlan
-}: {
-  part: AggregatedPartItem
-  onViewInPlan?: (partId: PartId) => void
-}) {
+function GenericPartsTableRow({ part }: { part: AggregatedPartItem }) {
   const { t } = useTranslation('construction')
+  const { viewPartInPlan } = usePlanNavigation()
   const description = useTranslatableString(part.description)
 
   return (
@@ -60,13 +50,11 @@ function GenericPartsTableRow({
       <Table.Cell>{description}</Table.Cell>
       <Table.Cell className="text-center">{part.quantity}</Table.Cell>
       <Table.Cell className="text-center">
-        {canHighlightPart(part.partId) && onViewInPlan && (
+        {canHighlightPart(part.partId) && (
           <Button
             size="icon"
             variant="ghost"
-            onClick={() => {
-              onViewInPlan(part.partId)
-            }}
+            onClick={() => void viewPartInPlan(part.partId)}
             title={t($ => $.partsList.actions.viewInPlan)}
             className="-my-2"
           >

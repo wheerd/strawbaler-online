@@ -1,4 +1,5 @@
 {
+  "clearFocus": "Fokus aufheben",
   "export": {
     "collada": "Collada (DAE)",
     "exportError": {
@@ -19,6 +20,12 @@
     "stl": "STL",
     "title": "Exportieren"
   },
+  "focus": {
+    "perimeter": "Fokus: Gebäudekontur",
+    "roof": "Fokus: Dach",
+    "storey": "Fokus: Geschoss"
+  },
+  "focusOnStorey": "Auf Geschoss fokussieren",
   "grid": {
     "hide": "Raster ausblenden",
     "show": "Raster anzeigen"

@@ -23,7 +23,7 @@ export const IssueDescriptionPanel = ({ model }: IssueDescriptionPanelProps) => 
           </CalloutIcon>
           <div className="flex flex-col gap-2">
             <span className="text-base font-medium">
-              {t($ => $.planModal.issuesPanel.errorsTitle, { count: model.errors.length })}
+              {t($ => $.plan.issuesPanel.errorsTitle, { count: model.errors.length })}
             </span>
             <div className="flex flex-col gap-1">
               {model.errors.map(error => (
@@ -60,7 +60,7 @@ export const IssueDescriptionPanel = ({ model }: IssueDescriptionPanelProps) => 
           </CalloutIcon>
           <div className="flex flex-col gap-2">
             <span className="text-base font-medium">
-              {t($ => $.planModal.issuesPanel.warningsTitle, { count: model.warnings.length })}
+              {t($ => $.plan.issuesPanel.warningsTitle, { count: model.warnings.length })}
             </span>
             <div className="flex flex-col gap-1">
               {model.warnings.map(warning => (
@@ -96,8 +96,8 @@ export const IssueDescriptionPanel = ({ model }: IssueDescriptionPanelProps) => 
             <CircleCheck />
           </CalloutIcon>
           <div className="flex flex-col gap-1">
-            <span className="text-base font-medium">{t($ => $.planModal.issuesPanel.noIssuesTitle)}</span>
-            <span className="text-sm">{t($ => $.planModal.issuesPanel.noIssuesMessage)}</span>
+            <span className="text-base font-medium">{t($ => $.plan.issuesPanel.noIssuesTitle)}</span>
+            <span className="text-sm">{t($ => $.plan.issuesPanel.noIssuesMessage)}</span>
           </div>
         </Callout>
       )}

@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Copy, Plus, Trash, Undo2 } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
 
 import type { FloorAssemblyId } from '@/building/model/ids'
 import { useStoreysOrderedByLevel } from '@/building/store'
@@ -25,8 +26,11 @@ export interface FloorAssemblyConfigContentProps {
   initialSelectionId?: string
 }
 
-export function FloorAssemblyConfigContent({ initialSelectionId }: FloorAssemblyConfigContentProps): React.JSX.Element {
+export function FloorAssemblyConfigContent(props?: FloorAssemblyConfigContentProps): React.JSX.Element {
   const { t } = useTranslation('config')
+  const params = useParams<{ itemId?: string }>()
+  const initialSelectionId = params.itemId ?? props?.initialSelectionId
+
   const floorAssemblies = useFloorAssemblies()
   const storeys = useStoreysOrderedByLevel()
   const {

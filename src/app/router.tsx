@@ -1,20 +1,13 @@
-import React from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { createBrowserRouter } from 'react-router-dom'
 
+import { AppLayout } from '@/app/AppLayout'
 import { PrivacyPage } from '@/app/PrivacyPage'
 import { ErrorFallback } from '@/shared/ui/errors/ErrorFallback'
 
-import { Layout } from './Layout'
+import { appRoutes } from './appRoutes'
 import { AuthModalRoute } from './user/AuthModalRoute'
 import { UpdatePasswordModalRoute } from './user/UpdatePasswordModalRoute'
-
-const FloorPlanEditor = React.lazy(
-  async () =>
-    await import('@/editor/FloorPlanEditor').then(module => ({
-      default: module.FloorPlanEditor
-    }))
-)
 
 export const router = createBrowserRouter([
   {
@@ -29,11 +22,11 @@ export const router = createBrowserRouter([
     path: '*',
     element: (
       <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <Layout />
+        <AppLayout />
       </ErrorBoundary>
     ),
     children: [
-      { index: true, element: <FloorPlanEditor /> },
+      ...appRoutes,
       { path: 'auth/:tab', element: <AuthModalRoute />, handle: { isModal: true } },
       { path: 'auth/update-password', element: <UpdatePasswordModalRoute />, handle: { isModal: true } }
     ]

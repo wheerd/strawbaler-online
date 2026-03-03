@@ -1,4 +1,5 @@
-[data-testid='statusbar'],
+[data-testid='constraint-status'],
+[data-testid='editor-status-overlay'],
 [data-testid='viewmode-toggle'] {
   display: none;
 }

@@ -295,16 +295,6 @@
     "typeVolume": "Volume",
     "volumeInput": "Volume input"
   },
-  "modal": {
-    "tabFloors": "Floor Assemblies",
-    "tabLayerSets": "Layer Sets",
-    "tabMaterials": "Materials",
-    "tabOpenings": "Opening Assemblies",
-    "tabRingBeams": "Ring Beam Assemblies",
-    "tabRoofs": "Roof Assemblies",
-    "tabWalls": "Wall Assemblies",
-    "title": "Configuration"
-  },
   "openings": {
     "configure": "Configure Opening Assembly",
     "copyNameTemplate": "{{name}} (Copy)",
@@ -445,6 +435,15 @@
       "monolithic": "Monolithic",
       "purlin": "Purlin"
     }
+  },
+  "tabs": {
+    "floors": "Floor Assemblies",
+    "layers": "Layer Sets",
+    "materials": "Materials",
+    "openings": "Opening Assemblies",
+    "ringbeams": "Ring Beam Assemblies",
+    "roofs": "Roof Assemblies",
+    "walls": "Wall Assemblies"
   },
   "usage": {
     "globalDefault_floor": "Global Default",

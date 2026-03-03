@@ -74,6 +74,14 @@ interface Resources {
       "saveToFile": "Save to File"
     },
     "currentLanguageWithLabel": "Current language: {{language}}",
+    "nav": {
+      "3dView": "3D View",
+      "config": "Config",
+      "editor": "Editor",
+      "parts": "Parts",
+      "plan": "Plan",
+      "welcome": "Welcome"
+    },
     "projectMenu": {
       "buttonTitle": "Project",
       "copyCurrent": "Copy current project",
@@ -465,16 +473,6 @@ interface Resources {
       "typeVolume": "Volume",
       "volumeInput": "Volume input"
     },
-    "modal": {
-      "tabFloors": "Floor Assemblies",
-      "tabLayerSets": "Layer Sets",
-      "tabMaterials": "Materials",
-      "tabOpenings": "Opening Assemblies",
-      "tabRingBeams": "Ring Beam Assemblies",
-      "tabRoofs": "Roof Assemblies",
-      "tabWalls": "Wall Assemblies",
-      "title": "Configuration"
-    },
     "openings": {
       "configure": "Configure Opening Assembly",
       "copyNameTemplate": "{{name}} (Copy)",
@@ -615,6 +613,15 @@ interface Resources {
         "monolithic": "Monolithic",
         "purlin": "Purlin"
       }
+    },
+    "tabs": {
+      "floors": "Floor Assemblies",
+      "layers": "Layer Sets",
+      "materials": "Materials",
+      "openings": "Opening Assemblies",
+      "ringbeams": "Ring Beam Assemblies",
+      "roofs": "Roof Assemblies",
+      "walls": "Wall Assemblies"
     },
     "usage": {
       "globalDefault_floor": "Global Default",
@@ -879,24 +886,18 @@ interface Resources {
       "tabs": {
         "materials": "Materials",
         "modules": "Modules"
-      },
-      "title": "Parts List"
+      }
     },
     "plan": {
+      "clearFocus": "Clear focus",
+      "focus": {
+        "perimeter": "Focus: Perimeter",
+        "roof": "Focus: Roof",
+        "wall": "Focus: Wall"
+      },
       "hideAreas": "Hide Areas",
       "hideIssues": "Hide Issues",
       "hideMeasurements": "Hide Measurements",
-      "midCut": "Mid Cut",
-      "showStrawTypes": "Show Straw Types",
-      "strawTypes": {
-        "flakes": "Flakes",
-        "fullBale": "Full Bale",
-        "partialBale": "Partial Bale",
-        "stuffed": "Stuffed"
-      },
-      "strawTypesHeading": "Straw Types"
-    },
-    "planModal": {
       "issuesPanel": {
         "errorsTitle_one": "Errors ({{count}})",
         "errorsTitle_other": "Errors ({{count}})",
@@ -905,18 +906,31 @@ interface Resources {
         "warningsTitle_one": "Warnings ({{count}})",
         "warningsTitle_other": "Warnings ({{count}})"
       },
+      "midCut": "Mid Cut",
+      "nav": {
+        "nextWall": "Next wall",
+        "previousWall": "Previous wall"
+      },
       "partHighlight": {
         "clearHighlight": "Clear highlight",
         "partHighlighted": "Part highlighted"
       },
-      "tabs": {
-        "modules": "Modules",
-        "partsList": "Parts List",
-        "planIssues": "Plan & Issues"
+      "showStrawTypes": "Show Straw Types",
+      "strawTypes": {
+        "flakes": "Flakes",
+        "fullBale": "Full Bale",
+        "partialBale": "Partial Bale",
+        "stuffed": "Stuffed"
       },
+      "strawTypesHeading": "Straw Types",
       "views": {
         "floor": "Floor",
+        "front": "Front",
+        "inside": "Inside",
+        "left": "Left",
+        "outside": "Outside",
         "roof": "Roof",
+        "top": "Top",
         "walls": "Walls"
       }
     },
@@ -1052,9 +1066,6 @@ interface Resources {
       "wall-part_reinforcement": "Reinforcement Plating",
       "wall-part_sill": "Sill",
       "wall-part_triangular-batten": "Triangular Batten"
-    },
-    "viewer3DModal": {
-      "title": "3D Construction View"
     }
   },
   "errors": {
@@ -1211,7 +1222,6 @@ interface Resources {
       "addRoofBasedOnPerimeter": "Add roof based on perimeter",
       "addShedRoof": "Shed Roof",
       "basePlate": "Base Plate",
-      "constructionPlanTitle": "Perimeter Construction Plan",
       "deletePerimeter": "Delete perimeter",
       "fitToView": "Fit to view",
       "mixedPlaceholder": "Mixed",
@@ -1261,7 +1271,6 @@ interface Resources {
       "basePlate": "Base Plate",
       "cannotDeleteMinWalls": "Cannot delete - perimeter needs at least 3 walls",
       "cannotDeleteSelfIntersect": "Cannot delete - would create self-intersecting polygon",
-      "constructionPlanTitle": "Wall Construction Plan",
       "constructionThickness": "Construction Thickness",
       "deleteWall": "Delete Wall",
       "doors": "Doors",
@@ -1279,16 +1288,12 @@ interface Resources {
       "thickness": "Thickness",
       "topPlate": "Top Plate",
       "viewConstructionPlan": "View Construction Plan",
-      "viewInside": "Inside",
-      "viewOutside": "Outside",
-      "viewTop": "Top",
       "wallAssembly": "Wall Assembly",
       "windows": "Windows"
     },
     "roof": {
       "area": "Area",
       "assembly": "Assembly",
-      "constructionPlanTitle": "Roof Construction Plan",
       "cycleMainSide": "Cycle main side (changes roof direction)",
       "fitToView": "Fit to view",
       "mixedPlaceholder": "Mixed",
@@ -1305,10 +1310,7 @@ interface Resources {
       "verticalOffset": "Vertical Offset",
       "view3DConstruction": "View 3D Construction",
       "viewAssociatedPerimeter": "View associated perimeter",
-      "viewConstructionPlan": "View Construction Plan",
-      "viewFront": "Front",
-      "viewLeft": "Left",
-      "viewTop": "Top"
+      "viewConstructionPlan": "View Construction Plan"
     },
     "roofOverhang": {
       "fitToView": "Fit to view",
@@ -1710,21 +1712,11 @@ interface Resources {
     }
   },
   "toolbar": {
-    "about": "About StrawBuild Studio",
-    "configuration": "Configuration",
-    "constructionPlanForActiveStorey": "Construction Plan for active storey",
-    "constructionPlanForStorey": "Construction Plan for {{storeyName}}",
+    "fitToView": "Fit to View",
     "gridSizeDisplay": {
       "hideGrid": "Hide Grid",
       "off": "Off",
       "showGrid": "Show Grid"
-    },
-    "groups": {
-      "basic": "Basic",
-      "floors": "Floors",
-      "perimeter": "Perimeter",
-      "roofs": "Roofs",
-      "test": "Test Data"
     },
     "offlineStatus": {
       "loading": "Caching assets ({{loaded}}/{{total}})…",
@@ -1732,13 +1724,14 @@ interface Resources {
       "offline": "Offline. Changes will sync once connection returns.",
       "ready": "All assets cached. Ready for offline use."
     },
-    "partsListForEntireModel": "Parts List for Entire Model",
+    "redo": "Redo",
     "themeToggle": {
-      "switchToDark": "Switch to dark mode",
-      "switchToLight": "Switch to light mode"
+      "changeTheme": "Change theme",
+      "dark": "Dark",
+      "light": "Light",
+      "system": "System"
     },
     "tools": {
-      "basicFitToView": "Fit to View",
       "basicMove": "Move",
       "basicSelect": "Select",
       "floorsAddArea": "Floor Area",
@@ -1751,11 +1744,10 @@ interface Resources {
       "roofsAddRoof": "Roof",
       "testData": "Test Data"
     },
-    "view3DConstruction": "View 3D Construction",
-    "viewConstructionPlan": "View Construction Plan",
-    "viewPartsList": "View Parts List"
+    "undo": "Undo"
   },
   "viewer": {
+    "clearFocus": "Clear Focus",
     "export": {
       "collada": "Collada (DAE)",
       "exportError": {
@@ -1776,6 +1768,12 @@ interface Resources {
       "stl": "STL",
       "title": "Export"
     },
+    "focus": {
+      "perimeter": "Focus: Perimeter",
+      "roof": "Focus: Roof",
+      "storey": "Focus: Storey"
+    },
+    "focusOnStorey": "Focus on Storey",
     "grid": {
       "hide": "Hide Grid",
       "show": "Show Grid"
@@ -1789,7 +1787,6 @@ interface Resources {
     }
   },
   "welcome": {
-    "continueButton": "I Understand & Continue",
     "dataStorage": {
       "description": "Your data can be stored in two ways:",
       "items": ["Locally in your browser – works offline, no account needed", "In your cloud account – requires sign-up, syncs across devices"],
@@ -1816,8 +1813,7 @@ interface Resources {
       "items": ["Cost and work hours estimations", "Support for intermediate walls and foundations", "Translation in more languages", "Support for more irregular building shapes"],
       "title": "Planned Features"
     },
-    "privacyLink": "View our <link>Privacy Policy</link>",
-    "reviewInfo": "You can review this information anytime via the info icon in the toolbar",
+    "privacyLink": "View our <privacyLink>Privacy Policy</privacyLink>",
     "version": "Version {{version}}",
     "viewOnGitHub": "View on GitHub"
   }

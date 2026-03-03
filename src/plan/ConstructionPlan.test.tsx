@@ -29,7 +29,7 @@ describe('ConstructionPlan', () => {
       bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(100, 100, 100))
     }
 
-    const views: ViewOption[] = [{ view: TOP_VIEW, label: 'Top' }]
+    const views: ViewOption[] = [{ view: TOP_VIEW, label: $ => $.plan.views.top }]
     const { container } = render(
       <PlanHighlightProvider>
         <TagVisibilityProvider>
@@ -73,7 +73,7 @@ describe('ConstructionPlan', () => {
       bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(50, 50, 50))
     }
 
-    const views: ViewOption[] = [{ view: TOP_VIEW, label: 'Top' }]
+    const views: ViewOption[] = [{ view: TOP_VIEW, label: $ => $.plan.views.top }]
     const { container } = render(
       <PlanHighlightProvider>
         <TagVisibilityProvider>
@@ -121,7 +121,7 @@ describe('ConstructionPlan', () => {
       bounds: Bounds3D.fromMinMax(newVec3(0, 0, 0), newVec3(110, 50, 10))
     }
 
-    const views: ViewOption[] = [{ view: TOP_VIEW, label: 'Top' }]
+    const views: ViewOption[] = [{ view: TOP_VIEW, label: $ => $.plan.views.top }]
     const { container } = render(
       <PlanHighlightProvider>
         <TagVisibilityProvider>

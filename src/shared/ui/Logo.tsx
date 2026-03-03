@@ -10,7 +10,13 @@ export function Logo({ className = '', compact = false, iconSize = 36 }: LogoPro
   const { t } = useTranslation('common')
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="-3 -3 37 37">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={iconSize}
+        height={iconSize}
+        viewBox="-3 -3 37 37"
+        aria-hidden="true"
+      >
         <defs>
           <filter id="inset-shadow">
             <feColorMatrix

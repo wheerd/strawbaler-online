@@ -26,26 +26,32 @@ function StoreyName({ storey }: { storey: Storey }) {
   return <span>{name}</span>
 }
 
-export function StoreySelector(): React.JSX.Element {
+export function StoreySelector({
+  onStoreyChange
+}: {
+  onStoreyChange?: (storeyId: StoreyId) => void
+}): React.JSX.Element {
   const { t } = useTranslation('common')
   const storeysOrdered = useStoreysOrderedByLevel()
   const activeStoreyId = useActiveStoreyId()
   const { setActiveStoreyId } = useModelActions()
 
-  // Display storeys in intuitive order (highest to lowest, like elevator buttons)
   const storeysDisplayOrder = [...storeysOrdered].reverse()
 
   const handleStoreyChange = useCallback(
     (newStoreyId: string) => {
       setActiveStoreyId(newStoreyId as StoreyId)
+      if (onStoreyChange) {
+        onStoreyChange(newStoreyId as StoreyId)
+      }
     },
-    [setActiveStoreyId]
+    [setActiveStoreyId, onStoreyChange]
   )
 
   return (
     <div className="flex items-center gap-2">
       <Select value={activeStoreyId} onValueChange={handleStoreyChange}>
-        <SelectTrigger className="h-7 text-xs">
+        <SelectTrigger className="h-9 w-50 text-sm">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

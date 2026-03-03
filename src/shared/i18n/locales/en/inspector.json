@@ -70,7 +70,6 @@
     "addRoofBasedOnPerimeter": "Add roof based on perimeter",
     "addShedRoof": "Shed Roof",
     "basePlate": "Base Plate",
-    "constructionPlanTitle": "Perimeter Construction Plan",
     "deletePerimeter": "Delete perimeter",
     "fitToView": "Fit to view",
     "mixedPlaceholder": "Mixed",
@@ -120,7 +119,6 @@
     "basePlate": "Base Plate",
     "cannotDeleteMinWalls": "Cannot delete - perimeter needs at least 3 walls",
     "cannotDeleteSelfIntersect": "Cannot delete - would create self-intersecting polygon",
-    "constructionPlanTitle": "Wall Construction Plan",
     "constructionThickness": "Construction Thickness",
     "deleteWall": "Delete Wall",
     "doors": "Doors",
@@ -138,16 +136,12 @@
     "thickness": "Thickness",
     "topPlate": "Top Plate",
     "viewConstructionPlan": "View Construction Plan",
-    "viewInside": "Inside",
-    "viewOutside": "Outside",
-    "viewTop": "Top",
     "wallAssembly": "Wall Assembly",
     "windows": "Windows"
   },
   "roof": {
     "area": "Area",
     "assembly": "Assembly",
-    "constructionPlanTitle": "Roof Construction Plan",
     "cycleMainSide": "Cycle main side (changes roof direction)",
     "fitToView": "Fit to view",
     "mixedPlaceholder": "Mixed",
@@ -164,10 +158,7 @@
     "verticalOffset": "Vertical Offset",
     "view3DConstruction": "View 3D Construction",
     "viewAssociatedPerimeter": "View associated perimeter",
-    "viewConstructionPlan": "View Construction Plan",
-    "viewFront": "Front",
-    "viewLeft": "Left",
-    "viewTop": "Top"
+    "viewConstructionPlan": "View Construction Plan"
   },
   "roofOverhang": {
     "fitToView": "Fit to view",

@@ -46,7 +46,7 @@ test.describe('Add Opening Tool', () => {
 
     // Step 6: Place first opening (Floor Window)
     // Hover near the end of the bottom wall to show snapping to wall end
-    await moveMouseTo(page, 160, 80)
+    await moveMouseTo(page, 180, 80)
     await takeEditorScreenshot(page, '04-snap-to-wall-end.png')
 
     // Place the opening

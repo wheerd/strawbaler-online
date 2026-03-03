@@ -1,27 +1,27 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { ConstructionModel } from '@/construction/model/model'
 import { type ConstructionModelId, useConstructionModel } from '@/construction/store'
 import { Spinner } from '@/shared/ui/components/spinner'
 
 import ConstructionViewer3D from './ConstructionViewer3D'
+import type { ExportFormat } from './components/ExportButton'
 import { acquireGeometryCache, prewarmGeometryCache, releaseGeometryCache } from './utils/geometryCache'
 import { acquireMaterialCache, releaseMaterialCache } from './utils/materialCache'
 
-export interface ConstructionViewer3DModalProps {
+export interface ConstructionViewer3DContentProps {
   modelId: ConstructionModelId
-  trigger: React.ReactNode
+  containerSize: { width: number; height: number }
+  isOpen: boolean
+  onExportReady?: (exportFn: (format: ExportFormat) => void | Promise<void>) => void
 }
 
 export default function ConstructionViewer3DContent({
   modelId,
   containerSize,
-  isOpen
-}: {
-  modelId: ConstructionModelId
-  containerSize: { width: number; height: number }
-  isOpen: boolean
-}) {
+  isOpen,
+  onExportReady
+}: ConstructionViewer3DContentProps) {
   const constructionModel = useConstructionModel(modelId)
   const geometryReady = useGeometryPrewarm(constructionModel)
   const shouldRenderCanvas = useDeferredCanvasMount(
@@ -50,7 +50,7 @@ export default function ConstructionViewer3DContent({
     )
   }
 
-  return <ConstructionViewer3D model={constructionModel} containerSize={containerSize} />
+  return <ConstructionViewer3D model={constructionModel} containerSize={containerSize} onExportReady={onExportReady} />
 }
 
 function useDeferredCanvasMount(isEnabled: boolean): boolean {

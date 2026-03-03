@@ -1,3 +1,4 @@
+import type { Resources, SelectorFn, SelectorOptions } from 'i18next'
 import { Box, Group, Ruler, TriangleAlert } from 'lucide-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -24,7 +25,6 @@ import {
 } from '@/shared/geometry'
 import { Button } from '@/shared/ui/components/button'
 import { Card } from '@/shared/ui/components/card'
-import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 import { MidCutXIcon, MidCutYIcon } from '@/shared/ui/icons'
 import { SVGViewport, type SVGViewportRef } from '@/shared/ui/svg/SVGViewport'
 
@@ -44,7 +44,7 @@ export interface View {
 
 export interface ViewOption {
   view: View
-  label: string
+  label: SelectorFn<Resources['construction'], string, SelectorOptions<'construction'>>
   alwaysHiddenTags?: TagOrCategory[]
   toggleHideTags?: TagOrCategory[]
 }
@@ -109,8 +109,7 @@ export function ConstructionPlan({
   views,
   containerSize,
   midCutActiveDefault = false,
-  currentViewIndex,
-  setCurrentViewIndex
+  currentViewIndex
 }: ConstructionPlanProps): React.JSX.Element {
   const { t } = useTranslation('construction')
   const { toggleTagOrCategory, isTagOrCategoryVisible } = useTagVisibilityActions()
@@ -379,108 +378,85 @@ export function ConstructionPlan({
 
       {/* Overlay controls in top-left corner */}
 
-      <div className="absolute top-3 left-3 z-10">
-        <Card size="sm" variant="soft" className="bg-card shadow-md">
-          <div className="-m-2 flex flex-col gap-2">
-            {/* View selector - only show if multiple views */}
-            {views.length > 1 && (
-              <ToggleGroup
-                type="single"
-                variant="outline"
-                value={currentViewIndex.toString()}
-                onValueChange={value => {
-                  if (value) {
-                    setCurrentViewIndex(parseInt(value, 10))
-                  }
-                }}
-                size="sm"
-              >
-                {views.map((viewOption, index) => (
-                  <ToggleGroupItem key={index} value={index.toString()} className="h-7 text-xs">
-                    {viewOption.label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            )}
+      <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+        <div className="flex items-center gap-1">
+          {/* Mid-cut toggle */}
+          <Button
+            size="icon-xs"
+            variant={midCutEnabled ? 'default' : 'outline'}
+            title={t($ => $.plan.midCut)}
+            onClick={() => {
+              setMidCutEnabled(!midCutEnabled)
+            }}
+          >
+            {currentView.plane === 'xy' ? <MidCutYIcon /> : <MidCutXIcon />}
+          </Button>
 
-            <div className="grid grid-cols-6 items-center justify-center gap-1">
-              {/* Mid-cut toggle */}
-              <Button
-                size="icon-xs"
-                variant={midCutEnabled ? 'default' : 'outline'}
-                title={t($ => $.plan.midCut)}
-                onClick={() => {
-                  setMidCutEnabled(!midCutEnabled)
-                }}
-              >
-                {currentView.plane === 'xy' ? <MidCutYIcon /> : <MidCutXIcon />}
-              </Button>
+          {/* Area toggle */}
+          <Button
+            size="icon-xs"
+            variant={hideAreas ? 'outline' : 'default'}
+            title={t($ => $.plan.hideAreas)}
+            onClick={() => {
+              setHideAreas(!hideAreas)
+            }}
+          >
+            <Group />
+          </Button>
 
-              {/* Area toggle */}
-              <Button
-                size="icon-xs"
-                variant={hideAreas ? 'outline' : 'default'}
-                title={t($ => $.plan.hideAreas)}
-                onClick={() => {
-                  setHideAreas(!hideAreas)
-                }}
-              >
-                <Group />
-              </Button>
+          {/* Issues toggle */}
+          <Button
+            size="icon-xs"
+            variant={hideIssues ? 'outline' : 'default'}
+            title={t($ => $.plan.hideIssues)}
+            onClick={() => {
+              setHideIssues(!hideIssues)
+            }}
+          >
+            <TriangleAlert />
+          </Button>
 
-              {/* Issues toggle */}
-              <Button
-                size="icon-xs"
-                variant={hideIssues ? 'outline' : 'default'}
-                title={t($ => $.plan.hideIssues)}
-                onClick={() => {
-                  setHideIssues(!hideIssues)
-                }}
-              >
-                <TriangleAlert />
-              </Button>
+          {/* Measurements toggle */}
+          <Button
+            size="icon-xs"
+            variant={hideMeasurements ? 'outline' : 'default'}
+            title={t($ => $.plan.hideMeasurements)}
+            onClick={() => {
+              setHideMeasurements(!hideMeasurements)
+            }}
+          >
+            <Ruler />
+          </Button>
 
-              {/* Measurements toggle */}
-              <Button
-                size="icon-xs"
-                variant={hideMeasurements ? 'outline' : 'default'}
-                title={t($ => $.plan.hideMeasurements)}
-                onClick={() => {
-                  setHideMeasurements(!hideMeasurements)
-                }}
-              >
-                <Ruler />
-              </Button>
+          {/* Straw types toggle */}
+          <Button
+            size="icon-xs"
+            variant={showStrawTypes ? 'default' : 'outline'}
+            title={t($ => $.plan.showStrawTypes)}
+            onClick={() => {
+              setShowStrawTypes(!showStrawTypes)
+            }}
+          >
+            <Box />
+          </Button>
 
-              {/* Straw types toggle */}
-              <Button
-                size="icon-xs"
-                variant={showStrawTypes ? 'default' : 'outline'}
-                title={t($ => $.plan.showStrawTypes)}
-                onClick={() => {
-                  setShowStrawTypes(!showStrawTypes)
-                }}
-              >
-                <Box />
-              </Button>
+          {/* Tag visibility menu */}
+          <TagVisibilityMenu model={model} />
+        </div>
 
-              {/* Tag visibility menu */}
-              <TagVisibilityMenu model={model} />
-            </div>
-
-            {showStrawTypes && (
-              <div className="flex flex-col">
-                <h4>{t($ => $.plan.strawTypesHeading)}</h4>
-                <div className="grid grid-cols-2">
-                  <span className="text-sm text-lime-600">{t($ => $.plan.strawTypes.fullBale)}</span>
-                  <span className="text-sm text-purple-600">{t($ => $.plan.strawTypes.partialBale)}</span>
-                  <span className="text-sm text-sky-600">{t($ => $.plan.strawTypes.flakes)}</span>
-                  <span className="text-sm text-red-800">{t($ => $.plan.strawTypes.stuffed)}</span>
-                </div>
+        {showStrawTypes && (
+          <Card size="sm" variant="classic">
+            <div className="flex flex-col">
+              <h4>{t($ => $.plan.strawTypesHeading)}</h4>
+              <div className="grid grid-cols-2">
+                <span className="text-sm text-lime-600">{t($ => $.plan.strawTypes.fullBale)}</span>
+                <span className="text-sm text-purple-600">{t($ => $.plan.strawTypes.partialBale)}</span>
+                <span className="text-sm text-sky-600">{t($ => $.plan.strawTypes.flakes)}</span>
+                <span className="text-sm text-red-800">{t($ => $.plan.strawTypes.stuffed)}</span>
               </div>
-            )}
-          </div>
-        </Card>
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   )

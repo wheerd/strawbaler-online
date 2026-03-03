@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Copy, Plus, Trash, Undo2 } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
 
 import type { RoofAssemblyId } from '@/building/model/ids'
 import { useRoofs } from '@/building/store'
@@ -20,12 +21,9 @@ import { DropdownMenu } from '@/shared/ui/components/dropdown-menu'
 import { ConfigForm } from './ConfigForm'
 import { getRoofAssemblyTypeIcon } from './icons'
 
-export interface RoofAssemblyConfigContentProps {
-  initialSelectionId?: string
-}
-
-export function RoofAssemblyConfigContent({ initialSelectionId }: RoofAssemblyConfigContentProps): React.JSX.Element {
+export function RoofAssemblyConfigContent(): React.JSX.Element {
   const { t } = useTranslation('config')
+  const { itemId: initialSelectionId } = useParams<{ itemId?: string }>()
   const roofAssemblies = useRoofAssemblies()
   const roofs = useRoofs()
   const {

@@ -1,4 +1,5 @@
 {
+  "clearFocus": "Clear Focus",
   "export": {
     "collada": "Collada (DAE)",
     "exportError": {
@@ -19,6 +20,12 @@
     "stl": "STL",
     "title": "Export"
   },
+  "focus": {
+    "perimeter": "Focus: Perimeter",
+    "roof": "Focus: Roof",
+    "storey": "Focus: Storey"
+  },
+  "focusOnStorey": "Focus on Storey",
   "grid": {
     "hide": "Hide Grid",
     "show": "Show Grid"

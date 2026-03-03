@@ -295,16 +295,6 @@
     "typeVolume": "Volumen",
     "volumeInput": "Volumen Eingabe"
   },
-  "modal": {
-    "tabFloors": "Bodenaufbauten",
-    "tabLayerSets": "Schichten",
-    "tabMaterials": "Materialien",
-    "tabOpenings": "Öffnungsaufbauten",
-    "tabRingBeams": "Ringankeraufbauten",
-    "tabRoofs": "Dachaufbauten",
-    "tabWalls": "Wandaufbauten",
-    "title": "Konfiguration"
-  },
   "openings": {
     "configure": "Öffnungsaufbau konfigurieren",
     "copyNameTemplate": "{{name}} (Kopie)",
@@ -445,6 +435,15 @@
       "monolithic": "Massiv",
       "purlin": "Pfette"
     }
+  },
+  "tabs": {
+    "floors": "Bodenaufbauten",
+    "layers": "Schichten",
+    "materials": "Materialien",
+    "openings": "Öffnungsaufbauten",
+    "ringbeams": "Ringankeraufbauten",
+    "roofs": "Dachaufbauten",
+    "walls": "Wandaufbauten"
   },
   "usage": {
     "globalDefault_floor": "Standard Bodenaufbau",

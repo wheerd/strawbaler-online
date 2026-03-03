@@ -2,6 +2,7 @@ import * as Label from '@radix-ui/react-label'
 import { Box, Circle, Copy, Droplet, Layers, Plus, Trash, TriangleAlert, Undo2, X } from 'lucide-react'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
 
 import { useConfigActions, useDefaultStrawMaterialId } from '@/config/store'
 import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
@@ -48,13 +49,16 @@ export interface MaterialsConfigContentProps {
 
 type MaterialType = Material['type']
 
-export function MaterialsConfigContent({ initialSelectionId }: MaterialsConfigContentProps): React.JSX.Element {
+export function MaterialsConfigContent(props?: MaterialsConfigContentProps): React.JSX.Element {
   const { t } = useTranslation('config')
+  const params = useParams<{ itemId?: string }>()
   const getMaterialTypeName = useGetMaterialTypeName()
   const materials = useMaterials()
   const { addMaterial, updateMaterial, removeMaterial, duplicateMaterial, reset } = useMaterialActions()
   const defaultStrawMaterialId = useDefaultStrawMaterialId()
   const { updateDefaultStrawMaterial } = useConfigActions()
+
+  const initialSelectionId = params.itemId ?? props?.initialSelectionId
 
   const [selectedMaterialId, setSelectedMaterialId] = useState<MaterialId | null>(() => {
     if (initialSelectionId && materials.some(m => m.id === initialSelectionId)) {

@@ -1,13 +1,15 @@
 import React, { Suspense, useEffect } from 'react'
-import { Outlet, Route, Routes, useLocation, useMatches } from 'react-router-dom'
+import { Outlet, useLocation, useMatches, useRoutes } from 'react-router-dom'
 
 import { startChunkPreloading } from '@/app/pwa/chunkPreloader'
-import { AppSkeleton } from '@/app/skeletons/AppSkeleton'
+import { HeaderSkeleton } from '@/app/skeletons/HeaderSkeleton'
 import { useAuth } from '@/app/user/useAuth'
 
-const FloorPlanEditor = React.lazy(async () => {
-  const module = await import('@/editor/FloorPlanEditor')
-  return { default: module.FloorPlanEditor }
+import { appRoutes } from './appRoutes'
+
+const Header = React.lazy(async () => {
+  const module = await import('@/app/Header')
+  return { default: module.Header }
 })
 
 interface LocationState {
@@ -18,7 +20,9 @@ interface RouteHandle {
   isModal?: boolean
 }
 
-export function Layout(): React.JSX.Element {
+export function AppLayout(): React.JSX.Element {
+  useAuth()
+
   const location = useLocation()
   const matches = useMatches()
   const state = location.state as LocationState | null
@@ -28,25 +32,19 @@ export function Layout(): React.JSX.Element {
 
   const backgroundLocation = explicitBackground ?? (isModalRoute ? { pathname: '/' } : null)
 
-  useAuth()
-
   useEffect(() => {
     startChunkPreloading()
   }, [])
 
   return (
-    <>
-      <Suspense fallback={<AppSkeleton />}>
-        <Routes location={backgroundLocation ?? location}>
-          <Route index element={<FloorPlanEditor />} />
-        </Routes>
+    <div className="flex h-screen flex-col">
+      <Suspense fallback={<HeaderSkeleton />}>
+        <Header />
       </Suspense>
-
-      {backgroundLocation && (
-        <Suspense fallback={null}>
-          <Outlet />
-        </Suspense>
-      )}
-    </>
+      <main className="min-h-0 flex-1">
+        {useRoutes(appRoutes, backgroundLocation ?? location)}
+        {backgroundLocation && <Outlet />}
+      </main>
+    </div>
   )
 }

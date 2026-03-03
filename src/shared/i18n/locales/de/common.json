@@ -72,6 +72,14 @@
     "saveToFile": "In Datei speichern"
   },
   "currentLanguageWithLabel": "Aktuelle Sprache: {{language}}",
+  "nav": {
+    "3dView": "3D Ansicht",
+    "config": "Einstellungen",
+    "editor": "Editor",
+    "parts": "Teile",
+    "plan": "Plan",
+    "welcome": "Willkommen"
+  },
   "projectMenu": {
     "buttonTitle": "Projekt",
     "copyCurrent": "Aktuelles Projekt kopieren",

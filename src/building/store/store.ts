@@ -183,7 +183,11 @@ function regeneratePartializedState(state: PartializedStoreState): void {
   restoredState._openingGeometry = {}
   restoredState._wallPostGeometry = {}
   for (const perimeterId of Object.keys(restoredState.perimeters)) {
-    updatePerimeterGeometry(restoredState, perimeterId as PerimeterId)
+    try {
+      updatePerimeterGeometry(restoredState, perimeterId as PerimeterId)
+    } catch (error) {
+      console.error('Error updating perimeter geometry for perimeterId:', perimeterId, error)
+    }
   }
 
   restoredState._constraintsByEntity = {}

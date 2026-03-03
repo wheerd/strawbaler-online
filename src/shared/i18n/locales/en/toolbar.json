@@ -1,19 +1,9 @@
 {
-  "about": "About StrawBuild Studio",
-  "configuration": "Configuration",
-  "constructionPlanForActiveStorey": "Construction Plan for active storey",
-  "constructionPlanForStorey": "Construction Plan for {{storeyName}}",
+  "fitToView": "Fit to View",
   "gridSizeDisplay": {
     "hideGrid": "Hide Grid",
     "off": "Off",
     "showGrid": "Show Grid"
-  },
-  "groups": {
-    "basic": "Basic",
-    "floors": "Floors",
-    "perimeter": "Perimeter",
-    "roofs": "Roofs",
-    "test": "Test Data"
   },
   "offlineStatus": {
     "loading": "Caching assets ({{loaded}}/{{total}})…",
@@ -21,13 +11,14 @@
     "offline": "Offline. Changes will sync once connection returns.",
     "ready": "All assets cached. Ready for offline use."
   },
-  "partsListForEntireModel": "Parts List for Entire Model",
+  "redo": "Redo",
   "themeToggle": {
-    "switchToDark": "Switch to dark mode",
-    "switchToLight": "Switch to light mode"
+    "changeTheme": "Change theme",
+    "dark": "Dark",
+    "light": "Light",
+    "system": "System"
   },
   "tools": {
-    "basicFitToView": "Fit to View",
     "basicMove": "Move",
     "basicSelect": "Select",
     "floorsAddArea": "Floor Area",
@@ -40,7 +31,5 @@
     "roofsAddRoof": "Roof",
     "testData": "Test Data"
   },
-  "view3DConstruction": "View 3D Construction",
-  "viewConstructionPlan": "View Construction Plan",
-  "viewPartsList": "View Parts List"
+  "undo": "Undo"
 }

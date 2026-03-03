@@ -2,19 +2,17 @@ import * as Label from '@radix-ui/react-label'
 import { RefreshCw, Square, Trash, TriangleAlert } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import type { RoofOverhang } from '@/building/model'
 import type { RoofId } from '@/building/model/ids'
 import { useModelActions, useRoofById, useRoofOverhangsByRoof } from '@/building/store'
 import { useDefaultRoofAssemblyId } from '@/config/store'
 import { RoofAssemblySelectWithEdit } from '@/config/ui/roof-assembly/RoofAssemblySelectWithEdit'
-import { TAG_DECKING } from '@/construction/model/tags'
 import { replaceSelection } from '@/editor/canvas/state/selectionStore'
 import { useViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { RoofPreview } from '@/editor/shared/RoofPreview'
-import { FRONT_VIEW, LEFT_VIEW, TOP_VIEW } from '@/plan/ConstructionPlan'
-import { ConstructionPlanModal } from '@/plan/ConstructionPlanModal'
 import {
   Bounds2D,
   type Length,
@@ -31,7 +29,6 @@ import { DataList } from '@/shared/ui/components/data-list'
 import { Separator } from '@/shared/ui/components/separator'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon } from '@/shared/ui/icons'
-import { ConstructionViewer3DModal } from '@/viewer3d/ConstructionViewer3DModal'
 
 interface RoofInspectorProps {
   roofId: RoofId
@@ -64,6 +61,7 @@ function MixedStateIndicator({ tooltip }: { tooltip: string }) {
 
 export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element | null {
   const { t } = useTranslation('inspector')
+  const navigate = useNavigate()
   const { formatArea, formatLength } = useFormatters()
   const roof = useRoofById(roofId)
   const overhangs = useRoofOverhangsByRoof(roofId)
@@ -248,30 +246,25 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
 
       {/* Construction Views */}
       <div className="flex flex-row items-center justify-center gap-3 pt-1">
-        <ConstructionPlanModal
-          title={t($ => $.roof.constructionPlanTitle)}
-          modelId={roofId}
-          midCutActiveDefault={false}
-          views={[
-            { view: TOP_VIEW, label: t($ => $.roof.viewTop), toggleHideTags: [TAG_DECKING.id] },
-            { view: FRONT_VIEW, label: t($ => $.roof.viewFront) },
-            { view: LEFT_VIEW, label: t($ => $.roof.viewLeft) }
-          ]}
-          defaultHiddenTags={['roof-layer']}
-          trigger={
-            <Button size="icon" title={t($ => $.roof.viewConstructionPlan)}>
-              <ConstructionPlanIcon width={24} height={24} />
-            </Button>
-          }
-        />
-        <ConstructionViewer3DModal
-          modelId={roofId}
-          trigger={
-            <Button size="icon" title={t($ => $.roof.view3DConstruction)} variant="outline">
-              <Model3DIcon width={24} height={24} />
-            </Button>
-          }
-        />
+        <Button
+          size="icon"
+          title={t($ => $.roof.viewConstructionPlan)}
+          onClick={() => {
+            void navigate(`/plan/${roofId}`)
+          }}
+        >
+          <ConstructionPlanIcon width={24} height={24} />
+        </Button>
+        <Button
+          size="icon"
+          title={t($ => $.roof.view3DConstruction)}
+          variant="outline"
+          onClick={() => {
+            void navigate(`/3d-view/${roofId}`)
+          }}
+        >
+          <Model3DIcon width={24} height={24} />
+        </Button>
       </div>
 
       <Separator />

@@ -5,18 +5,9 @@ import path from 'node:path'
  * Set up the editor page for testing - navigates to the app and dismisses the welcome modal
  */
 export async function setupEditorPage(page: Page): Promise<void> {
-  // Set localStorage before navigation to avoid reload
-  await page.addInitScript(() => {
-    localStorage.setItem(
-      'strawbuild-welcome-state',
-      '{"accepted":true,"acceptedAt":"2025-10-22T06:21:42.893Z","version":"0.2"}'
-    )
-  })
+  await page.goto('/editor')
 
-  await page.goto('/')
-
-  // Wait for the editor to be ready
-  await expect(page.getByTestId('main-toolbar')).toBeVisible({ timeout: 15000 })
+  await expect(page.getByTestId('floor-plan-editor')).toBeVisible({ timeout: 15000 })
   await expect(page.getByTestId('editor-svg')).toBeVisible()
 }
 
