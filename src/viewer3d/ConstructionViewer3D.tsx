@@ -18,7 +18,7 @@ import { matAppToThree, toThreeTransform } from '@/viewer3d/utils/geometry'
 
 import ConstructionElement3D from './components/ConstructionElement3D'
 import ConstructionGroup3D from './components/ConstructionGroup3D'
-import ExportButton, { type ExportFormat } from './components/ExportButton'
+import { type ExportFormat } from './components/ExportButton'
 import { GridToggleButton } from './components/GridToggleButton'
 import { OffsetMapDebug3D } from './components/OffsetMapDebug3D'
 import SceneExporter from './components/SceneExporter'
@@ -29,6 +29,7 @@ import { useShowGrid3D } from './hooks/useGrid3D'
 interface ConstructionViewer3DProps {
   model: ConstructionModel
   containerSize: { width: number; height: number }
+  onExportReady?: (exportFn: (format: ExportFormat) => void | Promise<void>) => void
 }
 
 interface ExportError {
@@ -37,7 +38,7 @@ interface ExportError {
   details?: string
 }
 
-function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProps): React.JSX.Element {
+function ConstructionViewer3D({ model, containerSize, onExportReady }: ConstructionViewer3DProps): React.JSX.Element {
   const { t } = useTranslation('viewer')
   const { resolvedTheme } = useTheme()
   const isDarkTheme = resolvedTheme === 'dark'
@@ -70,38 +71,47 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
     exportFnRef.current = fn
   }, [])
 
-  const handleExport = async (format: ExportFormat): Promise<void> => {
-    try {
-      if (format === 'ifc') {
-        const { exportConstructionGeometryToIfc } = await import('@/construction/export/ifc')
-        await exportConstructionGeometryToIfc(model)
-      }
+  const handleExport = useCallback(
+    async (format: ExportFormat): Promise<void> => {
+      try {
+        if (format === 'ifc') {
+          const { exportConstructionGeometryToIfc } = await import('@/construction/export/ifc')
+          await exportConstructionGeometryToIfc(model)
+        }
 
-      if (format === 'sketchup') {
-        const { exportToSketchUp } = await import('@/construction/export/sketchup')
-        await exportToSketchUp(model)
-      }
+        if (format === 'sketchup') {
+          const { exportToSketchUp } = await import('@/construction/export/sketchup')
+          await exportToSketchUp(model)
+        }
 
-      const fn = exportFnRef.current
-      if (fn) {
-        fn(format)
+        const fn = exportFnRef.current
+        if (fn) {
+          fn(format)
+        }
+      } catch (error) {
+        if (error instanceof SketchUpExportError) {
+          setExportError({
+            code: error.code,
+            message: error.message,
+            details: error.details
+          })
+        } else {
+          setExportError({
+            code: 'unknown_error',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            details: undefined
+          })
+        }
       }
-    } catch (error) {
-      if (error instanceof SketchUpExportError) {
-        setExportError({
-          code: error.code,
-          message: error.message,
-          details: error.details
-        })
-      } else {
-        setExportError({
-          code: 'unknown_error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          details: undefined
-        })
-      }
+    },
+    [model]
+  )
+
+  useEffect(() => {
+    if (onExportReady) {
+      onExportReady(handleExport)
     }
-  }
+  }, [onExportReady, handleExport])
 
   const maxDevicePixelRatio = useMemo(() => {
     if (typeof window === 'undefined') return 1
@@ -157,14 +167,6 @@ function ConstructionViewer3D({ model, containerSize }: ConstructionViewer3DProp
           <GridToggleButton />
         </div>
       </Card>
-
-      <div className="absolute top-3 right-3 z-10 p-0 shadow-md">
-        <ExportButton
-          onExport={format => {
-            void handleExport(format)
-          }}
-        />
-      </div>
 
       <AlertDialog.Root
         open={exportError !== null}

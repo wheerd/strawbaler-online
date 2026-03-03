@@ -889,26 +889,15 @@ interface Resources {
       }
     },
     "plan": {
-      "hideAreas": "Hide Areas",
-      "hideIssues": "Hide Issues",
-      "hideMeasurements": "Hide Measurements",
-      "midCut": "Mid Cut",
-      "showStrawTypes": "Show Straw Types",
-      "strawTypes": {
-        "flakes": "Flakes",
-        "fullBale": "Full Bale",
-        "partialBale": "Partial Bale",
-        "stuffed": "Stuffed"
-      },
-      "strawTypesHeading": "Straw Types"
-    },
-    "planModal": {
       "clearFocus": "Clear focus",
       "focus": {
         "perimeter": "Focus: Perimeter",
         "roof": "Focus: Roof",
         "wall": "Focus: Wall"
       },
+      "hideAreas": "Hide Areas",
+      "hideIssues": "Hide Issues",
+      "hideMeasurements": "Hide Measurements",
       "issuesPanel": {
         "errorsTitle_one": "Errors ({{count}})",
         "errorsTitle_other": "Errors ({{count}})",
@@ -917,10 +906,19 @@ interface Resources {
         "warningsTitle_one": "Warnings ({{count}})",
         "warningsTitle_other": "Warnings ({{count}})"
       },
+      "midCut": "Mid Cut",
       "partHighlight": {
         "clearHighlight": "Clear highlight",
         "partHighlighted": "Part highlighted"
       },
+      "showStrawTypes": "Show Straw Types",
+      "strawTypes": {
+        "flakes": "Flakes",
+        "fullBale": "Full Bale",
+        "partialBale": "Partial Bale",
+        "stuffed": "Stuffed"
+      },
+      "strawTypesHeading": "Straw Types",
       "views": {
         "floor": "Floor",
         "front": "Front",
@@ -1064,9 +1062,6 @@ interface Resources {
       "wall-part_reinforcement": "Reinforcement Plating",
       "wall-part_sill": "Sill",
       "wall-part_triangular-batten": "Triangular Batten"
-    },
-    "viewer3DModal": {
-      "title": "3D Construction View"
     }
   },
   "errors": {
@@ -1751,6 +1746,7 @@ interface Resources {
     }
   },
   "viewer": {
+    "clearFocus": "Clear Focus",
     "export": {
       "collada": "Collada (DAE)",
       "exportError": {
@@ -1771,6 +1767,12 @@ interface Resources {
       "stl": "STL",
       "title": "Export"
     },
+    "focus": {
+      "perimeter": "Focus: Perimeter",
+      "roof": "Focus: Roof",
+      "storey": "Focus: Storey"
+    },
+    "focusOnStorey": "Focus on Storey",
     "grid": {
       "hide": "Hide Grid",
       "show": "Show Grid"

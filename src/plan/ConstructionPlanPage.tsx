@@ -45,10 +45,10 @@ function ConstructionPlanPageContent() {
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="flex shrink-0 items-center justify-between border-b px-4 py-2">
+      <div className="flex shrink-0 items-center justify-between border-b px-4 py-1">
         <StoreySelector />
         <PlanViewControls />
-        <Suspense fallback={null}>
+        <Suspense fallback={<div />}>
           <ConstructionModelRegenerateButton />
         </Suspense>
       </div>

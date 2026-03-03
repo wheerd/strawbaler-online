@@ -33,7 +33,6 @@ import { Separator } from '@/shared/ui/components/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon, RoofIcon } from '@/shared/ui/icons'
-import { ConstructionViewer3DModal } from '@/viewer3d/ConstructionViewer3DModal'
 
 interface PerimeterInspectorProps {
   selectedId: PerimeterId
@@ -261,14 +260,16 @@ export function PerimeterInspector({ selectedId }: PerimeterInspectorProps): Rea
         >
           <ConstructionPlanIcon width={24} height={24} />
         </Button>
-        <ConstructionViewer3DModal
-          modelId={perimeter.id}
-          trigger={
-            <Button size="icon" title={t($ => $.perimeter.view3DConstruction)} variant="outline">
-              <Model3DIcon width={24} height={24} />
-            </Button>
-          }
-        />
+        <Button
+          size="icon"
+          title={t($ => $.perimeter.view3DConstruction)}
+          variant="outline"
+          onClick={() => {
+            void navigate(`/3d-view/${selectedId}`)
+          }}
+        >
+          <Model3DIcon width={24} height={24} />
+        </Button>
       </div>
 
       <Separator />

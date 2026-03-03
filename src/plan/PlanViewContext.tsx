@@ -37,18 +37,18 @@ const PlanViewContext = createContext<PlanViewContextValue | null>(null)
 const STOREY_VIEWS: ViewOption[] = [
   {
     view: TOP_VIEW,
-    label: $ => $.planModal.views.walls,
+    label: $ => $.plan.views.walls,
     alwaysHiddenTags: [TAG_ROOF.id, 'roof-measurement', 'floor-measurement']
   },
   {
     view: TOP_VIEW,
-    label: $ => $.planModal.views.roof,
+    label: $ => $.plan.views.roof,
     alwaysHiddenTags: ['wall-measurement', 'opening-measurement', 'floor-measurement'],
     toggleHideTags: [TAG_DECKING.id]
   },
   {
     view: TOP_VIEW,
-    label: $ => $.planModal.views.floor,
+    label: $ => $.plan.views.floor,
     alwaysHiddenTags: [
       TAG_WALLS.id,
       TAG_BASE_PLATE.id,
@@ -63,15 +63,15 @@ const STOREY_VIEWS: ViewOption[] = [
 ]
 
 const WALL_VIEWS: ViewOption[] = [
-  { view: FRONT_VIEW, label: $ => $.planModal.views.outside, alwaysHiddenTags: ['wall-layer'] },
-  { view: BACK_VIEW, label: $ => $.planModal.views.inside, alwaysHiddenTags: ['wall-layer'] },
-  { view: TOP_VIEW, label: $ => $.planModal.views.top, alwaysHiddenTags: ['wall-layer'] }
+  { view: FRONT_VIEW, label: $ => $.plan.views.outside, alwaysHiddenTags: ['wall-layer'] },
+  { view: BACK_VIEW, label: $ => $.plan.views.inside, alwaysHiddenTags: ['wall-layer'] },
+  { view: TOP_VIEW, label: $ => $.plan.views.top, alwaysHiddenTags: ['wall-layer'] }
 ]
 
 const ROOF_VIEWS: ViewOption[] = [
-  { view: TOP_VIEW, label: $ => $.planModal.views.top, toggleHideTags: [TAG_DECKING.id] },
-  { view: FRONT_VIEW, label: $ => $.planModal.views.front },
-  { view: LEFT_VIEW, label: $ => $.planModal.views.left }
+  { view: TOP_VIEW, label: $ => $.plan.views.top, toggleHideTags: [TAG_DECKING.id] },
+  { view: FRONT_VIEW, label: $ => $.plan.views.front },
+  { view: LEFT_VIEW, label: $ => $.plan.views.left }
 ]
 
 const STOREY_DEFAULT_HIDDEN: TagOrCategory[] = ['floor-layer', 'wall-layer', 'roof-layer', 'finished-measurement']

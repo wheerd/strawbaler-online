@@ -40,6 +40,14 @@ Object.defineProperty(Element.prototype, 'scrollIntoView', {
 
 vi.mock('@/construction/assemblies/walls')
 
+vi.mock('react-router-dom', async importOriginal => {
+  return {
+    ...(await importOriginal()),
+    useNavigate: () => vi.fn(),
+    useParams: () => ({})
+  }
+})
+
 describe('PerimeterToolInspector', () => {
   let mockTool: PerimeterTool
   let toolSystem: ToolSystem

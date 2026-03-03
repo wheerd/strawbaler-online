@@ -161,26 +161,15 @@
     }
   },
   "plan": {
-    "hideAreas": "Bereiche ausblenden",
-    "hideIssues": "Probleme ausblenden",
-    "hideMeasurements": "Maße ausblenden",
-    "midCut": "Mittelschnitt",
-    "showStrawTypes": "Zeige Strohfüllung Details",
-    "strawTypes": {
-      "flakes": "Stroh-Flakes",
-      "fullBale": "Voller Ballen",
-      "partialBale": "Teil-Ballen",
-      "stuffed": "Gestopftes Stroh"
-    },
-    "strawTypesHeading": "Strohfüllung Details"
-  },
-  "planModal": {
     "clearFocus": "Fokus entfernen",
     "focus": {
       "perimeter": "Fokus: Gebäudekontur",
       "roof": "Fokus: Dach",
       "wall": "Fokus: Wand"
     },
+    "hideAreas": "Bereiche ausblenden",
+    "hideIssues": "Probleme ausblenden",
+    "hideMeasurements": "Maße ausblenden",
     "issuesPanel": {
       "errorsTitle_one": "Fehler ({{count}})",
       "errorsTitle_other": "Fehler ({{count}})",
@@ -189,10 +178,19 @@
       "warningsTitle_one": "Warnung ({{count}})",
       "warningsTitle_other": "Warnungen ({{count}})"
     },
+    "midCut": "Mittelschnitt",
     "partHighlight": {
       "clearHighlight": "Hervorhebung entfernen",
       "partHighlighted": "Teil hervorgehoben"
     },
+    "showStrawTypes": "Zeige Strohfüllung Details",
+    "strawTypes": {
+      "flakes": "Stroh-Flakes",
+      "fullBale": "Voller Ballen",
+      "partialBale": "Teil-Ballen",
+      "stuffed": "Gestopftes Stroh"
+    },
+    "strawTypesHeading": "Strohfüllung Details",
     "views": {
       "floor": "Boden",
       "front": "Vorne",
@@ -336,8 +334,5 @@
     "noTags": "Keine Tags verfügbar",
     "showCategory": "Kategorie anzeigen",
     "title": "Tag-Sichtbarkeit"
-  },
-  "viewer3DModal": {
-    "title": "3D-Konstruktionsansicht"
   }
 }

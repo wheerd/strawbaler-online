@@ -29,7 +29,6 @@ import { DataList } from '@/shared/ui/components/data-list'
 import { Separator } from '@/shared/ui/components/separator'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 import { ConstructionPlanIcon, FitToViewIcon, Model3DIcon } from '@/shared/ui/icons'
-import { ConstructionViewer3DModal } from '@/viewer3d/ConstructionViewer3DModal'
 
 interface RoofInspectorProps {
   roofId: RoofId
@@ -256,14 +255,16 @@ export function RoofInspector({ roofId }: RoofInspectorProps): React.JSX.Element
         >
           <ConstructionPlanIcon width={24} height={24} />
         </Button>
-        <ConstructionViewer3DModal
-          modelId={roofId}
-          trigger={
-            <Button size="icon" title={t($ => $.roof.view3DConstruction)} variant="outline">
-              <Model3DIcon width={24} height={24} />
-            </Button>
-          }
-        />
+        <Button
+          size="icon"
+          title={t($ => $.roof.view3DConstruction)}
+          variant="outline"
+          onClick={() => {
+            void navigate(`/3d-view/${roofId}`)
+          }}
+        >
+          <Model3DIcon width={24} height={24} />
+        </Button>
       </div>
 
       <Separator />

@@ -75,7 +75,7 @@ export const router = createBrowserRouter([
         )
       },
       {
-        path: '3d-view',
+        path: '3d-view/:focusId?',
         element: (
           <Suspense fallback={null}>
             <Viewer3DPage />

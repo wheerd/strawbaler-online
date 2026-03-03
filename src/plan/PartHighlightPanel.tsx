@@ -16,14 +16,14 @@ export function PartHighlightPanel() {
     <div className="absolute bottom-3 left-3 z-10">
       <Card size="sm" variant="soft" className="shadow-md">
         <div className="flex items-center gap-2">
-          <span className="text-base">{t($ => $.planModal.partHighlight.partHighlighted)}</span>
+          <span className="text-base">{t($ => $.plan.partHighlight.partHighlighted)}</span>
           <Button
             size="icon"
             variant="ghost"
             onClick={() => {
               setHighlightedPartId(null)
             }}
-            title={t($ => $.planModal.partHighlight.clearHighlight)}
+            title={t($ => $.plan.partHighlight.clearHighlight)}
           >
             <X />
           </Button>

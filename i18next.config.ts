@@ -20,6 +20,7 @@ export default defineConfig({
       'construction:strawCategories.*',
       'construction:tagCategories.*',
       'construction:tags.*',
+      'construction:plan.views.*',
       'errors:construction.*',
       'inspector:constraint.*',
       'inspector:perimeterCorner.cannotDelete*',
