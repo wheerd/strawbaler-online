@@ -88,7 +88,6 @@
     "view3DConstruction": "3D-Konstruktion anzeigen",
     "viewAssociatedRoof": "Zugehöriges Dach anzeigen",
     "viewConstructionPlan": "Konstruktionsplan anzeigen",
-    "viewParts": "Teile anzeigen",
     "wallAssembly": "Wandaufbau",
     "wallConfiguration": "Wandkonfiguration",
     "wallThickness": "Wanddicke"
@@ -135,7 +134,6 @@
     "thickness": "Dicke",
     "topPlate": "Kopfschwelle",
     "viewConstructionPlan": "Konstruktionsplan anzeigen",
-    "viewParts": "Teile anzeigen",
     "wallAssembly": "Wandaufbau",
     "windows": "Fenster"
   },
@@ -158,8 +156,7 @@
     "verticalOffset": "Vertikaler Versatz",
     "view3DConstruction": "3D-Konstruktion anzeigen",
     "viewAssociatedPerimeter": "Zugehörige Gebäudekontur anzeigen",
-    "viewConstructionPlan": "Konstruktionsplan anzeigen",
-    "viewParts": "Teile anzeigen"
+    "viewConstructionPlan": "Konstruktionsplan anzeigen"
   },
   "roofOverhang": {
     "fitToView": "Auf Ansicht anpassen",

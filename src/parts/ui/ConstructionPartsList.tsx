@@ -10,6 +10,7 @@ import { getMaterialTypeIcon } from '@/materials/ui/icons'
 import { useMaterialName } from '@/materials/useMaterialName'
 import { useMaterialParts } from '@/parts/hooks'
 import { getLabelGroupId } from '@/parts/store'
+import type { AggregatedPartItem } from '@/parts/types'
 import {
   type MaterialGroup,
   type PartSubGroup,
@@ -35,6 +36,7 @@ import { RegenerateLabelsButton } from './RegenerateLabelsButton'
 import SheetPartsTable from './SheetPartsTable'
 import StrawbalePartsTable from './StrawbalePartsTable'
 import VolumePartsTable from './VolumePartsTable'
+import { ExportAggregatedPartsButton, ExportMaterialPartsButton } from './export-buttons'
 
 function MaterialTypeIndicator({ material, size = 18 }: { material: Material; size?: number }) {
   const getMaterialTypeName = useGetMaterialTypeName()
@@ -159,6 +161,7 @@ function MaterialGroupCard({ material, group, onBackToTop }: MaterialGroupCardPr
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ExportMaterialPartsButton parts={group.parts} materialName={materialName} />
             <RegenerateLabelsButton groupId={groupId} compact />
             <Button size="icon" title={t($ => $.partsList.actions.backToSummary)} variant="ghost" onClick={onBackToTop}>
               <ArrowUpToLine />
@@ -224,6 +227,7 @@ export function ConstructionPartsList(): React.JSX.Element {
           }}
           scrollToGroup={scrollToGroup}
           groups={sortedGroups}
+          aggregatedParts={aggregatedParts}
         />
 
         <div className="flex flex-col gap-4">
@@ -243,11 +247,13 @@ export function ConstructionPartsList(): React.JSX.Element {
 function SummaryTable({
   groups,
   setTopRef,
-  scrollToGroup
+  scrollToGroup,
+  aggregatedParts
 }: {
   groups: MaterialGroup[]
   setTopRef: (ref: HTMLDivElement) => void
   scrollToGroup: (group: string) => void
+  aggregatedParts: AggregatedPartItem[]
 }) {
   const { t } = useTranslation('construction')
 
@@ -256,7 +262,10 @@ function SummaryTable({
       <CardHeader className="p-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-bold">{t($ => $.partsList.summary)}</h2>
-          <RegenerateLabelsButton />
+          <div className="flex items-center gap-2">
+            <ExportAggregatedPartsButton aggregatedParts={aggregatedParts} />
+            <RegenerateLabelsButton />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="px-3">

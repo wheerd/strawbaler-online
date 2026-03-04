@@ -836,6 +836,18 @@ interface Resources {
         "viewInPlan": "View in Plan"
       },
       "clearFocus": "Clear focus",
+      "export": {
+        "aggregatedData": "Export Summary",
+        "areaM2": "Area (m²)",
+        "heightM": "Height (m)",
+        "lengthM": "Length (m)",
+        "material": "Export this material",
+        "rawData": "Export All Parts",
+        "storey": "Storey",
+        "thicknessM": "Thickness (m)",
+        "volumeM3": "Volume (m³)",
+        "widthM": "Width (m)"
+      },
       "focus": {
         "perimeter": "Focus: Perimeter",
         "roof": "Focus: Roof",
@@ -1250,7 +1262,6 @@ interface Resources {
       "view3DConstruction": "View 3D Construction",
       "viewAssociatedRoof": "View associated roof",
       "viewConstructionPlan": "View Construction Plan",
-      "viewParts": "View Parts",
       "wallAssembly": "Wall Assembly",
       "wallConfiguration": "Wall Configuration",
       "wallThickness": "Wall Thickness"
@@ -1297,7 +1308,6 @@ interface Resources {
       "thickness": "Thickness",
       "topPlate": "Top Plate",
       "viewConstructionPlan": "View Construction Plan",
-      "viewParts": "View Parts",
       "wallAssembly": "Wall Assembly",
       "windows": "Windows"
     },
@@ -1320,8 +1330,7 @@ interface Resources {
       "verticalOffset": "Vertical Offset",
       "view3DConstruction": "View 3D Construction",
       "viewAssociatedPerimeter": "View associated perimeter",
-      "viewConstructionPlan": "View Construction Plan",
-      "viewParts": "View Parts"
+      "viewConstructionPlan": "View Construction Plan"
     },
     "roofOverhang": {
       "fitToView": "Fit to view",

@@ -108,6 +108,18 @@
       "viewInPlan": "In Plan anzeigen"
     },
     "clearFocus": "Fokus entfernen",
+    "export": {
+      "aggregatedData": "Teileliste exportieren",
+      "areaM2": "Fläche (m²)",
+      "heightM": "Höhe (m)",
+      "lengthM": "Länge (m)",
+      "material": "Material-Teileliste exportieren",
+      "rawData": "Rohdaten exportieren",
+      "storey": "Geschoss",
+      "thicknessM": "Dicke (m)",
+      "volumeM3": "Volumen (m³)",
+      "widthM": "Breite (m)"
+    },
     "focus": {
       "perimeter": "Fokus: Gebäudekontur",
       "roof": "Fokus: Dach",

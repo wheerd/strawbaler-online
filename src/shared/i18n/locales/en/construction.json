@@ -108,6 +108,18 @@
       "viewInPlan": "View in Plan"
     },
     "clearFocus": "Clear focus",
+    "export": {
+      "aggregatedData": "Export part list",
+      "areaM2": "Area (m²)",
+      "heightM": "Height (m)",
+      "lengthM": "Length (m)",
+      "material": "Export part list for material",
+      "rawData": "Export raw data",
+      "storey": "Storey",
+      "thicknessM": "Thickness (m)",
+      "volumeM3": "Volume (m³)",
+      "widthM": "Width (m)"
+    },
     "focus": {
       "perimeter": "Focus: Perimeter",
       "roof": "Focus: Roof",

@@ -1,4 +1,5 @@
-import { useTranslation } from 'react-i18next'
+import type { Namespace } from 'i18next'
+import { type UseTranslationResponse, useTranslation } from 'react-i18next'
 
 import type { Material } from './material'
 
@@ -9,15 +10,19 @@ import type { Material } from './material'
  */
 export function useMaterialName(material: Material | null | undefined): string {
   const { t } = useTranslation('config')
+  return getMaterialName(material, t)
+}
 
+export function getMaterialName<T extends Namespace>(
+  material: Material | null | undefined,
+  t: UseTranslationResponse<T, undefined>['t']
+): string {
   if (!material) return ''
 
-  // If material has a translation key, use it
   const nameKey = material.nameKey
   if (nameKey != null) {
-    return t($ => $.materials.defaults[nameKey])
+    return t($ => $.materials.defaults[nameKey], { ns: 'config' })
   }
 
-  // Otherwise use the direct name (user-edited or no translation available)
   return material.name
 }

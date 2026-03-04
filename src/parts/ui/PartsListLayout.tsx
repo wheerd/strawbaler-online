@@ -8,6 +8,7 @@ import { StoreySelector } from '@/editor/status-bar/StoreySelector'
 import { cn } from '@/shared/ui/utils'
 
 import { PartsListControls } from './PartsListControls'
+import { ExportRawPartsButton } from './export-buttons'
 
 const ConstructionModelRegenerateButton = React.lazy(
   () => import('@/construction/ui/ConstructionModelRegenerateButton')
@@ -64,6 +65,7 @@ export function PartsListLayout(): React.JSX.Element {
         <div className="flex items-center gap-2">
           <StoreySelector value={storeyId} onStoreyChange={handleStoreyChange} />
           <PartsListControls />
+          <ExportRawPartsButton />
         </div>
 
         <Suspense fallback={<div />}>
