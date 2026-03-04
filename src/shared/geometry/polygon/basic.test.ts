@@ -1,162 +1,195 @@
-import type { MainModule } from 'clipper2-wasm'
-import { type Mocked, afterEach, beforeEach, describe, expect, vi } from 'vitest'
+import { describe, expect } from 'vitest'
 
-import { type Vec2, ZERO_VEC2, newVec2 } from '@/shared/geometry/2d'
+import { newVec2 } from '@/shared/geometry/2d'
 import {
   calculatePolygonArea,
+  calculatePolygonWithHolesArea,
+  ensurePolygonIsClockwise,
+  ensurePolygonIsCounterClockwise,
   isPointInPolygon,
+  isPointStrictlyInPolygon,
   polygonIsClockwise,
-  simplifyPolygon
+  polygonPerimeter,
+  signedPolygonArea
 } from '@/shared/geometry/polygon/basic'
-import {
-  createPathD,
-  createPathsD,
-  createPointD,
-  getClipperModule,
-  pathDToPoints
-} from '@/shared/geometry/polygon/clipperInstance'
 
-vi.mock('@/shared/geometry/polygon/clipperInstance', () => ({
-  createPointD: vi.fn(),
-  createPathD: vi.fn(),
-  createPathsD: vi.fn(),
-  pathDToPoints: vi.fn(),
-  getClipperModule: vi.fn()
-}))
+describe('signedPolygonArea', () => {
+  it('returns positive area for clockwise polygon in Y-down coords', () => {
+    const cwPolygon = {
+      points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)]
+    }
+    expect(signedPolygonArea(cwPolygon)).toBe(100)
+  })
 
-const createPointDMock = vi.mocked(createPointD)
-const createPathDMock = vi.mocked(createPathD)
-const createPathsDMock = vi.mocked(createPathsD)
-const pathDToPointsMock = vi.mocked(pathDToPoints)
-const getClipperModuleMock = vi.mocked(getClipperModule)
+  it('returns negative area for counter-clockwise polygon in Y-down coords', () => {
+    const ccwPolygon = {
+      points: [newVec2(0, 0), newVec2(0, 10), newVec2(10, 10), newVec2(10, 0)]
+    }
+    expect(signedPolygonArea(ccwPolygon)).toBe(-100)
+  })
 
-function mockClipperModule(overrides: Partial<Mocked<ReturnType<typeof getClipperModule>>> = {}) {
-  const module = {
-    AreaPathD: vi.fn(() => 123),
-    IsPositiveD: vi.fn(() => false),
-    PointInPolygonD: vi.fn(() => ({ value: 1 })),
-    PointInPolygonResult: { IsOutside: { value: 0 } },
-    SimplifyPathD: vi.fn(path => path),
-    InflatePathsD: vi.fn(() => ({ get: vi.fn(() => ({})), size: vi.fn(() => 1), delete: vi.fn() })),
-    UnionSelfD: vi.fn(() => ({ size: vi.fn(() => 1), delete: vi.fn() })),
-    IntersectD: vi.fn(() => ({ size: vi.fn(() => 0), delete: vi.fn() })),
-    FillRule: { EvenOdd: { value: 0 } },
-    JoinType: { Miter: { value: 3 } },
-    EndType: { Polygon: { value: 0 } },
-    PathD: vi.fn(),
-    PathsD: vi.fn(),
-    PointD: vi.fn()
-  } as any as MainModule
-
-  Object.assign(module, overrides)
-  return module
-}
-
-beforeEach(() => {
-  createPointDMock.mockReset()
-  createPathDMock.mockReset()
-  createPathsDMock.mockReset()
-  pathDToPointsMock.mockReset()
-  getClipperModuleMock.mockReset()
-
-  createPointDMock.mockReturnValue({ delete: vi.fn() } as any)
-  createPathDMock.mockReturnValue({ delete: vi.fn() } as any)
-  createPathsDMock.mockReturnValue({ delete: vi.fn() } as any)
-  pathDToPointsMock.mockReturnValue([ZERO_VEC2])
-  getClipperModuleMock.mockReturnValue(mockClipperModule())
-})
-
-afterEach(() => {
-  vi.clearAllMocks()
+  it('returns 0 for degenerate polygon with less than 3 points', () => {
+    expect(signedPolygonArea({ points: [newVec2(0, 0), newVec2(10, 0)] })).toBe(0)
+    expect(signedPolygonArea({ points: [newVec2(0, 0)] })).toBe(0)
+    expect(signedPolygonArea({ points: [] })).toBe(0)
+  })
 })
 
 describe('calculatePolygonArea', () => {
-  it('delegates to AreaPathD', () => {
-    const samplePolygon = {
+  it('returns absolute value of signed area', () => {
+    const cwPolygon = {
       points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)]
     }
-    const module = mockClipperModule({ AreaPathD: vi.fn(_ => 456) })
-    getClipperModuleMock.mockReturnValue(module)
-    const pathStub = { delete: vi.fn() }
-    createPathDMock.mockReturnValueOnce(pathStub as any)
+    const ccwPolygon = {
+      points: [newVec2(0, 0), newVec2(0, 10), newVec2(10, 10), newVec2(10, 0)]
+    }
+    expect(calculatePolygonArea(cwPolygon)).toBe(100)
+    expect(calculatePolygonArea(ccwPolygon)).toBe(100)
+  })
 
-    const area = calculatePolygonArea(samplePolygon)
+  it('calculates area of a triangle', () => {
+    const triangle = {
+      points: [newVec2(0, 0), newVec2(10, 0), newVec2(5, 10)]
+    }
+    expect(calculatePolygonArea(triangle)).toBe(50)
+  })
+})
 
-    expect(createPathDMock).toHaveBeenCalledWith(samplePolygon.points)
-    expect(module.AreaPathD).toHaveBeenCalledWith(pathStub)
-    expect(area).toEqual(456)
-    expect(pathStub.delete).toHaveBeenCalled()
+describe('calculatePolygonWithHolesArea', () => {
+  it('subtracts hole area from outer area', () => {
+    const outer = {
+      points: [newVec2(0, 0), newVec2(20, 0), newVec2(20, 20), newVec2(0, 20)]
+    }
+    const hole = {
+      points: [newVec2(5, 5), newVec2(5, 15), newVec2(15, 15), newVec2(15, 5)]
+    }
+    expect(calculatePolygonWithHolesArea({ outer, holes: [hole] })).toBe(400 - 100)
+  })
+
+  it('returns outer area when no holes', () => {
+    const outer = {
+      points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)]
+    }
+    expect(calculatePolygonWithHolesArea({ outer, holes: [] })).toBe(100)
   })
 })
 
 describe('polygonIsClockwise', () => {
-  it('delegates to IsPositiveD', () => {
-    const samplePolygon = {
+  it('returns true for clockwise polygon', () => {
+    const cwPolygon = {
+      points: [newVec2(0, 0), newVec2(0, 10), newVec2(10, 10), newVec2(10, 0)]
+    }
+    expect(polygonIsClockwise(cwPolygon)).toBe(true)
+  })
+
+  it('returns false for counter-clockwise polygon', () => {
+    const ccwPolygon = {
       points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)]
     }
-    const module = mockClipperModule({ IsPositiveD: vi.fn(_ => true) })
-    getClipperModuleMock.mockReturnValue(module)
-    const pathStub = { delete: vi.fn() }
-    createPathDMock.mockReturnValueOnce(pathStub as any)
+    expect(polygonIsClockwise(ccwPolygon)).toBe(false)
+  })
+})
 
-    const result = polygonIsClockwise(samplePolygon)
+describe('ensurePolygonIsClockwise', () => {
+  it('returns same polygon if already clockwise', () => {
+    const cwPolygon = {
+      points: [newVec2(0, 0), newVec2(0, 10), newVec2(10, 10)]
+    }
+    const result = ensurePolygonIsClockwise(cwPolygon)
+    expect(result.points).toEqual(cwPolygon.points)
+  })
 
-    expect(module.IsPositiveD).toHaveBeenCalledWith(pathStub)
-    expect(result).toBe(false)
-    expect(pathStub.delete).toHaveBeenCalled()
+  it('reverses points if counter-clockwise', () => {
+    const ccwPolygon = {
+      points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10)]
+    }
+    const result = ensurePolygonIsClockwise(ccwPolygon)
+    expect(result.points).toEqual([newVec2(10, 10), newVec2(10, 0), newVec2(0, 0)])
+  })
+})
+
+describe('ensurePolygonIsCounterClockwise', () => {
+  it('returns same polygon if already counter-clockwise', () => {
+    const ccwPolygon = {
+      points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10)]
+    }
+    const result = ensurePolygonIsCounterClockwise(ccwPolygon)
+    expect(result.points).toEqual(ccwPolygon.points)
+  })
+
+  it('reverses points if clockwise', () => {
+    const cwPolygon = {
+      points: [newVec2(0, 0), newVec2(0, 10), newVec2(10, 10)]
+    }
+    const result = ensurePolygonIsCounterClockwise(cwPolygon)
+    expect(result.points).toEqual([newVec2(10, 10), newVec2(0, 10), newVec2(0, 0)])
+  })
+})
+
+describe('polygonPerimeter', () => {
+  it('calculates perimeter of a square', () => {
+    const square = {
+      points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)]
+    }
+    expect(polygonPerimeter(square)).toBe(40)
+  })
+
+  it('returns 0 for polygon with less than 2 points', () => {
+    expect(polygonPerimeter({ points: [newVec2(0, 0)] })).toBe(0)
+    expect(polygonPerimeter({ points: [] })).toBe(0)
   })
 })
 
 describe('isPointInPolygon', () => {
-  it('delegates to PointInPolygonD', () => {
-    const samplePolygon = {
-      points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)]
-    }
-    const module = mockClipperModule({
-      PointInPolygonD: vi.fn((_1, _2) => ({ value: 1 })),
-      PointInPolygonResult: { IsOutside: { value: 2 } } as any
-    })
-    getClipperModuleMock.mockReturnValue(module)
-    const pointStub = { delete: vi.fn() }
-    const pathStub = { delete: vi.fn() }
-    createPointDMock.mockReturnValueOnce(pointStub as any)
-    createPathDMock.mockReturnValueOnce(pathStub as any)
+  const square = {
+    points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)]
+  }
 
-    const point = newVec2(5, 5)
-    const result = isPointInPolygon(point, samplePolygon)
+  it('returns true for point inside polygon', () => {
+    expect(isPointInPolygon(newVec2(5, 5), square)).toBe(true)
+  })
 
-    expect(createPointDMock).toHaveBeenCalledWith(point)
-    expect(createPathDMock).toHaveBeenCalledWith(samplePolygon.points)
-    expect(module.PointInPolygonD).toHaveBeenCalledWith(pointStub, pathStub)
-    expect(result).toBe(true)
-    expect(pointStub.delete).toHaveBeenCalled()
-    expect(pathStub.delete).toHaveBeenCalled()
+  it('returns true for point on edge (ray casting includes boundary)', () => {
+    expect(isPointInPolygon(newVec2(5, 0), square)).toBe(true)
+  })
+
+  it('returns true for point on vertex', () => {
+    expect(isPointInPolygon(newVec2(0, 0), square)).toBe(true)
+  })
+
+  it('returns false for point outside polygon', () => {
+    expect(isPointInPolygon(newVec2(15, 5), square)).toBe(false)
+    expect(isPointInPolygon(newVec2(-5, 5), square)).toBe(false)
   })
 })
 
-describe('simplifyPolygon', () => {
-  it('delegates to SimplifyPathD and returns points', () => {
-    const samplePolygon = {
-      points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)]
-    }
-    const simplifiedPath = { delete: vi.fn() } as any
-    const module = mockClipperModule({ SimplifyPathD: vi.fn((_1, _2, _3) => simplifiedPath) })
-    getClipperModuleMock.mockReturnValue(module)
-    const pathStub = { delete: vi.fn() }
-    const pathsStub = { delete: vi.fn() }
-    createPathDMock.mockReturnValueOnce(pathStub as any)
-    createPathsDMock.mockReturnValueOnce(pathsStub as any)
-    const pathPoints: Vec2[] = [newVec2(123, 456)]
-    pathDToPointsMock.mockReturnValueOnce(pathPoints)
+describe('isPointStrictlyInPolygon', () => {
+  const square = {
+    points: [newVec2(0, 0), newVec2(10, 0), newVec2(10, 10), newVec2(0, 10)]
+  }
 
-    const result = simplifyPolygon(samplePolygon, 23)
+  it('returns true for point strictly inside polygon', () => {
+    expect(isPointStrictlyInPolygon(newVec2(5, 5), square)).toBe(true)
+  })
 
-    expect(createPathDMock).toHaveBeenCalledWith(samplePolygon.points)
-    expect(createPathsDMock).toHaveBeenCalledWith([pathStub])
-    expect(module.SimplifyPathD).toHaveBeenCalledWith(pathStub, 23, true)
-    expect(pathDToPointsMock).toHaveBeenCalledWith(simplifiedPath)
-    expect(result.points).toBe(pathPoints)
-    expect(pathsStub.delete).toHaveBeenCalled()
-    expect(pathStub.delete).toHaveBeenCalled()
+  it('returns false for point on edge', () => {
+    expect(isPointStrictlyInPolygon(newVec2(5, 0), square)).toBe(false)
+    expect(isPointStrictlyInPolygon(newVec2(0, 5), square)).toBe(false)
+    expect(isPointStrictlyInPolygon(newVec2(10, 5), square)).toBe(false)
+  })
+
+  it('returns false for point on vertex', () => {
+    expect(isPointStrictlyInPolygon(newVec2(0, 0), square)).toBe(false)
+    expect(isPointStrictlyInPolygon(newVec2(10, 10), square)).toBe(false)
+  })
+
+  it('returns false for point outside polygon', () => {
+    expect(isPointStrictlyInPolygon(newVec2(15, 5), square)).toBe(false)
+  })
+
+  it('respects custom epsilon', () => {
+    const nearEdge = newVec2(5, 0.0001)
+    expect(isPointStrictlyInPolygon(nearEdge, square, 0.01)).toBe(false)
+    expect(isPointStrictlyInPolygon(nearEdge, square, 0.00001)).toBe(true)
   })
 })

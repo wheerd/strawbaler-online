@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { VolumeMaterial } from '@/materials/material'
 import type { AggregatedPartItem } from '@/parts/types'
+import { usePartsListView } from '@/parts/ui/PartsListViewContext'
 import { calculateWeight, canHighlightPart, getIssueSeverity } from '@/parts/utils'
 import { usePlanNavigation } from '@/plan/ui/hooks/usePlanNavigation'
 import { useFormatters } from '@/shared/i18n/useFormatters'
@@ -58,6 +59,7 @@ export default function VolumePartsTable({
 
 function VolumePartsTableRow({ part, material }: { part: AggregatedPartItem; material: VolumeMaterial }) {
   const { t } = useTranslation('construction')
+  const { focusId } = usePartsListView()
   const { viewPartInPlan } = usePlanNavigation()
   const { formatWeight, formatArea, formatVolume, formatLength } = useFormatters()
   const description = useTranslatableString(part.description)
@@ -82,7 +84,7 @@ function VolumePartsTableRow({ part, material }: { part: AggregatedPartItem; mat
           <Button
             size="icon-sm"
             variant="ghost"
-            onClick={() => void viewPartInPlan(part.partId)}
+            onClick={() => void viewPartInPlan(part.partId, focusId)}
             title={t($ => $.partsList.actions.viewInPlan)}
             className="-my-2"
           >

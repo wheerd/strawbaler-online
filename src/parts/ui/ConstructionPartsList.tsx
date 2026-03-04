@@ -4,7 +4,6 @@ import React, { Suspense, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useConfigNavigation } from '@/config/ui/useConfigNavigation'
-import type { ConstructionModelId } from '@/construction/store'
 import type { Material } from '@/materials/material'
 import { useGetMaterialTypeName } from '@/materials/ui/MaterialSelect'
 import { getMaterialTypeIcon } from '@/materials/ui/icons'
@@ -31,14 +30,11 @@ import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import DimensionalPartsTable from './DimensionalPartsTable'
 import GenericPartsTable from './GenericPartsTable'
+import { usePartsListView } from './PartsListViewContext'
 import { RegenerateLabelsButton } from './RegenerateLabelsButton'
 import SheetPartsTable from './SheetPartsTable'
 import StrawbalePartsTable from './StrawbalePartsTable'
 import VolumePartsTable from './VolumePartsTable'
-
-interface ConstructionPartsListProps {
-  modelId?: ConstructionModelId
-}
 
 function MaterialTypeIndicator({ material, size = 18 }: { material: Material; size?: number }) {
   const getMaterialTypeName = useGetMaterialTypeName()
@@ -181,11 +177,12 @@ function MaterialGroupCard({ material, group, onBackToTop }: MaterialGroupCardPr
   )
 }
 
-export function ConstructionPartsList({ modelId }: ConstructionPartsListProps): React.JSX.Element {
+export function ConstructionPartsList(): React.JSX.Element {
   const { t } = useTranslation('construction')
   const topRef = useRef<HTMLDivElement | null>(null)
   const detailRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
+  const { modelId } = usePartsListView()
   const aggregatedParts = useMaterialParts(modelId)
   const grouped = d3.groups(aggregatedParts, groupKey, subGroupKey)
   const sorted = d3.sort(grouped, ([k, _]) => k).map(([, v]) => v)

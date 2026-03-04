@@ -105,7 +105,14 @@
       "regenerateLabelsHint": "Reassign labels sequentially. Old unused labels will be removed.",
       "specialCutPreview": "Special cut polygon preview",
       "unusedLabelsWarning": "Some labels are no longer in use. Regenerate to reassign labels sequentially.",
-      "viewInPlan": "View in plan"
+      "viewInPlan": "View in Plan"
+    },
+    "clearFocus": "Clear focus",
+    "focus": {
+      "perimeter": "Focus: Perimeter",
+      "roof": "Focus: Roof",
+      "storey": "Focus: Storey",
+      "wall": "Focus: Wall"
     },
     "issues": {
       "dimensionsExceedSizeMultiple": "Dimensions exceed available sheet sizes. This part will require multiple sheets.",
@@ -195,6 +202,7 @@
       "stuffed": "Stuffed"
     },
     "strawTypesHeading": "Straw Types",
+    "viewParts": "View Parts",
     "views": {
       "floor": "Floor",
       "front": "Front",

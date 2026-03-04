@@ -107,6 +107,13 @@
       "unusedLabelsWarning": "Einige Bezeichnungen werden nicht mehr verwendet. Neu generieren, um Lücken zu schließen.",
       "viewInPlan": "In Plan anzeigen"
     },
+    "clearFocus": "Fokus entfernen",
+    "focus": {
+      "perimeter": "Fokus: Gebäudekontur",
+      "roof": "Fokus: Dach",
+      "storey": "Fokus: Geschoss",
+      "wall": "Fokus: Wand"
+    },
     "issues": {
       "dimensionsExceedSizeMultiple": "Abmessungen überschreiten verfügbare Plattengrößen. Für dieses Teil werden mehrere Platten benötigt.",
       "dimensionsExceedSizeSingle": "Abmessungen überschreiten verfügbare Plattengrößen.",
@@ -195,6 +202,7 @@
       "stuffed": "Gestopftes Stroh"
     },
     "strawTypesHeading": "Strohfüllung Details",
+    "viewParts": "Teile anzeigen",
     "views": {
       "floor": "Boden",
       "front": "Vorne",

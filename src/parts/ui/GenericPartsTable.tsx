@@ -2,6 +2,7 @@ import { Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { AggregatedPartItem } from '@/parts/types'
+import { usePartsListView } from '@/parts/ui/PartsListViewContext'
 import { canHighlightPart } from '@/parts/utils'
 import { usePlanNavigation } from '@/plan/ui/hooks/usePlanNavigation'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
@@ -38,6 +39,7 @@ export default function GenericPartsTable({ parts }: { parts: AggregatedPartItem
 
 function GenericPartsTableRow({ part }: { part: AggregatedPartItem }) {
   const { t } = useTranslation('construction')
+  const { focusId } = usePartsListView()
   const { viewPartInPlan } = usePlanNavigation()
   const description = useTranslatableString(part.description)
 
@@ -54,7 +56,7 @@ function GenericPartsTableRow({ part }: { part: AggregatedPartItem }) {
           <Button
             size="icon"
             variant="ghost"
-            onClick={() => void viewPartInPlan(part.partId)}
+            onClick={() => void viewPartInPlan(part.partId, focusId)}
             title={t($ => $.partsList.actions.viewInPlan)}
             className="-my-2"
           >

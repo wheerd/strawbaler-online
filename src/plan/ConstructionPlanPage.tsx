@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { useConstructionModel } from '@/construction/store'
-import { StoreySelector } from '@/editor/status-bar/StoreySelector'
+import { ActiveStoreySelector } from '@/editor/status-bar/StoreySelector'
 import type { PartId } from '@/parts/types'
 import { IssueDescriptionPanel } from '@/plan/IssueDescriptionPanel'
 import { PartHighlightPanel } from '@/plan/PartHighlightPanel'
@@ -46,7 +46,7 @@ function ConstructionPlanPageContent() {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between border-b px-4 py-1">
-        <StoreySelector />
+        <ActiveStoreySelector />
         <PlanViewControls />
         <Suspense fallback={<div />}>
           <ConstructionModelRegenerateButton />

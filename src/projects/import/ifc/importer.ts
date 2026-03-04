@@ -95,6 +95,7 @@ import {
   offsetPolygon,
   polygonEdgeOffset,
   polygonPerimeter,
+  signedPolygonArea,
   simplifyPolygon,
   unionPolygons,
   unionPolygonsWithHoles,
@@ -369,7 +370,7 @@ export class IfcImporter {
         const p1: Vec2 = newVec2(points[i1][0], -points[i1][2])
         const p2: Vec2 = newVec2(points[i2][0], -points[i2][2])
 
-        const a2 = this.signedArea2([p0, p1, p2])
+        const a2 = signedPolygonArea({ points: [p0, p1, p2] })
         if (Math.abs(a2) <= 1e-10) continue // drop degenerate/flat
 
         // Ensure CCW winding (many union libs expect outer rings CCW)
@@ -406,16 +407,6 @@ export class IfcImporter {
       points.push(newVec3(posFloats[i], posFloats[i + 1], posFloats[i + 2]))
     }
     return points
-  }
-
-  private signedArea2(pts: Vec2[]): number {
-    let a = 0
-    for (let i = 0, n = pts.length; i < n; i++) {
-      const [x0, y0] = pts[i]
-      const [x1, y1] = pts[(i + 1) % n]
-      a += x0 * y1 - y0 * x1
-    }
-    return 0.5 * a
   }
 
   private collectSlabOpenings(slabs: ImportedSlab[]): Polygon2D[] {
@@ -994,7 +985,7 @@ export class IfcImporter {
     const faces = this.extractFaces(context, set.Faces, points, pnIndex)
     const faces2D: Polygon2D[] = faces
       .map(f => ({ points: f.outer.points.map(p => vec3To2(p)) }))
-      .filter(f => Math.abs(this.signedArea2(f.points)) > 1)
+      .filter(f => Math.abs(signedPolygonArea(f)) > 1)
       .map(ensurePolygonIsClockwise)
 
     // TODO: Proper union with holes

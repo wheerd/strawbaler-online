@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { DimensionalMaterial } from '@/materials/material'
 import type { AggregatedPartItem } from '@/parts/types'
 import { PartCutModal } from '@/parts/ui/PartCutModal'
+import { usePartsListView } from '@/parts/ui/PartsListViewContext'
 import { calculateWeight, canHighlightPart, getIssueSeverity } from '@/parts/utils'
 import { usePlanNavigation } from '@/plan/ui/hooks/usePlanNavigation'
 import { Bounds2D, type Polygon2D } from '@/shared/geometry'
@@ -131,8 +132,9 @@ export default function DimensionalPartsTable({
 
 function DimensionalPartsTableRow({ part, material }: { part: AggregatedPartItem; material: DimensionalMaterial }) {
   const { t } = useTranslation('construction')
-  const { formatWeight, formatVolume, formatLengthInMeters } = useFormatters()
+  const { focusId } = usePartsListView()
   const { viewPartInPlan } = usePlanNavigation()
+  const { formatWeight, formatVolume, formatLengthInMeters } = useFormatters()
   const description = useTranslatableString(part.description)
 
   const partWeight = calculateWeight(part.totalVolume, material)
@@ -190,7 +192,7 @@ function DimensionalPartsTableRow({ part, material }: { part: AggregatedPartItem
           <Button
             size="icon-sm"
             variant="ghost"
-            onClick={() => void viewPartInPlan(part.partId)}
+            onClick={() => void viewPartInPlan(part.partId, focusId)}
             title={t($ => $.partsList.actions.viewInPlan)}
             className="-my-2"
           >

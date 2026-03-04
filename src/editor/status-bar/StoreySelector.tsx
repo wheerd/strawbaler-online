@@ -27,30 +27,27 @@ function StoreyName({ storey }: { storey: Storey }) {
 }
 
 export function StoreySelector({
+  value,
   onStoreyChange
 }: {
-  onStoreyChange?: (storeyId: StoreyId) => void
+  value: StoreyId
+  onStoreyChange: (storeyId: StoreyId) => void
 }): React.JSX.Element {
   const { t } = useTranslation('common')
   const storeysOrdered = useStoreysOrderedByLevel()
-  const activeStoreyId = useActiveStoreyId()
-  const { setActiveStoreyId } = useModelActions()
 
   const storeysDisplayOrder = [...storeysOrdered].reverse()
 
   const handleStoreyChange = useCallback(
     (newStoreyId: string) => {
-      setActiveStoreyId(newStoreyId as StoreyId)
-      if (onStoreyChange) {
-        onStoreyChange(newStoreyId as StoreyId)
-      }
+      onStoreyChange(newStoreyId as StoreyId)
     },
-    [setActiveStoreyId, onStoreyChange]
+    [onStoreyChange]
   )
 
   return (
     <div className="flex items-center gap-2">
-      <Select value={activeStoreyId} onValueChange={handleStoreyChange}>
+      <Select value={value} onValueChange={handleStoreyChange}>
         <SelectTrigger className="h-9 w-50 text-sm">
           <SelectValue />
         </SelectTrigger>
@@ -81,4 +78,10 @@ export function StoreySelector({
       />
     </div>
   )
+}
+
+export function ActiveStoreySelector(): React.JSX.Element {
+  const activeStoreyId = useActiveStoreyId()
+  const { setActiveStoreyId } = useModelActions()
+  return <StoreySelector value={activeStoreyId} onStoreyChange={setActiveStoreyId} />
 }

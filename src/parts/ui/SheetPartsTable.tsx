@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { SheetMaterial } from '@/materials/material'
 import type { AggregatedPartItem } from '@/parts/types'
+import { usePartsListView } from '@/parts/ui/PartsListViewContext'
 import { SheetPartModal } from '@/parts/ui/SheetPartModal'
 import { calculateWeight, canHighlightPart, getIssueSeverity } from '@/parts/utils'
 import { usePlanNavigation } from '@/plan/ui/hooks/usePlanNavigation'
@@ -86,6 +87,7 @@ export default function SheetPartsTable({ parts, material }: { parts: Aggregated
 
 function SheetPartsTableRow({ part, material }: { part: AggregatedPartItem; material: SheetMaterial }) {
   const { t } = useTranslation('construction')
+  const { focusId } = usePartsListView()
   const { viewPartInPlan } = usePlanNavigation()
   const { formatWeight, formatVolume, formatArea, formatDimensions2D, formatDimensions3D } = useFormatters()
   const description = useTranslatableString(part.description)
@@ -150,7 +152,7 @@ function SheetPartsTableRow({ part, material }: { part: AggregatedPartItem; mate
           <Button
             size="icon-sm"
             variant="ghost"
-            onClick={() => void viewPartInPlan(part.partId)}
+            onClick={() => void viewPartInPlan(part.partId, focusId)}
             title={t($ => $.partsList.actions.viewInPlan)}
             className="-my-2"
           >

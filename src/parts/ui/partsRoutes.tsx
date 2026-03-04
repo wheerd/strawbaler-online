@@ -5,6 +5,8 @@ import { PartsListContentSkeleton } from '@/parts/ui/PartsListContentSkeleton'
 import { Skeleton } from '@/shared/ui/components/skeleton'
 import { Spinner } from '@/shared/ui/components/spinner'
 
+import { PartsListViewProvider } from './PartsListViewContext'
+
 const PartsListLayout = lazy(async () => {
   const module = await import('./PartsListLayout')
   return { default: module.PartsListLayout }
@@ -21,27 +23,29 @@ const ConstructionVirtualPartsList = lazy(async () => {
 })
 
 export const partsRoutes = {
-  path: 'parts',
+  path: 'parts/*',
   element: (
     <Suspense fallback={<PartsListLayoutSkeleton />}>
-      <PartsListLayout />
+      <PartsListViewProvider>
+        <PartsListLayout />
+      </PartsListViewProvider>
     </Suspense>
   ),
   children: [
     { index: true, element: <Navigate to="materials" replace /> },
     {
-      path: 'materials',
+      path: 'materials/:focusId?',
       element: (
         <Suspense fallback={<PartsListContentSkeleton />}>
-          <ConstructionPartsList modelId={undefined} />
+          <ConstructionPartsList />
         </Suspense>
       )
     },
     {
-      path: 'modules',
+      path: 'modules/:focusId?',
       element: (
         <Suspense fallback={<PartsListContentSkeleton />}>
-          <ConstructionVirtualPartsList modelId={undefined} />
+          <ConstructionVirtualPartsList />
         </Suspense>
       )
     }

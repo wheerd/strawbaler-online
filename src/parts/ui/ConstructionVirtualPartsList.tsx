@@ -3,7 +3,6 @@ import { ArrowDownToLine, ArrowUpToLine, Eye } from 'lucide-react'
 import React, { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { ConstructionModelId } from '@/construction/store'
 import { useVirtualParts } from '@/parts/hooks'
 import { getLabelGroupId } from '@/parts/store'
 import type { PartId } from '@/parts/types'
@@ -16,11 +15,8 @@ import { Button } from '@/shared/ui/components/button'
 import { Card, CardContent, CardHeader } from '@/shared/ui/components/card'
 import { Table } from '@/shared/ui/components/table'
 
+import { usePartsListView } from './PartsListViewContext'
 import { RegenerateLabelsButton } from './RegenerateLabelsButton'
-
-interface ConstructionVirtualPartsListProps {
-  modelId?: ConstructionModelId
-}
 
 const canHighlightPart = (partId: PartId): boolean => !partId.startsWith('auto_')
 
@@ -47,6 +43,7 @@ function ModuleSummaryTableRow({ group, onNavigate }: { group: VirtualGroup; onN
 
 function ModulePartsTable({ parts }: { parts: VirtualGroup['parts'] }) {
   const { t } = useTranslation('construction')
+  const { focusId } = usePartsListView()
   const { viewPartInPlan } = usePlanNavigation()
   const { formatDimensions3D, formatArea } = useFormatters()
 
@@ -91,7 +88,7 @@ function ModulePartsTable({ parts }: { parts: VirtualGroup['parts'] }) {
                 <Button
                   size="icon-sm"
                   variant="ghost"
-                  onClick={() => void viewPartInPlan(part.partId)}
+                  onClick={() => void viewPartInPlan(part.partId, focusId)}
                   title={t($ => $.modulesList.actions.viewInPlan)}
                   className="-my-2"
                 >
@@ -138,11 +135,12 @@ function ModuleGroupCard({ group, onBackToTop }: { group: VirtualGroup; onBackTo
   )
 }
 
-export function ConstructionVirtualPartsList({ modelId }: ConstructionVirtualPartsListProps): React.JSX.Element {
+export function ConstructionVirtualPartsList(): React.JSX.Element {
   const { t } = useTranslation('construction')
   const topRef = useRef<HTMLDivElement | null>(null)
   const detailRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
+  const { modelId } = usePartsListView()
   const aggregatedParts = useVirtualParts(modelId)
   const grouped = d3.groups(aggregatedParts, virtualGroupKey)
   const groups = grouped.map(([, parts]) => toVirtualGroup(parts))

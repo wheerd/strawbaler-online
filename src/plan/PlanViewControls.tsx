@@ -1,5 +1,6 @@
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, TablePropertiesIcon, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/shared/ui/components/button'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
@@ -9,7 +10,8 @@ import { useWallNavigation } from './useWallNavigation'
 
 export function PlanViewControls(): React.JSX.Element {
   const { t } = useTranslation('construction')
-  const { focusType, viewOptions, currentViewIndex, setCurrentViewIndex, clearFocus } = usePlanView()
+  const navigate = useNavigate()
+  const { focusId, focusType, viewOptions, currentViewIndex, setCurrentViewIndex, clearFocus } = usePlanView()
   const { previousWallId, nextWallId, goToPrevious, goToNext } = useWallNavigation()
 
   const showFocusBadge = focusType !== null
@@ -70,6 +72,18 @@ export function PlanViewControls(): React.JSX.Element {
               <ChevronRight />
             </Button>
           )}
+
+          <Button
+            variant="outline"
+            size="icon-sm"
+            title={t($ => $.plan.viewParts)}
+            onClick={() => {
+              void navigate(`/parts/materials/${focusId}`)
+            }}
+            className="h-9"
+          >
+            <TablePropertiesIcon />
+          </Button>
         </>
       )}
 

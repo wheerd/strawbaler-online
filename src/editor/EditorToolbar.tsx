@@ -13,7 +13,7 @@ import type { IconProps } from '@/shared/ui/icons/types'
 
 import PlanOverlayButton from './PlanOverlayButton'
 import { fitActiveStoreyToView } from './canvas/helpers/fitActiveStoreyToView'
-import { StoreySelector } from './status-bar/StoreySelector'
+import { ActiveStoreySelector } from './status-bar/StoreySelector'
 import { useToolSystem } from './tools/system/ToolSystemContext'
 import { useActiveToolId } from './tools/system/hooks/useToolState'
 import { getToolInfoById } from './tools/system/metadata'
@@ -28,7 +28,7 @@ export function EditorToolbar(): React.JSX.Element {
 
   return (
     <div className="border-border flex items-center gap-4 border-b px-4 py-1" data-testid="editor-toolbar">
-      <StoreySelector />
+      <ActiveStoreySelector />
 
       <Separator orientation="vertical" className="h-6" decorative={false} />
 

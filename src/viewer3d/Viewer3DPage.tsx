@@ -1,7 +1,8 @@
 import { Suspense, lazy, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import type { StoreyId } from '@/building/model/ids'
+import { type StoreyId, isStoreyId } from '@/building/model/ids'
+import { useActiveStoreyId } from '@/building/store'
 import { StoreySelector } from '@/editor/status-bar/StoreySelector'
 import { Skeleton } from '@/shared/ui/components/skeleton'
 import { Spinner } from '@/shared/ui/components/spinner'
@@ -19,9 +20,11 @@ const ConstructionViewer3DContent = lazy(() => import('./ConstructionViewer3DCon
 
 function Viewer3DPageContent(): React.JSX.Element {
   const [containerSize, containerRef, setObserverActive] = elementSizeRef()
-  const { modelId } = useViewer3DView()
+  const { modelId, focusId } = useViewer3DView()
   const navigate = useNavigate()
   const exportFnRef = useRef<((format: ExportFormat) => void | Promise<void>) | null>(null)
+  const activeStoreyId = useActiveStoreyId()
+  const storeyId = focusId && isStoreyId(focusId) ? focusId : activeStoreyId
 
   useEffect(() => {
     setObserverActive(true)
@@ -46,7 +49,7 @@ function Viewer3DPageContent(): React.JSX.Element {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b px-4 py-1">
-        <StoreySelector onStoreyChange={handleStoreyChange} />
+        <StoreySelector value={storeyId} onStoreyChange={handleStoreyChange} />
 
         <Viewer3DViewControls />
 

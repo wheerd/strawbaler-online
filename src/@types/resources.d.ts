@@ -833,7 +833,14 @@ interface Resources {
         "regenerateLabelsHint": "Reassign labels sequentially. Old unused labels will be removed.",
         "specialCutPreview": "Special cut polygon preview",
         "unusedLabelsWarning": "Some labels are no longer in use. Regenerate to reassign labels sequentially.",
-        "viewInPlan": "View in plan"
+        "viewInPlan": "View in Plan"
+      },
+      "clearFocus": "Clear focus",
+      "focus": {
+        "perimeter": "Focus: Perimeter",
+        "roof": "Focus: Roof",
+        "storey": "Focus: Storey",
+        "wall": "Focus: Wall"
       },
       "issues": {
         "dimensionsExceedSizeMultiple": "Dimensions exceed available sheet sizes. This part will require multiple sheets.",
@@ -923,6 +930,7 @@ interface Resources {
         "stuffed": "Stuffed"
       },
       "strawTypesHeading": "Straw Types",
+      "viewParts": "View Parts",
       "views": {
         "floor": "Floor",
         "front": "Front",
@@ -1242,6 +1250,7 @@ interface Resources {
       "view3DConstruction": "View 3D Construction",
       "viewAssociatedRoof": "View associated roof",
       "viewConstructionPlan": "View Construction Plan",
+      "viewParts": "View Parts",
       "wallAssembly": "Wall Assembly",
       "wallConfiguration": "Wall Configuration",
       "wallThickness": "Wall Thickness"
@@ -1288,6 +1297,7 @@ interface Resources {
       "thickness": "Thickness",
       "topPlate": "Top Plate",
       "viewConstructionPlan": "View Construction Plan",
+      "viewParts": "View Parts",
       "wallAssembly": "Wall Assembly",
       "windows": "Windows"
     },
@@ -1310,7 +1320,8 @@ interface Resources {
       "verticalOffset": "Vertical Offset",
       "view3DConstruction": "View 3D Construction",
       "viewAssociatedPerimeter": "View associated perimeter",
-      "viewConstructionPlan": "View Construction Plan"
+      "viewConstructionPlan": "View Construction Plan",
+      "viewParts": "View Parts"
     },
     "roofOverhang": {
       "fitToView": "Fit to view",
