@@ -1,0 +1,96 @@
+digraph G {
+    graph [
+		label = "StrawBuild Studio Workflow\n\n"
+		labelloc = t
+		fontname = "Helvetica,Arial,sans-serif"
+		fontsize = 20
+		layout = dot
+		rankdir = LR
+		newrank = true
+	]
+	node [
+		style=filled
+		shape=rect
+		pencolor="#00000044" // frames color
+		fontname="Helvetica,Arial,sans-serif"
+		shape=plaintext
+	]
+	edge [
+		fontname="Helvetica,Arial,sans-serif"
+		labeldistance=3
+		labelfontcolor="#00000080"
+		penwidth=2
+	]
+    
+	subgraph clusterStrawbuild {
+		color=blue;
+		label = "StrawBuild Studio";
+        
+        editor [
+            label="Editor"
+        ]
+        building [
+            label=<<table border="0" cellborder="0" cellspacing="0" cellpadding="4">
+                <tr> <td> <b>Building Model</b></td> </tr>
+                <tr> <td align="left">Abstract model in finished dimensions</td> </tr>
+            </table>>
+            shape=cylinder
+        ]
+        config [
+            label="Assembly Configuration"
+        ]
+        materials [
+            label="Materials"
+        ]
+        assembly [
+            label="Construction"
+            style=""
+            shape=plain
+            color="#00008844"
+            width=2
+        ]
+        construction [
+            label=<<table border="0" cellborder="0" cellspacing="0" cellpadding="4">
+                <tr> <td> <b>Construction Model</b></td> </tr>
+                <tr> <td align="left">Detailed model with individual parts</td> </tr>
+            </table>>
+            shape=cylinder
+        ]
+        view3D [
+            label="3D View"
+        ]
+        plan [
+            label="Construction Plan"
+        ]
+        parts [
+            label="Parts List"
+        ]
+        editor -> building;
+        config -> assembly;
+        materials -> assembly;
+        building -> assembly -> construction;
+        construction -> view3D;
+        construction -> plan;
+        materials -> parts;
+        construction -> parts;
+
+        {rank=same materials config assembly}
+	}
+
+    importIFC [label="IFC" shape=note]
+    importIFC -> building [label="Import"];
+    {rank=same importIFC building}
+
+    planImage [label="Floorplan Image" shape=note]
+    planImage -> editor [label="Use"];
+
+    exportIFC [label="IFC" shape=note]
+    construction -> exportIFC [label="Export"];
+    {rank=same exportIFC construction}
+
+    export3D [label="3D Model" shape=note]
+    view3D -> export3D [label="Export"];
+
+    exportCSV [label="CSV" shape=note]
+    parts -> exportCSV [label="Export"];
+}
