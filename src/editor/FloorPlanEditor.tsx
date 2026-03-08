@@ -11,6 +11,7 @@ import { EditorToolbar } from './EditorToolbar'
 import { SidePanel } from './SidePanel'
 import { FloorPlanStage } from './canvas/FloorPlanStage'
 import { ConstraintStatusOverlay } from './canvas/overlay/ConstraintStatusOverlay'
+import { EmptyStoreyOverlay } from './canvas/overlay/EmptyStoreyOverlay'
 import { InitialSyncOverlay } from './canvas/overlay/InitialSyncOverlay'
 import { ViewModeToggle } from './canvas/overlay/ViewModeToggle'
 import { LengthInputComponent } from './canvas/services/length-input'
@@ -76,6 +77,7 @@ export function FloorPlanEditor(): React.JSX.Element {
               <FloorPlanStage width={dimensions.width} height={dimensions.height} />
               <ConstraintStatusOverlay />
               <EditorStatusOverlay />
+              <EmptyStoreyOverlay />
               <LengthInputComponent />
             </ErrorBoundary>
           </div>

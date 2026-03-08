@@ -3,6 +3,27 @@
     "scrollToZoom": "Scrollen zum Zoomen",
     "uploadToBegin": "Lade ein Bild hoch, um zu beginnen"
   },
+  "emptyStorey": {
+    "title": "Erste Schritte",
+    "subtitle": "Dieses Geschoss ist leer. Wähle, wie du beginnen möchtest:",
+    "planOverlay": {
+      "title": "Grundriss importieren",
+      "description": "Lade ein Referenzbild zum Nachzeichnen hoch"
+    },
+    "perimeterAdd": {
+      "title": "Kontur zeichnen",
+      "description": "Klicke Punkte, um Wände manuell zu zeichnen"
+    },
+    "perimeterPreset": {
+      "title": "Kontur-Vorlagen",
+      "description": "Wähle aus vordefinierten Formen"
+    },
+    "ifcImport": {
+      "title": "IFC-Datei importieren",
+      "description": "Über Projekt-Menü → IFC importieren/exportieren"
+    },
+    "toolbarHint": "Alle Werkzeuge sind auch in der Werkzeugleiste oben verfügbar"
+  },
   "openings": {
     "dimension": "H {{height, length}}",
     "dimensionWithSillHeight": "H {{height, length}} BRH {{sillHeight, length}}"

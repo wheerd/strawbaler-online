@@ -837,12 +837,12 @@ interface Resources {
       },
       "clearFocus": "Clear focus",
       "export": {
-        "aggregatedData": "Export Summary",
+        "aggregatedData": "Export part list",
         "areaM2": "Area (m²)",
         "heightM": "Height (m)",
         "lengthM": "Length (m)",
-        "material": "Export this material",
-        "rawData": "Export All Parts",
+        "material": "Export part list for material",
+        "rawData": "Export raw data",
         "storey": "Storey",
         "thicknessM": "Thickness (m)",
         "volumeM3": "Volume (m³)",
@@ -1378,6 +1378,27 @@ interface Resources {
     "canvas": {
       "scrollToZoom": "Scroll to zoom",
       "uploadToBegin": "Upload an image to begin"
+    },
+    "emptyStorey": {
+      "ifcImport": {
+        "description": "Via Project menu → Import/Export IFC",
+        "title": "Import IFC File"
+      },
+      "perimeterAdd": {
+        "description": "Click points to draw walls manually",
+        "title": "Draw Perimeter"
+      },
+      "perimeterPreset": {
+        "description": "Choose from predefined shapes",
+        "title": "Perimeter Presets"
+      },
+      "planOverlay": {
+        "description": "Upload a reference image to trace over",
+        "title": "Import Floor Plan"
+      },
+      "subtitle": "This storey is empty. Choose how to begin:",
+      "title": "Get Started",
+      "toolbarHint": "All tools are also available in the toolbar above"
     },
     "openings": {
       "dimension": "H {{height, length}}",

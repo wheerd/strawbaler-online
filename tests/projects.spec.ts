@@ -1,7 +1,11 @@
-import { expect, test } from '@playwright/test'
+import { type Page, expect, test } from '@playwright/test'
 
 import { TEST_USER_EMAIL, TEST_USER_PASSWORD, setupAnonymousPage } from './fixtures/auth'
 import { loadTestData } from './fixtures/editor'
+
+function getProjectMenuButton(page: Page) {
+  return page.getByTestId('header').getByRole('button', { name: 'Project' })
+}
 
 test.describe('Project Management', () => {
   test('complete journey: anonymous rename, sign-in sync, CRUD operations', async ({ page }) => {
@@ -18,7 +22,7 @@ test.describe('Project Management', () => {
 
     await setupAnonymousPage(page)
 
-    await page.getByRole('button', { name: /project/i }).click()
+    await getProjectMenuButton(page).click()
     await expect(page.getByRole('menuitem', { name: /manage projects/i })).not.toBeVisible()
     await page.keyboard.press('Escape')
 
@@ -26,12 +30,12 @@ test.describe('Project Management', () => {
     await page.locator('[data-entity-type="perimeter"]').click()
     await expect(page.getByTestId('side-panel')).toContainText('40.00m²')
 
-    await page.getByRole('button', { name: /project/i }).click()
+    await getProjectMenuButton(page).click()
     await page.getByRole('menuitem', { name: /edit project/i }).click()
     await page.getByLabel(/name/i).fill(firstName)
     await page.getByRole('button', { name: /^save$/i }).click()
 
-    await expect(page.getByRole('button', { name: /project/i })).toHaveText(firstName)
+    await expect(getProjectMenuButton(page)).toHaveText(firstName)
 
     // === PHASE 2: Sign In via UI ===
 
@@ -51,7 +55,7 @@ test.describe('Project Management', () => {
 
     // === PHASE 3: Verify Synced Project ===
 
-    await page.getByRole('button', { name: /project/i }).click()
+    await getProjectMenuButton(page).click()
     await page.getByRole('menuitem', { name: /manage projects/i }).click()
 
     const dialog = page.getByRole('dialog', { name: /manage projects/i })
@@ -67,7 +71,7 @@ test.describe('Project Management', () => {
 
     // === PHASE 4: Create Empty Project ===
 
-    await page.getByRole('button', { name: /project/i }).click()
+    await getProjectMenuButton(page).click()
     await page.getByRole('menuitem', { name: /manage projects/i }).click()
     await page.getByRole('button', { name: /new project/i }).click()
 
@@ -91,7 +95,7 @@ test.describe('Project Management', () => {
 
     // === PHASE 5: Create Copied Project ===
 
-    await page.getByRole('button', { name: /project/i }).click()
+    await getProjectMenuButton(page).click()
     await page.getByRole('menuitem', { name: /manage projects/i }).click()
     await page.getByRole('button', { name: /new project/i }).click()
 
@@ -111,7 +115,7 @@ test.describe('Project Management', () => {
 
     // === PHASE 6: Switch Between Projects ===
 
-    await page.getByRole('button', { name: /project/i }).click()
+    await getProjectMenuButton(page).click()
     await page.getByRole('menuitem', { name: /manage projects/i }).click()
 
     const switchDialog = page.getByRole('dialog', { name: /manage projects/i })
@@ -127,7 +131,7 @@ test.describe('Project Management', () => {
 
     // === PHASE 7: Delete Test Projects ===
 
-    await page.getByRole('button', { name: /project/i }).click()
+    await getProjectMenuButton(page).click()
     await page.getByRole('menuitem', { name: /manage projects/i }).click()
 
     const deleteDialog = page.getByRole('dialog', { name: /manage projects/i })

@@ -37,7 +37,7 @@ test('Editor loads test data correctly', async ({ page }) => {
   await page.goto('/editor')
   await expect(page.getByTestId('floor-plan-editor')).toBeVisible({ timeout: 15000 })
 
-  await page.getByRole('button', { name: 'Test Data' }).click()
+  await page.getByTestId('editor-toolbar').getByRole('button', { name: 'Test Data' }).click()
   await page.getByRole('button', { name: /Cross\/T-Shape Perimeter/ }).click()
 
   await expect(page.getByTestId('editor-svg')).toHaveScreenshot({
