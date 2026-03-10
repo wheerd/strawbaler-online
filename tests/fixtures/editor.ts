@@ -56,7 +56,7 @@ export async function activateTool(
     | 'Roof'
     | 'Test Data'
 ): Promise<void> {
-  await page.getByRole('button', { name: toolName }).click()
+  await page.getByTestId('editor-toolbar').getByRole('button', { name: toolName }).click()
 }
 
 /**

@@ -25,18 +25,13 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/components/tooltip'
 import { SaveIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/ui/utils'
-import { FileInputCancelledError, createBinaryFileInput, createFileInput } from '@/shared/utils/createFileInput'
+import { FileInputCancelledError, createFileInput } from '@/shared/utils/createFileInput'
 import { downloadFile } from '@/shared/utils/downloadFile'
 
 import { EditProjectDialog } from './EditProjectDialog'
 import { ImportChoiceDialog } from './ImportChoiceDialog'
 import { ProjectsModal } from './ProjectsModal'
-
-interface ImportChoiceState {
-  open: boolean
-  defaultProjectName: string
-  handleConfirmChoice: (choice: 'current' | 'new', projectName?: string) => Promise<void>
-}
+import { useIfcImport } from './useIfcImport'
 
 export function ProjectMenu(): React.JSX.Element {
   const { t } = useTranslation('common')
@@ -57,7 +52,14 @@ export function ProjectMenu(): React.JSX.Element {
   const [importError, setImportError] = useState<string | null>(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showProjectsModal, setShowProjectsModal] = useState(false)
-  const [importChoiceState, setImportChoiceState] = useState<ImportChoiceState | null>(null)
+  const [jsonImportChoiceState, setJsonImportChoiceState] = useState<JsonImportChoiceState | null>(null)
+
+  const {
+    isImporting: isIfcImporting,
+    importChoiceState: ifcImportChoiceState,
+    handleIfcImport,
+    cancelImport: cancelIfcImport
+  } = useIfcImport()
 
   const activeIsSaving = isAuthenticated ? isCloudSyncing : isSaving
   const activeLastSaved = isAuthenticated ? lastCloudSync : lastSaved
@@ -135,27 +137,7 @@ export function ProjectMenu(): React.JSX.Element {
     fitActiveStoreyToView()
   }
 
-  const performIfcImport = async (content: ArrayBuffer, choice: 'current' | 'new', projectName?: string) => {
-    clearSelection()
-
-    const { importIfcIntoModel } = await import('@/projects/import/ifc/importService')
-    const result = await importIfcIntoModel(content)
-    if (!result.success) {
-      throw new Error(result.error ?? t($ => $.autoSave.errors.failedIFCImport))
-    }
-
-    if (choice === 'new') {
-      await createProject({
-        name: projectName ?? t($ => $.projectMenu.untitled),
-        mode: 'copy'
-      })
-      toast.success(t($ => $.projectMenu.createSuccess))
-    }
-
-    fitActiveStoreyToView()
-  }
-
-  const handleImport = async () => {
+  const handleJsonImport = async () => {
     setIsImporting(true)
     setImportError(null)
 
@@ -163,11 +145,11 @@ export function ProjectMenu(): React.JSX.Element {
       const fileResult = await createFileInput()
 
       if (isAuthenticated) {
-        setImportChoiceState({
+        setJsonImportChoiceState({
           open: true,
           defaultProjectName: fileResult.filename,
           handleConfirmChoice: async (choice, newProjectName) => {
-            setImportChoiceState(null)
+            setJsonImportChoiceState(null)
             try {
               await performJsonImport(fileResult.content, choice, newProjectName)
             } catch (error) {
@@ -192,50 +174,6 @@ export function ProjectMenu(): React.JSX.Element {
     }
   }
 
-  const handleIfcImport = async () => {
-    setIsImporting(true)
-    setImportError(null)
-
-    try {
-      await createBinaryFileInput(async (content: ArrayBuffer, file: File) => {
-        const filename = file.name.replace(/\.[^.]+$/, '')
-
-        if (isAuthenticated) {
-          setImportChoiceState({
-            open: true,
-            defaultProjectName: filename,
-            handleConfirmChoice: async (choice, newProjectName) => {
-              setImportChoiceState(null)
-              try {
-                await performIfcImport(content, choice, newProjectName)
-              } catch (error) {
-                console.error('Error while importing', error)
-                toast.error(t($ => $.autoSave.errors.failedIFCImport))
-              } finally {
-                setIsImporting(false)
-              }
-            }
-          })
-        } else {
-          try {
-            await performIfcImport(content, 'current')
-          } catch (error) {
-            console.error('Error while importing', error)
-            toast.error(t($ => $.autoSave.errors.failedIFCImport))
-          } finally {
-            setIsImporting(false)
-          }
-        }
-      }, '.ifc')
-    } catch (error) {
-      if (!(error instanceof FileInputCancelledError)) {
-        console.error('Error while importing', error)
-        setImportError(t($ => $.autoSave.errors.failedIFCImport))
-      }
-      setIsImporting(false)
-    }
-  }
-
   const getStatusInfo = (): SyncStatus => {
     if (exportError || importError) {
       return {
@@ -245,7 +183,7 @@ export function ProjectMenu(): React.JSX.Element {
       }
     }
 
-    if (isExporting || isImporting) {
+    if (isExporting || isImporting || isIfcImporting) {
       return {
         text: isExporting ? t($ => $.autoSave.exporting) : t($ => $.autoSave.importing),
         active: true,
@@ -308,6 +246,8 @@ export function ProjectMenu(): React.JSX.Element {
 
   const StatusIcon = isAuthenticated ? CloudIcon : SaveIcon
 
+  const anyImporting = isImporting || isIfcImporting
+
   return (
     <>
       <DropdownMenu>
@@ -355,7 +295,7 @@ export function ProjectMenu(): React.JSX.Element {
                 onClick={() => {
                   void handleIfcExport()
                 }}
-                disabled={isExporting || isImporting}
+                disabled={isExporting || anyImporting}
               >
                 <Download className="mr-2 h-4 w-4" />
                 {t($ => $.autoSave.exportBuildingModel)}
@@ -365,7 +305,7 @@ export function ProjectMenu(): React.JSX.Element {
                 onClick={() => {
                   void handleIfcGeometryExport()
                 }}
-                disabled={isExporting || isImporting}
+                disabled={isExporting || anyImporting}
               >
                 <Download className="mr-2 h-4 w-4" />
                 {t($ => $.autoSave.exportConstructionModel)}
@@ -375,7 +315,7 @@ export function ProjectMenu(): React.JSX.Element {
                 onClick={() => {
                   void handleIfcImport()
                 }}
-                disabled={isExporting || isImporting}
+                disabled={isExporting || anyImporting}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 {t($ => $.autoSave.import)}
@@ -387,7 +327,7 @@ export function ProjectMenu(): React.JSX.Element {
             onClick={() => {
               void handleExport()
             }}
-            disabled={isExporting || isImporting}
+            disabled={isExporting || anyImporting}
           >
             <Download className="mr-2 h-4 w-4" />
             {t($ => $.autoSave.saveToFile)}
@@ -395,9 +335,9 @@ export function ProjectMenu(): React.JSX.Element {
 
           <DropdownMenuItem
             onClick={() => {
-              void handleImport()
+              void handleJsonImport()
             }}
-            disabled={isExporting || isImporting}
+            disabled={isExporting || anyImporting}
           >
             <Upload className="mr-2 h-4 w-4" />
             {t($ => $.autoSave.loadFromFile)}
@@ -409,17 +349,30 @@ export function ProjectMenu(): React.JSX.Element {
 
       {isAuthenticated && <ProjectsModal open={showProjectsModal} onOpenChange={setShowProjectsModal} />}
 
-      {importChoiceState && (
+      {jsonImportChoiceState && (
         <ImportChoiceDialog
-          open={importChoiceState.open}
+          open={jsonImportChoiceState.open}
           onOpenChange={open => {
             if (!open) {
-              setImportChoiceState(null)
+              setJsonImportChoiceState(null)
               setIsImporting(false)
             }
           }}
-          defaultProjectName={importChoiceState.defaultProjectName}
-          onChoice={(choice, projectName) => void importChoiceState.handleConfirmChoice(choice, projectName)}
+          defaultProjectName={jsonImportChoiceState.defaultProjectName}
+          onChoice={(choice, projectName) => void jsonImportChoiceState.handleConfirmChoice(choice, projectName)}
+        />
+      )}
+
+      {ifcImportChoiceState && (
+        <ImportChoiceDialog
+          open={ifcImportChoiceState.open}
+          onOpenChange={open => {
+            if (!open) {
+              cancelIfcImport()
+            }
+          }}
+          defaultProjectName={ifcImportChoiceState.defaultProjectName}
+          onChoice={(choice, projectName) => void ifcImportChoiceState.handleConfirmChoice(choice, projectName)}
         />
       )}
     </>
@@ -430,4 +383,10 @@ interface SyncStatus {
   text: string
   active: boolean
   colorClass: string
+}
+
+interface JsonImportChoiceState {
+  open: boolean
+  defaultProjectName: string
+  handleConfirmChoice: (choice: 'current' | 'new', projectName?: string) => Promise<void>
 }

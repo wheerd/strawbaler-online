@@ -3,6 +3,27 @@
     "scrollToZoom": "Scroll to zoom",
     "uploadToBegin": "Upload an image to begin"
   },
+  "emptyStorey": {
+    "ifcImport": {
+      "description": "Via Project menu → Import/Export IFC",
+      "title": "Import IFC File"
+    },
+    "perimeterAdd": {
+      "description": "Click points to draw walls manually",
+      "title": "Draw Perimeter"
+    },
+    "perimeterPreset": {
+      "description": "Choose from predefined shapes",
+      "title": "Perimeter Presets"
+    },
+    "planOverlay": {
+      "description": "Upload a reference image to trace over",
+      "title": "Import Floor Plan"
+    },
+    "subtitle": "This storey is empty. Choose how to begin:",
+    "title": "Get Started",
+    "toolbarHint": "All tools are also available in the toolbar above"
+  },
   "openings": {
     "dimension": "H {{height, length}}",
     "dimensionWithSillHeight": "H {{height, length}} SH {{sillHeight, length}}"

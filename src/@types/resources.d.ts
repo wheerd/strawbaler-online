@@ -837,12 +837,12 @@ interface Resources {
       },
       "clearFocus": "Clear focus",
       "export": {
-        "aggregatedData": "Export Summary",
+        "aggregatedData": "Export part list",
         "areaM2": "Area (m²)",
         "heightM": "Height (m)",
         "lengthM": "Length (m)",
-        "material": "Export this material",
-        "rawData": "Export All Parts",
+        "material": "Export part list for material",
+        "rawData": "Export raw data",
         "storey": "Storey",
         "thicknessM": "Thickness (m)",
         "volumeM3": "Volume (m³)",
@@ -1379,6 +1379,27 @@ interface Resources {
       "scrollToZoom": "Scroll to zoom",
       "uploadToBegin": "Upload an image to begin"
     },
+    "emptyStorey": {
+      "ifcImport": {
+        "description": "Via Project menu → Import/Export IFC",
+        "title": "Import IFC File"
+      },
+      "perimeterAdd": {
+        "description": "Click points to draw walls manually",
+        "title": "Draw Perimeter"
+      },
+      "perimeterPreset": {
+        "description": "Choose from predefined shapes",
+        "title": "Perimeter Presets"
+      },
+      "planOverlay": {
+        "description": "Upload a reference image to trace over",
+        "title": "Import Floor Plan"
+      },
+      "subtitle": "This storey is empty. Choose how to begin:",
+      "title": "Get Started",
+      "toolbarHint": "All tools are also available in the toolbar above"
+    },
     "openings": {
       "dimension": "H {{height, length}}",
       "dimensionWithSillHeight": "H {{height, length}} SH {{sillHeight, length}}"
@@ -1826,7 +1847,7 @@ interface Resources {
     },
     "introduction": "This is a tool specifically designed for strawbale construction planning. Create floor plans with walls, openings, roof and floors. Configure the construction and generate plans and 3D models. Get estimates for required materials. Export construction for use in other CAD tools.",
     "keyFeatures": {
-      "items": ["Define perimeter walls in finished dimensions (with plasters) with windows and doors", "Add gable or shed roofs", "Configure your wall, floor and roof assembly (infill, strawhenge, modules)", "Generate 2D construction plans for invdividual walls or whole floors", "View and export 3D models of the construction (IFC)", "Get an overview of materials used in the construction"],
+      "items": ["Define perimeter walls in finished dimensions (with plasters) with windows and doors", "Add gable or shed roofs", "Configure your wall, floor and roof assembly (infill, strawhenge, modules)", "Generate 2D construction plans for individual walls or whole floors", "View and export 3D models of the construction (IFC)", "Get an overview of materials used in the construction"],
       "title": "Key Features"
     },
     "plannedFeatures": {
