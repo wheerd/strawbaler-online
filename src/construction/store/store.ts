@@ -121,7 +121,7 @@ function rebuildModel(): {
 
     for (const perimeter of perimeters) {
       for (const wallId of perimeter.wallIds) {
-        models[wallId] = { model: buildWallCoreModel(wallId).model, sourceId: wallId }
+        models[wallId] = buildWallCoreModel(wallId)
       }
 
       const colinearGroups = findColinearWallGroups(perimeter)
@@ -164,7 +164,7 @@ function composeComposite(
 ): ConstructionModel {
   const childModels = composite.models.map(({ id, transform }) => {
     const cachedChild = cache[id]
-    if (cachedChild) transformModel(cachedChild, transform)
+    if (cachedChild) return transformModel(cachedChild, transform)
 
     const entry = models[id]
     if (!entry) {
