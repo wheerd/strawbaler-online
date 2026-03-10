@@ -48,7 +48,7 @@
         <mxCell id="XaVu6pkt47EfUl20EDHf-2" parent="1" style="shape=datastore;whiteSpace=wrap;html=1;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" value="&lt;div&gt;Building Model&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Abstract, finished dimensions&lt;/div&gt;" vertex="1">
           <mxGeometry height="160" width="250" x="-50" y="350" as="geometry" />
         </mxCell>
-        <mxCell id="XaVu6pkt47EfUl20EDHf-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0050ef;fontColor=#ffffff;strokeColor=#001DBC;" value="Assemby Config" vertex="1">
+        <mxCell id="XaVu6pkt47EfUl20EDHf-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0050ef;fontColor=#ffffff;strokeColor=#001DBC;" value="Assembly Config" vertex="1">
           <mxGeometry height="60" width="120" x="166" y="90" as="geometry" />
         </mxCell>
         <mxCell id="XaVu6pkt47EfUl20EDHf-24" edge="1" parent="1" source="XaVu6pkt47EfUl20EDHf-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="XaVu6pkt47EfUl20EDHf-6">
