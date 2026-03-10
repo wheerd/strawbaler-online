@@ -58,7 +58,7 @@ export function ProjectMenu(): React.JSX.Element {
     isImporting: isIfcImporting,
     importChoiceState: ifcImportChoiceState,
     handleIfcImport,
-    setImportChoiceState: setIfcImportChoiceState
+    cancelImport: cancelIfcImport
   } = useIfcImport()
 
   const activeIsSaving = isAuthenticated ? isCloudSyncing : isSaving
@@ -368,7 +368,7 @@ export function ProjectMenu(): React.JSX.Element {
           open={ifcImportChoiceState.open}
           onOpenChange={open => {
             if (!open) {
-              setIfcImportChoiceState(null)
+              cancelIfcImport()
             }
           }}
           defaultProjectName={ifcImportChoiceState.defaultProjectName}

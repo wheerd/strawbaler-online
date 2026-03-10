@@ -21,7 +21,7 @@ export function EmptyStoreyOverlay(): React.JSX.Element | null {
   const toolSystem = useToolSystem()
   const [planModalOpen, setPlanModalOpen] = useState(false)
 
-  const { isImporting, importChoiceState, handleIfcImport, setImportChoiceState } = useIfcImport()
+  const { isImporting, importChoiceState, handleIfcImport, cancelImport } = useIfcImport()
 
   const isStoreyEmpty = perimeters.length === 0
   const isSelectToolActive = activeToolId === 'basic.select'
@@ -43,7 +43,7 @@ export function EmptyStoreyOverlay(): React.JSX.Element | null {
           open={importChoiceState.open}
           onOpenChange={open => {
             if (!open) {
-              setImportChoiceState(null)
+              cancelImport()
             }
           }}
           defaultProjectName={importChoiceState.defaultProjectName}

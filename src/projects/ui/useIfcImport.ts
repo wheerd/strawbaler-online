@@ -18,7 +18,7 @@ export interface UseIfcImportResult {
   isImporting: boolean
   importChoiceState: ImportChoiceState | null
   handleIfcImport: () => Promise<void>
-  setImportChoiceState: React.Dispatch<React.SetStateAction<ImportChoiceState | null>>
+  cancelImport: () => void
 }
 
 export function useIfcImport(): UseIfcImportResult {
@@ -93,10 +93,15 @@ export function useIfcImport(): UseIfcImportResult {
     }
   }, [isAuthenticated, performIfcImport, t])
 
+  const cancelImport = useCallback(() => {
+    setImportChoiceState(null)
+    setIsImporting(false)
+  }, [])
+
   return {
     isImporting,
     importChoiceState,
     handleIfcImport,
-    setImportChoiceState
+    cancelImport
   }
 }
