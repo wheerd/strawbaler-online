@@ -1847,7 +1847,7 @@ interface Resources {
     },
     "introduction": "This is a tool specifically designed for strawbale construction planning. Create floor plans with walls, openings, roof and floors. Configure the construction and generate plans and 3D models. Get estimates for required materials. Export construction for use in other CAD tools.",
     "keyFeatures": {
-      "items": ["Define perimeter walls in finished dimensions (with plasters) with windows and doors", "Add gable or shed roofs", "Configure your wall, floor and roof assembly (infill, strawhenge, modules)", "Generate 2D construction plans for invdividual walls or whole floors", "View and export 3D models of the construction (IFC)", "Get an overview of materials used in the construction"],
+      "items": ["Define perimeter walls in finished dimensions (with plasters) with windows and doors", "Add gable or shed roofs", "Configure your wall, floor and roof assembly (infill, strawhenge, modules)", "Generate 2D construction plans for individual walls or whole floors", "View and export 3D models of the construction (IFC)", "Get an overview of materials used in the construction"],
       "title": "Key Features"
     },
     "plannedFeatures": {

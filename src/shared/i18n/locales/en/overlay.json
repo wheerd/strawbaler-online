@@ -4,24 +4,24 @@
     "uploadToBegin": "Upload an image to begin"
   },
   "emptyStorey": {
-    "title": "Get Started",
-    "subtitle": "This storey is empty. Choose how to begin:",
-    "planOverlay": {
-      "title": "Import Floor Plan",
-      "description": "Upload a reference image to trace over"
+    "ifcImport": {
+      "description": "Via Project menu → Import/Export IFC",
+      "title": "Import IFC File"
     },
     "perimeterAdd": {
-      "title": "Draw Perimeter",
-      "description": "Click points to draw walls manually"
+      "description": "Click points to draw walls manually",
+      "title": "Draw Perimeter"
     },
     "perimeterPreset": {
-      "title": "Perimeter Presets",
-      "description": "Choose from predefined shapes"
+      "description": "Choose from predefined shapes",
+      "title": "Perimeter Presets"
     },
-    "ifcImport": {
-      "title": "Import IFC File",
-      "description": "Via Project menu → Import/Export IFC"
+    "planOverlay": {
+      "description": "Upload a reference image to trace over",
+      "title": "Import Floor Plan"
     },
+    "subtitle": "This storey is empty. Choose how to begin:",
+    "title": "Get Started",
     "toolbarHint": "All tools are also available in the toolbar above"
   },
   "openings": {
