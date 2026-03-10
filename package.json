@@ -97,7 +97,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-unused-imports": "^4.4.1",
     "fast-check": "^4.5.3",
-    "i18next-cli": "^1.42.10",
+    "i18next-cli": "^1.49.6",
     "jsdom": "^27.4.0",
     "neostandard": "^0.12.2",
     "prettier": "^3.8.1",
