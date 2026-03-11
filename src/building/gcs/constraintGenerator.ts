@@ -51,10 +51,26 @@ export function generatePresetConstraints(
   const constraints: ConstraintInput[] = []
   const n = corners.length
 
-  // Lock first corner to origin
+  // If there are no corners, we cannot generate any meaningful constraints
+  if (n === 0) {
+    return constraints
+  }
+
+  // Lock the corner whose reference-side point is closest to the origin
+  let originCornerIndex = 0
+  let minDistSq = Infinity
+  for (let i = 0; i < n; i++) {
+    const p = getReferenceSidePoint(corners[i], referenceSide)
+    const distSq = p[0] * p[0] + p[1] * p[1]
+    if (distSq < minDistSq) {
+      minDistSq = distSq
+      originCornerIndex = i
+    }
+  }
+
   constraints.push({
     type: 'lockedCorner',
-    corner: corners[0].id,
+    corner: corners[originCornerIndex].id,
     position: ZERO_VEC2
   })
 
