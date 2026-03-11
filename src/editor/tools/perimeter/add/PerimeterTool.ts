@@ -107,10 +107,24 @@ export class PerimeterTool extends BasePolygonTool<PerimeterToolState> implement
       overrides = [...nonClosing, closing]
     }
 
+    // Adjust origin snapped index if polygon was reversed
+    let originSnappedIndex = this.state.originSnappedIndex
+    if (this.wasReversed && originSnappedIndex !== null) {
+      const n = polygon.points.length
+      originSnappedIndex = n - 1 - originSnappedIndex
+    }
+
     // Generate and add freeform constraints
     const corners = getPerimeterCornersById(perimeter.id)
     const walls = getPerimeterWallsById(perimeter.id)
-    const constraints = generateFreeformConstraints(corners, walls, this.state.referenceSide, overrides)
+    const originSnappedIndices = originSnappedIndex !== null ? [originSnappedIndex] : []
+    const constraints = generateFreeformConstraints(
+      corners,
+      walls,
+      this.state.referenceSide,
+      overrides,
+      originSnappedIndices
+    )
     for (const constraint of constraints) {
       try {
         addBuildingConstraint(constraint)

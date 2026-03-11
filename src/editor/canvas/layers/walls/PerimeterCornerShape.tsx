@@ -5,12 +5,14 @@ import { useConstraintStatus } from '@/building/gcs/store'
 import type {
   ColinearCornerConstraint,
   CornerAngleConstraint,
+  LockedCornerConstraint,
   PerimeterCornerId,
   PerpendicularCornerConstraint
 } from '@/building/model'
 import {
   useConstraintsForEntity,
   useModelActions,
+  usePerimeterById,
   usePerimeterCornerById,
   usePerimeterWallById
 } from '@/building/store'
@@ -25,6 +27,7 @@ import {
   angleVec2,
   degreesToRadians,
   direction,
+  distSqrVec2,
   midpoint,
   negVec2,
   perpendicular,
@@ -45,6 +48,7 @@ export function PerimeterCornerShape({ cornerId }: { cornerId: PerimeterCornerId
   const corner = usePerimeterCornerById(cornerId)
   const previousWall = usePerimeterWallById(corner.previousWallId)
   const nextWall = usePerimeterWallById(corner.nextWallId)
+  const perimeter = usePerimeterById(corner.perimeterId)
 
   const [angleInputOpen, setAngleInputOpen] = useState(false)
   const [angleInputValue, setAngleInputValue] = useState(0)
@@ -103,6 +107,13 @@ export function PerimeterCornerShape({ cornerId }: { cornerId: PerimeterCornerId
   const badgeAngle =
     angleConstraint != null ? (180 + radiansToDegrees(angleConstraint.angle)) % 360 : corner.interiorAngle
 
+  // Find locked corner constraint
+  const lockedConstraint = useMemo(
+    () =>
+      cornerConstraints.find((c): c is LockedCornerConstraint => c.type === 'lockedCorner' && c.corner === cornerId),
+    [cornerConstraints, cornerId]
+  )
+
   // Determine if the corner is close to 90° (for suggesting perpendicular constraint)
   /** 5-degree tolerance for perpendicular suggestion. */
   const isNearPerpendicular =
@@ -112,10 +123,23 @@ export function PerimeterCornerShape({ cornerId }: { cornerId: PerimeterCornerId
   const perpendicularStatus = useConstraintStatus(perpendicularConstraint?.id)
   const colinearStatus = useConstraintStatus(colinearConstraint?.id)
   const angleStatus = useConstraintStatus(angleConstraint?.id)
+  const lockedStatus = useConstraintStatus(lockedConstraint?.id)
 
   const showPerpendicularBadge = perpendicularConstraint != null || (isSelected && isNearPerpendicular)
   const showColinearBadge = colinearConstraint != null || (isSelected && isNearStraight)
   const showAngleBadge = angleConstraint != null || isSelected
+
+  // Check if corner reference point is near origin (for suggesting lock)
+  const refPoint = perimeter.referenceSide === 'inside' ? corner.insidePoint : corner.outsidePoint
+  const isNearOrigin = distSqrVec2(refPoint, ZERO_VEC2) < 25 * 25 // 25mm tolerance
+
+  // Determine tooltip key based on whether position is/would be at origin
+  const isLockedAtOrigin = lockedConstraint != null && distSqrVec2(lockedConstraint.position, ZERO_VEC2) < 1
+  const wouldLockAtOrigin = lockedConstraint != null ? isLockedAtOrigin : isNearOrigin
+  const lockedTooltipKey = wouldLockAtOrigin ? 'lockedCornerOrigin' : 'lockedCornerArbitrary'
+
+  // Show lock badge when locked or when selected
+  const showLockedBadge = lockedConstraint != null || isSelected
 
   const getBadgeStatus = (status: { conflicting: boolean; redundant: boolean }) => {
     if (status.conflicting) return 'conflicting'
@@ -203,6 +227,23 @@ export function PerimeterCornerShape({ cornerId }: { cornerId: PerimeterCornerId
     setAngleInputOpen(false)
   }, [modelActions, angleConstraint])
 
+  // --- Locked corner constraint handlers ---
+  const handleAddLocked = useCallback(() => {
+    const position = isNearOrigin ? ZERO_VEC2 : corner.referencePoint
+    modelActions.addBuildingConstraint({
+      type: 'lockedCorner',
+      corner: cornerId,
+      position
+    })
+    gcsService.triggerSolve()
+  }, [modelActions, cornerId, corner.referencePoint, isNearOrigin])
+
+  const handleRemoveLocked = useCallback(() => {
+    if (!lockedConstraint) return
+    modelActions.removeBuildingConstraint(lockedConstraint.id)
+    gcsService.triggerSolve()
+  }, [modelActions, lockedConstraint])
+
   return (
     <>
       <g
@@ -264,7 +305,7 @@ export function PerimeterCornerShape({ cornerId }: { cornerId: PerimeterCornerId
           />
         )}
 
-        {/* Perpendicular constraint badge on the outside of the corner */}
+        {/* Colinear constraint badge on the outside of the corner */}
         {showColinearBadge && (
           <ConstraintBadge
             label={'\u2550'}
@@ -293,6 +334,21 @@ export function PerimeterCornerShape({ cornerId }: { cornerId: PerimeterCornerId
             }
             tooltipKey="perpendicular"
             status={getBadgeStatus(perpendicularStatus)}
+          />
+        )}
+
+        {/* Locked corner constraint badge on the outside of the corner */}
+        {showLockedBadge && (
+          <ConstraintBadge
+            label="🔒"
+            dimLayer={3}
+            startPoint={corner.outsidePoint}
+            endPoint={corner.outsidePoint}
+            outsideDirection={outsideDirection}
+            locked={lockedConstraint != null}
+            onClick={isSelected ? (lockedConstraint ? handleRemoveLocked : handleAddLocked) : undefined}
+            tooltipKey={lockedTooltipKey}
+            status={getBadgeStatus(lockedStatus)}
           />
         )}
       </g>

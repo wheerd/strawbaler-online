@@ -1,6 +1,6 @@
 import { type WrappedGcs, gcsService } from '@/building/gcs/service'
 import type { PerimeterCornerWithGeometry } from '@/building/model'
-import { type SelectableId, isPerimeterCornerId } from '@/building/model/ids'
+import { type PerimeterCornerId, type SelectableId, isPerimeterCornerId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import type { SnapResult, SnappingContext } from '@/editor/canvas/services/SnappingService'
 import { PerimeterCornerMovementPreview } from '@/editor/tools/basic/movement/previews/PerimeterCornerMovementPreview'
@@ -31,6 +31,12 @@ export interface CornerMovementState extends MovementState {
 
 export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerEntityContext, CornerMovementState> {
   previewComponent = PerimeterCornerMovementPreview
+
+  canMove(entityId: SelectableId, store: StoreActions): boolean {
+    const constraints = store.getConstraintsForEntity(entityId as PerimeterCornerId)
+    return !constraints.some(c => c.type === 'lockedCorner')
+  }
+
   getEntity(entityId: SelectableId, _parentIds: SelectableId[], store: StoreActions): CornerEntityContext {
     if (!isPerimeterCornerId(entityId)) {
       throw new Error(`Invalid entity context for corner ${entityId}`)

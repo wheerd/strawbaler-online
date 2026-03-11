@@ -111,8 +111,8 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, key, ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toEqual({
         id: 'bc_wallLength_test',
         type: 'p2p_distance',
         p1_id: `corner_${cornerA}_nonref_next`,
@@ -127,8 +127,8 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'test', ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toMatchObject({
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toMatchObject({
         type: 'p2p_distance',
         p1_id: `corner_${cornerA}_ref`,
         p2_id: `corner_${cornerB}_ref`,
@@ -145,7 +145,7 @@ describe('translateBuildingConstraint', () => {
       }
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'test', ctx)
-      expect(result).toHaveLength(0)
+      expect(result.constraints).toHaveLength(0)
     })
   })
 
@@ -155,8 +155,8 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext({ getReferenceSide: () => 'right' })
       const result = translateBuildingConstraint(c, 'col_test', ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toEqual({
         id: 'bc_col_test',
         type: 'point_on_line_ppp',
         p_id: `corner_${cornerB}_ref`,
@@ -171,8 +171,8 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext({ getReferenceSide: () => 'left' })
       const result = translateBuildingConstraint(c, 'col_test2', ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toMatchObject({
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toMatchObject({
         p_id: `corner_${cornerB}_ref`,
         lp1_id: `corner_${cornerA}_ref`,
         lp2_id: `corner_${cornerC}_ref`
@@ -184,7 +184,7 @@ describe('translateBuildingConstraint', () => {
       // cornerA is not in getCornerAdjacentWallIds default mapping
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'col_test3', ctx)
-      expect(result).toHaveLength(0)
+      expect(result.constraints).toHaveLength(0)
     })
   })
 
@@ -194,8 +194,8 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'par_test', ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toEqual({
         id: 'bc_par_test_par',
         type: 'parallel',
         l1_id: `wall_${wallA}_ref`,
@@ -214,9 +214,9 @@ describe('translateBuildingConstraint', () => {
       })
       const result = translateBuildingConstraint(c, 'par_dist_test', ctx)
 
-      expect(result).toHaveLength(2)
-      expect(result[0]).toMatchObject({ type: 'parallel', id: 'bc_par_dist_test_par' })
-      expect(result[1]).toEqual({
+      expect(result.constraints).toHaveLength(2)
+      expect(result.constraints[0]).toMatchObject({ type: 'parallel', id: 'bc_par_dist_test_par' })
+      expect(result.constraints[1]).toEqual({
         id: 'bc_par_dist_test_dist',
         type: 'p2l_distance',
         p_id: `corner_${cornerA}_ref`,
@@ -233,8 +233,8 @@ describe('translateBuildingConstraint', () => {
       })
       const result = translateBuildingConstraint(c, 'par_no_ctx', ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toMatchObject({ type: 'parallel' })
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toMatchObject({ type: 'parallel' })
     })
   })
 
@@ -244,8 +244,8 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'perp_test', ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toEqual({
         id: 'bc_perp_test',
         type: 'perpendicular_ll',
         l1_id: `wall_${wallA}_ref`,
@@ -258,7 +258,7 @@ describe('translateBuildingConstraint', () => {
       const c: ConstraintInput = { type: 'perpendicularCorner', corner: cornerA }
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'perp_test2', ctx)
-      expect(result).toHaveLength(0)
+      expect(result.constraints).toHaveLength(0)
     })
   })
 
@@ -268,8 +268,8 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'ang_test', ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toEqual({
         id: 'bc_ang_test',
         type: 'l2l_angle_ll',
         l1_id: `wall_${wallA}_ref`,
@@ -283,7 +283,7 @@ describe('translateBuildingConstraint', () => {
       const c: ConstraintInput = { type: 'cornerAngle', corner: cornerA, angle: 1 }
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'ang_test2', ctx)
-      expect(result).toHaveLength(0)
+      expect(result.constraints).toHaveLength(0)
     })
   })
 
@@ -293,8 +293,8 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'h_test', ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toEqual({
         id: 'bc_h_test',
         type: 'horizontal_l',
         l_id: `wall_${wallA}_ref`,
@@ -309,8 +309,8 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'v_test', ctx)
 
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
+      expect(result.constraints).toHaveLength(1)
+      expect(result.constraints[0]).toEqual({
         id: 'bc_v_test',
         type: 'vertical_l',
         l_id: `wall_${wallA}_ref`,

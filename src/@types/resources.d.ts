@@ -1187,6 +1187,14 @@ interface Resources {
         "active": "Horizontal constraint (click to remove)",
         "suggestion": "Click to add horizontal constraint"
       },
+      "lockedCornerArbitrary": {
+        "active": "Locked position (click to unlock)",
+        "suggestion": "Click to lock corner position"
+      },
+      "lockedCornerOrigin": {
+        "active": "Locked to origin (click to unlock)",
+        "suggestion": "Click to lock corner to origin"
+      },
       "perpendicular": {
         "active": "Perpendicular constraint (click to remove)",
         "suggestion": "Click to add perpendicular constraint"

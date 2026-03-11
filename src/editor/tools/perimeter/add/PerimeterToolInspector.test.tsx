@@ -87,7 +87,8 @@ describe('PerimeterToolInspector', () => {
       topRingBeamAssemblyId: undefined,
       lengthOverride: null,
       segmentLengthOverrides: [],
-      referenceSide: 'inside'
+      referenceSide: 'inside',
+      originSnappedIndex: null
     }
 
     // Mock assemblies

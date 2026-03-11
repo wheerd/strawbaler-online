@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { type PerimeterWithGeometry } from '@/building/model'
+import { type PerimeterCornerWithGeometry, type PerimeterWithGeometry } from '@/building/model'
 import { type StoreActions, getModelActions } from '@/building/store'
 import { replaceSelection } from '@/editor/canvas/state/selectionStore'
 import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
@@ -18,6 +18,7 @@ describe('PerimeterPresetTool', () => {
   vi.mock('@/building/store', () => ({ getModelActions: vi.fn() }))
   vi.mock('@/editor/canvas/state/selectionStore', () => ({ replaceSelection: vi.fn() }))
   vi.mock('@/editor/canvas/state/viewportStore', () => ({ viewportActions: vi.fn() }))
+  vi.mock('@/building/gcs/constraintGenerator', () => ({ generatePresetConstraints: vi.fn(() => []) }))
 
   const mockGetModelActions = vi.mocked(getModelActions)
   const mockViewportActions = vi.mocked(viewportActions)
@@ -55,7 +56,7 @@ describe('PerimeterPresetTool', () => {
     mockViewportActions.mockReturnValue({ fitToView: mockFitToView } as any)
     mockAddPerimeter.mockReturnValue(mockPerimeter)
     mockGetActiveStoreyId.mockReturnValue('storey_active')
-    mockGetPerimeterCornersById.mockReturnValue([])
+    mockGetPerimeterCornersById.mockReturnValue([partial<PerimeterCornerWithGeometry>({ id: 'outcorner_1' })])
     mockGetPerimeterWallsById.mockReturnValue([])
   })
 

@@ -1,4 +1,4 @@
-import { type Length } from '@/shared/geometry'
+import { type Length, type Vec2 } from '@/shared/geometry'
 
 import type { ConstraintId, NodeId, PerimeterCornerId, WallEntityId, WallId } from './ids'
 
@@ -12,6 +12,7 @@ export type Constraint =
   | VerticalWallConstraint
   | WallEntityAbsoluteConstraint
   | WallEntityRelativeConstraint
+  | LockedCornerConstraint
 
 export interface WallLengthConstraint {
   id: ConstraintId
@@ -80,6 +81,13 @@ export interface WallEntityRelativeConstraint {
   entityB: WallEntityId
   entityBSide: 'start' | 'center' | 'end'
   distance: Length
+}
+
+export interface LockedCornerConstraint {
+  id: ConstraintId
+  type: 'lockedCorner'
+  corner: PerimeterCornerId
+  position: Vec2
 }
 
 /** A constraint without the `id` field, used when adding constraints to the store. */

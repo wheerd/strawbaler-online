@@ -49,7 +49,8 @@ describe('PolygonToolOverlay', () => {
       lengthOverride: null,
       baseRingBeamAssemblyId: undefined,
       topRingBeamAssemblyId: undefined,
-      referenceSide: 'inside'
+      referenceSide: 'inside',
+      originSnappedIndex: null
     }
 
     // Mock the getPreviewPosition method to return pointer position by default

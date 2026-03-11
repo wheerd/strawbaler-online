@@ -14,7 +14,14 @@ interface ConstraintBadgeProps {
   dimLayer: WallDimLayer
   locked?: boolean
   onClick?: () => void
-  tooltipKey?: 'horizontal' | 'vertical' | 'perpendicular' | 'colinear' | 'angle'
+  tooltipKey?:
+    | 'horizontal'
+    | 'vertical'
+    | 'perpendicular'
+    | 'colinear'
+    | 'angle'
+    | 'lockedCornerOrigin'
+    | 'lockedCornerArbitrary'
   status?: 'conflicting' | 'redundant' | 'normal'
 }
 

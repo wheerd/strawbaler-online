@@ -24,6 +24,7 @@ import {
   nodeRefSidePointId,
   translateBuildingConstraint,
   translatedConstraintIds,
+  translatedPointIds,
   wallEntityOnLineConstraintId,
   wallEntityPointId,
   wallEntityWidthConstraintId,
@@ -44,6 +45,7 @@ interface GcsStoreState {
   lines: SketchLine[]
   constraints: Record<string, Constraint>
   buildingConstraints: Record<string, BuildingConstraint>
+  constraintPoints: Record<string, SketchPoint[]>
   perimeterRegistry: Record<PerimeterId, PerimeterRegistryEntry>
   conflictingConstraintIds: Set<string>
   redundantConstraintIds: Set<string>
@@ -77,6 +79,7 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
   lines: [],
   constraints: {},
   buildingConstraints: {},
+  constraintPoints: {},
   gcs: null,
   drag: null,
   cornerOrderMap: new Map(),
@@ -202,12 +205,20 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
 
       set(state => {
         const newConstraints = { ...state.constraints }
-        for (const c of translated) {
+        for (const c of translated.constraints) {
           newConstraints[c.id] = c
         }
+
+        const newPoints = { ...state.points }
+        for (const p of translated.points) {
+          newPoints[p.id] = p
+        }
+
         return {
           buildingConstraints: { ...state.buildingConstraints, [constraint.id]: constraint },
-          constraints: newConstraints
+          constraints: newConstraints,
+          points: newPoints,
+          constraintPoints: { ...state.constraintPoints, [constraint.id]: translated.points }
         }
       })
     },
@@ -220,18 +231,32 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         return
       }
 
-      const idsToRemove = new Set(translatedConstraintIds(id))
+      const constraintIdsToRemove = new Set(translatedConstraintIds(id))
+      const pointIdsToRemove = new Set(translatedPointIds(id))
+      const storedPoints = state.constraintPoints[id] ?? []
+      for (const p of storedPoints) {
+        pointIdsToRemove.add(p.id)
+      }
 
       set(state => {
         const newConstraints = { ...state.constraints }
-        for (const id of idsToRemove) {
-          delete newConstraints[id]
+        for (const cid of constraintIdsToRemove) {
+          delete newConstraints[cid]
+        }
+
+        const newPoints = { ...state.points }
+        for (const pid of pointIdsToRemove) {
+          delete newPoints[pid]
         }
 
         const { [id]: _, ...remainingBuildingConstraints } = state.buildingConstraints
+        const { [id]: __, ...remainingConstraintPoints } = state.constraintPoints
+
         return {
           buildingConstraints: remainingBuildingConstraints,
-          constraints: newConstraints
+          constraints: newConstraints,
+          points: newPoints,
+          constraintPoints: remainingConstraintPoints
         }
       })
     },
