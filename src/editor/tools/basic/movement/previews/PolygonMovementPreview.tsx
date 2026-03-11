@@ -14,19 +14,20 @@ export function PolygonMovementPreview<TEntity>({
 
   return (
     <g pointerEvents="none">
-      <SnappingLines snapResult={movementState.snapResult} />
+      <SnappingLines snapResults={movementState.snapResults} />
 
-      {movementState.snapResult?.position && (
+      {movementState.snapResults.map((snapResult, index) => (
         <circle
-          cx={movementState.snapResult.position[0]}
-          cy={movementState.snapResult.position[1]}
+          key={`snap-point-${index}`}
+          cx={snapResult.position[0]}
+          cy={snapResult.position[1]}
           r={50}
           fill="var(--color-blue-600)"
           stroke="var(--color-border-contrast)"
           strokeWidth={5}
           opacity={0.8}
         />
-      )}
+      ))}
 
       <path
         d={pathData}
