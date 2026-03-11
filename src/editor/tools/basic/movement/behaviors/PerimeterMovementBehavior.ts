@@ -96,6 +96,7 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
     const perimeter = context.entity.perimeter
     const delta = movementState.movementDelta
 
+    let constraintsAdded = false
     for (let i = 0; i < perimeter.cornerIds.length; i++) {
       const cornerId = perimeter.cornerIds[i]
       const constraints = context.store.getConstraintsForEntity(cornerId)
@@ -113,8 +114,12 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
           corner: cornerId,
           position: ZERO_VEC2
         })
-        gcsService.triggerSolve()
+        constraintsAdded = true
       }
+    }
+
+    if (constraintsAdded) {
+      gcsService.triggerSolve()
     }
   }
 

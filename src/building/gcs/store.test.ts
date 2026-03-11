@@ -356,6 +356,31 @@ describe('GCS store building constraints', () => {
         actions.addBuildingConstraint(constraint)
       }).toThrow(/not found/)
     })
+
+    it('stores lockedCorner lock point in constraintPoints', () => {
+      setupRectangleMocks(perimeterA)
+      const actions = getGcsActions()
+      actions.addPerimeterGeometry(perimeterA)
+
+      const constraint: Constraint = {
+        id: 'constraint_locked',
+        type: 'lockedCorner',
+        corner: cornerA,
+        position: newVec2(100, 200)
+      }
+
+      actions.addBuildingConstraint(constraint)
+
+      const state = getGcsState()
+      const lockPointId = 'bc_constraint_locked_lockpoint'
+
+      expect(state.points[lockPointId]).toBeDefined()
+      expect(state.points[lockPointId].x).toBe(100)
+      expect(state.points[lockPointId].y).toBe(200)
+      expect(state.points[lockPointId].fixed).toBe(true)
+
+      expect(state.constraintPoints[constraint.id]).toEqual([lockPointId])
+    })
   })
 
   describe('removeBuildingConstraint', () => {
@@ -398,6 +423,30 @@ describe('GCS store building constraints', () => {
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('not found'))
 
       warnSpy.mockRestore()
+    })
+
+    it('removes lockedCorner lock point and constraintPoints entry', () => {
+      setupRectangleMocks(perimeterA)
+      const actions = getGcsActions()
+      actions.addPerimeterGeometry(perimeterA)
+
+      const constraint: Constraint = {
+        id: 'constraint_locked',
+        type: 'lockedCorner',
+        corner: cornerA,
+        position: newVec2(100, 200)
+      }
+
+      actions.addBuildingConstraint(constraint)
+      const lockPointId = 'bc_constraint_locked_lockpoint'
+
+      expect(getGcsState().points[lockPointId]).toBeDefined()
+
+      actions.removeBuildingConstraint(constraint.id)
+
+      const state = getGcsState()
+      expect(state.points[lockPointId]).toBeUndefined()
+      expect(state.constraintPoints[constraint.id]).toBeUndefined()
     })
   })
 })

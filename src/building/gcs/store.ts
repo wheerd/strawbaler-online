@@ -45,7 +45,7 @@ interface GcsStoreState {
   lines: SketchLine[]
   constraints: Record<string, Constraint>
   buildingConstraints: Record<string, BuildingConstraint>
-  constraintPoints: Record<string, SketchPoint[]>
+  constraintPoints: Record<string, string[]>
   perimeterRegistry: Record<PerimeterId, PerimeterRegistryEntry>
   conflictingConstraintIds: Set<string>
   redundantConstraintIds: Set<string>
@@ -203,6 +203,8 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
 
       const translated = translateBuildingConstraint(constraint, constraint.id, context)
 
+      const pointIds = translated.points.map(p => p.id)
+
       set(state => {
         const newConstraints = { ...state.constraints }
         for (const c of translated.constraints) {
@@ -218,7 +220,7 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
           buildingConstraints: { ...state.buildingConstraints, [constraint.id]: constraint },
           constraints: newConstraints,
           points: newPoints,
-          constraintPoints: { ...state.constraintPoints, [constraint.id]: translated.points }
+          constraintPoints: { ...state.constraintPoints, [constraint.id]: pointIds }
         }
       })
     },
@@ -233,9 +235,9 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
 
       const constraintIdsToRemove = new Set(translatedConstraintIds(id))
       const pointIdsToRemove = new Set(translatedPointIds(id))
-      const storedPoints = state.constraintPoints[id] ?? []
-      for (const p of storedPoints) {
-        pointIdsToRemove.add(p.id)
+      const storedPointIds = state.constraintPoints[id] ?? []
+      for (const pid of storedPointIds) {
+        pointIdsToRemove.add(pid)
       }
 
       set(state => {
