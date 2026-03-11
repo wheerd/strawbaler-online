@@ -4,7 +4,7 @@ import { isPerimeterId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import type { SnappingContext } from '@/editor/canvas/services/SnappingService'
 import type { MovementContext } from '@/editor/tools/basic/movement/types'
-import { type Vec2 } from '@/shared/geometry'
+import { type Vec2, ZERO_VEC2 } from '@/shared/geometry'
 import { arePolygonsIntersecting } from '@/shared/geometry/polygon'
 
 import {
@@ -43,7 +43,7 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
     )
 
     const snapContext: SnappingContext = {
-      snapPoints: lowerPerimeterPoints,
+      snapPoints: [ZERO_VEC2, ...lowerPerimeterPoints],
       alignPoints: otherPerimeterPoints
     }
 
