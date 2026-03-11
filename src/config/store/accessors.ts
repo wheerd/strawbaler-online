@@ -105,6 +105,10 @@ export const subscribeToRoofAssemblies = (
   cb: (id: RoofAssemblyId, current?: RoofAssemblyConfig, previous?: RoofAssemblyConfig) => void
 ) => subscribeRecords(useConfigStore, s => s.roofAssemblyConfigs, cb)
 
+export const subscribeToLayerSets = (
+  cb: (id: LayerSetId, current?: LayerSetConfig, previous?: LayerSetConfig) => void
+) => subscribeRecords(useConfigStore, s => s.layerSetConfigs, cb)
+
 export const subscribeToConfigChanges = useConfigStore.subscribe
 
 export function hydrateConfigState(state: unknown, version: number): ConfigState {

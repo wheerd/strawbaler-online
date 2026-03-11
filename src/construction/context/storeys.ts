@@ -1,6 +1,6 @@
 import type { StoreyId } from '@/building/model'
 import { getModelActions, subscribeToStoreys } from '@/building/store'
-import { getConfigActions, subscribeToFloorAssemblies } from '@/config/store'
+import { getConfigActions, subscribeToFloorAssemblies, subscribeToLayerSets } from '@/config/store'
 import { resolveFloorAssembly } from '@/construction/assemblies/floors'
 import type { FloorAssembly } from '@/construction/assemblies/floors/types'
 import type { Length } from '@/shared/geometry'
@@ -126,7 +126,8 @@ export class WallStoreyContextCacheService {
   }
 
   private setupSubscriptions(): void {
-    const { getStoreysOrderedByLevel, getStoreyBelow } = getModelActions()
+    const { getStoreysOrderedByLevel, getStoreyBelow, getStoreyAbove } = getModelActions()
+    const { getFloorAssemblyById } = getConfigActions()
 
     subscribeToStoreys(storeyId => {
       this.invalidate(storeyId)
@@ -139,6 +140,22 @@ export class WallStoreyContextCacheService {
     subscribeToFloorAssemblies(assemblyId => {
       for (const storey of getStoreysOrderedByLevel()) {
         if (storey.floorAssemblyId === assemblyId) {
+          this.invalidate(storey.id)
+        }
+      }
+    })
+
+    subscribeToLayerSets(layerSetId => {
+      for (const storey of getStoreysOrderedByLevel()) {
+        const floorConfig = getFloorAssemblyById(storey.floorAssemblyId)
+        const storeyAbove = getStoreyAbove(storey.id)
+        const ceilingConfig = storeyAbove ? getFloorAssemblyById(storeyAbove.floorAssemblyId) : null
+
+        const floorUsesLayer = floorConfig?.topLayerSetId === layerSetId || floorConfig?.bottomLayerSetId === layerSetId
+        const ceilingUsesLayer =
+          ceilingConfig?.topLayerSetId === layerSetId || ceilingConfig?.bottomLayerSetId === layerSetId
+
+        if (floorUsesLayer || ceilingUsesLayer) {
           this.invalidate(storey.id)
         }
       }
