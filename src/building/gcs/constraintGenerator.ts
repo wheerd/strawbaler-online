@@ -5,7 +5,7 @@ import type {
   PerimeterWallWithGeometry
 } from '@/building/model'
 import type { Length, Vec2 } from '@/shared/geometry'
-import { dotVec2, normVec2, subVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, dotVec2, normVec2, subVec2 } from '@/shared/geometry'
 
 /**
  * Map a perimeter reference side to the constraint side used by building constraints.
@@ -34,6 +34,7 @@ function getReferenceSideLength(wall: PerimeterWallWithGeometry, referenceSide: 
  * Generate building constraints for a preset (axis-aligned) perimeter.
  *
  * Produces:
+ * - A lockedCorner constraint for the first corner (at origin)
  * - A wallLength constraint for every wall (using the reference-side length)
  * - Horizontal/vertical constraints for consecutive corner pairs where the
  *   reference-side points are exactly aligned on one axis
@@ -49,6 +50,29 @@ export function generatePresetConstraints(
   const side = referenceSideToConstraintSide(referenceSide)
   const constraints: ConstraintInput[] = []
   const n = corners.length
+
+  // If there are no corners, we cannot generate any meaningful constraints
+  if (n === 0) {
+    return constraints
+  }
+
+  // Lock the corner whose reference-side point is closest to the origin
+  let originCornerIndex = 0
+  let minDistSq = Infinity
+  for (let i = 0; i < n; i++) {
+    const p = getReferenceSidePoint(corners[i], referenceSide)
+    const distSq = p[0] * p[0] + p[1] * p[1]
+    if (distSq < minDistSq) {
+      minDistSq = distSq
+      originCornerIndex = i
+    }
+  }
+
+  constraints.push({
+    type: 'lockedCorner',
+    corner: corners[originCornerIndex].id,
+    position: ZERO_VEC2
+  })
 
   // Wall length constraint for each wall
   for (const wall of walls) {
@@ -98,6 +122,7 @@ const COLINEAR_DOT_THRESHOLD = 0.9999
  * Generate building constraints for a freeform (user-drawn) perimeter.
  *
  * Produces:
+ * - LockedCorner constraints for corners that were snapped to origin during drawing
  * - WallLength constraints for walls where the user typed a length override
  * - Horizontal/vertical constraints for walls whose reference-side endpoint
  *   points are aligned within a small tolerance
@@ -110,7 +135,8 @@ export function generateFreeformConstraints(
   corners: PerimeterCornerWithGeometry[],
   walls: PerimeterWallWithGeometry[],
   referenceSide: PerimeterReferenceSide,
-  segmentLengthOverrides: (Length | null)[]
+  segmentLengthOverrides: (Length | null)[],
+  originSnappedCornerIndices: number[] = []
 ): ConstraintInput[] {
   const side = referenceSideToConstraintSide(referenceSide)
   const constraints: ConstraintInput[] = []
@@ -119,6 +145,17 @@ export function generateFreeformConstraints(
   // Track which wall indices have H/V constraints
   // (wall i goes from corners[i] to corners[(i+1)%n])
   const wallHasHV = new Set<number>()
+
+  // --- LockedCorner constraints for origin-snapped corners ---
+  for (const idx of originSnappedCornerIndices) {
+    if (idx >= 0 && idx < n) {
+      constraints.push({
+        type: 'lockedCorner',
+        corner: corners[idx].id,
+        position: ZERO_VEC2
+      })
+    }
+  }
 
   // --- WallLength constraints for overridden segments ---
   for (let i = 0; i < walls.length; i++) {

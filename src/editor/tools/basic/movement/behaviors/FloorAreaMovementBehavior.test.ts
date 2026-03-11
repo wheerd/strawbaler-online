@@ -58,7 +58,8 @@ describe('FloorAreaMovementBehavior', () => {
     updateFloorArea.mockClear()
     const movementState: FloorAreaMovementState = {
       previewPolygon: floorArea.area.points,
-      movementDelta: newVec2(100, 50)
+      movementDelta: newVec2(100, 50),
+      snapResults: []
     }
 
     const result = behavior.commitMovement(movementState, baseContext)

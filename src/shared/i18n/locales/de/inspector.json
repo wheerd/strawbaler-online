@@ -14,6 +14,14 @@
       "active": "Horizontale Beschränkung (Klicken zum Entfernen)",
       "suggestion": "Klicken, um horizontale Beschränkung hinzuzufügen"
     },
+    "lockedCornerArbitrary": {
+      "active": "Position gesperrt (Klicken zum Entsperren)",
+      "suggestion": "Klicken, um Eckposition zu sperren"
+    },
+    "lockedCornerOrigin": {
+      "active": "Am Ursprung gesperrt (Klicken zum Entsperren)",
+      "suggestion": "Klicken, um Ecke am Ursprung zu sperren"
+    },
     "perpendicular": {
       "active": "Rechtwinklige Beschränkung (Klicken zum Entfernen)",
       "suggestion": "Klicken, um rechtwinklige Beschränkung hinzuzufügen"

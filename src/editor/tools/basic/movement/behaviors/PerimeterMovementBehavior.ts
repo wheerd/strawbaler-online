@@ -1,10 +1,11 @@
+import { gcsService } from '@/building/gcs/service'
 import type { PerimeterWithGeometry } from '@/building/model'
 import type { SelectableId } from '@/building/model/ids'
 import { isPerimeterId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import type { SnappingContext } from '@/editor/canvas/services/SnappingService'
 import type { MovementContext } from '@/editor/tools/basic/movement/types'
-import { type Vec2 } from '@/shared/geometry'
+import { type Vec2, ZERO_VEC2, addVec2, distSqrVec2 } from '@/shared/geometry'
 import { arePolygonsIntersecting } from '@/shared/geometry/polygon'
 
 import {
@@ -19,7 +20,25 @@ export interface PerimeterEntityContext extends PolygonEntityContext {
 
 export type PerimeterMovementState = PolygonMovementState
 
+const ORIGIN_LOCK_TOLERANCE_MM = 1
+const ORIGIN_LOCK_TOLERANCE_SQUARED = ORIGIN_LOCK_TOLERANCE_MM * ORIGIN_LOCK_TOLERANCE_MM
+
 export class PerimeterMovementBehavior extends PolygonMovementBehavior<PerimeterEntityContext> {
+  canMove(entityId: SelectableId, store: StoreActions): boolean {
+    if (!isPerimeterId(entityId)) {
+      return true
+    }
+
+    const perimeter = store.getPerimeterById(entityId)
+    for (const cornerId of perimeter.cornerIds) {
+      const constraints = store.getConstraintsForEntity(cornerId)
+      if (constraints.some(c => c.type === 'lockedCorner')) {
+        return false
+      }
+    }
+    return true
+  }
+
   getEntity(entityId: SelectableId, _parentIds: SelectableId[], store: StoreActions): PerimeterEntityContext {
     if (!isPerimeterId(entityId)) {
       throw new Error(`Invalid entity context for wall ${entityId}`)
@@ -43,7 +62,7 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
     )
 
     const snapContext: SnappingContext = {
-      snapPoints: lowerPerimeterPoints,
+      snapPoints: [ZERO_VEC2, ...lowerPerimeterPoints],
       alignPoints: otherPerimeterPoints
     }
 
@@ -63,7 +82,45 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
     if (!this.isDeltaValid(movementState.movementDelta, context)) {
       return false
     }
-    return super.commitMovement(movementState, context)
+    const success = super.commitMovement(movementState, context)
+    if (success) {
+      this.autoLockOriginCorners(movementState, context)
+    }
+    return success
+  }
+
+  private autoLockOriginCorners(
+    movementState: PerimeterMovementState,
+    context: MovementContext<PerimeterEntityContext>
+  ): void {
+    const perimeter = context.entity.perimeter
+    const delta = movementState.movementDelta
+
+    let constraintsAdded = false
+    for (let i = 0; i < perimeter.cornerIds.length; i++) {
+      const cornerId = perimeter.cornerIds[i]
+      const constraints = context.store.getConstraintsForEntity(cornerId)
+      if (constraints.some(c => c.type === 'lockedCorner')) {
+        continue
+      }
+
+      const refPoints =
+        perimeter.referenceSide === 'inside' ? perimeter.innerPolygon.points : perimeter.outerPolygon.points
+      const movedPoint = addVec2(refPoints[i], delta)
+
+      if (distSqrVec2(movedPoint, ZERO_VEC2) < ORIGIN_LOCK_TOLERANCE_SQUARED) {
+        context.store.addBuildingConstraint({
+          type: 'lockedCorner',
+          corner: cornerId,
+          position: ZERO_VEC2
+        })
+        constraintsAdded = true
+      }
+    }
+
+    if (constraintsAdded) {
+      gcsService.triggerSolve()
+    }
   }
 
   applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<PerimeterEntityContext>): boolean {

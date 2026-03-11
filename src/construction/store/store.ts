@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
+import { shallow } from 'zustand/shallow'
 
 import type { PerimeterWallId } from '@/building/model/ids'
 import { getModelActions, subscribeToModelChanges } from '@/building/store'
@@ -201,7 +202,14 @@ export const subscribeToConstructionModelChanges = (cb: () => void) =>
 let subscribed = false
 function setupSubscriptions() {
   if (!subscribed) {
-    subscribeToModelChanges(updateLastSourceChange)
+    subscribeToModelChanges(
+      state => {
+        const { activeStoreyId: _activeStoreyId, ...modelState } = state
+        return modelState
+      },
+      updateLastSourceChange,
+      { equalityFn: shallow }
+    )
     subscribeToConfigChanges(updateLastSourceChange)
     subscribeToMaterials(updateLastSourceChange)
     subscribeToProjectChanges(() => {

@@ -16,7 +16,7 @@ export interface PolygonEntityContext {
 
 export interface PolygonMovementState extends MovementState {
   previewPolygon: readonly Vec2[]
-  snapResult?: SnapResult
+  snapResults: SnapResult[]
 }
 
 export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityContext> implements MovementBehavior<
@@ -30,7 +30,8 @@ export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityConte
   initializeState(pointerState: PointerMovementState, context: MovementContext<TEntity>): PolygonMovementState {
     return {
       previewPolygon: this.getPolygonPoints(context),
-      movementDelta: copyVec2(pointerState.delta)
+      movementDelta: copyVec2(pointerState.delta),
+      snapResults: []
     }
   }
 
@@ -39,7 +40,6 @@ export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityConte
     const previewPoints = originalPoints.map(point => addVec2(point, pointerState.delta))
     const snapContext = this.getSnapContext(context)
 
-    let bestSnap: SnapResult | undefined
     let bestScore = Infinity
     let resultDelta = copyVec2(pointerState.delta)
 
@@ -53,15 +53,23 @@ export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityConte
 
       if (score < bestScore) {
         bestScore = score
-        bestSnap = snapResult
         resultDelta = subVec2(snapResult.position, originalPoints[index])
       }
     }
 
+    const finalPoints = this.translatePoints(originalPoints, resultDelta)
+    const epsilonTolerance = 1
+    const snapResults: SnapResult[] = []
+
+    for (const point of finalPoints) {
+      const snapResult = context.snappingService.findSnapResult(point, snapContext, epsilonTolerance)
+      if (snapResult) snapResults.push(snapResult)
+    }
+
     return {
-      previewPolygon: this.translatePoints(this.getPolygonPoints(context), resultDelta),
+      previewPolygon: finalPoints,
       movementDelta: resultDelta,
-      snapResult: bestSnap
+      snapResults
     }
   }
 

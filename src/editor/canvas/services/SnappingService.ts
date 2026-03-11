@@ -53,25 +53,29 @@ export class SnappingService {
   /**
    * Find the snap result for a target point
    * This is the main function that should be used by all components
+   * @param target - The point to snap
+   * @param context - Snapping context with snap points and lines
+   * @param tolerance - Optional override for both point and line snap distances
    */
-  findSnapResult(target: Vec2, context: SnappingContext): SnapResult | null {
+  findSnapResult(target: Vec2, context: SnappingContext, tolerance?: number): SnapResult | null {
     // Step 1: Try point snapping first (highest priority)
-    const pointSnapResult = this.findPointSnapPosition(target, context)
+    const pointSnapResult = this.findPointSnapPosition(target, context, tolerance)
 
     if (pointSnapResult != null) return pointSnapResult
 
     // Step 2: Generate snap lines and check for line/intersection snapping
     const snapLines = this.generateSnapLines(context)
 
-    return this.findLineSnapPosition(target, snapLines, context)
+    return this.findLineSnapPosition(target, snapLines, context, tolerance)
   }
 
   /**
    * Find existing points for direct point snapping
    */
-  private findPointSnapPosition(target: Vec2, context: SnappingContext): SnapResult | null {
+  private findPointSnapPosition(target: Vec2, context: SnappingContext, tolerance?: number): SnapResult | null {
+    const snapDistanceSq = (tolerance ?? this.snapConfig.pointSnapDistance) ** 2
     let bestPoint: Vec2 | null = null
-    let bestDistanceSq = this.snapConfig.pointSnapDistance ** 2
+    let bestDistanceSq = snapDistanceSq
 
     for (const point of context.snapPoints) {
       const targetDistSq = distSqrVec2(target, point)
@@ -149,7 +153,13 @@ export class SnappingService {
   /**
    * Find snap position on lines or line intersections
    */
-  private findLineSnapPosition(target: Vec2, snapLines: Line2D[], context: SnappingContext): SnapResult | null {
+  private findLineSnapPosition(
+    target: Vec2,
+    snapLines: Line2D[],
+    context: SnappingContext,
+    tolerance?: number
+  ): SnapResult | null {
+    const lineSnapDistance = tolerance ?? this.snapConfig.lineSnapDistance
     const minDistanceSquared = this.snapConfig.minDistance ** 2
     const nearbyLines: { line: Line2D; distance: number; projectedPosition: Vec2 }[] = []
     let closestDist = Infinity
@@ -157,7 +167,7 @@ export class SnappingService {
 
     for (const line of snapLines) {
       const distance = distanceToInfiniteLine(target, line)
-      if (distance <= this.snapConfig.lineSnapDistance) {
+      if (distance <= lineSnapDistance) {
         const projectedPosition = projectPointOntoLine(target, line)
         if (
           context.referencePoint == null ||
@@ -181,7 +191,7 @@ export class SnappingService {
     }
 
     // Check for intersections between the closest line and other nearby lines
-    const lineSnapDistSq = this.snapConfig.lineSnapDistance ** 2
+    const lineSnapDistSq = lineSnapDistance ** 2
 
     for (let i = 0; i < nearbyLines.length - 1; i++) {
       for (let j = i + 1; j < nearbyLines.length; j++) {

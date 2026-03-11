@@ -226,6 +226,10 @@ class GcsService {
       for (const lineId of entry.lineIds) activeLineIds.add(lineId)
     }
 
+    for (const pointIds of Object.values(gcsState.constraintPoints)) {
+      for (const pointId of pointIds) activePointIds.add(pointId)
+    }
+
     const fixedPointIds = (fixedNodeIds ?? []).map(id => nodeRefSidePointId(id))
     const allPoints = Object.values(gcsState.points)
     const points = allPoints.filter(p => activePointIds.has(p.id))

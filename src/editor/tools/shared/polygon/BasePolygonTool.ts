@@ -28,6 +28,8 @@ export interface PolygonToolStateBase {
   lengthOverride: Length | null
   /** Per-segment record of which segments had a user-typed length override. */
   segmentLengthOverrides: (Length | null)[]
+  /** Index of the point that was snapped to the origin [0, 0], if any. */
+  originSnappedIndex: number | null
 }
 
 /**
@@ -50,6 +52,7 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
       isClosingSegmentValid: true,
       lengthOverride: null,
       segmentLengthOverrides: [] as (Length | null)[],
+      originSnappedIndex: null,
       snapContext: this.extendSnapContext(this.createBaseSnapContext([])),
       ...initialState
     } as TState
@@ -83,6 +86,14 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
       // the segment from points[n-1] to points[n] is segment n-1.
       if (this.state.points.length > 0) {
         this.state.segmentLengthOverrides.push(this.state.lengthOverride)
+      }
+
+      // Check if point was snapped to origin (within tolerance)
+      const ORIGIN_SNAP_TOLERANCE = 1 // 1mm
+      const isAtOrigin =
+        Math.abs(pointToAdd[0]) < ORIGIN_SNAP_TOLERANCE && Math.abs(pointToAdd[1]) < ORIGIN_SNAP_TOLERANCE
+      if (isAtOrigin && this.state.snapResult != null) {
+        this.state.originSnappedIndex = this.state.points.length
       }
 
       this.state.points.push(pointToAdd)
@@ -340,6 +351,7 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
     this.state.isClosingSegmentValid = true
     this.state.lengthOverride = null
     this.state.segmentLengthOverrides = []
+    this.state.originSnappedIndex = null
     this.updateSnapContext()
   }
 }
