@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { WallAssemblyId } from '@/building/model/ids'
 import { useConfigActions } from '@/config/store'
 import type { WallAssemblyConfig } from '@/config/types'
-import { LayerSetSelect } from '@/config/ui/layers/LayerSetSelect'
+import { LayerSetSelectWithEdit } from '@/config/ui/layers/LayerSetSelect'
 import { OpeningAssemblySelectWithEdit } from '@/config/ui/opening-assembly/OpeningAssemblySelectWithEdit'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { Separator } from '@/shared/ui/components/separator'
@@ -47,8 +47,9 @@ export function CommonConfigForm({ assemblyId, config }: CommonConfigFormProps):
             </Label.Root>
             <MeasurementInfo highlightedPart="insideLayer" showFinishedSides />
           </div>
-          <LayerSetSelect
+          <LayerSetSelectWithEdit
             value={config.insideLayerSetId}
+            allowNone
             onValueChange={value => {
               updateWallAssemblyConfig(assemblyId, { insideLayerSetId: value })
             }}
@@ -66,8 +67,9 @@ export function CommonConfigForm({ assemblyId, config }: CommonConfigFormProps):
             </Label.Root>
             <MeasurementInfo highlightedPart="outsideLayer" showFinishedSides />
           </div>
-          <LayerSetSelect
+          <LayerSetSelectWithEdit
             value={config.outsideLayerSetId}
+            allowNone
             onValueChange={value => {
               updateWallAssemblyConfig(assemblyId, { outsideLayerSetId: value })
             }}

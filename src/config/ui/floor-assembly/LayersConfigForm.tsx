@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { FloorAssemblyId } from '@/building/model/ids'
 import { useConfigActions } from '@/config/store'
-import { LayerSetSelect } from '@/config/ui/layers/LayerSetSelect'
+import { LayerSetSelectWithEdit } from '@/config/ui/layers/LayerSetSelect'
 import type { FloorConfig } from '@/construction/assemblies/floors/types'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { Separator } from '@/shared/ui/components/separator'
@@ -26,8 +26,9 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
           </Label.Root>
           <MeasurementInfo highlightedPart="floorTopLayers" showFinishedLevels />
         </div>
-        <LayerSetSelect
+        <LayerSetSelectWithEdit
           value={config.topLayerSetId}
+          allowNone
           onValueChange={value => {
             updateFloorAssemblyConfig(assemblyId, { topLayerSetId: value })
           }}
@@ -45,8 +46,9 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
           </Label.Root>
           <MeasurementInfo highlightedPart="floorBottomLayers" showFinishedLevels />
         </div>
-        <LayerSetSelect
+        <LayerSetSelectWithEdit
           value={config.bottomLayerSetId}
+          allowNone
           onValueChange={value => {
             updateFloorAssemblyConfig(assemblyId, { bottomLayerSetId: value })
           }}

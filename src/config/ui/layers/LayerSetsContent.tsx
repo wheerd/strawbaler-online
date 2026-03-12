@@ -89,7 +89,9 @@ export function LayerSetsContent(props?: LayerSetsContentProps): React.JSX.Eleme
             <LayerSetSelect
               value={selectedLayerSetId ?? undefined}
               onValueChange={id => {
-                setSelectedLayerSetId(id)
+                if (id) {
+                  setSelectedLayerSetId(id)
+                }
               }}
               placeholder={t($ => $.common.placeholder)}
             />

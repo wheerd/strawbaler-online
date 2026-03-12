@@ -1,19 +1,23 @@
+import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { LayerSetId } from '@/building/model/ids'
 import { useLayerSets } from '@/config/store'
+import { useConfigNavigation } from '@/config/ui/useConfigNavigation'
 import type { LayerSetConfig, LayerSetUse } from '@/construction/assemblies/layers/types'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+import { Button } from '@/shared/ui/components/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/components/select'
 
 import { getLayerSetUseIcon } from './icons'
 
 export interface LayerSetSelectProps {
   value: LayerSetId | undefined
-  onValueChange: (value: LayerSetId) => void
+  onValueChange: (value: LayerSetId | undefined) => void
   use?: LayerSetUse
   placeholder?: string
   disabled?: boolean
+  allowNone?: boolean
 }
 
 export function LayerSetSelect({
@@ -21,7 +25,8 @@ export function LayerSetSelect({
   onValueChange,
   use,
   placeholder,
-  disabled
+  disabled,
+  allowNone = false
 }: LayerSetSelectProps): React.JSX.Element {
   const { t } = useTranslation('config')
   const { formatLength } = useFormatters()
@@ -32,33 +37,32 @@ export function LayerSetSelect({
   const displayName = (layerSet: { name: string; nameKey?: LayerSetConfig['nameKey'] }) =>
     layerSet.nameKey ? t(layerSet.nameKey) : layerSet.name
 
-  const selectedLayerSet = layerSets.find(ls => ls.id === value)
+  const sortedLayerSets = [...layerSets].sort((a, b) =>
+    a.use !== b.use ? a.use.localeCompare(b.use) : displayName(a).localeCompare(displayName(b))
+  )
 
   return (
     <Select
-      value={value ?? ''}
+      value={value ?? (allowNone ? 'none' : '')}
       onValueChange={val => {
-        onValueChange(val as LayerSetId)
+        if (val === 'none') {
+          onValueChange(undefined)
+        } else {
+          onValueChange(val as LayerSetId)
+        }
       }}
       disabled={disabled}
     >
       <SelectTrigger>
-        <SelectValue placeholder={placeholder ?? t($ => $.common.placeholder)}>
-          {selectedLayerSet && (
-            <div className="flex items-center gap-2">
-              {(() => {
-                const Icon = getLayerSetUseIcon(selectedLayerSet.use)
-                return <Icon className="shrink-0" width={14} height={14} />
-              })()}
-              <span>
-                {displayName(selectedLayerSet)} ({formatLength(selectedLayerSet.totalThickness)})
-              </span>
-            </div>
-          )}
-        </SelectValue>
+        <SelectValue placeholder={placeholder ?? t($ => $.common.placeholder)} />
       </SelectTrigger>
       <SelectContent>
-        {layerSets.map(ls => {
+        {allowNone && (
+          <SelectItem value="none">
+            <span className="text-muted-foreground">{t($ => $.layerSets.none)}</span>
+          </SelectItem>
+        )}
+        {sortedLayerSets.map(ls => {
           const Icon = getLayerSetUseIcon(ls.use)
           return (
             <SelectItem key={ls.id} value={ls.id}>
@@ -73,5 +77,28 @@ export function LayerSetSelect({
         })}
       </SelectContent>
     </Select>
+  )
+}
+
+export function LayerSetSelectWithEdit(props: LayerSetSelectProps): React.JSX.Element {
+  const { t } = useTranslation('config')
+  const { navigateToConfig } = useConfigNavigation()
+
+  return (
+    <div className="flex items-center gap-1">
+      <div className="grow">
+        <LayerSetSelect {...props} />
+      </div>
+      <Button
+        size="icon-xs"
+        title={t($ => $.layerSets.configure)}
+        variant="ghost"
+        onClick={() => {
+          void navigateToConfig('layers', props.value ?? undefined)
+        }}
+      >
+        <Pencil />
+      </Button>
+    </div>
   )
 }
