@@ -7,14 +7,21 @@ import { VERSION_INFO } from '@/app/version'
 import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 import { GitHubIcon } from '@/shared/ui/icons'
 
+import { LazyYouTubeEmbed } from './LazyYouTubeEmbed'
+
 export function WelcomePage(): React.JSX.Element {
   const { t } = useTranslation('welcome')
 
   return (
     <div data-testid="welcome-page" className="flex h-full w-full flex-col overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-6">
-        <div className="flex flex-col gap-3">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-6">
+        <div className="flex flex-col gap-4">
           <span>{t($ => $.introduction)}</span>
+
+          <div className="flex flex-col gap-3">
+            <h3 className="font-semibold">{t($ => $.showcaseVideo.title)}</h3>
+            <LazyYouTubeEmbed videoId="x1O7Q2uZu0s" />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
@@ -50,26 +57,6 @@ export function WelcomePage(): React.JSX.Element {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <h3 className="font-semibold">{t($ => $.demoVideo.title)}</h3>
-              <span className="text-base">{t($ => $.demoVideo.description)}</span>
-              <div className="flex flex-row items-center gap-4">
-                <a
-                  className="font-bold underline"
-                  href="https://www.youtube.com/watch?v=oe9VnhEW0JE"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t($ => $.demoVideo.demo01)}
-                </a>
-                <a
-                  className="font-bold underline"
-                  href="https://www.youtube.com/watch?v=7Ed09YNGSn8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t($ => $.demoVideo.demo02)}
-                </a>
-              </div>
               <h3 className="font-semibold">{t($ => $.dataStorage.title)}</h3>
               <div className="text-sm">
                 {t($ => $.dataStorage.description)}
@@ -106,6 +93,27 @@ export function WelcomePage(): React.JSX.Element {
                 </span>
               </CalloutText>
             </Callout>
+          </div>
+
+          <div className="text-sm text-gray-500">
+            <span className="font-medium">{t($ => $.olderDemos.title)}:</span>{' '}
+            <a
+              className="underline"
+              href="https://www.youtube.com/watch?v=oe9VnhEW0JE"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t($ => $.olderDemos.demo01)}
+            </a>
+            {' · '}
+            <a
+              className="underline"
+              href="https://www.youtube.com/watch?v=7Ed09YNGSn8"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t($ => $.olderDemos.demo02)}
+            </a>
           </div>
 
           <div className="flex flex-col items-center gap-2">

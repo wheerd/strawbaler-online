@@ -8,12 +8,6 @@
     "privacy": "You choose where your data is stored. No cookies, tracking, or third-party analytics are used.",
     "title": "Data Storage"
   },
-  "demoVideo": {
-    "demo01": "Demo 0.1",
-    "demo02": "Demo 0.2",
-    "description": "Watch a quick demonstration of StrawBuild Studio's features on YouTube:",
-    "title": "Demo Video"
-  },
   "disclaimer": {
     "intro": "This tool is currently in active development and provided as-is:",
     "items": [
@@ -37,6 +31,11 @@
     ],
     "title": "Key Features"
   },
+  "olderDemos": {
+    "demo01": "Demo 0.1",
+    "demo02": "Demo 0.2",
+    "title": "Older Demo Videos"
+  },
   "plannedFeatures": {
     "items": [
       "Cost and work hours estimations",
@@ -47,6 +46,12 @@
     "title": "Planned Features"
   },
   "privacyLink": "View our <privacyLink>Privacy Policy</privacyLink>",
+  "showcaseVideo": {
+    "playVideo": "Play video",
+    "title": "See StrawBuild Studio in Action",
+    "videoTitle": "StrawBuild Studio Showcase",
+    "watchOnYouTube": "Watch on"
+  },
   "version": "Version {{version}}",
   "viewOnGitHub": "View on GitHub"
 }

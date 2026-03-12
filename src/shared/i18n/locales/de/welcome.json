@@ -8,12 +8,6 @@
     "privacy": "Du entscheidest, wo deine Daten gespeichert werden. Keine Cookies, Tracking oder Drittanbieter-Analysen.",
     "title": "Datenspeicherung"
   },
-  "demoVideo": {
-    "demo01": "Demo 0.1 (Englisch)",
-    "demo02": "Demo 0.2 (Englisch)",
-    "description": "Schau dir eine kurze Demonstration der Funktionen von StrawBuild Studio auf YouTube an:",
-    "title": "Demo-Video"
-  },
   "disclaimer": {
     "intro": "Dieses Werkzeug befindet sich derzeit in aktiver Entwicklung und wird bereitgestellt wie es ist:",
     "items": [
@@ -37,6 +31,11 @@
     ],
     "title": "Hauptfunktionen"
   },
+  "olderDemos": {
+    "demo01": "Demo 0.1",
+    "demo02": "Demo 0.2",
+    "title": "Ältere Demo-Videos"
+  },
   "plannedFeatures": {
     "items": [
       "Kosten- und Arbeitsstundenschätzungen",
@@ -47,6 +46,12 @@
     "title": "Geplante Funktionen"
   },
   "privacyLink": "Unsere <privacyLink>Datenschutzerklärung</privacyLink> ansehen",
+  "showcaseVideo": {
+    "playVideo": "Video abspielen",
+    "title": "StrawBuild Studio in Aktion erleben",
+    "videoTitle": "StrawBuild Studio Vorstellung",
+    "watchOnYouTube": "Ansehen auf"
+  },
   "version": "Version {{version}}",
   "viewOnGitHub": "Auf GitHub ansehen"
 }

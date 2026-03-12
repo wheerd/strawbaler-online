@@ -13,7 +13,15 @@ A modern web-based floor plan editor specifically designed for strawbale constru
 
 > **Development version:** [development--strawbuild.netlify.app](https://development--strawbuild.netlify.app/) (latest features, may be unstable)
 
-**🎥 Watch the Tool in Action: [Demo Video 0.1](https://www.youtube.com/watch?v=oe9VnhEW0JE) - [Demo Video 0.2](https://youtu.be/7Ed09YNGSn8)**
+**🎥 [Watch the Showcase Video](https://www.youtube.com/watch?v=x1O7Q2uZu0s)** - See StrawBuild Studio in action!
+
+<details>
+<summary>Older Demo Videos</summary>
+
+- [Demo Video 0.1](https://www.youtube.com/watch?v=oe9VnhEW0JE)
+- [Demo Video 0.2](https://www.youtube.com/watch?v=7Ed09YNGSn8)
+
+</details>
 
 ## ✨ Features
 

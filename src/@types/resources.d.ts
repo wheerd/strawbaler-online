@@ -1842,12 +1842,6 @@ interface Resources {
       "privacy": "You choose where your data is stored. No cookies, tracking, or third-party analytics are used.",
       "title": "Data Storage"
     },
-    "demoVideo": {
-      "demo01": "Demo 0.1",
-      "demo02": "Demo 0.2",
-      "description": "Watch a quick demonstration of StrawBuild Studio's features on YouTube:",
-      "title": "Demo Video"
-    },
     "disclaimer": {
       "intro": "This tool is currently in active development and provided as-is:",
       "items": ["No guarantees for accuracy of calculations, plans, or 3D models", "Breaking changes may occur between versions", "Local project data may be lost due to browser storage limitations. Cloud-stored projects are persisted securely.", "Always save and export your work regularly", "This tool does not replace professional engineering consultation"],
@@ -1858,11 +1852,22 @@ interface Resources {
       "items": ["Define perimeter walls in finished dimensions (with plasters) with windows and doors", "Add gable or shed roofs", "Configure your wall, floor and roof assembly (infill, strawhenge, modules)", "Generate 2D construction plans for individual walls or whole floors", "View and export 3D models of the construction (IFC)", "Get an overview of materials used in the construction"],
       "title": "Key Features"
     },
+    "olderDemos": {
+      "demo01": "Demo 0.1",
+      "demo02": "Demo 0.2",
+      "title": "Older Demo Videos"
+    },
     "plannedFeatures": {
       "items": ["Cost and work hours estimations", "Support for intermediate walls and foundations", "Translation in more languages", "Support for more irregular building shapes"],
       "title": "Planned Features"
     },
     "privacyLink": "View our <privacyLink>Privacy Policy</privacyLink>",
+    "showcaseVideo": {
+      "playVideo": "Play video",
+      "title": "See StrawBuild Studio in Action",
+      "videoTitle": "StrawBuild Studio Showcase",
+      "watchOnYouTube": "Watch on"
+    },
     "version": "Version {{version}}",
     "viewOnGitHub": "View on GitHub"
   }
