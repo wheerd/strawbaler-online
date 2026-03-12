@@ -5,6 +5,7 @@ import type {
   OpeningGeometry,
   Perimeter,
   PerimeterCorner,
+  PerimeterGeometry,
   PerimeterWall,
   Roof,
   Storey,
@@ -31,6 +32,10 @@ export const subscribeToRoofs = (cb: (id: RoofId, current?: Roof, previous?: Roo
 
 export const subscribeToPerimeters = (cb: (id: PerimeterId, current?: Perimeter, previous?: Perimeter) => void) =>
   subscribeRecords(useModelStore, s => s.perimeters, cb)
+
+export const subscribeToPerimeterGeometries = (
+  cb: (id: PerimeterId, current?: PerimeterGeometry, previous?: PerimeterGeometry) => void
+) => subscribeRecords(useModelStore, s => s._perimeterGeometry, cb)
 
 export const subscribeToWalls = (
   cb: (id: PerimeterWallId, current?: PerimeterWall, previous?: PerimeterWall) => void

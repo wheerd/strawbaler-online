@@ -1,5 +1,10 @@
 import type { PerimeterId, StoreyId } from '@/building/model/ids'
-import { getModelActions, subscribeToFloorOpenings, subscribeToPerimeters, subscribeToWalls } from '@/building/store'
+import {
+  getModelActions,
+  subscribeToFloorOpenings,
+  subscribeToPerimeterGeometries,
+  subscribeToWalls
+} from '@/building/store'
 import { getConfigActions, subscribeToLayerSets, subscribeToWallAssemblies } from '@/config/store'
 import { computePerimeterConstructionContext } from '@/construction/context/perimeter'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
@@ -50,7 +55,7 @@ export class PerimeterContextCacheService {
     const { getPerimetersByStorey, getAllPerimeters, getPerimeterWallsById } = getModelActions()
     const { getWallAssemblyById } = getConfigActions()
 
-    subscribeToPerimeters(perimeterId => {
+    subscribeToPerimeterGeometries(perimeterId => {
       this.invalidate(perimeterId)
     })
 
