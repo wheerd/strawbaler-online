@@ -151,6 +151,7 @@
     }
   },
   "layerSets": {
+    "configure": "Schichten konfigurieren",
     "copyNameTemplate": "{{name}} (Kopie)",
     "defaults": {
       "ceilingClayPlaster": "Lehmputz",
@@ -174,6 +175,7 @@
       "use": "Verwendung"
     },
     "newName": "Neue Schichten",
+    "none": "Keine",
     "resetConfirm": "Möchten Sie die Standard-Schichten wirklich zurücksetzen? Benutzerdefinierte Schichten bleiben erhalten. Diese Aktion kann nicht rückgängig gemacht werden.",
     "resetTitle": "Schichten zurücksetzen",
     "uses": {

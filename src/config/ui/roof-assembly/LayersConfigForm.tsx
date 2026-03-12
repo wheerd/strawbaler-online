@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { RoofAssemblyId } from '@/building/model/ids'
 import { useConfigActions } from '@/config/store'
-import { LayerSetSelect } from '@/config/ui/layers/LayerSetSelect'
+import { LayerSetSelectWithEdit } from '@/config/ui/layers/LayerSetSelect'
 import type { RoofConfig } from '@/construction/assemblies/roofs/types'
 import { RoofMeasurementInfo } from '@/shared/ui/RoofMeasurementInfo'
 import { Separator } from '@/shared/ui/components/separator'
@@ -26,8 +26,9 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
           </Label.Root>
           <RoofMeasurementInfo highlightedPart="roofBottomLayers" showFinishedLevels />
         </div>
-        <LayerSetSelect
+        <LayerSetSelectWithEdit
           value={config.insideLayerSetId}
+          allowNone
           onValueChange={value => {
             updateRoofAssemblyConfig(assemblyId, { insideLayerSetId: value })
           }}
@@ -45,8 +46,9 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
           </Label.Root>
           <RoofMeasurementInfo highlightedPart="roofTopLayers" showFinishedLevels />
         </div>
-        <LayerSetSelect
+        <LayerSetSelectWithEdit
           value={config.topLayerSetId}
+          allowNone
           onValueChange={value => {
             updateRoofAssemblyConfig(assemblyId, { topLayerSetId: value })
           }}
@@ -64,8 +66,9 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
           </Label.Root>
           <RoofMeasurementInfo highlightedPart="overhangBottomLayers" showFinishedLevels />
         </div>
-        <LayerSetSelect
+        <LayerSetSelectWithEdit
           value={config.overhangLayerSetId}
+          allowNone
           onValueChange={value => {
             updateRoofAssemblyConfig(assemblyId, { overhangLayerSetId: value })
           }}

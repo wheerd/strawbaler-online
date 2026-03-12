@@ -278,6 +278,7 @@ interface Resources {
       }
     },
     "layerSets": {
+      "configure": "Configure Layer Set",
       "copyNameTemplate": "{{name}} (Copy)",
       "defaults": {
         "ceilingClayPlaster": "Clay Plaster",
@@ -301,6 +302,7 @@ interface Resources {
         "use": "Use"
       },
       "newName": "New Layer Set",
+      "none": "None",
       "resetConfirm": "Are you sure you want to reset default layer sets? This will restore the original default layer sets but keep any custom layer sets you've created. This action cannot be undone.",
       "resetTitle": "Reset Layer Sets",
       "uses": {
