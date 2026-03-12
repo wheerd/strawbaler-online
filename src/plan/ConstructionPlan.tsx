@@ -450,8 +450,8 @@ export function ConstructionPlan({
               <h4>{t($ => $.plan.strawTypesHeading)}</h4>
               <div className="grid grid-cols-2">
                 <span className="text-sm text-lime-600">{t($ => $.plan.strawTypes.fullBale)}</span>
-                <span className="text-sm text-purple-600">{t($ => $.plan.strawTypes.partialBale)}</span>
-                <span className="text-sm text-sky-600">{t($ => $.plan.strawTypes.flakes)}</span>
+                <span className="text-sm text-sky-600">{t($ => $.plan.strawTypes.partialBale)}</span>
+                <span className="text-sm text-purple-600">{t($ => $.plan.strawTypes.flakes)}</span>
                 <span className="text-sm text-red-800">{t($ => $.plan.strawTypes.stuffed)}</span>
               </div>
             </div>
