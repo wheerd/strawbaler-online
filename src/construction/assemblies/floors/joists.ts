@@ -1,14 +1,15 @@
+import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/PolygonWithBoundingRect'
 import {
+  detectBeamEdges,
   infiniteBeamPolygon,
   partitionByAlignedEdges,
   polygonFromLineIntersections,
-  simplePolygonFrame,
-  stripesPolygons
+  simplePolygonFrame
 } from '@/construction/assemblies/utils/helpers'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import { createConstructionElement, createConstructionElementId } from '@/construction/model/elements'
 import { type ConstructionModel } from '@/construction/model/model'
-import { type ConstructionResult, aggregateResults } from '@/construction/model/results'
+import { type ConstructionResult, aggregateResults, yieldMeasurement } from '@/construction/model/results'
 import { createExtrudedPolygon } from '@/construction/model/shapes'
 import {
   TAG_FLOOR_INFILL,
@@ -16,11 +17,14 @@ import {
   TAG_FLOOR_WALL_BEAM,
   TAG_JOIST,
   TAG_JOIST_FLOOR,
+  TAG_JOIST_LENGTH,
+  TAG_JOIST_SPACING,
+  TAG_STRAW_INFILL,
   TAG_SUBFLOOR
 } from '@/construction/model/tags'
+import { getMaterialById } from '@/materials/store'
 import {
   Bounds2D,
-  type Polygon2D,
   type PolygonWithHoles2D,
   type Vec2,
   direction,
@@ -29,13 +33,11 @@ import {
   ensurePolygonIsClockwise,
   fromTrans,
   intersectPolygon,
-  isPointStrictlyInPolygon,
   midpoint,
   minimumAreaBoundingBox,
   newVec3,
   offsetLine,
   offsetPolygon,
-  perpendicular,
   perpendicularCW,
   subtractPolygons
 } from '@/shared/geometry'
@@ -44,47 +46,6 @@ import { BaseFloorAssembly } from './base'
 import type { JoistFloorConfig } from './types'
 
 const EPSILON = 1e-5
-
-/**
- * Detects whether wall beams exist on the left and right sides of a partition.
- * Checks if midpoints of wall beam polygon edges are strictly inside the partition.
- */
-function detectBeamEdges(
-  partition: Polygon2D,
-  joistDirection: Vec2,
-  wallBeamCheckPoints: Vec2[]
-): { leftHasBeam: boolean; rightHasBeam: boolean } {
-  if (partition.points.length === 0 || wallBeamCheckPoints.length === 0) {
-    return { leftHasBeam: false, rightHasBeam: false }
-  }
-
-  const perpDir = perpendicular(joistDirection)
-
-  // Find left and right boundaries of partition (min/max perpendicular projections)
-  const projections = partition.points.map(p => dotVec2(p, perpDir))
-  const leftProjection = Math.min(...projections)
-  const rightProjection = Math.max(...projections)
-  const centerProjection = (leftProjection + rightProjection) / 2
-
-  let leftHasBeam = false
-  let rightHasBeam = false
-
-  for (const checkPoint of wallBeamCheckPoints) {
-    if (isPointStrictlyInPolygon(checkPoint, partition)) {
-      const projection = dotVec2(checkPoint, perpDir)
-
-      if (projection < centerProjection) {
-        leftHasBeam = true
-      } else {
-        rightHasBeam = true
-      }
-    }
-
-    if (leftHasBeam && rightHasBeam) break
-  }
-
-  return { leftHasBeam, rightHasBeam }
-}
 
 export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
   construct = (context: PerimeterConstructionContext): ConstructionModel => {
@@ -141,23 +102,33 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
 
     const expandedHoles = context.floorOpenings.map(h => offsetPolygon(h, this.config.openingSideThickness))
 
-    const joistPolygons = partitions.flatMap(p => {
+    const joistAndGapPolygons = partitions.flatMap(p => {
       const { leftHasBeam, rightHasBeam } = detectBeamEdges(p, joistDirection, wallBeamCheckPoints)
 
-      return subtractPolygons([p], expandedHoles).flatMap(p =>
-        Array.from(
-          stripesPolygons(
-            p,
-            joistDirection,
-            this.config.joistThickness,
-            this.config.joistSpacing,
-            leftHasBeam ? this.config.joistSpacing : 0,
-            rightHasBeam ? this.config.joistSpacing : 0,
-            3000
-          )
+      return subtractPolygons([p], expandedHoles).flatMap(clippedP => {
+        const rect = PolygonWithBoundingRect.fromPolygon(clippedP, joistDirection)
+        return Array.from(
+          rect.stripesAndGaps({
+            thickness: this.config.joistThickness,
+            spacing: this.config.joistSpacing,
+            stripeAtMin: !leftHasBeam,
+            stripeAtMax: !rightHasBeam,
+            minimumArea: 3000
+          })
         )
-      )
+      })
     })
+
+    const joistPolygons: PolygonWithBoundingRect[] = []
+    const gapPolygons: PolygonWithBoundingRect[] = []
+
+    for (const item of joistAndGapPolygons) {
+      if (item.type === 'stripe') {
+        joistPolygons.push(item.polygon)
+      } else {
+        gapPolygons.push(item.polygon)
+      }
+    }
 
     const clippedHoles = expandedHoles
       .map(ensurePolygonIsClockwise)
@@ -166,7 +137,12 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
 
     const infillPolygons = subtractPolygons(
       [context.outerPolygon],
-      [context.innerPolygon, ...joistPolygons.map(p => p.outer), ...wallBeamPolygons.map(p => p.outer), ...clippedHoles]
+      [
+        context.innerPolygon,
+        ...joistPolygons.map(p => p.polygon.outer),
+        ...wallBeamPolygons.map(p => p.outer),
+        ...clippedHoles
+      ]
     )
 
     const wallBeams = wallBeamPolygons.map(
@@ -182,19 +158,15 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
           )
         }) satisfies ConstructionResult
     )
-    const joists = joistPolygons.map(
-      p =>
-        ({
-          type: 'element',
-          element: createConstructionElement(
-            this.config.joistMaterial,
-            createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
-            undefined,
-            [TAG_JOIST],
-            { type: 'joist', requiresSinglePiece: true }
-          )
-        }) satisfies ConstructionResult
+    const joists = joistPolygons.flatMap(p =>
+      Array.from(
+        p.extrude(this.config.joistMaterial, this.config.constructionHeight, 'xy', undefined, [TAG_JOIST], {
+          type: 'joist',
+          requiresSinglePiece: true
+        })
+      )
     )
+    const infillMaterial = getMaterialById(this.config.wallInfillMaterial)
     const wallInfill = infillPolygons.map(
       p =>
         ({
@@ -203,7 +175,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
             this.config.wallInfillMaterial,
             createExtrudedPolygon(p, 'xy', this.config.constructionHeight),
             undefined,
-            [TAG_FLOOR_INFILL]
+            [TAG_FLOOR_INFILL, infillMaterial?.type === 'strawbale' ? TAG_STRAW_INFILL : null].filter(t => t != null)
           )
         }) satisfies ConstructionResult
     )
@@ -222,6 +194,18 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
       )
     )
 
+    const joistLengthMeasurements = joistPolygons
+      .map(p => p.dirMeasurement('xy', this.config.constructionHeight, [TAG_JOIST_LENGTH]))
+      .filter(m => m != null)
+      .map(yieldMeasurement)
+
+    const joistSpacingMeasurements = gapPolygons
+      .map(p => p.perpMeasurement('xy', this.config.constructionHeight, [TAG_JOIST_SPACING]))
+      .filter(m => m != null)
+      .map(yieldMeasurement)
+
+    const measurements = [...joistLengthMeasurements, ...joistSpacingMeasurements]
+
     const subfloorPolygons = subtractPolygons([context.innerPolygon], context.floorOpenings)
     const subfloor = subfloorPolygons.map(
       p =>
@@ -237,7 +221,7 @@ export class JoistFloorAssembly extends BaseFloorAssembly<JoistFloorConfig> {
         }) satisfies ConstructionResult
     )
 
-    const results = [...wallBeams, ...joists, ...wallInfill, ...openingFrames, ...subfloor]
+    const results = [...wallBeams, ...joists, ...wallInfill, ...openingFrames, ...subfloor, ...measurements]
     const aggregatedResults = aggregateResults(results)
 
     const bounds = Bounds2D.fromPoints(context.outerPolygon.points).toBounds3D('xy', 0, this.config.constructionHeight)

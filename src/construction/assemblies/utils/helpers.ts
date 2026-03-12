@@ -5,7 +5,6 @@ import type { Tag } from '@/construction/model/tags'
 import type { MaterialId } from '@/materials/material'
 import type { InitialPartInfo } from '@/parts/types'
 import {
-  type Area,
   type Length,
   type Line2D,
   type Polygon2D,
@@ -20,6 +19,7 @@ import {
   dotVec2,
   ensurePolygonIsClockwise,
   intersectPolygon,
+  isPointStrictlyInPolygon,
   lineIntersection,
   lineSegmentIntersect,
   offsetPolygon,
@@ -67,50 +67,6 @@ export function infiniteBeamPolygon(
 
   const beamPolygon: Polygon2D = { points: [p1, p2, p3, p4] }
   return ensurePolygonIsClockwise(beamPolygon)
-}
-
-export function* stripesPolygons(
-  polygon: PolygonWithHoles2D,
-  direction: Vec2,
-  thickness: Length,
-  spacing: Length,
-  startOffset: Length = 0,
-  endOffset: Length = 0,
-  minimumArea: Area = 0
-): Generator<PolygonWithHoles2D> {
-  const perpDir = perpendicular(direction)
-
-  const dots = polygon.outer.points.map(p => dotVec2(p, perpDir))
-  const stripeStart = polygon.outer.points[dots.indexOf(Math.min(...dots))]
-  const totalSpan = Math.max(...dots) - Math.min(...dots)
-
-  const dots2 = polygon.outer.points.map(p => dotVec2(p, direction))
-  const stripeMin = polygon.outer.points[dots2.indexOf(Math.min(...dots2))]
-  const stripeLength = Math.max(...dots2) - Math.min(...dots2)
-
-  const stripeLine: Line2D = { point: stripeStart, direction }
-  const perpLine: Line2D = { point: stripeMin, direction: perpDir }
-
-  const intersection = lineIntersection(stripeLine, perpLine)
-
-  if (!intersection) {
-    return
-  }
-
-  const stepWidth = thickness + spacing
-  const end = totalSpan + spacing - endOffset
-  for (let offset = startOffset; offset <= end; offset += stepWidth) {
-    const clippedOffset = Math.min(offset, totalSpan - thickness - endOffset)
-    const p1 = scaleAddVec2(intersection, perpDir, clippedOffset)
-    const p2 = scaleAddVec2(p1, perpDir, thickness)
-    const p3 = scaleAddVec2(p2, direction, stripeLength)
-    const p4 = scaleAddVec2(p1, direction, stripeLength)
-
-    const stripePolygon: Polygon2D = { points: [p1, p2, p3, p4] }
-    const stripeParts = intersectPolygon(polygon, { outer: stripePolygon, holes: [] })
-
-    yield* stripeParts.filter(p => calculatePolygonArea(p.outer) > minimumArea)
-  }
 }
 
 export function* simplePolygonFrame(
@@ -375,4 +331,40 @@ export function* partitionByAlignedEdges(polygon: Polygon2D, dir: Vec2): Generat
       yield toSplit
     }
   }
+}
+
+export function detectBeamEdges(
+  partition: Polygon2D,
+  joistDirection: Vec2,
+  wallBeamCheckPoints: Vec2[]
+): { leftHasBeam: boolean; rightHasBeam: boolean } {
+  if (partition.points.length === 0 || wallBeamCheckPoints.length === 0) {
+    return { leftHasBeam: false, rightHasBeam: false }
+  }
+
+  const perpDir = perpendicular(joistDirection)
+
+  const projections = partition.points.map(p => dotVec2(p, perpDir))
+  const leftProjection = Math.min(...projections)
+  const rightProjection = Math.max(...projections)
+  const centerProjection = (leftProjection + rightProjection) / 2
+
+  let leftHasBeam = false
+  let rightHasBeam = false
+
+  for (const checkPoint of wallBeamCheckPoints) {
+    if (isPointStrictlyInPolygon(checkPoint, partition)) {
+      const projection = dotVec2(checkPoint, perpDir)
+
+      if (projection < centerProjection) {
+        leftHasBeam = true
+      } else {
+        rightHasBeam = true
+      }
+    }
+
+    if (leftHasBeam && rightHasBeam) break
+  }
+
+  return { leftHasBeam, rightHasBeam }
 }
