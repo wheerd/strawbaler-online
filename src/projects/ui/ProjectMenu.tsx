@@ -7,6 +7,7 @@ import { useOfflineStatus } from '@/app/pwa/useOfflineStatus'
 import { useIsAuthenticated } from '@/app/user/store'
 import type { ConstructionModel } from '@/construction/model/model'
 import { fitActiveStoreyToView } from '@/editor/canvas/helpers/fitActiveStoreyToView'
+import { getAllFloorPlans } from '@/editor/canvas/plan-overlay/store/store'
 import { clearSelection } from '@/editor/canvas/state/selectionStore'
 import { createProject } from '@/projects/services/CloudSyncManager'
 import { usePersistenceStore } from '@/projects/services/persistenceStore'
@@ -29,6 +30,7 @@ import { FileInputCancelledError, createFileInput } from '@/shared/utils/createF
 import { downloadFile } from '@/shared/utils/downloadFile'
 
 import { EditProjectDialog } from './EditProjectDialog'
+import { ExportJsonDialog } from './ExportJsonDialog'
 import { ImportChoiceDialog } from './ImportChoiceDialog'
 import { ProjectsModal } from './ProjectsModal'
 import { useIfcImport } from './useIfcImport'
@@ -52,6 +54,7 @@ export function ProjectMenu(): React.JSX.Element {
   const [importError, setImportError] = useState<string | null>(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showProjectsModal, setShowProjectsModal] = useState(false)
+  const [showExportDialog, setShowExportDialog] = useState(false)
   const [jsonImportChoiceState, setJsonImportChoiceState] = useState<JsonImportChoiceState | null>(null)
 
   const {
@@ -65,14 +68,18 @@ export function ProjectMenu(): React.JSX.Element {
   const activeLastSaved = isAuthenticated ? lastCloudSync : lastSaved
   const activeError = isAuthenticated ? cloudSyncError : saveError
 
-  const handleExport = async () => {
+  const handleExport = () => {
+    setShowExportDialog(true)
+  }
+
+  const performExport = async (options: { includeFloorPlans: boolean }) => {
     setIsExporting(true)
     setExportError(null)
 
     try {
       const { ProjectImportExportService } = await import('@/projects/services/ProjectImportExportService')
 
-      const result = ProjectImportExportService.exportToString()
+      const result = await ProjectImportExportService.exportToString(options)
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0]
       const filename = `strawbuild-project-${timestamp}.json`
       downloadFile(result, filename)
@@ -323,12 +330,7 @@ export function ProjectMenu(): React.JSX.Element {
             </DropdownMenuSubContent>
           </DropdownMenuSub>
 
-          <DropdownMenuItem
-            onClick={() => {
-              void handleExport()
-            }}
-            disabled={isExporting || anyImporting}
-          >
+          <DropdownMenuItem onClick={handleExport} disabled={isExporting || anyImporting}>
             <Download className="mr-2 h-4 w-4" />
             {t($ => $.autoSave.saveToFile)}
           </DropdownMenuItem>
@@ -375,6 +377,17 @@ export function ProjectMenu(): React.JSX.Element {
           onChoice={(choice, projectName) => void ifcImportChoiceState.handleConfirmChoice(choice, projectName)}
         />
       )}
+
+      <ExportJsonDialog
+        open={showExportDialog}
+        onOpenChange={setShowExportDialog}
+        onExport={options => {
+          performExport(options).catch((error: unknown) => {
+            console.error('Export failed', error)
+          })
+        }}
+        hasFloorPlans={getAllFloorPlans().length > 0}
+      />
     </>
   )
 }
