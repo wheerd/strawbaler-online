@@ -1,5 +1,6 @@
 import { useAuthStore } from '@/app/user/store'
 import { isSupabaseConfigured } from '@/app/user/supabaseClient'
+import type { StoreyId } from '@/building/model/ids'
 import {
   MODEL_STORE_VERSION,
   type PartializedStoreState,
@@ -15,6 +16,13 @@ import {
   hydrateConfigState,
   subscribeToConfigChanges
 } from '@/config/store'
+import {
+  type CloudFloorPlansState,
+  FLOOR_PLANS_STORE_VERSION,
+  exportFloorPlansState,
+  importFloorPlansState,
+  subscribeToFloorPlansRecords
+} from '@/editor/canvas/plan-overlay/store'
 import {
   MATERIALS_STORE_VERSION,
   getInitialMaterialsState,
@@ -46,6 +54,7 @@ interface SyncSubscriptions {
   materials: () => void
   parts: () => void
   projectMeta: () => void
+  floorPlans: () => void
 }
 
 export class CloudSyncManager {
@@ -114,6 +123,8 @@ export class CloudSyncManager {
         labels: partsState.labels,
         nextLabelIndexByGroup: partsState.nextLabelIndexByGroup
       }
+      const floorPlansState = exportFloorPlansState()
+      const floorPlansMetadata = this.extractMetadata(floorPlansState)
 
       await service.upsertProject(userId, {
         projectId: projectMeta.projectId,
@@ -127,9 +138,15 @@ export class CloudSyncManager {
         materialsVersion: MATERIALS_STORE_VERSION,
         partsState: partsLabelState,
         partsVersion: PARTS_STORE_VERSION,
+        floorPlansState: floorPlansMetadata,
+        floorPlansVersion: FLOOR_PLANS_STORE_VERSION,
         createdAt: projectMeta.createdAt,
         updatedAt: projectMeta.updatedAt
       })
+
+      for (const plan of Object.values(floorPlansState.plans)) {
+        await service.uploadFloorPlanImage(plan.image, plan.imageMeta.hash)
+      }
 
       setCloudSyncSuccess(new Date())
     } catch (error) {
@@ -155,6 +172,9 @@ export class CloudSyncManager {
         createdAt: parseTimestamp(projectData.createdAt),
         updatedAt: parseTimestamp(projectData.updatedAt)
       })
+
+      const floorPlansState = await this.loadFloorPlansFromCloud(projectData.floorPlansState as CloudFloorPlansMetadata)
+      importFloorPlansState(floorPlansState, projectData.floorPlansVersion)
     } finally {
       this.syncingEnabled = true
     }
@@ -241,6 +261,8 @@ export class CloudSyncManager {
       materialsVersion: MATERIALS_STORE_VERSION,
       partsState,
       partsVersion: PARTS_STORE_VERSION,
+      floorPlansState: { plans: {} },
+      floorPlansVersion: FLOOR_PLANS_STORE_VERSION,
       createdAt: now,
       updatedAt: now
     }
@@ -256,6 +278,8 @@ export class CloudSyncManager {
     const configState = getConfigState()
     const materialsState = getMaterialsState()
     const partsState = exportPartsState()
+    const floorPlansState = exportFloorPlansState()
+    const floorPlansMetadata = this.extractMetadata(floorPlansState)
 
     return {
       projectId,
@@ -269,6 +293,8 @@ export class CloudSyncManager {
       materialsVersion: MATERIALS_STORE_VERSION,
       partsState,
       partsVersion: PARTS_STORE_VERSION,
+      floorPlansState: floorPlansMetadata,
+      floorPlansVersion: FLOOR_PLANS_STORE_VERSION,
       createdAt: now,
       updatedAt: now
     }
@@ -362,6 +388,16 @@ export class CloudSyncManager {
         ) {
           this.queueSync('project_meta')
         }
+      }),
+
+      floorPlans: subscribeToFloorPlansRecords((_id, current, previous) => {
+        if (this.syncingEnabled && current && current.imageMeta.hash !== previous?.imageMeta.hash) {
+          void this.ensureSyncService().then(service =>
+            service.uploadFloorPlanImage(current.image, current.imageMeta.hash)
+          )
+        }
+
+        this.queueSync('floor_plans')
       })
     }
   }
@@ -373,6 +409,7 @@ export class CloudSyncManager {
       this.subscriptions.materials()
       this.subscriptions.parts()
       this.subscriptions.projectMeta()
+      this.subscriptions.floorPlans()
       this.subscriptions = null
     }
     if (this.syncTimeout) {
@@ -435,6 +472,12 @@ export class CloudSyncManager {
             version = PARTS_STORE_VERSION
             break
           }
+          case 'floor_plans': {
+            const floorPlansState = exportFloorPlansState()
+            data = this.extractMetadata(floorPlansState)
+            version = FLOOR_PLANS_STORE_VERSION
+            break
+          }
         }
 
         await this.syncService.syncStore(projectMeta.projectId, item, data, version)
@@ -446,6 +489,48 @@ export class CloudSyncManager {
       getPersistenceActions().setCloudSyncError(error instanceof Error ? error.message : 'Sync failed')
     }
   }
+
+  private async loadFloorPlansFromCloud(metadata: CloudFloorPlansMetadata): Promise<CloudFloorPlansState> {
+    const service = await this.ensureSyncService()
+
+    const state: CloudFloorPlansState = {
+      plans: {}
+    }
+
+    if ('plans' in metadata) {
+      for (const [storeyId, planMeta] of Object.entries(metadata.plans)) {
+        const typedStoreyId = storeyId as StoreyId
+        const blob = await service.downloadFloorPlanImage(planMeta.imageMeta.hash, planMeta.imageMeta.type)
+
+        if (blob) {
+          state.plans[typedStoreyId] = {
+            storeyId: planMeta.storeyId,
+            imageMeta: planMeta.imageMeta,
+            image: blob,
+            calibration: planMeta.calibration,
+            origin: planMeta.origin
+          }
+        }
+      }
+    }
+
+    return state
+  }
+
+  private extractMetadata(state: CloudFloorPlansState): CloudFloorPlansMetadata {
+    const plans: Record<StoreyId, CloudFloorPlanMetadata> = {}
+    for (const [storeyId, plan] of Object.entries(state.plans)) {
+      const { image: _image, ...metadata } = plan
+      plans[storeyId as StoreyId] = metadata
+    }
+    return { plans }
+  }
+}
+
+type CloudFloorPlanMetadata = Omit<CloudFloorPlansState['plans'][StoreyId], 'image'>
+
+export interface CloudFloorPlansMetadata {
+  readonly plans: Record<StoreyId, CloudFloorPlanMetadata>
 }
 
 let managerInstance: CloudSyncManager | null = null

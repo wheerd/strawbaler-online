@@ -42,10 +42,11 @@ export default function PlanOverlayButton(): React.JSX.Element {
                 handlePlacementChange(value as FloorPlanPlacement)
               }}
             >
-              <DropdownMenu.RadioItem value="over">{t($ => $.planControls.placement.showOnTop)}</DropdownMenu.RadioItem>
+              <DropdownMenu.RadioItem value="hidden">{t($ => $.planControls.placement.hidden)}</DropdownMenu.RadioItem>
               <DropdownMenu.RadioItem value="under">
                 {t($ => $.planControls.placement.showUnder)}
               </DropdownMenu.RadioItem>
+              <DropdownMenu.RadioItem value="over">{t($ => $.planControls.placement.showOnTop)}</DropdownMenu.RadioItem>
             </DropdownMenu.RadioGroup>
             <DropdownMenu.Separator />
             <DropdownMenu.Item
@@ -91,7 +92,7 @@ export default function PlanOverlayButton(): React.JSX.Element {
                 floor: storey?.name ?? 'this floor'
               })}
             </AlertDialog.Description>
-            <div className="justify-end gap-2">
+            <div className="flex justify-end gap-2">
               <AlertDialog.Cancel asChild>
                 <Button
                   variant="soft"

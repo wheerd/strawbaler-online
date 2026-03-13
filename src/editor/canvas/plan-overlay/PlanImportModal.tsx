@@ -12,8 +12,8 @@ import { Separator } from '@/shared/ui/components/separator'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import { PlanCalibrationCanvas } from './PlanCalibrationCanvas'
-import { calculatePixelDistance } from './calibration'
-import { useFloorPlanActions } from './store'
+import { getFloorPlanActions } from './store'
+import { calculatePixelDistance } from './store/calibration'
 import type { FloorPlanOverlay, ImagePoint } from './types'
 
 interface PlanImportModalProps {
@@ -40,7 +40,6 @@ export function PlanImportModal({
 }: PlanImportModalProps): React.JSX.Element {
   const { t } = useTranslation('overlay')
   const { formatLength } = useFormatters()
-  const { importPlan, recalibratePlan } = useFloorPlanActions()
   const [file, setFile] = useState<File | null>(null)
   const [previewSource, setPreviewSource] = useState<PreviewSource | null>(null)
   const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null)
@@ -98,11 +97,15 @@ export function PlanImportModal({
     if (!open || !existingPlan || file) {
       return
     }
-    applyPreview(existingPlan.image.url, false)
+    const objectUrl = URL.createObjectURL(existingPlan.image)
+    applyPreview(objectUrl, true)
     setReferencePoints(existingPlan.calibration.referencePoints.slice())
     setOriginPoint(existingPlan.origin.image)
     setRealDistance(existingPlan.calibration.realDistanceMm)
     setSelectionMode('measure')
+    return () => {
+      URL.revokeObjectURL(objectUrl)
+    }
   }, [open, existingPlan, file, applyPreview])
 
   const handleFileChange = useCallback(
@@ -148,16 +151,17 @@ export function PlanImportModal({
     return realDistance / pixelDistance
   }, [pixelDistance, realDistance])
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!imageElement || referencePoints.length !== 2 || realDistance <= 0 || !pixelDistance || pixelDistance <= 0) {
       return
     }
 
     const selectedOriginPoint = originPoint ?? referencePoints[0]
     const [firstPoint, secondPoint] = referencePoints as [ImagePoint, ImagePoint]
+    const actions = getFloorPlanActions()
 
     if (file) {
-      importPlan({
+      await actions.importPlan({
         floorId,
         file,
         imageSize: { width: imageElement.naturalWidth, height: imageElement.naturalHeight },
@@ -169,7 +173,7 @@ export function PlanImportModal({
         }
       })
     } else if (existingPlan) {
-      recalibratePlan({
+      actions.recalibratePlan({
         floorId,
         referencePoints: [firstPoint, secondPoint],
         realDistanceMm: realDistance,
@@ -186,11 +190,10 @@ export function PlanImportModal({
     file,
     floorId,
     imageElement,
-    importPlan,
     onOpenChange,
     originPoint,
+    pixelDistance,
     realDistance,
-    recalibratePlan,
     referencePoints,
     resetState
   ])
@@ -230,11 +233,7 @@ export function PlanImportModal({
           <div className="flex flex-col gap-2">
             <span className="font-medium">{t($ => $.planImport.step1.title)}</span>
             {existingPlan && !file ? (
-              <span className="text-base">
-                {t($ => $.planImport.step1.currentImage, {
-                  name: existingPlan.image.name
-                })}
-              </span>
+              <span className="text-base">{t($ => $.planImport.step1.currentImage)}</span>
             ) : (
               <span className="text-base">{t($ => $.planImport.step1.uploadHint)}</span>
             )}
@@ -342,7 +341,7 @@ export function PlanImportModal({
               >
                 {t($ => $.planImport.footer.cancel)}
               </Button>
-              <Button onClick={handleSubmit} disabled={!canSubmit}>
+              <Button onClick={() => void handleSubmit()} disabled={!canSubmit}>
                 {existingPlan ? t($ => $.planImport.footer.replacePlan) : t($ => $.planImport.footer.addPlan)}
               </Button>
             </div>

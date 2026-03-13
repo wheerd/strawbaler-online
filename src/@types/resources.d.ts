@@ -96,6 +96,12 @@ interface Resources {
       "description": "Description",
       "descriptionPlaceholder": "Add a description...",
       "editProject": "Edit Project",
+      "export": "Export",
+      "exportIncludeFloorPlans": "Include floor plan images",
+      "exportIncludeFloorPlansDescription": "Images will increase file size significantly.",
+      "exportJsonDescription": "Choose export options for your project JSON file.",
+      "exportJsonTitle": "Export Project",
+      "exportNoFloorPlans": "No floor plan images in this project.",
       "import": "Import",
       "importChoiceDescription": "How would you like to import this file?",
       "importChoiceTitle": "Import Project",
@@ -1425,8 +1431,9 @@ interface Resources {
       "importPlan": "Import plan image",
       "label": "Plan Overlay",
       "placement": {
-        "showOnTop": "Show on top",
-        "showUnder": "Show under layout"
+        "hidden": "Hidden",
+        "showOnTop": "Overlay on top",
+        "showUnder": "In background"
       },
       "recalibrate": "Recalibrate",
       "removePlan": "Remove plan"
@@ -1438,7 +1445,7 @@ interface Resources {
         "replacePlan": "Replace plan"
       },
       "step1": {
-        "currentImage": "Using current image ({{name}}). Upload a new file below to replace it.",
+        "currentImage": "Using current image. Upload a new file below to replace it.",
         "title": "1. Select floor plan image",
         "uploadButton": "Select Image",
         "uploadHint": "Upload a PNG, JPG, or SVG. The file stays local and is not saved with your project."

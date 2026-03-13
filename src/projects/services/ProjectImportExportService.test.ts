@@ -6,6 +6,8 @@ import { MODEL_STORE_VERSION, exportModelState, hydrateModelState } from '@/buil
 import type { StoreState } from '@/building/store/types'
 import type { ConfigState } from '@/config/store'
 import { CONFIG_STORE_VERSION, getConfigState, hydrateConfigState } from '@/config/store'
+import { exportFloorPlansState, importFloorPlansState } from '@/editor/canvas/plan-overlay/store'
+import type { CloudFloorPlansState } from '@/editor/canvas/plan-overlay/store/types'
 import { MATERIALS_STORE_VERSION, getMaterialsState, hydrateMaterialsState } from '@/materials/store'
 import type { MaterialsState } from '@/materials/store'
 import type { PartializedPartsState } from '@/parts/store'
@@ -47,6 +49,19 @@ vi.mock('@/projects/store', () => ({
   PROJECTS_STORE_VERSION: 1
 }))
 
+vi.mock('@/editor/canvas/plan-overlay/store', () => ({
+  exportFloorPlansState: vi.fn(),
+  importFloorPlansState: vi.fn(),
+  getFloorPlanActions: () => ({
+    reset: vi.fn()
+  })
+}))
+
+vi.mock('./blobSerialization', () => ({
+  blobToBase64: vi.fn().mockResolvedValue('dGVzdC1pbWFnZS1kYXRh'),
+  base64ToBlob: vi.fn().mockReturnValue(new Blob(['test-image-data'], { type: 'image/png' }))
+}))
+
 vi.mock('./LegacyProjectImportService', () => ({
   LegacyProjectImportService: {
     importFromString: vi.fn()
@@ -64,6 +79,8 @@ const mockHydratePartsState = hydratePartsState as Mock
 const mockExportProjectMeta = exportProjectMeta as Mock
 const mockHydrateProjectMeta = hydrateProjectMeta as Mock
 const mockLegacyImportFromString = LegacyProjectImportService.importFromString as Mock
+const mockExportFloorPlansState = exportFloorPlansState as Mock
+const mockImportFloorPlansState = importFloorPlansState as Mock
 
 function createMockExportData(): ExportDataV2 {
   return {
@@ -105,35 +122,35 @@ describe('ProjectImportExportService', () => {
     vi.useRealTimers()
   })
 
-  describe('exportToString', () => {
-    it('should export valid JSON with V2 format', () => {
+  describe('exportToStringAsync', () => {
+    it('should export valid JSON with V2 format', async () => {
       mockExportProjectMeta.mockReturnValue({ name: 'Test Project' } as ExportedProjectMeta)
       mockExportModelState.mockReturnValue({ storeys: [] } as unknown as PartializedStoreState)
       mockGetConfigState.mockReturnValue({ defaultWallAssemblyId: 'wall-1' } as unknown as ConfigState)
       mockGetMaterialsState.mockReturnValue({ materials: {} } as unknown as MaterialsState)
       mockExportPartsState.mockReturnValue({ parts: [] } as unknown as PartializedPartsState)
 
-      const result = ProjectImportExportService.exportToString()
+      const result = await ProjectImportExportService.exportToString()
       const parsed = JSON.parse(result) as ExportDataV2
 
       expect(parsed.version).toBe('2.0.0')
       expect(parsed.timestamp).toBe('2024-06-20T14:30:00.000Z')
     })
 
-    it('should include current timestamp in ISO format', () => {
+    it('should include current timestamp in ISO format', async () => {
       mockExportProjectMeta.mockReturnValue({ name: 'Test' } as ExportedProjectMeta)
       mockExportModelState.mockReturnValue({} as unknown as PartializedStoreState)
       mockGetConfigState.mockReturnValue({} as unknown as ConfigState)
       mockGetMaterialsState.mockReturnValue({} as unknown as MaterialsState)
       mockExportPartsState.mockReturnValue({} as unknown as PartializedPartsState)
 
-      const result = ProjectImportExportService.exportToString()
+      const result = await ProjectImportExportService.exportToString()
       const parsed = JSON.parse(result) as ExportDataV2
 
       expect(parsed.timestamp).toBe('2024-06-20T14:30:00.000Z')
     })
 
-    it('should include all store states with correct versions', () => {
+    it('should include all store states with correct versions', async () => {
       const mockProjectMeta = { name: 'My Project' } as ExportedProjectMeta
       const mockModelState = { storeys: [{ id: 's1' }] } as unknown as PartializedStoreState
       const mockConfigState = { defaultWallAssemblyId: 'wall-assembly-1' } as unknown as ConfigState
@@ -146,7 +163,7 @@ describe('ProjectImportExportService', () => {
       mockGetMaterialsState.mockReturnValue(mockMaterialsState)
       mockExportPartsState.mockReturnValue(mockPartsState)
 
-      const result = ProjectImportExportService.exportToString()
+      const result = await ProjectImportExportService.exportToString()
       const parsed = JSON.parse(result) as ExportDataV2
 
       expect(parsed.stores.project.state).toEqual(mockProjectMeta)
@@ -161,20 +178,96 @@ describe('ProjectImportExportService', () => {
       expect(parsed.stores.parts.version).toBe(PARTS_STORE_VERSION)
     })
 
-    it('should call all export functions', () => {
+    it('should call all export functions', async () => {
       mockExportProjectMeta.mockReturnValue({} as ExportedProjectMeta)
       mockExportModelState.mockReturnValue({} as PartializedStoreState)
       mockGetConfigState.mockReturnValue({} as ConfigState)
       mockGetMaterialsState.mockReturnValue({} as MaterialsState)
       mockExportPartsState.mockReturnValue({} as PartializedPartsState)
 
-      ProjectImportExportService.exportToString()
+      await ProjectImportExportService.exportToString()
 
       expect(mockExportProjectMeta).toHaveBeenCalledOnce()
       expect(mockExportModelState).toHaveBeenCalledOnce()
       expect(mockGetConfigState).toHaveBeenCalledOnce()
       expect(mockGetMaterialsState).toHaveBeenCalledOnce()
       expect(mockExportPartsState).toHaveBeenCalledOnce()
+    })
+
+    it('should not include floor plans by default', async () => {
+      mockExportProjectMeta.mockReturnValue({} as ExportedProjectMeta)
+      mockExportModelState.mockReturnValue({} as PartializedStoreState)
+      mockGetConfigState.mockReturnValue({} as ConfigState)
+      mockGetMaterialsState.mockReturnValue({} as MaterialsState)
+      mockExportPartsState.mockReturnValue({} as PartializedPartsState)
+
+      const result = await ProjectImportExportService.exportToString()
+      const parsed = JSON.parse(result) as ExportDataV2
+
+      expect(parsed.stores.floorPlans).toBeUndefined()
+      expect(mockExportFloorPlansState).not.toHaveBeenCalled()
+    })
+
+    it('should include floor plans when includeFloorPlans is true', async () => {
+      mockExportProjectMeta.mockReturnValue({} as ExportedProjectMeta)
+      mockExportModelState.mockReturnValue({} as PartializedStoreState)
+      mockGetConfigState.mockReturnValue({} as ConfigState)
+      mockGetMaterialsState.mockReturnValue({} as MaterialsState)
+      mockExportPartsState.mockReturnValue({} as PartializedPartsState)
+
+      const mockBlob = new Blob(['test-image-data'], { type: 'image/png' })
+      const mockFloorPlansState: CloudFloorPlansState = {
+        plans: {
+          storey_1: {
+            storeyId: 'storey_1',
+            imageMeta: {
+              hash: 'abc123',
+              type: 'image/png',
+              width: 100,
+              height: 100
+            },
+            image: mockBlob,
+            calibration: {
+              referencePoints: [
+                { x: 0, y: 0 },
+                { x: 100, y: 0 }
+              ],
+              pixelDistance: 100,
+              realDistanceMm: 1000,
+              mmPerPixel: 10
+            },
+            origin: {
+              image: { x: 0, y: 0 },
+              world: { x: 0, y: 0 }
+            }
+          }
+        }
+      }
+
+      mockExportFloorPlansState.mockReturnValue(mockFloorPlansState)
+
+      const result = await ProjectImportExportService.exportToString({ includeFloorPlans: true })
+      const parsed = JSON.parse(result) as ExportDataV2
+
+      expect(parsed.stores.floorPlans).toBeDefined()
+      expect(parsed.stores.floorPlans?.state.plans.storey_1).toBeDefined()
+      expect(parsed.stores.floorPlans?.state.plans.storey_1.imageBase64).toBeDefined()
+      expect(parsed.stores.floorPlans?.state.plans.storey_1.imageMeta.hash).toBe('abc123')
+      expect(mockExportFloorPlansState).toHaveBeenCalledOnce()
+    })
+
+    it('should not include floor plans when no plans exist', async () => {
+      mockExportProjectMeta.mockReturnValue({} as ExportedProjectMeta)
+      mockExportModelState.mockReturnValue({} as PartializedStoreState)
+      mockGetConfigState.mockReturnValue({} as ConfigState)
+      mockGetMaterialsState.mockReturnValue({} as MaterialsState)
+      mockExportPartsState.mockReturnValue({} as PartializedPartsState)
+      mockExportFloorPlansState.mockReturnValue({ plans: {} })
+
+      const result = await ProjectImportExportService.exportToString({ includeFloorPlans: true })
+      const parsed = JSON.parse(result) as ExportDataV2
+
+      expect(parsed.stores.floorPlans).toBeUndefined()
     })
   })
 
@@ -287,7 +380,7 @@ describe('ProjectImportExportService', () => {
   })
 
   describe('round-trip', () => {
-    it('should export data that can be imported again', () => {
+    it('should export data that can be imported again', async () => {
       const mockProjectMeta = { name: 'Round Trip Test', id: 'proj-1' } as ExportedProjectMeta
       const mockModelState = { storeys: [{ id: 'storey-1', level: 0 }] } as unknown as PartializedStoreState
       const mockConfigState = {
@@ -303,7 +396,7 @@ describe('ProjectImportExportService', () => {
       mockGetMaterialsState.mockReturnValue(mockMaterialsState)
       mockExportPartsState.mockReturnValue(mockPartsState)
 
-      const exported = ProjectImportExportService.exportToString()
+      const exported = await ProjectImportExportService.exportToString()
 
       const hydrateCalls = {
         project: null as ExportedProjectMeta | null,
@@ -341,14 +434,14 @@ describe('ProjectImportExportService', () => {
       expect(hydrateCalls.parts.state).toEqual(mockPartsState)
     })
 
-    it('should preserve store versions during round-trip', () => {
+    it('should preserve store versions during round-trip', async () => {
       mockExportProjectMeta.mockReturnValue({} as ExportedProjectMeta)
       mockExportModelState.mockReturnValue({} as PartializedStoreState)
       mockGetConfigState.mockReturnValue({} as ConfigState)
       mockGetMaterialsState.mockReturnValue({} as MaterialsState)
       mockExportPartsState.mockReturnValue({} as PartializedPartsState)
 
-      const exported = ProjectImportExportService.exportToString()
+      const exported = await ProjectImportExportService.exportToString()
       const parsed = JSON.parse(exported) as ExportDataV2
 
       const versionCalls = {
@@ -381,6 +474,76 @@ describe('ProjectImportExportService', () => {
       expect(versionCalls.config).toBe(parsed.stores.config.version)
       expect(versionCalls.materials).toBe(parsed.stores.materials.version)
       expect(versionCalls.parts).toBe(parsed.stores.parts.version)
+    })
+  })
+
+  describe('import with floor plans', () => {
+    it('should import floor plans when present in export data', () => {
+      const mockBase64 = Buffer.from('test-image-data').toString('base64')
+      const exportData = createMockExportData()
+      exportData.stores.floorPlans = {
+        state: {
+          plans: {
+            storey_1: {
+              storeyId: 'storey_1',
+              imageMeta: {
+                hash: 'abc123',
+                type: 'image/png',
+                width: 100,
+                height: 100
+              },
+              imageBase64: mockBase64,
+              calibration: {
+                referencePoints: [
+                  { x: 0, y: 0 },
+                  { x: 100, y: 0 }
+                ],
+                pixelDistance: 100,
+                realDistanceMm: 1000,
+                mmPerPixel: 10
+              },
+              origin: {
+                image: { x: 0, y: 0 },
+                world: { x: 0, y: 0 }
+              }
+            }
+          }
+        },
+        version: 1
+      }
+
+      const content = JSON.stringify(exportData)
+
+      ProjectImportExportService.importFromString(content)
+
+      expect(mockImportFloorPlansState).toHaveBeenCalledWith(
+        expect.objectContaining({
+          plans: expect.objectContaining({
+            storey_1: expect.objectContaining({
+              storeyId: 'storey_1',
+              imageMeta: {
+                hash: 'abc123',
+                type: 'image/png',
+                width: 100,
+                height: 100
+              },
+              image: expect.any(Blob),
+              calibration: expect.any(Object),
+              origin: expect.any(Object)
+            })
+          })
+        }),
+        1
+      )
+    })
+
+    it('should not call importFloorPlansState when floor plans not present', () => {
+      const exportData = createMockExportData()
+      const content = JSON.stringify(exportData)
+
+      ProjectImportExportService.importFromString(content)
+
+      expect(mockImportFloorPlansState).not.toHaveBeenCalled()
     })
   })
 })

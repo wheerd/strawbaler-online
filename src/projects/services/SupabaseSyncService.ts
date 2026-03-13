@@ -10,6 +10,24 @@ import {
   parseTimestamp
 } from '@/projects/types'
 
+const FLOOR_PLANS_BUCKET = 'floor-plans'
+
+function getMimeTypeExtension(mimeType: string): string {
+  const mimeToExt: Record<string, string> = {
+    'image/png': '.png',
+    'image/jpeg': '.jpg',
+    'image/gif': '.gif',
+    'image/webp': '.webp',
+    'image/svg+xml': '.svg'
+  }
+  return mimeToExt[mimeType] ?? ''
+}
+
+function buildFloorPlanPath(userId: string, hash: string, mimeType: string): string {
+  const ext = getMimeTypeExtension(mimeType)
+  return `${userId}/${hash}${ext}`
+}
+
 interface CloudProjectRow {
   id: string
   user_id: string
@@ -25,9 +43,11 @@ interface CloudProjectRow {
   materials_version: number
   parts_state: unknown
   parts_version: number
+  floor_plans_state: unknown
+  floor_plans_version: number
 }
 
-export type StoreType = 'model' | 'config' | 'materials' | 'parts'
+export type StoreType = 'model' | 'config' | 'materials' | 'parts' | 'floor_plans'
 
 export interface ICloudSyncService {
   initialize(): Promise<void>
@@ -45,6 +65,9 @@ export interface ICloudSyncService {
 
   getCurrentUserId(): string | null
   isAuthenticated(): boolean
+
+  uploadFloorPlanImage(blob: Blob, hash: string): Promise<string>
+  downloadFloorPlanImage(hash: string, blobType: string): Promise<Blob | null>
 }
 
 let syncService: ICloudSyncService | null = null
@@ -141,6 +164,8 @@ export class SupabaseSyncService implements ICloudSyncService {
       materialsVersion: row.materials_version,
       partsState: row.parts_state,
       partsVersion: row.parts_version,
+      floorPlansState: row.floor_plans_state,
+      floorPlansVersion: row.floor_plans_version,
       name: row.name,
       description: row.description ?? undefined,
       createdAt: parseTimestamp(row.created_at),
@@ -162,6 +187,8 @@ export class SupabaseSyncService implements ICloudSyncService {
       materials_version: projectData.materialsVersion,
       parts_state: projectData.partsState,
       parts_version: projectData.partsVersion,
+      floor_plans_state: projectData.floorPlansState,
+      floor_plans_version: projectData.floorPlansVersion,
       created_at: projectData.createdAt,
       updated_at: projectData.updatedAt
     }
@@ -186,6 +213,8 @@ export class SupabaseSyncService implements ICloudSyncService {
       materials_version: projectData.materialsVersion,
       parts_state: projectData.partsState,
       parts_version: projectData.partsVersion,
+      floor_plans_state: projectData.floorPlansState,
+      floor_plans_version: projectData.floorPlansVersion,
       created_at: projectData.createdAt,
       updated_at: projectData.updatedAt
     }
@@ -225,6 +254,41 @@ export class SupabaseSyncService implements ICloudSyncService {
     if (error) {
       throw new Error(`Failed to delete project: ${error.message}`)
     }
+  }
+
+  async uploadFloorPlanImage(blob: Blob, hash: string): Promise<string> {
+    if (!this.currentUser) {
+      throw new Error('Not authenticated')
+    }
+
+    const path = buildFloorPlanPath(this.currentUser.id, hash, blob.type)
+
+    const { error } = await this.client.storage.from(FLOOR_PLANS_BUCKET).upload(path, blob, {
+      upsert: true,
+      contentType: blob.type
+    })
+
+    if (error) {
+      throw new Error(`Failed to upload floor plan image: ${error.message}`)
+    }
+
+    return path
+  }
+
+  async downloadFloorPlanImage(hash: string, blobType: string): Promise<Blob | null> {
+    if (!this.currentUser) {
+      throw new Error('Not authenticated')
+    }
+
+    const path = buildFloorPlanPath(this.currentUser.id, hash, blobType)
+
+    const { data, error } = await this.client.storage.from(FLOOR_PLANS_BUCKET).download(path)
+
+    if (error) {
+      return null
+    }
+
+    return data
   }
 
   async loadProjectList(): Promise<ProjectListItem[]> {

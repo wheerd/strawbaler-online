@@ -1,6 +1,7 @@
 import type { GcsWrapper } from '@salusoft89/planegcs'
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
+import 'fake-indexeddb/auto'
 import { keyFromSelector } from 'i18next'
 import manifoldWasmUrl from 'manifold-3d/manifold.wasm?url'
 import path from 'path'
