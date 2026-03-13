@@ -1,7 +1,7 @@
 import type { StoreyId } from '@/building/model/ids'
 import { MODEL_STORE_VERSION, type PartializedStoreState, exportModelState, hydrateModelState } from '@/building/store'
 import { CONFIG_STORE_VERSION, type ConfigState, getConfigState, hydrateConfigState } from '@/config/store'
-import { exportFloorPlansState, importFloorPlansState } from '@/editor/canvas/plan-overlay/store'
+import { exportFloorPlansState, getFloorPlanActions, importFloorPlansState } from '@/editor/canvas/plan-overlay/store'
 import type { CloudFloorPlan, CloudFloorPlansState } from '@/editor/canvas/plan-overlay/store/types'
 import type { FloorPlanCalibration, FloorPlanImageMetadata, FloorPlanOrigin } from '@/editor/canvas/plan-overlay/types'
 import {
@@ -174,6 +174,9 @@ class ProjectJSONService implements IProjectImportExportService {
     if (stores.floorPlans) {
       const floorPlansState = convertExportableToFloorPlansState(stores.floorPlans.state)
       importFloorPlansState(floorPlansState, stores.floorPlans.version)
+    } else {
+      // If no floor plans data is included, clear existing floor plans to avoid stale data
+      getFloorPlanActions().reset()
     }
   }
 }

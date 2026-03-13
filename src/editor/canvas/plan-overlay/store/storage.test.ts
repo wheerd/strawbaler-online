@@ -308,6 +308,47 @@ describe('FloorPlanStorage', () => {
       const count = await db.count(IMAGES_STORE)
       expect(count).toBe(0)
     })
+
+    it('prunes orphaned images when a plan is removed but others remain', async () => {
+      const blob1 = createTestBlob('image-1')
+      const blob2 = createTestBlob('image-2')
+      const valueWithTwoPlans = {
+        version: 1,
+        state: {
+          plans: {
+            [floorId]: createTestPlan({
+              image: blob1,
+              imageMeta: { hash: 'hash1', type: 'image/png', width: 800, height: 600 }
+            }),
+            [floorId2]: createTestPlan({
+              floorId: floorId2,
+              image: blob2,
+              imageMeta: { hash: 'hash2', type: 'image/png', width: 800, height: 600 }
+            })
+          }
+        }
+      }
+      await storage.setItem(STORAGE_KEY, valueWithTwoPlans)
+
+      const db = await openDB(DB_NAME, 1)
+      expect(await db.count(IMAGES_STORE)).toBe(2)
+
+      const valueWithOnePlan = {
+        version: 1,
+        state: {
+          plans: {
+            [floorId]: createTestPlan({
+              image: blob1,
+              imageMeta: { hash: 'hash1', type: 'image/png', width: 800, height: 600 }
+            })
+          }
+        }
+      }
+      await storage.setItem(STORAGE_KEY, valueWithOnePlan)
+
+      expect(await db.count(IMAGES_STORE)).toBe(1)
+      expect(await db.get(IMAGES_STORE, 'hash1')).toBeTruthy()
+    })
   })
 
   describe('removeItem', () => {

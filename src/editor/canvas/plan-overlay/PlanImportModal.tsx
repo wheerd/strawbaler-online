@@ -12,8 +12,8 @@ import { Separator } from '@/shared/ui/components/separator'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import { PlanCalibrationCanvas } from './PlanCalibrationCanvas'
-import { calculatePixelDistance } from './store/calibration'
 import { getFloorPlanActions } from './store'
+import { calculatePixelDistance } from './store/calibration'
 import type { FloorPlanOverlay, ImagePoint } from './types'
 
 interface PlanImportModalProps {

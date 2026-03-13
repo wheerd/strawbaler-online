@@ -144,6 +144,10 @@ export class CloudSyncManager {
         updatedAt: projectMeta.updatedAt
       })
 
+      for (const plan of Object.values(floorPlansState.plans)) {
+        await service.uploadFloorPlanImage(plan.image, plan.imageMeta.hash)
+      }
+
       setCloudSyncSuccess(new Date())
     } catch (error) {
       setCloudSyncError(error instanceof Error ? error.message : 'Sync failed')

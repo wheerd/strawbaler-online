@@ -62,6 +62,7 @@ export class FloorPlanStorage implements PersistStorage<FloorPlanStoreState> {
       } as PartializedFloorPlanStoreState
     }
 
+    const hashes = new Set<string>()
     const db = await this.getDB()
     for (const key in value.state.plans) {
       const floorId = key as StoreyId
@@ -70,6 +71,7 @@ export class FloorPlanStorage implements PersistStorage<FloorPlanStoreState> {
         const { image, ...partialized } = record
         await db.put(IMAGES_STORE, image, partialized.imageMeta.hash)
         partial.state.plans[floorId] = partialized
+        hashes.add(partialized.imageMeta.hash)
       } catch (error) {
         console.error(`Failed to store floor plan image for floor ${floorId}`, error)
       }
@@ -79,6 +81,12 @@ export class FloorPlanStorage implements PersistStorage<FloorPlanStoreState> {
 
     if (Object.keys(value.state.plans).length === 0) {
       await db.clear(IMAGES_STORE)
+    } else {
+      for (const hash of await db.getAllKeys(IMAGES_STORE)) {
+        if (!hashes.has(hash)) {
+          await db.delete(IMAGES_STORE, hash)
+        }
+      }
     }
   }
 

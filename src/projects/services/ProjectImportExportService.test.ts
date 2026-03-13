@@ -51,7 +51,10 @@ vi.mock('@/projects/store', () => ({
 
 vi.mock('@/editor/canvas/plan-overlay/store', () => ({
   exportFloorPlansState: vi.fn(),
-  importFloorPlansState: vi.fn()
+  importFloorPlansState: vi.fn(),
+  getFloorPlanActions: () => ({
+    reset: vi.fn()
+  })
 }))
 
 vi.mock('./blobSerialization', () => ({
