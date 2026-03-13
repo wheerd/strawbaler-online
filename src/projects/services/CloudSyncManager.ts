@@ -472,7 +472,7 @@ export class CloudSyncManager {
             const floorPlansState = exportFloorPlansState()
             data = this.extractMetadata(floorPlansState)
             version = FLOOR_PLANS_STORE_VERSION
-            continue
+            break
           }
         }
 
@@ -493,17 +493,19 @@ export class CloudSyncManager {
       plans: {}
     }
 
-    for (const [storeyId, planMeta] of Object.entries(metadata.plans)) {
-      const typedStoreyId = storeyId as StoreyId
-      const blob = await service.downloadFloorPlanImage(planMeta.imageMeta.hash, planMeta.imageMeta.type)
+    if ('plans' in metadata) {
+      for (const [storeyId, planMeta] of Object.entries(metadata.plans)) {
+        const typedStoreyId = storeyId as StoreyId
+        const blob = await service.downloadFloorPlanImage(planMeta.imageMeta.hash, planMeta.imageMeta.type)
 
-      if (blob) {
-        state.plans[typedStoreyId] = {
-          storeyId: planMeta.storeyId,
-          imageMeta: planMeta.imageMeta,
-          image: blob,
-          calibration: planMeta.calibration,
-          origin: planMeta.origin
+        if (blob) {
+          state.plans[typedStoreyId] = {
+            storeyId: planMeta.storeyId,
+            imageMeta: planMeta.imageMeta,
+            image: blob,
+            calibration: planMeta.calibration,
+            origin: planMeta.origin
+          }
         }
       }
     }
