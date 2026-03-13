@@ -13,7 +13,7 @@ import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import { PlanCalibrationCanvas } from './PlanCalibrationCanvas'
 import { calculatePixelDistance } from './store/calibration'
-import { getFloorPlanActions } from './store/store'
+import { getFloorPlanActions } from './store'
 import type { FloorPlanOverlay, ImagePoint } from './types'
 
 interface PlanImportModalProps {
