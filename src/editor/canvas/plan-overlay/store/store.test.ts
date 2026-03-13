@@ -2,90 +2,341 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import type { StoreyId } from '@/building/model/ids'
 
-import { getFloorPlanActions, useFloorPlanStore } from './store'
+import { getAllFloorPlans, getFloorPlanActions, getFloorPlanForStorey } from './store'
 
 const floorId = 'floor-1' as StoreyId
+const floorId2 = 'floor-2' as StoreyId
 
 function createTestFile(name = 'plan.png'): File {
   return new File(['blueprint'], name, { type: 'image/png' })
 }
 
-function resetStore(): void {
-  useFloorPlanStore.setState({ plans: {} })
-}
-
 describe('floor plan store', () => {
   beforeEach(() => {
-    resetStore()
+    getFloorPlanActions().reset()
   })
 
-  it('stores a plan with calibration metadata', () => {
-    const actions = getFloorPlanActions()
+  describe('importPlan', () => {
+    it('stores a plan with calibration metadata', () => {
+      const actions = getFloorPlanActions()
 
-    actions.importPlan({
-      floorId,
-      file: createTestFile(),
-      imageSize: { width: 2000, height: 1000 },
-      referencePoints: [
-        { x: 0, y: 0 },
-        { x: 100, y: 0 }
-      ],
-      realDistanceMm: 5000
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 2000, height: 1000 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 5000
+      })
+
+      const plan = getFloorPlanForStorey(floorId)
+      expect(plan).toBeTruthy()
+      expect(plan!.imageMeta.width).toBe(2000)
+      expect(plan!.calibration.pixelDistance).toBeCloseTo(100)
+      expect(plan!.calibration.mmPerPixel).toBeCloseTo(50)
+      expect(plan!.origin.image).toEqual({ x: 0, y: 0 })
     })
 
-    const plan = useFloorPlanStore.getState().plans[floorId]
-    expect(plan).toBeTruthy()
-    expect(plan.imageMeta.width).toBe(2000)
-    expect(plan.calibration.pixelDistance).toBeCloseTo(100)
-    expect(plan.calibration.mmPerPixel).toBeCloseTo(50)
-    expect(plan.origin.image).toEqual({ x: 0, y: 0 })
+    it('stores a plan with custom origin', () => {
+      const actions = getFloorPlanActions()
+
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 10, y: 20 },
+          { x: 110, y: 20 }
+        ],
+        realDistanceMm: 1000,
+        origin: {
+          image: { x: 50, y: 50 },
+          world: { x: 100, y: 200 }
+        }
+      })
+
+      const plan = getFloorPlanForStorey(floorId)
+      expect(plan!.origin.image).toEqual({ x: 50, y: 50 })
+      expect(plan!.origin.world).toEqual({ x: 100, y: 200 })
+    })
+
+    it('sets default placement to over with overlay opacity', () => {
+      const actions = getFloorPlanActions()
+
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      const plan = getFloorPlanForStorey(floorId)
+      expect(plan!.placement).toBe('over')
+      expect(plan!.opacity).toBe(0.45)
+    })
   })
 
-  it('clears plans', () => {
-    const actions = getFloorPlanActions()
+  describe('clearPlan', () => {
+    it('clears an existing plan', () => {
+      const actions = getFloorPlanActions()
 
-    actions.importPlan({
-      floorId,
-      file: createTestFile(),
-      imageSize: { width: 800, height: 600 },
-      referencePoints: [
-        { x: 0, y: 0 },
-        { x: 100, y: 100 }
-      ],
-      realDistanceMm: 1000
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 100 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      actions.clearPlan(floorId)
+
+      expect(getFloorPlanForStorey(floorId)).toBeNull()
     })
 
-    actions.clearPlan(floorId)
+    it('does nothing when clearing non-existent plan', () => {
+      const actions = getFloorPlanActions()
 
-    expect(useFloorPlanStore.getState().plans[floorId]).toBeUndefined()
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      actions.clearPlan(floorId2)
+
+      expect(getFloorPlanForStorey(floorId)).toBeTruthy()
+      expect(getFloorPlanForStorey(floorId2)).toBeNull()
+    })
   })
 
-  it('recalibrates an existing plan without replacing image', () => {
-    const actions = getFloorPlanActions()
+  describe('recalibratePlan', () => {
+    it('recalibrates an existing plan without replacing image', () => {
+      const actions = getFloorPlanActions()
 
-    actions.importPlan({
-      floorId,
-      file: createTestFile(),
-      imageSize: { width: 1000, height: 500 },
-      referencePoints: [
-        { x: 0, y: 0 },
-        { x: 100, y: 0 }
-      ],
-      realDistanceMm: 2000
+      actions.importPlan({
+        floorId,
+        file: createTestFile('original.png'),
+        imageSize: { width: 1000, height: 500 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 2000
+      })
+
+      actions.recalibratePlan({
+        floorId,
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 50, y: 0 }
+        ],
+        realDistanceMm: 1000,
+        originImagePoint: { x: 10, y: 20 }
+      })
+
+      const plan = getFloorPlanForStorey(floorId)
+      expect(plan!.calibration.mmPerPixel).toBeCloseTo(20)
+      expect(plan!.origin.image).toEqual({ x: 10, y: 20 })
+      expect(plan!.imageMeta.name).toBe('original.png')
     })
 
-    actions.recalibratePlan({
-      floorId,
-      referencePoints: [
-        { x: 0, y: 0 },
-        { x: 50, y: 0 }
-      ],
-      realDistanceMm: 1000,
-      originImagePoint: { x: 10, y: 20 }
+    it('does nothing when recalibrating non-existent plan', () => {
+      const actions = getFloorPlanActions()
+
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      actions.recalibratePlan({
+        floorId: floorId2,
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 50, y: 0 }
+        ],
+        realDistanceMm: 500,
+        originImagePoint: { x: 10, y: 20 }
+      })
+
+      expect(getFloorPlanForStorey(floorId2)).toBeNull()
+    })
+  })
+
+  describe('setPlacement', () => {
+    it('sets placement to under with underlay opacity', () => {
+      const actions = getFloorPlanActions()
+
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      actions.setPlacement(floorId, 'under')
+
+      const plan = getFloorPlanForStorey(floorId)
+      expect(plan!.placement).toBe('under')
+      expect(plan!.opacity).toBe(0.85)
     })
 
-    const plan = useFloorPlanStore.getState().plans[floorId]
-    expect(plan.calibration.mmPerPixel).toBeCloseTo(20)
-    expect(plan.origin.image).toEqual({ x: 10, y: 20 })
+    it('sets placement to over with overlay opacity', () => {
+      const actions = getFloorPlanActions()
+
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      actions.setPlacement(floorId, 'under')
+      actions.setPlacement(floorId, 'over')
+
+      const plan = getFloorPlanForStorey(floorId)
+      expect(plan!.placement).toBe('over')
+      expect(plan!.opacity).toBe(0.45)
+    })
+
+    it('does nothing when setting placement for non-existent plan', () => {
+      const actions = getFloorPlanActions()
+
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      actions.setPlacement(floorId2, 'under')
+
+      expect(getFloorPlanForStorey(floorId2)).toBeNull()
+    })
+  })
+
+  describe('reset', () => {
+    it('clears all plans', () => {
+      const actions = getFloorPlanActions()
+
+      actions.importPlan({
+        floorId,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      actions.importPlan({
+        floorId: floorId2,
+        file: createTestFile(),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      actions.reset()
+
+      expect(getFloorPlanForStorey(floorId)).toBeNull()
+      expect(getFloorPlanForStorey(floorId2)).toBeNull()
+    })
+  })
+
+  describe('getFloorPlanForStorey', () => {
+    it('returns null when plan does not exist', () => {
+      expect(getFloorPlanForStorey(floorId)).toBeNull()
+    })
+
+    it('returns plan when it exists', () => {
+      const actions = getFloorPlanActions()
+
+      actions.importPlan({
+        floorId,
+        file: createTestFile('test.png'),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      const plan = getFloorPlanForStorey(floorId)
+      expect(plan).toBeTruthy()
+      expect(plan!.imageMeta.name).toBe('test.png')
+    })
+  })
+
+  describe('getAllFloorPlans', () => {
+    it('returns empty array when no plans exist', () => {
+      expect(getAllFloorPlans()).toEqual([])
+    })
+
+    it('returns all plans', () => {
+      const actions = getFloorPlanActions()
+
+      actions.importPlan({
+        floorId,
+        file: createTestFile('plan1.png'),
+        imageSize: { width: 800, height: 600 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
+        realDistanceMm: 1000
+      })
+
+      actions.importPlan({
+        floorId: floorId2,
+        file: createTestFile('plan2.png'),
+        imageSize: { width: 600, height: 400 },
+        referencePoints: [
+          { x: 0, y: 0 },
+          { x: 50, y: 0 }
+        ],
+        realDistanceMm: 500
+      })
+
+      const plans = getAllFloorPlans()
+      expect(plans).toHaveLength(2)
+      expect(plans.map(p => p.imageMeta.name).sort()).toEqual(['plan1.png', 'plan2.png'])
+    })
   })
 })

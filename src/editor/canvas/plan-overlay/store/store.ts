@@ -24,7 +24,8 @@ function getDefaultOrigin(referencePoints: readonly [ImagePoint, ImagePoint]): F
 }
 
 const storage = new FloorPlanStorage()
-export const useFloorPlanStore = create<FloorPlanStore>()(
+
+const useFloorPlanStore = create<FloorPlanStore>()(
   subscribeWithSelector(
     persist(
       (set, _get, store) => ({
