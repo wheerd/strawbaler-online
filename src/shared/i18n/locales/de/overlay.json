@@ -39,8 +39,9 @@
     "importPlan": "Grundriss importieren",
     "label": "Grundriss-Überlagerung",
     "placement": {
-      "showOnTop": "Oben anzeigen",
-      "showUnder": "Unter Layout anzeigen"
+      "hidden": "Ausgeblendet",
+      "showOnTop": "Überlagern",
+      "showUnder": "Im Hintergrund"
     },
     "recalibrate": "Neu kalibrieren",
     "removePlan": "Grundriss entfernen"

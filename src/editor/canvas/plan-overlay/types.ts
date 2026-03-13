@@ -29,7 +29,7 @@ export interface FloorPlanOrigin {
   readonly world: WorldPoint
 }
 
-export type FloorPlanPlacement = 'under' | 'over'
+export type FloorPlanPlacement = 'hidden' | 'under' | 'over'
 
 export interface FloorPlanOverlay {
   readonly floorId: StoreyId

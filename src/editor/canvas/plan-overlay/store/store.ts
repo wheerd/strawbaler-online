@@ -16,6 +16,7 @@ const STORAGE_KEY = 'strawbuild-floor-plans'
 
 const UNDERLAY_OPACITY = 0.85
 const OVERLAY_OPACITY = 0.45
+const HIDDEN_OPACITY = 0
 
 function getDefaultOrigin(referencePoints: readonly [ImagePoint, ImagePoint]): FloorPlanOrigin {
   return {
@@ -74,13 +75,15 @@ const useFloorPlanStore = create<FloorPlanStore>()(
               }
 
               const plan = state.plans[floorId]
+              const opacity =
+                placement === 'under' ? UNDERLAY_OPACITY : placement === 'over' ? OVERLAY_OPACITY : HIDDEN_OPACITY
               return {
                 plans: {
                   ...state.plans,
                   [floorId]: {
                     ...plan,
                     placement,
-                    opacity: placement === 'under' ? UNDERLAY_OPACITY : OVERLAY_OPACITY
+                    opacity
                   }
                 }
               }

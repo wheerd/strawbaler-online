@@ -1425,8 +1425,9 @@ interface Resources {
       "importPlan": "Import plan image",
       "label": "Plan Overlay",
       "placement": {
-        "showOnTop": "Show on top",
-        "showUnder": "Show under layout"
+        "hidden": "Hidden",
+        "showOnTop": "Overlay on top",
+        "showUnder": "In background"
       },
       "recalibrate": "Recalibrate",
       "removePlan": "Remove plan"
