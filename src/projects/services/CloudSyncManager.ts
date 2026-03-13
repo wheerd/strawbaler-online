@@ -37,7 +37,7 @@ import {
   hydratePartsState,
   usePartsStore
 } from '@/parts/store'
-import { getProjectActions, getProjectId, getProjectMeta, useProjectsStore } from '@/projects/store'
+import { getProjectActions, getProjectMeta, useProjectsStore } from '@/projects/store'
 import type { ProjectData, ProjectId, ProjectListItem } from '@/projects/types'
 import { createProjectId, parseTimestamp, timestampNow } from '@/projects/types'
 
@@ -169,44 +169,13 @@ export class CloudSyncManager {
         updatedAt: parseTimestamp(projectData.updatedAt)
       })
 
-      const floorPlansState = await this.loadFloorPlansFromCloud(
-        projectId,
-        projectData.floorPlansState as CloudFloorPlansMetadata
-      )
+      const floorPlansState = await this.loadFloorPlansFromCloud(projectData.floorPlansState as CloudFloorPlansMetadata)
       importFloorPlansState(floorPlansState, projectData.floorPlansVersion)
     } finally {
       this.syncingEnabled = true
     }
 
     getPersistenceActions().setCloudSyncSuccess(new Date())
-  }
-
-  private async loadFloorPlansFromCloud(
-    projectId: ProjectId,
-    metadata: CloudFloorPlansMetadata
-  ): Promise<CloudFloorPlansState> {
-    const service = await this.ensureSyncService()
-
-    const state: CloudFloorPlansState = {
-      plans: {}
-    }
-
-    for (const [storeyId, planMeta] of Object.entries(metadata.plans)) {
-      const typedStoreyId = storeyId as StoreyId
-      const blob = await service.downloadFloorPlanImage(projectId, typedStoreyId, planMeta.imageMeta.name)
-
-      if (blob) {
-        state.plans[typedStoreyId] = {
-          storeyId: planMeta.storeyId,
-          imageMeta: planMeta.imageMeta,
-          image: blob,
-          calibration: planMeta.calibration,
-          origin: planMeta.origin
-        }
-      }
-    }
-
-    return state
   }
 
   async flushSyncQueue(): Promise<void> {
@@ -417,19 +386,14 @@ export class CloudSyncManager {
         }
       }),
 
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      floorPlans: subscribeToFloorPlansRecords(async (_id, current, previous) => {
-        const service = await this.ensureSyncService()
-        const projectId = getProjectId()
-
-        if (current != null && previous == null) {
-          await service.uploadFloorPlanImage(projectId, current.floorId, current.image, current.imageMeta.name)
+      floorPlans: subscribeToFloorPlansRecords((_id, current, previous) => {
+        if (current && current.imageMeta.hash !== previous?.imageMeta.hash) {
+          void this.ensureSyncService().then(service =>
+            service.uploadFloorPlanImage(current.image, current.imageMeta.hash)
+          )
         }
 
-        if (current == null && previous != null) {
-          await service.deleteFloorPlanImage(projectId, previous.floorId, previous.imageMeta.name)
-        }
-        this.queueSync('floorPlans')
+        this.queueSync('floor_plans')
       })
     }
   }
@@ -504,7 +468,7 @@ export class CloudSyncManager {
             version = PARTS_STORE_VERSION
             break
           }
-          case 'floorPlans': {
+          case 'floor_plans': {
             const floorPlansState = exportFloorPlansState()
             data = this.extractMetadata(floorPlansState)
             version = FLOOR_PLANS_STORE_VERSION
@@ -520,6 +484,31 @@ export class CloudSyncManager {
     } catch (error) {
       getPersistenceActions().setCloudSyncError(error instanceof Error ? error.message : 'Sync failed')
     }
+  }
+
+  private async loadFloorPlansFromCloud(metadata: CloudFloorPlansMetadata): Promise<CloudFloorPlansState> {
+    const service = await this.ensureSyncService()
+
+    const state: CloudFloorPlansState = {
+      plans: {}
+    }
+
+    for (const [storeyId, planMeta] of Object.entries(metadata.plans)) {
+      const typedStoreyId = storeyId as StoreyId
+      const blob = await service.downloadFloorPlanImage(planMeta.imageMeta.hash, planMeta.imageMeta.type)
+
+      if (blob) {
+        state.plans[typedStoreyId] = {
+          storeyId: planMeta.storeyId,
+          imageMeta: planMeta.imageMeta,
+          image: blob,
+          calibration: planMeta.calibration,
+          origin: planMeta.origin
+        }
+      }
+    }
+
+    return state
   }
 
   private extractMetadata(state: CloudFloorPlansState): CloudFloorPlansMetadata {

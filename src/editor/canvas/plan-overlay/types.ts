@@ -11,7 +11,8 @@ export interface WorldPoint {
 }
 
 export interface FloorPlanImageMetadata {
-  readonly name: string
+  readonly hash: string
+  readonly type: string
   readonly width: number
   readonly height: number
 }

@@ -16,14 +16,6 @@ interface FloorPlansDB extends DBSchema {
   }
 }
 
-async function hashBlob(blob: Blob): Promise<string> {
-  const arrayBuffer = await blob.arrayBuffer()
-  const msgUint8 = new Uint8Array(arrayBuffer)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
 export class FloorPlanStorage implements PersistStorage<FloorPlanStoreState> {
   async getItem(name: string): Promise<StorageValue<FloorPlanStoreState> | null> {
     const raw = localStorage.getItem(name)
@@ -43,7 +35,7 @@ export class FloorPlanStorage implements PersistStorage<FloorPlanStoreState> {
       for (const key in parsed.state.plans) {
         const floorId = key as StoreyId
         const partial = parsed.state.plans[floorId]
-        const image = await db.get(IMAGES_STORE, partial.imageId)
+        const image = await db.get(IMAGES_STORE, partial.imageMeta.hash)
         if (image) {
           state.state.plans[floorId] = {
             floorId,
@@ -76,9 +68,8 @@ export class FloorPlanStorage implements PersistStorage<FloorPlanStoreState> {
       const record = value.state.plans[floorId]
       try {
         const { image, ...partialized } = record
-        const imageId = await hashBlob(image)
-        await db.put(IMAGES_STORE, image, imageId)
-        partial.state.plans[floorId] = { ...partialized, imageId }
+        await db.put(IMAGES_STORE, image, partialized.imageMeta.hash)
+        partial.state.plans[floorId] = partialized
       } catch (error) {
         console.error(`Failed to store floor plan image for floor ${floorId}`, error)
       }

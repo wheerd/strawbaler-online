@@ -3,6 +3,7 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 
 import type { StoreyId } from '@/building/model/ids'
 import type { FloorPlanOrigin, FloorPlanOverlay, ImagePoint } from '@/editor/canvas/plan-overlay/types'
+import { hashBlob } from '@/shared/utils/hash'
 import { subscribeRecords } from '@/shared/utils/subscription'
 
 import { calculateMmPerPixel, calculatePixelDistance } from './calibration'
@@ -31,14 +32,16 @@ const useFloorPlanStore = create<FloorPlanStore>()(
       (set, _get, store) => ({
         plans: {},
         actions: {
-          importPlan: ({ floorId, file, imageSize, referencePoints, realDistanceMm, origin }) => {
+          importPlan: async ({ floorId, file, imageSize, referencePoints, realDistanceMm, origin }) => {
+            const hash = await hashBlob(file)
             const pixelDistance = calculatePixelDistance(referencePoints[0], referencePoints[1])
             const mmPerPixel = calculateMmPerPixel(realDistanceMm, pixelDistance)
 
             const nextPlan: FloorPlanOverlay = {
               floorId,
               imageMeta: {
-                name: file.name,
+                hash,
+                type: file.type,
                 width: imageSize.width,
                 height: imageSize.height
               },

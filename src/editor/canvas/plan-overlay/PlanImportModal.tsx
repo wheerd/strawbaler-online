@@ -151,7 +151,7 @@ export function PlanImportModal({
     return realDistance / pixelDistance
   }, [pixelDistance, realDistance])
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!imageElement || referencePoints.length !== 2 || realDistance <= 0 || !pixelDistance || pixelDistance <= 0) {
       return
     }
@@ -161,7 +161,7 @@ export function PlanImportModal({
     const actions = getFloorPlanActions()
 
     if (file) {
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file,
         imageSize: { width: imageElement.naturalWidth, height: imageElement.naturalHeight },
@@ -233,11 +233,7 @@ export function PlanImportModal({
           <div className="flex flex-col gap-2">
             <span className="font-medium">{t($ => $.planImport.step1.title)}</span>
             {existingPlan && !file ? (
-              <span className="text-base">
-                {t($ => $.planImport.step1.currentImage, {
-                  name: existingPlan.imageMeta.name
-                })}
-              </span>
+              <span className="text-base">{t($ => $.planImport.step1.currentImage)}</span>
             ) : (
               <span className="text-base">{t($ => $.planImport.step1.uploadHint)}</span>
             )}
@@ -345,12 +341,7 @@ export function PlanImportModal({
               >
                 {t($ => $.planImport.footer.cancel)}
               </Button>
-              <Button
-                onClick={() => {
-                  handleSubmit()
-                }}
-                disabled={!canSubmit}
-              >
+              <Button onClick={() => void handleSubmit()} disabled={!canSubmit}>
                 {existingPlan ? t($ => $.planImport.footer.replacePlan) : t($ => $.planImport.footer.addPlan)}
               </Button>
             </div>

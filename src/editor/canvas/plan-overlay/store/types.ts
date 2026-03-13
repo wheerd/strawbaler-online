@@ -20,7 +20,6 @@ export interface PartializedFloorPlanStoreState {
 export interface PartializedFloorPlanOverlay {
   readonly floorId: StoreyId
   readonly imageMeta: FloorPlanImageMetadata
-  readonly imageId: string
   readonly calibration: FloorPlanCalibration
   readonly origin: FloorPlanOrigin
   readonly placement: FloorPlanPlacement
@@ -28,7 +27,7 @@ export interface PartializedFloorPlanOverlay {
 }
 
 export interface FloorPlanStoreActions {
-  importPlan: (payload: PlanImportPayload) => void
+  importPlan: (payload: PlanImportPayload) => Promise<void>
   setPlacement: (floorId: StoreyId, placement: FloorPlanPlacement) => void
   recalibratePlan: (payload: PlanRecalibrationPayload) => void
   clearPlan: (floorId: StoreyId) => void

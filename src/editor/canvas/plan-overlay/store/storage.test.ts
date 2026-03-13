@@ -23,7 +23,7 @@ function createTestBlob(content = 'blueprint-data'): Blob {
 function createTestPlan(overrides: Partial<FloorPlanOverlay> = {}): FloorPlanOverlay {
   return {
     floorId,
-    imageMeta: { name: 'plan.png', width: 800, height: 600 },
+    imageMeta: { hash: 'abc123', type: 'image/png', width: 800, height: 600 },
     image: createTestBlob(),
     calibration: {
       referencePoints: [
@@ -79,8 +79,7 @@ describe('FloorPlanStorage', () => {
           plans: {
             [floorId]: {
               floorId,
-              imageMeta: { name: 'plan.png', width: 800, height: 600 },
-              imageId: 'non-existent-hash',
+              imageMeta: { hash: 'non-existent-hash', type: 'image/png', width: 800, height: 600 },
               calibration: {
                 referencePoints: [
                   { x: 0, y: 0 },
@@ -123,8 +122,7 @@ describe('FloorPlanStorage', () => {
           plans: {
             [floorId]: {
               floorId,
-              imageMeta: { name: 'plan.png', width: 800, height: 600 },
-              imageId: hash,
+              imageMeta: { hash: 'abc123hash', type: 'image/png', width: 800, height: 600 },
               calibration: {
                 referencePoints: [
                   { x: 0, y: 0 },
@@ -147,7 +145,7 @@ describe('FloorPlanStorage', () => {
       expect(result).not.toBeNull()
       expect(result!.version).toBe(1)
       expect(result!.state.plans[floorId]).toBeTruthy()
-      expect(result!.state.plans[floorId].imageMeta.name).toBe('plan.png')
+      expect(result!.state.plans[floorId].imageMeta.hash).toBe('abc123hash')
     })
 
     it('handles multiple plans correctly', async () => {
@@ -169,8 +167,7 @@ describe('FloorPlanStorage', () => {
           plans: {
             [floorId]: {
               floorId,
-              imageMeta: { name: 'plan1.png', width: 800, height: 600 },
-              imageId: 'hash1',
+              imageMeta: { hash: 'hash1', type: 'image/png', width: 800, height: 600 },
               calibration: {
                 referencePoints: [
                   { x: 0, y: 0 },
@@ -186,8 +183,7 @@ describe('FloorPlanStorage', () => {
             },
             [floorId2]: {
               floorId: floorId2,
-              imageMeta: { name: 'plan2.png', width: 600, height: 400 },
-              imageId: 'hash2',
+              imageMeta: { hash: 'hash2', type: 'image/png', width: 600, height: 400 },
               calibration: {
                 referencePoints: [
                   { x: 0, y: 0 },
@@ -209,8 +205,8 @@ describe('FloorPlanStorage', () => {
       const result = await storage.getItem(STORAGE_KEY)
       expect(result!.state.plans[floorId]).toBeTruthy()
       expect(result!.state.plans[floorId2]).toBeTruthy()
-      expect(result!.state.plans[floorId].imageMeta.name).toBe('plan1.png')
-      expect(result!.state.plans[floorId2].imageMeta.name).toBe('plan2.png')
+      expect(result!.state.plans[floorId].imageMeta.hash).toBe('hash1')
+      expect(result!.state.plans[floorId2].imageMeta.hash).toBe('hash2')
     })
   })
 
@@ -231,17 +227,16 @@ describe('FloorPlanStorage', () => {
       expect(stored).not.toBeNull()
       const parsed = JSON.parse(stored!)
       expect(parsed.version).toBe(1)
-      expect(parsed.state.plans[floorId].imageId).toBeTruthy()
+      expect(parsed.state.plans[floorId].imageMeta.hash).toBeTruthy()
       expect(parsed.state.plans[floorId].image).toBeUndefined()
     })
 
-    it('stores images to IndexedDB with SHA-256 hash as key', async () => {
-      const blob = createTestBlob('unique-content')
+    it('stores images to IndexedDB with hash from imageMeta as key', async () => {
       const value = {
         version: 1,
         state: {
           plans: {
-            [floorId]: createTestPlan({ image: blob })
+            [floorId]: createTestPlan()
           }
         }
       }
@@ -250,11 +245,10 @@ describe('FloorPlanStorage', () => {
 
       const stored = localStorage.getItem(STORAGE_KEY)
       const parsed = JSON.parse(stored!)
-      const imageId = parsed.state.plans[floorId].imageId
-      expect(imageId).toMatch(/^[a-f0-9]{64}$/)
+      const hash = parsed.state.plans[floorId].imageMeta.hash
 
       const db = await openDB(DB_NAME, 1)
-      const storedBlob = await db.get(IMAGES_STORE, imageId)
+      const storedBlob = await db.get(IMAGES_STORE, hash)
       expect(storedBlob).toBeTruthy()
     })
 
@@ -280,12 +274,12 @@ describe('FloorPlanStorage', () => {
       await storage.setItem(STORAGE_KEY, value1)
       const stored1 = localStorage.getItem(STORAGE_KEY)
       const parsed1 = JSON.parse(stored1!)
-      const hash1 = parsed1.state.plans[floorId].imageId
+      const hash1 = parsed1.state.plans[floorId].imageMeta.hash
 
       await storage.setItem(STORAGE_KEY, value2)
       const stored2 = localStorage.getItem(STORAGE_KEY)
       const parsed2 = JSON.parse(stored2!)
-      const hash2 = parsed2.state.plans[floorId2].imageId
+      const hash2 = parsed2.state.plans[floorId2].imageMeta.hash
 
       expect(hash1).toBe(hash2)
     })
@@ -350,7 +344,7 @@ describe('FloorPlanStorage', () => {
         state: {
           plans: {
             [floorId]: createTestPlan({
-              imageMeta: { name: 'roundtrip.png', width: 1920, height: 1080 },
+              imageMeta: { hash: 'roundtrip-hash', type: 'image/png', width: 1920, height: 1080 },
               image: createTestBlob('roundtrip-content'),
               calibration: {
                 referencePoints: [
@@ -375,7 +369,7 @@ describe('FloorPlanStorage', () => {
       expect(result).not.toBeNull()
       expect(result!.version).toBe(2)
       const plan = result!.state.plans[floorId]
-      expect(plan.imageMeta.name).toBe('roundtrip.png')
+      expect(plan.imageMeta.hash).toBe('roundtrip-hash')
       expect(plan.imageMeta.width).toBe(1920)
       expect(plan.calibration.mmPerPixel).toBe(25)
       expect(plan.origin.image).toEqual({ x: 50, y: 75 })

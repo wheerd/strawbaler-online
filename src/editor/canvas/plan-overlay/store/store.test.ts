@@ -18,10 +18,10 @@ describe('floor plan store', () => {
   })
 
   describe('importPlan', () => {
-    it('stores a plan with calibration metadata', () => {
+    it('stores a plan with calibration metadata', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 2000, height: 1000 },
@@ -40,10 +40,10 @@ describe('floor plan store', () => {
       expect(plan!.origin.image).toEqual({ x: 0, y: 0 })
     })
 
-    it('stores a plan with custom origin', () => {
+    it('stores a plan with custom origin', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -63,10 +63,10 @@ describe('floor plan store', () => {
       expect(plan!.origin.world).toEqual({ x: 100, y: 200 })
     })
 
-    it('sets default placement to over with overlay opacity', () => {
+    it('sets default placement to over with overlay opacity', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -84,10 +84,10 @@ describe('floor plan store', () => {
   })
 
   describe('clearPlan', () => {
-    it('clears an existing plan', () => {
+    it('clears an existing plan', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -103,10 +103,10 @@ describe('floor plan store', () => {
       expect(getFloorPlanForStorey(floorId)).toBeNull()
     })
 
-    it('does nothing when clearing non-existent plan', () => {
+    it('does nothing when clearing non-existent plan', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -125,10 +125,10 @@ describe('floor plan store', () => {
   })
 
   describe('recalibratePlan', () => {
-    it('recalibrates an existing plan without replacing image', () => {
+    it('recalibrates an existing plan without replacing image', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile('original.png'),
         imageSize: { width: 1000, height: 500 },
@@ -152,13 +152,12 @@ describe('floor plan store', () => {
       const plan = getFloorPlanForStorey(floorId)
       expect(plan!.calibration.mmPerPixel).toBeCloseTo(20)
       expect(plan!.origin.image).toEqual({ x: 10, y: 20 })
-      expect(plan!.imageMeta.name).toBe('original.png')
     })
 
-    it('does nothing when recalibrating non-existent plan', () => {
+    it('does nothing when recalibrating non-existent plan', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -184,10 +183,10 @@ describe('floor plan store', () => {
   })
 
   describe('setPlacement', () => {
-    it('sets placement to under with underlay opacity', () => {
+    it('sets placement to under with underlay opacity', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -205,10 +204,10 @@ describe('floor plan store', () => {
       expect(plan!.opacity).toBe(0.85)
     })
 
-    it('sets placement to over with overlay opacity', () => {
+    it('sets placement to over with overlay opacity', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -227,10 +226,10 @@ describe('floor plan store', () => {
       expect(plan!.opacity).toBe(0.45)
     })
 
-    it('does nothing when setting placement for non-existent plan', () => {
+    it('does nothing when setting placement for non-existent plan', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -248,10 +247,10 @@ describe('floor plan store', () => {
   })
 
   describe('reset', () => {
-    it('clears all plans', () => {
+    it('clears all plans', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -262,7 +261,7 @@ describe('floor plan store', () => {
         realDistanceMm: 1000
       })
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId: floorId2,
         file: createTestFile(),
         imageSize: { width: 800, height: 600 },
@@ -285,10 +284,10 @@ describe('floor plan store', () => {
       expect(getFloorPlanForStorey(floorId)).toBeNull()
     })
 
-    it('returns plan when it exists', () => {
+    it('returns plan when it exists', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile('test.png'),
         imageSize: { width: 800, height: 600 },
@@ -301,7 +300,7 @@ describe('floor plan store', () => {
 
       const plan = getFloorPlanForStorey(floorId)
       expect(plan).toBeTruthy()
-      expect(plan!.imageMeta.name).toBe('test.png')
+      expect(plan!.imageMeta.hash).toBeTruthy()
     })
   })
 
@@ -310,10 +309,10 @@ describe('floor plan store', () => {
       expect(getAllFloorPlans()).toEqual([])
     })
 
-    it('returns all plans', () => {
+    it('returns all plans', async () => {
       const actions = getFloorPlanActions()
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId,
         file: createTestFile('plan1.png'),
         imageSize: { width: 800, height: 600 },
@@ -324,7 +323,7 @@ describe('floor plan store', () => {
         realDistanceMm: 1000
       })
 
-      actions.importPlan({
+      await actions.importPlan({
         floorId: floorId2,
         file: createTestFile('plan2.png'),
         imageSize: { width: 600, height: 400 },
@@ -337,7 +336,8 @@ describe('floor plan store', () => {
 
       const plans = getAllFloorPlans()
       expect(plans).toHaveLength(2)
-      expect(plans.map(p => p.imageMeta.name).sort()).toEqual(['plan1.png', 'plan2.png'])
+      expect(plans[0].imageMeta.hash).toBeTruthy()
+      expect(plans[1].imageMeta.hash).toBeTruthy()
     })
   })
 })

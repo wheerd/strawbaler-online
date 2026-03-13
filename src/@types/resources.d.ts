@@ -1438,7 +1438,7 @@ interface Resources {
         "replacePlan": "Replace plan"
       },
       "step1": {
-        "currentImage": "Using current image ({{name}}). Upload a new file below to replace it.",
+        "currentImage": "Using current image. Upload a new file below to replace it.",
         "title": "1. Select floor plan image",
         "uploadButton": "Select Image",
         "uploadHint": "Upload a PNG, JPG, or SVG. The file stays local and is not saved with your project."
