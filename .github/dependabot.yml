@@ -9,6 +9,7 @@ updates:
       time: '03:00'
       timezone: 'Etc/UTC'
     open-pull-requests-limit: 10
+    target-branch: 'development'
 
     # Commit message configuration
     commit-message:
@@ -25,11 +26,6 @@ updates:
           - 'react-dom'
           - '@types/react*'
           - 'react-*'
-
-      # Radix UI components
-      radix-ui:
-        patterns:
-          - '@radix-ui/*'
 
       # Testing tools
       testing:
