@@ -8,7 +8,7 @@ VALUES ('floor-plans', 'floor-plans', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- RLS policies for storage bucket
--- Path structure: floor-plans/{user_id}/{project_id}/{storey_id}.{ext}
+-- Path structure: floor-plans/{user_id}/{hash}.{ext}
 CREATE POLICY "Users can view own floor plans"
   ON storage.objects FOR SELECT
   TO authenticated
