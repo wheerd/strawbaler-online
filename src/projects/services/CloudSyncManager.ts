@@ -387,7 +387,7 @@ export class CloudSyncManager {
       }),
 
       floorPlans: subscribeToFloorPlansRecords((_id, current, previous) => {
-        if (current && current.imageMeta.hash !== previous?.imageMeta.hash) {
+        if (this.syncingEnabled && current && current.imageMeta.hash !== previous?.imageMeta.hash) {
           void this.ensureSyncService().then(service =>
             service.uploadFloorPlanImage(current.image, current.imageMeta.hash)
           )
