@@ -1,3 +1,4 @@
+import { File } from 'node:buffer'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import type { StoreyId } from '@/building/model/ids'
