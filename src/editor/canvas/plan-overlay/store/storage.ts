@@ -73,9 +73,9 @@ export class FloorPlanStorage implements PersistStorage<FloorPlanStoreState> {
       } catch (error) {
         console.error(`Failed to store floor plan image for floor ${floorId}`, error)
       }
-
-      localStorage.setItem(name, JSON.stringify(partial))
     }
+
+    localStorage.setItem(name, JSON.stringify(partial))
 
     if (Object.keys(value.state.plans).length === 0) {
       await db.clear(IMAGES_STORE)
