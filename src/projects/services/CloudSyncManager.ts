@@ -15,6 +15,7 @@ import {
   hydrateConfigState,
   subscribeToConfigChanges
 } from '@/config/store'
+import { loadFloorPlansFromPersistence } from '@/editor/canvas/plan-overlay/store'
 import {
   MATERIALS_STORE_VERSION,
   getInitialMaterialsState,
@@ -155,6 +156,8 @@ export class CloudSyncManager {
         createdAt: parseTimestamp(projectData.createdAt),
         updatedAt: parseTimestamp(projectData.updatedAt)
       })
+
+      await loadFloorPlansFromPersistence()
     } finally {
       this.syncingEnabled = true
     }
@@ -434,6 +437,9 @@ export class CloudSyncManager {
             data = exportPartsState()
             version = PARTS_STORE_VERSION
             break
+          }
+          case 'floorPlans': {
+            continue
           }
         }
 

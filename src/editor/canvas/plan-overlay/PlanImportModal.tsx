@@ -13,7 +13,7 @@ import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import { PlanCalibrationCanvas } from './PlanCalibrationCanvas'
 import { calculatePixelDistance } from './calibration'
-import { useFloorPlanActions } from './store'
+import { recalibratePlanWithPersistence, saveFloorPlanWithPersistence } from './store'
 import type { FloorPlanOverlay, ImagePoint } from './types'
 
 interface PlanImportModalProps {
@@ -40,7 +40,6 @@ export function PlanImportModal({
 }: PlanImportModalProps): React.JSX.Element {
   const { t } = useTranslation('overlay')
   const { formatLength } = useFormatters()
-  const { importPlan, recalibratePlan } = useFloorPlanActions()
   const [file, setFile] = useState<File | null>(null)
   const [previewSource, setPreviewSource] = useState<PreviewSource | null>(null)
   const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null)
@@ -148,7 +147,7 @@ export function PlanImportModal({
     return realDistance / pixelDistance
   }, [pixelDistance, realDistance])
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!imageElement || referencePoints.length !== 2 || realDistance <= 0 || !pixelDistance || pixelDistance <= 0) {
       return
     }
@@ -156,44 +155,31 @@ export function PlanImportModal({
     const selectedOriginPoint = originPoint ?? referencePoints[0]
     const [firstPoint, secondPoint] = referencePoints as [ImagePoint, ImagePoint]
 
-    if (file) {
-      importPlan({
-        floorId,
-        file,
-        imageSize: { width: imageElement.naturalWidth, height: imageElement.naturalHeight },
-        referencePoints: [firstPoint, secondPoint],
-        realDistanceMm: realDistance,
-        origin: {
-          image: selectedOriginPoint,
-          world: { x: 0, y: 0 }
-        }
-      })
-    } else if (existingPlan) {
-      recalibratePlan({
-        floorId,
-        referencePoints: [firstPoint, secondPoint],
-        realDistanceMm: realDistance,
-        originImagePoint: selectedOriginPoint
-      })
-    } else {
-      return
-    }
+    try {
+      if (file) {
+        await saveFloorPlanWithPersistence(
+          floorId,
+          file,
+          { width: imageElement.naturalWidth, height: imageElement.naturalHeight },
+          [firstPoint, secondPoint],
+          realDistance,
+          {
+            image: selectedOriginPoint,
+            world: { x: 0, y: 0 }
+          }
+        )
+      } else if (existingPlan) {
+        await recalibratePlanWithPersistence(floorId, [firstPoint, secondPoint], realDistance, selectedOriginPoint)
+      } else {
+        return
+      }
 
-    onOpenChange(false)
-    resetState()
-  }, [
-    existingPlan,
-    file,
-    floorId,
-    imageElement,
-    importPlan,
-    onOpenChange,
-    originPoint,
-    realDistance,
-    recalibratePlan,
-    referencePoints,
-    resetState
-  ])
+      onOpenChange(false)
+      resetState()
+    } catch (error) {
+      console.error('Failed to save floor plan:', error)
+    }
+  }, [existingPlan, file, floorId, imageElement, onOpenChange, originPoint, realDistance, referencePoints, resetState])
 
   const canSubmit =
     imageElement != null &&
@@ -342,7 +328,7 @@ export function PlanImportModal({
               >
                 {t($ => $.planImport.footer.cancel)}
               </Button>
-              <Button onClick={handleSubmit} disabled={!canSubmit}>
+              <Button onClick={() => void handleSubmit()} disabled={!canSubmit}>
                 {existingPlan ? t($ => $.planImport.footer.replacePlan) : t($ => $.planImport.footer.addPlan)}
               </Button>
             </div>

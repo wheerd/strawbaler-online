@@ -1,6 +1,7 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 
 import { getSupabaseClient, isSupabaseConfigured } from '@/app/user/supabaseClient'
+import { getFloorPlanCloudStorage } from '@/editor/canvas/plan-overlay/FloorPlanCloudStorage'
 import {
   type ProjectData,
   type ProjectId,
@@ -25,9 +26,11 @@ interface CloudProjectRow {
   materials_version: number
   parts_state: unknown
   parts_version: number
+  floor_plans_state: unknown
+  floor_plans_version: number
 }
 
-export type StoreType = 'model' | 'config' | 'materials' | 'parts'
+export type StoreType = 'model' | 'config' | 'materials' | 'parts' | 'floorPlans'
 
 export interface ICloudSyncService {
   initialize(): Promise<void>
@@ -104,11 +107,12 @@ export class SupabaseSyncService implements ICloudSyncService {
       throw new Error('Not authenticated')
     }
 
+    const dbColumn = column === 'floorPlans' ? 'floor_plans' : column
     const { error } = await this.client
       .from('projects')
       .update({
-        [`${column}_state`]: data,
-        [`${column}_version`]: version,
+        [`${dbColumn}_state`]: data,
+        [`${dbColumn}_version`]: version,
         updated_at: new Date().toISOString()
       })
       .eq('id', projectId)
@@ -141,6 +145,8 @@ export class SupabaseSyncService implements ICloudSyncService {
       materialsVersion: row.materials_version,
       partsState: row.parts_state,
       partsVersion: row.parts_version,
+      floorPlansState: row.floor_plans_state,
+      floorPlansVersion: row.floor_plans_version,
       name: row.name,
       description: row.description ?? undefined,
       createdAt: parseTimestamp(row.created_at),
@@ -162,6 +168,8 @@ export class SupabaseSyncService implements ICloudSyncService {
       materials_version: projectData.materialsVersion,
       parts_state: projectData.partsState,
       parts_version: projectData.partsVersion,
+      floor_plans_state: projectData.floorPlansState ?? {},
+      floor_plans_version: projectData.floorPlansVersion ?? 1,
       created_at: projectData.createdAt,
       updated_at: projectData.updatedAt
     }
@@ -186,6 +194,8 @@ export class SupabaseSyncService implements ICloudSyncService {
       materials_version: projectData.materialsVersion,
       parts_state: projectData.partsState,
       parts_version: projectData.partsVersion,
+      floor_plans_state: projectData.floorPlansState ?? {},
+      floor_plans_version: projectData.floorPlansVersion ?? 1,
       created_at: projectData.createdAt,
       updated_at: projectData.updatedAt
     }
@@ -218,6 +228,11 @@ export class SupabaseSyncService implements ICloudSyncService {
   async deleteProject(projectId: ProjectId): Promise<void> {
     if (!this.currentUser) {
       throw new Error('Not authenticated')
+    }
+
+    const cloudStorage = getFloorPlanCloudStorage()
+    if (cloudStorage) {
+      await cloudStorage.deleteAllImagesForProject(this.currentUser.id, projectId)
     }
 
     const { error } = await this.client.from('projects').delete().eq('id', projectId)

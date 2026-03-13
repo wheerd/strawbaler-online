@@ -1,15 +1,17 @@
 import { create } from 'zustand'
 
 import type { StoreyId } from '@/building/model/ids'
+import { getProjectId } from '@/projects/store'
 
+import { getFloorPlanPersistence } from './FloorPlanPersistence'
 import { calculateMmPerPixel, calculatePixelDistance } from './calibration'
-import {
-  type FloorPlanOrigin,
-  type FloorPlanOverlay,
-  type FloorPlanPlacement,
-  type ImagePoint,
-  type PlanImportPayload,
-  type PlanRecalibrationPayload
+import type {
+  FloorPlanOrigin,
+  FloorPlanOverlay,
+  FloorPlanPlacement,
+  ImagePoint,
+  PlanImportPayload,
+  PlanRecalibrationPayload
 } from './types'
 
 interface FloorPlanStoreState {
@@ -172,4 +174,164 @@ export function resetFloorPlanStore(): void {
   const { actions } = useFloorPlanStore.getState()
   Object.values(useFloorPlanStore.getState().plans).forEach(disposePlan)
   useFloorPlanStore.setState({ plans: {}, actions })
+}
+
+export async function saveFloorPlanWithPersistence(
+  floorId: StoreyId,
+  file: File,
+  imageSize: { width: number; height: number },
+  referencePoints: readonly [ImagePoint, ImagePoint],
+  realDistanceMm: number,
+  origin: FloorPlanOrigin
+): Promise<void> {
+  const projectId = getProjectId()
+  const persistence = getFloorPlanPersistence()
+
+  const pixelDistance = calculatePixelDistance(referencePoints[0], referencePoints[1])
+  const mmPerPixel = calculateMmPerPixel(realDistanceMm, pixelDistance)
+
+  const plan: FloorPlanOverlay = {
+    floorId,
+    image: {
+      url: URL.createObjectURL(file),
+      name: file.name,
+      width: imageSize.width,
+      height: imageSize.height
+    },
+    calibration: {
+      referencePoints,
+      pixelDistance,
+      realDistanceMm,
+      mmPerPixel
+    },
+    origin,
+    placement: 'over',
+    opacity: OVERLAY_OPACITY
+  }
+
+  disposePlan(useFloorPlanStore.getState().plans[floorId])
+  useFloorPlanStore.setState({
+    plans: {
+      ...useFloorPlanStore.getState().plans,
+      [floorId]: plan
+    }
+  })
+
+  await persistence.saveFloorPlan(
+    projectId,
+    floorId,
+    { blob: file, fileName: file.name },
+    plan.calibration,
+    plan.origin,
+    plan.placement,
+    plan.opacity
+  )
+}
+
+export async function recalibratePlanWithPersistence(
+  floorId: StoreyId,
+  referencePoints: readonly [ImagePoint, ImagePoint],
+  realDistanceMm: number,
+  originImagePoint: ImagePoint
+): Promise<void> {
+  const projectId = getProjectId()
+  const persistence = getFloorPlanPersistence()
+
+  const existing = useFloorPlanStore.getState().plans[floorId]
+  if (!existing) {
+    return
+  }
+
+  const pixelDistance = calculatePixelDistance(referencePoints[0], referencePoints[1])
+  const mmPerPixel = calculateMmPerPixel(realDistanceMm, pixelDistance)
+
+  const updatedPlan: FloorPlanOverlay = {
+    ...existing,
+    calibration: {
+      referencePoints,
+      realDistanceMm,
+      pixelDistance,
+      mmPerPixel
+    },
+    origin: {
+      image: originImagePoint,
+      world: { x: 0, y: 0 }
+    }
+  }
+
+  useFloorPlanStore.setState({
+    plans: {
+      ...useFloorPlanStore.getState().plans,
+      [floorId]: updatedPlan
+    }
+  })
+
+  await persistence.saveFloorPlan(
+    projectId,
+    floorId,
+    { blob: await fetch(existing.image.url).then(r => r.blob()), fileName: existing.image.name },
+    updatedPlan.calibration,
+    updatedPlan.origin,
+    updatedPlan.placement,
+    updatedPlan.opacity
+  )
+}
+
+export async function deleteFloorPlanWithPersistence(floorId: StoreyId): Promise<void> {
+  const projectId = getProjectId()
+  const persistence = getFloorPlanPersistence()
+
+  const existing = useFloorPlanStore.getState().plans[floorId]
+  if (!existing) {
+    return
+  }
+
+  disposePlan(existing)
+  const { [floorId]: _, ...rest } = useFloorPlanStore.getState().plans
+  useFloorPlanStore.setState({
+    plans: rest
+  })
+
+  await persistence.deleteFloorPlan(projectId, floorId, existing.image.name)
+}
+
+export async function loadFloorPlansFromPersistence(): Promise<void> {
+  const projectId = getProjectId()
+  const persistence = getFloorPlanPersistence()
+
+  const loadedPlans = await persistence.loadFloorPlansForProject(projectId)
+
+  Object.values(useFloorPlanStore.getState().plans).forEach(disposePlan)
+
+  const newPlans: Record<StoreyId, FloorPlanOverlay> = {}
+
+  for (const loaded of loadedPlans) {
+    const blobUrl = URL.createObjectURL(loaded.imageBlob)
+
+    newPlans[loaded.metadata.storeyId] = {
+      floorId: loaded.metadata.storeyId,
+      image: {
+        url: blobUrl,
+        name: loaded.metadata.imageFileName,
+        width: loaded.metadata.imageWidth,
+        height: loaded.metadata.imageHeight
+      },
+      calibration: loaded.metadata.calibration,
+      origin: loaded.metadata.origin,
+      placement: loaded.placement,
+      opacity: loaded.opacity
+    }
+  }
+
+  useFloorPlanStore.setState({ plans: newPlans })
+}
+
+export async function deleteAllFloorPlansForCurrentProject(): Promise<void> {
+  const projectId = getProjectId()
+  const persistence = getFloorPlanPersistence()
+
+  Object.values(useFloorPlanStore.getState().plans).forEach(disposePlan)
+  useFloorPlanStore.setState({ plans: {} })
+
+  await persistence.deleteAllFloorPlansForProject(projectId)
 }
