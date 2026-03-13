@@ -12,8 +12,8 @@ import { Separator } from '@/shared/ui/components/separator'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import { PlanCalibrationCanvas } from './PlanCalibrationCanvas'
-import { calculatePixelDistance } from './calibration'
-import { recalibratePlanWithPersistence, saveFloorPlanWithPersistence } from './store'
+import { calculatePixelDistance } from './store/calibration'
+import { getFloorPlanActions } from './store/store'
 import type { FloorPlanOverlay, ImagePoint } from './types'
 
 interface PlanImportModalProps {
@@ -97,11 +97,15 @@ export function PlanImportModal({
     if (!open || !existingPlan || file) {
       return
     }
-    applyPreview(existingPlan.image.url, false)
+    const objectUrl = URL.createObjectURL(existingPlan.image)
+    applyPreview(objectUrl, true)
     setReferencePoints(existingPlan.calibration.referencePoints.slice())
     setOriginPoint(existingPlan.origin.image)
     setRealDistance(existingPlan.calibration.realDistanceMm)
     setSelectionMode('measure')
+    return () => {
+      URL.revokeObjectURL(objectUrl)
+    }
   }, [open, existingPlan, file, applyPreview])
 
   const handleFileChange = useCallback(
@@ -147,39 +151,52 @@ export function PlanImportModal({
     return realDistance / pixelDistance
   }, [pixelDistance, realDistance])
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     if (!imageElement || referencePoints.length !== 2 || realDistance <= 0 || !pixelDistance || pixelDistance <= 0) {
       return
     }
 
     const selectedOriginPoint = originPoint ?? referencePoints[0]
     const [firstPoint, secondPoint] = referencePoints as [ImagePoint, ImagePoint]
+    const actions = getFloorPlanActions()
 
-    try {
-      if (file) {
-        await saveFloorPlanWithPersistence(
-          floorId,
-          file,
-          { width: imageElement.naturalWidth, height: imageElement.naturalHeight },
-          [firstPoint, secondPoint],
-          realDistance,
-          {
-            image: selectedOriginPoint,
-            world: { x: 0, y: 0 }
-          }
-        )
-      } else if (existingPlan) {
-        await recalibratePlanWithPersistence(floorId, [firstPoint, secondPoint], realDistance, selectedOriginPoint)
-      } else {
-        return
-      }
-
-      onOpenChange(false)
-      resetState()
-    } catch (error) {
-      console.error('Failed to save floor plan:', error)
+    if (file) {
+      actions.importPlan({
+        floorId,
+        file,
+        imageSize: { width: imageElement.naturalWidth, height: imageElement.naturalHeight },
+        referencePoints: [firstPoint, secondPoint],
+        realDistanceMm: realDistance,
+        origin: {
+          image: selectedOriginPoint,
+          world: { x: 0, y: 0 }
+        }
+      })
+    } else if (existingPlan) {
+      actions.recalibratePlan({
+        floorId,
+        referencePoints: [firstPoint, secondPoint],
+        realDistanceMm: realDistance,
+        originImagePoint: selectedOriginPoint
+      })
+    } else {
+      return
     }
-  }, [existingPlan, file, floorId, imageElement, onOpenChange, originPoint, realDistance, referencePoints, resetState])
+
+    onOpenChange(false)
+    resetState()
+  }, [
+    existingPlan,
+    file,
+    floorId,
+    imageElement,
+    onOpenChange,
+    originPoint,
+    pixelDistance,
+    realDistance,
+    referencePoints,
+    resetState
+  ])
 
   const canSubmit =
     imageElement != null &&
@@ -218,7 +235,7 @@ export function PlanImportModal({
             {existingPlan && !file ? (
               <span className="text-base">
                 {t($ => $.planImport.step1.currentImage, {
-                  name: existingPlan.image.name
+                  name: existingPlan.imageMeta.name
                 })}
               </span>
             ) : (
@@ -328,7 +345,12 @@ export function PlanImportModal({
               >
                 {t($ => $.planImport.footer.cancel)}
               </Button>
-              <Button onClick={() => void handleSubmit()} disabled={!canSubmit}>
+              <Button
+                onClick={() => {
+                  handleSubmit()
+                }}
+                disabled={!canSubmit}
+              >
                 {existingPlan ? t($ => $.planImport.footer.replacePlan) : t($ => $.planImport.footer.addPlan)}
               </Button>
             </div>

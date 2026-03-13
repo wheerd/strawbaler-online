@@ -1,7 +1,7 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 
 import { getSupabaseClient, isSupabaseConfigured } from '@/app/user/supabaseClient'
-import { getFloorPlanCloudStorage } from '@/editor/canvas/plan-overlay/FloorPlanCloudStorage'
+import type { StoreyId } from '@/building/model/ids'
 import {
   type ProjectData,
   type ProjectId,
@@ -10,6 +10,18 @@ import {
   type UpdatableProjectMeta,
   parseTimestamp
 } from '@/projects/types'
+
+const FLOOR_PLANS_BUCKET = 'floor-plans'
+
+function getFileExtension(fileName: string): string {
+  const parts = fileName.split('.')
+  return parts.length > 1 ? (parts.pop() ?? 'png') : 'png'
+}
+
+function buildFloorPlanPath(userId: string, projectId: ProjectId, storeyId: StoreyId, fileName: string): string {
+  const ext = getFileExtension(fileName)
+  return `${userId}/${projectId}/${storeyId}.${ext}`
+}
 
 interface CloudProjectRow {
   id: string
@@ -48,6 +60,10 @@ export interface ICloudSyncService {
 
   getCurrentUserId(): string | null
   isAuthenticated(): boolean
+
+  uploadFloorPlanImage(projectId: ProjectId, storeyId: StoreyId, blob: Blob, fileName: string): Promise<string>
+  downloadFloorPlanImage(projectId: ProjectId, storeyId: StoreyId, fileName: string): Promise<Blob | null>
+  deleteFloorPlanImage(projectId: ProjectId, storeyId: StoreyId, fileName: string): Promise<void>
 }
 
 let syncService: ICloudSyncService | null = null
@@ -168,8 +184,8 @@ export class SupabaseSyncService implements ICloudSyncService {
       materials_version: projectData.materialsVersion,
       parts_state: projectData.partsState,
       parts_version: projectData.partsVersion,
-      floor_plans_state: projectData.floorPlansState ?? {},
-      floor_plans_version: projectData.floorPlansVersion ?? 1,
+      floor_plans_state: projectData.floorPlansState,
+      floor_plans_version: projectData.floorPlansVersion,
       created_at: projectData.createdAt,
       updated_at: projectData.updatedAt
     }
@@ -194,8 +210,8 @@ export class SupabaseSyncService implements ICloudSyncService {
       materials_version: projectData.materialsVersion,
       parts_state: projectData.partsState,
       parts_version: projectData.partsVersion,
-      floor_plans_state: projectData.floorPlansState ?? {},
-      floor_plans_version: projectData.floorPlansVersion ?? 1,
+      floor_plans_state: projectData.floorPlansState,
+      floor_plans_version: projectData.floorPlansVersion,
       created_at: projectData.createdAt,
       updated_at: projectData.updatedAt
     }
@@ -230,15 +246,88 @@ export class SupabaseSyncService implements ICloudSyncService {
       throw new Error('Not authenticated')
     }
 
-    const cloudStorage = getFloorPlanCloudStorage()
-    if (cloudStorage) {
-      await cloudStorage.deleteAllImagesForProject(this.currentUser.id, projectId)
-    }
+    await this.deleteAllFloorPlansForProject(projectId)
 
     const { error } = await this.client.from('projects').delete().eq('id', projectId)
 
     if (error) {
       throw new Error(`Failed to delete project: ${error.message}`)
+    }
+  }
+
+  async uploadFloorPlanImage(projectId: ProjectId, storeyId: StoreyId, blob: Blob, fileName: string): Promise<string> {
+    if (!this.currentUser) {
+      throw new Error('Not authenticated')
+    }
+
+    const path = buildFloorPlanPath(this.currentUser.id, projectId, storeyId, fileName)
+
+    const { error } = await this.client.storage.from(FLOOR_PLANS_BUCKET).upload(path, blob, {
+      upsert: true,
+      contentType: blob.type
+    })
+
+    if (error) {
+      throw new Error(`Failed to upload floor plan image: ${error.message}`)
+    }
+
+    return path
+  }
+
+  async downloadFloorPlanImage(projectId: ProjectId, storeyId: StoreyId, fileName: string): Promise<Blob | null> {
+    if (!this.currentUser) {
+      throw new Error('Not authenticated')
+    }
+
+    const path = buildFloorPlanPath(this.currentUser.id, projectId, storeyId, fileName)
+
+    const { data, error } = await this.client.storage.from(FLOOR_PLANS_BUCKET).download(path)
+
+    if (error) {
+      return null
+    }
+
+    return data
+  }
+
+  async deleteFloorPlanImage(projectId: ProjectId, storeyId: StoreyId, fileName: string): Promise<void> {
+    if (!this.currentUser) {
+      throw new Error('Not authenticated')
+    }
+
+    const path = buildFloorPlanPath(this.currentUser.id, projectId, storeyId, fileName)
+
+    const { error } = await this.client.storage.from(FLOOR_PLANS_BUCKET).remove([path])
+
+    if (error) {
+      console.error(`Failed to delete floor plan image: ${error.message}`)
+    }
+  }
+
+  private async deleteAllFloorPlansForProject(projectId: ProjectId): Promise<void> {
+    if (!this.currentUser) {
+      return
+    }
+
+    const folderPath = `${this.currentUser.id}/${projectId}`
+
+    const { data, error } = await this.client.storage.from(FLOOR_PLANS_BUCKET).list(folderPath)
+
+    if (error) {
+      console.error(`Failed to list floor plan images: ${error.message}`)
+      return
+    }
+
+    if (data.length === 0) {
+      return
+    }
+
+    const filesToDelete = data.map(file => `${folderPath}/${file.name}`)
+
+    const { error: deleteError } = await this.client.storage.from(FLOOR_PLANS_BUCKET).remove(filesToDelete)
+
+    if (deleteError) {
+      console.error(`Failed to delete floor plan images: ${deleteError.message}`)
     }
   }
 

@@ -27,8 +27,8 @@ export interface ProjectData extends ProjectMeta {
   materialsVersion: number
   partsState: unknown
   partsVersion: number
-  floorPlansState?: unknown
-  floorPlansVersion?: number
+  floorPlansState: unknown
+  floorPlansVersion: number
 }
 
 export interface ProjectListItem {

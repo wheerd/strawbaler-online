@@ -11,7 +11,6 @@ export interface WorldPoint {
 }
 
 export interface FloorPlanImageMetadata {
-  readonly url: string
   readonly name: string
   readonly width: number
   readonly height: number
@@ -33,7 +32,8 @@ export type FloorPlanPlacement = 'under' | 'over'
 
 export interface FloorPlanOverlay {
   readonly floorId: StoreyId
-  readonly image: FloorPlanImageMetadata
+  readonly imageMeta: FloorPlanImageMetadata
+  readonly image: Blob
   readonly calibration: FloorPlanCalibration
   readonly origin: FloorPlanOrigin
   readonly placement: FloorPlanPlacement
