@@ -11,12 +11,12 @@ const API_BASE = import.meta.env.VITE_OEKOBAUDAT_API_URL ?? ''
 const DATA_STOCK = 'cd2bda71-760b-4fcc-8a0b-3877c10000a8'
 const OEKOBAUDAT_WEB_BASE = 'https://oekobaudat.de/OEKOBAU.DAT'
 
-export function getOekobaudatDetailUrl(uuid: string): string {
-  return `${OEKOBAUDAT_WEB_BASE}/datasetdetail/process.xhtml?uuid=${uuid}`
+export function getOekobaudatDetailUrl(uuid: string, lang = 'en'): string {
+  return `${OEKOBAUDAT_WEB_BASE}/datasetdetail/process.xhtml?uuid=${uuid}&lang=${lang}`
 }
 
-export async function searchOekobaudat(query: string): Promise<OekobaudatSearchResult[]> {
-  const url = `${API_BASE}/resource/datastocks/${DATA_STOCK}/processes?search=true&name=${encodeURIComponent(query)}&format=json`
+export async function searchOekobaudat(query: string, lang = 'en'): Promise<OekobaudatSearchResult[]> {
+  const url = `${API_BASE}/resource/datastocks/${DATA_STOCK}/processes?search=true&name=${encodeURIComponent(query)}&format=json&lang=${lang}`
 
   const response = await fetch(url)
   if (!response.ok) {
@@ -25,10 +25,10 @@ export async function searchOekobaudat(query: string): Promise<OekobaudatSearchR
 
   const data = (await response.json()) as OekobaudatRawSearchResponse
 
-  return data.data.map(transformSearchResult)
+  return data.data.map(result => transformSearchResult(result, lang))
 }
 
-function transformSearchResult(raw: OekobaudatRawSearchResult): OekobaudatSearchResult {
+function transformSearchResult(raw: OekobaudatRawSearchResult, lang: string): OekobaudatSearchResult {
   return {
     uuid: raw.uuid,
     name: raw.name,
@@ -36,7 +36,7 @@ function transformSearchResult(raw: OekobaudatRawSearchResult): OekobaudatSearch
     categoryPath: raw.classific,
     owner: raw.owner,
     subType: raw.subType as 'generic dataset' | 'specific dataset',
-    detailUrl: getOekobaudatDetailUrl(raw.uuid)
+    detailUrl: getOekobaudatDetailUrl(raw.uuid, lang)
   }
 }
 

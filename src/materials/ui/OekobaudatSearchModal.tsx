@@ -17,7 +17,8 @@ interface OekobaudatSearchModalProps {
 }
 
 export function OekobaudatSearchModal({ open, onOpenChange, materialName, onSelect }: OekobaudatSearchModalProps) {
-  const { t } = useTranslation('config')
+  const { t, i18n } = useTranslation('config')
+  const lang = i18n.language === 'de' ? 'de' : 'en'
   const [query, setQuery] = useState(materialName)
   const [results, setResults] = useState<OekobaudatSearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -42,7 +43,7 @@ export function OekobaudatSearchModal({ open, onOpenChange, materialName, onSele
     setResults([])
 
     try {
-      const searchResults = await searchOekobaudat(query)
+      const searchResults = await searchOekobaudat(query, lang)
       setResults(searchResults)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed')
