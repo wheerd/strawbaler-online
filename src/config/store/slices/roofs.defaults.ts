@@ -1,7 +1,7 @@
 import { type RoofAssemblyId } from '@/building/model/ids'
 import { LAYER_SET_CEILING_PLASTER, LAYER_SET_ROOF_TILES } from '@/config/store/slices/layers.defaults'
 import type { RoofAssemblyConfig } from '@/config/types'
-import { clt, fireProtectionBoarding, glt, osb, strawbale, woodwool } from '@/materials/material'
+import { clt, fireProtectionBoarding, glt, osb, strawbale, woodwool } from '@/materials/defaults'
 
 const monolithicAssembly: RoofAssemblyConfig = {
   id: 'ra_clt_default' as RoofAssemblyId,

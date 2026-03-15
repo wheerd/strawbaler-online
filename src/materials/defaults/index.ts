@@ -1,4 +1,4 @@
-import type { Material, MaterialId } from '@/materials/material'
+import type { Material, MaterialId } from '@/materials/types'
 
 import * as DimensionalMaterials from './dimensional'
 import * as PrefabMaterials from './prefab'

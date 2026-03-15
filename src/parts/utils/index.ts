@@ -1,4 +1,4 @@
-import type { Material } from '@/materials/material'
+import type { Material } from '@/materials/types'
 import type { AggregatedPartItem, PartId } from '@/parts/types'
 import type { Volume } from '@/shared/geometry'
 

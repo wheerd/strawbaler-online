@@ -9,8 +9,8 @@ import {
   yieldWarning
 } from '@/construction/model/results'
 import { TAG_INFILL, TAG_MODULE, TAG_POST, createTag } from '@/construction/model/tags'
-import type { DimensionalMaterial, MaterialId } from '@/materials/material'
 import { getMaterialById } from '@/materials/store'
+import type { DimensionalMaterial, MaterialId } from '@/materials/types'
 import { type Length } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
 

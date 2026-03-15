@@ -5,7 +5,8 @@ import type {
   SimpleOpeningAssemblyConfig,
   ThresholdOpeningAssemblyConfig
 } from '@/config/types'
-import { type MaterialId, dhf, lvl, roughWood, woodwool } from '@/materials/material'
+import { dhf, lvl, roughWood, woodwool } from '@/materials/defaults'
+import type { MaterialId } from '@/materials/types'
 
 export const DEFAULT_SIMPLE_ASSEMBLY: SimpleOpeningAssemblyConfig = {
   id: 'oa_simple_default',

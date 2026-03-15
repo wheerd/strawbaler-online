@@ -16,7 +16,7 @@ import type {
   WallAssemblyConfig
 } from '@/config/types'
 import type { LayerSetConfig } from '@/construction/assemblies/layers/types'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 
 import { useConfigStore } from './store'
 import type { ConfigActions } from './types'

@@ -1,4 +1,4 @@
-import { strawbale } from '@/materials/material'
+import { strawbale } from '@/materials/defaults'
 
 export type MigrationState = Record<string, unknown>
 export type Migration = (state: MigrationState) => void

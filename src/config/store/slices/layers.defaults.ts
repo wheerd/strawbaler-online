@@ -14,8 +14,8 @@ import {
   reed,
   windBarrier,
   xps
-} from '@/materials/material'
-import type { MaterialId } from '@/materials/material'
+} from '@/materials/defaults'
+import type { MaterialId } from '@/materials/types'
 
 const createMonolithicLayer = (
   material: MaterialId,

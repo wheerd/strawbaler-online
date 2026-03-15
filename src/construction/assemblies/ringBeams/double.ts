@@ -6,7 +6,7 @@ import type { StoreyContext } from '@/construction/context/storeys'
 import { type ConstructionResult } from '@/construction/model/results'
 import { TAG_PLATE, TAG_RB_INFILL } from '@/construction/model/tags'
 import type { Tag } from '@/construction/model/tags'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import {
   type Length,
   type Line2D,

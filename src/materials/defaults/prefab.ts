@@ -1,4 +1,4 @@
-import type { MaterialId, PrefabMaterial } from '@/materials/material'
+import type { MaterialId, PrefabMaterial } from '@/materials/types'
 
 export const ecococonStandard: PrefabMaterial = {
   id: 'material_ecococon_standard' as MaterialId,

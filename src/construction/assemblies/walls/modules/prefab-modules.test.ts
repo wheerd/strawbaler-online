@@ -7,8 +7,8 @@ import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstr
 import type { PrefabModulesWallConfig } from '@/construction/assemblies/walls/types'
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
-import type { MaterialId, PrefabMaterial } from '@/materials/material'
 import { getMaterialsActions } from '@/materials/store'
+import type { MaterialId, PrefabMaterial } from '@/materials/types'
 import { newVec2, newVec3 } from '@/shared/geometry'
 import { ensureClipperModule } from '@/shared/geometry/polygon/clipperInstance'
 

@@ -1,7 +1,7 @@
 import { Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import type { VolumeMaterial } from '@/materials/material'
+import type { VolumeMaterial } from '@/materials/types'
 import type { AggregatedPartItem } from '@/parts/types'
 import { usePartsListView } from '@/parts/ui/PartsListViewContext'
 import { calculateWeight, canHighlightPart, getIssueSeverity } from '@/parts/utils'

@@ -20,9 +20,9 @@ import {
   TAG_WALL_REINFORCEMENT,
   createTag
 } from '@/construction/model/tags'
-import type { MaterialId, PrefabMaterial } from '@/materials/material'
 import { getMaterialsActions } from '@/materials/store'
 import type { ThicknessRange } from '@/materials/thickness'
+import type { MaterialId, PrefabMaterial } from '@/materials/types'
 import { type Length, type Vec3, addVec3, composeTransform, fromRot, fromTrans, newVec3 } from '@/shared/geometry'
 
 export class PrefabModulesWallAssembly extends BaseWallAssembly<PrefabModulesWallConfig> {

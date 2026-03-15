@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { PerimeterId, RoofId, StoreyId, WallId } from '@/building/model/ids'
 import type { ConstructionElementId } from '@/construction/model/elements'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import { newVec3 } from '@/shared/geometry'
 
 import { aggregateParts } from './hooks'

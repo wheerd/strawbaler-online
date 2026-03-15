@@ -1,4 +1,4 @@
-import { getMaterialCSSString } from '@/materials/materialCSS'
+import { getMaterialCSSString } from '@/materials/css'
 import { useMaterials } from '@/materials/store'
 
 /**

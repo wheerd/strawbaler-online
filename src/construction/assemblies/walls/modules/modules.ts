@@ -15,7 +15,7 @@ import {
   TAG_MODULE_WIDTH,
   createTag
 } from '@/construction/model/tags'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import type { InitialPartInfo } from '@/parts/types'
 import { type Length, type Vec3, newVec3 } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'

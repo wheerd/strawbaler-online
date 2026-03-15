@@ -1,6 +1,7 @@
 import { type StateCreator } from 'zustand'
 
-import { type MaterialId, strawbale } from '@/materials/material'
+import { strawbale } from '@/materials/defaults'
+import { type MaterialId } from '@/materials/types'
 
 export interface StrawState {
   defaultStrawMaterial: MaterialId

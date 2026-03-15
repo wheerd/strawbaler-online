@@ -1,4 +1,4 @@
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import { type Length, type LineSegment2D, type Polygon2D, type Vec2 } from '@/shared/geometry'
 
 import type { OpeningAssemblyId, OpeningId, PerimeterId, PerimeterWallId, WallEntityId, WallPostId } from './ids'

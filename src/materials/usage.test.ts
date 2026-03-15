@@ -7,7 +7,8 @@ import type { RingBeamAssemblyConfig, WallAssemblyConfig } from '@/config/types'
 import type { LayerSetConfig } from '@/construction/assemblies/layers/types'
 import { partial } from '@/test/helpers'
 
-import { concrete, createMaterialId, roughWood, strawbale, woodwool } from './material'
+import { concrete, roughWood, strawbale, woodwool } from './defaults'
+import { createMaterialId } from './types'
 import { useMaterialUsage } from './usage'
 
 const defaultStrawMaterialId = strawbale.id

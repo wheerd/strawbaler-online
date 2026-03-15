@@ -10,8 +10,8 @@ import type {
 } from '@/construction/model/elements'
 import type { ConstructionModel } from '@/construction/model/model'
 import type { Tag } from '@/construction/model/tags'
-import type { Material, MaterialId } from '@/materials/material'
 import { getMaterialById } from '@/materials/store'
+import type { Material, MaterialId } from '@/materials/types'
 import { Bounds3D, IDENTITY, type Vec3, newVec3 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 

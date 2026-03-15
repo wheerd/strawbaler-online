@@ -10,7 +10,7 @@ import { OpeningAssemblySelect } from '@/config/ui/opening-assembly/OpeningAssem
 import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
 import { type OpeningAssemblyUsage, getOpeningAssemblyUsage } from '@/config/usage'
 import type { OpeningAssemblyType, OpeningConfig } from '@/construction/assemblies/openings/types'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'
 import { Button } from '@/shared/ui/components/button'

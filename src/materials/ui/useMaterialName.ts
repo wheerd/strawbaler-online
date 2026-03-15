@@ -1,7 +1,7 @@
 import type { Namespace } from 'i18next'
 import { type UseTranslationResponse, useTranslation } from 'react-i18next'
 
-import type { Material } from './material'
+import type { Material } from '@/materials/types'
 
 /**
  * Hook to get the display name for a material.

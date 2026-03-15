@@ -15,7 +15,7 @@ import {
   TAG_SILL_HEIGHT,
   type Tag
 } from '@/construction/model/tags'
-import { createMaterialId } from '@/materials/material'
+import { createMaterialId } from '@/materials/types'
 import { type Length, newVec3 } from '@/shared/geometry'
 
 import { SimpleOpeningAssembly } from './simple'

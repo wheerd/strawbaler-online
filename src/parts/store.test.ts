@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import { partial } from '@/test/helpers'
 
 import { assignLabelsForNewParts, regenerateLabels } from './store'

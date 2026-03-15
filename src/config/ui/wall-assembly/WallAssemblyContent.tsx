@@ -19,8 +19,8 @@ import {
   ecococonSill,
   ecococonStandard,
   lvl
-} from '@/materials/material'
-import type { MaterialId } from '@/materials/material'
+} from '@/materials/defaults'
+import type { MaterialId } from '@/materials/types'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'

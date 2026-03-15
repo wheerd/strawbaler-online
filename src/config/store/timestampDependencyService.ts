@@ -14,8 +14,8 @@ import type {
   WallAssemblyConfig
 } from '@/config/types'
 import type { LayerConfig } from '@/construction/assemblies/layers/types'
-import type { MaterialId } from '@/materials/material'
 import { getMaterialsActions } from '@/materials/store'
+import type { MaterialId } from '@/materials/types'
 
 export class ConfigTimestampDependencyService {
   private extractMaterialsFromLayers(layers: LayerConfig[]): MaterialId[] {

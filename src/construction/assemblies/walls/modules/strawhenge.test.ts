@@ -6,7 +6,7 @@ import { infillWallArea } from '@/construction/assemblies/walls/infill/infill'
 import type { StrawhengeWallConfig } from '@/construction/assemblies/walls/types'
 import { createCuboidElement } from '@/construction/model/elements'
 import { aggregateResults, yieldElement } from '@/construction/model/results'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import { type Vec3, newVec3 } from '@/shared/geometry'
 
 import { constructModule } from './modules'

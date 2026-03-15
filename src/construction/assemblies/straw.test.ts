@@ -6,11 +6,11 @@ import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstr
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
 import type { CuboidShape } from '@/construction/model/shapes'
+import { strawbale } from '@/materials/defaults'
+import { getMaterialsActions } from '@/materials/store'
+import type { MaterialId, StrawbaleMaterial } from '@/materials/types'
 import { getPosition, newVec3 } from '@/shared/geometry'
 
-import type { MaterialId, StrawbaleMaterial } from '../../materials/material'
-import { strawbale } from '../../materials/material'
-import { getMaterialsActions } from '../../materials/store'
 import { constructStraw } from './straw'
 
 vi.mock('@/config/store', () => ({

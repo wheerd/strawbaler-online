@@ -1,7 +1,7 @@
 import { Box, Circle, Droplet, Layers } from 'lucide-react'
 import type { ComponentType } from 'react'
 
-import type { Material } from '@/materials/material'
+import type { Material } from '@/materials/types'
 import StrawbaleIcon from '@/shared/ui/icons/StrawbaleIcon'
 import type { IconProps } from '@/shared/ui/icons/types'
 

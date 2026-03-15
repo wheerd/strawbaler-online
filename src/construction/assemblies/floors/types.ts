@@ -3,7 +3,7 @@ import type { PerimeterConstructionContext } from '@/construction/context/perime
 import type { ConstructionModel } from '@/construction/model/model'
 import type { ConstructionResult } from '@/construction/model/results'
 import type { Tag } from '@/construction/model/tags'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import type { Length, PolygonWithHoles2D } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
 

@@ -19,7 +19,7 @@ import {
   type TagCategoryId,
   isCustomTag
 } from '@/construction/model/tags'
-import type { CrossSection, DimensionalMaterial, Material, SheetMaterial } from '@/materials/material'
+import type { CrossSection, DimensionalMaterial, Material, SheetMaterial } from '@/materials/types'
 import {
   type Area,
   type Length,

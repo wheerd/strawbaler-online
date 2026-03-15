@@ -29,7 +29,7 @@ import type {
   SheetMaterial,
   StrawbaleMaterial,
   VolumeMaterial
-} from '@/materials/material'
+} from '@/materials/types'
 import { newVec2, newVec3 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 

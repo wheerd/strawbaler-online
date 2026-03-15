@@ -3,7 +3,7 @@ import type { LayerSetId } from '@/building/model/ids'
 import type { VerticalOffsetMap } from '@/construction/context/offsets'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import type { ConstructionModel } from '@/construction/model/model'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import type { Length } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
 

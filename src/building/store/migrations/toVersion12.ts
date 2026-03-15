@@ -17,7 +17,7 @@ import type {
 } from '@/building/model'
 import { updatePerimeterGeometry } from '@/building/store/slices/perimeterGeometry'
 import type { StoreState } from '@/building/store/types'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import { type Polygon2D, newVec2 } from '@/shared/geometry'
 
 import type { Migration } from './shared'

@@ -6,6 +6,8 @@ import { useParams } from 'react-router-dom'
 
 import { useConfigActions, useDefaultStrawMaterialId } from '@/config/store'
 import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
+import { strawbale } from '@/materials/defaults'
+import { useMaterialActions, useMaterials } from '@/materials/store'
 import type {
   DimensionalMaterial,
   GenericMaterial,
@@ -16,9 +18,7 @@ import type {
   SheetType,
   StrawbaleMaterial,
   VolumeMaterial
-} from '@/materials/material'
-import { strawbale } from '@/materials/material'
-import { useMaterialActions, useMaterials } from '@/materials/store'
+} from '@/materials/types'
 import { type MaterialUsage, useMaterialUsage } from '@/materials/usage'
 import type { Length } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'

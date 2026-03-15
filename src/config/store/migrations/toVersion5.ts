@@ -1,4 +1,4 @@
-import { type MaterialId } from '@/materials/material'
+import { type MaterialId } from '@/materials/types'
 
 import type { MigrationState } from './shared'
 

@@ -5,10 +5,10 @@ import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstr
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
 import type { CuboidShape } from '@/construction/model/shapes'
+import { roughWood } from '@/materials/defaults'
+import type { Material, MaterialId } from '@/materials/types'
 import { getPosition, newVec3 } from '@/shared/geometry'
 
-import type { Material, MaterialId } from '../../../materials/material'
-import { roughWood } from '../../../materials/material'
 import { type DoublePostConfig, type FullPostConfig, constructPost } from './posts'
 
 const mockWoodMaterial = 'wood-material' as MaterialId

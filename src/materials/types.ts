@@ -88,5 +88,3 @@ export interface PrefabMaterial extends BaseMaterial {
   isFlipped: boolean
   sloped?: PrefabSloped
 }
-
-export * from './defaults'

@@ -1,4 +1,4 @@
-import { roughWood, woodwool } from '@/materials/material'
+import { roughWood, woodwool } from '@/materials/defaults'
 
 import type { MigrationState } from './shared'
 

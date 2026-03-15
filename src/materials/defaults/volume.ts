@@ -1,4 +1,4 @@
-import type { MaterialId, VolumeMaterial } from '@/materials/material'
+import type { MaterialId, VolumeMaterial } from '@/materials/types'
 
 export const concrete: VolumeMaterial = {
   id: 'material_concrete' as MaterialId,
