@@ -19,7 +19,12 @@ export const roughWood: DimensionalMaterial = {
     { smallerLength: 100, biggerLength: 150 }
   ],
   lengths: [2000, 2500, 3000, 4000, 5000],
-  density: 480
+  density: 480,
+  thermalConductivity: 0.13,
+  vaporDiffusionResistance: 40,
+  specificHeatCapacity: 1600,
+  primaryEnergy: 2.9,
+  embodiedCarbon: -1.0
 }
 
 export const battens: DimensionalMaterial = {
@@ -39,7 +44,12 @@ export const battens: DimensionalMaterial = {
     { smallerLength: 40, biggerLength: 60 }
   ],
   lengths: [1350, 2000, 2500, 3000, 4000, 5000, 6000],
-  density: 480
+  density: 480,
+  thermalConductivity: 0.13,
+  vaporDiffusionResistance: 40,
+  specificHeatCapacity: 1600,
+  primaryEnergy: 2.9,
+  embodiedCarbon: -1.0
 }
 
 export const structuralWood: DimensionalMaterial = {
@@ -59,7 +69,12 @@ export const structuralWood: DimensionalMaterial = {
     { smallerLength: 140, biggerLength: 140 }
   ],
   lengths: [5000, 6000],
-  density: 470
+  density: 470,
+  thermalConductivity: 0.13,
+  vaporDiffusionResistance: 40,
+  specificHeatCapacity: 1600,
+  primaryEnergy: 2.9,
+  embodiedCarbon: -1.0
 }
 
 export const glt: DimensionalMaterial = {
@@ -80,7 +95,12 @@ export const glt: DimensionalMaterial = {
     { smallerLength: 240, biggerLength: 600 }
   ],
   lengths: [6000, 8000, 10000, 12000],
-  density: 470
+  density: 470,
+  thermalConductivity: 0.13,
+  vaporDiffusionResistance: 40,
+  specificHeatCapacity: 1600,
+  primaryEnergy: 4.5,
+  embodiedCarbon: -0.8
 }
 
 export const brick: DimensionalMaterial = {
@@ -91,5 +111,10 @@ export const brick: DimensionalMaterial = {
   color: '#b2b2af',
   crossSections: [{ smallerLength: 240, biggerLength: 300 }],
   lengths: [600],
-  density: 750
+  density: 750,
+  thermalConductivity: 0.25,
+  vaporDiffusionResistance: 10,
+  specificHeatCapacity: 1000,
+  primaryEnergy: 2.8,
+  embodiedCarbon: 0.25
 }

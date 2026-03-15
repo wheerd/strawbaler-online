@@ -16,7 +16,12 @@ export const boards: SheetMaterial = {
   sheetType: 'solid',
   type: 'sheet',
   color: MATERIAL_COLORS.woodSupport,
-  density: 480
+  density: 480,
+  thermalConductivity: 0.13,
+  vaporDiffusionResistance: 40,
+  specificHeatCapacity: 1600,
+  primaryEnergy: 2.9,
+  embodiedCarbon: -1.0
 }
 
 export const clt: SheetMaterial = {
@@ -28,7 +33,12 @@ export const clt: SheetMaterial = {
   sheetType: 'tongueAndGroove',
   type: 'sheet',
   color: MATERIAL_COLORS.woodSupport,
-  density: 500
+  density: 500,
+  thermalConductivity: 0.13,
+  vaporDiffusionResistance: 40,
+  specificHeatCapacity: 1600,
+  primaryEnergy: 4.2,
+  embodiedCarbon: -0.7
 }
 
 export const woodwool: SheetMaterial = {
@@ -40,7 +50,12 @@ export const woodwool: SheetMaterial = {
   type: 'sheet',
   color: '#ddb984',
   sheetType: 'flexible',
-  density: 50
+  density: 50,
+  thermalConductivity: 0.045,
+  vaporDiffusionResistance: 3,
+  specificHeatCapacity: 2100,
+  primaryEnergy: 3.5,
+  embodiedCarbon: 0.28
 }
 
 export const osb: SheetMaterial = {
@@ -56,7 +71,12 @@ export const osb: SheetMaterial = {
   sheetType: 'solid',
   type: 'sheet',
   color: '#e2b079',
-  density: 600
+  density: 600,
+  thermalConductivity: 0.13,
+  vaporDiffusionResistance: 200,
+  specificHeatCapacity: 1700,
+  primaryEnergy: 12.0,
+  embodiedCarbon: 0.52
 }
 
 export const dhf: SheetMaterial = {
@@ -73,7 +93,12 @@ export const dhf: SheetMaterial = {
   sheetType: 'tongueAndGroove',
   type: 'sheet',
   color: '#c9a36a',
-  density: 250
+  density: 250,
+  thermalConductivity: 0.043,
+  vaporDiffusionResistance: 5,
+  specificHeatCapacity: 2100,
+  primaryEnergy: 3.8,
+  embodiedCarbon: 0.31
 }
 
 export const bitumen: SheetMaterial = {
@@ -85,7 +110,12 @@ export const bitumen: SheetMaterial = {
   sheetType: 'flexible',
   type: 'sheet',
   color: '#130f12',
-  density: 1000
+  density: 1000,
+  thermalConductivity: 0.17,
+  vaporDiffusionResistance: 100000,
+  specificHeatCapacity: 1000,
+  primaryEnergy: 35,
+  embodiedCarbon: 0.5
 }
 
 export const cork: SheetMaterial = {
@@ -97,7 +127,12 @@ export const cork: SheetMaterial = {
   sheetType: 'solid',
   type: 'sheet',
   color: '#6b5f4e',
-  density: 110
+  density: 110,
+  thermalConductivity: 0.045,
+  vaporDiffusionResistance: 10,
+  specificHeatCapacity: 1800,
+  primaryEnergy: 4.0,
+  embodiedCarbon: 0.15
 }
 
 export const gypsum: SheetMaterial = {
@@ -114,7 +149,12 @@ export const gypsum: SheetMaterial = {
   sheetType: 'solid',
   type: 'sheet',
   color: '#d9d9d9',
-  density: 850
+  density: 850,
+  thermalConductivity: 0.25,
+  vaporDiffusionResistance: 10,
+  specificHeatCapacity: 1090,
+  primaryEnergy: 2.4,
+  embodiedCarbon: 0.39
 }
 
 export const reed: SheetMaterial = {
@@ -129,7 +169,12 @@ export const reed: SheetMaterial = {
   sheetType: 'flexible',
   type: 'sheet',
   color: '#a78952',
-  density: 100
+  density: 100,
+  thermalConductivity: 0.055,
+  vaporDiffusionResistance: 2,
+  specificHeatCapacity: 1800,
+  primaryEnergy: 0.5,
+  embodiedCarbon: -0.3
 }
 
 export const fireProtectionBoarding: SheetMaterial = {
@@ -141,7 +186,12 @@ export const fireProtectionBoarding: SheetMaterial = {
   sheetType: 'solid',
   type: 'sheet',
   color: '#e4c098',
-  density: 500
+  density: 500,
+  thermalConductivity: 0.14,
+  vaporDiffusionResistance: 15,
+  specificHeatCapacity: 1000,
+  primaryEnergy: 8.0,
+  embodiedCarbon: 0.6
 }
 
 export const windBarrier: SheetMaterial = {
@@ -156,7 +206,12 @@ export const windBarrier: SheetMaterial = {
   sheetType: 'flexible',
   type: 'sheet',
   color: '#2a2a28',
-  density: 150
+  density: 150,
+  thermalConductivity: 0.33,
+  vaporDiffusionResistance: 50000,
+  specificHeatCapacity: 1500,
+  primaryEnergy: 60,
+  embodiedCarbon: 2.0
 }
 
 export const lvl: SheetMaterial = {
@@ -168,7 +223,12 @@ export const lvl: SheetMaterial = {
   sheetType: 'solid',
   type: 'sheet',
   color: '#e9d9c4',
-  density: 480
+  density: 480,
+  thermalConductivity: 0.13,
+  vaporDiffusionResistance: 50,
+  specificHeatCapacity: 1600,
+  primaryEnergy: 8.5,
+  embodiedCarbon: 0.35
 }
 
 export const xps: SheetMaterial = {
@@ -183,5 +243,10 @@ export const xps: SheetMaterial = {
   sheetType: 'solid',
   type: 'sheet',
   color: '#a8d4e6',
-  density: 35
+  density: 35,
+  thermalConductivity: 0.034,
+  vaporDiffusionResistance: 100,
+  specificHeatCapacity: 1450,
+  primaryEnergy: 95,
+  embodiedCarbon: 3.5
 }
