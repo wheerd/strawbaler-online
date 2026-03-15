@@ -24,7 +24,17 @@ export interface BaseMaterial {
   /** Optional translation key for default materials. If present, use t(nameKey) instead of name for display. Clear when user edits the name. */
   nameKey?: keyof Resources['config']['materials']['defaults']
   color: string
-  density?: number // kg/m³
+
+  // Building Physics
+  density?: number // rho [kg/m³]
+  thermalConductivity?: number // lambda [W/mK]
+  vaporDiffusionResistance?: number // mu (dimensionless)
+  specificHeatCapacity?: number // c [J/kgK]
+
+  // Environmental Impact
+  primaryEnergy?: number // [MJ/kg]
+  embodiedCarbon?: number // [kgCO2e/kg]
+  acidificationPotential?: number // [kgSO2e/kg]
 }
 
 export interface CrossSection {
