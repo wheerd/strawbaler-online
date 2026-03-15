@@ -1,5 +1,5 @@
 import * as Label from '@radix-ui/react-label'
-import { Box, Circle, Copy, Droplet, Layers, Plus, Trash, TriangleAlert, Undo2, X } from 'lucide-react'
+import { Box, Circle, Copy, Droplet, Layers, Plus, Search, Trash, TriangleAlert, Undo2, X } from 'lucide-react'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
@@ -7,6 +7,8 @@ import { useParams } from 'react-router-dom'
 import { useConfigActions, useDefaultStrawMaterialId } from '@/config/store'
 import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
 import { strawbale } from '@/materials/defaults'
+import { OEKOBAUDAT_ENABLED } from '@/materials/oekobaudat/service'
+import type { OekobaudatEnvironmentalData } from '@/materials/oekobaudat/types'
 import { useMaterialActions, useMaterials } from '@/materials/store'
 import type {
   DimensionalMaterial,
@@ -37,6 +39,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-grou
 import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import { MaterialSelect, useGetMaterialTypeName } from './MaterialSelect'
+import { OekobaudatSearchModal } from './OekobaudatSearchModal'
 import { getMaterialTypeIcon } from './icons'
 
 export interface MaterialsConfigModalProps {
@@ -1330,12 +1333,36 @@ function EnvironmentalImpactSection({
   onUpdate: (updates: Partial<Material>) => void
 }) {
   const { t } = useTranslation('config')
+  const [oekobaudatModalOpen, setOekobaudatModalOpen] = useState(false)
+
+  function handleOekobaudatSelect(data: OekobaudatEnvironmentalData) {
+    onUpdate({
+      primaryEnergy: data.primaryEnergy,
+      embodiedCarbon: data.embodiedCarbon,
+      acidificationPotential: data.acidificationPotential
+    })
+    setOekobaudatModalOpen(false)
+  }
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-base font-medium" id="stock-lengths">
-        {t($ => $.common.environmentalImpact)}
-      </span>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-base font-medium" id="environmental-impact">
+          {t($ => $.common.environmentalImpact)}
+        </span>
+        {OEKOBAUDAT_ENABLED && (
+          <Button
+            size="icon-sm"
+            variant="soft"
+            onClick={() => {
+              setOekobaudatModalOpen(true)
+            }}
+            title={t($ => $.oekobaudat.searchOekobaudat)}
+          >
+            <Search className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
       <div className="mt-2 grid grid-cols-2 gap-3 gap-x-4">
         <Label.Root className="flex items-center gap-2">
           <span className="text-sm font-medium">{t($ => $.common.primaryEnergy)}</span>
@@ -1399,6 +1426,14 @@ function EnvironmentalImpactSection({
           </NumberField.Root>
         </Label.Root>
       </div>
+      {OEKOBAUDAT_ENABLED && (
+        <OekobaudatSearchModal
+          open={oekobaudatModalOpen}
+          onOpenChange={setOekobaudatModalOpen}
+          materialName={material.name}
+          onSelect={handleOekobaudatSelect}
+        />
+      )}
     </div>
   )
 }

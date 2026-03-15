@@ -311,6 +311,21 @@
     "typeVolume": "Volumen",
     "volumeInput": "Volumen Eingabe"
   },
+  "oekobaudat": {
+    "actions": "Aktionen",
+    "category": "Kategorie",
+    "description": "In der Ökobaudat-Datenbank nach Umweltdaten suchen",
+    "generic": "Generisch",
+    "import": "Importieren",
+    "name": "Name",
+    "noResults": "Keine Ergebnisse gefunden",
+    "searchOekobaudat": "Ökobaudat durchsuchen",
+    "searchPlaceholder": "Material suchen...",
+    "specific": "Spezifisch",
+    "title": "Ökobaudat durchsuchen",
+    "type": "Typ",
+    "viewDetails": "Auf Ökobaudat ansehen"
+  },
   "openings": {
     "configure": "Öffnungsaufbau konfigurieren",
     "copyNameTemplate": "{{name}} (Kopie)",

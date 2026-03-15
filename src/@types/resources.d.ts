@@ -495,6 +495,21 @@ interface Resources {
       "typeVolume": "Volume",
       "volumeInput": "Volume input"
     },
+    "oekobaudat": {
+      "actions": "Actions",
+      "category": "Category",
+      "description": "Search the Ökobaudat database for environmental impact data",
+      "generic": "Generic",
+      "import": "Import",
+      "name": "Name",
+      "noResults": "No results found",
+      "searchOekobaudat": "Search Ökobaudat",
+      "searchPlaceholder": "Search materials...",
+      "specific": "Specific",
+      "title": "Search Ökobaudat",
+      "type": "Type",
+      "viewDetails": "View on Ökobaudat"
+    },
     "openings": {
       "configure": "Configure Opening Assembly",
       "copyNameTemplate": "{{name}} (Copy)",
