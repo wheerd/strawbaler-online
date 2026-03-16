@@ -6,6 +6,9 @@ import { assertUnreachable } from '@/shared/utils'
 
 import type { LayerConfig, LayerConstruction, LayerType } from './types'
 
+export { computeLayerPhysics, computeLayerSetPhysics } from './physics'
+export type { LayerPhysics, LayerSetPhysics } from './physics'
+
 export const LAYER_CONSTRUCTIONS: {
   [TType in LayerType]: LayerConstruction<Extract<LayerConfig, { type: TType }>>
 } = {

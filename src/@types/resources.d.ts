@@ -568,6 +568,18 @@ interface Resources {
       },
       "useGlobalDefault": "Use global default"
     },
+    "physics": {
+      "massPerArea": "Mass/m²",
+      "massPerAreaUnit": "kg/m²",
+      "noData": "Add materials to layers to see physics values",
+      "rValue": "R-value",
+      "rValueUnit": "m²K/W",
+      "sdValue": "sd-value",
+      "sdValueUnit": "m",
+      "title": "Building Physics",
+      "uValue": "U-value",
+      "uValueUnit": "W/m²K"
+    },
     "ringBeams": {
       "configure": "Configure Ring Beam",
       "copyNameTemplate": "{{name}} (Copy)",

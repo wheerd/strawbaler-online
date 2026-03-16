@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useConfigActions } from '@/config/store'
 import { LayerListEditor } from '@/config/ui/layers/LayerListEditor'
+import { LayerSetPhysicsPanel } from '@/config/ui/layers/LayerSetPhysicsPanel'
 import type { LayerSetConfig, LayerSetUse } from '@/construction/assemblies/layers/types'
 import { Select } from '@/shared/ui/components/select'
 import { TextField } from '@/shared/ui/components/text-field'
@@ -74,7 +75,10 @@ export function LayerSetConfigForm({ layerSet }: LayerSetConfigFormProps): React
         </Select.Root>
       </div>
 
-      <LayerListEditor layerSetId={layerSet.id} />
+      <div className="grid grid-cols-[2fr_1fr] gap-4">
+        <LayerListEditor layerSetId={layerSet.id} />
+        <LayerSetPhysicsPanel layers={layerSet.layers} />
+      </div>
     </div>
   )
 }

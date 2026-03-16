@@ -384,6 +384,18 @@
     },
     "useGlobalDefault": "Standard verwenden"
   },
+  "physics": {
+    "massPerArea": "Masse/m²",
+    "massPerAreaUnit": "kg/m²",
+    "noData": "Füge Materialien hinzu, um Bauphysik-Werte zu sehen",
+    "rValue": "R-Wert",
+    "rValueUnit": "m²K/W",
+    "sdValue": "sd-Wert",
+    "sdValueUnit": "m",
+    "title": "Bauphysik",
+    "uValue": "U-Wert",
+    "uValueUnit": "W/m²K"
+  },
   "ringBeams": {
     "configure": "Ringanker konfigurieren",
     "copyNameTemplate": "{{name}} (Kopie)",
