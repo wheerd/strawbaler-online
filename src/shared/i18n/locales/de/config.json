@@ -32,6 +32,14 @@
     "primaryEnergyUnit": "MJ/kg",
     "reset": "Zurücksetzen",
     "resetToDefaults": "Auf Standard zurücksetzen",
+    "sdValue": {
+      "inside": "Innen {{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+      "insideNoValue": "Innen -",
+      "ok": "Die Dampfdiffusion ist richtig nach außen gerichtet",
+      "outside": "Außen {{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+      "outsideNoValue": "Außen -",
+      "warning": "Außen-sd-Wert ist höher als innen - Feuchtigkeit kann im Stroh eingeschlossen werden"
+    },
     "spacing": "Abstand",
     "specificHeatCapacity": "Spezifische Wärmekapazität",
     "specificHeatCapacityUnit": "J/kgK",
@@ -391,6 +399,7 @@
     "rValue": "R-Wert",
     "rValueUnit": "m²K/W",
     "sdValue": "sd-Wert",
+    "sdValueShort": "sd",
     "sdValueUnit": "m",
     "title": "Bauphysik",
     "uValue": "U-Wert",
@@ -453,9 +462,11 @@
       "spacingTarget": "Abstand (Ziel)"
     },
     "layers": {
-      "insideLayers": "Innenschichten (Decke)",
-      "overhangLayers": "Traufschichten"
+      "inside": "Innen (Decke)",
+      "overhang": "Trauf",
+      "top": "Oben (Dach)"
     },
+    "layersSection": "Schichten",
     "newName": {
       "monolithic": "Neues Massivdach",
       "purlin": "Neues Pfettendach"
@@ -473,7 +484,6 @@
       "rafters": "Sparren",
       "straw": "Stroh"
     },
-    "topLayers": "Obere Schichten",
     "types": {
       "monolithic": "Massiv",
       "purlin": "Pfette"
@@ -533,7 +543,11 @@
     "infillConfiguration": "Ausfachung",
     "infillMaterial": "Füllmaterial",
     "infillMaterialTooltip": "Falls konfiguriert, wird dies für Lücken verwendet, die zu klein für Stroh sind",
-    "insideLayers": "Innenschichten",
+    "layers": {
+      "inside": "Innen",
+      "outside": "Außen"
+    },
+    "layersSection": "Schichten",
     "maxPostSpacing": "Max. Ständerabstand",
     "maxWidth": "Max. Breite",
     "minStrawSpace": "Min. Strohraum",
@@ -553,7 +567,6 @@
     "noOutsideLayers": "Keine Außenschichten definiert",
     "openingAssembly": "Öffnungsaufbau",
     "openingsSection": "Öffnungen",
-    "outsideLayers": "Außenschichten",
     "postsConfiguration": "Ständerkonfiguration",
     "postType": "Ständertyp",
     "postTypeDouble": "Doppelt",

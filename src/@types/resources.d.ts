@@ -216,6 +216,14 @@ interface Resources {
       "primaryEnergyUnit": "MJ/kg",
       "reset": "Reset",
       "resetToDefaults": "Reset to Defaults",
+      "sdValue": {
+        "inside": "Inside {{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+        "insideNoValue": "Inside -",
+        "ok": "Vapor diffusion is properly directed outward",
+        "outside": "Outside {{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+        "outsideNoValue": "Outside -",
+        "warning": "Outside sd-value is higher than inside - moisture may be trapped in the straw"
+      },
       "spacing": "Spacing",
       "specificHeatCapacity": "Specific Heat Capacity",
       "specificHeatCapacityUnit": "J/kgK",
@@ -575,6 +583,7 @@ interface Resources {
       "rValue": "R-value",
       "rValueUnit": "m²K/W",
       "sdValue": "sd-value",
+      "sdValueShort": "sd",
       "sdValueUnit": "m",
       "title": "Building Physics",
       "uValue": "U-value",
@@ -637,9 +646,11 @@ interface Resources {
         "spacingTarget": "Spacing (Target)"
       },
       "layers": {
-        "insideLayers": "Inside Layers (Ceiling)",
-        "overhangLayers": "Overhang Layers"
+        "inside": "Inside (Ceiling)",
+        "overhang": "Overhang (Underside)",
+        "top": "Top (Outside)"
       },
+      "layersSection": "Layers",
       "newName": {
         "monolithic": "New Monolithic Roof",
         "purlin": "New Purlin Roof"
@@ -657,7 +668,6 @@ interface Resources {
         "rafters": "Rafters",
         "straw": "Straw"
       },
-      "topLayers": "Top Layers",
       "types": {
         "monolithic": "Monolithic",
         "purlin": "Purlin"
@@ -717,7 +727,11 @@ interface Resources {
       "infillConfiguration": "Infill Configuration",
       "infillMaterial": "Infill Material",
       "infillMaterialTooltip": "If configured, will be used for gaps which are too small for straw",
-      "insideLayers": "Inside Layers",
+      "layers": {
+        "inside": "Inside",
+        "outside": "Outside"
+      },
+      "layersSection": "Layers",
       "maxPostSpacing": "Max Post Spacing",
       "maxWidth": "Max Width",
       "minStrawSpace": "Min Straw Space",
@@ -737,7 +751,6 @@ interface Resources {
       "nonStrawbaleConfiguration": "Non-Strawbale Configuration",
       "openingAssembly": "Opening Assembly",
       "openingsSection": "Openings",
-      "outsideLayers": "Outside Layers",
       "postType": "Post Type",
       "postTypeDouble": "Double",
       "postTypeFull": "Full",
