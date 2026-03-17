@@ -1,4 +1,5 @@
 import type { WallPost } from '@/building/model'
+import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { GroupOrElement } from '@/construction/model/elements'
 import {
@@ -241,5 +242,29 @@ export function* constructWallPost(area: WallConstructionArea, post: WallPost): 
         `post-cross-section-${dimensionalMaterial.id}`
       )
     }
+  }
+}
+
+export function getPostPhysicsPath(config: PostConfig, areaFraction: number, coreThickness: number): PhysicsPath {
+  if (config.type === 'full') {
+    const item = materialToPhysicsItem(config.material, coreThickness)
+    return {
+      items: item ? [item] : [],
+      areaFraction,
+      label: t => t($ => $.physics.breakdown.post, { ns: 'config' })
+    }
+  }
+
+  const postThickness = config.thickness
+  const infillThickness = coreThickness - 2 * postThickness
+
+  return {
+    items: [
+      materialToPhysicsItem(config.material, postThickness),
+      materialToPhysicsItem(config.infillMaterial, infillThickness),
+      materialToPhysicsItem(config.material, postThickness)
+    ].filter(item => item != null),
+    areaFraction,
+    label: t => t($ => $.physics.breakdown.post, { ns: 'config' })
   }
 }

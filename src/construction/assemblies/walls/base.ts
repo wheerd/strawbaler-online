@@ -1,4 +1,11 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
+import { getLayerSetById } from '@/config/store'
+import {
+  type AssemblyPhysicsStructure,
+  type PhysicsItem,
+  type PhysicsPath,
+  layerToPhysicsItems
+} from '@/construction/assemblies/physics'
 import type { StoreyContext } from '@/construction/context/storeys'
 import type { ConstructionModel } from '@/construction/model/model'
 import type { Tag } from '@/construction/model/tags'
@@ -18,4 +25,28 @@ export abstract class BaseWallAssembly<T extends WallBaseConfig> implements Wall
   abstract get tag(): Tag
 
   abstract get thicknessRange(): ThicknessRange
+
+  abstract getCoreThickness(): number
+
+  abstract getCorePhysicsStructure(): PhysicsPath[]
+
+  getPhysicsStructure(): AssemblyPhysicsStructure {
+    return {
+      inside: this.getInsidePhysicsItems(),
+      core: this.getCorePhysicsStructure(),
+      outside: this.getOutsidePhysicsItems()
+    }
+  }
+
+  protected getInsidePhysicsItems(): PhysicsItem[] {
+    const layers = getLayerSetById(this.config.insideLayerSetId)?.layers ?? []
+    if (layers.length === 0) return []
+    return layers.flatMap(layer => layerToPhysicsItems(layer))
+  }
+
+  protected getOutsidePhysicsItems(): PhysicsItem[] {
+    const layers = getLayerSetById(this.config.outsideLayerSetId)?.layers ?? []
+    if (layers.length === 0) return []
+    return layers.flatMap(layer => layerToPhysicsItems(layer))
+  }
 }

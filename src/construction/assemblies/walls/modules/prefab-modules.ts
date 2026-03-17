@@ -1,5 +1,6 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { resolveLayerSetThickness } from '@/config/store'
+import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { type WallLayerSetIds, constructWallLayers } from '@/construction/assemblies/walls/layers'
@@ -382,6 +383,23 @@ export class PrefabModulesWallAssembly extends BaseWallAssembly<PrefabModulesWal
     const max = moduleMaterial.maxThickness + layerThickness
 
     return { min, max }
+  }
+
+  getCoreThickness(): number {
+    const { defaultMaterial } = this.config
+    const moduleMaterial = this.getModuleMaterial(defaultMaterial)
+    return (moduleMaterial.minThickness + moduleMaterial.maxThickness) / 2
+  }
+
+  getCorePhysicsStructure(): PhysicsPath[] {
+    const prefabItem = materialToPhysicsItem(this.config.defaultMaterial, this.getCoreThickness())
+    return [
+      {
+        items: prefabItem ? [prefabItem] : [],
+        areaFraction: 1,
+        label: t => t($ => $.physics.breakdown.module, { ns: 'config' })
+      }
+    ]
   }
 
   readonly tag = TAG_INFILL_CONSTRUCTION

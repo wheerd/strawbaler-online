@@ -1,7 +1,9 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
+import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { type WallLayerSetIds, constructWallLayers } from '@/construction/assemblies/walls/layers'
+import { getPostPhysicsPath } from '@/construction/assemblies/walls/posts'
 import { segmentedWallConstruction } from '@/construction/assemblies/walls/segmentation'
 import type { InfillWallConfig } from '@/construction/assemblies/walls/types'
 import type { StoreyContext } from '@/construction/context/storeys'
@@ -58,6 +60,36 @@ export class InfillWallAssembly extends BaseWallAssembly<InfillWallConfig> {
     const outsideThickness = resolveLayerSetThickness(this.config.outsideLayerSetId)
     const layerThickness = insideThickness + outsideThickness
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
+  }
+
+  getCoreThickness(): number {
+    const strawMaterialId = this.config.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
+    const strawMaterial = getMaterialById(strawMaterialId)
+    if (strawMaterial?.type === 'strawbale') {
+      return strawMaterial.baleWidth
+    }
+    return 360
+  }
+
+  getCorePhysicsStructure(): PhysicsPath[] {
+    const strawMaterialId = this.config.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
+    const postWidth = this.config.posts.width
+    const postSpacing = this.config.desiredPostSpacing
+    const postFraction = postWidth / (postWidth + postSpacing)
+    const strawFraction = 1 - postFraction
+
+    const coreThickness = this.getCoreThickness()
+
+    const strawItem = materialToPhysicsItem(strawMaterialId, coreThickness)
+    const strawPath: PhysicsPath = {
+      items: strawItem ? [strawItem] : [],
+      areaFraction: strawFraction,
+      label: t => t($ => $.physics.breakdown.straw, { ns: 'config' })
+    }
+
+    const postPath = getPostPhysicsPath(this.config.posts, postFraction, coreThickness)
+
+    return [strawPath, postPath]
   }
 
   readonly tag = TAG_INFILL_CONSTRUCTION

@@ -2,9 +2,9 @@ import * as Label from '@radix-ui/react-label'
 import { useTranslation } from 'react-i18next'
 
 import type { RoofAssemblyId } from '@/building/model/ids'
-import { useConfigActions, useLayerSetById } from '@/config/store'
-import { LayerSetSdValueRow } from '@/config/ui/layers/LayerSetSdValueRow'
+import { useConfigActions } from '@/config/store'
 import { LayerSetSelectWithEdit } from '@/config/ui/layers/LayerSetSelect'
+import { AssemblyPhysicsPanel, AssemblySdValueRow, useRoofAssemblyPhysics } from '@/config/ui/physics'
 import type { RoofConfig } from '@/construction/assemblies/roofs/types'
 import { RoofMeasurementInfo } from '@/shared/ui/RoofMeasurementInfo'
 
@@ -17,8 +17,7 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
   const { t } = useTranslation('config')
   const { updateRoofAssemblyConfig } = useConfigActions()
 
-  const insideLayerSet = useLayerSetById(config.insideLayerSetId)
-  const topLayerSet = useLayerSetById(config.topLayerSetId)
+  const physicsStructure = useRoofAssemblyPhysics(config)
 
   return (
     <div className="flex flex-col gap-3">
@@ -73,7 +72,8 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
         />
       </div>
 
-      <LayerSetSdValueRow insideLayers={insideLayerSet?.layers ?? []} outsideLayers={topLayerSet?.layers ?? []} />
+      <AssemblySdValueRow physicsStructure={physicsStructure} />
+      <AssemblyPhysicsPanel physicsStructure={physicsStructure} />
     </div>
   )
 }

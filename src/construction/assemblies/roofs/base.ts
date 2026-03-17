@@ -5,6 +5,12 @@ import { getModelActions } from '@/building/store'
 import { resolveLayerSetLayers, resolveLayerSetThickness } from '@/config/store'
 import { LAYER_CONSTRUCTIONS } from '@/construction/assemblies/layers'
 import type { LayerConfig } from '@/construction/assemblies/layers/types'
+import {
+  type AssemblyPhysicsStructure,
+  type PhysicsItem,
+  type PhysicsPath,
+  layerToPhysicsItems
+} from '@/construction/assemblies/physics'
 import { VerticalOffsetMap } from '@/construction/context/offsets'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import { transformManifold } from '@/construction/manifold/operations'
@@ -74,6 +80,29 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
   protected abstract get topLayerOffset(): Length
   protected abstract get ceilingLayerOffset(): Length
   protected abstract get overhangLayerOffset(): Length
+
+  abstract getCoreThickness(): Length
+  abstract getCorePhysicsStructure(): PhysicsPath[]
+
+  getPhysicsStructure(): AssemblyPhysicsStructure {
+    return {
+      inside: this.getInsidePhysicsItems(),
+      core: this.getCorePhysicsStructure(),
+      outside: this.getOutsidePhysicsItems()
+    }
+  }
+
+  protected getInsidePhysicsItems(): PhysicsItem[] {
+    const layers = resolveLayerSetLayers(this.config.insideLayerSetId)
+    if (layers.length === 0) return []
+    return layers.flatMap(layer => layerToPhysicsItems(layer))
+  }
+
+  protected getOutsidePhysicsItems(): PhysicsItem[] {
+    const layers = resolveLayerSetLayers(this.config.topLayerSetId)
+    if (layers.length === 0) return []
+    return layers.flatMap(layer => layerToPhysicsItems(layer))
+  }
 
   get insideLayersThickness(): Length {
     return resolveLayerSetThickness(this.config.insideLayerSetId)

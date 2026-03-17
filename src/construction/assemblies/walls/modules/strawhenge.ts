@@ -1,5 +1,6 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
+import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
@@ -18,7 +19,7 @@ import { getMaterialById } from '@/materials/store'
 import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
 import { Bounds3D, type Length } from '@/shared/geometry'
 
-import { constructModule } from './modules'
+import { constructModule, getModulePhysicsPaths } from './modules'
 
 export class StrawhengeWallAssembly extends BaseWallAssembly<StrawhengeWallConfig> {
   construct(wall: PerimeterWallWithGeometry, storeyContext: StoreyContext): ConstructionModel {
@@ -193,6 +194,39 @@ export class StrawhengeWallAssembly extends BaseWallAssembly<StrawhengeWallConfi
     const outsideThickness = resolveLayerSetThickness(this.config.outsideLayerSetId)
     const layerThickness = insideThickness + outsideThickness
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
+  }
+
+  getCoreThickness(): number {
+    const { module, infill } = this.config
+    const strawMaterialId = module.strawMaterial ?? infill.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
+    const strawMaterial = getMaterialById(strawMaterialId)
+    if (strawMaterial?.type === 'strawbale') {
+      return strawMaterial.baleWidth
+    }
+    return 360
+  }
+
+  getCorePhysicsStructure(): PhysicsPath[] {
+    const { module, infill } = this.config
+    const coreThickness = this.getCoreThickness()
+
+    const totalWidth = module.maxWidth + infill.desiredPostSpacing
+    const moduleFraction = module.maxWidth / totalWidth
+    const infillFraction = infill.desiredPostSpacing / totalWidth
+
+    const strawItem = materialToPhysicsItem(
+      infill.strawMaterial ?? getConfigActions().getDefaultStrawMaterial(),
+      coreThickness
+    )
+
+    return [
+      ...getModulePhysicsPaths(module, moduleFraction, module.maxWidth, 3000, coreThickness),
+      {
+        items: strawItem ? [strawItem] : [],
+        areaFraction: infillFraction,
+        label: t => t($ => $.physics.breakdown.straw, { ns: 'config' })
+      }
+    ]
   }
 
   readonly tag = TAG_STRAWHENGE_CONSTRUCTION

@@ -1,5 +1,6 @@
 import type { Roof } from '@/building/model'
 import type { LayerSetId } from '@/building/model/ids'
+import type { AssemblyPhysicsStructure, PhysicsPath } from '@/construction/assemblies/physics'
 import type { VerticalOffsetMap } from '@/construction/context/offsets'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import type { ConstructionModel } from '@/construction/model/model'
@@ -14,6 +15,9 @@ export interface RoofAssembly {
   getBottomOffsets: (roof: Roof, map: VerticalOffsetMap, contexts: PerimeterConstructionContext[]) => void
   get constructionThickness(): Length
   get totalThickness(): Length
+  getCoreThickness: () => Length
+  getCorePhysicsStructure: () => PhysicsPath[]
+  getPhysicsStructure: () => AssemblyPhysicsStructure
 }
 
 export type RoofAssemblyType = 'monolithic' | 'purlin'

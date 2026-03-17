@@ -21,6 +21,14 @@ class TestStrawhengeWallAssembly extends StrawhengeWallAssembly {
   ) {
     return super.strawhengeWallArea(area, startsWithStand, endsWithStand, startAtEnd)
   }
+
+  public getCoreThickness(): number {
+    return super.getCoreThickness()
+  }
+
+  public getCorePhysicsStructure() {
+    return super.getCorePhysicsStructure()
+  }
 }
 
 // Mock dependencies

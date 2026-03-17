@@ -1,5 +1,6 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
+import { type PhysicsPath } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { infillWallArea } from '@/construction/assemblies/walls/infill/infill'
@@ -15,7 +16,7 @@ import { TAG_MODULE_CONSTRUCTION } from '@/construction/model/tags'
 import { getMaterialById } from '@/materials/store'
 import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
 
-import { constructModule } from './modules'
+import { constructModule, getModulePhysicsPaths } from './modules'
 
 export class ModulesWallAssembly extends BaseWallAssembly<ModulesWallConfig> {
   construct(wall: PerimeterWallWithGeometry, storeyContext: StoreyContext): ConstructionModel {
@@ -73,6 +74,23 @@ export class ModulesWallAssembly extends BaseWallAssembly<ModulesWallConfig> {
     const outsideThickness = resolveLayerSetThickness(this.config.outsideLayerSetId)
     const layerThickness = insideThickness + outsideThickness
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
+  }
+
+  getCoreThickness(): number {
+    const { module } = this.config
+    const strawMaterialId = module.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
+    const strawMaterial = getMaterialById(strawMaterialId)
+    if (strawMaterial?.type === 'strawbale') {
+      return strawMaterial.baleWidth
+    }
+    return 360
+  }
+
+  getCorePhysicsStructure(): PhysicsPath[] {
+    const { module } = this.config
+    const coreThickness = this.getCoreThickness()
+
+    return getModulePhysicsPaths(module, 1, module.maxWidth, 3000, coreThickness)
   }
 
   readonly tag = TAG_MODULE_CONSTRUCTION

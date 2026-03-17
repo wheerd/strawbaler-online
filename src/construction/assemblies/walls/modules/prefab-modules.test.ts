@@ -196,6 +196,14 @@ class TestPrefabModulesWallAssembly extends PrefabModulesWallAssembly {
   public moduleOpeningSubWallArea(area: WallConstructionArea, type: 'lintel' | 'sill') {
     return super.moduleOpeningSubWallArea(area, type)
   }
+
+  public getCoreThickness(): number {
+    return super.getCoreThickness()
+  }
+
+  public getCorePhysicsStructure() {
+    return super.getCorePhysicsStructure()
+  }
 }
 
 function extractElements(results: any[]) {
