@@ -100,7 +100,7 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "fake-indexeddb": "^6.2.5",
     "fast-check": "^4.5.3",
-    "i18next-cli": "^1.42.10",
+    "i18next-cli": "^1.50.3",
     "jsdom": "^27.4.0",
     "neostandard": "^0.12.2",
     "prettier": "^3.8.1",
