@@ -31,6 +31,7 @@ export default async (req: Request, context: Context) => {
       headers: {
         'Content-Type': response.headers.get('content-type') ?? 'application/json',
         'Access-Control-Allow-Origin': corsOrigin,
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
       }
     })
