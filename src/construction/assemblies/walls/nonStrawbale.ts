@@ -1,6 +1,7 @@
 import { type PerimeterWallWithGeometry, isOpeningId } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
+import { type PhysicsSeries, materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
 import { resolveRingBeamAssembly } from '@/construction/assemblies/ringBeams'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
@@ -25,7 +26,7 @@ import { createExtrudedPolygon } from '@/construction/model/shapes'
 import { TAG_NON_STRAWBALE_CONSTRUCTION } from '@/construction/model/tags'
 import { getMaterialById } from '@/materials/store'
 import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
-import { Bounds3D, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
+import { Bounds3D, type Length, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 export class NonStrawbaleWallAssembly extends BaseWallAssembly<NonStrawbaleWallConfig> {
   construct(wall: PerimeterWallWithGeometry, storeyContext: StoreyContext): ConstructionModel {
@@ -143,6 +144,17 @@ export class NonStrawbaleWallAssembly extends BaseWallAssembly<NonStrawbaleWallC
     const outsideThickness = resolveLayerSetThickness(this.config.outsideLayerSetId)
     const layerThickness = insideThickness + outsideThickness
     return addThickness(material ? getMaterialThickness(material) : undefined, layerThickness)
+  }
+
+  getCorePhysicsStructure(coreThickness: Length): PhysicsSeries[] {
+    const item = materialToPhysicsSeriesItem(this.config.material, coreThickness)
+    return [
+      {
+        items: item ? [item] : [],
+        areaFraction: 1,
+        label: t => t($ => $.physics.breakdown.wall, { ns: 'config' })
+      }
+    ]
   }
 
   readonly tag = TAG_NON_STRAWBALE_CONSTRUCTION

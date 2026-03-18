@@ -3,7 +3,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { ModuleConfig } from '@/construction/assemblies/walls/modules/modules'
-import { roughWood, woodwool } from '@/materials/material'
+import { roughWood, woodwool } from '@/materials/defaults'
 import { MaterialSelectWithEdit } from '@/materials/ui/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
 import { Select } from '@/shared/ui/components/select'

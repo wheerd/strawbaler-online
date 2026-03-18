@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { PhysicsSeries } from '@/construction/assemblies/physics'
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { infillWallArea } from '@/construction/assemblies/walls/infill/infill'
 import type { StrawhengeWallConfig } from '@/construction/assemblies/walls/types'
 import { createCuboidElement } from '@/construction/model/elements'
 import { aggregateResults, yieldElement } from '@/construction/model/results'
-import type { MaterialId } from '@/materials/material'
-import { type Vec3, newVec3 } from '@/shared/geometry'
+import type { MaterialId } from '@/materials/types'
+import { type Length, type Vec3, newVec3 } from '@/shared/geometry'
 
 import { constructModule } from './modules'
 import { StrawhengeWallAssembly } from './strawhenge'
@@ -20,6 +21,10 @@ class TestStrawhengeWallAssembly extends StrawhengeWallAssembly {
     startAtEnd = false
   ) {
     return super.strawhengeWallArea(area, startsWithStand, endsWithStand, startAtEnd)
+  }
+
+  public getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsSeries[] {
+    return super.getCorePhysicsStructure(coreThickness, height)
   }
 }
 

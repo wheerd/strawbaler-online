@@ -1,4 +1,4 @@
-import type { MaterialId, StrawbaleMaterial } from '@/materials/material'
+import type { MaterialId, StrawbaleMaterial } from '@/materials/types'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 
 export const strawbale: StrawbaleMaterial = {
@@ -14,5 +14,10 @@ export const strawbale: StrawbaleMaterial = {
   tolerance: 2,
   topCutoffLimit: 50,
   flakeSize: 70,
-  density: 110
+  density: 110,
+  thermalConductivity: 0.052,
+  vaporDiffusionResistance: 1,
+  specificHeatCapacity: 2000,
+  primaryEnergy: 0.24,
+  embodiedCarbon: -0.12
 }

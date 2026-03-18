@@ -17,7 +17,7 @@ import type { StoreyContext } from '@/construction/context/storeys'
 import type { ConstructionElement, GroupOrElement } from '@/construction/model/elements'
 import type { ExtrudedShape } from '@/construction/model/shapes'
 import { TAG_LAYERS, TAG_WALL_LAYER_INSIDE, TAG_WALL_LAYER_OUTSIDE } from '@/construction/model/tags'
-import { clayPlasterBase, limePlasterBase } from '@/materials/material'
+import { clayPlasterBase, limePlasterBase } from '@/materials/defaults'
 import { type Polygon2D, type PolygonWithHoles2D, ZERO_VEC2, newVec2 } from '@/shared/geometry'
 import { partial } from '@/test/helpers'
 

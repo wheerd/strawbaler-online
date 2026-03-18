@@ -11,7 +11,7 @@ import { RoofAssemblySelect } from '@/config/ui/roof-assembly/RoofAssemblySelect
 import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
 import { type RoofAssemblyUsage, getRoofAssemblyUsage } from '@/config/usage'
 import type { RoofAssemblyType, RoofConfig } from '@/construction/assemblies/roofs/types'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import { RoofMeasurementInfo } from '@/shared/ui/RoofMeasurementInfo'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'

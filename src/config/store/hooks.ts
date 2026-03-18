@@ -16,7 +16,7 @@ import type {
   WallAssemblyConfig
 } from '@/config/types'
 import type { LayerSetConfig } from '@/construction/assemblies/layers/types'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 
 import { useConfigStore } from './store'
 import type { ConfigActions } from './types'
@@ -91,8 +91,8 @@ export const useLayerSets = (): LayerSetConfig[] => {
   return useMemo(() => Object.values(layerSetConfigs), [layerSetConfigs])
 }
 
-export const useLayerSetById = (id: LayerSetId): LayerSetConfig | null =>
-  useConfigStore(state => state.actions.getLayerSetById(id))
+export const useLayerSetById = (id: LayerSetId | undefined): LayerSetConfig | null =>
+  useConfigStore(state => (id ? state.actions.getLayerSetById(id) : null))
 
 export const useLayerSetsByUse = (use: LayerSetConfig['use']): LayerSetConfig[] =>
   useConfigStore(state => state.actions.getLayerSetsByUse(use))

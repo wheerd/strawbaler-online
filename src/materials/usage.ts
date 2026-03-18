@@ -28,7 +28,7 @@ import type {
 import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import { assertUnreachable } from '@/shared/utils'
 
-import type { MaterialId } from './material'
+import type { MaterialId } from './types'
 
 export type MaterialUsageId =
   | RingBeamAssemblyId

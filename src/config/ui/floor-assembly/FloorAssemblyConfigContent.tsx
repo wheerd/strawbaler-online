@@ -11,7 +11,7 @@ import { FloorAssemblySelect } from '@/config/ui/floor-assembly/FloorAssemblySel
 import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
 import { type FloorAssemblyUsage, getFloorAssemblyUsage } from '@/config/usage'
 import type { FloorAssemblyType, FloorConfig } from '@/construction/assemblies/floors/types'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { AlertDialog } from '@/shared/ui/components/alert-dialog'
 import { Badge } from '@/shared/ui/components/badge'

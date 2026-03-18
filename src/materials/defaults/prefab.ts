@@ -1,4 +1,12 @@
-import type { MaterialId, PrefabMaterial } from '@/materials/material'
+import type { MaterialId, PrefabMaterial } from '@/materials/types'
+
+const prefabPhysics = {
+  density: 150,
+  thermalConductivity: 0.0645,
+  primaryEnergy: 236 / 150,
+  embodiedCarbon: 42.75 / 150,
+  acidificationPotential: 0.107 / 150
+}
 
 export const ecococonStandard: PrefabMaterial = {
   id: 'material_ecococon_standard' as MaterialId,
@@ -12,7 +20,8 @@ export const ecococonStandard: PrefabMaterial = {
   maxThickness: 400,
   minWidth: 400,
   maxWidth: 850,
-  isFlipped: false
+  isFlipped: false,
+  ...prefabPhysics
 }
 
 export const ecococonBraced: PrefabMaterial = {
@@ -27,7 +36,8 @@ export const ecococonBraced: PrefabMaterial = {
   maxThickness: 400,
   minWidth: 500,
   maxWidth: 850,
-  isFlipped: false
+  isFlipped: false,
+  ...prefabPhysics
 }
 
 export const ecococonColumn: PrefabMaterial = {
@@ -42,7 +52,8 @@ export const ecococonColumn: PrefabMaterial = {
   maxThickness: 400,
   minWidth: 424,
   maxWidth: 850,
-  isFlipped: false
+  isFlipped: false,
+  ...prefabPhysics
 }
 
 export const ecococonInclined: PrefabMaterial = {
@@ -61,7 +72,8 @@ export const ecococonInclined: PrefabMaterial = {
     minAngleDegrees: 1,
     maxAngleDegrees: 50
   },
-  isFlipped: false
+  isFlipped: false,
+  ...prefabPhysics
 }
 
 export const ecococonInclinedBraced: PrefabMaterial = {
@@ -80,7 +92,8 @@ export const ecococonInclinedBraced: PrefabMaterial = {
     minAngleDegrees: 1,
     maxAngleDegrees: 50
   },
-  isFlipped: false
+  isFlipped: false,
+  ...prefabPhysics
 }
 
 export const ecococonLintel: PrefabMaterial = {
@@ -95,7 +108,8 @@ export const ecococonLintel: PrefabMaterial = {
   maxThickness: 400,
   minWidth: 400,
   maxWidth: 3000,
-  isFlipped: true
+  isFlipped: true,
+  ...prefabPhysics
 }
 
 export const ecococonSill: PrefabMaterial = {
@@ -110,7 +124,8 @@ export const ecococonSill: PrefabMaterial = {
   maxThickness: 400,
   minWidth: 600,
   maxWidth: 3000,
-  isFlipped: true
+  isFlipped: true,
+  ...prefabPhysics
 }
 
 export const ecococonBox: PrefabMaterial = {
@@ -125,5 +140,6 @@ export const ecococonBox: PrefabMaterial = {
   maxThickness: 400,
   minWidth: 400,
   maxWidth: 9000,
-  isFlipped: true
+  isFlipped: true,
+  ...prefabPhysics
 }

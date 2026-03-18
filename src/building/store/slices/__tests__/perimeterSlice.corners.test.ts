@@ -4,7 +4,7 @@ import type { PerimeterCornerId, PerimeterId, StoreyId } from '@/building/model/
 import { createWallAssemblyId } from '@/building/model/ids'
 import { NotFoundError } from '@/building/store/errors'
 import type { PerimetersSlice } from '@/building/store/slices/perimeterSlice'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import { copyVec2 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 

@@ -1,4 +1,4 @@
-import { battens } from '@/materials/material'
+import { battens } from '@/materials/defaults'
 
 import type { MigrationState } from './shared'
 

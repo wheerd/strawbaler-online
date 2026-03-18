@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { roughWood, strawbale } from './material'
-import { generateMaterialCSS, getMaterialCSSString } from './materialCSS'
+import { generateMaterialCSS, getMaterialCSSString } from './css'
+import { roughWood, strawbale } from './defaults'
 
 describe('Material CSS Generation', () => {
   it('generates correct CSS for materials', () => {

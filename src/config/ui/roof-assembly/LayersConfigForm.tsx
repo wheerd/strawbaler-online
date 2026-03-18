@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next'
 import type { RoofAssemblyId } from '@/building/model/ids'
 import { useConfigActions } from '@/config/store'
 import { LayerSetSelectWithEdit } from '@/config/ui/layers/LayerSetSelect'
+import { AssemblySdValueRow, RoofPhysicsPanel, useRoofAssemblyPhysics } from '@/config/ui/physics'
 import type { RoofConfig } from '@/construction/assemblies/roofs/types'
 import { RoofMeasurementInfo } from '@/shared/ui/RoofMeasurementInfo'
-import { Separator } from '@/shared/ui/components/separator'
 
 interface LayersConfigFormProps {
   assemblyId: RoofAssemblyId
@@ -17,12 +17,15 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
   const { t } = useTranslation('config')
   const { updateRoofAssemblyConfig } = useConfigActions()
 
+  const physicsStructure = useRoofAssemblyPhysics(config)
+
   return (
     <div className="flex flex-col gap-3">
+      <h2>{t($ => $.roofs.layersSection)}</h2>
       <div className="grid grid-cols-[auto_1fr] items-center gap-2 gap-x-3">
         <div className="flex items-center gap-1">
           <Label.Root>
-            <span className="text-sm font-medium">{t($ => $.roofs.layers.insideLayers)}</span>
+            <span className="text-sm font-medium">{t($ => $.roofs.layers.inside)}</span>
           </Label.Root>
           <RoofMeasurementInfo highlightedPart="roofBottomLayers" showFinishedLevels />
         </div>
@@ -35,14 +38,10 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
           use="ceiling"
           placeholder={t($ => $.roofs.noInsideLayers)}
         />
-      </div>
 
-      <Separator />
-
-      <div className="grid grid-cols-[auto_1fr] items-center gap-2 gap-x-3">
         <div className="flex items-center gap-1">
           <Label.Root>
-            <span className="text-sm font-medium">{t($ => $.roofs.topLayers)}</span>
+            <span className="text-sm font-medium">{t($ => $.roofs.layers.top)}</span>
           </Label.Root>
           <RoofMeasurementInfo highlightedPart="roofTopLayers" showFinishedLevels />
         </div>
@@ -55,14 +54,10 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
           use="roof"
           placeholder={t($ => $.roofs.noTopLayers)}
         />
-      </div>
 
-      <Separator />
-
-      <div className="grid grid-cols-[auto_1fr] items-center gap-2 gap-x-3">
         <div className="flex items-center gap-1">
           <Label.Root>
-            <span className="text-sm font-medium">{t($ => $.roofs.layers.overhangLayers)}</span>
+            <span className="text-sm font-medium">{t($ => $.roofs.layers.overhang)}</span>
           </Label.Root>
           <RoofMeasurementInfo highlightedPart="overhangBottomLayers" showFinishedLevels />
         </div>
@@ -76,6 +71,9 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
           placeholder={t($ => $.roofs.noOverhangLayers)}
         />
       </div>
+
+      <AssemblySdValueRow physicsStructure={physicsStructure} />
+      <RoofPhysicsPanel physicsStructure={physicsStructure} />
     </div>
   )
 }

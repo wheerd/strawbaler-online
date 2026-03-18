@@ -4,8 +4,8 @@ import type { PerimeterConstructionContext } from '@/construction/context/perime
 import type { StoreyContext } from '@/construction/context/storeys'
 import { type ConstructionResult } from '@/construction/model/results'
 import { TAG_PLATE, TAG_RB_INSULATION, TAG_STUD_WALL, TAG_WATERPROOFING } from '@/construction/model/tags'
-import type { Material } from '@/materials/material'
 import { getMaterialById } from '@/materials/store'
+import type { Material } from '@/materials/types'
 import { type Transform, fromTrans, newVec3 } from '@/shared/geometry'
 
 import type { BrickRingBeamConfig, RingBeamSegment } from './types'

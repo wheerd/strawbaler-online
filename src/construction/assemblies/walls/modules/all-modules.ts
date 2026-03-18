@@ -1,5 +1,6 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
+import { type PhysicsSeries } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { infillWallArea } from '@/construction/assemblies/walls/infill/infill'
@@ -14,8 +15,9 @@ import { assignDeterministicIdsToResults, resultsToModel } from '@/construction/
 import { TAG_MODULE_CONSTRUCTION } from '@/construction/model/tags'
 import { getMaterialById } from '@/materials/store'
 import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
+import type { Length } from '@/shared/geometry'
 
-import { constructModule } from './modules'
+import { constructModule, getModulePhysicsPaths } from './modules'
 
 export class ModulesWallAssembly extends BaseWallAssembly<ModulesWallConfig> {
   construct(wall: PerimeterWallWithGeometry, storeyContext: StoreyContext): ConstructionModel {
@@ -73,6 +75,12 @@ export class ModulesWallAssembly extends BaseWallAssembly<ModulesWallConfig> {
     const outsideThickness = resolveLayerSetThickness(this.config.outsideLayerSetId)
     const layerThickness = insideThickness + outsideThickness
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
+  }
+
+  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsSeries[] {
+    const { module } = this.config
+
+    return getModulePhysicsPaths(module, 1, module.maxWidth, height, coreThickness)
   }
 
   readonly tag = TAG_MODULE_CONSTRUCTION

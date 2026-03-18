@@ -1,5 +1,6 @@
 import type { OpeningAssemblyId, PerimeterWallWithGeometry } from '@/building/model'
 import type { LayerSetId } from '@/building/model/ids'
+import type { AssemblyPhysicsStructure, PhysicsSeries } from '@/construction/assemblies/physics'
 import type { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { type PostConfig, validatePosts } from '@/construction/assemblies/walls/posts'
 import type { TriangularBattenConfig } from '@/construction/assemblies/walls/triangularBattens'
@@ -7,8 +8,8 @@ import type { StoreyContext } from '@/construction/context/storeys'
 import type { ConstructionModel } from '@/construction/model/model'
 import type { ConstructionResult } from '@/construction/model/results'
 import type { Tag } from '@/construction/model/tags'
-import type { MaterialId } from '@/materials/material'
 import type { ThicknessRange } from '@/materials/thickness'
+import type { MaterialId } from '@/materials/types'
 import type { Length } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
 
@@ -19,6 +20,8 @@ export interface WallAssembly {
 
   get tag(): Tag
   get thicknessRange(): ThicknessRange
+  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsSeries[]
+  getPhysicsStructure: (totalThickness: Length, height: Length) => AssemblyPhysicsStructure
 }
 
 export type WallAssemblyType = 'infill' | 'strawhenge' | 'non-strawbale' | 'modules' | 'prefab-modules'

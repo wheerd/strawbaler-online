@@ -26,8 +26,8 @@ import {
   useRoofAssemblyById,
   useWallAssemblyById
 } from '@/config/store'
-import { type MaterialId, isMaterialId } from '@/materials/material'
 import { useMaterialById } from '@/materials/store'
+import { type MaterialId, isMaterialId } from '@/materials/types'
 
 export type EntityId =
   | StoreyId

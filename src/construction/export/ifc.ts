@@ -49,8 +49,8 @@ import {
   TAG_WALL_LAYER_OUTSIDE,
   TAG_WATERPROOFING
 } from '@/construction/model/tags'
-import type { Material, MaterialId } from '@/materials/material'
 import { getMaterialsActions } from '@/materials/store'
+import type { Material, MaterialId } from '@/materials/types'
 import { type Transform, composeTransform, getPosition, getXAxis, getZAxis } from '@/shared/geometry'
 import { transString } from '@/shared/i18n/TranslatableString'
 import { downloadFile } from '@/shared/utils/downloadFile'

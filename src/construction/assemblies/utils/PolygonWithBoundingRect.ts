@@ -3,7 +3,7 @@ import type { RawMeasurement } from '@/construction/model/measurements'
 import { type ConstructionResult, yieldElement } from '@/construction/model/results'
 import { createExtrudedPolygon } from '@/construction/model/shapes'
 import type { Tag } from '@/construction/model/tags'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import type { InitialPartInfo } from '@/parts/types'
 import {
   type Area,

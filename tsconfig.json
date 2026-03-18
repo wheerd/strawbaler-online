@@ -9,6 +9,7 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" },
-    { "path": "./tsconfig.playwright.json" }
+    { "path": "./tsconfig.playwright.json" },
+    { "path": "./tsconfig.netlify.json" }
   ]
 }

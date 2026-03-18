@@ -2,7 +2,7 @@ import { Eye, TriangleAlert } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { DimensionalMaterial } from '@/materials/material'
+import type { DimensionalMaterial } from '@/materials/types'
 import type { AggregatedPartItem } from '@/parts/types'
 import { PartCutModal } from '@/parts/ui/PartCutModal'
 import { usePartsListView } from '@/parts/ui/PartsListViewContext'

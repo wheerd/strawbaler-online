@@ -1,4 +1,4 @@
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import type { InitialPartInfo, PartInfo } from '@/parts/types'
 import { type Bounds3D, IDENTITY, type Transform, type Vec3, fromTrans } from '@/shared/geometry'
 import { createId } from '@/shared/utils/ids'

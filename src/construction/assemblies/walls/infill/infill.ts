@@ -8,8 +8,8 @@ import type { GroupOrElement } from '@/construction/model/elements'
 import type { ConstructionResult, IssueMessageKey } from '@/construction/model/results'
 import { yieldAndCollectElements, yieldElement, yieldError, yieldWarning } from '@/construction/model/results'
 import { TAG_INFILL, TAG_POST_SPACING } from '@/construction/model/tags'
-import type { StrawbaleMaterial } from '@/materials/material'
 import { getMaterialById } from '@/materials/store'
+import type { StrawbaleMaterial } from '@/materials/types'
 import { type Length, type Vec3 } from '@/shared/geometry'
 
 export function* infillWallArea(

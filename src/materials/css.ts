@@ -1,4 +1,4 @@
-import type { Material } from './material'
+import type { Material } from './types'
 
 /**
  * Generates CSS styles for construction materials

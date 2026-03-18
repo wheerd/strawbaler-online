@@ -2,7 +2,7 @@ import type { Namespace, TFunction } from 'i18next'
 
 import type { Length } from '@/shared/geometry'
 
-import type { Material } from './material'
+import type { Material } from './types'
 
 export interface ThicknessRange {
   min: Length

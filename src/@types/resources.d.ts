@@ -184,14 +184,20 @@ interface Resources {
   },
   "config": {
     "common": {
+      "acidificationPotential": "Acidification Potential",
+      "acidificationPotentialUnit": "kg SO₂e/kg",
       "add": "Add",
       "addNew": "Add New",
+      "buildingPhysics": "Building Physics",
       "cancel": "Cancel",
       "color": "Color",
       "delete": "Delete",
       "density": "Density",
       "densityUnit": "kg/m³",
       "duplicate": "Duplicate",
+      "embodiedCarbon": "Embodied Carbon",
+      "embodiedCarbonUnit": "kg CO₂e/kg",
+      "environmentalImpact": "Environmental Impact",
       "height": "Height",
       "inUseCannotDelete": "In Use - Cannot Delete",
       "infillMaterial": "Infill Material",
@@ -206,15 +212,31 @@ interface Resources {
         "selectDefault": "Select default...",
         "selectMaterial": "Select material..."
       },
+      "primaryEnergy": "Primary Energy",
+      "primaryEnergyUnit": "MJ/kg",
       "reset": "Reset",
       "resetToDefaults": "Reset to Defaults",
+      "sdValue": {
+        "inside": "Inside {{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+        "insideNoValue": "Inside -",
+        "ok": "Vapor diffusion is properly directed outward",
+        "outside": "Outside {{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+        "outsideNoValue": "Outside -",
+        "warning": "Outside sd-value is higher than inside - moisture may be trapped in the straw"
+      },
       "spacing": "Spacing",
+      "specificHeatCapacity": "Specific Heat Capacity",
+      "specificHeatCapacityUnit": "J/kgK",
       "strawMaterialOverride": "Straw Material (Override)",
+      "thermalConductivity": "Thermal Conductivity",
+      "thermalConductivityUnit": "W/mK",
       "thickness": "Thickness",
       "totalHeight": "Total Height",
       "totalThickness": "Total Thickness",
       "type": "Type",
       "useGlobalStrawSettings": "Use global straw settings",
+      "vaporDiffusionResistance": "Vapor Diffusion Resistance",
+      "vaporDiffusionResistanceUnit": "μ",
       "width": "Width"
     },
     "floors": {
@@ -481,6 +503,21 @@ interface Resources {
       "typeVolume": "Volume",
       "volumeInput": "Volume input"
     },
+    "oekobaudat": {
+      "actions": "Actions",
+      "category": "Category",
+      "description": "Search the Ökobaudat database for environmental impact data",
+      "generic": "Generic",
+      "import": "Import",
+      "name": "Name",
+      "noResults": "No results found",
+      "searchOekobaudat": "Search Ökobaudat",
+      "searchPlaceholder": "Search materials...",
+      "specific": "Specific",
+      "title": "Search Ökobaudat",
+      "type": "Type",
+      "viewDetails": "View on Ökobaudat"
+    },
     "openings": {
       "configure": "Configure Opening Assembly",
       "copyNameTemplate": "{{name}} (Copy)",
@@ -539,6 +576,55 @@ interface Resources {
       },
       "useGlobalDefault": "Use global default"
     },
+    "physics": {
+      "breakdown": {
+        "air": "Air",
+        "areaPercentShort": "Area %",
+        "ceilingSheathing": "Ceiling Sheathing",
+        "core": "Core",
+        "decking": "Decking",
+        "frame": "Module Frame",
+        "inside": "Inside Layers",
+        "layers": "Layers",
+        "module": "Module",
+        "outside": "Outside Layers",
+        "overlap": "overlap",
+        "post": "Post",
+        "rafter": "Rafter",
+        "roof": "Roof",
+        "spacer": "Module Spacer",
+        "straw": "Straw",
+        "title": "Breakdown",
+        "ventilated": "ventilated",
+        "wall": "Wall"
+      },
+      "massPerArea": "Mass/m²",
+      "massPerAreaNoValue": "- kg/m²",
+      "massPerAreaShort": "Mass",
+      "massPerAreaUnit": "kg/m²",
+      "massPerAreaValue": "{{value, number(maximumFractionDigits: 1)}} kg/m²",
+      "massPerRunningMeter": "Mass/m",
+      "massPerRunningMeterValue": "{{value, number(maximumFractionDigits: 1)}} kg/m",
+      "noData": "Add materials to layers to see physics values",
+      "rValue": "R-value",
+      "rValueNoValue": "- m²K/W",
+      "rValueShort": "R",
+      "rValueUnit": "m²K/W",
+      "rValueValue": "{{value, number(maximumFractionDigits: 2)}} m²K/W",
+      "sdValue": "sd-value",
+      "sdValueNoValue": "- m",
+      "sdValueShort": "sd",
+      "sdValueUnit": "m",
+      "sdValueValue": "{{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+      "thicknessMm": "Thickness",
+      "title": "Building Physics",
+      "uValue": "U-value",
+      "uValueNoValue": "- W/m²K",
+      "uValueUnit": "W/m²K",
+      "uValueValue": "{{value, number(maximumFractionDigits: 3)}}  W/m²K",
+      "wallHeight": "Height",
+      "wallThickness": "Thickness"
+    },
     "ringBeams": {
       "configure": "Configure Ring Beam",
       "copyNameTemplate": "{{name}} (Copy)",
@@ -596,9 +682,11 @@ interface Resources {
         "spacingTarget": "Spacing (Target)"
       },
       "layers": {
-        "insideLayers": "Inside Layers (Ceiling)",
-        "overhangLayers": "Overhang Layers"
+        "inside": "Inside (Ceiling)",
+        "overhang": "Overhang (Underside)",
+        "top": "Top (Outside)"
       },
+      "layersSection": "Layers",
       "newName": {
         "monolithic": "New Monolithic Roof",
         "purlin": "New Purlin Roof"
@@ -616,7 +704,6 @@ interface Resources {
         "rafters": "Rafters",
         "straw": "Straw"
       },
-      "topLayers": "Top Layers",
       "types": {
         "monolithic": "Monolithic",
         "purlin": "Purlin"
@@ -676,7 +763,11 @@ interface Resources {
       "infillConfiguration": "Infill Configuration",
       "infillMaterial": "Infill Material",
       "infillMaterialTooltip": "If configured, will be used for gaps which are too small for straw",
-      "insideLayers": "Inside Layers",
+      "layers": {
+        "inside": "Inside",
+        "outside": "Outside"
+      },
+      "layersSection": "Layers",
       "maxPostSpacing": "Max Post Spacing",
       "maxWidth": "Max Width",
       "minStrawSpace": "Min Straw Space",
@@ -696,7 +787,6 @@ interface Resources {
       "nonStrawbaleConfiguration": "Non-Strawbale Configuration",
       "openingAssembly": "Opening Assembly",
       "openingsSection": "Openings",
-      "outsideLayers": "Outside Layers",
       "postType": "Post Type",
       "postTypeDouble": "Double",
       "postTypeFull": "Full",

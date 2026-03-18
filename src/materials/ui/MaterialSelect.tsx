@@ -1,8 +1,8 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { Material, MaterialId, MaterialType } from '@/materials/material'
 import { useMaterials } from '@/materials/store'
+import type { Material, MaterialId, MaterialType } from '@/materials/types'
 import { Select, SelectValue } from '@/shared/ui/components/select'
 
 import { getMaterialTypeIcon } from './icons'

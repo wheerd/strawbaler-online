@@ -136,13 +136,13 @@ describe('minimumAreaBoundingBox', () => {
 
   it('throws when the polygon has fewer than three points', () => {
     const polygon = { points: [newVec2(0, 0), newVec2(1, 1)] }
-    expect(() => minimumAreaBoundingBox(polygon)).toThrowError('Polygon requires at least 3 points')
+    expect(() => minimumAreaBoundingBox(polygon)).toThrow('Polygon requires at least 3 points')
   })
 
   it('throws when the polygon is degenerate after computing the hull', () => {
     const polygon = {
       points: [newVec2(0, 0), newVec2(2, 2), newVec2(4, 4), newVec2(6, 6)]
     }
-    expect(() => minimumAreaBoundingBox(polygon)).toThrowError('Convex hull of polygon requires at least 3 points')
+    expect(() => minimumAreaBoundingBox(polygon)).toThrow('Convex hull of polygon requires at least 3 points')
   })
 })

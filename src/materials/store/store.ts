@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 
+import { DEFAULT_MATERIALS } from '@/materials/defaults'
 import {
-  DEFAULT_MATERIALS,
   type DimensionalMaterial,
   type Material,
   type MaterialId,
@@ -11,7 +11,7 @@ import {
   type StrawbaleMaterial,
   type VolumeMaterial,
   createMaterialId
-} from '@/materials/material'
+} from '@/materials/types'
 
 import { MATERIALS_STORE_VERSION, migrateMaterialsState } from './migrations'
 

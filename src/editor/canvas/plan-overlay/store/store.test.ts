@@ -1,9 +1,19 @@
 import { File } from 'node:buffer'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { StoreyId } from '@/building/model/ids'
 
 import { getAllFloorPlans, getFloorPlanActions, getFloorPlanForStorey } from './store'
+
+vi.mock('./storage', () => ({
+  FloorPlanStorage: vi.fn().mockImplementation(function () {
+    return {
+      getItem: vi.fn().mockResolvedValue(null),
+      setItem: vi.fn().mockResolvedValue(undefined),
+      removeItem: vi.fn().mockResolvedValue(undefined)
+    }
+  })
+}))
 
 const floorId = 'floor-1' as StoreyId
 const floorId2 = 'floor-2' as StoreyId

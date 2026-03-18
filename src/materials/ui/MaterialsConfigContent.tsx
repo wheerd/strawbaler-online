@@ -1,11 +1,15 @@
 import * as Label from '@radix-ui/react-label'
-import { Box, Circle, Copy, Droplet, Layers, Plus, Trash, TriangleAlert, Undo2, X } from 'lucide-react'
+import { Box, Circle, Copy, Droplet, Layers, Plus, Search, Trash, TriangleAlert, Undo2, X } from 'lucide-react'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { useConfigActions, useDefaultStrawMaterialId } from '@/config/store'
 import { type EntityId, useEntityLabel } from '@/config/ui/useEntityLabel'
+import { strawbale } from '@/materials/defaults'
+import { OEKOBAUDAT_ENABLED } from '@/materials/oekobaudat/service'
+import type { OekobaudatEnvironmentalData } from '@/materials/oekobaudat/types'
+import { useMaterialActions, useMaterials } from '@/materials/store'
 import type {
   DimensionalMaterial,
   GenericMaterial,
@@ -16,9 +20,7 @@ import type {
   SheetType,
   StrawbaleMaterial,
   VolumeMaterial
-} from '@/materials/material'
-import { strawbale } from '@/materials/material'
-import { useMaterialActions, useMaterials } from '@/materials/store'
+} from '@/materials/types'
 import { type MaterialUsage, useMaterialUsage } from '@/materials/usage'
 import type { Length } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
@@ -37,6 +39,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-grou
 import { Tooltip } from '@/shared/ui/components/tooltip'
 
 import { MaterialSelect, useGetMaterialTypeName } from './MaterialSelect'
+import { OekobaudatSearchModal } from './OekobaudatSearchModal'
 import { getMaterialTypeIcon } from './icons'
 
 export interface MaterialsConfigModalProps {
@@ -366,55 +369,39 @@ export function MaterialsConfigContent(props?: MaterialsConfigContentProps): Rea
       {/* Form */}
       {selectedMaterial && (
         <Card className="flex flex-col gap-3 p-3">
-          <div className="grid grid-cols-[4em_1fr] items-center gap-2 gap-x-3">
-            <Label.Root>
+          <div className="grid grid-cols-2 items-center gap-3">
+            <Label.Root className="flex items-center gap-2">
               <span className="text-base font-medium">{t($ => $.common.name)}</span>
+              <TextField.Root
+                value={nameKey ? t($ => $.materials.defaults[nameKey]) : selectedMaterial.name}
+                onChange={e => {
+                  handleUpdate({ name: e.target.value })
+                }}
+                placeholder={t($ => $.materials.materialName)}
+                className="grow"
+              />
             </Label.Root>
-            <TextField.Root
-              value={nameKey ? t($ => $.materials.defaults[nameKey]) : selectedMaterial.name}
-              onChange={e => {
-                handleUpdate({ name: e.target.value })
-              }}
-              placeholder={t($ => $.materials.materialName)}
-            />
-          </div>
-          <div className="grid grid-cols-[4em_1fr_auto_1fr_auto_auto] items-center gap-2 gap-x-3">
-            <Label.Root>
-              <span className="text-base font-medium">{t($ => $.common.type)}</span>
-            </Label.Root>
-            <div className="flex items-center gap-2">
-              {Icon && <Icon width="12" height="12" />}
-              <span className="text-base">{getMaterialTypeName(selectedMaterial.type)}</span>
-            </div>
+            <div className="grid grid-cols-2 items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-base font-medium">{t($ => $.common.type)}</span>
+                <div className="flex items-center gap-2">
+                  {Icon && <Icon width="12" height="12" />}
+                  <span className="text-base">{getMaterialTypeName(selectedMaterial.type)}</span>
+                </div>
+              </div>
 
-            <Label.Root>
-              <span className="text-base font-medium">{t($ => $.common.color)}</span>
-            </Label.Root>
-            <input
-              type="color"
-              value={selectedMaterial.color}
-              onChange={e => {
-                handleUpdate({ color: e.target.value })
-              }}
-              className="h-[24px] w-[60px] cursor-pointer"
-            />
-            <Label.Root>
-              <span className="text-base font-medium">{t($ => $.common.density)}</span>
-            </Label.Root>
-            <NumberField.Root
-              value={selectedMaterial.density}
-              onChange={value => {
-                handleUpdate({ density: value })
-              }}
-              placeholder="—"
-            >
-              <NumberField.Input min="0" step="1" className="w-20 text-right" />
-              <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
-                <span className="text-muted-foreground pointer-events-none text-sm">
-                  {t($ => $.common.densityUnit)}
-                </span>
-              </NumberField.Slot>
-            </NumberField.Root>
+              <Label.Root className="flex items-center gap-2">
+                <span className="text-base font-medium">{t($ => $.common.color)}</span>
+                <input
+                  type="color"
+                  value={selectedMaterial.color}
+                  onChange={e => {
+                    handleUpdate({ color: e.target.value })
+                  }}
+                  className="h-[24px] w-[60px] cursor-pointer"
+                />
+              </Label.Root>
+            </div>
           </div>
 
           {selectedMaterial.type === 'dimensional' && (
@@ -436,6 +423,9 @@ export function MaterialsConfigContent(props?: MaterialsConfigContentProps): Rea
           {selectedMaterial.type === 'prefab' && (
             <PrefabMaterialFields material={selectedMaterial} onUpdate={handleUpdate} />
           )}
+
+          <BuildingPhysicsSection material={selectedMaterial} onUpdate={handleUpdate} />
+          <EnvironmentalImpactSection material={selectedMaterial} onUpdate={handleUpdate} />
         </Card>
       )}
       {!selectedMaterial && materials.length === 0 && (
@@ -1230,6 +1220,217 @@ function PrefabMaterialFields({
             </NumberField.Slot>
           </NumberField.Root>
         </div>
+      )}
+    </div>
+  )
+}
+
+function BuildingPhysicsSection({
+  material,
+  onUpdate
+}: {
+  material: Material
+  onUpdate: (updates: Partial<Material>) => void
+}) {
+  const { t } = useTranslation('config')
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-base font-medium">{t($ => $.common.buildingPhysics)}</span>
+      <div className="mt-2 grid grid-cols-2 gap-3 gap-x-4">
+        <Label.Root className="flex items-center gap-2">
+          <span className="text-sm font-medium">{t($ => $.common.density)}</span>
+          <NumberField.Root
+            value={material.density}
+            onChange={value => {
+              onUpdate({ density: value })
+            }}
+            placeholder="—"
+            className="grow"
+            min={0}
+          >
+            <NumberField.Input min="0" step="1" className="w-20 text-right" />
+            <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+              <span className="text-muted-foreground pointer-events-none text-sm">{t($ => $.common.densityUnit)}</span>
+            </NumberField.Slot>
+          </NumberField.Root>
+        </Label.Root>
+
+        <Label.Root className="flex items-center gap-2">
+          <span className="text-sm font-medium">{t($ => $.common.thermalConductivity)}</span>
+          <NumberField.Root
+            value={material.thermalConductivity}
+            onChange={value => {
+              onUpdate({ thermalConductivity: value ?? undefined })
+            }}
+            placeholder="—"
+            className="grow"
+            step={0.01}
+            precision={3}
+            min={0}
+          >
+            <NumberField.Input min="0" step="0.01" className="w-20 text-right" />
+            <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+              <span className="text-muted-foreground pointer-events-none text-sm">
+                {t($ => $.common.thermalConductivityUnit)}
+              </span>
+            </NumberField.Slot>
+          </NumberField.Root>
+        </Label.Root>
+
+        <Label.Root className="flex items-center gap-2">
+          <span className="text-sm font-medium">{t($ => $.common.vaporDiffusionResistance)}</span>
+          <NumberField.Root
+            value={material.vaporDiffusionResistance}
+            onChange={value => {
+              onUpdate({ vaporDiffusionResistance: value ?? undefined })
+            }}
+            placeholder="—"
+            className="grow"
+            min={0}
+          >
+            <NumberField.Input min="0" step="1" className="w-20 text-right" />
+            <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+              <span className="text-muted-foreground pointer-events-none text-sm">
+                {t($ => $.common.vaporDiffusionResistanceUnit)}
+              </span>
+            </NumberField.Slot>
+          </NumberField.Root>
+        </Label.Root>
+
+        <Label.Root className="flex items-center gap-2">
+          <span className="text-sm font-medium">{t($ => $.common.specificHeatCapacity)}</span>
+          <NumberField.Root
+            value={material.specificHeatCapacity}
+            onChange={value => {
+              onUpdate({ specificHeatCapacity: value ?? undefined })
+            }}
+            placeholder="—"
+            className="grow"
+            min={0}
+            step={100}
+          >
+            <NumberField.Input min="0" step="100" className="w-24 text-right" />
+            <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+              <span className="text-muted-foreground pointer-events-none text-sm">
+                {t($ => $.common.specificHeatCapacityUnit)}
+              </span>
+            </NumberField.Slot>
+          </NumberField.Root>
+        </Label.Root>
+      </div>
+    </div>
+  )
+}
+
+function EnvironmentalImpactSection({
+  material,
+  onUpdate
+}: {
+  material: Material
+  onUpdate: (updates: Partial<Material>) => void
+}) {
+  const { t } = useTranslation('config')
+  const [oekobaudatModalOpen, setOekobaudatModalOpen] = useState(false)
+
+  function handleOekobaudatSelect(data: OekobaudatEnvironmentalData) {
+    onUpdate({
+      primaryEnergy: data.primaryEnergy,
+      embodiedCarbon: data.embodiedCarbon,
+      acidificationPotential: data.acidificationPotential
+    })
+    setOekobaudatModalOpen(false)
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-base font-medium" id="environmental-impact">
+          {t($ => $.common.environmentalImpact)}
+        </span>
+        {OEKOBAUDAT_ENABLED && (
+          <Button
+            size="icon-sm"
+            variant="soft"
+            onClick={() => {
+              setOekobaudatModalOpen(true)
+            }}
+            title={t($ => $.oekobaudat.searchOekobaudat)}
+          >
+            <Search className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-3 gap-x-4">
+        <Label.Root className="flex items-center gap-2">
+          <span className="text-sm font-medium">{t($ => $.common.primaryEnergy)}</span>
+          <NumberField.Root
+            value={material.primaryEnergy}
+            onChange={value => {
+              onUpdate({ primaryEnergy: value ?? undefined })
+            }}
+            placeholder="—"
+            className="grow"
+            min={0}
+            precision={2}
+            step={0.1}
+          >
+            <NumberField.Input min="0" step="0.1" className="w-20 text-right" />
+            <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+              <span className="text-muted-foreground pointer-events-none text-sm">
+                {t($ => $.common.primaryEnergyUnit)}
+              </span>
+            </NumberField.Slot>
+          </NumberField.Root>
+        </Label.Root>
+
+        <Label.Root className="flex items-center gap-2">
+          <span className="text-sm font-medium">{t($ => $.common.embodiedCarbon)}</span>
+          <NumberField.Root
+            value={material.embodiedCarbon}
+            onChange={value => {
+              onUpdate({ embodiedCarbon: value ?? undefined })
+            }}
+            placeholder="—"
+            className="grow"
+            precision={2}
+            step={0.01}
+          >
+            <NumberField.Input step="0.01" className="w-24 text-right" />
+            <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+              <span className="text-muted-foreground pointer-events-none text-sm">
+                {t($ => $.common.embodiedCarbonUnit)}
+              </span>
+            </NumberField.Slot>
+          </NumberField.Root>
+        </Label.Root>
+
+        <Label.Root className="flex items-center gap-2">
+          <span className="text-sm font-medium">{t($ => $.common.acidificationPotential)}</span>
+          <NumberField.Root
+            value={material.acidificationPotential}
+            onChange={value => {
+              onUpdate({ acidificationPotential: value ?? undefined })
+            }}
+            placeholder="—"
+            className="grow"
+          >
+            <NumberField.Input min="0" step="0.0001" className="w-24 text-right" />
+            <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
+              <span className="text-muted-foreground pointer-events-none text-sm">
+                {t($ => $.common.acidificationPotentialUnit)}
+              </span>
+            </NumberField.Slot>
+          </NumberField.Root>
+        </Label.Root>
+      </div>
+      {OEKOBAUDAT_ENABLED && (
+        <OekobaudatSearchModal
+          open={oekobaudatModalOpen}
+          onOpenChange={setOekobaudatModalOpen}
+          materialName={material.name}
+          onSelect={handleOekobaudatSelect}
+        />
       )}
     </div>
   )

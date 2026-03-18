@@ -1,13 +1,19 @@
 {
   "common": {
+    "acidificationPotential": "Versauerungspotential",
+    "acidificationPotentialUnit": "kg SO₂e/kg",
     "add": "Hinzufügen",
     "addNew": "Neu hinzufügen",
+    "buildingPhysics": "Bauphysik",
     "cancel": "Abbrechen",
     "color": "Farbe",
     "delete": "Löschen",
     "density": "Dichte",
     "densityUnit": "kg/m³",
     "duplicate": "Duplizieren",
+    "embodiedCarbon": "Graue Energie (CO₂)",
+    "embodiedCarbonUnit": "kg CO₂e/kg",
+    "environmentalImpact": "Umweltauswirkungen",
     "height": "Höhe",
     "infillMaterial": "Füllmaterial",
     "inset": "Einzug",
@@ -22,15 +28,31 @@
       "selectDefault": "Standard auswählen …",
       "selectMaterial": "Material auswählen …"
     },
+    "primaryEnergy": "Primärenergie",
+    "primaryEnergyUnit": "MJ/kg",
     "reset": "Zurücksetzen",
     "resetToDefaults": "Auf Standard zurücksetzen",
+    "sdValue": {
+      "inside": "Innen {{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+      "insideNoValue": "Innen -",
+      "ok": "Die Dampfdiffusion ist richtig nach außen gerichtet",
+      "outside": "Außen {{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+      "outsideNoValue": "Außen -",
+      "warning": "Außen-sd-Wert ist höher als innen - Feuchtigkeit kann im Stroh eingeschlossen werden"
+    },
     "spacing": "Abstand",
+    "specificHeatCapacity": "Spezifische Wärmekapazität",
+    "specificHeatCapacityUnit": "J/kgK",
     "strawMaterialOverride": "Strohmaterial (Überschreiben)",
+    "thermalConductivity": "Wärmeleitfähigkeit",
+    "thermalConductivityUnit": "W/mK",
     "thickness": "Dicke",
     "totalHeight": "Gesamthöhe",
     "totalThickness": "Gesamtdicke",
     "type": "Typ",
     "useGlobalStrawSettings": "Globale Stroheinstellungen verwenden",
+    "vaporDiffusionResistance": "Dampfdiffusionswiderstand",
+    "vaporDiffusionResistanceUnit": "μ",
     "width": "Breite"
   },
   "floors": {
@@ -297,6 +319,21 @@
     "typeVolume": "Volumen",
     "volumeInput": "Volumen Eingabe"
   },
+  "oekobaudat": {
+    "actions": "Aktionen",
+    "category": "Kategorie",
+    "description": "In der Ökobaudat-Datenbank nach Umweltdaten suchen",
+    "generic": "Generisch",
+    "import": "Importieren",
+    "name": "Name",
+    "noResults": "Keine Ergebnisse gefunden",
+    "searchOekobaudat": "Ökobaudat durchsuchen",
+    "searchPlaceholder": "Material suchen...",
+    "specific": "Spezifisch",
+    "title": "Ökobaudat durchsuchen",
+    "type": "Typ",
+    "viewDetails": "Auf Ökobaudat ansehen"
+  },
   "openings": {
     "configure": "Öffnungsaufbau konfigurieren",
     "copyNameTemplate": "{{name}} (Kopie)",
@@ -355,6 +392,55 @@
     },
     "useGlobalDefault": "Standard verwenden"
   },
+  "physics": {
+    "breakdown": {
+      "air": "Luft",
+      "areaPercentShort": "Fläche %",
+      "ceilingSheathing": "Deckenbeplankung",
+      "core": "Kern",
+      "decking": "Dachbeplankung",
+      "frame": "Modulrahmen",
+      "inside": "Innenschichten",
+      "layers": "Schichten",
+      "module": "Modul",
+      "outside": "Außenschichten",
+      "overlap": "überschneidend",
+      "post": "Ständer",
+      "rafter": "Sparren",
+      "roof": "Dach",
+      "spacer": "Abstandshalter",
+      "straw": "Stroh",
+      "title": "Details",
+      "ventilated": "hinterlüftet",
+      "wall": "Wand"
+    },
+    "massPerArea": "Masse/m²",
+    "massPerAreaNoValue": "- kg/m²",
+    "massPerAreaShort": "Masse",
+    "massPerAreaUnit": "kg/m²",
+    "massPerAreaValue": "{{value, number(maximumFractionDigits: 1)}} kg/m²",
+    "massPerRunningMeter": "Masse/m",
+    "massPerRunningMeterValue": "{{value, number(maximumFractionDigits: 1)}} kg/m",
+    "noData": "Füge Materialien hinzu, um Bauphysik-Werte zu sehen",
+    "rValue": "R-Wert",
+    "rValueNoValue": "- m²K/W",
+    "rValueShort": "R",
+    "rValueUnit": "m²K/W",
+    "rValueValue": "{{value, number(maximumFractionDigits: 2)}} m²K/W",
+    "sdValue": "sd-Wert",
+    "sdValueNoValue": "- m",
+    "sdValueShort": "sd",
+    "sdValueUnit": "m",
+    "sdValueValue": "{{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} m",
+    "thicknessMm": "Dicke",
+    "title": "Bauphysik",
+    "uValue": "U-Wert",
+    "uValueNoValue": "- W/m²K",
+    "uValueUnit": "W/m²K",
+    "uValueValue": "{{value, number(maximumFractionDigits: 3)}}  W/m²K",
+    "wallHeight": "Höhe",
+    "wallThickness": "Dicke"
+  },
   "ringBeams": {
     "configure": "Ringanker konfigurieren",
     "copyNameTemplate": "{{name}} (Kopie)",
@@ -412,9 +498,11 @@
       "spacingTarget": "Abstand (Ziel)"
     },
     "layers": {
-      "insideLayers": "Innenschichten (Decke)",
-      "overhangLayers": "Traufschichten"
+      "inside": "Innen (Decke)",
+      "overhang": "Trauf",
+      "top": "Oben (Dach)"
     },
+    "layersSection": "Schichten",
     "newName": {
       "monolithic": "Neues Massivdach",
       "purlin": "Neues Pfettendach"
@@ -432,7 +520,6 @@
       "rafters": "Sparren",
       "straw": "Stroh"
     },
-    "topLayers": "Obere Schichten",
     "types": {
       "monolithic": "Massiv",
       "purlin": "Pfette"
@@ -492,7 +579,11 @@
     "infillConfiguration": "Ausfachung",
     "infillMaterial": "Füllmaterial",
     "infillMaterialTooltip": "Falls konfiguriert, wird dies für Lücken verwendet, die zu klein für Stroh sind",
-    "insideLayers": "Innenschichten",
+    "layers": {
+      "inside": "Innen",
+      "outside": "Außen"
+    },
+    "layersSection": "Schichten",
     "maxPostSpacing": "Max. Ständerabstand",
     "maxWidth": "Max. Breite",
     "minStrawSpace": "Min. Strohraum",
@@ -512,7 +603,6 @@
     "noOutsideLayers": "Keine Außenschichten definiert",
     "openingAssembly": "Öffnungsaufbau",
     "openingsSection": "Öffnungen",
-    "outsideLayers": "Außenschichten",
     "postsConfiguration": "Ständerkonfiguration",
     "postType": "Ständertyp",
     "postTypeDouble": "Doppelt",

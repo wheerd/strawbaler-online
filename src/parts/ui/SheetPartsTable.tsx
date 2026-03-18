@@ -1,7 +1,7 @@
 import { Eye, TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import type { SheetMaterial } from '@/materials/material'
+import type { SheetMaterial } from '@/materials/types'
 import type { AggregatedPartItem } from '@/parts/types'
 import { usePartsListView } from '@/parts/ui/PartsListViewContext'
 import { SheetPartModal } from '@/parts/ui/SheetPartModal'

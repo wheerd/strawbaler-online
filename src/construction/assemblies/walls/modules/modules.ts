@@ -1,3 +1,6 @@
+import { getConfigActions } from '@/config/store/accessors'
+import { materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
+import type { PhysicsSeries } from '@/construction/assemblies/physics/types'
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import {
@@ -15,7 +18,7 @@ import {
   TAG_MODULE_WIDTH,
   createTag
 } from '@/construction/model/tags'
-import type { MaterialId } from '@/materials/material'
+import type { MaterialId } from '@/materials/types'
 import type { InitialPartInfo } from '@/parts/types'
 import { type Length, type Vec3, newVec3 } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
@@ -332,4 +335,73 @@ export function* constructModule(
     const remainingArea = area.withZAdjustment(area.minHeight)
     yield* yieldElement(remainingArea.extrude(fallbackMaterial, [TAG_INFILL]))
   }
+}
+
+export function getModulePhysicsPaths(
+  config: ModuleConfig,
+  baseFraction: number,
+  width: Length,
+  height: Length,
+  thickness: Length
+): PhysicsSeries[] {
+  const verticalFrameArea = 2 * width * config.frameThickness
+  const coreHeight = height - 2 * config.frameThickness
+  const coreWidth = width - 2 * config.frameThickness
+  const sideFrameArea = coreHeight * 2 * config.frameThickness
+  const strawFraction = (coreWidth * coreHeight) / (width * height)
+  const strawItem = materialToPhysicsSeriesItem(
+    config.strawMaterial ?? getConfigActions().getDefaultStrawMaterial(),
+    thickness
+  )
+
+  if (config.type === 'single') {
+    const frameFraction = (verticalFrameArea + sideFrameArea) / (width * height)
+    const frameItem = materialToPhysicsSeriesItem(config.frameMaterial, thickness)
+    return [
+      {
+        items: strawItem ? [strawItem] : [],
+        areaFraction: baseFraction * strawFraction,
+        label: t => t($ => $.physics.breakdown.straw, { ns: 'config' })
+      },
+      {
+        items: frameItem ? [frameItem] : [],
+        areaFraction: baseFraction * frameFraction,
+        label: t => t($ => $.physics.breakdown.frame, { ns: 'config' })
+      }
+    ]
+  }
+
+  const spacerArea = config.spacerCount * config.spacerSize * config.frameThickness * 2
+  const nonSpacerFrameArea = sideFrameArea - spacerArea + verticalFrameArea
+
+  const infillThickness = thickness - 2 * config.frameWidth
+
+  const frameFraction = nonSpacerFrameArea / (width * height)
+  const spacerFraction = spacerArea / (width * height)
+
+  return [
+    {
+      items: strawItem ? [strawItem] : [],
+      areaFraction: baseFraction * strawFraction,
+      label: t => t($ => $.physics.breakdown.straw, { ns: 'config' })
+    },
+    {
+      items: [
+        materialToPhysicsSeriesItem(config.frameMaterial, config.frameWidth),
+        materialToPhysicsSeriesItem(config.infillMaterial, infillThickness),
+        materialToPhysicsSeriesItem(config.frameMaterial, config.frameWidth)
+      ].filter(item => item != null),
+      areaFraction: baseFraction * frameFraction,
+      label: t => t($ => $.physics.breakdown.frame, { ns: 'config' })
+    },
+    {
+      items: [
+        materialToPhysicsSeriesItem(config.frameMaterial, config.frameWidth),
+        materialToPhysicsSeriesItem(config.spacerMaterial, infillThickness),
+        materialToPhysicsSeriesItem(config.frameMaterial, config.frameWidth)
+      ].filter(item => item != null),
+      areaFraction: baseFraction * spacerFraction,
+      label: t => t($ => $.physics.breakdown.spacer, { ns: 'config' })
+    }
+  ]
 }

@@ -12,8 +12,8 @@ import {
   TAG_STRAW_STUFFED,
   type Tag
 } from '@/construction/model/tags'
-import type { MaterialId, StrawbaleMaterial } from '@/materials/material'
 import { getMaterialsActions } from '@/materials/store'
+import type { MaterialId, StrawbaleMaterial } from '@/materials/types'
 import { type Length, type Plane3D, type Vec3 } from '@/shared/geometry'
 
 function getStrawTags(size: Vec3, material: StrawbaleMaterial): Tag[] {

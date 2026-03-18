@@ -1,4 +1,5 @@
 import type { WallPost } from '@/building/model'
+import { type PhysicsSeries, materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { GroupOrElement } from '@/construction/model/elements'
 import {
@@ -9,8 +10,8 @@ import {
   yieldWarning
 } from '@/construction/model/results'
 import { TAG_INFILL, TAG_MODULE, TAG_POST, createTag } from '@/construction/model/tags'
-import type { DimensionalMaterial, MaterialId } from '@/materials/material'
 import { getMaterialById } from '@/materials/store'
+import type { DimensionalMaterial, MaterialId } from '@/materials/types'
 import { type Length } from '@/shared/geometry'
 import { assertUnreachable } from '@/shared/utils'
 
@@ -241,5 +242,29 @@ export function* constructWallPost(area: WallConstructionArea, post: WallPost): 
         `post-cross-section-${dimensionalMaterial.id}`
       )
     }
+  }
+}
+
+export function getPostPhysicsPath(config: PostConfig, areaFraction: number, coreThickness: number): PhysicsSeries {
+  if (config.type === 'full') {
+    const item = materialToPhysicsSeriesItem(config.material, coreThickness)
+    return {
+      items: item ? [item] : [],
+      areaFraction,
+      label: t => t($ => $.physics.breakdown.post, { ns: 'config' })
+    }
+  }
+
+  const postThickness = config.thickness
+  const infillThickness = coreThickness - 2 * postThickness
+
+  return {
+    items: [
+      materialToPhysicsSeriesItem(config.material, postThickness),
+      materialToPhysicsSeriesItem(config.infillMaterial, infillThickness),
+      materialToPhysicsSeriesItem(config.material, postThickness)
+    ].filter(item => item != null),
+    areaFraction,
+    label: t => t($ => $.physics.breakdown.post, { ns: 'config' })
   }
 }

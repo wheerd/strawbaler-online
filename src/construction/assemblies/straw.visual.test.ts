@@ -8,9 +8,9 @@ import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstr
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
 import { TAG_FULL_BALE, TAG_PARTIAL_BALE, TAG_STRAW_FLAKES, TAG_STRAW_STUFFED } from '@/construction/model/tags'
-import type { StrawbaleMaterial } from '@/materials/material'
-import { strawbale } from '@/materials/material'
+import { strawbale } from '@/materials/defaults'
 import { getMaterialsActions } from '@/materials/store'
+import type { StrawbaleMaterial } from '@/materials/types'
 import { Bounds3D, newVec3 } from '@/shared/geometry'
 
 import { constructStraw } from './straw'
