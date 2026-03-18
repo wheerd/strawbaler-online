@@ -1373,7 +1373,7 @@ function EnvironmentalImpactSection({
             className="grow"
             min={0}
             precision={2}
-            step={1}
+            step={0.1}
           >
             <NumberField.Input min="0" step="0.1" className="w-20 text-right" />
             <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
@@ -1394,7 +1394,7 @@ function EnvironmentalImpactSection({
             placeholder="—"
             className="grow"
             precision={2}
-            step={0.1}
+            step={0.01}
           >
             <NumberField.Input step="0.01" className="w-24 text-right" />
             <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">
