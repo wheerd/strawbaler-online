@@ -1236,9 +1236,7 @@ function BuildingPhysicsSection({
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-base font-medium" id="stock-lengths">
-        {t($ => $.common.buildingPhysics)}
-      </span>
+      <span className="text-base font-medium">{t($ => $.common.buildingPhysics)}</span>
       <div className="mt-2 grid grid-cols-2 gap-3 gap-x-4">
         <Label.Root className="flex items-center gap-2">
           <span className="text-sm font-medium">{t($ => $.common.density)}</span>
@@ -1310,7 +1308,7 @@ function BuildingPhysicsSection({
             placeholder="—"
             className="grow"
             min={0}
-            step={10}
+            step={100}
           >
             <NumberField.Input min="0" step="100" className="w-24 text-right" />
             <NumberField.Slot side="right" className="ml--4 pointer-events-none px-1">

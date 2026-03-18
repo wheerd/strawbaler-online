@@ -2,9 +2,9 @@ import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getLayerSetById, resolveLayerSetThickness } from '@/config/store'
 import {
   type AssemblyPhysicsStructure,
-  type PhysicsItem,
-  type PhysicsPath,
-  layerToPhysicsItems
+  type PhysicsParallel,
+  type PhysicsSeries,
+  layerToPhysicsParallel
 } from '@/construction/assemblies/physics'
 import type { StoreyContext } from '@/construction/context/storeys'
 import type { ConstructionModel } from '@/construction/model/model'
@@ -27,28 +27,28 @@ export abstract class BaseWallAssembly<T extends WallBaseConfig> implements Wall
 
   abstract get thicknessRange(): ThicknessRange
 
-  abstract getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsPath[]
+  abstract getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsSeries[]
 
   getPhysicsStructure(totalThickness: Length, height: Length): AssemblyPhysicsStructure {
     const insideThickness = resolveLayerSetThickness(this.config.insideLayerSetId)
     const outsideThickness = resolveLayerSetThickness(this.config.outsideLayerSetId)
     const coreThickness = totalThickness - insideThickness - outsideThickness
     return {
-      inside: this.getInsidePhysicsItems(),
+      inside: this.getInsidePhysicsLayers(),
       core: this.getCorePhysicsStructure(coreThickness, height),
-      outside: this.getOutsidePhysicsItems()
+      outside: this.getOutsidePhysicsLayers()
     }
   }
 
-  protected getInsidePhysicsItems(): PhysicsItem[] {
+  protected getInsidePhysicsLayers(): PhysicsParallel[] {
     const layers = getLayerSetById(this.config.insideLayerSetId)?.layers ?? []
     if (layers.length === 0) return []
-    return layers.flatMap(layer => layerToPhysicsItems(layer))
+    return layers.map(layer => layerToPhysicsParallel(layer)).filter((p): p is PhysicsParallel => p !== null)
   }
 
-  protected getOutsidePhysicsItems(): PhysicsItem[] {
+  protected getOutsidePhysicsLayers(): PhysicsParallel[] {
     const layers = getLayerSetById(this.config.outsideLayerSetId)?.layers ?? []
     if (layers.length === 0) return []
-    return layers.flatMap(layer => layerToPhysicsItems(layer))
+    return layers.map(layer => layerToPhysicsParallel(layer)).filter((p): p is PhysicsParallel => p !== null)
   }
 }

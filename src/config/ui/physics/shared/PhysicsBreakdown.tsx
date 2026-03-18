@@ -2,7 +2,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { AssemblyPhysics, PhysicsLayerResult, PhysicsPathResult } from '@/construction/assemblies/physics'
+import type { AssemblyPhysics, PhysicsParallelResult, PhysicsSeriesResult } from '@/construction/assemblies/physics'
 import type { TranslatableString } from '@/shared/i18n/TranslatableString'
 import { useTranslatableString } from '@/shared/i18n/useTranslatableString'
 
@@ -51,7 +51,23 @@ function BreakdownSection({ title, children }: { title: string; children: React.
   )
 }
 
-function LayersBreakdown({ layers }: { layers: PhysicsLayerResult[] }): React.JSX.Element {
+function SeriesBreakdown({ paths }: { paths: PhysicsSeriesResult[] }): React.JSX.Element {
+  const { t } = useTranslation('config')
+
+  if (paths.length === 0) {
+    return <div className="text-muted-foreground text-xs italic">{t($ => $.physics.breakdown.noLayers)}</div>
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {paths.map((path, pathIndex) => (
+        <SeriesEntry key={pathIndex} path={path} />
+      ))}
+    </div>
+  )
+}
+
+function ParallelBreakdown({ layers }: { layers: PhysicsParallelResult[] }): React.JSX.Element {
   const { t } = useTranslation('config')
 
   if (layers.length === 0) {
@@ -59,32 +75,15 @@ function LayersBreakdown({ layers }: { layers: PhysicsLayerResult[] }): React.JS
   }
 
   return (
-    <div className="flex flex-col gap-0.5">
-      {layers.map((layer, index) => (
-        <LayerRow
-          key={index}
-          label={layer.label}
-          thicknessMm={layer.thicknessMm}
-          sdValue={layer.sdValue}
-          rValue={layer.rValue}
-          massPerArea={layer.massPerArea}
-        />
-      ))}
-    </div>
-  )
-}
-
-function PathsBreakdown({ paths }: { paths: PhysicsPathResult[] }): React.JSX.Element {
-  return (
     <div className="flex flex-col gap-2">
-      {paths.map((path, pathIndex) => (
-        <PathEntry key={pathIndex} path={path} />
+      {layers.map((layer, layerIndex) => (
+        <ParallelEntry key={layerIndex} layer={layer} />
       ))}
     </div>
   )
 }
 
-function PathEntry({ path }: { path: PhysicsPathResult }): React.JSX.Element {
+function SeriesEntry({ path }: { path: PhysicsSeriesResult }): React.JSX.Element {
   const { t } = useTranslation('config')
   return (
     <div className="flex flex-col gap-1">
@@ -109,12 +108,64 @@ function PathEntry({ path }: { path: PhysicsPathResult }): React.JSX.Element {
       {path.items.length > 1 && (
         <LayerRow
           label={t($ => $.physics.breakdown.combined)}
-          thicknessMm={path.items.reduce((sum, item) => sum + item.thicknessMm, 0)}
+          thicknessMm={path.items.reduce((sum: number, item) => sum + item.thicknessMm, 0)}
           sdValue={path.combined.sdValue}
           rValue={path.combined.rValue}
           massPerArea={path.combined.massPerArea}
         />
       )}
+    </div>
+  )
+}
+
+function ParallelEntry({ layer }: { layer: PhysicsParallelResult }): React.JSX.Element {
+  const { t } = useTranslation('config')
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-medium">{useTranslatableString(layer.label)}</span>
+        <span className="text-muted-foreground text-xs">({layer.thicknessMm} mm)</span>
+      </div>
+      <div className="border-border ml-2 flex flex-col gap-0.5 border-l pl-2">
+        {layer.items.map((item, itemIndex) => (
+          <ParallelItemRow key={itemIndex} item={item} />
+        ))}
+      </div>
+      {layer.items.length > 1 && (
+        <LayerRow
+          label={t($ => $.physics.breakdown.combined)}
+          thicknessMm={layer.thicknessMm}
+          sdValue={layer.combined.sdValue}
+          rValue={layer.combined.rValue}
+          massPerArea={layer.combined.massPerArea}
+        />
+      )}
+    </div>
+  )
+}
+
+function ParallelItemRow({
+  item
+}: {
+  item: {
+    label: TranslatableString
+    areaPercent: string
+    sdValue: number | null
+    rValue: number | null
+    massPerArea: number | null
+  }
+}): React.JSX.Element {
+  const translatedLabel = useTranslatableString(item.label)
+  return (
+    <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 text-xs">
+      <span className="truncate" title={translatedLabel}>
+        {translatedLabel}
+        <span className="text-muted-foreground ml-1">({item.areaPercent})</span>
+      </span>
+      <span className="text-muted-foreground w-12 text-right">—</span>
+      <span className="w-14 text-right">{formatValue(item.sdValue, 2)} m</span>
+      <span className="w-14 text-right">{formatValue(item.rValue, 2)}</span>
+      <span className="w-14 text-right">{formatValue(item.massPerArea, 1)}</span>
     </div>
   )
 }
@@ -159,15 +210,15 @@ export function PhysicsBreakdown({ physics }: PhysicsBreakdownProps): React.JSX.
           </div>
 
           <BreakdownSection title={t($ => $.physics.breakdown.inside)}>
-            <LayersBreakdown layers={physics.breakdown.inside} />
+            <ParallelBreakdown layers={physics.breakdown.inside} />
           </BreakdownSection>
 
           <BreakdownSection title={t($ => $.physics.breakdown.core)}>
-            <PathsBreakdown paths={physics.breakdown.core} />
+            <SeriesBreakdown paths={physics.breakdown.core} />
           </BreakdownSection>
 
           <BreakdownSection title={t($ => $.physics.breakdown.outside)}>
-            <LayersBreakdown layers={physics.breakdown.outside} />
+            <ParallelBreakdown layers={physics.breakdown.outside} />
           </BreakdownSection>
         </div>
       )}

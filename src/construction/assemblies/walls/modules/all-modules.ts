@@ -1,6 +1,6 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
-import { type PhysicsPath } from '@/construction/assemblies/physics'
+import { type PhysicsSeries } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { infillWallArea } from '@/construction/assemblies/walls/infill/infill'
@@ -77,7 +77,7 @@ export class ModulesWallAssembly extends BaseWallAssembly<ModulesWallConfig> {
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
   }
 
-  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsPath[] {
+  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsSeries[] {
     const { module } = this.config
 
     return getModulePhysicsPaths(module, 1, module.maxWidth, height, coreThickness)

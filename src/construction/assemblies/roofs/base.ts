@@ -7,9 +7,9 @@ import { LAYER_CONSTRUCTIONS } from '@/construction/assemblies/layers'
 import type { LayerConfig } from '@/construction/assemblies/layers/types'
 import {
   type AssemblyPhysicsStructure,
-  type PhysicsItem,
-  type PhysicsPath,
-  layerToPhysicsItems
+  type PhysicsParallel,
+  type PhysicsSeries,
+  layerToPhysicsParallel
 } from '@/construction/assemblies/physics'
 import { VerticalOffsetMap } from '@/construction/context/offsets'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
@@ -82,26 +82,26 @@ export abstract class BaseRoofAssembly<T extends RoofAssemblyConfigBase> impleme
   protected abstract get overhangLayerOffset(): Length
 
   abstract getCoreThickness(): Length
-  abstract getCorePhysicsStructure(): PhysicsPath[]
+  abstract getCorePhysicsStructure(): PhysicsSeries[]
 
   getPhysicsStructure(): AssemblyPhysicsStructure {
     return {
-      inside: this.getInsidePhysicsItems(),
+      inside: this.getInsidePhysicsLayers(),
       core: this.getCorePhysicsStructure(),
-      outside: this.getOutsidePhysicsItems()
+      outside: this.getOutsidePhysicsLayers()
     }
   }
 
-  protected getInsidePhysicsItems(): PhysicsItem[] {
+  protected getInsidePhysicsLayers(): PhysicsParallel[] {
     const layers = resolveLayerSetLayers(this.config.insideLayerSetId)
     if (layers.length === 0) return []
-    return layers.flatMap(layer => layerToPhysicsItems(layer))
+    return layers.map(layer => layerToPhysicsParallel(layer)).filter((p): p is PhysicsParallel => p !== null)
   }
 
-  protected getOutsidePhysicsItems(): PhysicsItem[] {
+  protected getOutsidePhysicsLayers(): PhysicsParallel[] {
     const layers = resolveLayerSetLayers(this.config.topLayerSetId)
     if (layers.length === 0) return []
-    return layers.flatMap(layer => layerToPhysicsItems(layer))
+    return layers.map(layer => layerToPhysicsParallel(layer)).filter((p): p is PhysicsParallel => p !== null)
   }
 
   get insideLayersThickness(): Length {

@@ -1,10 +1,14 @@
 import type {
   AssemblyPhysics,
   AssemblyPhysicsStructure,
-  PhysicsItem,
-  PhysicsLayerResult,
-  PhysicsPath,
-  PhysicsPathResult
+  PhysicsParallel,
+  PhysicsParallelItem,
+  PhysicsParallelItemResult,
+  PhysicsParallelResult,
+  PhysicsSeries,
+  PhysicsSeriesItem,
+  PhysicsSeriesItemResult,
+  PhysicsSeriesResult
 } from './types'
 
 const MM_TO_M = 0.001
@@ -33,7 +37,7 @@ interface PhysicsValues {
   massPerArea: number | null
 }
 
-export function computeItemPhysics(item: PhysicsItem): PhysicsLayerResult {
+function computeSeriesItemPhysics(item: PhysicsSeriesItem): PhysicsSeriesItemResult {
   return {
     label: item.label,
     thicknessMm: item.thicknessMm,
@@ -43,7 +47,19 @@ export function computeItemPhysics(item: PhysicsItem): PhysicsLayerResult {
   }
 }
 
-function computeSeriesValues(items: PhysicsItem[]): PhysicsValues {
+function computeParallelItemPhysics(item: PhysicsParallelItem, thicknessMm: number): PhysicsParallelItemResult {
+  const areaPercent = `${Math.round(item.areaFraction * 100)}%`
+  return {
+    label: item.label,
+    areaFraction: item.areaFraction,
+    areaPercent,
+    sdValue: computeSdValue(thicknessMm, item.material.vaporDiffusionResistance),
+    rValue: computeRValue(thicknessMm, item.material.thermalConductivity),
+    massPerArea: computeMassPerArea(thicknessMm, item.material.density)
+  }
+}
+
+function computeSeriesValues(items: PhysicsSeriesItem[]): PhysicsValues {
   let sdValue = 0
   let rValue = 0
   let massPerArea = 0
@@ -52,7 +68,7 @@ function computeSeriesValues(items: PhysicsItem[]): PhysicsValues {
   let hasMass = true
 
   for (const item of items) {
-    const result = computeItemPhysics(item)
+    const result = computeSeriesItemPhysics(item)
     if (result.sdValue === null) hasSd = false
     else sdValue += result.sdValue
     if (result.rValue === null) hasR = false
@@ -68,7 +84,55 @@ function computeSeriesValues(items: PhysicsItem[]): PhysicsValues {
   }
 }
 
-function computeParallelValues(paths: PhysicsPath[]): PhysicsValues {
+function computeParallelValues(layer: PhysicsParallel): PhysicsValues {
+  if (layer.items.length === 0) {
+    return { sdValue: 0, rValue: 0, massPerArea: 0 }
+  }
+
+  let invRSum = 0
+  let sdSum = 0
+  let massSum = 0
+  let hasR = true
+  let hasSd = true
+  let hasMass = true
+
+  for (const item of layer.items) {
+    const fraction = item.areaFraction
+    const rValue = computeRValue(layer.thicknessMm, item.material.thermalConductivity)
+    const sdValue = computeSdValue(layer.thicknessMm, item.material.vaporDiffusionResistance)
+    const massValue = computeMassPerArea(layer.thicknessMm, item.material.density)
+
+    if (rValue === null || rValue <= 0) {
+      hasR = false
+    } else {
+      invRSum += fraction / rValue
+    }
+
+    if (sdValue === null) {
+      hasSd = false
+    } else {
+      sdSum += sdValue * fraction
+    }
+
+    if (massValue === null) {
+      hasMass = false
+    } else {
+      massSum += massValue * fraction
+    }
+  }
+
+  return {
+    sdValue: hasSd ? sdSum : null,
+    rValue: hasR ? 1 / invRSum : null,
+    massPerArea: hasMass ? massSum : null
+  }
+}
+
+function computeParallelValuesForSeries(paths: PhysicsSeries[]): PhysicsValues {
+  if (paths.length === 0) {
+    return { sdValue: 0, rValue: 0, massPerArea: 0 }
+  }
+
   let invRSum = 0
   let sdSum = 0
   let massSum = 0
@@ -106,8 +170,37 @@ function computeParallelValues(paths: PhysicsPath[]): PhysicsValues {
   }
 }
 
-function computePathResult(path: PhysicsPath): PhysicsPathResult {
-  const items = path.items.map(item => computeItemPhysics(item))
+function computeSeriesOfParallelValues(layers: PhysicsParallel[]): PhysicsValues {
+  if (layers.length === 0) {
+    return { sdValue: 0, rValue: 0, massPerArea: 0 }
+  }
+
+  let sdValue = 0
+  let rValue = 0
+  let massPerArea = 0
+  let hasSd = true
+  let hasR = true
+  let hasMass = true
+
+  for (const layer of layers) {
+    const layerValues = computeParallelValues(layer)
+    if (layerValues.sdValue === null) hasSd = false
+    else sdValue += layerValues.sdValue
+    if (layerValues.rValue === null) hasR = false
+    else rValue += layerValues.rValue
+    if (layerValues.massPerArea === null) hasMass = false
+    else massPerArea += layerValues.massPerArea
+  }
+
+  return {
+    sdValue: hasSd ? sdValue : null,
+    rValue: hasR ? rValue : null,
+    massPerArea: hasMass ? massPerArea : null
+  }
+}
+
+function computeSeriesResult(path: PhysicsSeries): PhysicsSeriesResult {
+  const items = path.items.map(item => computeSeriesItemPhysics(item))
   const combined = computeSeriesValues(path.items)
   const areaPercent = `${Math.round(path.areaFraction * 100)}%`
 
@@ -120,14 +213,26 @@ function computePathResult(path: PhysicsPath): PhysicsPathResult {
   }
 }
 
-export function computeAssemblyPhysics(structure: AssemblyPhysicsStructure): AssemblyPhysics {
-  const insideLayers = structure.inside.map(item => computeItemPhysics(item))
-  const outsideLayers = structure.outside.map(item => computeItemPhysics(item))
-  const corePaths = structure.core.map(path => computePathResult(path))
+function computeParallelResult(layer: PhysicsParallel): PhysicsParallelResult {
+  const items = layer.items.map(item => computeParallelItemPhysics(item, layer.thicknessMm))
+  const combined = computeParallelValues(layer)
 
-  const insideValues = computeSeriesValues(structure.inside)
-  const outsideValues = computeSeriesValues(structure.outside)
-  const coreValues = computeParallelValues(structure.core)
+  return {
+    label: layer.label,
+    thicknessMm: layer.thicknessMm,
+    items,
+    combined
+  }
+}
+
+export function computeAssemblyPhysics(structure: AssemblyPhysicsStructure): AssemblyPhysics {
+  const insideLayers = structure.inside.map(layer => computeParallelResult(layer))
+  const outsideLayers = structure.outside.map(layer => computeParallelResult(layer))
+  const corePaths = structure.core.map(path => computeSeriesResult(path))
+
+  const insideValues = computeSeriesOfParallelValues(structure.inside)
+  const outsideValues = computeSeriesOfParallelValues(structure.outside)
+  const coreValues = computeParallelValuesForSeries(structure.core)
 
   const totalRValue =
     insideValues.rValue !== null && coreValues.rValue !== null && outsideValues.rValue !== null

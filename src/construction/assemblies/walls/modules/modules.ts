@@ -1,6 +1,6 @@
 import { getConfigActions } from '@/config/store/accessors'
-import { materialToPhysicsItem } from '@/construction/assemblies/physics'
-import type { PhysicsPath } from '@/construction/assemblies/physics/types'
+import { materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
+import type { PhysicsSeries } from '@/construction/assemblies/physics/types'
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import {
@@ -343,20 +343,20 @@ export function getModulePhysicsPaths(
   width: Length,
   height: Length,
   thickness: Length
-): PhysicsPath[] {
+): PhysicsSeries[] {
   const verticalFrameArea = 2 * width * config.frameThickness
   const coreHeight = height - 2 * config.frameThickness
   const coreWidth = width - 2 * config.frameThickness
   const sideFrameArea = coreHeight * 2 * config.frameThickness
   const strawFraction = (coreWidth * coreHeight) / (width * height)
-  const strawItem = materialToPhysicsItem(
+  const strawItem = materialToPhysicsSeriesItem(
     config.strawMaterial ?? getConfigActions().getDefaultStrawMaterial(),
     thickness
   )
 
   if (config.type === 'single') {
     const frameFraction = (verticalFrameArea + sideFrameArea) / (width * height)
-    const frameItem = materialToPhysicsItem(config.frameMaterial, thickness)
+    const frameItem = materialToPhysicsSeriesItem(config.frameMaterial, thickness)
     return [
       {
         items: strawItem ? [strawItem] : [],
@@ -387,18 +387,18 @@ export function getModulePhysicsPaths(
     },
     {
       items: [
-        materialToPhysicsItem(config.frameMaterial, config.frameWidth),
-        materialToPhysicsItem(config.infillMaterial, infillThickness),
-        materialToPhysicsItem(config.frameMaterial, config.frameWidth)
+        materialToPhysicsSeriesItem(config.frameMaterial, config.frameWidth),
+        materialToPhysicsSeriesItem(config.infillMaterial, infillThickness),
+        materialToPhysicsSeriesItem(config.frameMaterial, config.frameWidth)
       ].filter(item => item != null),
       areaFraction: baseFraction * frameFraction,
       label: t => t($ => $.physics.breakdown.frame, { ns: 'config' })
     },
     {
       items: [
-        materialToPhysicsItem(config.frameMaterial, config.frameWidth),
-        materialToPhysicsItem(config.spacerMaterial, infillThickness),
-        materialToPhysicsItem(config.frameMaterial, config.frameWidth)
+        materialToPhysicsSeriesItem(config.frameMaterial, config.frameWidth),
+        materialToPhysicsSeriesItem(config.spacerMaterial, infillThickness),
+        materialToPhysicsSeriesItem(config.frameMaterial, config.frameWidth)
       ].filter(item => item != null),
       areaFraction: baseFraction * spacerFraction,
       label: t => t($ => $.physics.breakdown.spacer, { ns: 'config' })

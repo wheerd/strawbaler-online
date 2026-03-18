@@ -1,7 +1,7 @@
 import { type PerimeterWallWithGeometry, isOpeningId } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
-import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
+import { type PhysicsSeries, materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
 import { resolveRingBeamAssembly } from '@/construction/assemblies/ringBeams'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
@@ -146,8 +146,8 @@ export class NonStrawbaleWallAssembly extends BaseWallAssembly<NonStrawbaleWallC
     return addThickness(material ? getMaterialThickness(material) : undefined, layerThickness)
   }
 
-  getCorePhysicsStructure(coreThickness: Length): PhysicsPath[] {
-    const item = materialToPhysicsItem(this.config.material, coreThickness)
+  getCorePhysicsStructure(coreThickness: Length): PhysicsSeries[] {
+    const item = materialToPhysicsSeriesItem(this.config.material, coreThickness)
     return [
       {
         items: item ? [item] : [],

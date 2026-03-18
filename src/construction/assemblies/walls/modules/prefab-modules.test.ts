@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { PhysicsPath } from '@/construction/assemblies/physics'
+import type { PhysicsSeries } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { PrefabModulesWallConfig } from '@/construction/assemblies/walls/types'
 import type { ConstructionElement } from '@/construction/model/elements'
@@ -198,7 +198,7 @@ class TestPrefabModulesWallAssembly extends PrefabModulesWallAssembly {
     return super.moduleOpeningSubWallArea(area, type)
   }
 
-  public getCorePhysicsStructure(coreThickness: Length): PhysicsPath[] {
+  public getCorePhysicsStructure(coreThickness: Length): PhysicsSeries[] {
     return super.getCorePhysicsStructure(coreThickness)
   }
 }

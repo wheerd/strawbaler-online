@@ -2,7 +2,7 @@ import type { Manifold } from 'manifold-3d'
 
 import type { Roof } from '@/building/model'
 import type { RoofAssemblyConfig } from '@/config/types'
-import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
+import { type PhysicsSeries, materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/assemblies/roofs/base'
 import type { VerticalOffsetMap } from '@/construction/context/offsets'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
@@ -111,8 +111,8 @@ export class MonolithicRoofAssembly extends BaseRoofAssembly<MonolithicRoofConfi
     return this.config.thickness
   }
 
-  getCorePhysicsStructure(): PhysicsPath[] {
-    const item = materialToPhysicsItem(this.config.material, this.getCoreThickness())
+  getCorePhysicsStructure(): PhysicsSeries[] {
+    const item = materialToPhysicsSeriesItem(this.config.material, this.getCoreThickness())
     return [
       {
         items: item ? [item] : [],

@@ -1,6 +1,6 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { resolveLayerSetThickness } from '@/config/store'
-import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
+import { type PhysicsSeries, materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { type WallLayerSetIds, constructWallLayers } from '@/construction/assemblies/walls/layers'
@@ -385,8 +385,8 @@ export class PrefabModulesWallAssembly extends BaseWallAssembly<PrefabModulesWal
     return { min, max }
   }
 
-  getCorePhysicsStructure(coreThickness: Length): PhysicsPath[] {
-    const prefabItem = materialToPhysicsItem(this.config.defaultMaterial, coreThickness)
+  getCorePhysicsStructure(coreThickness: Length): PhysicsSeries[] {
+    const prefabItem = materialToPhysicsSeriesItem(this.config.defaultMaterial, coreThickness)
     return [
       {
         items: prefabItem ? [prefabItem] : [],

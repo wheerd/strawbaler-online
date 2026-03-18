@@ -7,25 +7,37 @@ export interface PhysicsMaterial {
   specificHeatCapacity?: number // c [J/kgK]
 }
 
-export interface PhysicsItem {
+export interface PhysicsSeriesItem {
   material: PhysicsMaterial
   thicknessMm: number
   label: TranslatableString
 }
 
-export interface PhysicsPath {
-  items: PhysicsItem[]
+export interface PhysicsSeries {
+  items: PhysicsSeriesItem[]
   areaFraction: number
   label: TranslatableString
 }
 
-export interface AssemblyPhysicsStructure {
-  inside: PhysicsItem[]
-  core: PhysicsPath[]
-  outside: PhysicsItem[]
+export interface PhysicsParallelItem {
+  material: PhysicsMaterial
+  label: TranslatableString
+  areaFraction: number
 }
 
-export interface PhysicsLayerResult {
+export interface PhysicsParallel {
+  items: PhysicsParallelItem[]
+  thicknessMm: number
+  label: TranslatableString
+}
+
+export interface AssemblyPhysicsStructure {
+  inside: PhysicsParallel[]
+  core: PhysicsSeries[]
+  outside: PhysicsParallel[]
+}
+
+export interface PhysicsSeriesItemResult {
   label: TranslatableString
   thicknessMm: number
   sdValue: number | null
@@ -33,11 +45,31 @@ export interface PhysicsLayerResult {
   massPerArea: number | null
 }
 
-export interface PhysicsPathResult {
+export interface PhysicsSeriesResult {
   label: TranslatableString
   areaFraction: number
   areaPercent: string
-  items: PhysicsLayerResult[]
+  items: PhysicsSeriesItemResult[]
+  combined: {
+    sdValue: number | null
+    rValue: number | null
+    massPerArea: number | null
+  }
+}
+
+export interface PhysicsParallelItemResult {
+  label: TranslatableString
+  areaFraction: number
+  areaPercent: string
+  sdValue: number | null
+  rValue: number | null
+  massPerArea: number | null
+}
+
+export interface PhysicsParallelResult {
+  label: TranslatableString
+  thicknessMm: number
+  items: PhysicsParallelItemResult[]
   combined: {
     sdValue: number | null
     rValue: number | null
@@ -53,8 +85,8 @@ export interface AssemblyPhysics {
   insideSdValue: number | null
   outsideSdValue: number | null
   breakdown: {
-    inside: PhysicsLayerResult[]
-    core: PhysicsPathResult[]
-    outside: PhysicsLayerResult[]
+    inside: PhysicsParallelResult[]
+    core: PhysicsSeriesResult[]
+    outside: PhysicsParallelResult[]
   }
 }

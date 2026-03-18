@@ -1,5 +1,5 @@
 import type { WallPost } from '@/building/model'
-import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
+import { type PhysicsSeries, materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { GroupOrElement } from '@/construction/model/elements'
 import {
@@ -245,9 +245,9 @@ export function* constructWallPost(area: WallConstructionArea, post: WallPost): 
   }
 }
 
-export function getPostPhysicsPath(config: PostConfig, areaFraction: number, coreThickness: number): PhysicsPath {
+export function getPostPhysicsPath(config: PostConfig, areaFraction: number, coreThickness: number): PhysicsSeries {
   if (config.type === 'full') {
-    const item = materialToPhysicsItem(config.material, coreThickness)
+    const item = materialToPhysicsSeriesItem(config.material, coreThickness)
     return {
       items: item ? [item] : [],
       areaFraction,
@@ -260,9 +260,9 @@ export function getPostPhysicsPath(config: PostConfig, areaFraction: number, cor
 
   return {
     items: [
-      materialToPhysicsItem(config.material, postThickness),
-      materialToPhysicsItem(config.infillMaterial, infillThickness),
-      materialToPhysicsItem(config.material, postThickness)
+      materialToPhysicsSeriesItem(config.material, postThickness),
+      materialToPhysicsSeriesItem(config.infillMaterial, infillThickness),
+      materialToPhysicsSeriesItem(config.material, postThickness)
     ].filter(item => item != null),
     areaFraction,
     label: t => t($ => $.physics.breakdown.post, { ns: 'config' })

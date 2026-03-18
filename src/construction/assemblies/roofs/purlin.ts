@@ -1,7 +1,12 @@
 import type { Roof } from '@/building/model'
 import { getConfigActions } from '@/config/store'
 import type { PurlinRoofAssemblyConfig } from '@/config/types'
-import { type PhysicsItem, type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
+import {
+  type PhysicsParallel,
+  type PhysicsSeries,
+  materialToPhysicsParallel,
+  materialToPhysicsSeriesItem
+} from '@/construction/assemblies/physics'
 import { BaseRoofAssembly, type RoofSide } from '@/construction/assemblies/roofs/base'
 import { constructStrawPolygon } from '@/construction/assemblies/straw'
 import { PolygonWithBoundingRect, type StripeOrGap } from '@/construction/assemblies/utils/PolygonWithBoundingRect'
@@ -223,22 +228,22 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     return this.config.thickness
   }
 
-  getCorePhysicsStructure(): PhysicsPath[] {
+  getCorePhysicsStructure(): PhysicsSeries[] {
     const rafterWidth = this.config.rafterWidth
     const rafterSpacing = this.config.rafterSpacing
     const rafterFraction = rafterWidth / (rafterWidth + rafterSpacing)
     const strawFraction = 1 - rafterFraction
 
-    const rafterItem = materialToPhysicsItem(this.config.rafterMaterial, this.config.thickness)
-    const rafterPath: PhysicsPath = {
+    const rafterItem = materialToPhysicsSeriesItem(this.config.rafterMaterial, this.config.thickness)
+    const rafterPath: PhysicsSeries = {
       items: rafterItem ? [rafterItem] : [],
       areaFraction: rafterFraction,
       label: t => t($ => $.physics.breakdown.rafter, { ns: 'config' })
     }
 
     const strawMaterialId = this.config.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
-    const strawItem = materialToPhysicsItem(strawMaterialId, this.config.thickness)
-    const strawPath: PhysicsPath = {
+    const strawItem = materialToPhysicsSeriesItem(strawMaterialId, this.config.thickness)
+    const strawPath: PhysicsSeries = {
       items: strawItem ? [strawItem] : [],
       areaFraction: strawFraction,
       label: t => t($ => $.physics.breakdown.straw, { ns: 'config' })
@@ -247,19 +252,26 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     return [rafterPath, strawPath]
   }
 
-  protected override getInsidePhysicsItems(): PhysicsItem[] {
-    const insideLayerItems = super.getInsidePhysicsItems()
-    const sheathingItem = materialToPhysicsItem(
+  protected override getInsidePhysicsLayers(): PhysicsParallel[] {
+    const insideLayers = super.getInsidePhysicsLayers()
+    const sheathingLayer = materialToPhysicsParallel(
       this.config.ceilingSheathingMaterial,
-      this.config.ceilingSheathingThickness
+      this.config.ceilingSheathingThickness,
+      'Ceiling Sheathing'
     )
-    return [...insideLayerItems, ...(sheathingItem ? [sheathingItem] : [])]
+    if (sheathingLayer) {
+      return [...insideLayers, sheathingLayer]
+    }
+    return insideLayers
   }
 
-  protected override getOutsidePhysicsItems(): PhysicsItem[] {
-    const outsideLayerItems = super.getOutsidePhysicsItems()
-    const deckingItem = materialToPhysicsItem(this.config.deckingMaterial, this.config.deckingThickness)
-    return [...(deckingItem ? [deckingItem] : []), ...outsideLayerItems]
+  protected override getOutsidePhysicsLayers(): PhysicsParallel[] {
+    const outsideLayers = super.getOutsidePhysicsLayers()
+    const deckingLayer = materialToPhysicsParallel(this.config.deckingMaterial, this.config.deckingThickness, 'Decking')
+    if (deckingLayer) {
+      return [deckingLayer, ...outsideLayers]
+    }
+    return outsideLayers
   }
 
   private *constructAllPurlins(

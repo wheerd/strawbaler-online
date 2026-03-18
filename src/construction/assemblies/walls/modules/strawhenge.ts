@@ -1,6 +1,6 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
-import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
+import { type PhysicsSeries, materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
@@ -196,14 +196,14 @@ export class StrawhengeWallAssembly extends BaseWallAssembly<StrawhengeWallConfi
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
   }
 
-  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsPath[] {
+  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsSeries[] {
     const { module, infill } = this.config
 
     const totalWidth = module.maxWidth + infill.desiredPostSpacing
     const moduleFraction = module.maxWidth / totalWidth
     const infillFraction = infill.desiredPostSpacing / totalWidth
 
-    const strawItem = materialToPhysicsItem(
+    const strawItem = materialToPhysicsSeriesItem(
       infill.strawMaterial ?? getConfigActions().getDefaultStrawMaterial(),
       coreThickness
     )

@@ -1,6 +1,6 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
 import { getConfigActions, resolveLayerSetThickness } from '@/config/store'
-import { type PhysicsPath, materialToPhysicsItem } from '@/construction/assemblies/physics'
+import { type PhysicsSeries, materialToPhysicsSeriesItem } from '@/construction/assemblies/physics'
 import { BaseWallAssembly } from '@/construction/assemblies/walls/base'
 import { type WallLayerSetIds, constructWallLayers } from '@/construction/assemblies/walls/layers'
 import { getPostPhysicsPath } from '@/construction/assemblies/walls/posts'
@@ -63,15 +63,15 @@ export class InfillWallAssembly extends BaseWallAssembly<InfillWallConfig> {
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
   }
 
-  getCorePhysicsStructure(coreThickness: Length): PhysicsPath[] {
+  getCorePhysicsStructure(coreThickness: Length): PhysicsSeries[] {
     const strawMaterialId = this.config.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
     const postWidth = this.config.posts.width
     const postSpacing = this.config.desiredPostSpacing
     const postFraction = postWidth / (postWidth + postSpacing)
     const strawFraction = 1 - postFraction
 
-    const strawItem = materialToPhysicsItem(strawMaterialId, coreThickness)
-    const strawPath: PhysicsPath = {
+    const strawItem = materialToPhysicsSeriesItem(strawMaterialId, coreThickness)
+    const strawPath: PhysicsSeries = {
       items: strawItem ? [strawItem] : [],
       areaFraction: strawFraction,
       label: t => t($ => $.physics.breakdown.straw, { ns: 'config' })

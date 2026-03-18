@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { PhysicsPath } from '@/construction/assemblies/physics'
+import type { PhysicsSeries } from '@/construction/assemblies/physics'
 import { constructStraw } from '@/construction/assemblies/straw'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import { infillWallArea } from '@/construction/assemblies/walls/infill/infill'
@@ -23,7 +23,7 @@ class TestStrawhengeWallAssembly extends StrawhengeWallAssembly {
     return super.strawhengeWallArea(area, startsWithStand, endsWithStand, startAtEnd)
   }
 
-  public getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsPath[] {
+  public getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsSeries[] {
     return super.getCorePhysicsStructure(coreThickness, height)
   }
 }

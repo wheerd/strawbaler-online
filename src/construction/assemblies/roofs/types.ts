@@ -1,6 +1,6 @@
 import type { Roof } from '@/building/model'
 import type { LayerSetId } from '@/building/model/ids'
-import type { AssemblyPhysicsStructure, PhysicsPath } from '@/construction/assemblies/physics'
+import type { AssemblyPhysicsStructure, PhysicsSeries } from '@/construction/assemblies/physics'
 import type { VerticalOffsetMap } from '@/construction/context/offsets'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import type { ConstructionModel } from '@/construction/model/model'
@@ -16,7 +16,7 @@ export interface RoofAssembly {
   get constructionThickness(): Length
   get totalThickness(): Length
   getCoreThickness: () => Length
-  getCorePhysicsStructure: () => PhysicsPath[]
+  getCorePhysicsStructure: () => PhysicsSeries[]
   getPhysicsStructure: () => AssemblyPhysicsStructure
 }
 
