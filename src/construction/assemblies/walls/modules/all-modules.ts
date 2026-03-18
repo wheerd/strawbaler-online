@@ -15,6 +15,7 @@ import { assignDeterministicIdsToResults, resultsToModel } from '@/construction/
 import { TAG_MODULE_CONSTRUCTION } from '@/construction/model/tags'
 import { getMaterialById } from '@/materials/store'
 import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
+import type { Length } from '@/shared/geometry'
 
 import { constructModule, getModulePhysicsPaths } from './modules'
 
@@ -76,21 +77,10 @@ export class ModulesWallAssembly extends BaseWallAssembly<ModulesWallConfig> {
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
   }
 
-  getCoreThickness(): number {
+  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsPath[] {
     const { module } = this.config
-    const strawMaterialId = module.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
-    const strawMaterial = getMaterialById(strawMaterialId)
-    if (strawMaterial?.type === 'strawbale') {
-      return strawMaterial.baleWidth
-    }
-    return 360
-  }
 
-  getCorePhysicsStructure(): PhysicsPath[] {
-    const { module } = this.config
-    const coreThickness = this.getCoreThickness()
-
-    return getModulePhysicsPaths(module, 1, module.maxWidth, 3000, coreThickness)
+    return getModulePhysicsPaths(module, 1, module.maxWidth, height, coreThickness)
   }
 
   readonly tag = TAG_MODULE_CONSTRUCTION

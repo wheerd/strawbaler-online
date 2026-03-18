@@ -20,9 +20,8 @@ export interface WallAssembly {
 
   get tag(): Tag
   get thicknessRange(): ThicknessRange
-  getCorePhysicsStructure(): PhysicsPath[]
-  getCoreThickness(): Length
-  getPhysicsStructure: () => AssemblyPhysicsStructure
+  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsPath[]
+  getPhysicsStructure: (totalThickness: Length, height: Length) => AssemblyPhysicsStructure
 }
 
 export type WallAssemblyType = 'infill' | 'strawhenge' | 'non-strawbale' | 'modules' | 'prefab-modules'

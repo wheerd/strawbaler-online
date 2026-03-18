@@ -599,6 +599,8 @@ interface Resources {
       "massPerAreaShort": "Mass",
       "massPerAreaUnit": "kg/m²",
       "massPerAreaValue": "{{value, number(maximumFractionDigits: 1)}} kg/m²",
+      "massPerRunningMeter": "Mass/m",
+      "massPerRunningMeterValue": "{{value, number(maximumFractionDigits: 1)}} kg/m",
       "noData": "Add materials to layers to see physics values",
       "rValue": "R-value",
       "rValueNoValue": "- m²K/W",
@@ -615,7 +617,9 @@ interface Resources {
       "uValue": "U-value",
       "uValueNoValue": "- W/m²K",
       "uValueUnit": "W/m²K",
-      "uValueValue": "{{value, number(maximumFractionDigits: 3)}}  W/m²K"
+      "uValueValue": "{{value, number(maximumFractionDigits: 3)}}  W/m²K",
+      "wallHeight": "Height",
+      "wallThickness": "Thickness"
     },
     "ringBeams": {
       "configure": "Configure Ring Beam",

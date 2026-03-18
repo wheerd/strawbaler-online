@@ -13,6 +13,7 @@ import { aggregateResults, assignDeterministicIdsToResults } from '@/constructio
 import { TAG_INFILL_CONSTRUCTION } from '@/construction/model/tags'
 import { getMaterialById } from '@/materials/store'
 import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
+import type { Length } from '@/shared/geometry'
 import { Bounds3D } from '@/shared/geometry'
 
 import { infillWallArea } from './infill'
@@ -62,23 +63,12 @@ export class InfillWallAssembly extends BaseWallAssembly<InfillWallConfig> {
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
   }
 
-  getCoreThickness(): number {
-    const strawMaterialId = this.config.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
-    const strawMaterial = getMaterialById(strawMaterialId)
-    if (strawMaterial?.type === 'strawbale') {
-      return strawMaterial.baleWidth
-    }
-    return 360
-  }
-
-  getCorePhysicsStructure(): PhysicsPath[] {
+  getCorePhysicsStructure(coreThickness: Length): PhysicsPath[] {
     const strawMaterialId = this.config.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
     const postWidth = this.config.posts.width
     const postSpacing = this.config.desiredPostSpacing
     const postFraction = postWidth / (postWidth + postSpacing)
     const strawFraction = 1 - postFraction
-
-    const coreThickness = this.getCoreThickness()
 
     const strawItem = materialToPhysicsItem(strawMaterialId, coreThickness)
     const strawPath: PhysicsPath = {

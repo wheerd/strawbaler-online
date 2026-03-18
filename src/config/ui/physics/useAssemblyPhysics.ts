@@ -5,13 +5,18 @@ import { resolveRoofAssembly } from '@/construction/assemblies/roofs'
 import type { RoofConfig } from '@/construction/assemblies/roofs/types'
 import { resolveWallAssembly } from '@/construction/assemblies/walls'
 import type { WallConfig } from '@/construction/assemblies/walls/types'
+import type { Length } from '@/shared/geometry'
 
-export function useWallAssemblyPhysics(config: WallConfig | null): AssemblyPhysicsStructure | null {
+export function useWallAssemblyPhysics(
+  config: WallConfig | null,
+  thickness: Length,
+  height: Length
+): AssemblyPhysicsStructure | null {
   return useMemo(() => {
     if (!config) return null
     const assembly = resolveWallAssembly(config)
-    return assembly.getPhysicsStructure()
-  }, [config])
+    return assembly.getPhysicsStructure(thickness, height)
+  }, [config, thickness, height])
 }
 
 export function useRoofAssemblyPhysics(config: RoofConfig | null): AssemblyPhysicsStructure | null {
@@ -22,9 +27,13 @@ export function useRoofAssemblyPhysics(config: RoofConfig | null): AssemblyPhysi
   }, [config])
 }
 
-export function getWallAssemblyPhysics(config: WallConfig): AssemblyPhysicsStructure {
+export function getWallAssemblyPhysics(
+  config: WallConfig,
+  thickness: Length,
+  height: Length
+): AssemblyPhysicsStructure {
   const assembly = resolveWallAssembly(config)
-  return assembly.getPhysicsStructure()
+  return assembly.getPhysicsStructure(thickness, height)
 }
 
 export function getRoofAssemblyPhysics(config: RoofConfig): AssemblyPhysicsStructure {

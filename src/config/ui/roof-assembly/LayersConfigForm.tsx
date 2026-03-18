@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { RoofAssemblyId } from '@/building/model/ids'
 import { useConfigActions } from '@/config/store'
 import { LayerSetSelectWithEdit } from '@/config/ui/layers/LayerSetSelect'
-import { AssemblyPhysicsPanel, AssemblySdValueRow, useRoofAssemblyPhysics } from '@/config/ui/physics'
+import { AssemblySdValueRow, RoofPhysicsPanel, useRoofAssemblyPhysics } from '@/config/ui/physics'
 import type { RoofConfig } from '@/construction/assemblies/roofs/types'
 import { RoofMeasurementInfo } from '@/shared/ui/RoofMeasurementInfo'
 
@@ -73,7 +73,7 @@ export function LayersConfigForm({ assemblyId, config }: LayersConfigFormProps):
       </div>
 
       <AssemblySdValueRow physicsStructure={physicsStructure} />
-      <AssemblyPhysicsPanel physicsStructure={physicsStructure} />
+      <RoofPhysicsPanel physicsStructure={physicsStructure} />
     </div>
   )
 }

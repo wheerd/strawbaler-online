@@ -196,19 +196,8 @@ export class StrawhengeWallAssembly extends BaseWallAssembly<StrawhengeWallConfi
     return addThickness(strawMaterial ? getMaterialThickness(strawMaterial) : undefined, layerThickness)
   }
 
-  getCoreThickness(): number {
+  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsPath[] {
     const { module, infill } = this.config
-    const strawMaterialId = module.strawMaterial ?? infill.strawMaterial ?? getConfigActions().getDefaultStrawMaterial()
-    const strawMaterial = getMaterialById(strawMaterialId)
-    if (strawMaterial?.type === 'strawbale') {
-      return strawMaterial.baleWidth
-    }
-    return 360
-  }
-
-  getCorePhysicsStructure(): PhysicsPath[] {
-    const { module, infill } = this.config
-    const coreThickness = this.getCoreThickness()
 
     const totalWidth = module.maxWidth + infill.desiredPostSpacing
     const moduleFraction = module.maxWidth / totalWidth
@@ -220,7 +209,7 @@ export class StrawhengeWallAssembly extends BaseWallAssembly<StrawhengeWallConfi
     )
 
     return [
-      ...getModulePhysicsPaths(module, moduleFraction, module.maxWidth, 3000, coreThickness),
+      ...getModulePhysicsPaths(module, moduleFraction, module.maxWidth, height, coreThickness),
       {
         items: strawItem ? [strawItem] : [],
         areaFraction: infillFraction,

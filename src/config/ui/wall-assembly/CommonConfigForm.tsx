@@ -7,7 +7,7 @@ import type { WallAssemblyConfig } from '@/config/types'
 import { LayerSetSdValueRow } from '@/config/ui/layers/LayerSetSdValueRow'
 import { LayerSetSelectWithEdit } from '@/config/ui/layers/LayerSetSelect'
 import { OpeningAssemblySelectWithEdit } from '@/config/ui/opening-assembly/OpeningAssemblySelectWithEdit'
-import { AssemblyPhysicsPanel, useWallAssemblyPhysics } from '@/config/ui/physics'
+import { WallPhysicsPanel } from '@/config/ui/physics/WallPhysicsPanel'
 import { MeasurementInfo } from '@/shared/ui/MeasurementInfo'
 import { Separator } from '@/shared/ui/components/separator'
 
@@ -22,8 +22,6 @@ export function CommonConfigForm({ assemblyId, config }: CommonConfigFormProps):
 
   const insideLayerSet = useLayerSetById(config.insideLayerSetId)
   const outsideLayerSet = useLayerSetById(config.outsideLayerSetId)
-
-  const physicsStructure = useWallAssemblyPhysics(config)
 
   return (
     <div className="flex flex-col gap-3">
@@ -84,7 +82,7 @@ export function CommonConfigForm({ assemblyId, config }: CommonConfigFormProps):
 
         <LayerSetSdValueRow insideLayers={insideLayerSet?.layers ?? []} outsideLayers={outsideLayerSet?.layers ?? []} />
 
-        <AssemblyPhysicsPanel physicsStructure={physicsStructure} />
+        <WallPhysicsPanel config={config} />
       </div>
     </div>
   )

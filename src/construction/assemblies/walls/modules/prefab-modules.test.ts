@@ -3,13 +3,14 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { PhysicsPath } from '@/construction/assemblies/physics'
 import { WallConstructionArea } from '@/construction/assemblies/utils/WallConstructionArea'
 import type { PrefabModulesWallConfig } from '@/construction/assemblies/walls/types'
 import type { ConstructionElement } from '@/construction/model/elements'
 import { aggregateResults } from '@/construction/model/results'
 import { getMaterialsActions } from '@/materials/store'
 import type { MaterialId, PrefabMaterial } from '@/materials/types'
-import { newVec2, newVec3 } from '@/shared/geometry'
+import { type Length, newVec2, newVec3 } from '@/shared/geometry'
 import { ensureClipperModule } from '@/shared/geometry/polygon/clipperInstance'
 
 import { PrefabModulesWallAssembly } from './prefab-modules'
@@ -197,12 +198,8 @@ class TestPrefabModulesWallAssembly extends PrefabModulesWallAssembly {
     return super.moduleOpeningSubWallArea(area, type)
   }
 
-  public getCoreThickness(): number {
-    return super.getCoreThickness()
-  }
-
-  public getCorePhysicsStructure() {
-    return super.getCorePhysicsStructure()
+  public getCorePhysicsStructure(coreThickness: Length): PhysicsPath[] {
+    return super.getCorePhysicsStructure(coreThickness)
   }
 }
 

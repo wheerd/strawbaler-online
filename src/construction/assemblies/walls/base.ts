@@ -10,6 +10,7 @@ import type { StoreyContext } from '@/construction/context/storeys'
 import type { ConstructionModel } from '@/construction/model/model'
 import type { Tag } from '@/construction/model/tags'
 import type { ThicknessRange } from '@/materials/thickness'
+import type { Length } from '@/shared/geometry'
 
 import type { WallAssembly, WallBaseConfig } from './types'
 
@@ -26,14 +27,12 @@ export abstract class BaseWallAssembly<T extends WallBaseConfig> implements Wall
 
   abstract get thicknessRange(): ThicknessRange
 
-  abstract getCoreThickness(): number
+  abstract getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsPath[]
 
-  abstract getCorePhysicsStructure(): PhysicsPath[]
-
-  getPhysicsStructure(): AssemblyPhysicsStructure {
+  getPhysicsStructure(totalThickness: Length, height: Length): AssemblyPhysicsStructure {
     return {
       inside: this.getInsidePhysicsItems(),
-      core: this.getCorePhysicsStructure(),
+      core: this.getCorePhysicsStructure(totalThickness, height),
       outside: this.getOutsidePhysicsItems()
     }
   }

@@ -26,7 +26,7 @@ import { createExtrudedPolygon } from '@/construction/model/shapes'
 import { TAG_NON_STRAWBALE_CONSTRUCTION } from '@/construction/model/tags'
 import { getMaterialById } from '@/materials/store'
 import { type ThicknessRange, addThickness, getMaterialThickness } from '@/materials/thickness'
-import { Bounds3D, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
+import { Bounds3D, type Length, fromTrans, newVec2, newVec3 } from '@/shared/geometry'
 
 export class NonStrawbaleWallAssembly extends BaseWallAssembly<NonStrawbaleWallConfig> {
   construct(wall: PerimeterWallWithGeometry, storeyContext: StoreyContext): ConstructionModel {
@@ -146,17 +146,8 @@ export class NonStrawbaleWallAssembly extends BaseWallAssembly<NonStrawbaleWallC
     return addThickness(material ? getMaterialThickness(material) : undefined, layerThickness)
   }
 
-  getCoreThickness(): number {
-    const material = getMaterialById(this.config.material)
-    if (material) {
-      const range = getMaterialThickness(material)
-      return range.max ?? 200
-    }
-    return 200
-  }
-
-  getCorePhysicsStructure(): PhysicsPath[] {
-    const item = materialToPhysicsItem(this.config.material, this.getCoreThickness())
+  getCorePhysicsStructure(coreThickness: Length): PhysicsPath[] {
+    const item = materialToPhysicsItem(this.config.material, coreThickness)
     return [
       {
         items: item ? [item] : [],

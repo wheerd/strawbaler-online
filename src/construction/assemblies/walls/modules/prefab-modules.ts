@@ -385,14 +385,8 @@ export class PrefabModulesWallAssembly extends BaseWallAssembly<PrefabModulesWal
     return { min, max }
   }
 
-  getCoreThickness(): number {
-    const { defaultMaterial } = this.config
-    const moduleMaterial = this.getModuleMaterial(defaultMaterial)
-    return (moduleMaterial.minThickness + moduleMaterial.maxThickness) / 2
-  }
-
-  getCorePhysicsStructure(): PhysicsPath[] {
-    const prefabItem = materialToPhysicsItem(this.config.defaultMaterial, this.getCoreThickness())
+  getCorePhysicsStructure(coreThickness: Length): PhysicsPath[] {
+    const prefabItem = materialToPhysicsItem(this.config.defaultMaterial, coreThickness)
     return [
       {
         items: prefabItem ? [prefabItem] : [],

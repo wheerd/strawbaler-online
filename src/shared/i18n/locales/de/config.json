@@ -415,6 +415,8 @@
     "massPerAreaShort": "Masse",
     "massPerAreaUnit": "kg/m²",
     "massPerAreaValue": "{{value, number(maximumFractionDigits: 1)}} kg/m²",
+    "massPerRunningMeter": "Masse/m",
+    "massPerRunningMeterValue": "{{value, number(maximumFractionDigits: 1)}} kg/m",
     "noData": "Füge Materialien hinzu, um Bauphysik-Werte zu sehen",
     "rValue": "R-Wert",
     "rValueNoValue": "- m²K/W",
@@ -431,7 +433,9 @@
     "uValue": "U-Wert",
     "uValueNoValue": "- W/m²K",
     "uValueUnit": "W/m²K",
-    "uValueValue": "{{value, number(maximumFractionDigits: 3)}}  W/m²K"
+    "uValueValue": "{{value, number(maximumFractionDigits: 3)}}  W/m²K",
+    "wallHeight": "Höhe",
+    "wallThickness": "Dicke"
   },
   "ringBeams": {
     "configure": "Ringanker konfigurieren",
