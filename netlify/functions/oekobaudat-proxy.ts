@@ -13,6 +13,26 @@ export default async (req: Request, context: Context) => {
   const proxyPath = url.pathname.replace('/api/oekobaudat-proxy/', '')
   const targetUrl = `${OEKOBAUDAT_BASE}/${proxyPath}${url.search}`
 
+  const requestOrigin = req.headers.get('origin') ?? ''
+  const fallbackOrigin = context.site?.url ?? '*'
+  const corsOrigin = allowedOrigins.includes(requestOrigin) ? requestOrigin : fallbackOrigin
+  const accessControlRequestHeaders =
+    req.headers.get('access-control-request-headers') ??
+    'Origin, X-Requested-With, Content-Type, Accept'
+  const allowedMethods = 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS'
+
+  // Handle CORS preflight requests early
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': corsOrigin,
+        'Access-Control-Allow-Methods': allowedMethods,
+        'Access-Control-Allow-Headers': accessControlRequestHeaders
+      }
+    })
+  }
+
   try {
     const response = await fetch(targetUrl, {
       method: req.method,
@@ -23,15 +43,13 @@ export default async (req: Request, context: Context) => {
 
     const body = await response.text()
 
-    const requestOrigin = req.headers.get('origin') ?? ''
-    const corsOrigin = allowedOrigins.includes(requestOrigin) ? requestOrigin : context.site.url
-
     return new Response(body, {
       status: response.status,
       headers: {
         'Content-Type': response.headers.get('content-type') ?? 'application/json',
         'Access-Control-Allow-Origin': corsOrigin,
-        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+        'Access-Control-Allow-Methods': allowedMethods,
+        'Access-Control-Allow-Headers': accessControlRequestHeaders
       }
     })
   } catch (error) {
@@ -39,7 +57,10 @@ export default async (req: Request, context: Context) => {
     return new Response(JSON.stringify({ error: 'Proxy error', message }), {
       status: 502,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': corsOrigin,
+        'Access-Control-Allow-Methods': allowedMethods,
+        'Access-Control-Allow-Headers': accessControlRequestHeaders
       }
     })
   }
