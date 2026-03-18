@@ -1,5 +1,5 @@
 import type { PerimeterWallWithGeometry } from '@/building/model'
-import { getLayerSetById } from '@/config/store'
+import { getLayerSetById, resolveLayerSetThickness } from '@/config/store'
 import {
   type AssemblyPhysicsStructure,
   type PhysicsItem,
@@ -30,9 +30,12 @@ export abstract class BaseWallAssembly<T extends WallBaseConfig> implements Wall
   abstract getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsPath[]
 
   getPhysicsStructure(totalThickness: Length, height: Length): AssemblyPhysicsStructure {
+    const insideThickness = resolveLayerSetThickness(this.config.insideLayerSetId)
+    const outsideThickness = resolveLayerSetThickness(this.config.outsideLayerSetId)
+    const coreThickness = totalThickness - insideThickness - outsideThickness
     return {
       inside: this.getInsidePhysicsItems(),
-      core: this.getCorePhysicsStructure(totalThickness, height),
+      core: this.getCorePhysicsStructure(coreThickness, height),
       outside: this.getOutsidePhysicsItems()
     }
   }
