@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 
 import { computeLayerSetPhysics } from '@/construction/assemblies/layers/physics'
 import type { LayerConfig } from '@/construction/assemblies/layers/types'
-import { getMaterialById } from '@/materials/store/store'
 import { Tooltip } from '@/shared/ui/components/tooltip'
 
 interface LayerSetSdValueRowProps {
@@ -17,12 +16,12 @@ export function LayerSetSdValueRow({ insideLayers, outsideLayers }: LayerSetSdVa
 
   const insidePhysics = useMemo(() => {
     if (insideLayers.length === 0) return null
-    return computeLayerSetPhysics(insideLayers, getMaterialById)
+    return computeLayerSetPhysics(insideLayers)
   }, [insideLayers])
 
   const outsidePhysics = useMemo(() => {
     if (outsideLayers.length === 0) return null
-    return computeLayerSetPhysics(outsideLayers, getMaterialById)
+    return computeLayerSetPhysics(outsideLayers)
   }, [outsideLayers])
 
   const insideSd = insidePhysics?.totalSdValue ?? null

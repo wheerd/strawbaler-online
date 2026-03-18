@@ -1,6 +1,7 @@
 import type {
   AssemblyPhysics,
   AssemblyPhysicsStructure,
+  PhysicsExclusionReason,
   PhysicsParallel,
   PhysicsParallelItem,
   PhysicsParallelItemResult,
@@ -170,13 +171,13 @@ function computeParallelValuesForSeries(paths: PhysicsSeries[]): PhysicsValues {
   }
 }
 
-interface SeriesOfParallelResult {
+export interface SeriesOfParallelResult {
   values: PhysicsValues
   layerResults: PhysicsParallelResult[]
   hasVentilatedAirGap: boolean
 }
 
-function computeSeriesOfParallelValues(layers: PhysicsParallel[]): SeriesOfParallelResult {
+export function computeSeriesOfParallelValues(layers: PhysicsParallel[]): SeriesOfParallelResult {
   if (layers.length === 0) {
     return {
       values: { sdValue: 0, rValue: 0, massPerArea: 0 },
@@ -201,19 +202,32 @@ function computeSeriesOfParallelValues(layers: PhysicsParallel[]): SeriesOfParal
     }
 
     const layerValues = computeParallelValues(layer)
+
+    let isExcludedFromTotal = false
+    let exclusionReason: PhysicsExclusionReason | undefined
+
+    if (foundVentilatedAirGap) {
+      isExcludedFromTotal = true
+      exclusionReason = 'ventilated'
+    } else if (layer.isOverlap) {
+      isExcludedFromTotal = true
+      exclusionReason = 'overlap'
+    }
+
     const layerResult: PhysicsParallelResult = {
       label: layer.label,
       thicknessMm: layer.thicknessMm,
       items: layer.items.map(item => computeParallelItemPhysics(item, layer.thicknessMm)),
       combined: layerValues,
-      isExcludedFromTotal: foundVentilatedAirGap
+      isExcludedFromTotal,
+      exclusionReason
     }
     layerResults.push(layerResult)
 
     if (layerValues.massPerArea === null) hasMass = false
     else massPerArea += layerValues.massPerArea
 
-    if (foundVentilatedAirGap) {
+    if (isExcludedFromTotal) {
       continue
     }
 

@@ -37,7 +37,8 @@ export function layerToPhysicsParallel(layer: LayerConfig): PhysicsParallel | nu
     return {
       items: [{ material, label: t => getMaterialName(material, t), areaFraction: 1 }],
       thicknessMm: layer.thickness,
-      label
+      label,
+      isOverlap: layer.overlap
     }
   }
 
@@ -59,7 +60,8 @@ export function layerToPhysicsParallel(layer: LayerConfig): PhysicsParallel | nu
     return {
       items,
       thicknessMm: layer.thickness,
-      label
+      label,
+      isOverlap: layer.overlap
     }
   } else {
     const airMaterial = createAirMaterial()
@@ -72,7 +74,8 @@ export function layerToPhysicsParallel(layer: LayerConfig): PhysicsParallel | nu
       items,
       thicknessMm: layer.thickness,
       label,
-      isVentilatedAirGap: true
+      isVentilatedAirGap: true,
+      isOverlap: layer.overlap
     }
   }
 }

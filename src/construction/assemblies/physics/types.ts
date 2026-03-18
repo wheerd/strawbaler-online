@@ -25,11 +25,14 @@ export interface PhysicsParallelItem {
   areaFraction: number
 }
 
+export type PhysicsExclusionReason = 'ventilated' | 'overlap'
+
 export interface PhysicsParallel {
   items: PhysicsParallelItem[]
   thicknessMm: number
   label: TranslatableString
   isVentilatedAirGap?: boolean
+  isOverlap?: boolean
 }
 
 export interface AssemblyPhysicsStructure {
@@ -77,6 +80,7 @@ export interface PhysicsParallelResult {
     massPerArea: number | null
   }
   isExcludedFromTotal?: boolean
+  exclusionReason?: PhysicsExclusionReason
 }
 
 export interface AssemblyPhysics {

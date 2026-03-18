@@ -2,52 +2,19 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  ParallelEntryRows,
+  PhysicsTableHeader,
+  SectionHeaderRow,
+  formatValue,
+  sumSectionStats
+} from '@/config/ui/physics/shared/PhysicsTableComponents'
 import { computeLayerSetPhysics } from '@/construction/assemblies/layers/physics'
 import type { LayerConfig } from '@/construction/assemblies/layers/types'
-import { getMaterialById } from '@/materials/store/store'
 import { Card } from '@/shared/ui/components/card'
 
 interface LayerSetPhysicsPanelProps {
   layers: LayerConfig[]
-}
-
-function formatValue(value: number | null | undefined, decimals: number): string {
-  if (value === null || value === undefined) return '—'
-  return value.toFixed(decimals)
-}
-
-function LayerRow({
-  name,
-  thicknessMm,
-  sdValue,
-  rValue,
-  massPerArea,
-  isExcluded
-}: {
-  name: string
-  thicknessMm: number
-  sdValue: number | null
-  rValue: number | null
-  massPerArea: number | null
-  isExcluded?: boolean
-}): React.JSX.Element {
-  const { t } = useTranslation('config')
-  return (
-    <div
-      className={`grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 text-xs ${isExcluded ? 'opacity-50' : ''}`}
-    >
-      <span className="truncate" title={name}>
-        {name}
-        {isExcluded && (
-          <span className="text-muted-foreground ml-1 italic">({t($ => $.physics.breakdown.excludedFromTotal)})</span>
-        )}
-      </span>
-      <span className="text-muted-foreground w-12 text-right">{thicknessMm} mm</span>
-      <span className="w-14 text-right">{formatValue(sdValue, 2)} m</span>
-      <span className="w-14 text-right">{formatValue(rValue, 2)}</span>
-      <span className="w-14 text-right">{formatValue(massPerArea, 1)}</span>
-    </div>
-  )
 }
 
 export function LayerSetPhysicsPanel({ layers }: LayerSetPhysicsPanelProps): React.JSX.Element {
@@ -56,7 +23,7 @@ export function LayerSetPhysicsPanel({ layers }: LayerSetPhysicsPanelProps): Rea
 
   const physics = useMemo(() => {
     if (layers.length === 0) return null
-    return computeLayerSetPhysics(layers, getMaterialById)
+    return computeLayerSetPhysics(layers)
   }, [layers])
 
   if (!physics) {
@@ -70,6 +37,7 @@ export function LayerSetPhysicsPanel({ layers }: LayerSetPhysicsPanelProps): Rea
   }
 
   const ChevronIcon = isExpanded ? ChevronDown : ChevronRight
+  const layerStats = sumSectionStats(physics.breakdown)
 
   return (
     <Card variant="soft" className="p-3">
@@ -106,27 +74,22 @@ export function LayerSetPhysicsPanel({ layers }: LayerSetPhysicsPanelProps): Rea
           </span>
         </div>
 
-        {isExpanded && physics.layerPhysics.length > 0 && (
-          <div className="border-border mt-2 flex flex-col gap-1 border-t pt-2">
-            <div className="text-muted-foreground grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 text-xs">
-              <span>{t($ => $.physics.breakdown.layers)}</span>
-              <span className="w-12 text-right">{t($ => $.physics.thicknessMm)}</span>
-              <span className="w-14 text-right">{t($ => $.physics.sdValueShort)}</span>
-              <span className="w-14 text-right">{t($ => $.physics.rValueShort)}</span>
-              <span className="w-14 text-right">{t($ => $.physics.massPerAreaShort)}</span>
-            </div>
-            {physics.layerPhysics.map((layerPhysics, index) => (
-              <LayerRow
-                key={index}
-                name={layers[index].name}
-                thicknessMm={layers[index].thickness}
-                sdValue={layerPhysics.sdValue}
-                rValue={layerPhysics.rValue}
-                massPerArea={layerPhysics.massPerArea}
-                isExcluded={layerPhysics.isExcludedFromTotal}
+        {isExpanded && physics.breakdown.length > 0 && (
+          <table className="border-border mt-2 w-full border-t pt-2 text-xs">
+            <PhysicsTableHeader />
+            <tbody>
+              <SectionHeaderRow
+                label={t($ => $.physics.breakdown.layers)}
+                thicknessMm={layerStats.thicknessMm}
+                sdValue={physics.totalSdValue}
+                rValue={physics.totalRValue}
+                massPerArea={physics.totalMassPerArea}
               />
-            ))}
-          </div>
+              {physics.breakdown.map((layer, i) => (
+                <ParallelEntryRows key={i} layer={layer} />
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </Card>

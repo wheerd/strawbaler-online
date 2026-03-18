@@ -1,14 +1,8 @@
-import type { Material, MaterialId } from '@/materials/types'
+import type { PhysicsParallel, PhysicsParallelResult } from '@/construction/assemblies/physics'
+import { computeSeriesOfParallelValues } from '@/construction/assemblies/physics/computation'
+import { layerToPhysicsParallel } from '@/construction/assemblies/physics/helpers'
 
 import type { LayerConfig } from './types'
-
-export interface LayerPhysics {
-  sdValue: number | null
-  rValue: number | null
-  massPerArea: number | null
-  isVentilatedAirGap?: boolean
-  isExcludedFromTotal?: boolean
-}
 
 export interface LayerSetPhysics {
   totalSdValue: number | null
@@ -16,184 +10,26 @@ export interface LayerSetPhysics {
   uValue: number | null
   totalMassPerArea: number | null
   hasVentilatedAirGap: boolean
-  layerPhysics: LayerPhysics[]
+  breakdown: PhysicsParallelResult[]
 }
 
-type MaterialResolver = (id: MaterialId) => Material | null
-
-const MM_TO_M = 0.001
-
-const AIR_THERMAL_CONDUCTIVITY = 0.026
-const AIR_VAPOR_DIFFUSION_RESISTANCE = 1
-
-export function computeLayerPhysics(layer: LayerConfig, getMaterial: MaterialResolver): LayerPhysics {
-  if (layer.type === 'monolithic') {
-    return computeMonolithicLayerPhysics(layer.thickness, layer.material, getMaterial)
-  } else {
-    return computeStripedLayerPhysics(layer, getMaterial)
-  }
-}
-
-function computeMonolithicLayerPhysics(
-  thicknessMm: number,
-  materialId: MaterialId,
-  getMaterial: MaterialResolver
-): LayerPhysics {
-  const material = getMaterial(materialId)
-  if (!material) {
-    return { sdValue: null, rValue: null, massPerArea: null }
-  }
-
-  const thicknessM = thicknessMm * MM_TO_M
-
-  return {
-    sdValue: computeSdValue(thicknessM, material.vaporDiffusionResistance),
-    rValue: computeRValue(thicknessM, material.thermalConductivity),
-    massPerArea: computeMassPerArea(thicknessM, material.density)
-  }
-}
-
-function computeStripedLayerPhysics(
-  layer: Extract<LayerConfig, { type: 'striped' }>,
-  getMaterial: MaterialResolver
-): LayerPhysics {
-  const stripeMaterial = getMaterial(layer.stripeMaterial)
-  const gapMaterial = layer.gapMaterial ? getMaterial(layer.gapMaterial) : null
-
-  if (!stripeMaterial) {
-    return { sdValue: null, rValue: null, massPerArea: null }
-  }
-
-  const thicknessM = layer.thickness * MM_TO_M
-  const totalWidth = layer.stripeWidth + layer.gapWidth
-  const stripeFraction = layer.stripeWidth / totalWidth
-  const gapFraction = layer.gapWidth / totalWidth
-
-  const stripeSd = computeSdValue(thicknessM, stripeMaterial.vaporDiffusionResistance)
-  const stripeR = computeRValue(thicknessM, stripeMaterial.thermalConductivity)
-  const stripeMass = computeMassPerArea(thicknessM, stripeMaterial.density)
-
-  if (!gapMaterial) {
-    const gapR = thicknessM / AIR_THERMAL_CONDUCTIVITY
-    return {
-      sdValue: combineSdWithAir(stripeSd, stripeFraction, thicknessM, gapFraction),
-      rValue: stripeR !== null ? 1 / (stripeFraction / stripeR + gapFraction / gapR) : null,
-      massPerArea: stripeMass !== null ? stripeMass * stripeFraction : null,
-      isVentilatedAirGap: true
-    }
-  }
-
-  const gapSd = computeSdValue(thicknessM, gapMaterial.vaporDiffusionResistance)
-  const gapR = computeRValue(thicknessM, gapMaterial.thermalConductivity)
-  const gapMass = computeMassPerArea(thicknessM, gapMaterial.density)
-
-  if (gapSd === null || gapR === null || gapMass === null) {
-    const gapR = thicknessM / AIR_THERMAL_CONDUCTIVITY
-    return {
-      sdValue: combineSdWithAir(stripeSd, stripeFraction, thicknessM, gapFraction),
-      rValue: stripeR !== null ? 1 / (stripeFraction / stripeR + gapFraction / gapR) : null,
-      massPerArea: stripeMass !== null ? stripeMass * stripeFraction : null,
-      isVentilatedAirGap: true
-    }
-  }
-
-  return {
-    sdValue: stripeSd !== null ? stripeSd * stripeFraction + gapSd * gapFraction : null,
-    rValue: stripeR !== null ? 1 / (stripeFraction / stripeR + gapFraction / gapR) : null,
-    massPerArea: stripeMass !== null ? stripeMass * stripeFraction + gapMass * gapFraction : null
-  }
-}
-
-function combineSdWithAir(
-  stripeSd: number | null,
-  stripeFraction: number,
-  thicknessM: number,
-  gapFraction: number
-): number | null {
-  if (stripeSd === null) return null
-  return stripeSd * stripeFraction + thicknessM * AIR_VAPOR_DIFFUSION_RESISTANCE * gapFraction
-}
-
-function computeSdValue(thicknessM: number, mu: number | undefined): number | null {
-  if (mu === undefined || mu <= 0) return null
-  return thicknessM * mu
-}
-
-function computeRValue(thicknessM: number, lambda: number | undefined): number | null {
-  if (lambda === undefined || lambda <= 0) return null
-  return thicknessM / lambda
-}
-
-function computeMassPerArea(thicknessM: number, density: number | undefined): number | null {
-  if (density === undefined || density <= 0) return null
-  return thicknessM * density
-}
-
-export function computeLayerSetPhysics(layers: LayerConfig[], getMaterial: MaterialResolver): LayerSetPhysics | null {
+export function computeLayerSetPhysics(layers: LayerConfig[]): LayerSetPhysics | null {
   if (layers.length === 0) return null
 
-  const layerPhysics: LayerPhysics[] = layers.map(layer => computeLayerPhysics(layer, getMaterial))
+  const parallelLayers = layers.map(layerToPhysicsParallel).filter((p): p is PhysicsParallel => p !== null)
 
-  let foundVentilatedAirGap = false
-  for (const physics of layerPhysics) {
-    if (physics.isVentilatedAirGap) {
-      foundVentilatedAirGap = true
-      break
-    }
-  }
+  if (parallelLayers.length === 0) return null
 
-  let totalSdValue = 0
-  let totalRValue = 0
-  let totalMassPerArea = 0
-  let hasSd = true
-  let hasR = true
-  let hasMass = true
-  let hitVentilatedAirGap = false
+  const result = computeSeriesOfParallelValues(parallelLayers)
 
-  for (let i = 0; i < layerPhysics.length; i++) {
-    const physics = layerPhysics[i]
-    const layer = layers[i]
-
-    if (hitVentilatedAirGap) {
-      physics.isExcludedFromTotal = true
-    }
-
-    if (physics.isVentilatedAirGap) {
-      hitVentilatedAirGap = true
-      physics.isExcludedFromTotal = true
-    }
-
-    if (physics.massPerArea === null) {
-      hasMass = false
-    } else if (!layer.overlap) {
-      totalMassPerArea += physics.massPerArea
-    }
-
-    if (hitVentilatedAirGap) {
-      continue
-    }
-
-    if (physics.sdValue === null) {
-      hasSd = false
-    } else if (!layer.overlap) {
-      totalSdValue += physics.sdValue
-    }
-
-    if (physics.rValue === null) {
-      hasR = false
-    } else if (!layer.overlap) {
-      totalRValue += physics.rValue
-    }
-  }
-
-  const uValue = hasR && totalRValue > 0 ? 1 / totalRValue : null
+  const uValue = result.values.rValue !== null && result.values.rValue > 0 ? 1 / result.values.rValue : null
 
   return {
-    totalSdValue: hasSd ? totalSdValue : null,
-    totalRValue: hasR ? totalRValue : null,
+    totalSdValue: result.values.sdValue,
+    totalRValue: result.values.rValue,
     uValue,
-    totalMassPerArea: hasMass ? totalMassPerArea : null,
-    hasVentilatedAirGap: foundVentilatedAirGap,
-    layerPhysics
+    totalMassPerArea: result.values.massPerArea,
+    hasVentilatedAirGap: result.hasVentilatedAirGap,
+    breakdown: result.layerResults
   }
 }
