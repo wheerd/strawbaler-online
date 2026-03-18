@@ -12,6 +12,7 @@ import { createTimestampsSlice } from '@/config/store/slices/timestampsSlice'
 import { createWallAssembliesSlice } from '@/config/store/slices/walls'
 import type { ConfigState, ConfigStore } from '@/config/store/types'
 
+import { mergeStateWithDefaults } from './mergeDefaults'
 import { CONFIG_STORE_VERSION, applyMigrations } from './migrations'
 
 export const useConfigStore = create<ConfigStore>()(
@@ -80,6 +81,11 @@ export const useConfigStore = create<ConfigStore>()(
           } catch (error) {
             console.error('Migration failed:', error)
             throw error
+          }
+        },
+        onRehydrateStorage: () => state => {
+          if (state) {
+            mergeStateWithDefaults(state)
           }
         }
       }
