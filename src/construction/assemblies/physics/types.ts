@@ -29,6 +29,7 @@ export interface PhysicsParallel {
   items: PhysicsParallelItem[]
   thicknessMm: number
   label: TranslatableString
+  isVentilatedAirGap?: boolean
 }
 
 export interface AssemblyPhysicsStructure {
@@ -75,6 +76,7 @@ export interface PhysicsParallelResult {
     rValue: number | null
     massPerArea: number | null
   }
+  isExcludedFromTotal?: boolean
 }
 
 export interface AssemblyPhysics {
@@ -84,6 +86,7 @@ export interface AssemblyPhysics {
   totalMassPerArea: number | null
   insideSdValue: number | null
   outsideSdValue: number | null
+  outsideHasVentilatedAirGap?: boolean
   breakdown: {
     inside: PhysicsParallelResult[]
     core: PhysicsSeriesResult[]

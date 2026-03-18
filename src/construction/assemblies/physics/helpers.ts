@@ -44,15 +44,24 @@ export function layerToPhysicsParallel(layer: LayerConfig): PhysicsParallel | nu
 
   if (gapMaterial) {
     items.push({ material: gapMaterial, label: t => getMaterialName(gapMaterial, t), areaFraction: gapFraction })
+    return {
+      items,
+      thicknessMm: layer.thickness,
+      label: () => layer.name
+    }
   } else {
     const airMaterial = createAirMaterial()
-    items.push({ material: airMaterial, label: () => 'Air', areaFraction: gapFraction })
-  }
-
-  return {
-    items,
-    thicknessMm: layer.thickness,
-    label: () => layer.name
+    items.push({
+      material: airMaterial,
+      label: t => t($ => $.physics.breakdown.air, { ns: 'config' }),
+      areaFraction: gapFraction
+    })
+    return {
+      items,
+      thicknessMm: layer.thickness,
+      label: () => layer.name,
+      isVentilatedAirGap: true
+    }
   }
 }
 

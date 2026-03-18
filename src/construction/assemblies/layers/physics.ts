@@ -6,6 +6,8 @@ export interface LayerPhysics {
   sdValue: number | null
   rValue: number | null
   massPerArea: number | null
+  isVentilatedAirGap?: boolean
+  isExcludedFromTotal?: boolean
 }
 
 export interface LayerSetPhysics {
@@ -13,6 +15,7 @@ export interface LayerSetPhysics {
   totalRValue: number | null
   uValue: number | null
   totalMassPerArea: number | null
+  hasVentilatedAirGap: boolean
   layerPhysics: LayerPhysics[]
 }
 
@@ -75,7 +78,8 @@ function computeStripedLayerPhysics(
     return {
       sdValue: combineSdWithAir(stripeSd, stripeFraction, thicknessM, gapFraction),
       rValue: stripeR !== null ? 1 / (stripeFraction / stripeR + gapFraction / gapR) : null,
-      massPerArea: stripeMass !== null ? stripeMass * stripeFraction : null
+      massPerArea: stripeMass !== null ? stripeMass * stripeFraction : null,
+      isVentilatedAirGap: true
     }
   }
 
@@ -88,7 +92,8 @@ function computeStripedLayerPhysics(
     return {
       sdValue: combineSdWithAir(stripeSd, stripeFraction, thicknessM, gapFraction),
       rValue: stripeR !== null ? 1 / (stripeFraction / stripeR + gapFraction / gapR) : null,
-      massPerArea: stripeMass !== null ? stripeMass * stripeFraction : null
+      massPerArea: stripeMass !== null ? stripeMass * stripeFraction : null,
+      isVentilatedAirGap: true
     }
   }
 
@@ -129,34 +134,66 @@ export function computeLayerSetPhysics(layers: LayerConfig[], getMaterial: Mater
 
   const layerPhysics: LayerPhysics[] = layers.map(layer => computeLayerPhysics(layer, getMaterial))
 
-  const totalSdValue = aggregateTotal(layerPhysics, 'sdValue', layers)
-  const totalRValue = aggregateTotal(layerPhysics, 'rValue', layers)
-  const totalMassPerArea = aggregateTotal(layerPhysics, 'massPerArea', layers, true)
-
-  const uValue = totalRValue !== null && totalRValue > 0 ? 1 / totalRValue : null
-
-  return {
-    totalSdValue,
-    totalRValue,
-    uValue,
-    totalMassPerArea,
-    layerPhysics
-  }
-}
-
-function aggregateTotal(
-  layerPhysics: LayerPhysics[],
-  key: keyof LayerPhysics,
-  layers: LayerConfig[],
-  includeOverlap = false
-): number | null {
-  let total = 0
-  for (let i = 0; i < layerPhysics.length; i++) {
-    const value = layerPhysics[i][key]
-    if (value === null) return null
-    if (includeOverlap || !layers[i].overlap) {
-      total += value
+  let foundVentilatedAirGap = false
+  for (const physics of layerPhysics) {
+    if (physics.isVentilatedAirGap) {
+      foundVentilatedAirGap = true
+      break
     }
   }
-  return total
+
+  let totalSdValue = 0
+  let totalRValue = 0
+  let totalMassPerArea = 0
+  let hasSd = true
+  let hasR = true
+  let hasMass = true
+  let hitVentilatedAirGap = false
+
+  for (let i = 0; i < layerPhysics.length; i++) {
+    const physics = layerPhysics[i]
+    const layer = layers[i]
+
+    if (hitVentilatedAirGap) {
+      physics.isExcludedFromTotal = true
+    }
+
+    if (physics.isVentilatedAirGap) {
+      hitVentilatedAirGap = true
+      physics.isExcludedFromTotal = true
+    }
+
+    if (physics.massPerArea === null) {
+      hasMass = false
+    } else if (!layer.overlap) {
+      totalMassPerArea += physics.massPerArea
+    }
+
+    if (hitVentilatedAirGap) {
+      continue
+    }
+
+    if (physics.sdValue === null) {
+      hasSd = false
+    } else if (!layer.overlap) {
+      totalSdValue += physics.sdValue
+    }
+
+    if (physics.rValue === null) {
+      hasR = false
+    } else if (!layer.overlap) {
+      totalRValue += physics.rValue
+    }
+  }
+
+  const uValue = hasR && totalRValue > 0 ? 1 / totalRValue : null
+
+  return {
+    totalSdValue: hasSd ? totalSdValue : null,
+    totalRValue: hasR ? totalRValue : null,
+    uValue,
+    totalMassPerArea: hasMass ? totalMassPerArea : null,
+    hasVentilatedAirGap: foundVentilatedAirGap,
+    layerPhysics
+  }
 }

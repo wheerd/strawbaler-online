@@ -120,11 +120,17 @@ function SeriesEntry({ path }: { path: PhysicsSeriesResult }): React.JSX.Element
 
 function ParallelEntry({ layer }: { layer: PhysicsParallelResult }): React.JSX.Element {
   const { t } = useTranslation('config')
+  const excludedClass = layer.isExcludedFromTotal ? 'opacity-50' : ''
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 ${excludedClass}`}>
       <div className="flex items-center gap-2">
         <span className="text-xs font-medium">{useTranslatableString(layer.label)}</span>
         <span className="text-muted-foreground text-xs">({layer.thicknessMm} mm)</span>
+        {layer.isExcludedFromTotal && (
+          <span className="text-muted-foreground text-xs italic">
+            ({t($ => $.physics.breakdown.excludedFromTotal)})
+          </span>
+        )}
       </div>
       <div className="border-border ml-2 flex flex-col gap-0.5 border-l pl-2">
         {layer.items.map((item, itemIndex) => (

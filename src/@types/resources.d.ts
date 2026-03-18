@@ -578,9 +578,11 @@ interface Resources {
     },
     "physics": {
       "breakdown": {
+        "air": "Air",
         "areaFraction": "Area: {{percent}}",
         "combined": "Combined",
         "core": "Core",
+        "excludedFromTotal": "ventilated",
         "frame": "Module Frame",
         "inside": "Inside Layers",
         "layers": "Layers",

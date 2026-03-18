@@ -208,6 +208,7 @@ describe('computeLayerPhysics', () => {
       expect(result.sdValue).toBeCloseTo(expectedSd, 4)
       expect(result.rValue).toBeCloseTo(expectedR, 4)
       expect(result.massPerArea).toBeCloseTo(expectedMass, 4)
+      expect(result.isVentilatedAirGap).toBe(true)
     })
 
     it('returns null for all values when stripe material is missing', () => {
@@ -428,5 +429,97 @@ describe('computeLayerSetPhysics', () => {
     const expectedTotalR = 0.1 / 0.1 + 0.05 / 0.05
     expect(result!.totalRValue).toBeCloseTo(expectedTotalR, 4)
     expect(result!.uValue).toBeCloseTo(1 / expectedTotalR, 4)
+  })
+
+  it('stops R/sd accumulation at ventilated air gap but includes all mass', () => {
+    const plaster = createMaterial({
+      id: 'material_plaster' as MaterialId,
+      density: 480,
+      thermalConductivity: 0.13,
+      vaporDiffusionResistance: 50
+    })
+
+    const batten = createMaterial({
+      id: 'material_batten' as MaterialId,
+      density: 500,
+      thermalConductivity: 0.13,
+      vaporDiffusionResistance: 50
+    })
+
+    const layers: LayerConfig[] = [
+      {
+        type: 'monolithic',
+        name: 'Plaster',
+        thickness: 20,
+        material: plaster.id
+      },
+      {
+        type: 'striped',
+        name: 'Ventilated Facade',
+        thickness: 60,
+        direction: 'perpendicular',
+        stripeWidth: 50,
+        stripeMaterial: batten.id,
+        gapWidth: 50,
+        gapMaterial: undefined
+      },
+      {
+        type: 'monolithic',
+        name: 'Cladding',
+        thickness: 20,
+        material: batten.id
+      }
+    ]
+
+    const result = computeLayerSetPhysics(layers, createMaterialResolver([plaster, batten]))
+
+    expect(result).not.toBeNull()
+    expect(result!.hasVentilatedAirGap).toBe(true)
+    expect(result!.layerPhysics).toHaveLength(3)
+
+    expect(result!.layerPhysics[0].isExcludedFromTotal).toBeFalsy()
+    expect(result!.layerPhysics[1].isVentilatedAirGap).toBe(true)
+    expect(result!.layerPhysics[1].isExcludedFromTotal).toBe(true)
+    expect(result!.layerPhysics[2].isExcludedFromTotal).toBe(true)
+
+    const expectedTotalR = 0.02 / 0.13
+    const expectedTotalSd = 0.02 * 50
+
+    expect(result!.totalRValue).toBeCloseTo(expectedTotalR, 4)
+    expect(result!.totalSdValue).toBeCloseTo(expectedTotalSd, 4)
+
+    const expectedMass = 0.02 * 480 + 0.06 * 500 * 0.5 + 0.02 * 500
+    expect(result!.totalMassPerArea).toBeCloseTo(expectedMass, 4)
+  })
+
+  it('does not mark layers as excluded when no ventilated air gap', () => {
+    const material = createMaterial({
+      id: 'material_1' as MaterialId,
+      density: 500,
+      thermalConductivity: 0.1,
+      vaporDiffusionResistance: 10
+    })
+
+    const layers: LayerConfig[] = [
+      {
+        type: 'monolithic',
+        name: 'Layer 1',
+        thickness: 100,
+        material: material.id
+      },
+      {
+        type: 'monolithic',
+        name: 'Layer 2',
+        thickness: 50,
+        material: material.id
+      }
+    ]
+
+    const result = computeLayerSetPhysics(layers, createMaterialResolver([material]))
+
+    expect(result).not.toBeNull()
+    expect(result!.hasVentilatedAirGap).toBe(false)
+    expect(result!.layerPhysics[0].isExcludedFromTotal).toBeFalsy()
+    expect(result!.layerPhysics[1].isExcludedFromTotal).toBeFalsy()
   })
 })

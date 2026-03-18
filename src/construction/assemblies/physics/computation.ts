@@ -170,9 +170,19 @@ function computeParallelValuesForSeries(paths: PhysicsSeries[]): PhysicsValues {
   }
 }
 
-function computeSeriesOfParallelValues(layers: PhysicsParallel[]): PhysicsValues {
+interface SeriesOfParallelResult {
+  values: PhysicsValues
+  layerResults: PhysicsParallelResult[]
+  hasVentilatedAirGap: boolean
+}
+
+function computeSeriesOfParallelValues(layers: PhysicsParallel[]): SeriesOfParallelResult {
   if (layers.length === 0) {
-    return { sdValue: 0, rValue: 0, massPerArea: 0 }
+    return {
+      values: { sdValue: 0, rValue: 0, massPerArea: 0 },
+      layerResults: [],
+      hasVentilatedAirGap: false
+    }
   }
 
   let sdValue = 0
@@ -181,21 +191,46 @@ function computeSeriesOfParallelValues(layers: PhysicsParallel[]): PhysicsValues
   let hasSd = true
   let hasR = true
   let hasMass = true
+  let foundVentilatedAirGap = false
+
+  const layerResults: PhysicsParallelResult[] = []
 
   for (const layer of layers) {
+    if (layer.isVentilatedAirGap) {
+      foundVentilatedAirGap = true
+    }
+
     const layerValues = computeParallelValues(layer)
+    const layerResult: PhysicsParallelResult = {
+      label: layer.label,
+      thicknessMm: layer.thicknessMm,
+      items: layer.items.map(item => computeParallelItemPhysics(item, layer.thicknessMm)),
+      combined: layerValues,
+      isExcludedFromTotal: foundVentilatedAirGap
+    }
+    layerResults.push(layerResult)
+
+    if (layerValues.massPerArea === null) hasMass = false
+    else massPerArea += layerValues.massPerArea
+
+    if (foundVentilatedAirGap) {
+      continue
+    }
+
     if (layerValues.sdValue === null) hasSd = false
     else sdValue += layerValues.sdValue
     if (layerValues.rValue === null) hasR = false
     else rValue += layerValues.rValue
-    if (layerValues.massPerArea === null) hasMass = false
-    else massPerArea += layerValues.massPerArea
   }
 
   return {
-    sdValue: hasSd ? sdValue : null,
-    rValue: hasR ? rValue : null,
-    massPerArea: hasMass ? massPerArea : null
+    values: {
+      sdValue: hasSd ? sdValue : null,
+      rValue: hasR ? rValue : null,
+      massPerArea: hasMass ? massPerArea : null
+    },
+    layerResults,
+    hasVentilatedAirGap: foundVentilatedAirGap
   }
 }
 
@@ -213,40 +248,27 @@ function computeSeriesResult(path: PhysicsSeries): PhysicsSeriesResult {
   }
 }
 
-function computeParallelResult(layer: PhysicsParallel): PhysicsParallelResult {
-  const items = layer.items.map(item => computeParallelItemPhysics(item, layer.thicknessMm))
-  const combined = computeParallelValues(layer)
-
-  return {
-    label: layer.label,
-    thicknessMm: layer.thicknessMm,
-    items,
-    combined
-  }
-}
-
 export function computeAssemblyPhysics(structure: AssemblyPhysicsStructure): AssemblyPhysics {
-  const insideLayers = structure.inside.map(layer => computeParallelResult(layer))
-  const outsideLayers = structure.outside.map(layer => computeParallelResult(layer))
+  const insideResult = computeSeriesOfParallelValues(structure.inside)
+  const outsideResult = computeSeriesOfParallelValues(structure.outside)
   const corePaths = structure.core.map(path => computeSeriesResult(path))
-
-  const insideValues = computeSeriesOfParallelValues(structure.inside)
-  const outsideValues = computeSeriesOfParallelValues(structure.outside)
   const coreValues = computeParallelValuesForSeries(structure.core)
 
   const totalRValue =
-    insideValues.rValue !== null && coreValues.rValue !== null && outsideValues.rValue !== null
-      ? insideValues.rValue + coreValues.rValue + outsideValues.rValue
+    insideResult.values.rValue !== null && coreValues.rValue !== null && outsideResult.values.rValue !== null
+      ? insideResult.values.rValue + coreValues.rValue + outsideResult.values.rValue
       : null
 
   const totalSdValue =
-    insideValues.sdValue !== null && coreValues.sdValue !== null && outsideValues.sdValue !== null
-      ? insideValues.sdValue + coreValues.sdValue + outsideValues.sdValue
+    insideResult.values.sdValue !== null && coreValues.sdValue !== null && outsideResult.values.sdValue !== null
+      ? insideResult.values.sdValue + coreValues.sdValue + outsideResult.values.sdValue
       : null
 
   const totalMassPerArea =
-    insideValues.massPerArea !== null && coreValues.massPerArea !== null && outsideValues.massPerArea !== null
-      ? insideValues.massPerArea + coreValues.massPerArea + outsideValues.massPerArea
+    insideResult.values.massPerArea !== null &&
+    coreValues.massPerArea !== null &&
+    outsideResult.values.massPerArea !== null
+      ? insideResult.values.massPerArea + coreValues.massPerArea + outsideResult.values.massPerArea
       : null
 
   const uValue = totalRValue !== null && totalRValue > 0 ? 1 / totalRValue : null
@@ -256,12 +278,13 @@ export function computeAssemblyPhysics(structure: AssemblyPhysicsStructure): Ass
     totalRValue,
     uValue,
     totalMassPerArea,
-    insideSdValue: insideValues.sdValue,
-    outsideSdValue: outsideValues.sdValue,
+    insideSdValue: insideResult.values.sdValue,
+    outsideSdValue: outsideResult.values.sdValue,
+    outsideHasVentilatedAirGap: outsideResult.hasVentilatedAirGap,
     breakdown: {
-      inside: insideLayers,
+      inside: insideResult.layerResults,
       core: corePaths,
-      outside: outsideLayers
+      outside: outsideResult.layerResults
     }
   }
 }
