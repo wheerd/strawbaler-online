@@ -3,6 +3,7 @@ import { getMaterialById } from '@/materials/store'
 import type { MaterialId } from '@/materials/types'
 import { getMaterialName } from '@/materials/ui/useMaterialName'
 import type { Length } from '@/shared/geometry'
+import type { TranslatableString } from '@/shared/i18n/TranslatableString'
 
 import type { PhysicsParallel, PhysicsParallelItem, PhysicsSeriesItem } from './types'
 
@@ -18,14 +19,25 @@ function createAirMaterial(): PhysicsParallelItem['material'] {
   }
 }
 
+function getLayerName(layer: LayerConfig): TranslatableString {
+  const nameKey = layer.nameKey
+  return t => {
+    if (nameKey) {
+      return t(nameKey, { ns: 'config' })
+    }
+    return layer.name
+  }
+}
+
 export function layerToPhysicsParallel(layer: LayerConfig): PhysicsParallel | null {
+  const label = getLayerName(layer)
   if (layer.type === 'monolithic') {
     const material = getMaterialById(layer.material)
     if (!material) return null
     return {
       items: [{ material, label: t => getMaterialName(material, t), areaFraction: 1 }],
       thicknessMm: layer.thickness,
-      label: () => layer.name
+      label
     }
   }
 
@@ -47,7 +59,7 @@ export function layerToPhysicsParallel(layer: LayerConfig): PhysicsParallel | nu
     return {
       items,
       thicknessMm: layer.thickness,
-      label: () => layer.name
+      label
     }
   } else {
     const airMaterial = createAirMaterial()
@@ -59,7 +71,7 @@ export function layerToPhysicsParallel(layer: LayerConfig): PhysicsParallel | nu
     return {
       items,
       thicknessMm: layer.thickness,
-      label: () => layer.name,
+      label,
       isVentilatedAirGap: true
     }
   }
@@ -79,13 +91,13 @@ export function materialToPhysicsSeriesItem(materialId: MaterialId, thickness: L
 export function materialToPhysicsParallel(
   materialId: MaterialId,
   thickness: number,
-  layerName: string
+  layerName: TranslatableString
 ): PhysicsParallel | null {
   const material = getMaterialById(materialId)
   if (!material) return null
   return {
     items: [{ material, label: t => getMaterialName(material, t), areaFraction: 1 }],
     thicknessMm: thickness,
-    label: () => layerName
+    label: layerName
   }
 }

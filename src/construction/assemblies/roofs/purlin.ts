@@ -257,7 +257,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     const sheathingLayer = materialToPhysicsParallel(
       this.config.ceilingSheathingMaterial,
       this.config.ceilingSheathingThickness,
-      'Ceiling Sheathing'
+      t => t($ => $.physics.breakdown.ceilingSheathing, { ns: 'config' })
     )
     if (sheathingLayer) {
       return [...insideLayers, sheathingLayer]
@@ -267,7 +267,9 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
 
   protected override getOutsidePhysicsLayers(): PhysicsParallel[] {
     const outsideLayers = super.getOutsidePhysicsLayers()
-    const deckingLayer = materialToPhysicsParallel(this.config.deckingMaterial, this.config.deckingThickness, 'Decking')
+    const deckingLayer = materialToPhysicsParallel(this.config.deckingMaterial, this.config.deckingThickness, t =>
+      t($ => $.physics.breakdown.decking, { ns: 'config' })
+    )
     if (deckingLayer) {
       return [deckingLayer, ...outsideLayers]
     }
