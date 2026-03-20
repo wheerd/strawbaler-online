@@ -1,0 +1,416 @@
+import type { StateCreator } from 'zustand'
+
+import type {
+  InnerWallNodeGeometry,
+  InnerWallNodeWithGeometry,
+  IntermediateWall,
+  IntermediateWallGeometry,
+  IntermediateWallWithGeometry,
+  PerimeterWallNodeGeometry,
+  PerimeterWallNodeWithGeometry,
+  WallAttachment,
+  WallAxis,
+  WallNode,
+  WallNodeGeometry,
+  WallNodeWithGeometry
+} from '@/building/model'
+import type { IntermediateWallId, PerimeterId, PerimeterWallId, WallNodeId } from '@/building/model/ids'
+import { createIntermediateWallId, createWallNodeId } from '@/building/model/ids'
+import { NotFoundError } from '@/building/store/errors'
+import type { PerimetersState } from '@/building/store/slices/perimeterSlice'
+import {
+  type TimestampsState,
+  removeTimestampDraft,
+  updateTimestampDraft
+} from '@/building/store/slices/timestampsSlice'
+import type { Length, Vec2 } from '@/shared/geometry'
+import { copyVec2 } from '@/shared/geometry'
+
+import { updateAllWallNodeGeometry } from './intermediateWallGeometry'
+
+export interface IntermediateWallsState {
+  intermediateWalls: Record<IntermediateWallId, IntermediateWall>
+  _intermediateWallGeometry: Record<IntermediateWallId, IntermediateWallGeometry>
+
+  wallNodes: Record<WallNodeId, WallNode>
+  _wallNodeGeometry: Record<WallNodeId, WallNodeGeometry>
+}
+
+export interface IntermediateWallsActions {
+  addIntermediateWall: (
+    perimeterId: PerimeterId,
+    start: WallAttachment,
+    end: WallAttachment,
+    thickness: Length
+  ) => IntermediateWallWithGeometry
+  removeIntermediateWall: (wallId: IntermediateWallId) => void
+  updateIntermediateWallThickness: (wallId: IntermediateWallId, thickness: Length) => void
+  updateIntermediateWallAlignment: (wallId: IntermediateWallId, start: WallAxis, end: WallAxis) => void
+
+  addPerimeterWallNode: (
+    perimeterId: PerimeterId,
+    wallId: PerimeterWallId,
+    offsetFromCornerStart: Length
+  ) => PerimeterWallNodeWithGeometry
+  addInnerWallNode: (perimeterId: PerimeterId, position: Vec2) => InnerWallNodeWithGeometry
+  removeWallNode: (nodeId: WallNodeId) => void
+  updateInnerWallNodePosition: (nodeId: WallNodeId, position: Vec2) => void
+  updatePerimeterWallNodeOffset: (nodeId: WallNodeId, offsetFromCornerStart: Length) => void
+
+  getIntermediateWallById: (wallId: IntermediateWallId) => IntermediateWallWithGeometry
+  getIntermediateWallsByPerimeter: (perimeterId: PerimeterId) => IntermediateWallWithGeometry[]
+  getAllIntermediateWalls: () => IntermediateWallWithGeometry[]
+  getWallNodeById: (nodeId: WallNodeId) => WallNodeWithGeometry
+  getWallNodesByPerimeter: (perimeterId: PerimeterId) => WallNodeWithGeometry[]
+  getAllWallNodes: () => WallNodeWithGeometry[]
+}
+
+export type IntermediateWallsSlice = IntermediateWallsState & { actions: IntermediateWallsActions }
+
+export const createIntermediateWallsSlice: StateCreator<
+  IntermediateWallsSlice & PerimetersState & TimestampsState,
+  [['zustand/immer', never]],
+  [],
+  IntermediateWallsSlice
+> = (set, get) => ({
+  intermediateWalls: {},
+  _intermediateWallGeometry: {},
+  wallNodes: {},
+  _wallNodeGeometry: {},
+
+  actions: {
+    addIntermediateWall: (perimeterId: PerimeterId, start: WallAttachment, end: WallAttachment, thickness: Length) => {
+      if (thickness <= 0) {
+        throw new Error('Wall thickness must be greater than 0')
+      }
+
+      let result!: IntermediateWallWithGeometry
+      set(state => {
+        if (!(perimeterId in state.perimeters)) {
+          throw new NotFoundError('Perimeter', perimeterId)
+        }
+
+        const perimeter = state.perimeters[perimeterId]
+
+        const wallId = createIntermediateWallId()
+        const wall: IntermediateWall = {
+          id: wallId,
+          perimeterId,
+          openingIds: [],
+          start,
+          end,
+          thickness
+        }
+
+        state.intermediateWalls[wallId] = wall
+        perimeter.intermediateWallIds.push(wallId)
+
+        updateAllWallNodeGeometry(state, perimeterId)
+
+        updateTimestampDraft(state, wallId)
+        result = { ...wall, ...state._intermediateWallGeometry[wallId] }
+      })
+
+      return result
+    },
+
+    removeIntermediateWall: (wallId: IntermediateWallId) => {
+      set(state => {
+        if (!(wallId in state.intermediateWalls)) return
+
+        const wall = state.intermediateWalls[wallId]
+        const perimeter = state.perimeters[wall.perimeterId]
+
+        perimeter.intermediateWallIds = perimeter.intermediateWallIds.filter(id => id !== wallId)
+
+        delete state.intermediateWalls[wallId]
+        delete state._intermediateWallGeometry[wallId]
+
+        removeTimestampDraft(state, wallId)
+
+        cleanupOrphanedNodes(state, wall.start.nodeId, wallId)
+        cleanupOrphanedNodes(state, wall.end.nodeId, wallId)
+
+        updateAllWallNodeGeometry(state, wall.perimeterId)
+      })
+    },
+
+    updateIntermediateWallThickness: (wallId: IntermediateWallId, thickness: Length) => {
+      if (thickness <= 0) {
+        throw new Error('Wall thickness must be greater than 0')
+      }
+
+      set(state => {
+        if (!(wallId in state.intermediateWalls)) {
+          throw new NotFoundError('Intermediate wall', wallId)
+        }
+        const wall = state.intermediateWalls[wallId]
+
+        wall.thickness = thickness
+        updateAllWallNodeGeometry(state, wall.perimeterId)
+        updateTimestampDraft(state, wallId)
+      })
+    },
+
+    updateIntermediateWallAlignment: (wallId: IntermediateWallId, start: WallAxis, end: WallAxis) => {
+      set(state => {
+        if (!(wallId in state.intermediateWalls)) {
+          throw new NotFoundError('Intermediate wall', wallId)
+        }
+        const wall = state.intermediateWalls[wallId]
+
+        wall.start.axis = start
+        wall.end.axis = end
+
+        updateAllWallNodeGeometry(state, wall.perimeterId)
+        updateTimestampDraft(state, wallId)
+      })
+    },
+
+    addPerimeterWallNode: (perimeterId: PerimeterId, wallId: PerimeterWallId, offsetFromCornerStart: Length) => {
+      let result!: PerimeterWallNodeWithGeometry
+      set(state => {
+        if (!(perimeterId in state.perimeters)) {
+          throw new NotFoundError('Perimeter', perimeterId)
+        }
+
+        if (!(wallId in state.perimeterWalls)) {
+          throw new NotFoundError('Perimeter wall', wallId)
+        }
+
+        const perimeter = state.perimeters[perimeterId]
+
+        const nodeId = createWallNodeId()
+        const node: WallNode = {
+          id: nodeId,
+          perimeterId,
+          type: 'perimeter',
+          wallId,
+          offsetFromCornerStart,
+          connectedWallIds: []
+        }
+
+        state.wallNodes[nodeId] = node
+        perimeter.wallNodeIds.push(nodeId)
+
+        updateAllWallNodeGeometry(state, perimeterId)
+
+        updateTimestampDraft(state, nodeId)
+        const geometry = state._wallNodeGeometry[nodeId] as PerimeterWallNodeGeometry
+        result = { ...node, ...geometry }
+      })
+
+      return result
+    },
+
+    addInnerWallNode: (perimeterId: PerimeterId, position: Vec2) => {
+      let result!: InnerWallNodeWithGeometry
+      set(state => {
+        if (!(perimeterId in state.perimeters)) {
+          throw new NotFoundError('Perimeter', perimeterId)
+        }
+
+        const perimeter = state.perimeters[perimeterId]
+
+        const nodeId = createWallNodeId()
+        const node: WallNode = {
+          id: nodeId,
+          perimeterId,
+          type: 'inner',
+          position: copyVec2(position),
+          connectedWallIds: []
+        }
+
+        state.wallNodes[nodeId] = node
+        perimeter.wallNodeIds.push(nodeId)
+
+        updateAllWallNodeGeometry(state, perimeterId)
+
+        updateTimestampDraft(state, nodeId)
+        const geometry = state._wallNodeGeometry[nodeId] as InnerWallNodeGeometry
+        result = { ...node, ...geometry }
+      })
+
+      return result
+    },
+
+    removeWallNode: (nodeId: WallNodeId) => {
+      set(state => {
+        if (!(nodeId in state.wallNodes)) return
+
+        const node = state.wallNodes[nodeId]
+        const perimeter = state.perimeters[node.perimeterId]
+
+        const connectedWalls = Object.values(state.intermediateWalls).filter(
+          wall => wall.start.nodeId === nodeId || wall.end.nodeId === nodeId
+        )
+
+        for (const wall of connectedWalls) {
+          perimeter.intermediateWallIds = perimeter.intermediateWallIds.filter(id => id !== wall.id)
+          delete state.intermediateWalls[wall.id]
+          delete state._intermediateWallGeometry[wall.id]
+          removeTimestampDraft(state, wall.id)
+
+          const otherNodeId = wall.start.nodeId === nodeId ? wall.end.nodeId : wall.start.nodeId
+          cleanupOrphanedNodes(state, otherNodeId, wall.id)
+        }
+
+        perimeter.wallNodeIds = perimeter.wallNodeIds.filter(id => id !== nodeId)
+        delete state.wallNodes[nodeId]
+        delete state._wallNodeGeometry[nodeId]
+
+        removeTimestampDraft(state, nodeId)
+
+        updateAllWallNodeGeometry(state, node.perimeterId)
+      })
+    },
+
+    updateInnerWallNodePosition: (nodeId: WallNodeId, position: Vec2) => {
+      set(state => {
+        if (!(nodeId in state.wallNodes)) {
+          throw new NotFoundError('Wall node', nodeId)
+        }
+
+        const node = state.wallNodes[nodeId]
+        if (node.type !== 'inner') {
+          throw new Error('Cannot update position of perimeter wall node')
+        }
+
+        node.position = copyVec2(position)
+
+        const connectedWalls = Object.values(state.intermediateWalls).filter(
+          wall => wall.start.nodeId === nodeId || wall.end.nodeId === nodeId
+        )
+
+        for (const wall of connectedWalls) {
+          updateTimestampDraft(state, wall.id)
+        }
+
+        updateAllWallNodeGeometry(state, node.perimeterId)
+        updateTimestampDraft(state, nodeId)
+      })
+    },
+
+    updatePerimeterWallNodeOffset: (nodeId: WallNodeId, offsetFromCornerStart: Length) => {
+      set(state => {
+        if (!(nodeId in state.wallNodes)) {
+          throw new NotFoundError('Wall node', nodeId)
+        }
+
+        const node = state.wallNodes[nodeId]
+        if (node.type !== 'perimeter') {
+          throw new Error('Cannot update offset of inner wall node')
+        }
+
+        node.offsetFromCornerStart = offsetFromCornerStart
+
+        const connectedWalls = Object.values(state.intermediateWalls).filter(
+          wall => wall.start.nodeId === nodeId || wall.end.nodeId === nodeId
+        )
+
+        for (const wall of connectedWalls) {
+          updateTimestampDraft(state, wall.id)
+        }
+
+        updateAllWallNodeGeometry(state, node.perimeterId)
+        updateTimestampDraft(state, nodeId)
+      })
+    },
+
+    getIntermediateWallById: (wallId: IntermediateWallId) => {
+      const state = get()
+      if (!(wallId in state.intermediateWalls)) {
+        throw new NotFoundError('Intermediate wall', wallId)
+      }
+      const wall = state.intermediateWalls[wallId]
+      const geometry = state._intermediateWallGeometry[wallId]
+      return { ...wall, ...geometry }
+    },
+
+    getIntermediateWallsByPerimeter: (perimeterId: PerimeterId) => {
+      const state = get()
+      if (!(perimeterId in state.perimeters)) {
+        throw new NotFoundError('Perimeter', perimeterId)
+      }
+      const perimeter = state.perimeters[perimeterId]
+      return perimeter.intermediateWallIds.map(wallId => {
+        if (!(wallId in state.intermediateWalls)) {
+          throw new NotFoundError('Intermediate wall', wallId)
+        }
+        const wall = state.intermediateWalls[wallId]
+        const geometry = state._intermediateWallGeometry[wallId]
+        return { ...wall, ...geometry }
+      })
+    },
+
+    getAllIntermediateWalls: () => {
+      const state = get()
+      return Object.values(state.intermediateWalls).map(wall => ({
+        ...wall,
+        ...state._intermediateWallGeometry[wall.id]
+      }))
+    },
+
+    getWallNodeById: (nodeId: WallNodeId) => {
+      const state = get()
+      if (!(nodeId in state.wallNodes)) {
+        throw new NotFoundError('Wall node', nodeId)
+      }
+      const node = state.wallNodes[nodeId]
+      const geometry = state._wallNodeGeometry[nodeId]
+
+      return node.type === 'inner'
+        ? { ...node, ...(geometry as InnerWallNodeGeometry) }
+        : { ...node, ...(geometry as PerimeterWallNodeGeometry) }
+    },
+
+    getWallNodesByPerimeter: (perimeterId: PerimeterId) => {
+      const state = get()
+      if (!(perimeterId in state.perimeters)) {
+        throw new NotFoundError('Perimeter', perimeterId)
+      }
+      const perimeter = state.perimeters[perimeterId]
+      return perimeter.wallNodeIds.map(nodeId => {
+        if (!(nodeId in state.wallNodes)) {
+          throw new NotFoundError('Wall node', nodeId)
+        }
+        const node = state.wallNodes[nodeId]
+        const geometry = state._wallNodeGeometry[nodeId]
+        return node.type === 'inner'
+          ? { ...node, ...(geometry as InnerWallNodeGeometry) }
+          : { ...node, ...(geometry as PerimeterWallNodeGeometry) }
+      })
+    },
+
+    getAllWallNodes: () => {
+      const state = get()
+      return Object.values(state.wallNodes).map(node => {
+        const geometry = state._wallNodeGeometry[node.id]
+        return node.type === 'inner'
+          ? { ...node, ...(geometry as InnerWallNodeGeometry) }
+          : { ...node, ...(geometry as PerimeterWallNodeGeometry) }
+      })
+    }
+  }
+})
+
+function cleanupOrphanedNodes(
+  state: IntermediateWallsSlice & PerimetersState & TimestampsState,
+  nodeId: WallNodeId,
+  excludedWallId?: IntermediateWallId
+): void {
+  if (!(nodeId in state.wallNodes)) return
+  const node = state.wallNodes[nodeId]
+
+  const remainingConnections = Object.values(state.intermediateWalls).filter(
+    wall => wall.id !== excludedWallId && (wall.start.nodeId === nodeId || wall.end.nodeId === nodeId)
+  )
+
+  if (remainingConnections.length === 0) {
+    const perimeter = state.perimeters[node.perimeterId]
+    perimeter.wallNodeIds = perimeter.wallNodeIds.filter(id => id !== nodeId)
+    delete state.wallNodes[nodeId]
+    delete state._wallNodeGeometry[nodeId]
+    removeTimestampDraft(state, nodeId)
+  }
+}

@@ -45,6 +45,7 @@ export type EntityId =
   | PerimeterWallId
   | PerimeterCornerId
   | IntermediateWallId
+  | WallNodeId
   | OpeningId
   | WallPostId
   | FloorAreaId

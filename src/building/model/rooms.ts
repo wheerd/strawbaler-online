@@ -30,6 +30,7 @@ export interface BaseWallNode {
   id: WallNodeId
   perimeterId: PerimeterId
   type: 'perimeter' | 'inner'
+  connectedWallIds: IntermediateWallId[]
 }
 
 export interface PerimeterWallNode extends BaseWallNode {
@@ -43,16 +44,20 @@ export interface InnerWallNode extends BaseWallNode {
   position: Vec2
 }
 
-export interface WallNodeGeometry {
+export interface BaseWallNodeGeometry {
+  boundary: Polygon2D
+  center: Vec2
+}
+
+export interface PerimeterWallNodeGeometry extends BaseWallNodeGeometry {
   position: Vec2
 }
 
-export interface InnerWallNodeGeometry extends WallNodeGeometry {
-  connectedWallIds: IntermediateWallId[]
-  boundary: Polygon2D
-}
+export type InnerWallNodeGeometry = BaseWallNodeGeometry
 
-export type PerimeterWallNodeWithGeometry = PerimeterWallNode & WallNodeGeometry
+export type WallNodeGeometry = PerimeterWallNodeGeometry | InnerWallNodeGeometry
+
+export type PerimeterWallNodeWithGeometry = PerimeterWallNode & PerimeterWallNodeGeometry
 export type InnerWallNodeWithGeometry = InnerWallNode & InnerWallNodeGeometry
 
 export type WallNode = PerimeterWallNode | InnerWallNode
