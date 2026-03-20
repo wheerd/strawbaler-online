@@ -54,7 +54,12 @@ export function updateAllWallNodeGeometry(
     if (node.type === 'perimeter') {
       updatePerimeterNode(state, node, wallLines, nodePositions)
     } else {
-      const connectedWallLines = node.connectedWallIds.map(wallId => ({ wallId, ...wallLines.get(wallId)! }))
+      const connectedWallLines = node.connectedWallIds
+        .map(wallId => {
+          const lines = wallLines.get(wallId)
+          return lines ? { wallId, ...lines } : null
+        })
+        .filter((item): item is { wallId: IntermediateWallId; left: Line2D; right: Line2D } => item !== null)
 
       let points: Vec2[]
       if (connectedWallLines.length === 0) {
@@ -140,12 +145,18 @@ function updateComplexCorner(
     const dot = dotVec2(a.direction, b.direction)
     if (Math.abs(dot) > 0.99) {
       // Lines are parallel -> add points along the wall line at the node position
-      const nodePos = nodePositions.get(node.id)!
+      const nodePos = nodePositions.get(node.id)
+      if (!nodePos) {
+        throw new Error(`Node position not found for node ${node.id}`)
+      }
 
       aPos = scaleAddVec2(a.point, a.direction, projectVec2(a.point, nodePos, a.direction))
       bPos = scaleAddVec2(b.point, b.direction, projectVec2(b.point, nodePos, b.direction))
     } else {
-      const intersection = lineIntersection(a, b)!
+      const intersection = lineIntersection(a, b)
+      if (!intersection) {
+        throw new Error(`No intersection found between wall lines at node ${node.id}`)
+      }
       aPos = intersection
       bPos = intersection
     }
@@ -187,7 +198,10 @@ function updateSimpleCorner(
   const dot = dotVec2(a.left.direction, b.left.direction)
   if (Math.abs(dot) > 0.99) {
     // Lines are almost parallel -> cutoff perpendicular at the node position
-    const nodePos = nodePositions.get(node.id)!
+    const nodePos = nodePositions.get(node.id)
+    if (!nodePos) {
+      throw new Error(`Node position not found for node ${node.id}`)
+    }
 
     const aLeft = scaleAddVec2(a.left.point, a.left.direction, projectVec2(a.left.point, nodePos, a.left.direction))
     const aRight = scaleAddVec2(
@@ -232,10 +246,14 @@ function updateSimpleCorner(
     return [p1, p2, p3, p4]
   } else {
     // Lines are not parallel -> use intersection points
-    const i1 = lineIntersection(a.left, b.right)!
-    const i2 = lineIntersection(a.left, b.left)!
-    const i3 = lineIntersection(a.right, b.left)!
-    const i4 = lineIntersection(a.right, b.right)!
+    const i1 = lineIntersection(a.left, b.right)
+    const i2 = lineIntersection(a.left, b.left)
+    const i3 = lineIntersection(a.right, b.left)
+    const i4 = lineIntersection(a.right, b.right)
+
+    if (!i1 || !i2 || !i3 || !i4) {
+      throw new Error(`Could not compute all intersection points at node ${node.id}`)
+    }
 
     const wallA = state.intermediateWalls[a.wallId]
     const geometryA = state._intermediateWallGeometry[a.wallId]
@@ -340,8 +358,13 @@ function updatePerimeterNode(
   const minOutside = scaleAddVec2(minInside, wallGeometry.outsideDirection, wall.thickness)
   const maxOutside = scaleAddVec2(maxInside, wallGeometry.outsideDirection, wall.thickness)
 
+  const nodePos = nodePositions.get(node.id)
+  if (!nodePos) {
+    throw new Error(`Node position not found for perimeter wall node ${node.id}`)
+  }
+
   const newGeometry: PerimeterWallNodeGeometry = {
-    position: nodePositions.get(node.id)!,
+    position: nodePos,
     center: midpoint(minInside, maxOutside),
     boundary: ensurePolygonIsClockwise({
       points: [minInside, maxInside, maxOutside, minOutside]
