@@ -53,6 +53,7 @@ export interface IntermediateWallsActions {
     offsetFromCornerStart: Length
   ) => PerimeterWallNodeWithGeometry
   addInnerWallNode: (perimeterId: PerimeterId, position: Vec2) => InnerWallNodeWithGeometry
+  splitIntermediateWallAtPoint: (wallId: IntermediateWallId, point: Vec2) => WallNodeId
   removeWallNode: (nodeId: WallNodeId) => void
   updateInnerWallNodePosition: (nodeId: WallNodeId, position: Vec2) => void
   updatePerimeterWallNodeOffset: (nodeId: WallNodeId, offsetFromCornerStart: Length) => void
@@ -232,6 +233,73 @@ export const createIntermediateWallsSlice: StateCreator<
       })
 
       return result
+    },
+
+    splitIntermediateWallAtPoint: (wallId: IntermediateWallId, point: Vec2) => {
+      let newNodeId!: WallNodeId
+      set(state => {
+        if (!(wallId in state.intermediateWalls)) {
+          throw new NotFoundError('Intermediate wall', wallId)
+        }
+
+        const originalWall = state.intermediateWalls[wallId]
+        const perimeter = state.perimeters[originalWall.perimeterId]
+
+        const newNodeIdInner = createWallNodeId()
+        const newNode: WallNode = {
+          id: newNodeIdInner,
+          perimeterId: originalWall.perimeterId,
+          type: 'inner',
+          position: copyVec2(point),
+          connectedWallIds: []
+        }
+        state.wallNodes[newNodeIdInner] = newNode
+        perimeter.wallNodeIds.push(newNodeIdInner)
+
+        const wallAId = createIntermediateWallId()
+        const wallBId = createIntermediateWallId()
+
+        const wallA: IntermediateWall = {
+          id: wallAId,
+          perimeterId: originalWall.perimeterId,
+          openingIds: [],
+          start: originalWall.start,
+          end: { nodeId: newNodeIdInner, axis: originalWall.start.axis },
+          thickness: originalWall.thickness,
+          wallAssemblyId: originalWall.wallAssemblyId
+        }
+
+        const wallB: IntermediateWall = {
+          id: wallBId,
+          perimeterId: originalWall.perimeterId,
+          openingIds: [],
+          start: { nodeId: newNodeIdInner, axis: originalWall.end.axis },
+          end: originalWall.end,
+          thickness: originalWall.thickness,
+          wallAssemblyId: originalWall.wallAssemblyId
+        }
+
+        state.intermediateWalls[wallAId] = wallA
+        state.intermediateWalls[wallBId] = wallB
+
+        perimeter.intermediateWallIds.push(wallAId)
+        perimeter.intermediateWallIds.push(wallBId)
+        perimeter.intermediateWallIds = perimeter.intermediateWallIds.filter(id => id !== wallId)
+
+        delete state.intermediateWalls[wallId]
+        delete state._intermediateWallGeometry[wallId]
+        removeTimestampDraft(state, wallId)
+
+        updateTimestampDraft(state, wallAId)
+        updateTimestampDraft(state, wallBId)
+        updateTimestampDraft(state, newNodeIdInner)
+
+        updateAllWallNodeGeometry(state, originalWall.perimeterId)
+
+        newNodeId = newNodeIdInner
+      })
+
+      return newNodeId
     },
 
     removeWallNode: (nodeId: WallNodeId) => {
