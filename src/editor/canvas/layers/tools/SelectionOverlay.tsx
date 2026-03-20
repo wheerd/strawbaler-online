@@ -1,6 +1,12 @@
-import type { PerimeterCornerGeometry, PerimeterCornerWithGeometry, RoofOverhang } from '@/building/model'
+import type {
+  IntermediateWallWithGeometry,
+  PerimeterCornerGeometry,
+  PerimeterCornerWithGeometry,
+  RoofOverhang,
+  WallNodeWithGeometry
+} from '@/building/model'
 import type { SelectableId } from '@/building/model/ids'
-import { isPerimeterCornerId, isRoofOverhangId } from '@/building/model/ids'
+import { isIntermediateWallId, isPerimeterCornerId, isRoofOverhangId, isWallNodeId } from '@/building/model/ids'
 import { useModelEntityById } from '@/building/store'
 import { useCurrentSelection } from '@/editor/canvas/state/selectionStore'
 import { type Vec2, direction, perpendicular, scaleAddVec2 } from '@/shared/geometry'
@@ -19,6 +25,16 @@ function useSelectionOutlinePoints(currentSelection: SelectableId | null): Vec2[
   // Handle roof overhang
   if (isRoofOverhangId(currentSelection)) {
     return (entity as RoofOverhang).area.points
+  }
+
+  // Handle intermediate walls
+  if (isIntermediateWallId(currentSelection)) {
+    return (entity as IntermediateWallWithGeometry).boundary.points
+  }
+
+  // Handle wall nodes
+  if (isWallNodeId(currentSelection)) {
+    return (entity as WallNodeWithGeometry).boundary.points
   }
 
   // Handle all other entities with polygon or area properties

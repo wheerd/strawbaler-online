@@ -20,7 +20,9 @@ const MOVEMENT_BEHAVIORS: Record<EntityType, MovementBehavior<any, any> | null> 
   'floor-area': new FloorAreaMovementBehavior(),
   'floor-opening': new FloorOpeningMovementBehavior(),
   roof: new RoofMovementBehavior(),
-  'roof-overhang': null
+  'roof-overhang': null,
+  'intermediate-wall': null,
+  'wall-node': null
 }
 
 export function getMovementBehavior(entityType: EntityType): MovementBehavior<unknown, MovementState> | null {

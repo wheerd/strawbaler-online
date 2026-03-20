@@ -3,16 +3,31 @@ import type { Bounds2D } from '@/shared/geometry'
 
 import type { ConstraintsActions, ConstraintsState } from './slices/constraintsSlice'
 import type { FloorsActions, FloorsState } from './slices/floorsSlice'
+import type { IntermediateWallsActions, IntermediateWallsState } from './slices/intermediateWallsSlice'
 import type { PerimetersActions, PerimetersState } from './slices/perimeterSlice'
 import type { RoofsActions, RoofsState } from './slices/roofsSlice'
 import type { StoreysActions, StoreysState } from './slices/storeysSlice'
 import type { TimestampsActions, TimestampsState } from './slices/timestampsSlice'
 
 export interface StoreState
-  extends StoreysState, PerimetersState, FloorsState, RoofsState, TimestampsState, ConstraintsState {}
+  extends
+    StoreysState,
+    PerimetersState,
+    FloorsState,
+    RoofsState,
+    TimestampsState,
+    ConstraintsState,
+    IntermediateWallsState {}
 
 export interface StoreActions
-  extends StoreysActions, PerimetersActions, FloorsActions, RoofsActions, TimestampsActions, ConstraintsActions {
+  extends
+    StoreysActions,
+    PerimetersActions,
+    FloorsActions,
+    RoofsActions,
+    TimestampsActions,
+    ConstraintsActions,
+    IntermediateWallsActions {
   reset: () => void
   getBounds: (storeyId: StoreyId) => Bounds2D
 }
@@ -28,4 +43,6 @@ export type PartializedStoreState = Omit<
   | '_openingGeometry'
   | '_wallPostGeometry'
   | '_constraintsByEntity'
+  | '_intermediateWallGeometry'
+  | '_wallNodeGeometry'
 >

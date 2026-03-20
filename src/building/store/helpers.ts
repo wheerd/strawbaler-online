@@ -3,12 +3,14 @@ import {
   isConstraintId,
   isFloorAreaId,
   isFloorOpeningId,
+  isIntermediateWallId,
   isOpeningId,
   isPerimeterCornerId,
   isPerimeterId,
   isPerimeterWallId,
   isRoofId,
   isRoofOverhangId,
+  isWallNodeId,
   isWallPostId
 } from '@/building/model'
 import { getModelActions } from '@/building/store/store'
@@ -45,6 +47,12 @@ export function deleteEntity(selectedId: SelectableId): boolean {
   } else if (isRoofOverhangId(selectedId)) {
     // Cannot be deleted
     return false
+  } else if (isIntermediateWallId(selectedId)) {
+    modelStore.removeIntermediateWall(selectedId)
+    return true
+  } else if (isWallNodeId(selectedId)) {
+    modelStore.removeWallNode(selectedId)
+    return true
   } else {
     assertUnreachable(selectedId, `Unknown sub-entity type for deletion: ${selectedId}`)
   }
