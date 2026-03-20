@@ -3,6 +3,8 @@ import type { IntermediateWallId, PerimeterId, WallNodeId } from '@/building/mod
 import type {
   InnerWallNode,
   InnerWallNodeGeometry,
+  IntermediateWall,
+  IntermediateWallGeometry,
   PerimeterWallNode,
   PerimeterWallNodeGeometry,
   WallAxis
@@ -17,6 +19,7 @@ import {
   ZERO_VEC2,
   addVec2,
   direction,
+  distVec2,
   dotVec2,
   eqVec2,
   lenVec2,
@@ -75,6 +78,41 @@ export function updateAllWallNodeGeometry(
       }
     }
   }
+
+  for (const wallId of perimeter.intermediateWallIds) {
+    updateWallGeometry(state._intermediateWallGeometry[wallId], state.intermediateWalls[wallId])
+  }
+}
+
+function updateWallGeometry(geometry: IntermediateWallGeometry, wall: IntermediateWall) {
+  const leftStart = geometry.leftLine.start
+  const leftEnd = geometry.leftLine.end
+  const rightStart = geometry.rightLine.start
+  const rightEnd = geometry.rightLine.end
+  const halfThickness = wall.thickness / 2
+
+  const center = midpoint(midpoint(leftStart, leftEnd), midpoint(rightStart, rightEnd))
+  const leftStartProjection = Math.abs(projectVec2(center, leftStart, geometry.direction))
+  const rightStartProjection = Math.abs(projectVec2(center, rightStart, geometry.direction))
+
+  const centerStart =
+    leftStartProjection < rightStartProjection
+      ? scaleAddVec2(leftStart, geometry.leftDirection, -halfThickness)
+      : scaleAddVec2(rightStart, geometry.leftDirection, halfThickness)
+
+  const leftEndProjection = Math.abs(projectVec2(center, leftEnd, geometry.direction))
+  const rightEndProjection = Math.abs(projectVec2(center, rightEnd, geometry.direction))
+
+  const centerEnd =
+    leftEndProjection < rightEndProjection
+      ? scaleAddVec2(leftEnd, geometry.leftDirection, -halfThickness)
+      : scaleAddVec2(rightEnd, geometry.leftDirection, halfThickness)
+
+  geometry.centerLine = { start: centerStart, end: centerEnd }
+  geometry.wallLength = distVec2(centerStart, centerEnd)
+  geometry.leftLength = distVec2(leftStart, leftEnd)
+  geometry.rightLength = distVec2(rightStart, rightEnd)
+  geometry.boundary = ensurePolygonIsClockwise({ points: [leftStart, leftEnd, rightEnd, rightStart] })
 }
 
 function updateComplexCorner(
