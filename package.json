@@ -102,7 +102,7 @@
     "fast-check": "^4.5.3",
     "i18next-cli": "^1.42.10",
     "jsdom": "^27.4.0",
-    "neostandard": "^0.12.2",
+    "neostandard": "^0.13.0",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "supabase": "^2.76.11",
