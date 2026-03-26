@@ -34,7 +34,8 @@ function useSelectionOutlinePoints(currentSelection: SelectableId | null): Vec2[
 
   // Handle wall nodes
   if (isWallNodeId(currentSelection)) {
-    return (entity as WallNodeWithGeometry).boundary.points
+    const wallNode = entity as WallNodeWithGeometry
+    return wallNode.boundary?.points ?? [wallNode.center]
   }
 
   // Handle all other entities with polygon or area properties

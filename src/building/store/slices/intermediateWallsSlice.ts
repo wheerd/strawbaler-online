@@ -106,6 +106,15 @@ export const createIntermediateWallsSlice: StateCreator<
         state.intermediateWalls[wallId] = wall
         perimeter.intermediateWallIds.push(wallId)
 
+        if (!(start.nodeId in state.wallNodes)) {
+          throw new NotFoundError('Wall node', start.nodeId)
+        }
+        state.wallNodes[start.nodeId].connectedWallIds.push(wallId)
+        if (!(end.nodeId in state.wallNodes)) {
+          throw new NotFoundError('Wall node', end.nodeId)
+        }
+        state.wallNodes[end.nodeId].connectedWallIds.push(wallId)
+
         updateAllWallNodeGeometry(state, perimeterId)
 
         updateTimestampDraft(state, wallId)
@@ -126,6 +135,12 @@ export const createIntermediateWallsSlice: StateCreator<
 
         delete state.intermediateWalls[wallId]
         delete state._intermediateWallGeometry[wallId]
+
+        const startNode = state.wallNodes[wall.start.nodeId]
+        const endNode = state.wallNodes[wall.end.nodeId]
+
+        startNode.connectedWallIds = startNode.connectedWallIds.filter(id => id !== wallId)
+        endNode.connectedWallIds = endNode.connectedWallIds.filter(id => id !== wallId)
 
         removeTimestampDraft(state, wallId)
 

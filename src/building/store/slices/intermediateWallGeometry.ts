@@ -63,7 +63,7 @@ export function updateAllWallNodeGeometry(
 
       let points: Vec2[]
       if (connectedWallLines.length === 0) {
-        throw new Error(`Inner wall node ${nodeId} has no connected walls`)
+        points = [node.position]
       } else if (connectedWallLines.length === 1) {
         points = updateWallEnd(state, connectedWallLines[0], node)
       } else if (connectedWallLines.length === 2) {
@@ -72,15 +72,13 @@ export function updateAllWallNodeGeometry(
         points = updateComplexCorner(node, connectedWallLines, nodePositions, state)
       }
 
-      if (points.length >= 3) {
-        const sum = points.reduce((acc, p) => addVec2(acc, p), ZERO_VEC2)
-        const centroid = scaleVec2(sum, 1 / points.length)
-        const newGeometry: InnerWallNodeGeometry = {
-          center: centroid,
-          boundary: ensurePolygonIsClockwise({ points })
-        }
-        state._wallNodeGeometry[nodeId] = newGeometry
+      const sum = points.reduce((acc, p) => addVec2(acc, p), ZERO_VEC2)
+      const centroid = scaleVec2(sum, 1 / points.length)
+      const newGeometry: InnerWallNodeGeometry = {
+        center: centroid,
+        boundary: points.length >= 3 ? ensurePolygonIsClockwise({ points }) : undefined
       }
+      state._wallNodeGeometry[nodeId] = newGeometry
     }
   }
 

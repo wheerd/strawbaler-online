@@ -10,11 +10,11 @@ export function WallNodeShape({ nodeId }: { nodeId: WallNodeId }): React.JSX.Ele
 
   const fillColor = MATERIAL_COLORS.strawbale
 
-  const pathD = polygonToSvgPath(node.boundary)
+  const pathD = node.boundary ? polygonToSvgPath(node.boundary) : undefined
 
   return (
     <g data-entity-id={node.id} data-entity-type="wall-node" data-parent-ids={JSON.stringify([node.perimeterId])}>
-      <path d={pathD} fill={fillColor} className="stroke-border-contrast stroke-10" />
+      {pathD && <path d={pathD} fill={fillColor} className="stroke-border-contrast stroke-10" />}
       <circle
         cx={node.center[0]}
         cy={node.center[1]}

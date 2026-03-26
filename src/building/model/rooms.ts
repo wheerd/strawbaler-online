@@ -45,7 +45,7 @@ export interface InnerWallNode extends BaseWallNode {
 }
 
 export interface BaseWallNodeGeometry {
-  boundary: Polygon2D
+  boundary?: Polygon2D
   center: Vec2
 }
 
