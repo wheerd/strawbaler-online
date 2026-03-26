@@ -2,7 +2,6 @@ import type React from 'react'
 
 import type { SelectableId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import type { SnappingService } from '@/editor/canvas/services/SnappingService'
 import { type Vec2 } from '@/shared/geometry'
 
 export interface MovementContext<T> {
@@ -10,7 +9,6 @@ export interface MovementContext<T> {
   parentIds: SelectableId[]
   entity: T
   store: StoreActions
-  snappingService: SnappingService
 }
 
 export interface PointerMovementState {

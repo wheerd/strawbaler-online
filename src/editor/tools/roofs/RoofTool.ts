@@ -1,7 +1,7 @@
 import type { RoofAssemblyId, RoofType } from '@/building/model'
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/config/store'
-import type { SnappingContext } from '@/editor/canvas/services/SnappingService'
+import type { SnappingService } from '@/editor/canvas/services/SnappingService'
 import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import { PolygonToolOverlay } from '@/editor/tools/shared/polygon/PolygonToolOverlay'
@@ -72,24 +72,25 @@ export class RoofTool extends BasePolygonTool<RoofToolState> implements ToolImpl
     this.triggerRender()
   }
 
-  protected extendSnapContext(context: SnappingContext): SnappingContext {
+  protected override setupSnapService(snapService: SnappingService<void>): void {
     const { getPerimetersByStorey, getRoofsByStorey, getActiveStoreyId } = getModelActions()
 
     const activeStoreyId = getActiveStoreyId()
     const perimeters = getPerimetersByStorey(activeStoreyId)
     const roofs = getRoofsByStorey(activeStoreyId)
 
-    // Only snap to outer points and outer edges of perimeters
     const perimeterPoints = perimeters.flatMap(perimeter => perimeter.outerPolygon.points)
     const perimeterSegments = perimeters.flatMap(perimeter => [...polygonEdges(perimeter.outerPolygon)])
 
     const roofPoints = roofs.flatMap(roof => roof.referencePolygon.points)
     const roofSegments = roofs.flatMap(roof => createPolygonSegments(roof.referencePolygon.points))
 
-    return {
-      ...context,
-      snapPoints: [...context.snapPoints, ...perimeterPoints, ...roofPoints],
-      referenceLineSegments: [...(context.referenceLineSegments ?? []), ...perimeterSegments, ...roofSegments]
+    for (const point of [...perimeterPoints, ...roofPoints]) {
+      snapService.addSnapCandidate({ type: 'point', position: point, mode: 'snap' })
+    }
+
+    for (const segment of [...perimeterSegments, ...roofSegments]) {
+      snapService.addSnapCandidate({ type: 'segment', segment })
     }
   }
 
@@ -109,13 +110,11 @@ export class RoofTool extends BasePolygonTool<RoofToolState> implements ToolImpl
     const { addRoof, getActiveStoreyId } = getModelActions()
     const activeStoreyId = getActiveStoreyId()
 
-    // Calculate direction perpendicular to first edge
     if (polygon.points.length < 2) {
       console.error('Polygon must have at least 2 points')
       return
     }
 
-    // Use first side (index 0) as main side for direction
     const mainSideIndex = 0
 
     addRoof(

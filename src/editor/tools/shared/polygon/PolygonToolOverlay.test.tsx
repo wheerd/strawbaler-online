@@ -36,11 +36,7 @@ describe('PolygonToolOverlay', () => {
       points: [],
       pointer: ZERO_VEC2,
       snapResult: undefined,
-      snapContext: {
-        snapPoints: [],
-        alignPoints: [],
-        referenceLineSegments: []
-      },
+      snapCandidates: [],
       isCurrentSegmentValid: true,
       isClosingSegmentValid: true,
       segmentLengthOverrides: [],
@@ -153,8 +149,10 @@ describe('PolygonToolOverlay', () => {
 
   describe('snapping behavior', () => {
     it('renders snap position when snap result exists', () => {
-      const snapResult: SnapResult = {
-        position: newVec2(125, 125)
+      const snapResult: SnapResult<void> = {
+        position: newVec2(125, 125),
+        distance: 10,
+        type: 'snap'
       }
 
       mockTool.state.points = [newVec2(100, 100)]
@@ -167,8 +165,10 @@ describe('PolygonToolOverlay', () => {
     })
 
     it('renders snap lines when snap result has lines', () => {
-      const snapResult: SnapResult = {
+      const snapResult: SnapResult<void> = {
         position: newVec2(150, 150),
+        distance: 10,
+        type: 'align',
         lines: [
           {
             point: newVec2(100, 100),
@@ -219,8 +219,10 @@ describe('PolygonToolOverlay', () => {
       mockUseStageHeight.mockReturnValue(1200)
       mockUseZoom.mockReturnValue(2.0)
 
-      const snapResult: SnapResult = {
+      const snapResult: SnapResult<void> = {
         position: newVec2(100, 100),
+        distance: 10,
+        type: 'align',
         lines: [
           {
             point: newVec2(100, 100),

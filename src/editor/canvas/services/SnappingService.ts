@@ -5,218 +5,276 @@ import {
   type Vec2,
   ZERO_VEC2,
   distSqrVec2,
+  distVec2,
   distanceToInfiniteLine,
+  dotVec2,
+  lenSqrVec2,
   lineFromSegment,
   lineIntersection,
   newVec2,
-  projectPointOntoLine
+  projectPointOntoLine,
+  scaleAddVec2,
+  subVec2
 } from '@/shared/geometry'
 
-export interface SnapResult {
+export interface SnappingContext<T> {
+  candidates: SnapCandidate<T>[]
+  defaultPointDistance?: Length
+  defaultLineDistance?: Length
+}
+
+export interface SnapResult<T> {
   position: Vec2
-  lines?: Line2D[] // Array of 1 or 2 lines to render (1 for line snap, 2 for intersection)
+  distance: Length
+  lines?: readonly [Line2D] | readonly [Line2D, Line2D]
+  meta?: T | 'origin'
+  type: 'snap' | 'align'
 }
 
-// Context for snapping operations
-export interface SnappingContext {
-  snapPoints: Vec2[]
-  alignPoints?: Vec2[]
-  referencePoint?: Vec2
-  referenceLineSegments?: LineSegment2D[]
+export interface SnapMeta<T> {
+  priority?: number
+  minDistance?: Length
+  meta?: T | 'origin'
 }
 
-// Snapping configuration
-export interface SnapConfig {
-  pointSnapDistance: Length
-  lineSnapDistance: Length
+export interface SnapPoint<T> extends SnapMeta<T> {
+  type: 'point'
+  position: Vec2
+  mode: 'snap' | 'align'
+}
+
+export interface SnapLine<T> extends SnapMeta<T> {
+  type: 'line'
+  line: Line2D
+}
+
+export interface SnapLineSegment<T> extends SnapMeta<T> {
+  type: 'segment'
+  segment: LineSegment2D
+}
+
+export type SnapCandidate<T> = SnapPoint<T> | SnapLine<T> | SnapLineSegment<T>
+
+interface InternalMeta {
+  priority: number
+  isDerived: boolean
   minDistance: Length
+  lines?: readonly [Line2D] | readonly [Line2D, Line2D]
 }
 
-// Default snapping configuration
-export const DEFAULT_SNAP_CONFIG: SnapConfig = {
-  pointSnapDistance: 200, // 500mm
-  lineSnapDistance: 100, // 100mm
-  minDistance: 50 // 50mm
-}
+type InternalSnapCandidate<T> = SnapCandidate<T> & InternalMeta
 
-/**
- * Integrated snapping service that handles all snap calculations
- * Combines the functionality of the old SnappingEngine and SnappingService
- */
-export class SnappingService {
-  private readonly snapConfig: SnapConfig
+const PRIORITY_EPS = 0.1
 
-  constructor(snapConfig: Partial<SnapConfig> = {}) {
-    this.snapConfig = { ...DEFAULT_SNAP_CONFIG, ...snapConfig }
+const DEFAULT_DISTANCE = 100
+
+const DEFAULT_CANDIDATES: InternalSnapCandidate<unknown>[] = [
+  {
+    type: 'point',
+    position: ZERO_VEC2,
+    mode: 'snap',
+    priority: 0,
+    meta: 'origin',
+    isDerived: false,
+    minDistance: DEFAULT_DISTANCE
+  },
+  {
+    type: 'line',
+    line: {
+      point: ZERO_VEC2,
+      direction: newVec2(1, 0)
+    },
+    priority: 0,
+    meta: 'origin',
+    isDerived: false,
+    minDistance: DEFAULT_DISTANCE,
+    lines: [{ point: ZERO_VEC2, direction: newVec2(1, 0) }]
+  },
+  {
+    type: 'line',
+    line: {
+      point: ZERO_VEC2,
+      direction: newVec2(0, 1)
+    },
+    priority: 0,
+    meta: 'origin',
+    isDerived: false,
+    minDistance: DEFAULT_DISTANCE,
+    lines: [{ point: ZERO_VEC2, direction: newVec2(0, 1) }]
+  }
+] as const
+
+export class SnappingService<T> {
+  private readonly candidates: InternalSnapCandidate<T>[] = []
+
+  private readonly context: SnappingContext<T>
+
+  referencePoint: Vec2 | null = null
+  referenceMinDistance: Length = DEFAULT_DISTANCE
+
+  constructor(context: SnappingContext<T>) {
+    this.context = context
+    for (const candidate of DEFAULT_CANDIDATES) {
+      this.addSnapCandidateInternal(candidate as InternalSnapCandidate<T>)
+    }
+    for (const candidate of context.candidates) {
+      this.addSnapCandidate(candidate)
+    }
   }
 
-  /**
-   * Find the snap result for a target point
-   * This is the main function that should be used by all components
-   * @param target - The point to snap
-   * @param context - Snapping context with snap points and lines
-   * @param tolerance - Optional override for both point and line snap distances
-   */
-  findSnapResult(target: Vec2, context: SnappingContext, tolerance?: number): SnapResult | null {
-    // Step 1: Try point snapping first (highest priority)
-    const pointSnapResult = this.findPointSnapPosition(target, context, tolerance)
-
-    if (pointSnapResult != null) return pointSnapResult
-
-    // Step 2: Generate snap lines and check for line/intersection snapping
-    const snapLines = this.generateSnapLines(context)
-
-    return this.findLineSnapPosition(target, snapLines, context, tolerance)
-  }
-
-  /**
-   * Find existing points for direct point snapping
-   */
-  private findPointSnapPosition(target: Vec2, context: SnappingContext, tolerance?: number): SnapResult | null {
-    const snapDistanceSq = (tolerance ?? this.snapConfig.pointSnapDistance) ** 2
-    let bestPoint: Vec2 | null = null
-    let bestDistanceSq = snapDistanceSq
-
-    for (const point of context.snapPoints) {
-      const targetDistSq = distSqrVec2(target, point)
-      if (targetDistSq <= bestDistanceSq) {
-        bestDistanceSq = targetDistSq
-        bestPoint = point
-      }
-    }
-
-    return bestPoint != null ? { position: bestPoint } : null
-  }
-
-  /**
-   * Generate snap lines for architectural alignment
-   */
-  private generateSnapLines(context: SnappingContext): Line2D[] {
-    const snapLines: Line2D[] = []
-
-    const allPoints = [ZERO_VEC2, ...context.snapPoints, ...(context.alignPoints ?? [])]
-
-    // 1. Add horizontal and vertical lines through all points
-    for (const point of allPoints) {
-      // Horizontal line through point
-      snapLines.push({
-        point,
-        direction: newVec2(1, 0)
+  addSnapCandidate(candidate: SnapCandidate<T>): void {
+    if (candidate.type === 'point' && candidate.mode === 'align') {
+      const { type: _, mode: __, position, ...rest } = candidate
+      this.addSnapCandidate({
+        ...rest,
+        type: 'line',
+        line: {
+          point: position,
+          direction: newVec2(1, 0)
+        }
       })
-
-      // Vertical line through point
-      snapLines.push({
-        point,
-        direction: newVec2(0, 1)
+      this.addSnapCandidate({
+        ...rest,
+        type: 'line',
+        line: {
+          point: position,
+          direction: newVec2(0, 1)
+        }
       })
-    }
-
-    // 2. Add horizontal and vertical lines through reference point (if any)
-    if (context.referencePoint != null) {
-      // Horizontal line through point
-      snapLines.push({
-        point: context.referencePoint,
-        direction: newVec2(1, 0)
-      })
-
-      // Vertical line through point
-      snapLines.push({
-        point: context.referencePoint,
-        direction: newVec2(0, 1)
-      })
-    }
-
-    // 3. Add extension and perpendicular lines for reference line walls (if any)
-    for (const wall of context.referenceLineSegments ?? []) {
-      const line = lineFromSegment(wall)
-
-      // Extension line (same direction as wall)
-      snapLines.push({
-        point: line.point,
-        direction: line.direction
-      })
-
-      // Perpendicular lines (90 degrees rotated)
-      snapLines.push({
-        point: wall.start,
-        direction: newVec2(-line.direction[1], line.direction[0])
-      })
-      snapLines.push({
-        point: wall.end,
-        direction: newVec2(-line.direction[1], line.direction[0])
-      })
-    }
-
-    return snapLines
-  }
-
-  /**
-   * Find snap position on lines or line intersections
-   */
-  private findLineSnapPosition(
-    target: Vec2,
-    snapLines: Line2D[],
-    context: SnappingContext,
-    tolerance?: number
-  ): SnapResult | null {
-    const lineSnapDistance = tolerance ?? this.snapConfig.lineSnapDistance
-    const minDistanceSquared = this.snapConfig.minDistance ** 2
-    const nearbyLines: { line: Line2D; distance: number; projectedPosition: Vec2 }[] = []
-    let closestDist = Infinity
-    let closestIndex = -1
-
-    for (const line of snapLines) {
-      const distance = distanceToInfiniteLine(target, line)
-      if (distance <= lineSnapDistance) {
-        const projectedPosition = projectPointOntoLine(target, line)
-        if (
-          context.referencePoint == null ||
-          distSqrVec2(projectedPosition, context.referencePoint) >= minDistanceSquared
-        ) {
-          nearbyLines.push({ line, distance, projectedPosition })
-          if (distance < closestDist) {
-            closestDist = distance
-            closestIndex = nearbyLines.length - 1
-          }
+    } else {
+      const internalCandidate = this.toInternal(candidate)
+      this.addSnapCandidateInternal(internalCandidate)
+      if (internalCandidate.type === 'line') {
+        const otherLines = this.candidates.filter(
+          (c): c is SnapLine<T> & InternalMeta => c.type === 'line' && !c.isDerived && c !== internalCandidate
+        )
+        for (const existing of otherLines) {
+          this.addIntersectionSnapCandidates(internalCandidate, existing)
         }
       }
     }
+  }
 
-    if (nearbyLines.length === 0) {
-      return null
-    }
-
-    if (nearbyLines.length === 1) {
-      return { lines: [nearbyLines[0].line], position: nearbyLines[0].projectedPosition }
-    }
-
-    // Check for intersections between the closest line and other nearby lines
-    const lineSnapDistSq = lineSnapDistance ** 2
-
-    for (let i = 0; i < nearbyLines.length - 1; i++) {
-      for (let j = i + 1; j < nearbyLines.length; j++) {
-        const line1 = nearbyLines[i]
-        const line2 = nearbyLines[j]
-
-        const intersection = lineIntersection(line1.line, line2.line)
-        if (intersection == null) continue
-
-        if (distSqrVec2(target, intersection) > lineSnapDistSq) continue
-
-        if (context.referencePoint == null || distSqrVec2(intersection, context.referencePoint) >= minDistanceSquared) {
-          return { position: intersection, lines: [line1.line, line2.line] }
-        }
-      }
-    }
-
-    // No intersection found, return closest line snap
-    const bestSnap = nearbyLines[closestIndex]
+  private toInternal(candidate: SnapCandidate<T>) {
     return {
-      position: bestSnap.projectedPosition,
-      lines: [bestSnap.line]
+      ...candidate,
+      priority: candidate.priority ?? 0,
+      isDerived: false,
+      minDistance: this.getSnapThreshold(candidate),
+      lines:
+        candidate.type === 'line'
+          ? ([candidate.line] as const)
+          : candidate.type === 'segment'
+            ? ([lineFromSegment(candidate.segment)] as const)
+            : undefined
+    }
+  }
+
+  findSnapResult(target: Vec2, distanceOverride?: Length): SnapResult<T> | null {
+    const referenceDistSq = this.referenceMinDistance * this.referenceMinDistance
+    let priority = Infinity
+    const results = [] as SnapResult<T>[]
+    for (const candidate of this.candidates) {
+      if (candidate.priority !== priority) {
+        if (results.length > 0) {
+          return this.getBestSnapResult(results)
+        } else {
+          priority = candidate.priority
+        }
+      }
+      const { distance, point } = this.calculateCandidate(target, candidate)
+      if (distance <= (distanceOverride ?? candidate.minDistance)) {
+        if (!this.referencePoint || distSqrVec2(point, this.referencePoint) >= referenceDistSq) {
+          const snapType = 'mode' in candidate ? candidate.mode : candidate.type === 'segment' ? 'snap' : 'align'
+          results.push({
+            position: point,
+            distance,
+            lines: candidate.lines,
+            meta: candidate.meta,
+            type: snapType
+          })
+        }
+      }
+    }
+    return this.getBestSnapResult(results)
+  }
+
+  private getBestSnapResult(results: SnapResult<T>[]): SnapResult<T> | null {
+    results.sort((a, b) => a.distance - b.distance)
+    return results[0] ?? null
+  }
+
+  private calculateCandidate(target: Vec2, candidate: SnapCandidate<T>): { distance: Length; point: Vec2 } {
+    switch (candidate.type) {
+      case 'point':
+        return { distance: distVec2(target, candidate.position), point: candidate.position }
+      case 'line':
+        return {
+          distance: distanceToInfiniteLine(target, candidate.line),
+          point: projectPointOntoLine(target, candidate.line)
+        }
+      case 'segment': {
+        const lineVector = subVec2(candidate.segment.end, candidate.segment.start)
+        const pointVector = subVec2(target, candidate.segment.start)
+
+        const lineLengthSquared = lenSqrVec2(lineVector)
+        if (lineLengthSquared === 0) {
+          return { distance: distVec2(target, candidate.segment.start), point: candidate.segment.start }
+        }
+
+        const t = Math.max(0, Math.min(1, dotVec2(pointVector, lineVector) / lineLengthSquared))
+        const closest = scaleAddVec2(candidate.segment.start, lineVector, t)
+
+        return { distance: distVec2(target, closest), point: closest }
+      }
+    }
+  }
+
+  private getSnapThreshold(candidate: SnapCandidate<T>): Length {
+    if (candidate.minDistance != null) {
+      return candidate.minDistance
+    }
+    switch (candidate.type) {
+      case 'point':
+        return this.context.defaultPointDistance ?? DEFAULT_DISTANCE
+      case 'line':
+      case 'segment':
+        return this.context.defaultLineDistance ?? DEFAULT_DISTANCE
+    }
+  }
+
+  private addSnapCandidateInternal(candidate: InternalSnapCandidate<T>): void {
+    const index = this.candidates.findIndex(c => c.priority < candidate.priority)
+    if (index !== -1) {
+      this.candidates.splice(index, 0, candidate)
+    } else {
+      this.candidates.push(candidate)
+    }
+  }
+
+  private addIntersectionSnapCandidates(line1: SnapLine<T> & InternalMeta, line2: SnapLine<T> & InternalMeta): void {
+    const intersection = lineIntersection(line1.line, line2.line)
+    if (intersection) {
+      const meta =
+        line1.priority > line2.priority
+          ? line1.meta
+          : line2.priority > line1.priority
+            ? line2.meta
+            : line1.meta === line2.meta
+              ? line1.meta
+              : undefined
+      const minDistance = Math.min(line1.minDistance, line2.minDistance)
+      const priority = Math.max(line1.priority, line2.priority) + PRIORITY_EPS
+      this.addSnapCandidateInternal({
+        type: 'point',
+        position: intersection,
+        mode: 'snap',
+        priority,
+        isDerived: true,
+        minDistance,
+        meta,
+        lines: [line1.line, line2.line]
+      })
     }
   }
 }
-
-// Create a default singleton instance
-export const defaultSnappingService = new SnappingService()

@@ -1,5 +1,6 @@
 import { getModelActions } from '@/building/store'
 import { getConfigActions } from '@/config/store'
+import { type SnapCandidate } from '@/editor/canvas/services/SnappingService'
 import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import {
   BasePolylineTool,
@@ -57,47 +58,39 @@ export class IntermediateWallTool extends BasePolylineTool<IntermediateWallToolS
     }))
   }
 
-  protected extendSnapContext(
-    context: import('@/editor/canvas/services/SnappingService').SnappingContext
-  ): import('@/editor/canvas/services/SnappingService').SnappingContext {
+  protected extendSnapCandidates(candidates: SnapCandidate<void>[]): SnapCandidate<void>[] {
     const modelActions = getModelActions()
     const perimeters = modelActions.getAllPerimeters()
     const walls = modelActions.getAllIntermediateWalls()
     const wallNodes = modelActions.getAllWallNodes()
 
-    const snapPoints: Vec2[] = [...context.snapPoints]
+    const extended = [...candidates]
 
     for (const wall of walls) {
-      snapPoints.push(wall.geometry.centerLine.start)
-      snapPoints.push(wall.geometry.centerLine.end)
+      extended.push({ type: 'point', position: wall.geometry.centerLine.start, mode: 'snap' })
+      extended.push({ type: 'point', position: wall.geometry.centerLine.end, mode: 'snap' })
     }
 
     for (const node of wallNodes) {
-      snapPoints.push(node.center)
+      extended.push({ type: 'point', position: node.center, mode: 'snap' })
     }
 
-    const referenceLineSegments: LineSegment2D[] = [...(context.referenceLineSegments ?? [])]
-
     for (const wall of walls) {
-      referenceLineSegments.push(wall.geometry.centerLine)
+      extended.push({ type: 'segment', segment: wall.geometry.centerLine })
     }
 
     for (const perimeter of perimeters) {
       for (let i = 0; i < perimeter.wallIds.length; i++) {
         const wall = modelActions.getPerimeterWallById(perimeter.wallIds[i])
-        referenceLineSegments.push(wall.insideLine)
+        extended.push({ type: 'segment', segment: wall.insideLine })
       }
     }
 
-    return {
-      ...context,
-      snapPoints,
-      referenceLineSegments
-    }
+    return extended
   }
 
   protected shouldTerminateAtSnap(
-    _snapResult: import('@/editor/canvas/services/SnappingService').SnapResult | undefined
+    _snapResult: import('@/editor/canvas/services/SnappingService2').SnapResult<void> | undefined
   ): boolean {
     return false
   }

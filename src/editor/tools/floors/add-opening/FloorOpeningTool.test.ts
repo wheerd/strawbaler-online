@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { FloorArea, FloorOpening, Perimeter, PerimeterWithGeometry } from '@/building/model'
+import type { FloorArea, FloorOpening, Perimeter } from '@/building/model'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
-import { type Vec2, newVec2 } from '@/shared/geometry'
-import { partial } from '@/test/helpers'
+import { newVec2 } from '@/shared/geometry'
 
 import { FloorOpeningTool } from './FloorOpeningTool'
 
@@ -40,50 +39,5 @@ describe('FloorOpeningTool', () => {
 
     expect(mockModelActions.addFloorOpening).toHaveBeenCalledTimes(1)
     expect(mockModelActions.addFloorOpening).toHaveBeenCalledWith('storey_opening', { points })
-  })
-
-  it('reuses floor and perimeter geometry for snapping context', () => {
-    const perimeter = partial<PerimeterWithGeometry>({
-      innerPolygon: { points: [newVec2(1, 1), newVec2(2, 2), newVec2(3, 3)] },
-      outerPolygon: { points: [newVec2(4, 4), newVec2(5, 5), newVec2(6, 6)] }
-    })
-
-    const floorArea = {
-      id: 'floorarea_existing',
-      storeyId: 'storey_opening',
-      area: { points: [newVec2(0, 0), newVec2(0, 120), newVec2(120, 120)] }
-    } as FloorArea
-
-    const floorOpening = {
-      id: 'flooropening_existing',
-      storeyId: 'storey_opening',
-      area: { points: [newVec2(20, 20), newVec2(40, 20), newVec2(40, 40)] }
-    } as FloorOpening
-
-    mockModelActions.getPerimetersByStorey.mockReturnValue([perimeter])
-    mockModelActions.getFloorAreasByStorey.mockReturnValue([floorArea])
-    mockModelActions.getFloorOpeningsByStorey.mockReturnValue([floorOpening])
-
-    const toolSystem = new ToolSystem()
-    const tool = new FloorOpeningTool(toolSystem)
-    const baseContext = {
-      snapPoints: [] as Vec2[],
-      alignPoints: [] as Vec2[],
-      referenceLineSegments: []
-    }
-
-    const result = (
-      tool as unknown as { extendSnapContext: (ctx: typeof baseContext) => typeof baseContext }
-    ).extendSnapContext(baseContext)
-
-    expect(result.snapPoints).toEqual(
-      expect.arrayContaining([...perimeter.outerPolygon.points, ...floorArea.area.points, ...floorOpening.area.points])
-    )
-    expect(result.referenceLineSegments).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ start: perimeter.outerPolygon.points[0], end: perimeter.outerPolygon.points[1] }),
-        expect.objectContaining({ start: floorOpening.area.points[0], end: floorOpening.area.points[1] })
-      ])
-    )
   })
 })

@@ -1,5 +1,5 @@
 import { getModelActions } from '@/building/store'
-import type { SnappingContext } from '@/editor/canvas/services/SnappingService'
+import type { SnappingService } from '@/editor/canvas/services/SnappingService'
 import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { BasePolygonTool, type PolygonToolStateBase } from '@/editor/tools/shared/polygon/BasePolygonTool'
 import { type LineSegment2D, type Vec2, polygonEdges } from '@/shared/geometry'
@@ -17,7 +17,7 @@ const createPolygonSegments = (points: readonly Vec2[]): LineSegment2D[] => {
 }
 
 export abstract class BaseFloorPolygonTool<TState extends PolygonToolStateBase> extends BasePolygonTool<TState> {
-  protected extendSnapContext(context: SnappingContext): SnappingContext {
+  protected override setupSnapService(snapService: SnappingService<void>): void {
     const { getPerimetersByStorey, getFloorAreasByStorey, getFloorOpeningsByStorey, getActiveStoreyId } =
       getModelActions()
 
@@ -38,16 +38,19 @@ export abstract class BaseFloorPolygonTool<TState extends PolygonToolStateBase> 
     const openingPoints = floorOpenings.flatMap(opening => opening.area.points)
     const openingSegments = floorOpenings.flatMap(opening => createPolygonSegments(opening.area.points))
 
-    return {
-      ...context,
-      snapPoints: [...context.snapPoints, ...perimeterPoints, ...areaPoints, ...openingPoints],
-      alignPoints: [...(context.alignPoints ?? []), ...perimeterPoints, ...areaPoints, ...openingPoints],
-      referenceLineSegments: [
-        ...(context.referenceLineSegments ?? []),
-        ...perimeterSegments,
-        ...areaSegments,
-        ...openingSegments
-      ]
+    const allPoints = [...perimeterPoints, ...areaPoints, ...openingPoints]
+    for (const point of allPoints) {
+      snapService.addSnapCandidate({ type: 'point', position: point, mode: 'snap' })
+    }
+
+    const alignPoints = [...perimeterPoints, ...areaPoints, ...openingPoints]
+    for (const point of alignPoints) {
+      snapService.addSnapCandidate({ type: 'point', position: point, mode: 'align' })
+    }
+
+    const allSegments = [...perimeterSegments, ...areaSegments, ...openingSegments]
+    for (const segment of allSegments) {
+      snapService.addSnapCandidate({ type: 'segment', segment })
     }
   }
 

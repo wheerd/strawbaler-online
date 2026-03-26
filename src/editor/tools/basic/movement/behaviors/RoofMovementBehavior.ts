@@ -2,7 +2,7 @@ import type { PerimeterWithGeometry, Roof } from '@/building/model'
 import type { SelectableId } from '@/building/model/ids'
 import { isRoofId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import type { SnappingContext } from '@/editor/canvas/services/SnappingService'
+import { type SnapCandidate, SnappingService } from '@/editor/canvas/services/SnappingService'
 import type { MovementContext } from '@/editor/tools/basic/movement/types'
 import { type Polygon2D, type Vec2, polygonEdges } from '@/shared/geometry'
 
@@ -19,20 +19,6 @@ export interface RoofEntityContext extends PolygonEntityContext {
 
 export type RoofMovementState = PolygonMovementState
 
-function buildSnapContext(perimeters: PerimeterWithGeometry[], otherRoofs: Roof[]): SnappingContext {
-  // Only snap to outer points and outer edges of perimeters
-  const perimeterPoints = perimeters.flatMap(perimeter => perimeter.outerPolygon.points)
-  const perimeterSegments = perimeters.flatMap(perimeter => [...polygonEdges(perimeter.outerPolygon)])
-
-  const roofPoints = otherRoofs.flatMap(roof => roof.referencePolygon.points)
-  const roofSegments = otherRoofs.flatMap(roof => createPolygonSegments(roof.referencePolygon.points))
-
-  return {
-    snapPoints: [...perimeterPoints, ...roofPoints],
-    referenceLineSegments: [...perimeterSegments, ...roofSegments]
-  }
-}
-
 export class RoofMovementBehavior extends PolygonMovementBehavior<RoofEntityContext> {
   getEntity(entityId: SelectableId, _parentIds: SelectableId[], store: StoreActions): RoofEntityContext {
     if (!isRoofId(entityId)) {
@@ -46,11 +32,32 @@ export class RoofMovementBehavior extends PolygonMovementBehavior<RoofEntityCont
 
     const perimeters = store.getPerimetersByStorey(roof.storeyId)
     const otherRoofs = store.getRoofsByStorey(roof.storeyId).filter(r => r.id !== roof.id)
+    const snapCandidates = this.buildSnapCandidates(perimeters, otherRoofs)
+    const snapService = new SnappingService<void>({ candidates: snapCandidates })
 
-    return {
-      roof,
-      snapContext: buildSnapContext(perimeters, otherRoofs)
+    return { roof, snapService }
+  }
+
+  private buildSnapCandidates(perimeters: PerimeterWithGeometry[], otherRoofs: Roof[]): SnapCandidate<void>[] {
+    const candidates: SnapCandidate<void>[] = []
+
+    const perimeterPoints = perimeters.flatMap(perimeter => perimeter.outerPolygon.points)
+    const perimeterSegments = perimeters.flatMap(perimeter => [...polygonEdges(perimeter.outerPolygon)])
+
+    const roofPoints = otherRoofs.flatMap(roof => roof.referencePolygon.points)
+    const roofSegments = otherRoofs.flatMap(roof => createPolygonSegments(roof.referencePolygon.points))
+
+    const allPoints = [...perimeterPoints, ...roofPoints]
+    for (const point of allPoints) {
+      candidates.push({ type: 'point', position: point, mode: 'snap' })
     }
+
+    const allSegments = [...perimeterSegments, ...roofSegments]
+    for (const segment of allSegments) {
+      candidates.push({ type: 'segment', segment })
+    }
+
+    return candidates
   }
 
   protected getPolygonPoints(context: MovementContext<RoofEntityContext>): readonly Vec2[] {

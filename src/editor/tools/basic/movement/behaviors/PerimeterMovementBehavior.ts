@@ -3,7 +3,7 @@ import type { PerimeterWithGeometry } from '@/building/model'
 import type { SelectableId } from '@/building/model/ids'
 import { isPerimeterId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import type { SnappingContext } from '@/editor/canvas/services/SnappingService'
+import { type SnapCandidate, SnappingService } from '@/editor/canvas/services/SnappingService'
 import type { MovementContext } from '@/editor/tools/basic/movement/types'
 import { type Vec2, ZERO_VEC2, addVec2, distSqrVec2 } from '@/shared/geometry'
 import { arePolygonsIntersecting } from '@/shared/geometry/polygon'
@@ -47,26 +47,14 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
     const perimeter = store.getPerimeterById(entityId)
 
     const referenceSide = perimeter.referenceSide
-    const activeStorey = store.getActiveStoreyId()
-    const storeys = store.getStoreysOrderedByLevel()
-    const storeyIndex = storeys.findIndex(s => s.id === activeStorey)
-    const lowerStorey = storeyIndex > 0 ? storeys[storeyIndex - 1] : null
+    const otherPerimeters = store.getPerimetersByStorey(perimeter.storeyId).filter(p => p.id !== entityId)
+    const lowerStorey = store.getStoreyBelow(perimeter.storeyId)
     const lowerPerimeters = lowerStorey ? store.getPerimetersByStorey(lowerStorey.id) : []
-    const lowerPerimeterPoints = lowerPerimeters.flatMap(p =>
-      referenceSide === 'inside' ? p.innerPolygon.points : p.outerPolygon.points
-    )
 
-    const otherPerimeters = store.getPerimetersByStorey(activeStorey).filter(p => p.id !== entityId)
-    const otherPerimeterPoints = otherPerimeters.flatMap(p =>
-      referenceSide === 'inside' ? p.innerPolygon.points : p.outerPolygon.points
-    )
+    const snapCandidates = this.buildSnapCandidates(otherPerimeters, lowerPerimeters, referenceSide)
+    const snapService = new SnappingService<void>({ candidates: snapCandidates })
 
-    const snapContext: SnappingContext = {
-      snapPoints: [ZERO_VEC2, ...lowerPerimeterPoints],
-      alignPoints: otherPerimeterPoints
-    }
-
-    return { perimeter, snapContext }
+    return { perimeter, snapService }
   }
 
   protected getPolygonPoints(context: MovementContext<PerimeterEntityContext>): readonly Vec2[] {
@@ -87,6 +75,32 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
       this.autoLockOriginCorners(movementState, context)
     }
     return success
+  }
+
+  private buildSnapCandidates(
+    otherPerimeters: PerimeterWithGeometry[],
+    lowerPerimeters: PerimeterWithGeometry[],
+    referenceSide: 'inside' | 'outside'
+  ): SnapCandidate<void>[] {
+    const candidates: SnapCandidate<void>[] = []
+
+    const lowerPoints = lowerPerimeters.flatMap(p =>
+      referenceSide === 'inside' ? p.innerPolygon.points : p.outerPolygon.points
+    )
+
+    for (const point of lowerPoints) {
+      candidates.push({ type: 'point', position: point, mode: 'snap' })
+    }
+
+    const otherPoints = otherPerimeters.flatMap(p =>
+      referenceSide === 'inside' ? p.innerPolygon.points : p.outerPolygon.points
+    )
+
+    for (const point of otherPoints) {
+      candidates.push({ type: 'point', position: point, mode: 'align' })
+    }
+
+    return candidates
   }
 
   private autoLockOriginCorners(

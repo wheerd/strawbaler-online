@@ -2,7 +2,7 @@ import type { FloorArea, FloorOpening, PerimeterWithGeometry } from '@/building/
 import type { SelectableId } from '@/building/model/ids'
 import { isFloorAreaId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
-import type { SnappingContext } from '@/editor/canvas/services/SnappingService'
+import { type SnapCandidate, SnappingService } from '@/editor/canvas/services/SnappingService'
 import type { MovementContext } from '@/editor/tools/basic/movement/types'
 import { type Polygon2D, type Vec2, polygonEdges } from '@/shared/geometry'
 
@@ -19,27 +19,6 @@ export interface FloorAreaEntityContext extends PolygonEntityContext {
 
 export type FloorAreaMovementState = PolygonMovementState
 
-function buildSnapContext(
-  perimeters: PerimeterWithGeometry[],
-  otherAreas: FloorArea[],
-  openings: FloorOpening[]
-): SnappingContext {
-  const perimeterPoints = perimeters.flatMap(perimeter => perimeter.innerPolygon.points)
-  const perimeterSegments = perimeters.flatMap(perimeter => [...polygonEdges(perimeter.innerPolygon)])
-
-  const areaPoints = otherAreas.flatMap(area => area.area.points)
-  const areaSegments = otherAreas.flatMap(area => createPolygonSegments(area.area.points))
-
-  const openingPoints = openings.flatMap(opening => opening.area.points)
-  const openingSegments = openings.flatMap(opening => createPolygonSegments(opening.area.points))
-
-  return {
-    snapPoints: [...perimeterPoints, ...areaPoints, ...openingPoints],
-    alignPoints: [...perimeterPoints, ...areaPoints, ...openingPoints],
-    referenceLineSegments: [...perimeterSegments, ...areaSegments, ...openingSegments]
-  }
-}
-
 export class FloorAreaMovementBehavior extends PolygonMovementBehavior<FloorAreaEntityContext> {
   getEntity(entityId: SelectableId, _parentIds: SelectableId[], store: StoreActions): FloorAreaEntityContext {
     if (!isFloorAreaId(entityId)) {
@@ -55,10 +34,44 @@ export class FloorAreaMovementBehavior extends PolygonMovementBehavior<FloorArea
     const otherAreas = store.getFloorAreasByStorey(floorArea.storeyId).filter(area => area.id !== floorArea.id)
     const openings = store.getFloorOpeningsByStorey(floorArea.storeyId)
 
-    return {
-      floorArea,
-      snapContext: buildSnapContext(perimeters, otherAreas, openings)
+    const snapCandidates = this.buildSnapCandidates(perimeters, otherAreas, openings)
+    const snapService = new SnappingService<void>({ candidates: snapCandidates })
+
+    return { floorArea, snapService }
+  }
+
+  private buildSnapCandidates(
+    perimeters: PerimeterWithGeometry[],
+    otherAreas: FloorArea[],
+    openings: FloorOpening[]
+  ): SnapCandidate<void>[] {
+    const candidates: SnapCandidate<void>[] = []
+
+    const perimeterPoints = perimeters.flatMap(perimeter => perimeter.innerPolygon.points)
+    const perimeterSegments = perimeters.flatMap(perimeter => [...polygonEdges(perimeter.innerPolygon)])
+
+    const areaPoints = otherAreas.flatMap(area => area.area.points)
+    const areaSegments = otherAreas.flatMap(area => createPolygonSegments(area.area.points))
+
+    const openingPoints = openings.flatMap(opening => opening.area.points)
+    const openingSegments = openings.flatMap(opening => createPolygonSegments(opening.area.points))
+
+    const allPoints = [...perimeterPoints, ...areaPoints, ...openingPoints]
+    for (const point of allPoints) {
+      candidates.push({ type: 'point', position: point, mode: 'snap' })
     }
+
+    const alignPoints = [...perimeterPoints, ...areaPoints, ...openingPoints]
+    for (const point of alignPoints) {
+      candidates.push({ type: 'point', position: point, mode: 'align' })
+    }
+
+    const allSegments = [...perimeterSegments, ...areaSegments, ...openingSegments]
+    for (const segment of allSegments) {
+      candidates.push({ type: 'segment', segment })
+    }
+
+    return candidates
   }
 
   protected getPolygonPoints(context: MovementContext<FloorAreaEntityContext>): readonly Vec2[] {

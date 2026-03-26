@@ -1,4 +1,9 @@
-import { type SnapResult, type SnappingContext, SnappingService } from '@/editor/canvas/services/SnappingService'
+import {
+  type SnapCandidate,
+  type SnapResult,
+  type SnappingContext,
+  SnappingService
+} from '@/editor/canvas/services/SnappingService'
 import type { LengthInputPosition } from '@/editor/canvas/services/length-input'
 import { activateLengthInput, deactivateLengthInput } from '@/editor/canvas/services/length-input'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
@@ -22,8 +27,8 @@ export interface PolylineValidationContext {
 export interface PolylineToolStateBase {
   points: Vec2[]
   pointer: Vec2
-  snapResult?: SnapResult
-  snapContext: SnappingContext
+  snapResult?: SnapResult<void>
+  snapCandidates: SnapCandidate<void>[]
   isCurrentSegmentValid: boolean
   lengthOverride: Length | null
   segmentLengthOverrides: (Length | null)[]
@@ -33,10 +38,11 @@ export interface PolylineToolStateBase {
 export abstract class BasePolylineTool<TState extends PolylineToolStateBase> extends BaseTool {
   public state: TState
 
-  private readonly snappingService: SnappingService
+  private snappingService: SnappingService<void> | null = null
 
   protected constructor(toolSystem: ToolSystem, initialState: Omit<TState, keyof PolylineToolStateBase>) {
     super(toolSystem)
+    const initialCandidates = this.createBaseSnapCandidates([])
     this.state = {
       points: [] as Vec2[],
       pointer: ZERO_VEC2,
@@ -45,10 +51,9 @@ export abstract class BasePolylineTool<TState extends PolylineToolStateBase> ext
       lengthOverride: null,
       segmentLengthOverrides: [] as (Length | null)[],
       validationContext: this.createInitialValidationContext(),
-      snapContext: this.createBaseSnapContext([]),
+      snapCandidates: this.extendSnapCandidates(initialCandidates),
       ...initialState
     } as TState
-    this.snappingService = new SnappingService()
   }
 
   protected createInitialValidationContext(): PolylineValidationContext {
@@ -78,7 +83,7 @@ export abstract class BasePolylineTool<TState extends PolylineToolStateBase> ext
     }
 
     this.state.points.push(pointToAdd)
-    this.updateSnapContext()
+    this.updateSnapCandidates()
     this.clearLengthOverride()
     this.updateValidation()
 
@@ -125,7 +130,7 @@ export abstract class BasePolylineTool<TState extends PolylineToolStateBase> ext
   onActivate(): void {
     this.resetDrawingState()
     this.onToolActivated()
-    this.updateSnapContext()
+    this.updateSnapCandidates()
   }
 
   onDeactivate(): void {
@@ -171,39 +176,43 @@ export abstract class BasePolylineTool<TState extends PolylineToolStateBase> ext
     return scaleAddVec2(lastPoint, dir, this.state.lengthOverride)
   }
 
-  protected updateSnapContext(): void {
-    const context = this.createBaseSnapContext(this.state.points)
-    this.state.snapContext = this.extendSnapContext(context)
+  protected updateSnapCandidates(): void {
+    const candidates = this.createBaseSnapCandidates(this.state.points)
+    this.state.snapCandidates = this.extendSnapCandidates(candidates)
+    this.snappingService = null
     this.triggerRender()
   }
 
-  protected createBaseSnapContext(points: readonly Vec2[]): SnappingContext {
-    const referenceLineSegments: LineSegment2D[] = []
+  protected createBaseSnapCandidates(points: readonly Vec2[]): SnapCandidate<void>[] {
+    const candidates: SnapCandidate<void>[] = []
+
     for (let i = 1; i < points.length; i += 1) {
-      referenceLineSegments.push({ start: points[i - 1], end: points[i] })
+      candidates.push({
+        type: 'segment',
+        segment: { start: points[i - 1], end: points[i] }
+      })
     }
 
-    const referencePoint = points.length > 0 ? points[points.length - 1] : undefined
-
-    const snapPoints: Vec2[] = []
-
-    return {
-      snapPoints,
-      alignPoints: [...points],
-      referencePoint,
-      referenceLineSegments
+    for (const point of points) {
+      candidates.push({
+        type: 'point',
+        position: point,
+        mode: 'align'
+      })
     }
+
+    return candidates
   }
 
-  protected extendSnapContext(context: SnappingContext): SnappingContext {
-    return context
+  protected extendSnapCandidates(candidates: SnapCandidate<void>[]): SnapCandidate<void>[] {
+    return candidates
   }
 
   public getMinimumPointCount(): number {
     return 2
   }
 
-  protected shouldTerminateAtSnap(_snapResult: SnapResult | undefined): boolean {
+  protected shouldTerminateAtSnap(_snapResult: SnapResult<void> | undefined): boolean {
     return false
   }
 
@@ -219,8 +228,23 @@ export abstract class BasePolylineTool<TState extends PolylineToolStateBase> ext
 
   protected onToolDeactivated(): void {}
 
-  private findSnap(target: Vec2): SnapResult | undefined {
-    const result = this.snappingService.findSnapResult(target, this.state.snapContext)
+  private getOrCreateSnappingService(): SnappingService<void> {
+    if (!this.snappingService) {
+      const context: SnappingContext<void> = {
+        candidates: this.state.snapCandidates
+      }
+      this.snappingService = new SnappingService(context)
+
+      if (this.state.points.length > 0) {
+        this.snappingService.referencePoint = this.state.points[this.state.points.length - 1]
+        this.snappingService.referenceMinDistance = 50
+      }
+    }
+    return this.snappingService
+  }
+
+  private findSnap(target: Vec2): SnapResult<void> | undefined {
+    const result = this.getOrCreateSnappingService().findSnapResult(target)
     return result ?? undefined
   }
 
@@ -287,6 +311,7 @@ export abstract class BasePolylineTool<TState extends PolylineToolStateBase> ext
     this.state.lengthOverride = null
     this.state.segmentLengthOverrides = []
     this.state.validationContext = this.createInitialValidationContext()
-    this.updateSnapContext()
+    this.snappingService = null
+    this.updateSnapCandidates()
   }
 }
