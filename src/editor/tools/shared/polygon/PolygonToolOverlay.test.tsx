@@ -1,11 +1,11 @@
 import { beforeEach, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
-import type { SnapResult } from '@/editor/canvas/services/SnappingService'
+import type { SnapResult, SnappingService } from '@/editor/canvas/services/SnappingService'
 import { PerimeterTool } from '@/editor/tools/perimeter/add/PerimeterTool'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2, newVec2 } from '@/shared/geometry'
-import { renderSvg } from '@/test/helpers'
+import { partialMock, renderSvg } from '@/test/helpers'
 
 import { PolygonToolOverlay } from './PolygonToolOverlay'
 
@@ -36,7 +36,12 @@ describe('PolygonToolOverlay', () => {
       points: [],
       pointer: ZERO_VEC2,
       snapResult: undefined,
-      snapCandidates: [],
+      snapService: partialMock<SnappingService<any>>({
+        referencePoint: null,
+        referenceMinDistance: 42,
+        findSnapResult: vi.fn(),
+        addSnapCandidate: vi.fn()
+      }),
       isCurrentSegmentValid: true,
       isClosingSegmentValid: true,
       segmentLengthOverrides: [],

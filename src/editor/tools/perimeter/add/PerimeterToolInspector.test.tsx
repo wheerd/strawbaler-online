@@ -3,8 +3,10 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { type Mock, vi } from 'vitest'
 
 import { createWallAssemblyId } from '@/building/model/ids'
+import type { SnappingService } from '@/editor/canvas/services/SnappingService'
 import { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import { ZERO_VEC2 } from '@/shared/geometry'
+import { partialMock } from '@/test/helpers'
 
 import { PerimeterTool } from './PerimeterTool'
 import { PerimeterToolInspector } from './PerimeterToolInspector'
@@ -74,11 +76,12 @@ describe('PerimeterToolInspector', () => {
       points: [],
       pointer: ZERO_VEC2,
       snapResult: undefined,
-      snapContext: {
-        snapPoints: [],
-        alignPoints: [],
-        referenceLineSegments: []
-      },
+      snapService: partialMock<SnappingService<any>>({
+        referencePoint: null,
+        referenceMinDistance: 42,
+        findSnapResult: vi.fn(),
+        addSnapCandidate: vi.fn()
+      }),
       isCurrentSegmentValid: true,
       isClosingSegmentValid: true,
       wallAssemblyId: createWallAssemblyId(),

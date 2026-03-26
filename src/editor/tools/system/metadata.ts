@@ -1,4 +1,4 @@
-import { BetweenVerticalStart, MousePointer, Move, Rocket } from 'lucide-react'
+import { BetweenVerticalStart, BrickWallIcon, MousePointer, Move, Rocket } from 'lucide-react'
 
 import {
   FloorAreaIcon,
@@ -65,6 +65,11 @@ export const TOOL_METADATA: Record<ToolId, ToolMetadata> = {
     nameKey: 'testData',
     iconComponent: Rocket,
     hotkey: 't'
+  },
+  'intermediate-wall.add': {
+    nameKey: 'intermediateWallAdd',
+    iconComponent: BrickWallIcon,
+    hotkey: 'i'
   }
 } as const
 

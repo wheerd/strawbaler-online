@@ -1884,6 +1884,7 @@ interface Resources {
       "basicSelect": "Select",
       "floorsAddArea": "Floor Area",
       "floorsAddOpening": "Floor Opening",
+      "intermediateWallAdd": "Draw Intermediate Wall",
       "perimeterAdd": "Building Perimeter",
       "perimeterAddOpening": "Add Opening",
       "perimeterAddPost": "Add Post",

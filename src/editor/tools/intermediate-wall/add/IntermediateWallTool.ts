@@ -1,35 +1,79 @@
-import { getModelActions } from '@/building/store'
-import { getConfigActions } from '@/config/store'
-import { type SnapCandidate } from '@/editor/canvas/services/SnappingService'
-import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import {
-  BasePolylineTool,
-  type PolylineToolStateBase,
-  type PolylineValidationContext
-} from '@/editor/tools/shared/polyline/BasePolylineTool'
+  type PerimeterId,
+  type WallId,
+  type WallNodeId,
+  isIntermediateWallId,
+  isPerimeterWallId,
+  isWallNodeId
+} from '@/building/model'
+import { getModelActions } from '@/building/store'
+import { type SnapResult, SnappingService } from '@/editor/canvas/services/SnappingService'
+import {
+  type LengthInputPosition,
+  activateLengthInput,
+  deactivateLengthInput
+} from '@/editor/canvas/services/length-input'
+import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
+import { viewportActions } from '@/editor/canvas/state/viewportStore'
+import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
-import type { ToolImplementation } from '@/editor/tools/system/types'
-import { type Length, type LineSegment2D, type Vec2, distanceToLineSegment, newVec2 } from '@/shared/geometry'
-import { isPointInPolygon } from '@/shared/geometry/polygon'
+import type { CursorStyle, EditorEvent, ToolImplementation } from '@/editor/tools/system/types'
+import {
+  type Length,
+  type LineSegment2D,
+  type Vec2,
+  ZERO_VEC2,
+  direction,
+  lineFromSegment,
+  projectVec2,
+  scaleAddVec2
+} from '@/shared/geometry'
+import { type Polygon2D, isPointInPolygon, segmentsIntersect } from '@/shared/geometry/polygon'
+import { assertUnreachable } from '@/shared/utils'
 
 import { IntermediateWallToolInspector } from './IntermediateWallToolInspector'
 import { IntermediateWallToolOverlay } from './IntermediateWallToolOverlay'
 
-interface IntermediateWallToolState extends PolylineToolStateBase {
+type SnapEntityId = WallId | WallNodeId
+
+interface IntermediateWallToolState {
+  points: Vec2[]
+  pointer: Vec2
+  snapResult?: SnapResult<SnapEntityId>
+  startEntity?: SnapEntityId
+  perimeterId?: PerimeterId
+  isValid: boolean
+  lengthOverride: Length | null
+  segmentLengthOverrides: (Length | null)[]
   thickness: Length
 }
 
-const SNAP_TOLERANCE = 200
+const SNAP_NODE_TOLERANCE = 200
 
-export class IntermediateWallTool extends BasePolylineTool<IntermediateWallToolState> implements ToolImplementation {
+export class IntermediateWallTool extends BaseTool implements ToolImplementation {
   readonly id = 'intermediate-wall.add'
   readonly overlayComponent = IntermediateWallToolOverlay
   readonly inspectorComponent = IntermediateWallToolInspector
 
+  public state: IntermediateWallToolState
+
+  private snappingService = new SnappingService<SnapEntityId>({ candidates: [] })
+  private validationLines: Record<SnapEntityId, LineSegment2D[]> = {}
+  private validationPolygons: Record<PerimeterId, Polygon2D> = {}
+
   constructor(toolSystem: ToolSystem) {
-    super(toolSystem, {
+    super(toolSystem)
+    this.state = {
+      points: [] as Vec2[],
+      pointer: ZERO_VEC2,
+      snapResult: undefined,
+      startEntity: undefined,
+      perimeterId: undefined,
+      isValid: true,
+      lengthOverride: null,
+      segmentLengthOverrides: [] as (Length | null)[],
       thickness: 120
-    })
+    }
   }
 
   public setThickness(thickness: Length): void {
@@ -37,91 +81,215 @@ export class IntermediateWallTool extends BasePolylineTool<IntermediateWallToolS
     this.triggerRender()
   }
 
-  protected onToolActivated(): void {
-    getViewModeActions().ensureMode('walls')
-    const configStore = getConfigActions()
-    this.state.thickness = configStore.getDefaultInteriorWallThickness() ?? 120
-    this.updateValidationContext()
-  }
+  handlePointerDown(event: EditorEvent): boolean {
+    this.state.pointer = event.worldCoordinates
+    this.state.snapResult = this.findSnap(event.worldCoordinates)
+    const snapCoords = this.state.snapResult?.position ?? event.worldCoordinates
+    const snapEntity = this.state.snapResult?.meta !== 'origin' ? this.state.snapResult?.meta : undefined
 
-  protected createInitialValidationContext(): PolylineValidationContext {
-    return {
-      existingWalls: []
-    }
-  }
+    if (!this.state.isValid) return true
 
-  protected updateValidationContext(): void {
-    const modelActions = getModelActions()
-    const walls = modelActions.getAllIntermediateWalls()
-    this.state.validationContext.existingWalls = walls.map(w => ({
-      centerLine: w.geometry.centerLine
-    }))
-  }
-
-  protected extendSnapCandidates(candidates: SnapCandidate<void>[]): SnapCandidate<void>[] {
-    const modelActions = getModelActions()
-    const perimeters = modelActions.getAllPerimeters()
-    const walls = modelActions.getAllIntermediateWalls()
-    const wallNodes = modelActions.getAllWallNodes()
-
-    const extended = [...candidates]
-
-    for (const wall of walls) {
-      extended.push({ type: 'point', position: wall.geometry.centerLine.start, mode: 'snap' })
-      extended.push({ type: 'point', position: wall.geometry.centerLine.end, mode: 'snap' })
+    if (this.state.points.length === 0 && snapEntity) {
+      this.state.startEntity = snapEntity
     }
 
-    for (const node of wallNodes) {
-      extended.push({ type: 'point', position: node.center, mode: 'snap' })
+    let pointToAdd = snapCoords
+    if (this.state.lengthOverride && this.state.points.length > 0) {
+      const lastPoint = this.state.points[this.state.points.length - 1]
+      const dir = direction(lastPoint, snapCoords)
+      pointToAdd = scaleAddVec2(lastPoint, dir, this.state.lengthOverride)
     }
 
-    for (const wall of walls) {
-      extended.push({ type: 'segment', segment: wall.geometry.centerLine })
+    if (this.state.points.length > 0) {
+      this.state.segmentLengthOverrides.push(this.state.lengthOverride)
     }
 
-    for (const perimeter of perimeters) {
-      for (let i = 0; i < perimeter.wallIds.length; i++) {
-        const wall = modelActions.getPerimeterWallById(perimeter.wallIds[i])
-        extended.push({ type: 'segment', segment: wall.insideLine })
+    this.addPoint(pointToAdd)
+
+    if (this.state.points.length === 1) {
+      const perimeterId = this.findPerimeterContainingPoint(pointToAdd)
+      if (perimeterId) {
+        this.validationPolygons = { [perimeterId]: this.validationPolygons[perimeterId] }
+        this.state.perimeterId = perimeterId
+      } else {
+        // Unreachable since validation prevents user from placing first point outside of perimeter
+        throw new Error('Failed to find perimeter for intermediate wall start point')
       }
     }
 
-    return extended
+    this.clearLengthOverride()
+    this.state.isValid = this.checkValidation()
+
+    if (this.state.points.length >= 1) {
+      this.activateLengthInputForNextSegment()
+    }
+
+    if (snapEntity && this.state.points.length >= 2) {
+      this.complete(snapEntity)
+    }
+
+    return true
   }
 
-  protected shouldTerminateAtSnap(
-    _snapResult: import('@/editor/canvas/services/SnappingService2').SnapResult<void> | undefined
-  ): boolean {
+  private addPoint(pointToAdd: Vec2) {
+    this.state.points.push(pointToAdd)
+
+    this.snappingService.referencePoint = pointToAdd
+    this.snappingService.addSnapCandidate({
+      type: 'point',
+      position: pointToAdd,
+      mode: 'align'
+    })
+
+    if (this.state.points.length === 1) {
+      this.snappingService.addSnapCandidate({
+        type: 'point',
+        position: pointToAdd,
+        mode: 'snap',
+        priority: 1
+      })
+    }
+
+    if (this.state.points.length > 1) {
+      const lastPoint = this.state.points[this.state.points.length - 2]
+      const line = { point: lastPoint, direction: direction(lastPoint, pointToAdd) }
+      this.snappingService.addSnapCandidate({
+        type: 'line',
+        line
+      })
+    }
+  }
+
+  handlePointerMove(event: EditorEvent): boolean {
+    this.state.pointer = event.worldCoordinates
+    this.state.snapResult = this.findSnap(event.worldCoordinates)
+    this.state.isValid = this.checkValidation()
+    this.triggerRender()
+    return true
+  }
+
+  handleKeyDown(event: KeyboardEvent): boolean {
+    if (event.key === 'Escape') {
+      if (this.state.lengthOverride) {
+        this.clearLengthOverride()
+        return true
+      }
+      if (this.state.points.length > 0) {
+        this.cancel()
+        return true
+      }
+      return false
+    }
+
+    if (event.key === 'Enter' && this.state.points.length >= 2) {
+      this.complete()
+      return true
+    }
+
     return false
   }
 
-  protected onPolylineCompleted(points: Vec2[]): void {
+  onActivate(): void {
+    getViewModeActions().ensureMode('walls')
+    this.setupContext()
+  }
+
+  onDeactivate(): void {
+    this.resetDrawingState()
+    this.resetContext()
+  }
+
+  protected resetContext(): void {
+    this.snappingService = new SnappingService<SnapEntityId>({ candidates: [] })
+    this.validationLines = {}
+    this.validationPolygons = {}
+  }
+
+  protected setupContext(): void {
+    const modelActions = getModelActions()
+    const storeyId = modelActions.getActiveStoreyId()
+    const perimeters = modelActions.getPerimetersByStorey(storeyId)
+
+    for (const perimeter of perimeters) {
+      this.validationPolygons[perimeter.id] = perimeter.outerPolygon
+
+      const perimeterWalls = modelActions.getPerimeterWallsById(perimeter.id)
+      for (const wall of perimeterWalls) {
+        const halfThickness = wall.thickness / 2
+        this.snappingService.addSnapCandidate({
+          type: 'segment',
+          segment: wall.insideLine,
+          minDistance: halfThickness,
+          meta: wall.id,
+          priority: 1
+        })
+        this.validationLines[wall.id] = [wall.insideLine]
+      }
+
+      const intermediateWalls = modelActions.getIntermediateWallsByPerimeter(perimeter.id)
+      for (const wall of intermediateWalls) {
+        const halfThickness = wall.thickness / 2
+        this.snappingService.addSnapCandidate({
+          type: 'segment',
+          segment: wall.centerLine,
+          minDistance: halfThickness,
+          meta: wall.id,
+          priority: 1
+        })
+        this.snappingService.addSnapCandidate({
+          type: 'line',
+          line: lineFromSegment(wall.leftLine),
+          minDistance: halfThickness,
+          priority: -1
+        })
+        this.snappingService.addSnapCandidate({
+          type: 'line',
+          line: lineFromSegment(wall.rightLine),
+          minDistance: halfThickness,
+          priority: -1
+        })
+        this.validationLines[wall.id] = [wall.leftLine, wall.rightLine]
+      }
+
+      const wallNodes = modelActions.getWallNodesByPerimeter(perimeter.id)
+      for (const node of wallNodes) {
+        this.snappingService.addSnapCandidate({
+          type: 'point',
+          position: node.center,
+          mode: 'snap',
+          meta: node.id,
+          priority: 2,
+          minDistance: SNAP_NODE_TOLERANCE
+        })
+      }
+    }
+  }
+
+  protected onPolylineCompleted(points: Vec2[], snapEntity?: SnapEntityId): void {
     if (points.length < 2) return
 
     const modelActions = getModelActions()
-    const perimeters = modelActions.getAllPerimeters()
 
-    let perimeterId = this.findPerimeterContainingPoint(points[0])
+    const perimeterId = this.state.perimeterId
     if (!perimeterId) {
-      perimeterId = this.findPerimeterContainingPoint(points[points.length - 1])
-    }
-    if (!perimeterId) {
-      for (const p of perimeters) {
-        perimeterId = p.id
-        break
-      }
-    }
-    if (!perimeterId) {
-      console.error('No perimeter found for intermediate wall')
-      return
+      // Unreachable since this is set on first point
+      throw new Error('No perimeter found for intermediate wall')
     }
 
     for (let i = 0; i < points.length - 1; i++) {
       const startPoint = points[i]
       const endPoint = points[i + 1]
+      const isLast = i === points.length - 2
 
-      const startNode = this.getOrCreateNodeForPoint(startPoint, perimeterId)
-      const endNode = this.getOrCreateNodeForPoint(endPoint, perimeterId)
+      const startNode =
+        i === 0 && this.state.startEntity
+          ? this.getOrCreateEntityNode(startPoint, this.state.startEntity)
+          : modelActions.addInnerWallNode(perimeterId, startPoint)
+
+      const endNode =
+        isLast && snapEntity
+          ? this.getOrCreateEntityNode(endPoint, snapEntity)
+          : modelActions.addInnerWallNode(perimeterId, endPoint)
 
       modelActions.addIntermediateWall(
         perimeterId,
@@ -132,132 +300,156 @@ export class IntermediateWallTool extends BasePolylineTool<IntermediateWallToolS
     }
   }
 
-  private findPerimeterContainingPoint(point: Vec2): import('@/building/model/ids').PerimeterId | null {
-    const modelActions = getModelActions()
-    const perimeters = modelActions.getAllPerimeters()
-
-    for (const perimeter of perimeters) {
-      if (isPointInPolygon(point, perimeter.boundaryPolygon)) {
-        return perimeter.id
-      }
-    }
-    return null
+  private findPerimeterContainingPoint(point: Vec2): PerimeterId | null {
+    const perimeterPolygons = Object.entries(this.validationPolygons) as [PerimeterId, Polygon2D][]
+    return perimeterPolygons.find(([_, polygon]) => isPointInPolygon(point, polygon))?.[0] ?? null
   }
 
-  private getOrCreateNodeForPoint(
-    point: Vec2,
-    perimeterId: import('@/building/model/ids').PerimeterId
-  ): { id: import('@/building/model/ids').WallNodeId } {
+  private getOrCreateEntityNode(point: Vec2, entityId: SnapEntityId): { id: WallNodeId } {
+    if (isWallNodeId(entityId)) {
+      return { id: entityId }
+    }
+
     const modelActions = getModelActions()
 
-    const perimeterWallNode = this.findPerimeterWallNodeAtPoint(point, perimeterId)
-    if (perimeterWallNode) {
-      return { id: perimeterWallNode.id }
+    if (isPerimeterWallId(entityId)) {
+      const wall = modelActions.getPerimeterWallById(entityId)
+      const offset = projectVec2(wall.insideLine.start, point, direction(wall.insideLine.start, wall.insideLine.end))
+      return modelActions.addPerimeterWallNode(wall.perimeterId, wall.id, offset)
     }
 
-    const existingWallNode = this.findExistingWallNodeAtPoint(point, perimeterId)
-    if (existingWallNode) {
-      return { id: existingWallNode.id }
+    if (isIntermediateWallId(entityId)) {
+      return { id: modelActions.splitIntermediateWallAtPoint(entityId, point) }
     }
 
-    const intermediateWallSplit = this.findIntermediateWallToSplitAtPoint(point, perimeterId)
-    if (intermediateWallSplit) {
-      const newNodeId = modelActions.splitIntermediateWallAtPoint(intermediateWallSplit.wallId, point)
-      return { id: newNodeId }
-    }
-
-    return modelActions.addInnerWallNode(perimeterId, point)
+    assertUnreachable(entityId, 'invalid entity id for node creation')
   }
 
-  private findPerimeterWallNodeAtPoint(
-    point: Vec2,
-    _perimeterId: import('@/building/model/ids').PerimeterId
-  ): { id: import('@/building/model/ids').WallNodeId } | null {
-    const modelActions = getModelActions()
-    const perimeters = modelActions.getAllPerimeters()
+  getCursor(): CursorStyle {
+    return 'crosshair'
+  }
 
-    for (const perimeter of perimeters) {
-      for (const wallId of perimeter.wallIds) {
-        const wall = modelActions.getPerimeterWallById(wallId)
-        const distStart = distanceToLineSegment(point, wall.insideLine)
-        const distEnd = distanceToLineSegment(point, wall.insideLine)
+  public cancel(): void {
+    this.resetDrawingState()
+    this.resetContext()
+    this.setupContext()
+    deactivateLengthInput()
+  }
 
-        if (distStart < SNAP_TOLERANCE || distEnd < SNAP_TOLERANCE) {
-          const distToInsideLine = distanceToLineSegment(point, wall.insideLine)
-          if (distToInsideLine < SNAP_TOLERANCE) {
-            const wallLength = wall.insideLength
-            const t = this.calculateParametricPosition(point, wall.insideLine)
-            const offset = Math.round(t * wallLength)
+  public complete(snapEntity?: SnapEntityId): void {
+    const points = [...this.state.points]
 
-            const existingNodes = modelActions.getWallNodesByPerimeter(perimeter.id)
-            for (const node of existingNodes) {
-              if (
-                node.type === 'perimeter' &&
-                node.wallId === wallId &&
-                Math.abs(node.offsetFromCornerStart - offset) < SNAP_TOLERANCE
-              ) {
-                return { id: node.id }
-              }
-            }
+    try {
+      this.onPolylineCompleted(points, snapEntity)
+    } catch (error) {
+      console.error('Failed to create polyline:', error)
+    }
 
-            const newNode = modelActions.addPerimeterWallNode(perimeter.id, wallId, offset)
-            return { id: newNode.id }
+    this.resetDrawingState()
+    deactivateLengthInput()
+  }
+
+  public getPreviewPosition(): Vec2 {
+    const currentPos = this.state.snapResult?.position ?? this.state.pointer
+
+    if (!this.state.lengthOverride || this.state.points.length === 0) {
+      return currentPos
+    }
+
+    const lastPoint = this.state.points[this.state.points.length - 1]
+    const dir = direction(lastPoint, currentPos)
+    return scaleAddVec2(lastPoint, dir, this.state.lengthOverride)
+  }
+
+  private findSnap(target: Vec2): SnapResult<SnapEntityId> | undefined {
+    return this.snappingService.findSnapResult(target) ?? undefined
+  }
+
+  private checkValidation(): boolean {
+    const isInsideValidationPolygons = Object.values(this.validationPolygons).some(polygon =>
+      isPointInPolygon(this.state.pointer, polygon)
+    )
+    if (!isInsideValidationPolygons) {
+      return false
+    }
+
+    if (this.state.points.length > 0) {
+      const lastPoint = this.state.points[this.state.points.length - 1]
+      const currentPos = this.state.snapResult?.position ?? this.state.pointer
+      const snapEntityId = this.state.snapResult?.meta
+      const segmentToValidate = { start: lastPoint, end: currentPos }
+      for (const [entityId, lines] of Object.entries(this.validationLines)) {
+        if (entityId === snapEntityId) continue
+        if (this.state.points.length === 1 && this.state.startEntity === entityId) continue
+        for (const line of lines) {
+          if (segmentsIntersect(segmentToValidate.start, segmentToValidate.end, line.start, line.end)) {
+            return false
           }
         }
       }
-    }
-    return null
-  }
 
-  private findExistingWallNodeAtPoint(
-    point: Vec2,
-    perimeterId: import('@/building/model/ids').PerimeterId
-  ): { id: import('@/building/model/ids').WallNodeId } | null {
-    const modelActions = getModelActions()
-    const nodes = modelActions.getWallNodesByPerimeter(perimeterId)
-
-    for (const node of nodes) {
-      const dist = Math.sqrt((point[0] - node.center[0]) ** 2 + (point[1] - node.center[1]) ** 2)
-      if (dist < SNAP_TOLERANCE) {
-        return { id: node.id }
-      }
-    }
-    return null
-  }
-
-  private findIntermediateWallToSplitAtPoint(
-    point: Vec2,
-    perimeterId: import('@/building/model/ids').PerimeterId
-  ): { wallId: import('@/building/model/ids').IntermediateWallId } | null {
-    const modelActions = getModelActions()
-    const walls = modelActions.getIntermediateWallsByPerimeter(perimeterId)
-
-    for (const wall of walls) {
-      const dist = distanceToLineSegment(point, wall.geometry.centerLine)
-      if (dist < SNAP_TOLERANCE) {
-        const centerLine = wall.geometry.centerLine
-        const lineLength = Math.sqrt(
-          (centerLine.end[0] - centerLine.start[0]) ** 2 + (centerLine.end[1] - centerLine.start[1]) ** 2
-        )
-        const distToStart = Math.sqrt((point[0] - centerLine.start[0]) ** 2 + (point[1] - centerLine.start[1]) ** 2)
-        const distToEnd = Math.sqrt((point[0] - centerLine.end[0]) ** 2 + (point[1] - centerLine.end[1]) ** 2)
-
-        if (distToStart > SNAP_TOLERANCE && distToEnd > SNAP_TOLERANCE && lineLength > SNAP_TOLERANCE * 2) {
-          return { wallId: wall.id }
+      const previousSegments = this.state.points.slice(0, -1)
+      for (let i = 0; i < previousSegments.length - 1; i++) {
+        const segStart = previousSegments[i]
+        const segEnd = previousSegments[i + 1]
+        if (segmentsIntersect(segmentToValidate.start, segmentToValidate.end, segStart, segEnd)) {
+          return false
         }
       }
     }
-    return null
+
+    return true
   }
 
-  private calculateParametricPosition(point: Vec2, line: LineSegment2D): number {
-    const lineVec = newVec2(line.end[0] - line.start[0], line.end[1] - line.start[1])
-    const pointVec = newVec2(point[0] - line.start[0], point[1] - line.start[1])
+  public setLengthOverride(length: Length | null): void {
+    this.state.lengthOverride = length
+    this.triggerRender()
+  }
 
-    const lineLengthSq = lineVec[0] * lineVec[0] + lineVec[1] * lineVec[1]
-    if (lineLengthSq === 0) return 0
+  public clearLengthOverride(): void {
+    this.state.lengthOverride = null
+    this.triggerRender()
+  }
 
-    const dot = pointVec[0] * lineVec[0] + pointVec[1] * lineVec[1]
-    return Math.max(0, Math.min(1, dot / lineLengthSq))
+  private activateLengthInputForNextSegment(): void {
+    if (this.state.points.length === 0) return
+
+    activateLengthInput({
+      position: this.getLengthInputPosition(),
+      onCommit: (length: Length) => {
+        this.setLengthOverride(length)
+      },
+      onCancel: () => {
+        this.clearLengthOverride()
+      }
+    })
+  }
+
+  private getLengthInputPosition(): LengthInputPosition {
+    const { worldToStage } = viewportActions()
+
+    if (this.state.points.length === 0) {
+      return { x: 400, y: 300 }
+    }
+
+    const lastPoint = this.state.points[this.state.points.length - 1]
+    const stageCoords = worldToStage(lastPoint)
+
+    return {
+      x: stageCoords[0] + 20,
+      y: stageCoords[1] - 30
+    }
+  }
+
+  private resetDrawingState(): void {
+    this.state.points = []
+    this.state.pointer = ZERO_VEC2
+    this.state.snapResult = undefined
+    this.state.startEntity = undefined
+    this.state.perimeterId = undefined
+    this.state.isValid = true
+    this.state.lengthOverride = null
+    this.state.segmentLengthOverrides = []
+    this.state.thickness = 120
   }
 }
