@@ -1,9 +1,18 @@
 import { expect, vi } from 'vitest'
 
-import type { WallPostParams } from '@/building/model'
-import type { PerimeterId } from '@/building/model/ids'
+import type {
+  Perimeter,
+  PerimeterCorner,
+  PerimeterCornerGeometry,
+  PerimeterWall,
+  PerimeterWallGeometry,
+  WallPostParams
+} from '@/building/model'
+import type { PerimeterCornerId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import { createStoreyId, isOpeningId, isWallPostId } from '@/building/model/ids'
 import { NotFoundError } from '@/building/store/errors'
+import type { IntermediateWallsSlice, IntermediateWallsState } from '@/building/store/slices/intermediateWallsSlice'
+import { createIntermediateWallsSlice } from '@/building/store/slices/intermediateWallsSlice'
 import {
   type PerimetersSlice,
   type PerimetersState,
@@ -238,5 +247,334 @@ export function mockPost(params: Partial<WallPostParams>): WallPostParams {
     material: 'postMaterial' as MaterialId,
     infillMaterial: 'infillMaterial' as MaterialId,
     ...params
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Intermediate wall test helpers
+// ---------------------------------------------------------------------------
+
+interface MockPerimeterData {
+  perimeterId: PerimeterId
+  wallIds: PerimeterWallId[]
+  cornerIds: PerimeterCornerId[]
+}
+
+export function createMockPerimeterState(
+  width = 10000,
+  height = 5000,
+  thickness = 420
+): {
+  perimetersState: PerimetersState
+  perimeterData: MockPerimeterData
+} {
+  const w = width
+  const h = height
+  const t = thickness
+
+  const wallIds: PerimeterWallId[] = [
+    'outwall_bottom' as PerimeterWallId,
+    'outwall_right' as PerimeterWallId,
+    'outwall_top' as PerimeterWallId,
+    'outwall_left' as PerimeterWallId
+  ]
+  const cornerIds: PerimeterCornerId[] = [
+    'outcorner_bl' as PerimeterCornerId,
+    'outcorner_br' as PerimeterCornerId,
+    'outcorner_tr' as PerimeterCornerId,
+    'outcorner_tl' as PerimeterCornerId
+  ]
+  const perimeterId = 'perimeter_test' as PerimeterId
+
+  const perimeter: Perimeter = {
+    id: perimeterId,
+    storeyId: 'storey_test' as any,
+    wallIds,
+    cornerIds,
+    roomIds: [],
+    wallNodeIds: [],
+    intermediateWallIds: [],
+    referenceSide: 'inside'
+  }
+
+  const perimeterWalls: Record<PerimeterWallId, PerimeterWall> = {
+    [wallIds[0]]: {
+      id: wallIds[0],
+      perimeterId,
+      startCornerId: cornerIds[0],
+      endCornerId: cornerIds[1],
+      entityIds: [],
+      thickness: t,
+      wallAssemblyId: 'wa_test' as any
+    },
+    [wallIds[1]]: {
+      id: wallIds[1],
+      perimeterId,
+      startCornerId: cornerIds[1],
+      endCornerId: cornerIds[2],
+      entityIds: [],
+      thickness: t,
+      wallAssemblyId: 'wa_test' as any
+    },
+    [wallIds[2]]: {
+      id: wallIds[2],
+      perimeterId,
+      startCornerId: cornerIds[2],
+      endCornerId: cornerIds[3],
+      entityIds: [],
+      thickness: t,
+      wallAssemblyId: 'wa_test' as any
+    },
+    [wallIds[3]]: {
+      id: wallIds[3],
+      perimeterId,
+      startCornerId: cornerIds[3],
+      endCornerId: cornerIds[0],
+      entityIds: [],
+      thickness: t,
+      wallAssemblyId: 'wa_test' as any
+    }
+  }
+
+  const perimeterCorners: Record<PerimeterCornerId, PerimeterCorner> = {
+    [cornerIds[0]]: {
+      id: cornerIds[0],
+      perimeterId,
+      previousWallId: wallIds[3],
+      nextWallId: wallIds[0],
+      referencePoint: newVec2(0, 0),
+      constructedByWall: 'previous'
+    },
+    [cornerIds[1]]: {
+      id: cornerIds[1],
+      perimeterId,
+      previousWallId: wallIds[0],
+      nextWallId: wallIds[1],
+      referencePoint: newVec2(w, 0),
+      constructedByWall: 'previous'
+    },
+    [cornerIds[2]]: {
+      id: cornerIds[2],
+      perimeterId,
+      previousWallId: wallIds[1],
+      nextWallId: wallIds[2],
+      referencePoint: newVec2(w, h),
+      constructedByWall: 'previous'
+    },
+    [cornerIds[3]]: {
+      id: cornerIds[3],
+      perimeterId,
+      previousWallId: wallIds[2],
+      nextWallId: wallIds[3],
+      referencePoint: newVec2(0, h),
+      constructedByWall: 'previous'
+    }
+  }
+
+  const _perimeterGeometry: Record<PerimeterId, any> = {
+    [perimeterId]: {
+      outerPolygon: {
+        points: [newVec2(-t, -t), newVec2(w + t, -t), newVec2(w + t, h + t), newVec2(-t, h + t)]
+      },
+      innerPolygon: {
+        points: [newVec2(0, 0), newVec2(w, 0), newVec2(w, h), newVec2(0, h)]
+      }
+    }
+  }
+
+  const _perimeterWallGeometry: Record<PerimeterWallId, PerimeterWallGeometry> = {
+    [wallIds[0]]: {
+      insideLine: { start: newVec2(0, 0), end: newVec2(w, 0) },
+      outsideLine: { start: newVec2(-t, -t), end: newVec2(w + t, -t) },
+      insideLength: w,
+      outsideLength: w,
+      wallLength: w,
+      direction: newVec2(1, 0),
+      outsideDirection: newVec2(0, -1),
+      polygon: { points: [] }
+    },
+    [wallIds[1]]: {
+      insideLine: { start: newVec2(w, 0), end: newVec2(w, h) },
+      outsideLine: { start: newVec2(w + t, -t), end: newVec2(w + t, h + t) },
+      insideLength: h,
+      outsideLength: h,
+      wallLength: h,
+      direction: newVec2(0, 1),
+      outsideDirection: newVec2(1, 0),
+      polygon: { points: [] }
+    },
+    [wallIds[2]]: {
+      insideLine: { start: newVec2(w, h), end: newVec2(0, h) },
+      outsideLine: { start: newVec2(w + t, h + t), end: newVec2(-t, h + t) },
+      insideLength: w,
+      outsideLength: w,
+      wallLength: w,
+      direction: newVec2(-1, 0),
+      outsideDirection: newVec2(0, 1),
+      polygon: { points: [] }
+    },
+    [wallIds[3]]: {
+      insideLine: { start: newVec2(0, h), end: newVec2(0, 0) },
+      outsideLine: { start: newVec2(-t, h + t), end: newVec2(-t, -t) },
+      insideLength: h,
+      outsideLength: h,
+      wallLength: h,
+      direction: newVec2(0, -1),
+      outsideDirection: newVec2(-1, 0),
+      polygon: { points: [] }
+    }
+  }
+
+  const _perimeterCornerGeometry: Record<PerimeterCornerId, PerimeterCornerGeometry> = {
+    [cornerIds[0]]: {
+      insidePoint: newVec2(0, 0),
+      outsidePoint: newVec2(-t, -t),
+      interiorAngle: 90,
+      exteriorAngle: 270,
+      polygon: { points: [] }
+    },
+    [cornerIds[1]]: {
+      insidePoint: newVec2(w, 0),
+      outsidePoint: newVec2(w + t, -t),
+      interiorAngle: 90,
+      exteriorAngle: 270,
+      polygon: { points: [] }
+    },
+    [cornerIds[2]]: {
+      insidePoint: newVec2(w, h),
+      outsidePoint: newVec2(w + t, h + t),
+      interiorAngle: 90,
+      exteriorAngle: 270,
+      polygon: { points: [] }
+    },
+    [cornerIds[3]]: {
+      insidePoint: newVec2(0, h),
+      outsidePoint: newVec2(-t, h + t),
+      interiorAngle: 90,
+      exteriorAngle: 270,
+      polygon: { points: [] }
+    }
+  }
+
+  const perimetersState: PerimetersState = {
+    perimeters: { [perimeterId]: perimeter },
+    _perimeterGeometry,
+    perimeterWalls,
+    _perimeterWallGeometry,
+    perimeterCorners,
+    _perimeterCornerGeometry,
+    openings: {},
+    _openingGeometry: {},
+    wallPosts: {},
+    _wallPostGeometry: {}
+  }
+
+  return {
+    perimetersState,
+    perimeterData: { perimeterId, wallIds, cornerIds }
+  }
+}
+
+export type IntermediateWallsTestState = IntermediateWallsSlice &
+  PerimetersState & { timestamps: Record<string, number> }
+
+export function setupIntermediateWallsSlice(
+  perimeterStateOverrides?: Partial<PerimetersState>,
+  intermediateStateOverrides?: Partial<IntermediateWallsState>
+) {
+  const { perimetersState, perimeterData } = createMockPerimeterState()
+
+  const mergedPerimeters: PerimetersState = { ...perimetersState, ...perimeterStateOverrides }
+  const mergedIntermediate: IntermediateWallsState = {
+    intermediateWalls: {},
+    _intermediateWallGeometry: {},
+    wallNodes: {},
+    _wallNodeGeometry: {},
+    ...intermediateStateOverrides
+  }
+
+  const mockSet = vi.fn()
+  const mockGet = vi.fn()
+
+  const state: IntermediateWallsTestState = {
+    ...mergedPerimeters,
+    ...mergedIntermediate,
+    timestamps: {},
+    actions: null as any
+  }
+
+  state.actions = createIntermediateWallsSlice(mockSet, mockGet, state as any).actions
+
+  mockGet.mockImplementation(() => state)
+
+  mockSet.mockImplementation((updater: any) => {
+    if (typeof updater === 'function') {
+      updater(state)
+    }
+  })
+
+  return { state, mockSet, mockGet, perimeterData }
+}
+
+export function expectConsistentIntermediateWallReferences(
+  state: IntermediateWallsState & { perimeters: Record<PerimeterId, any> },
+  perimeterId: PerimeterId
+): void {
+  const perimeter = state.perimeters[perimeterId]
+  expect(perimeter).toBeDefined()
+
+  for (const wallId of perimeter.intermediateWallIds) {
+    const wall = state.intermediateWalls[wallId]
+    expect(wall, `Intermediate wall ${wallId} should exist`).toBeDefined()
+    expect(wall.perimeterId, `Wall ${wallId} should reference perimeter ${perimeterId}`).toBe(perimeterId)
+
+    const startNode = state.wallNodes[wall.start.nodeId]
+    expect(startNode, `Start node ${wall.start.nodeId} of wall ${wallId} should exist`).toBeDefined()
+    expect(startNode.connectedWallIds, `Start node of wall ${wallId} should reference it`).toContain(wallId)
+
+    const endNode = state.wallNodes[wall.end.nodeId]
+    expect(endNode, `End node ${wall.end.nodeId} of wall ${wallId} should exist`).toBeDefined()
+    expect(endNode.connectedWallIds, `End node of wall ${wallId} should reference it`).toContain(wallId)
+  }
+
+  for (const nodeId of perimeter.wallNodeIds) {
+    const node = state.wallNodes[nodeId]
+    expect(node, `Wall node ${nodeId} should exist`).toBeDefined()
+    expect(node.perimeterId, `Node ${nodeId} should reference perimeter ${perimeterId}`).toBe(perimeterId)
+
+    for (const connectedWallId of node.connectedWallIds) {
+      expect(
+        state.intermediateWalls[connectedWallId],
+        `Connected wall ${connectedWallId} of node ${nodeId} should exist`
+      ).toBeDefined()
+    }
+  }
+}
+
+export function expectNoOrphanedIntermediateEntities(
+  state: IntermediateWallsState & { perimeters: Record<PerimeterId, any> }
+): void {
+  const allWallIds = new Set<string>()
+  const allNodeIds = new Set<string>()
+
+  for (const perimeter of Object.values(state.perimeters)) {
+    for (const id of perimeter.intermediateWallIds) allWallIds.add(id)
+    for (const id of perimeter.wallNodeIds) allNodeIds.add(id)
+  }
+
+  for (const wallId of Object.keys(state.intermediateWalls)) {
+    expect(allWallIds.has(wallId), `Intermediate wall ${wallId} should be referenced by a perimeter`).toBe(true)
+  }
+
+  for (const nodeId of Object.keys(state.wallNodes)) {
+    expect(allNodeIds.has(nodeId), `Wall node ${nodeId} should be referenced by a perimeter`).toBe(true)
+  }
+
+  for (const wallId of Object.keys(state._intermediateWallGeometry)) {
+    expect(allWallIds.has(wallId), `Intermediate wall geometry for ${wallId} should have corresponding wall`).toBe(true)
+  }
+
+  for (const nodeId of Object.keys(state._wallNodeGeometry)) {
+    expect(allNodeIds.has(nodeId), `Wall node geometry for ${nodeId} should have corresponding node`).toBe(true)
   }
 }

@@ -260,19 +260,18 @@ export const createIntermediateWallsSlice: StateCreator<
         const originalWall = state.intermediateWalls[wallId]
         const perimeter = state.perimeters[originalWall.perimeterId]
 
+        const wallAId = createIntermediateWallId()
+        const wallBId = createIntermediateWallId()
         const newNodeIdInner = createWallNodeId()
         const newNode: WallNode = {
           id: newNodeIdInner,
           perimeterId: originalWall.perimeterId,
           type: 'inner',
           position: copyVec2(point),
-          connectedWallIds: []
+          connectedWallIds: [wallAId, wallBId]
         }
         state.wallNodes[newNodeIdInner] = newNode
         perimeter.wallNodeIds.push(newNodeIdInner)
-
-        const wallAId = createIntermediateWallId()
-        const wallBId = createIntermediateWallId()
 
         const wallA: IntermediateWall = {
           id: wallAId,
@@ -300,6 +299,14 @@ export const createIntermediateWallsSlice: StateCreator<
         perimeter.intermediateWallIds.push(wallAId)
         perimeter.intermediateWallIds.push(wallBId)
         perimeter.intermediateWallIds = perimeter.intermediateWallIds.filter(id => id !== wallId)
+
+        const originalStartNode = state.wallNodes[originalWall.start.nodeId]
+        originalStartNode.connectedWallIds = originalStartNode.connectedWallIds
+          .filter(id => id !== wallId)
+          .concat(wallAId)
+
+        const originalEndNode = state.wallNodes[originalWall.end.nodeId]
+        originalEndNode.connectedWallIds = originalEndNode.connectedWallIds.filter(id => id !== wallId).concat(wallBId)
 
         delete state.intermediateWalls[wallId]
         delete state._intermediateWallGeometry[wallId]
