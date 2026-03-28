@@ -3,7 +3,7 @@ import { useWallNodeById } from '@/building/store'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 
-const NODE_RADIUS = 100
+const NODE_RADIUS = 50
 
 export function WallNodeShape({ nodeId }: { nodeId: WallNodeId }): React.JSX.Element {
   const node = useWallNodeById(nodeId)
@@ -19,8 +19,10 @@ export function WallNodeShape({ nodeId }: { nodeId: WallNodeId }): React.JSX.Ele
         cx={node.center[0]}
         cy={node.center[1]}
         r={NODE_RADIUS}
-        fill={fillColor}
+        fill="var(--color-background)"
+        fillOpacity={0.5}
         stroke="var(--color-border-contrast)"
+        strokeOpacity={0.5}
         strokeWidth={10}
       />
     </g>

@@ -25,6 +25,7 @@ import {
   ZERO_VEC2,
   direction,
   lineFromSegment,
+  perpendicular,
   projectVec2,
   scaleAddVec2
 } from '@/shared/geometry'
@@ -152,10 +153,14 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
 
     if (this.state.points.length > 1) {
       const lastPoint = this.state.points[this.state.points.length - 2]
-      const line = { point: lastPoint, direction: direction(lastPoint, pointToAdd) }
+      const dir = direction(lastPoint, pointToAdd)
       this.snappingService.addSnapCandidate({
         type: 'line',
-        line
+        line: { point: lastPoint, direction: dir }
+      })
+      this.snappingService.addSnapCandidate({
+        type: 'line',
+        line: { point: pointToAdd, direction: perpendicular(dir) }
       })
     }
   }
@@ -276,20 +281,17 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
       throw new Error('No perimeter found for intermediate wall')
     }
 
-    for (let i = 0; i < points.length - 1; i++) {
-      const startPoint = points[i]
-      const endPoint = points[i + 1]
-      const isLast = i === points.length - 2
+    const nodes = points.map((point, index) => {
+      return index === 0 && this.state.startEntity
+        ? this.getOrCreateEntityNode(point, this.state.startEntity)
+        : index === points.length - 1 && snapEntity
+          ? this.getOrCreateEntityNode(point, snapEntity)
+          : modelActions.addInnerWallNode(perimeterId, point)
+    })
 
-      const startNode =
-        i === 0 && this.state.startEntity
-          ? this.getOrCreateEntityNode(startPoint, this.state.startEntity)
-          : modelActions.addInnerWallNode(perimeterId, startPoint)
-
-      const endNode =
-        isLast && snapEntity
-          ? this.getOrCreateEntityNode(endPoint, snapEntity)
-          : modelActions.addInnerWallNode(perimeterId, endPoint)
+    for (let index = 0; index < points.length - 1; index++) {
+      const startNode = nodes[index]
+      const endNode = nodes[index + 1]
 
       modelActions.addIntermediateWall(
         perimeterId,

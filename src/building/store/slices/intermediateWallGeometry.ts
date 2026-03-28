@@ -410,10 +410,8 @@ function getNodePositions(perimeter: Perimeter, state: IntermediateWallsState & 
     const node = state.wallNodes[nodeId]
 
     if (node.type === 'perimeter') {
-      const wall = state.perimeterWalls[node.wallId]
       const wallGeometry = state._perimeterWallGeometry[node.wallId]
-      const cornerGeometry = state._perimeterCornerGeometry[wall.startCornerId]
-      const position = scaleAddVec2(cornerGeometry.insidePoint, wallGeometry.direction, node.offsetFromCornerStart)
+      const position = scaleAddVec2(wallGeometry.insideLine.start, wallGeometry.direction, node.offsetFromCornerStart)
 
       nodePositions.set(nodeId, position)
     } else {
