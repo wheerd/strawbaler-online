@@ -10,82 +10,7 @@ import {
   formatVolume,
   formatWeight
 } from './formatters'
-// Import translation files
-import commonDE from './locales/de/common.json'
-import configDE from './locales/de/config.json'
-import constructionDE from './locales/de/construction.json'
-import errorsDE from './locales/de/errors.json'
-import inspectorDE from './locales/de/inspector.json'
-import overlayDE from './locales/de/overlay.json'
-import privacyDE from './locales/de/privacy.json'
-import toolDE from './locales/de/tool.json'
-import toolbarDE from './locales/de/toolbar.json'
-import viewerDE from './locales/de/viewer.json'
-import welcomeDE from './locales/de/welcome.json'
-import commonEN from './locales/en/common.json'
-import configEN from './locales/en/config.json'
-import constructionEN from './locales/en/construction.json'
-import errorsEN from './locales/en/errors.json'
-import inspectorEN from './locales/en/inspector.json'
-import overlayEN from './locales/en/overlay.json'
-import privacyEN from './locales/en/privacy.json'
-import toolEN from './locales/en/tool.json'
-import toolbarEN from './locales/en/toolbar.json'
-import viewerEN from './locales/en/viewer.json'
-import welcomeEN from './locales/en/welcome.json'
-import commonFR from './locales/fr/common.json'
-import configFR from './locales/fr/config.json'
-import constructionFR from './locales/fr/construction.json'
-import errorsFR from './locales/fr/errors.json'
-import inspectorFR from './locales/fr/inspector.json'
-import overlayFR from './locales/fr/overlay.json'
-import privacyFR from './locales/fr/privacy.json'
-import toolFR from './locales/fr/tool.json'
-import toolbarFR from './locales/fr/toolbar.json'
-import viewerFR from './locales/fr/viewer.json'
-import welcomeFR from './locales/fr/welcome.json'
-
-const resources = {
-  en: {
-    common: commonEN,
-    welcome: welcomeEN,
-    toolbar: toolbarEN,
-    inspector: inspectorEN,
-    tool: toolEN,
-    config: configEN,
-    overlay: overlayEN,
-    construction: constructionEN,
-    errors: errorsEN,
-    viewer: viewerEN,
-    privacy: privacyEN
-  },
-  de: {
-    common: commonDE,
-    welcome: welcomeDE,
-    toolbar: toolbarDE,
-    inspector: inspectorDE,
-    tool: toolDE,
-    config: configDE,
-    overlay: overlayDE,
-    construction: constructionDE,
-    errors: errorsDE,
-    viewer: viewerDE,
-    privacy: privacyDE
-  },
-  fr: {
-    common: commonFR,
-    welcome: welcomeFR,
-    toolbar: toolbarFR,
-    inspector: inspectorFR,
-    tool: toolFR,
-    config: configFR,
-    overlay: overlayFR,
-    construction: constructionFR,
-    errors: errorsFR,
-    viewer: viewerFR,
-    privacy: privacyFR
-  }
-}
+import resources from './locales'
 
 void i18n
   .use(LanguageDetector)
@@ -93,6 +18,7 @@ void i18n
   .init({
     resources,
     fallbackLng: 'en',
+    supportedLngs: ['en', 'de', 'fr'],
     defaultNS: 'common',
     ns: [
       'common',
