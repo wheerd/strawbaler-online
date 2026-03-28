@@ -1,0 +1,65 @@
+{
+  "backLink": "← Retour à StrawBuild Studio",
+  "changes": {
+    "content": "Nous pouvons mettre à jour cette politique. Les modifications importantes seront communiquées via l'application ou par e-mail.",
+    "title": "9. Modifications de cette politique"
+  },
+  "contact": {
+    "content": "Pour les questions relatives à la confidentialité : {{email}}",
+    "title": "10. Contact"
+  },
+  "controller": {
+    "contact": "Contact : {{email}}",
+    "name": "StrawBuild Studio",
+    "title": "1. Responsable du traitement"
+  },
+  "dataCollected": {
+    "accountData": "Données de compte : adresse e-mail (requise pour l'authentification)",
+    "noPayment": "Aucune donnée de paiement (le service est gratuit)",
+    "projectData": "Données de projet : plans, configurations et fichiers associés (uniquement si vous créez un compte)",
+    "title": "2. Données collectées"
+  },
+  "lastUpdated": "Dernière mise à jour : février 2026",
+  "purpose": {
+    "email": "Envoi d'e-mails liés au compte (vérification, réinitialisation du mot de passe)",
+    "provide": "Fourniture du service StrawBuild Studio",
+    "store": "Stockage et synchronisation de vos projets entre les appareils",
+    "title": "3. Finalité du traitement"
+  },
+  "retention": {
+    "content": "Vos données sont stockées tant que votre compte existe.",
+    "deletion": "Pour demander la suppression, contactez-nous à {{email}}.",
+    "title": "6. Conservation des données"
+  },
+  "rights": {
+    "access": "Accès : demander une copie de vos données",
+    "contact": "Pour exercer ces droits, contactez {{email}}",
+    "erasure": "Effacement : supprimer votre compte et vos données",
+    "intro": "Vous disposez des droits suivants :",
+    "portability": "Portabilité : exporter vos projets",
+    "rectification": "Rectification : corriger des données inexactes",
+    "title": "7. Vos droits (RGPD)"
+  },
+  "security": {
+    "hashed": "Les mots de passe sont hachés de manière sécurisée",
+    "https": "Toutes les connexions utilisent le chiffrement HTTPS",
+    "title": "8. Sécurité"
+  },
+  "storage": {
+    "intro": "Vos données peuvent être stockées avec les services suivants :",
+    "local": "Stockage local : uniquement votre navigateur (votre choix)",
+    "netlify": "Hébergement : Netlify",
+    "resend": "Envoi d'e-mails : Resend",
+    "supabase": "Stockage cloud : Supabase (hébergé dans l'UE/Europe de l'Ouest)",
+    "title": "4. Lieux de stockage des données"
+  },
+  "thirdParty": {
+    "intro": "Nous utilisons les services tiers suivants :",
+    "netlify": "Netlify (hébergement de l'application)",
+    "note": "Nous n'utilisons aucun service d'analyse, de publicité ou de suivi.",
+    "resend": "Resend (e-mails transactionnels)",
+    "supabase": "Supabase (base de données et authentification, UE)",
+    "title": "5. Services tiers"
+  },
+  "title": "Politique de confidentialité"
+}

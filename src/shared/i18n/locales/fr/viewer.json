@@ -1,0 +1,40 @@
+{
+  "clearFocus": "Effacer le focus",
+  "export": {
+    "collada": "Collada (DAE)",
+    "exportError": {
+      "close": "Fermer",
+      "details": "Détails",
+      "network_error": "Impossible de se connecter au service d'exportation. Veuillez vérifier votre connexion et réessayer.",
+      "payload_too_large": "Le modèle est trop volumineux pour être exporté. Essayez de simplifier votre conception.",
+      "rate_limited": "Trop de demandes d'exportation. Veuillez patienter un moment et réessayer.",
+      "server_error": "Le service d'exportation a rencontré une erreur. Veuillez réessayer plus tard.",
+      "title": "Échec de l'exportation",
+      "unknown_error": "Une erreur inattendue s'est produite lors de l'exportation.",
+      "validation_error": "Les données du modèle sont invalides et n'ont pas pu être traitées."
+    },
+    "gltf": "GLTF",
+    "ifc": "IFC",
+    "obj": "OBJ",
+    "sketchup": "SketchUp",
+    "stl": "STL",
+    "title": "Exporter"
+  },
+  "focus": {
+    "perimeter": "Focus : Périmètre",
+    "roof": "Focus : Toiture",
+    "storey": "Focus : Étage"
+  },
+  "focusOnStorey": "Focus sur l'étage",
+  "grid": {
+    "hide": "Masquer la grille",
+    "show": "Afficher la grille"
+  },
+  "tagOpacity": {
+    "fullCategory": "Catégorie visible",
+    "hideCategory": "Catégorie masquée",
+    "noTags": "Aucune étiquette disponible",
+    "semiCategory": "Catégorie semi-transparente",
+    "title": "Visibilité des étiquettes"
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "addOpening": {
+    "copyConfigurationTooltip": "Copier cette configuration",
+    "dimensionMode": "Mode de cote",
+    "dimensionModeFinished": "Fini",
+    "dimensionModeFinishedTooltip": "Taille réelle de la porte/fenêtre finie",
+    "dimensionModeFitting": "Brut",
+    "dimensionModeFittingTooltip": "Taille brute de l'ouverture (construction)",
+    "height": "Hauteur",
+    "info": "Cliquez sur un mur pour placer une ouverture. Configurez le type, la taille, la position et la composition avant le placement.",
+    "openingAssembly": "Composition de l'ouverture",
+    "openingAssemblyTooltip": "Remplacer la composition de l'ouverture pour cette ouverture spécifique. Laissez par défaut pour hériter de la composition du mur ou du paramètre global.",
+    "openingType": "Type d'ouverture",
+    "padding": "Jeu de pose",
+    "presets": {
+      "buttonLabel": "{{label}} : {{width, length}} × {{height, length}}",
+      "buttonLabel_sill": "{{label}} : {{width, length}} × {{height, length}} seuil : {{sillHeight, length}}",
+      "doubleDoor": "Porte double",
+      "floorWindow": "Fenêtre de sol",
+      "smallWindow": "Petite fenêtre",
+      "standardDoor": "Porte standard",
+      "standardWindow": "Fenêtre standard",
+      "title": "Présets",
+      "wideDoor": "Porte large"
+    },
+    "sill": "Seuil",
+    "top": "Partie supérieure",
+    "typeDoor": "Porte",
+    "typePassage": "Passage",
+    "typeWindow": "Fenêtre",
+    "width": "Largeur"
+  },
+  "addPost": {
+    "actsAsPost": "Fait office de montant",
+    "behavior": "Comportement",
+    "copyConfigurationTooltip": "Copier cette configuration",
+    "copyLabel": "{{type}} • {{width, length}}×{{thickness, length}}",
+    "flankedByPosts": "Encadré par des montants",
+    "infillMaterial": "Matériau de remplissage",
+    "info": "Cliquez sur un mur pour placer un montant. Configurez les dimensions, le type, la position et les matériaux avant le placement.",
+    "postMaterial": "Matériau du montant",
+    "presets": {
+      "double14x14": "14×14 cm Double",
+      "double6x12": "6×12 cm Double",
+      "single14x14": "14×14 cm Simple",
+      "single6x36": "6×36 cm Simple",
+      "title": "Présets"
+    },
+    "thickness": "Épaisseur",
+    "type": "Type",
+    "types": {
+      "center": "Centré",
+      "double": "Double",
+      "inside": "Intérieur",
+      "outside": "Extérieur"
+    },
+    "width": "Largeur"
+  },
+  "floorArea": {
+    "cancelLabel": "Annuler",
+    "completeLabel": "Terminer la surface de plancher",
+    "description": "Cliquez pour tracer la surface de plancher sur l'étage actif. Accrochez-vous aux coins du périmètre ou aux bords de plancher existants pour un alignement précis.",
+    "title": "Surface de plancher"
+  },
+  "floorOpening": {
+    "cancelLabel": "Annuler",
+    "completeLabel": "Terminer l'ouverture de plancher",
+    "description": "Dessinez une ouverture dans une surface de plancher existante. Utilisez l'accrochage pour vous aligner sur les bords du plancher ou d'autres ouvertures.",
+    "title": "Ouverture de plancher"
+  },
+  "keyboard": {
+    "enter": "Entrée",
+    "esc": "Échap"
+  },
+  "move": {
+    "constrainedEntity": "Cet élément a des contraintes et ne peut pas être déplacé. Supprimez les contraintes pour autoriser le déplacement.",
+    "controlCancel": "Appuyez sur {{key}} pour annuler le déplacement en cours",
+    "controlDrag": "Cliquez et glissez pour déplacer les éléments",
+    "controlPrecise": "Après le déplacement, tapez un nombre pour une distance précise",
+    "controlsHeading": "Contrôles :",
+    "controlSnap": "Le déplacement s'accroche à la grille et à la géométrie",
+    "info": "Glissez les éléments pour les déplacer. Après le relâchement, vous pouvez taper un nombre pour ajuster précisément la distance de déplacement.",
+    "invalidPosition": "Position invalide",
+    "moving": "Déplacement en cours…"
+  },
+  "perimeter": {
+    "basePlate": "Lisse basse",
+    "cancelPerimeter": "✕ Annuler le périmètre",
+    "cancelTooltip": "Annuler la création du périmètre (Échap)",
+    "clearLengthOverride": "Effacer la longueur forcée (Échap)",
+    "completePerimeter": "✓ Terminer le périmètre",
+    "completeTooltip": "Terminer le périmètre (Entrée)",
+    "controlClickFirst": "Cliquez sur le premier point pour fermer",
+    "controlEnter": "{{key}} pour fermer le périmètre",
+    "controlEscAbort": "{{key}} pour annuler le périmètre",
+    "controlEscOverride": "{{key}} pour effacer la valeur forcée",
+    "controlNumbers": "Tapez un nombre pour définir la longueur exacte du mur",
+    "controlPlace": "Cliquez pour placer les coins",
+    "controlsHeading": "Contrôles :",
+    "controlSnap": "Les points s'accrochent à la grille et à la géométrie existante",
+    "infoInside": "Dessinez le {{edge}} de votre périmètre. Cliquez pour placer les points et fermez la forme en cliquant sur le premier point ou en appuyant sur Entrée.",
+    "insideEdge": "bord intérieur",
+    "lengthOverride": "Longueur forcée",
+    "nonePlaceholder": "Aucun",
+    "outsideEdge": "bord extérieur",
+    "referenceSide": "Côté de référence",
+    "referenceSideInside": "Intérieur",
+    "referenceSideOutside": "Extérieur",
+    "topPlate": "Lisse haute",
+    "wallAssembly": "Composition du mur",
+    "wallThickness": "Épaisseur du mur"
+  },
+  "perimeterPreset": {
+    "info": "Les présets créent des formes de bâtiment courantes avec le bord de référence de votre choix. Basculez entre les dimensions intérieures ou extérieures et configurez les propriétés de construction.",
+    "types": {
+      "lshaped": "Périmètre en L",
+      "rectangular": "Périmètre rectangulaire"
+    }
+  },
+  "presetDialogs": {
+    "lShaped": {
+      "basePlate": "Lisse basse",
+      "cancel": "Annuler",
+      "configuration": "Configuration",
+      "confirm": "Confirmer",
+      "extensionRectangle": "Rectangle d'extension",
+      "inside": "Intérieur",
+      "invalidConfig": "Configuration invalide",
+      "length1": "Longueur 1",
+      "length2": "Longueur 2",
+      "mainRectangle": "Rectangle principal",
+      "none": "Aucun",
+      "outside": "Extérieur",
+      "preview": "Aperçu",
+      "referenceSide": "Côté de référence",
+      "rotation": "Rotation",
+      "selectAssembly": "Sélectionner une composition",
+      "title": "Périmètre en L",
+      "topPlate": "Lisse haute",
+      "wallAssembly": "Composition du mur",
+      "wallThickness": "Épaisseur du mur",
+      "width1": "Largeur 1",
+      "width2": "Largeur 2"
+    },
+    "rectangular": {
+      "basePlate": "Lisse basse",
+      "cancel": "Annuler",
+      "configuration": "Configuration",
+      "confirm": "Confirmer",
+      "inside": "Intérieur",
+      "length": "Longueur",
+      "none": "Aucun",
+      "outside": "Extérieur",
+      "preview": "Aperçu",
+      "referenceSide": "Côté de référence",
+      "selectAssembly": "Sélectionner une composition",
+      "title": "Périmètre rectangulaire",
+      "topPlate": "Lisse haute",
+      "wallAssembly": "Composition du mur",
+      "wallThickness": "Épaisseur du mur",
+      "width": "Largeur"
+    }
+  },
+  "roof": {
+    "assembly": "Composition",
+    "cancelRoof": "✕ Annuler le toit",
+    "cancelTooltip": "Annuler la création du toit (Échap)",
+    "completeRoof": "✓ Terminer le toit",
+    "completeTooltip": "Terminer le toit (Entrée)",
+    "controlClickFirst": "Cliquez sur le premier point pour fermer",
+    "controlEnter": "{{key}} pour fermer le toit",
+    "controlEsc": "{{key}} pour annuler le toit",
+    "controlPlace": "Cliquez pour placer les coins",
+    "controlsHeading": "Contrôles :",
+    "controlSnap": "Les points s'accrochent aux bords du périmètre et à la géométrie",
+    "info": "Dessinez le contour du toit en cliquant pour placer les points. La direction du toit sera perpendiculaire au premier bord.",
+    "overhang": "Débord",
+    "slope": "Pente",
+    "type": "Type",
+    "typeGable": "Deux pentes",
+    "typeShed": "Une pente",
+    "verticalOffset": "Décalage vertical"
+  },
+  "select": {
+    "unknownEntityMessage": "ID d'entité non reconnu : {{id}}",
+    "unknownEntityType": "Type d'entité inconnu"
+  },
+  "simplePolygon": {
+    "cancelDrawing": "Annuler le dessin (Échap)",
+    "clearLengthOverride": "Effacer la longueur forcée (Échap)",
+    "completeShape": "Terminer la forme (Entrée)",
+    "controlEnter": "{{key}} pour terminer la forme",
+    "controlEscCancel": "{{key}} pour annuler le dessin",
+    "controlEscOverride": "{{key}} pour effacer la longueur forcée",
+    "controlNumbers": "Tapez un nombre pour définir les longueurs exactes des segments",
+    "controlPlace": "Cliquez pour placer les points du polygone",
+    "controlsHeading": "Contrôles :",
+    "controlSnap": "Les points s'accrochent à la grille, aux périmètres et à la géométrie existante",
+    "lengthOverride": "Longueur forcée"
+  },
+  "splitWall": {
+    "cancel": "Annuler",
+    "controlClick": "Cliquez pour définir la position de division",
+    "controlConfirm": "Appuyez sur Entrée pour confirmer la division",
+    "controlHover": "Survolez le mur pour prévisualiser la position de division",
+    "controlMeasurements": "Cliquez sur les cotes pour entrer des valeurs précises",
+    "errors": {
+      "intersectsOpening": "La position de division croise une ouverture",
+      "noWall": "Aucun mur sélectionné",
+      "outOfBounds": "La position de division n'est pas dans les limites du mur"
+    },
+    "info": "Divisez les murs pour créer des segments avec différentes compositions de mur.",
+    "readyToSplit": "Prêt à diviser le mur",
+    "selectWall": "Cliquez sur un mur pour le sélectionner en vue de le diviser",
+    "splitWall": "Diviser le mur",
+    "title": "Diviser le mur"
+  },
+  "testData": {
+    "confirmReset": "Êtes-vous sûr de vouloir réinitialiser toutes les données ? Cela supprimera tous les périmètres, ouvertures et travaux enregistrés.",
+    "crossShaped": "📐 Périmètre en croix/T",
+    "dangerZone": "⚠️ Zone de danger",
+    "generationHeading": "Génération de données de test",
+    "hardReset": "Réinitialisation complète",
+    "hexagonal": "⬡ Périmètre hexagonal (côtés de 3 m)",
+    "instructions": "Cliquez sur n'importe quel bouton ci-dessus pour générer des données de test ou réinitialiser le modèle. Chaque cas de test crée un périmètre avec des fenêtres et portes réalistes pour démontrer les fonctionnalités de l'application.",
+    "rectangular": "▭ Périmètre rectangulaire (8×5 m)",
+    "resetAll": "🗑️ Réinitialiser toutes les données",
+    "resetWarning": "⚠️ Cela supprimera définitivement tous les périmètres, ouvertures et travaux enregistrés"
+  }
+}

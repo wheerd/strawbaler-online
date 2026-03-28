@@ -19,7 +19,8 @@ interface Language {
 
 const LANGUAGES: Language[] = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' }
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' }
 ]
 
 /**
@@ -31,6 +32,7 @@ const LANGUAGES: Language[] = [
  * Currently supports:
  * - English (en)
  * - German (de)
+ * - French (fr)
  */
 export function LanguageSwitcher({ size }: { size: 'sm' | 'lg' }): React.JSX.Element {
   const { i18n, t } = useTranslation('common')

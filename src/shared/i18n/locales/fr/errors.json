@@ -1,0 +1,82 @@
+{
+  "boundary": {
+    "copyError": "Copier les détails de l'erreur",
+    "dataRecovery": {
+      "cancel": "Annuler",
+      "confirm": "Supprimer toutes les données et réinitialiser",
+      "description": "Si l'erreur persiste, vous pouvez effectuer une réinitialisation complète qui supprimera toutes les données stockées et rétablira l'application à son état par défaut. Cela supprimera vos plans et configurations.",
+      "dialogDescription": "Cela supprimera toutes vos données, y compris les plans, les configurations et les matériaux. Cette action est irréversible.",
+      "dialogTitle": "Réinitialiser l'application ?",
+      "hardReset": "Réinitialisation complète de l'application",
+      "title": "Option de récupération de données"
+    },
+    "description": "L'application a rencontré une erreur inattendue et ne peut pas continuer.",
+    "errorDetails": "Détails de l'erreur :",
+    "errorMessage": "Une erreur inattendue s'est produite",
+    "hideDetails": "Masquer les détails",
+    "noStackTrace": "Aucune trace de pile disponible",
+    "reloadPage": "Recharger la page",
+    "showDetails": "Afficher les détails",
+    "title": "Un problème est survenu",
+    "tryAgain": "Réessayer"
+  },
+  "construction": {
+    "error": {
+      "geometryProcessing": "Une erreur s'est produite lors du traitement de la géométrie"
+    },
+    "infill": {
+      "notEnoughSpaceForPost": "Pas assez d'espace pour un montant",
+      "notEnoughSpaceForStraw": "Pas assez d'espace pour le remplissage de paille",
+      "notEnoughSpaceForTwoPosts": "Place pour plus d'un montant, mais pas assez pour deux",
+      "notEnoughVerticalSpace": "Pas assez d'espace vertical pour remplir avec de la paille"
+    },
+    "layer": {
+      "parallelLines": "Impossible de déterminer les positions des bandes en raison de lignes parallèles."
+    },
+    "opening": {
+      "headerDoesNotFit": "Le linteau ne rentre pas : nécessite {{required, length}} mais seulement {{available, length}} disponible",
+      "heightExceedsWall": "L'ouverture est plus haute que le mur de {{excess, length}}",
+      "sillDoesNotFit": "Le seuil ne rentre pas : nécessite {{required, length}} mais seulement {{available, length}} disponible"
+    },
+    "post": {
+      "crossSectionMismatch": "La section ne correspond pas aux options disponibles pour ce matériau",
+      "dimensionsMismatch": "Les dimensions du montant ({{width, length}}×{{thickness, length}}) ne correspondent pas aux sections disponibles",
+      "wallTooThin": "L'épaisseur du mur ({{wallThickness, length}}) n'est pas suffisante pour des montants doubles nécessitant au minimum {{required, length}}"
+    },
+    "prefabModules": {
+      "tooBig": "Le module est plus grand que les dimensions maximales.",
+      "tooSmall": "Le module est plus petit que les dimensions minimales.",
+      "tooThick": "Le mur est trop épais pour le module préfabriqué.",
+      "tooThin": "Le mur est trop fin pour le module préfabriqué."
+    },
+    "ringBeam": {
+      "doubleNotSupported": "La construction de linteau double n'est pas encore prise en charge."
+    },
+    "roof": {
+      "invalidAssembly": "Composition de toiture invalide"
+    },
+    "straw": {
+      "tooThick": "Le mur est trop épais pour une seule botte de paille",
+      "tooThin": "Le mur est trop fin pour une seule botte de paille"
+    }
+  },
+  "feature": {
+    "cancel": "Annuler",
+    "confirm": "Supprimer toutes les données et réinitialiser",
+    "defaultMessage": "Cette fonctionnalité a rencontré une erreur et ne peut pas être affichée.",
+    "dialogDescription": "Cela supprimera toutes vos données, y compris les plans, les configurations et les matériaux. Cette action est irréversible.",
+    "dialogTitle": "Réinitialiser l'application ?",
+    "hardReset": "Réinitialisation complète de l'application",
+    "reloadPage": "Recharger la page",
+    "retry": "Réessayer",
+    "title": "Erreur"
+  },
+  "gcs": {
+    "solverFailed": "Les contraintes n'ont pas pu être résolues. Certaines contraintes peuvent être en conflit."
+  },
+  "modal": {
+    "defaultMessage": "Ce contenu n'a pas pu être affiché en raison d'une erreur.",
+    "errorPrefix": "Erreur :",
+    "retry": "Réessayer"
+  }
+}
