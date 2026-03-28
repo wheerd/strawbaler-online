@@ -1,19 +1,19 @@
 {
   "areaTypes": {
-    "bottom-plate": "Linteau inférieur",
+    "bottom-plate": "Lisse basse",
     "corner": "Angle",
     "door": "Porte",
     "floor-level": "Niveau de plancher fini",
     "inner-perimeter": "Périmètre intérieur",
     "outer-perimeter": "Périmètre extérieur",
     "passage": "Passage",
-    "top-plate": "Linteau supérieur",
+    "top-plate": "Lisse haute",
     "window": "Fenêtre"
   },
   "materialSelect": {
     "noMaterialsAvailable": "Aucun matériau disponible",
     "none": "Aucun",
-    "placeholder": "Sélectionner un matériau…"
+"placeholder": "Sélectionner un matériau…"
   },
   "materialTypes": {
     "dimensional": "Dimensionné",
