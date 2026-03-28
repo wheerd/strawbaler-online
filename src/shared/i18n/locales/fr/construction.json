@@ -13,7 +13,7 @@
   "materialSelect": {
     "noMaterialsAvailable": "Aucun matériau disponible",
     "none": "Aucun",
-"placeholder": "Sélectionner un matériau…"
+    "placeholder": "Sélectionner un matériau…"
   },
   "materialTypes": {
     "dimensional": "Dimensionné",
@@ -90,7 +90,7 @@
   },
   "moduleTypes": {
     "double": "Double",
-    "simple": "Simple"
+    "single": "Simple"
   },
   "partCutModal": {
     "partCutDiagram": "Diagramme de coupe de l'élément",
@@ -191,10 +191,12 @@
     "hideMeasurements": "Masquer les cotes",
     "issuesPanel": {
       "errorsTitle_one": "Erreurs ({{count}})",
+      "errorsTitle_many": "Erreurs ({{count}})",
       "errorsTitle_other": "Erreurs ({{count}})",
       "noIssuesMessage": "Le plan de construction est valide sans erreur ni avertissement.",
       "noIssuesTitle": "Aucun problème trouvé",
       "warningsTitle_one": "Avertissement ({{count}})",
+      "warningsTitle_many": "Avertissements ({{count}})",
       "warningsTitle_other": "Avertissements ({{count}})"
     },
     "midCut": "Coupe médiane",

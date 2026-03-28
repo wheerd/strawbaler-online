@@ -10,6 +10,7 @@
     },
     "conflict": "Conflit avec d'autres contraintes",
     "conflictStatus_one": "Une contrainte en conflit",
+    "conflictStatus_many": "{{count}} contraintes en conflit",
     "conflictStatus_other": "{{count}} contraintes en conflit",
     "horizontal": {
       "active": "Contrainte horizontale (cliquer pour supprimer)",
@@ -29,6 +30,7 @@
     },
     "redundant": "Contrainte redondante (non nécessaire)",
     "redundantStatus_one": "Une contrainte redondante",
+    "redundantStatus_many": "{{count}} contraintes redondantes",
     "redundantStatus_other": "{{count}} contraintes redondantes",
     "toggleWallEntitySideTitle": "Basculer entre les modes de cotation côté et centre",
     "vertical": {
