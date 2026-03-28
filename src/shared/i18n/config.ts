@@ -33,6 +33,17 @@ import toolEN from './locales/en/tool.json'
 import toolbarEN from './locales/en/toolbar.json'
 import viewerEN from './locales/en/viewer.json'
 import welcomeEN from './locales/en/welcome.json'
+import commonFR from './locales/fr/common.json'
+import configFR from './locales/fr/config.json'
+import constructionFR from './locales/fr/construction.json'
+import errorsFR from './locales/fr/errors.json'
+import inspectorFR from './locales/fr/inspector.json'
+import overlayFR from './locales/fr/overlay.json'
+import privacyFR from './locales/fr/privacy.json'
+import toolFR from './locales/fr/tool.json'
+import toolbarFR from './locales/fr/toolbar.json'
+import viewerFR from './locales/fr/viewer.json'
+import welcomeFR from './locales/fr/welcome.json'
 
 const resources = {
   en: {
@@ -60,6 +71,19 @@ const resources = {
     errors: errorsDE,
     viewer: viewerDE,
     privacy: privacyDE
+  },
+  fr: {
+    common: commonFR,
+    welcome: welcomeFR,
+    toolbar: toolbarFR,
+    inspector: inspectorFR,
+    tool: toolFR,
+    config: configFR,
+    overlay: overlayFR,
+    construction: constructionFR,
+    errors: errorsFR,
+    viewer: viewerFR,
+    privacy: privacyFR
   }
 }
 

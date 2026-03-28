@@ -1,0 +1,84 @@
+{
+  "canvas": {
+    "scrollToZoom": "Défiler pour zoomer",
+    "uploadToBegin": "Téléchargez une image pour commencer"
+  },
+  "emptyStorey": {
+    "ifcImport": {
+      "description": "Via le menu Projet → Import/Export IFC",
+      "title": "Importer un fichier IFC"
+    },
+    "perimeterAdd": {
+      "description": "Cliquez sur des points pour dessiner les murs manuellement",
+      "title": "Dessiner un périmètre"
+    },
+    "perimeterPreset": {
+      "description": "Choisissez parmi des formes prédéfinies",
+      "title": "Présets de périmètre"
+    },
+    "planOverlay": {
+      "description": "Téléchargez une image de référence pour la reproduire",
+      "title": "Importer un plan"
+    },
+    "subtitle": "Cet étage est vide. Choisissez comment commencer :",
+    "title": "Premiers pas",
+    "toolbarHint": "Tous les outils sont également disponibles dans la barre d'outils ci-dessus"
+  },
+  "openings": {
+    "dimension": "H {{height, length}}",
+    "dimensionWithSillHeight": "H {{height, length}} SH {{sillHeight, length}}"
+  },
+  "planControls": {
+    "ariaLabel": "Superposition de plan",
+    "confirmRemove": {
+      "cancel": "Annuler",
+      "confirm": "Supprimer",
+      "description": "Supprimer l'image de plan pour {{floor}} ? Cette action est irréversible.",
+      "title": "Supprimer l'image de plan"
+    },
+    "importPlan": "Importer une image de plan",
+    "label": "Superposition de plan",
+    "placement": {
+      "hidden": "Masqué",
+      "showOnTop": "Superposition par-dessus",
+      "showUnder": "En arrière-plan"
+    },
+    "recalibrate": "Recalibrer",
+    "removePlan": "Supprimer le plan"
+  },
+  "planImport": {
+    "footer": {
+      "addPlan": "Ajouter un plan",
+      "cancel": "Annuler",
+      "replacePlan": "Remplacer le plan"
+    },
+    "step1": {
+      "currentImage": "Image actuelle en cours d'utilisation. Téléchargez un nouveau fichier ci-dessous pour la remplacer.",
+      "title": "1. Sélectionner l'image du plan",
+      "uploadButton": "Sélectionner une image",
+      "uploadHint": "Téléchargez un PNG, JPG ou SVG. Le fichier reste local et n'est pas enregistré avec votre projet."
+    },
+    "step2": {
+      "clearPoints": "Effacer les points",
+      "instructions": "Choisissez deux points avec une distance connue directement sur l'image.",
+      "realDistance": "Distance réelle :",
+      "scale": "Échelle :",
+      "scalePlaceholder": "En attente de calibration",
+      "scaleValue": "{{distance}} par px",
+      "title": "2. Calibrer l'échelle",
+      "warningSmallSpan": "L'intervalle de calibration est petit — envisagez de sélectionner des points plus éloignés pour une meilleure précision."
+    },
+    "step3": {
+      "changeOrigin": "Modifier le point d'origine",
+      "clearOrigin": "Effacer le point d'origine",
+      "clickHint": "Cliquez sur l'image pour définir l'origine",
+      "clickImage": "Cliquer sur l'image…",
+      "instructions": "Choisissez un point sur l'image qui doit correspondre à l'origine dans l'éditeur. Si vous ignorez cette étape, le premier point de référence devient l'origine.",
+      "pickHint": "Choisir l'origine sur l'image",
+      "pickOrigin": "Choisir l'origine sur l'image",
+      "title": "3. Positionner l'origine (facultatif)"
+    },
+    "titleExisting": "Image de plan",
+    "titleNew": "Importer une image de plan"
+  }
+}

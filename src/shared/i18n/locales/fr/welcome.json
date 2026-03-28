@@ -1,0 +1,57 @@
+{
+  "dataStorage": {
+    "description": "Vos données peuvent être stockées de deux manières :",
+    "items": [
+      "Localement dans votre navigateur — fonctionne hors ligne, aucun compte nécessaire",
+      "Dans votre compte cloud — inscription requise, synchronisation entre les appareils"
+    ],
+    "privacy": "Vous choisissez où vos données sont stockées. Aucun cookie, suivi ou analyse tierce n'est utilisé.",
+    "title": "Stockage des données"
+  },
+  "disclaimer": {
+    "intro": "Cet outil est actuellement en développement actif et est fourni en l'état :",
+    "items": [
+      "Aucune garantie quant à l'exactitude des calculs, des plans ou des modèles 3D",
+      "Des changements cassants peuvent survenir entre les versions",
+      "Les données de projet locales peuvent être perdues en raison des limitations du stockage du navigateur. Les projets stockés dans le cloud sont conservés de manière sécurisée.",
+      "Enregistrez et exportez régulièrement votre travail",
+      "Cet outil ne remplace pas une consultation professionnelle en ingénierie"
+    ],
+    "title": "Avertissement important"
+  },
+  "introduction": "Ceci est un outil spécialement conçu pour la planification de construction en bottes de paille. Créez des plans d'étage avec des murs, des ouvertures, des toitures et des planchers. Configurez la construction et générez des plans et des modèles 3D. Obtenez des estimations des matériaux nécessaires. Exportez la construction pour l'utiliser dans d'autres outils CAO.",
+  "keyFeatures": {
+    "items": [
+      "Définir les murs extérieurs en dimensions finies (avec enduits) avec fenêtres et portes",
+      "Ajouter des toits à deux pentes ou à une pente",
+      "Configurer la composition des murs, planchers et toitures (remplissage, strawhenge, modules)",
+      "Générer des plans de construction 2D pour des murs individuels ou des étages entiers",
+      "Visualiser et exporter des modèles 3D de la construction (IFC)",
+      "Obtenir une vue d'ensemble des matériaux utilisés dans la construction"
+    ],
+    "title": "Fonctionnalités principales"
+  },
+  "olderDemos": {
+    "demo01": "Démo 0.1",
+    "demo02": "Démo 0.2",
+    "title": "Anciennes vidéos de démonstration"
+  },
+  "plannedFeatures": {
+    "items": [
+      "Estimations des coûts et des heures de travail",
+      "Prise en charge des murs intérieurs et des fondations",
+      "Traduction dans d'autres langues",
+      "Prise en charge de formes de bâtiments plus irrégulières"
+    ],
+    "title": "Fonctionnalités prévues"
+  },
+  "privacyLink": "Consulter notre <privacyLink>Politique de confidentialité</privacyLink>",
+  "showcaseVideo": {
+    "playVideo": "Lire la vidéo",
+    "title": "Découvrez StrawBuild Studio en action",
+    "videoTitle": "Présentation de StrawBuild Studio",
+    "watchOnYouTube": "Regarder sur"
+  },
+  "version": "Version {{version}}",
+  "viewOnGitHub": "Voir sur GitHub"
+}

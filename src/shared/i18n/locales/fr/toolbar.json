@@ -1,0 +1,35 @@
+{
+  "fitToView": "Ajuster à la vue",
+  "gridSizeDisplay": {
+    "hideGrid": "Masquer la grille",
+    "off": "Désactivé",
+    "showGrid": "Afficher la grille"
+  },
+  "offlineStatus": {
+    "loading": "Mise en cache des ressources ({{loaded}}/{{total}})…",
+    "loadingUnknown": "Préparation du mode hors ligne…",
+    "offline": "Hors ligne. Les modifications seront synchronisées dès le retour de la connexion.",
+    "ready": "Toutes les ressources sont en cache. Prêt pour une utilisation hors ligne."
+  },
+  "redo": "Rétablir",
+  "themeToggle": {
+    "changeTheme": "Changer de thème",
+    "dark": "Sombre",
+    "light": "Clair",
+    "system": "Système"
+  },
+  "tools": {
+    "basicMove": "Déplacer",
+    "basicSelect": "Sélectionner",
+    "floorsAddArea": "Surface de plancher",
+    "floorsAddOpening": "Ouverture de plancher",
+    "perimeterAdd": "Périmètre du bâtiment",
+    "perimeterAddOpening": "Ajouter une ouverture",
+    "perimeterAddPost": "Ajouter un montant",
+    "perimeterPreset": "Présets de périmètre",
+    "perimeterSplitWall": "Diviser le mur",
+    "roofsAddRoof": "Toiture",
+    "testData": "Données de test"
+  },
+  "undo": "Annuler"
+}
