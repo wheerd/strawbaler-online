@@ -233,7 +233,9 @@ describe('intermediateWallsSlice', () => {
     it('should be a no-op for non-existent wall', () => {
       const { state } = setupIntermediateWallsSlice()
 
-      expect(() => { state.actions.removeIntermediateWall('intermediate_nonexistent' as any); }).not.toThrow()
+      expect(() => {
+        state.actions.removeIntermediateWall('intermediate_nonexistent' as any)
+      }).not.toThrow()
     })
 
     it('should recompute geometry for remaining walls', () => {
@@ -290,9 +292,9 @@ describe('intermediateWallsSlice', () => {
     it('should throw for non-existent wall', () => {
       const { state } = setupIntermediateWallsSlice()
 
-      expect(() => { state.actions.updateIntermediateWallThickness('intermediate_nonexistent' as any, 200); }).toThrow(
-        NotFoundError
-      )
+      expect(() => {
+        state.actions.updateIntermediateWallThickness('intermediate_nonexistent' as any, 200)
+      }).toThrow(NotFoundError)
     })
 
     it('should throw for thickness <= 0', () => {
@@ -308,9 +310,9 @@ describe('intermediateWallsSlice', () => {
         120
       )
 
-      expect(() => { state.actions.updateIntermediateWallThickness(wall.id, 0); }).toThrow(
-        'Wall thickness must be greater than 0'
-      )
+      expect(() => {
+        state.actions.updateIntermediateWallThickness(wall.id, 0)
+      }).toThrow('Wall thickness must be greater than 0')
     })
   })
 
@@ -338,9 +340,9 @@ describe('intermediateWallsSlice', () => {
     it('should throw for non-existent wall', () => {
       const { state } = setupIntermediateWallsSlice()
 
-      expect(() =>
-        { state.actions.updateIntermediateWallAlignment('intermediate_nonexistent' as any, 'left', 'right'); }
-      ).toThrow(NotFoundError)
+      expect(() => {
+        state.actions.updateIntermediateWallAlignment('intermediate_nonexistent' as any, 'left', 'right')
+      }).toThrow(NotFoundError)
     })
   })
 
@@ -489,9 +491,9 @@ describe('intermediateWallsSlice', () => {
     it('should throw for non-existent node', () => {
       const { state } = setupIntermediateWallsSlice()
 
-      expect(() =>
-        { state.actions.updateInnerWallNodePosition('wallnode_nonexistent' as any, { 0: 0, 1: 0 } as any); }
-      ).toThrow(NotFoundError)
+      expect(() => {
+        state.actions.updateInnerWallNodePosition('wallnode_nonexistent' as any, { 0: 0, 1: 0 } as any)
+      }).toThrow(NotFoundError)
     })
 
     it('should throw when trying to update a perimeter node', () => {
@@ -500,9 +502,9 @@ describe('intermediateWallsSlice', () => {
 
       const node = state.actions.addPerimeterWallNode(perimeterId, wallIds[0], 3000)
 
-      expect(() => { state.actions.updateInnerWallNodePosition(node.id, { 0: 0, 1: 0 } as any); }).toThrow(
-        'Cannot update position of perimeter wall node'
-      )
+      expect(() => {
+        state.actions.updateInnerWallNodePosition(node.id, { 0: 0, 1: 0 } as any)
+      }).toThrow('Cannot update position of perimeter wall node')
     })
   })
 
@@ -529,9 +531,9 @@ describe('intermediateWallsSlice', () => {
     it('should throw for non-existent node', () => {
       const { state } = setupIntermediateWallsSlice()
 
-      expect(() => { state.actions.updatePerimeterWallNodeOffset('wallnode_nonexistent' as any, 1000); }).toThrow(
-        NotFoundError
-      )
+      expect(() => {
+        state.actions.updatePerimeterWallNodeOffset('wallnode_nonexistent' as any, 1000)
+      }).toThrow(NotFoundError)
     })
 
     it('should throw when trying to update an inner node', () => {
@@ -540,9 +542,9 @@ describe('intermediateWallsSlice', () => {
 
       const node = state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
 
-      expect(() => { state.actions.updatePerimeterWallNodeOffset(node.id, 1000); }).toThrow(
-        'Cannot update offset of inner wall node'
-      )
+      expect(() => {
+        state.actions.updatePerimeterWallNodeOffset(node.id, 1000)
+      }).toThrow('Cannot update offset of inner wall node')
     })
   })
 
@@ -581,7 +583,9 @@ describe('intermediateWallsSlice', () => {
     it('should be a no-op for non-existent node', () => {
       const { state } = setupIntermediateWallsSlice()
 
-      expect(() => { state.actions.removeWallNode('wallnode_nonexistent' as any); }).not.toThrow()
+      expect(() => {
+        state.actions.removeWallNode('wallnode_nonexistent' as any)
+      }).not.toThrow()
     })
   })
 
@@ -784,6 +788,65 @@ describe('intermediateWallsSlice', () => {
       state.actions.updateInnerWallNodePosition(nodeA.id, { 0: 3000, 1: 2500 } as any)
 
       expectConsistentIntermediateWallReferences(state, perimeterId)
+      expectNoOrphanedIntermediateEntities(state)
+    })
+  })
+
+  describe('PerimeterWall.wallNodeIds sync', () => {
+    it('should track perimeter wall node IDs on the PerimeterWall', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId, wallIds } = perimeterData
+
+      const node = state.actions.addPerimeterWallNode(perimeterId, wallIds[0], 3000)
+
+      expect(state.perimeterWalls[wallIds[0]].wallNodeIds).toContain(node.id)
+      expect(state.perimeterWalls[wallIds[1]].wallNodeIds).not.toContain(node.id)
+      expect(state.perimeters[perimeterId].wallNodeIds).toContain(node.id)
+
+      expectConsistentIntermediateWallReferences(state, perimeterId)
+      expectNoOrphanedIntermediateEntities(state)
+    })
+
+    it('should not track inner wall node IDs on PerimeterWall', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId, wallIds } = perimeterData
+
+      const node = state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+
+      for (const wallId of wallIds) {
+        expect(state.perimeterWalls[wallId].wallNodeIds).not.toContain(node.id)
+      }
+      expect(state.perimeters[perimeterId].wallNodeIds).toContain(node.id)
+    })
+
+    it('should remove node ID from PerimeterWall when node is deleted', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId, wallIds } = perimeterData
+
+      const node = state.actions.addPerimeterWallNode(perimeterId, wallIds[0], 3000)
+      expect(state.perimeterWalls[wallIds[0]].wallNodeIds).toContain(node.id)
+
+      state.actions.removeWallNode(node.id)
+
+      expect(state.perimeterWalls[wallIds[0]].wallNodeIds).not.toContain(node.id)
+    })
+
+    it('should remove node ID from PerimeterWall when orphaned after wall removal', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId, wallIds } = perimeterData
+
+      const perimNode = state.actions.addPerimeterWallNode(perimeterId, wallIds[0], 3000)
+      const innerNode = state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+      state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: perimNode.id, axis: 'center' },
+        { nodeId: innerNode.id, axis: 'center' },
+        120
+      )
+
+      state.actions.removeIntermediateWall(state.perimeters[perimeterId].intermediateWallIds[0])
+
+      expect(state.perimeterWalls[wallIds[0]].wallNodeIds).not.toContain(perimNode.id)
       expectNoOrphanedIntermediateEntities(state)
     })
   })

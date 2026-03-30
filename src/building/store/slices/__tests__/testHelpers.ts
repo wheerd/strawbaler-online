@@ -11,6 +11,7 @@ import type {
 import type { PerimeterCornerId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import { createStoreyId, isOpeningId, isWallPostId } from '@/building/model/ids'
 import { NotFoundError } from '@/building/store/errors'
+import type { ConstraintsState } from '@/building/store/slices/constraintsSlice'
 import type { IntermediateWallsSlice, IntermediateWallsState } from '@/building/store/slices/intermediateWallsSlice'
 import { createIntermediateWallsSlice } from '@/building/store/slices/intermediateWallsSlice'
 import {
@@ -18,6 +19,7 @@ import {
   type PerimetersState,
   createPerimetersSlice
 } from '@/building/store/slices/perimeterSlice'
+import type { TimestampsState } from '@/config/store/slices/timestampsSlice'
 import type { MaterialId } from '@/materials/types'
 import type { Polygon2D } from '@/shared/geometry'
 import { newVec2 } from '@/shared/geometry'
@@ -70,7 +72,14 @@ export function setupPerimeterSlice() {
   const testStoreyId = createStoreyId()
 
   slice = createPerimetersSlice(mockSet, mockGet, mockStore)
-  slice = { ...slice, timestamps: {}, buildingConstraints: {}, _constraintsByEntity: {} } as any
+  slice = {
+    ...slice,
+    timestamps: {},
+    buildingConstraints: {},
+    _constraintsByEntity: {},
+    intermediateWalls: {},
+    wallNodes: {}
+  } as any
 
   mockGet.mockImplementation(() => slice)
 
@@ -304,6 +313,7 @@ export function createMockPerimeterState(
       startCornerId: cornerIds[0],
       endCornerId: cornerIds[1],
       entityIds: [],
+      wallNodeIds: [],
       thickness: t,
       wallAssemblyId: 'wa_test' as any
     },
@@ -313,6 +323,7 @@ export function createMockPerimeterState(
       startCornerId: cornerIds[1],
       endCornerId: cornerIds[2],
       entityIds: [],
+      wallNodeIds: [],
       thickness: t,
       wallAssemblyId: 'wa_test' as any
     },
@@ -322,6 +333,7 @@ export function createMockPerimeterState(
       startCornerId: cornerIds[2],
       endCornerId: cornerIds[3],
       entityIds: [],
+      wallNodeIds: [],
       thickness: t,
       wallAssemblyId: 'wa_test' as any
     },
@@ -331,6 +343,7 @@ export function createMockPerimeterState(
       startCornerId: cornerIds[3],
       endCornerId: cornerIds[0],
       entityIds: [],
+      wallNodeIds: [],
       thickness: t,
       wallAssemblyId: 'wa_test' as any
     }
@@ -475,8 +488,7 @@ export function createMockPerimeterState(
   }
 }
 
-export type IntermediateWallsTestState = IntermediateWallsSlice &
-  PerimetersState & { timestamps: Record<string, number> }
+export type IntermediateWallsTestState = IntermediateWallsSlice & PerimetersState & TimestampsState & ConstraintsState
 
 export function setupIntermediateWallsSlice(
   perimeterStateOverrides?: Partial<PerimetersState>,
@@ -500,6 +512,8 @@ export function setupIntermediateWallsSlice(
     ...mergedPerimeters,
     ...mergedIntermediate,
     timestamps: {},
+    _constraintsByEntity: {},
+    buildingConstraints: {},
     actions: null as any
   }
 
@@ -517,7 +531,7 @@ export function setupIntermediateWallsSlice(
 }
 
 export function expectConsistentIntermediateWallReferences(
-  state: IntermediateWallsState & { perimeters: Record<PerimeterId, any> },
+  state: IntermediateWallsState & { perimeters: Record<PerimeterId, any>; perimeterWalls: Record<string, any> },
   perimeterId: PerimeterId
 ): void {
   const perimeter = state.perimeters[perimeterId]
@@ -548,18 +562,38 @@ export function expectConsistentIntermediateWallReferences(
         `Connected wall ${connectedWallId} of node ${nodeId} should exist`
       ).toBeDefined()
     }
+
+    // Verify perimeter-wall nodes are tracked in their PerimeterWall.wallNodeIds
+    if (node.type === 'perimeter') {
+      const perimWall = state.perimeterWalls[node.wallId]
+      expect(perimWall, `Perimeter wall ${node.wallId} of node ${nodeId} should exist`).toBeDefined()
+      expect(
+        perimWall.wallNodeIds,
+        `Perimeter wall ${node.wallId} should track node ${nodeId} in wallNodeIds`
+      ).toContain(nodeId)
+    }
   }
 }
 
 export function expectNoOrphanedIntermediateEntities(
-  state: IntermediateWallsState & { perimeters: Record<PerimeterId, any> }
+  state: IntermediateWallsState & {
+    perimeters: Record<PerimeterId, any>
+    perimeterWalls: Record<string, any>
+  }
 ): void {
   const allWallIds = new Set<string>()
   const allNodeIds = new Set<string>()
+  const allPerimeterWallNodeIds = new Set<string>()
 
   for (const perimeter of Object.values(state.perimeters)) {
     for (const id of perimeter.intermediateWallIds) allWallIds.add(id)
     for (const id of perimeter.wallNodeIds) allNodeIds.add(id)
+  }
+
+  for (const perimWall of Object.values(state.perimeterWalls)) {
+    for (const id of perimWall.wallNodeIds) {
+      allPerimeterWallNodeIds.add(id)
+    }
   }
 
   for (const wallId of Object.keys(state.intermediateWalls)) {
@@ -576,5 +610,13 @@ export function expectNoOrphanedIntermediateEntities(
 
   for (const nodeId of Object.keys(state._wallNodeGeometry)) {
     expect(allNodeIds.has(nodeId), `Wall node geometry for ${nodeId} should have corresponding node`).toBe(true)
+  }
+
+  // Verify perimeter-wall node IDs are consistent with perimeter.wallNodeIds
+  for (const nodeId of allPerimeterWallNodeIds) {
+    expect(
+      allNodeIds.has(nodeId),
+      `PerimeterWall.wallNodeIds entry ${nodeId} should be in a perimeter's wallNodeIds`
+    ).toBe(true)
   }
 }

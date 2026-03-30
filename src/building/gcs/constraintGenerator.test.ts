@@ -70,7 +70,8 @@ function makeWall(
     outsideLine: { start: newVec2(0, 0), end: newVec2(0, 0) },
     direction: opts.direction,
     outsideDirection: newVec2(0, 0),
-    polygon: { points: [] }
+    polygon: { points: [] },
+    wallNodeIds: []
   }
 }
 

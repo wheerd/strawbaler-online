@@ -17,12 +17,10 @@ import type {
 import type { IntermediateWallId, PerimeterId, PerimeterWallId, WallNodeId } from '@/building/model/ids'
 import { createIntermediateWallId, createWallNodeId } from '@/building/model/ids'
 import { NotFoundError } from '@/building/store/errors'
-import type { PerimetersState } from '@/building/store/slices/perimeterSlice'
-import {
-  type TimestampsState,
-  removeTimestampDraft,
-  updateTimestampDraft
-} from '@/building/store/slices/timestampsSlice'
+import { cleanUpOrphaned } from '@/building/store/slices/cleanup'
+import { removeConstraintsForEntityDraft } from '@/building/store/slices/constraintsSlice'
+import { removeTimestampDraft, updateTimestampDraft } from '@/building/store/slices/timestampsSlice'
+import type { StoreState } from '@/building/store/types'
 import type { Length, Vec2 } from '@/shared/geometry'
 import { copyVec2 } from '@/shared/geometry'
 
@@ -69,7 +67,7 @@ export interface IntermediateWallsActions {
 export type IntermediateWallsSlice = IntermediateWallsState & { actions: IntermediateWallsActions }
 
 export const createIntermediateWallsSlice: StateCreator<
-  IntermediateWallsSlice & PerimetersState & TimestampsState,
+  IntermediateWallsSlice & StoreState,
   [['zustand/immer', never]],
   [],
   IntermediateWallsSlice
@@ -136,16 +134,8 @@ export const createIntermediateWallsSlice: StateCreator<
         delete state.intermediateWalls[wallId]
         delete state._intermediateWallGeometry[wallId]
 
-        const startNode = state.wallNodes[wall.start.nodeId]
-        const endNode = state.wallNodes[wall.end.nodeId]
-
-        startNode.connectedWallIds = startNode.connectedWallIds.filter(id => id !== wallId)
-        endNode.connectedWallIds = endNode.connectedWallIds.filter(id => id !== wallId)
-
         removeTimestampDraft(state, wallId)
-
-        cleanupOrphanedNodes(state, wall.start.nodeId, wallId)
-        cleanupOrphanedNodes(state, wall.end.nodeId, wallId)
+        cleanUpOrphaned(state)
 
         updateAllWallNodeGeometry(state, wall.perimeterId)
       })
@@ -208,6 +198,7 @@ export const createIntermediateWallsSlice: StateCreator<
 
         state.wallNodes[nodeId] = node
         perimeter.wallNodeIds.push(nodeId)
+        state.perimeterWalls[wallId].wallNodeIds.push(nodeId)
 
         updateAllWallNodeGeometry(state, perimeterId)
 
@@ -329,27 +320,13 @@ export const createIntermediateWallsSlice: StateCreator<
         if (!(nodeId in state.wallNodes)) return
 
         const node = state.wallNodes[nodeId]
-        const perimeter = state.perimeters[node.perimeterId]
 
-        const connectedWalls = Object.values(state.intermediateWalls).filter(
-          wall => wall.start.nodeId === nodeId || wall.end.nodeId === nodeId
-        )
-
-        for (const wall of connectedWalls) {
-          perimeter.intermediateWallIds = perimeter.intermediateWallIds.filter(id => id !== wall.id)
-          delete state.intermediateWalls[wall.id]
-          delete state._intermediateWallGeometry[wall.id]
-          removeTimestampDraft(state, wall.id)
-
-          const otherNodeId = wall.start.nodeId === nodeId ? wall.end.nodeId : wall.start.nodeId
-          cleanupOrphanedNodes(state, otherNodeId, wall.id)
-        }
-
-        perimeter.wallNodeIds = perimeter.wallNodeIds.filter(id => id !== nodeId)
         delete state.wallNodes[nodeId]
         delete state._wallNodeGeometry[nodeId]
 
+        cleanUpOrphaned(state)
         removeTimestampDraft(state, nodeId)
+        removeConstraintsForEntityDraft(state, nodeId)
 
         updateAllWallNodeGeometry(state, node.perimeterId)
       })
@@ -483,24 +460,3 @@ export const createIntermediateWallsSlice: StateCreator<
     }
   }
 })
-
-function cleanupOrphanedNodes(
-  state: IntermediateWallsSlice & PerimetersState & TimestampsState,
-  nodeId: WallNodeId,
-  excludedWallId?: IntermediateWallId
-): void {
-  if (!(nodeId in state.wallNodes)) return
-  const node = state.wallNodes[nodeId]
-
-  const remainingConnections = Object.values(state.intermediateWalls).filter(
-    wall => wall.id !== excludedWallId && (wall.start.nodeId === nodeId || wall.end.nodeId === nodeId)
-  )
-
-  if (remainingConnections.length === 0) {
-    const perimeter = state.perimeters[node.perimeterId]
-    perimeter.wallNodeIds = perimeter.wallNodeIds.filter(id => id !== nodeId)
-    delete state.wallNodes[nodeId]
-    delete state._wallNodeGeometry[nodeId]
-    removeTimestampDraft(state, nodeId)
-  }
-}

@@ -213,6 +213,7 @@ export const migrateToVersion12: Migration = state => {
             startCornerId,
             endCornerId,
             entityIds,
+            wallNodeIds: [],
             thickness,
             wallAssemblyId
           }

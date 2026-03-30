@@ -117,7 +117,7 @@ describe('intermediateWallGeometry', () => {
 
       it('should throw when thickness exceeds distance between points', () => {
         const closeStart = newVec2(0, 0)
-        const closeEnd = newVec2(50, 0)
+        const closeEnd = newVec2(99, 0)
 
         expect(() => computeWallLines(closeStart, 'left', closeEnd, 'right', 100)).toThrow(
           'Wall thickness larger than distance between points'
@@ -391,7 +391,9 @@ describe('intermediateWallGeometry', () => {
     it('should return early for non-existent perimeter', () => {
       const { state } = setupIntermediateWallsSlice()
 
-      expect(() => { updateAllWallNodeGeometry(state, 'perimeter_nonexistent' as any); }).not.toThrow()
+      expect(() => {
+        updateAllWallNodeGeometry(state, 'perimeter_nonexistent' as any)
+      }).not.toThrow()
     })
 
     it('should return without error for empty perimeter (no walls/nodes)', () => {
@@ -400,7 +402,9 @@ describe('intermediateWallGeometry', () => {
       state.perimeters[perimeterData.perimeterId].intermediateWallIds = []
       state.perimeters[perimeterData.perimeterId].wallNodeIds = []
 
-      expect(() => { updateAllWallNodeGeometry(state, perimeterData.perimeterId); }).not.toThrow()
+      expect(() => {
+        updateAllWallNodeGeometry(state, perimeterData.perimeterId)
+      }).not.toThrow()
     })
 
     it('should have centerLine between leftLine and rightLine for center/center wall', () => {
