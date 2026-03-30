@@ -7,7 +7,23 @@ Implement interior walls and rooms in the floor plan editor, enabling:
 - Drawing interior walls that connect to perimeter walls or other interior walls
 - Split-on-connect model: when a wall connects to another wall's midpoint, split the target wall
 - Perpendicular snapping and constraints
-- Room detection from closed wall loops
+- Wall entities (doors, windows, posts) on interior walls
+- Configurable wall assemblies for interior walls with 3D construction
+- Room detection from closed wall loops with user labeling
+
+## Status Overview
+
+| Phase                                        | Status      |
+| -------------------------------------------- | ----------- |
+| Phase 1: Store & Geometry                    | Done        |
+| Phase 2: Drawing Tools                       | Done        |
+| Phase 3: UI Components                       | Done        |
+| Phase A: Constraints for Intermediate Walls  | Not started |
+| Phase B: Wall Entities on Intermediate Walls | Not started |
+| Phase C: Interior Wall Assembly System       | Not started |
+| Phase D: Room Detection & Labeling           | Not started |
+| Phase E: Room Preset Tool                    | Not started |
+| Phase F: Room Split Tool                     | Not started |
 
 ## Data Model
 
@@ -22,7 +38,8 @@ interface PerimeterWallNode {
   perimeterId: PerimeterId
   type: 'perimeter'
   wallId: PerimeterWallId
-  offsetFromCornerStart: Length // Distance along the wall
+  offsetFromCornerStart: Length
+  connectedWallIds: IntermediateWallId[]
 }
 
 // Free-standing node - position stored directly
@@ -31,6 +48,7 @@ interface InnerWallNode {
   perimeterId: PerimeterId
   type: 'inner'
   position: Vec2
+  connectedWallIds: IntermediateWallId[]
 }
 ```
 
@@ -43,7 +61,7 @@ type WallAxis = 'left' | 'center' | 'right'
 
 interface WallAttachment {
   nodeId: WallNodeId
-  axis: WallAxis // Which axis of the wall aligns with the node
+  axis: WallAxis
 }
 ```
 
@@ -65,9 +83,65 @@ interface IntermediateWall {
 }
 ```
 
-### Geometry Types
+### Wall Entities (Planned Extension)
 
-Computed from model + other geometry:
+Currently wall entities are tied to perimeter walls. The plan extends them to intermediate walls:
+
+```typescript
+// CURRENT (perimeter only):
+interface BaseWallEntity {
+  id: WallEntityId
+  perimeterId: PerimeterId
+  wallId: PerimeterWallId // <-- Must widen to WallId
+  type: 'opening' | 'post'
+  centerOffsetFromWallStart: Length
+  width: Length
+}
+
+// PLANNED:
+interface BaseWallEntity {
+  id: WallEntityId
+  perimeterId: PerimeterId
+  wallId: WallId // PerimeterWallId | IntermediateWallId
+  type: 'opening' | 'post'
+  centerOffsetFromWallStart: Length
+  width: Length
+}
+```
+
+### Rooms
+
+```typescript
+type RoomType =
+  | 'living-room'
+  | 'kitchen'
+  | 'dining-room'
+  | 'bedroom'
+  | 'bathroom'
+  | 'wc'
+  | 'hallway'
+  | 'office'
+  | 'storage'
+  | 'utility'
+  | 'service'
+  | 'generic'
+
+interface Room {
+  id: RoomId
+  perimeterId: PerimeterId
+  wallIds: IntermediateWallId[] // Auto-detected
+  type: RoomType
+  counter: number // bedroom 1, bedroom 2, etc.
+  customLabel?: string
+}
+
+interface RoomGeometry {
+  boundary: Polygon2D
+  area: Area
+}
+```
+
+### Geometry Types
 
 ```typescript
 interface WallNodeGeometry {
@@ -92,984 +166,1309 @@ interface IntermediateWallGeometry {
 }
 ```
 
-## Store Architecture
+## Completed Implementation (Phases 1-3)
 
-### State Interface
+### Store & Geometry (`src/building/store/slices/`)
 
-```typescript
-interface IntermediateWallsState {
-  intermediateWalls: Record<IntermediateWallId, IntermediateWall>
-  _intermediateWallGeometry: Record<IntermediateWallId, IntermediateWallGeometry>
+- **`intermediateWallsSlice.ts`** (462 lines): Full CRUD for walls and nodes
+  - Wall actions: `addIntermediateWall`, `removeIntermediateWall`, `updateIntermediateWallThickness`, `updateIntermediateWallAlignment`
+  - Node actions: `addPerimeterWallNode`, `addInnerWallNode`, `splitIntermediateWallAtPoint`, `removeWallNode`, `updateInnerWallNodePosition`, `updatePerimeterWallNodeOffset`
+  - All getters: `getIntermediateWallById`, `getIntermediateWallsByPerimeter`, `getAllIntermediateWalls`, `getWallNodeById`, `getWallNodesByPerimeter`, `getAllWallNodes`
+- **`intermediateWallGeometry.ts`** (493 lines): Wall lines, corner computation, boundary polygons
+- **`cleanup.ts`**: Orphan cleanup for intermediate walls, wall nodes, and constraints
+- **Tests**: 853 lines (slice) + 458 lines (geometry) + cleanup tests
 
-  wallNodes: Record<WallNodeId, WallNode>
-  _wallNodeGeometry: Record<WallNodeId, WallNodeGeometry>
-}
-```
+### Drawing Tool (`src/editor/tools/intermediate-wall/add/`)
 
-### Actions
+- **`IntermediateWallTool.ts`** (457 lines): Multi-segment polyline drawing with:
+  - Snapping to perimeter walls, existing intermediate walls, and wall nodes
+  - Validation (inside perimeter, no crossing, minimum length)
+  - Auto-creation of wall nodes (inner, perimeter, split on T-junction)
+  - Length input override
+  - Chain completion by clicking first point or pressing Enter
+  - Perpendicular snapping within the chain (to previous segment direction)
+- **`IntermediateWallToolInspector.tsx`**: Thickness field, length override, help text
+- **`IntermediateWallToolOverlay.tsx`**: SVG overlay with snapped points, polyline segments, preview
+- **Registered** in ToolSystem with hotkey `i`
 
-**Wall CRUD:**
+### Select/Edit Support
 
-- `addIntermediateWall(perimeterId, start, end, thickness)` - Create wall between two attachments
-- `removeIntermediateWall(wallId)` - Remove wall, cleanup orphaned nodes
-- `updateIntermediateWallThickness(wallId, thickness)`
-- `updateIntermediateWallAlignment(wallId, start, end)`
-
-**Node CRUD:**
-
-- `addPerimeterWallNode(perimeterId, wallId, offset)` - Add node on perimeter wall
-- `addInnerWallNode(perimeterId, position)` - Add free-standing node
-- `removeWallNode(nodeId)` - Remove node and connected walls
-- `updateInnerWallNodePosition(nodeId, position)`
-- `updatePerimeterWallNodeOffset(nodeId, offset)`
-
-### Getters
-
-Combine base model with geometry:
-
-- `getIntermediateWallById(id)` → `IntermediateWallWithGeometry`
-- `getIntermediateWallsByPerimeter(perimeterId)` → `IntermediateWallWithGeometry[]`
-- `getAllIntermediateWalls()` → `IntermediateWallWithGeometry[]`
-- `getWallNodeById(id)` → `WallNodeWithGeometry`
-- `getWallNodesByPerimeter(perimeterId)` → `WallNodeWithGeometry[]`
-- `getAllWallNodes()` → `WallNodeWithGeometry[]`
-
-## Geometry Computation
-
-### File: `intermediateWallGeometry.ts`
-
-Follows the pattern from `perimeterGeometry.ts`:
-
-1. Pure functions that take state + IDs
-2. Called directly after any model change
-3. No circular imports - state interface defined in slice, geometry file imports it
-
-### Key Functions
-
-```typescript
-// Update single wall geometry
-function updateIntermediateWallGeometry(
-  state: IntermediateWallsState & PerimeterGeometryAccess,
-  wallId: IntermediateWallId
-): void
-
-// Update all walls (e.g., after perimeter change)
-function updateAllIntermediateWallGeometry(state: IntermediateWallsState & PerimeterGeometryAccess): void
-```
-
-### Node Position Calculation
-
-```typescript
-function getNodePosition(state: IntermediateWallsState & PerimeterGeometryAccess, nodeId: WallNodeId): Vec2 {
-  const node = state.wallNodes[nodeId]
-  if (node.type === 'inner') {
-    return node.position
-  }
-  // Perimeter node: compute from wall geometry
-  const wallGeometry = state._perimeterWallGeometry[node.wallId]
-  return pointOnLineSegment(wallGeometry.innerLine, node.offsetFromCornerStart)
-}
-```
-
-### Wall Geometry Calculation
-
-1. Get start/end node positions via `getNodePosition()`
-2. Compute center line from start to end
-3. Offset by thickness/2 to get left/right lines
-4. Build boundary polygon from left/right lines
-
-## Split-on-Connect Model
-
-When a wall endpoint attaches to the middle of another wall:
-
-1. **Detect intersection** - The target wall's center line intersects near the new wall's endpoint
-2. **Create node** - Add a wall node at the intersection point
-3. **Split target wall** - Replace one wall with two:
-   - Original start → New node
-   - New node → Original end
-4. **Update references** - Any room references point to both new walls
-
-This ensures every wall endpoint is a node, simplifying topology.
-
-## Perpendicular Constraints
-
-### Snapping
-
-During wall drawing, snap to perpendicular lines:
-
-- From current point, project to perpendicular of nearby walls
-- Visual feedback shows snap candidate
-
-### Constraint Storage
-
-```typescript
-interface PerpendicularConstraint {
-  id: ConstraintId
-  wallId: IntermediateWallId
-  perpendicularToWallId: IntermediateWallId
-  atNodeId: WallNodeId // The shared node
-}
-```
-
-Constraints are stored separately and enforced during geometry updates.
+- **Selectable**: Intermediate walls can be selected via `SelectTool`
+- **Inspectable**: `IntermediateWallInspector` provides thickness editing, length display, delete
+- **NOT movable**: No `IntermediateWallMovementBehavior` exists
 
 ---
 
-# Intermediate Wall Drawing Tool - Detailed Implementation Plan
+# Phase A: Constraints for Intermediate Walls
 
-## Overview
+## Goal
 
-Implement a tool to draw intermediate (interior partition) walls in a floor plan editor. The tool draws open chains of connected wall segments (not closed polygons), similar to drawing a polyline.
+Enable the GCS (geometric constraint solver) to enforce constraints on intermediate walls, including:
 
-### Key Behaviors
+- Wall length constraints
+- Horizontal/vertical alignment constraints
+- Perpendicular constraints between intermediate walls and perimeter/intermediate walls
+- Node position constraints when attached to perimeter walls
+- Wall entity position constraints on intermediate walls
 
-1. **Chain drawing**: Click multiple points to create a chain of connected walls
-2. **Snap to existing elements**: Nodes, perimeter walls, other intermediate walls
-3. **Perpendicular snapping**: Snap to 90° angles from walls
-4. **Alignment snapping**: Snap to extension lines from existing walls
-5. **Center axis alignment**: Walls align their center axis with nodes by default
-6. **Auto-finish on T-junction**: Placing a point on an existing wall creates a T-junction and ends the chain
-7. **Manual finish**: Press Enter to finish at a free position
-8. **Configurable thickness**: Inspector allows adjusting wall thickness
+## Current State
 
-## Node Creation Logic
+- **Constraint model** (`src/building/model/constraints.ts`): Already supports `IntermediateWallId` and `WallNodeId` as `ConstraintEntityId` in the reverse index
+- **Constraint types**: `WallLengthConstraint`, `HorizontalWallConstraint`, `VerticalWallConstraint` etc. already accept `WallId` (which includes `IntermediateWallId`)
+- **Constraint store** (`constraintsSlice.ts`): Wall split/merge constraint transfer already handles `WallId`
+- **BUT**: No GCS sync, no constraint generation, no translator support for intermediate walls
 
-When the user clicks to place a wall endpoint, determine the appropriate node type:
+## A.1: GCS Geometry Registration
 
-### Case 1: Click on Perimeter Wall Endpoint (Corner)
+### File: `src/building/gcs/store.ts`
 
-```
-Input: Snapped to PerimeterCorner
-Action: Use addPerimeterWallNode at offset 0 or wall length
-Node: PerimeterWallNode (no split needed - corners already exist)
-```
-
-### Case 2: Click on Perimeter Wall Midpoint
-
-```
-Input: Snapped to point on PerimeterWall (not corner)
-Action: Use addPerimeterWallNode at computed offset
-Node: PerimeterWallNode (NO split - perimeter walls don't split for intermediate walls)
-```
-
-### Case 3: Click on Existing Wall Node
-
-```
-Input: Snapped to existing WallNode (inner or perimeter)
-Action: Reuse existing node
-Node: Existing WallNode
-```
-
-### Case 4: Click on Intermediate Wall Midpoint (T-Junction)
-
-```
-Input: Snapped to point on IntermediateWall (not at node)
-Action:
-  1. Call splitIntermediateWallAtPoint(wallId, point) - NEW ACTION NEEDED
-  2. This creates:
-     - New InnerWallNode at the split point
-     - Two new IntermediateWalls replacing the original
-     - Deletes original wall
-  3. Use the new node's ID
-Node: InnerWallNode (created by split action)
-Behavior: END THE CHAIN - T-junction completes the drawing session
-```
-
-### Case 5: Click on Free Position Inside Perimeter
-
-```
-Input: Point not snapped to any wall/node, but inside a perimeter polygon
-Action: Use addInnerWallNode at the point
-Node: InnerWallNode
-```
-
-### Case 6: Click Outside Perimeter
-
-```
-Input: Point not inside any perimeter polygon
-Action: Reject the click (validation error)
-Behavior: Show error feedback, don't create wall
-```
-
-## Store Actions
-
-### New Action: `splitIntermediateWallAtPoint`
-
-Add to `intermediateWallsSlice.ts`:
+Add intermediate wall geometry to the GCS:
 
 ```typescript
-interface SplitIntermediateWallAtPointPayload {
-  wallId: IntermediateWallId
-  point: Vec2 // Point on the wall's center line
+// New action: add geometry for an intermediate wall
+addIntermediateWallGeometry(state, wallId: IntermediateWallId): void
+
+// New action: remove geometry for an intermediate wall
+removeIntermediateWallGeometry(state, wallId: IntermediateWallId): void
+
+// Update existing: called when wall changes
+updateIntermediateWallGeometry(state, wallId: IntermediateWallId): void
+```
+
+**GCS point scheme for intermediate walls:**
+
+For each wall, create:
+
+- `wallnode_{nodeId}` -- point at the wall node position (shared across connected walls)
+- `intermediate_{wallId}_ref` -- start point on center line
+- `intermediate_{wallId}_nonref` -- end point on center line
+
+Constraints:
+
+- Coincident: node point = wall endpoint point
+- For perimeter-attached nodes: point-on-line constraint (node point on perimeter wall's reference line)
+- For inner nodes: position can be free or constrained
+- p2p_distance for wall length
+
+**For wall entities on intermediate walls** (deferred to Phase B):
+
+- Same pattern as perimeter entities: start/center/end points on center line, width constraint
+
+### Extend `PerimeterRegistryEntry`
+
+Add tracking for intermediate wall GCS elements within a perimeter:
+
+```typescript
+interface PerimeterRegistryEntry {
+  // ... existing fields
+  intermediateWallIds: IntermediateWallId[]
+  wallNodeIds: WallNodeId[]
+}
+```
+
+## A.2: GCS Sync Subscriptions
+
+### File: `src/building/gcs/gcsSync.ts`
+
+Add subscriptions for intermediate wall changes:
+
+```typescript
+subscribeToIntermediateWalls(): void
+// - On wall added: call addIntermediateWallGeometry
+// - On wall removed: call removeIntermediateWallGeometry
+// - On wall thickness/alignment changed: call updateIntermediateWallGeometry
+// - On wall geometry changed (from node move): update GCS points
+
+subscribeToWallNodes(): void
+// - On node added: create GCS point, add attachment constraints
+// - On node removed: remove GCS point and constraints
+// - On node position/offset changed: update GCS point
+// - For perimeter-attached nodes: add point-on-line to perimeter wall
+```
+
+## A.3: Constraint Translator Updates
+
+### File: `src/building/gcs/constraintTranslator.ts`
+
+Extend `TranslationContext` to handle intermediate walls:
+
+```typescript
+interface TranslationContext {
+  // Existing (perimeter-only):
+  getLineStartPointId(lineId: string): string | undefined
+  getWallCornerIds(wallId: WallId): { startCornerId: PerimeterCornerId; endCornerId: PerimeterCornerId } | undefined
+  getCornerAdjacentWallIds(cornerId: PerimeterCornerId): { previousWallId: WallId; nextWallId: WallId } | undefined
+  getReferenceSide(cornerId: PerimeterCornerId): 'left' | 'right'
+
+  // New (intermediate wall support):
+  getWallNodeIds(wallId: IntermediateWallId): { startNodeId: WallNodeId; endNodeId: WallNodeId } | undefined
+  getWallNodeGcsPointId(nodeId: WallNodeId): string | undefined
+  getIntermediateWallGcsLineId(wallId: IntermediateWallId): string | undefined
+}
+```
+
+**Implementation in `store.ts`:**
+
+```typescript
+getWallNodeIds: (wallId: IntermediateWallId) => {
+  const wall = modelActionsRef.getIntermediateWallById(wallId)
+  return { startNodeId: wall.start.nodeId, endNodeId: wall.end.nodeId }
 }
 
-// Returns the new WallNodeId at the split point
-splitIntermediateWallAtPoint: (state: IntermediateWallsState, payload: SplitIntermediateWallAtPointPayload) =>
-  WallNodeId
+getWallNodeGcsPointId: (nodeId: WallNodeId) => {
+  return `wallnode_${nodeId}`
+}
+
+getIntermediateWallGcsLineId: (wallId: IntermediateWallId) => {
+  return `intermediate_${wallId}_ref`
+}
 ```
 
-**Implementation steps:**
+### Update constraint translation functions
 
-1. Get the original wall and its geometry
-2. Find the split point's parameter `t` along the center line (0-1)
-3. Create a new `InnerWallNode` at the split point
-4. Create two new `IntermediateWall` entities:
-   - Wall A: original start → new node (copy start attachment, new end attachment)
-   - Wall B: new node → original end (new start attachment, copy end attachment)
-5. Copy properties (thickness, assembly) to both new walls
-6. Delete the original wall
-7. Update geometry for both new walls
-8. Return the new node's ID
+- `translateWallLengthConstraint`: Handle `IntermediateWallId` by using `getWallNodeIds` instead of `getWallCornerIds`
+- `translateHorizontalWallConstraint` / `translateVerticalWallConstraint`: Handle `IntermediateWallId` by constraining node positions
+- `translateWallEntityAbsoluteConstraint` / `translateWallEntityRelativeConstraint`: Handle entities on intermediate walls (deferred to Phase B)
+
+### New helper functions
 
 ```typescript
-function splitIntermediateWallAtPoint(
+// In constraintTranslator.ts or a shared helpers file
+function wallRefLineId(wallId: WallId): string {
+  if (isPerimeterWallId(wallId)) return `wall_${wallId}_ref`
+  return `intermediate_${wallId}_ref`
+}
+
+function wallNodePointId(nodeId: WallNodeId): string {
+  return `wallnode_${nodeId}`
+}
+```
+
+## A.4: Constraint Generation for Intermediate Walls
+
+### File: `src/building/gcs/constraintGenerator.ts`
+
+Auto-generate constraints when intermediate walls are created:
+
+```typescript
+function generateIntermediateWallConstraints(
+  wall: IntermediateWallWithGeometry,
+  allWalls: IntermediateWallWithGeometry[],
+  perimeterWalls: PerimeterWallWithGeometry[]
+): ConstraintInput[]
+```
+
+**Rules:**
+
+1. **Length constraint**: Every intermediate wall gets a `WallLengthConstraint` with its current length on the `center` side
+2. **Horizontal/Vertical**: If wall direction is nearly horizontal (within 1mm) or vertical, add corresponding constraint
+3. **Perpendicular to perimeter wall**: If an endpoint is attached to a perimeter wall and the intermediate wall is nearly perpendicular (within tolerance), add constraint
+4. **Perpendicular to other intermediate wall**: If two intermediate walls share a node and are nearly perpendicular, add constraint
+5. **Colinear**: If two intermediate walls share a node and are nearly colinear, add constraint
+
+### When to generate
+
+- After `addIntermediateWall`: Generate constraints for the new wall
+- After `splitIntermediateWallAtPoint`: Regenerate constraints for the two new walls
+- After wall endpoint attachment changes: Re-evaluate perpendicular/colinear relationships
+
+## A.5: Perpendicular Snapping Enhancement
+
+### File: `src/editor/tools/intermediate-wall/add/IntermediateWallTool.ts`
+
+Currently only snaps perpendicular within the chain. Extend to snap perpendicular to existing walls:
+
+**Strategy**: Add snap line candidates for perpendicular directions from existing wall endpoints.
+
+When the user is drawing and has at least one placed point:
+
+1. For each nearby perimeter wall: compute the perpendicular direction from the nearest point on the wall
+2. For each nearby intermediate wall: compute the perpendicular direction from the nearest point on the wall
+3. Add these as snap line candidates to the `SnappingService`
+
+The `SnappingService` already handles line-line intersection snapping, so adding perpendicular snap lines will produce intersection points automatically.
+
+### File: `src/editor/canvas/services/SnappingService.ts`
+
+No changes needed to the snapping service itself - just add perpendicular snap line candidates from the tool.
+
+## A.6: Wall Node Movement Behavior (Optional)
+
+### File: `src/editor/tools/basic/movement/movementBehaviors.ts`
+
+Enable moving intermediate wall nodes (which drags connected walls):
+
+```typescript
+class WallNodeMovementBehavior implements MovementBehavior {
+  // On drag start: identify the node and all connected walls
+  // On drag move: update node position, which triggers geometry recalculation
+  //   - For inner nodes: update position directly
+  //   - For perimeter nodes: update offset along perimeter wall
+  // On drag end: commit position, resolve constraints
+}
+```
+
+Register in movement behaviors:
+
+```typescript
+'wall-node': WallNodeMovementBehavior,
+```
+
+**Interaction with GCS**: When a node is moved, the GCS solver should re-resolve and potentially adjust other constrained elements. This requires the GCS sync to be working (A.2).
+
+## A.7: Testing
+
+- Test GCS point/line creation for intermediate walls
+- Test constraint translation for intermediate wall constraints
+- Test constraint generation (perpendicular, H/V, length)
+- Test GCS sync subscription (add/remove/update intermediate walls)
+- Test wall node movement with constraint enforcement
+- Test perpendicular snapping to existing walls
+
+---
+
+# Phase B: Wall Entities on Intermediate Walls
+
+## Goal
+
+Enable full entity support (openings, posts) on intermediate walls, matching the feature set available on perimeter walls:
+
+- Add/remove/update openings (door, window, passage) on intermediate walls
+- Add/remove/update wall posts on intermediate walls
+- Entity validation (fit within wall, no overlap)
+- Entity geometry computation
+- Entity splitting when walls are split
+- Entity merging when walls are merged
+
+## Current State
+
+- **Entity model** (`src/building/model/wallEntities.ts`): `BaseWallEntity.wallId` is `PerimeterWallId` (must widen)
+- **Entity storage**: Entities stored in `perimeterSlice.ts` via `wall.entityIds` arrays
+- **Entity CRUD**: Actions in `perimeterSlice.ts` (`addWallOpening`, `removeWallOpening`, etc.)
+- **Entity geometry**: Computed in `perimeterGeometry.ts`
+- **`IntermediateWall.openingIds`**: TODO placeholder, no backing store
+- **Segmentation system**: Tied to `PerimeterWallWithGeometry`
+
+## B.1: Widen Entity Model
+
+### File: `src/building/model/wallEntities.ts`
+
+```typescript
+interface BaseWallEntity {
+  id: WallEntityId
+  perimeterId: PerimeterId
+  wallId: WallId // Was: PerimeterWallId
+  type: 'opening' | 'post'
+  centerOffsetFromWallStart: Length
+  width: Length
+}
+```
+
+Add a discriminator to know which store slice owns the entity:
+
+```typescript
+interface BaseWallEntity {
+  // ... existing fields
+  wallType: 'perimeter' | 'intermediate'
+}
+```
+
+**Migration**: Existing entities get `wallType: 'perimeter'` automatically. The `Opening` and `WallPost` types inherit `wallType` from `BaseWallEntity`.
+
+## B.2: Entity Storage Architecture
+
+### Approach: Shared storage, slice-specific dispatch
+
+Two options were considered:
+
+1. **Separate records in intermediateWallsSlice** -- duplicate opening/post records
+2. **Shared records, slice-specific dispatch** -- single source of truth, dispatch based on `wallType`
+
+**Chosen: Option 2** -- Keep `openings` and `wallPosts` records in `perimeterSlice.ts` (or extract to a shared slice), but dispatch entity operations based on `wallType`.
+
+### File changes:
+
+**Option A (simpler)**: Keep entity records in `perimeterSlice.ts` but add intermediate-wall-aware actions:
+
+```typescript
+// In intermediateWallsSlice.ts or a new wallEntitiesSlice.ts:
+addIntermediateWallOpening(wallId: IntermediateWallId, params: OpeningParams): OpeningWithGeometry
+removeIntermediateWallOpening(openingId: OpeningId): void
+updateIntermediateWallOpening(openingId: OpeningId, updates: Partial<OpeningParams>): void
+// Same for wall posts
+```
+
+**Option B (cleaner)**: Extract entity storage to a shared `wallEntitiesSlice.ts`:
+
+- Move `openings`, `wallPosts`, `_openingGeometry`, `_wallPostGeometry` records
+- Add generic actions that accept `WallId` and dispatch based on type
+- Both `perimeterSlice.ts` and `intermediateWallsSlice.ts` reference the shared slice
+
+**Recommendation**: Start with Option A for simpler migration, refactor to Option B later if needed.
+
+## B.3: Entity CRUD Actions
+
+### In `src/building/store/slices/intermediateWallsSlice.ts`:
+
+```typescript
+// Opening actions
+addIntermediateWallOpening(wallId: IntermediateWallId, params: OpeningParams): OpeningWithGeometry
+removeIntermediateWallOpening(openingId: OpeningId): void
+updateIntermediateWallOpening(openingId: OpeningId, updates: Partial<OpeningParams>): void
+isIntermediateWallOpeningPlacementValid(wallId, centerOffset, width, excluded?): boolean
+
+// Wall post actions
+addIntermediateWallPost(wallId: IntermediateWallId, params: WallPostParams): WallPostWithGeometry
+removeIntermediateWallPost(postId: WallPostId): void
+updateIntermediateWallPost(postId: WallPostId, updates: Partial<WallPostParams>): void
+isIntermediateWallPostPlacementValid(wallId, centerOffset, width, excluded?): boolean
+
+// Validation helpers
+isIntermediateWallEntityPlacementValid(wallId, centerOffset, width, excluded?, options?): boolean
+findNearestValidIntermediateWallEntityPosition(wallId, preferredCenter, width, excluded?, options?): Length | null
+```
+
+**Validation logic**: Reuse the existing `validateWallItemPlacement()` pattern from `perimeterSlice.ts`, adapted for intermediate wall geometry (using `centerLine` instead of `innerLine`).
+
+## B.4: Entity Geometry Computation
+
+### File: `src/building/store/slices/intermediateWallGeometry.ts`
+
+Add entity geometry computation for intermediate wall entities:
+
+```typescript
+function updateIntermediateWallEntityGeometry(
   state: IntermediateWallsState,
-  payload: SplitIntermediateWallAtPointPayload
-): WallNodeId {
-  const { wallId, point } = payload
-  const wall = state.intermediateWalls[wallId]
-  const geometry = state._intermediateWallGeometry[wallId]
-
-  // Find parameter t along center line
-  const t = findParameterOnLineSegment(geometry.centerLine, point)
-
-  // Create new inner node at split point
-  const newNodeId = generateWallNodeId()
-  state.wallNodes[newNodeId] = {
-    id: newNodeId,
-    perimeterId: wall.perimeterId,
-    type: 'inner',
-    position: point
-  }
-
-  // Create two new walls
-  const wallAId = generateIntermediateWallId()
-  const wallBId = generateIntermediateWallId()
-
-  state.intermediateWalls[wallAId] = {
-    id: wallAId,
-    perimeterId: wall.perimeterId,
-    start: wall.start,
-    end: { nodeId: newNodeId, axis: wall.start.axis }, // Match axis alignment
-    thickness: wall.thickness,
-    wallAssemblyId: wall.wallAssemblyId,
-    openingIds: [] // TODO: Split openings appropriately
-  }
-
-  state.intermediateWalls[wallBId] = {
-    id: wallBId,
-    perimeterId: wall.perimeterId,
-    start: { nodeId: newNodeId, axis: wall.end.axis },
-    end: wall.end,
-    thickness: wall.thickness,
-    wallAssemblyId: wall.wallAssemblyId,
-    openingIds: []
-  }
-
-  // Delete original wall
-  delete state.intermediateWalls[wallId]
-  delete state._intermediateWallGeometry[wallId]
-
-  // Update geometry for new walls
-  updateIntermediateWallGeometry(state, wallAId)
-  updateIntermediateWallGeometry(state, wallBId)
-  updateWallNodeGeometry(state, newNodeId)
-
-  return newNodeId
-}
+  wallId: IntermediateWallId,
+  entityId: WallEntityId
+): void
 ```
 
-## BasePolylineTool Base Class
+**Geometry computation**:
 
-Create `src/editor/tools/shared/polyline/BasePolylineTool.ts`:
+- Project entity position onto the intermediate wall's `centerLine`
+- Compute entity polygon based on wall thickness (perpendicular offset from center line)
+- Entity `insideLine` / `outsideLine` mapped to wall's `leftLine` / `rightLine`
 
-Similar to `BasePolygonTool` but for open chains instead of closed polygons.
+## B.5: Entity Handling During Wall Split/Merge
 
-### Key Differences from BasePolygonTool
+### In `splitIntermediateWallAtPoint`:
 
-| Aspect           | BasePolygonTool               | BasePolylineTool                             |
-| ---------------- | ----------------------------- | -------------------------------------------- |
-| Shape            | Closed polygon                | Open polyline                                |
-| Finish condition | Click on first point or Enter | Click on existing wall (T-junction) or Enter |
-| Minimum points   | 3                             | 2                                            |
-| Preview          | Closed loop                   | Open chain                                   |
+When splitting an intermediate wall that has entities:
 
-### Abstract Interface
+1. Compute which entities belong to each half (by `centerOffsetFromWallStart` vs split point)
+2. Entities that straddle the split point: fail the split (return null) or remove the entity
+3. Entities on the second half: adjust `centerOffsetFromWallStart` by subtracting the first half's length
+4. Update `openingIds` arrays on both new walls
+
+### In wall merge (future):
+
+When merging two intermediate walls (removing a colinear node):
+
+1. Combine entity lists from both walls
+2. Adjust offsets on the second wall's entities by adding the first wall's length
+3. Handle overlaps between entities from both walls
+
+## B.6: Entity Inspector UI
+
+### File: `src/editor/inspectors/IntermediateWallInspector.tsx`
+
+Extend to show entity list and allow add/remove/edit:
+
+- List of openings and posts on the selected wall
+- Add opening/post buttons
+- Click entity to select and show entity-specific inspector
+- Reuse existing `OpeningInspector` / `WallPostInspector` components (adapted for intermediate wall context)
+
+### File: `src/editor/inspectors/` (new or existing)
+
+Add/edit entity modals adapted for intermediate walls:
+
+- Opening type selector (door, window, passage)
+- Width, height, sill height fields
+- Assembly override selector
+
+## B.7: Cleanup Integration
+
+### File: `src/building/store/slices/cleanup.ts`
+
+Ensure intermediate wall entity cleanup works correctly:
+
+- When an intermediate wall is removed: remove all its entities
+- When an entity is removed: remove from `openingIds` array
+- When a perimeter is removed: cascade to intermediate walls and their entities
+
+## B.8: Testing
+
+- Test add/remove/update opening on intermediate wall
+- Test add/remove/update wall post on intermediate wall
+- Test entity validation (fit, overlap)
+- Test entity geometry computation
+- Test entity handling during wall split
+- Test cleanup cascade for intermediate wall entities
+
+---
+
+# Phase C: Interior Wall Assembly System
+
+## Goal
+
+Enable configurable wall assemblies for intermediate walls with 3D construction, starting with a simple monolithic assembly and expanding to match the perimeter wall assembly types.
+
+## Current State
+
+- **`InteriorWallAssemblyId`**: Type and generator exist (`iwa_*` prefix)
+- **`IntermediateWall.wallAssemblyId`**: TODO placeholder
+- **Config store**: No interior wall assembly config slice exists
+- **Assembly interface**: `WallAssembly.construct()` takes `PerimeterWallWithGeometry` only
+- **Segmentation**: Tied to `PerimeterWallWithGeometry`
+- **3D builder**: No `buildIntermediateWallCoreModel()` function
+
+## C.1: Interior Wall Assembly Config
+
+### File: `src/config/types.ts`
+
+Add config types for interior wall assemblies:
 
 ```typescript
-interface PolylineToolConfig<PointType, SnapResult> {
-  // Convert snap result to a point
-  snapToPoint(snap: SnapResult): Vec2
-
-  // Determine if snap is a "terminating" snap (e.g., on existing wall)
-  isTerminatingSnap(snap: SnapResult): boolean
-
-  // Create the entity for a segment
-  createSegment(startPoint: PointType, endPoint: PointType, startSnap: SnapResult, endSnap: SnapResult): void
-
-  // Validate a potential point placement
-  validatePoint(points: PointType[], newPoint: PointType, newSnap: SnapResult): ValidationResult
-
-  // Get preview geometry for current segment
-  getPreviewGeometry(startPoint: PointType, currentPoint: Vec2): PreviewGeometry
+interface InteriorWallAssemblyConfig {
+  type: InteriorWallAssemblyType
+  insideLayerSetId?: LayerSetId
+  outsideLayerSetId?: LayerSetId
+  openingAssemblyId?: OpeningAssemblyId
 }
 
-abstract class BasePolylineTool<PointType, SnapResult> implements Tool {
-  protected points: PointType[] = []
-  protected currentSnap: SnapResult | null = null
-  protected config: PolylineToolConfig<PointType, SnapResult>
+type InteriorWallAssemblyType = 'monolithic' | 'framed' | 'solid' | 'module'
 
-  // Common tool lifecycle
-  onActivate(): void
-  onDeactivate(): void
-
-  // Mouse handling
-  onMouseMove(position: Vec2, modifiers: Modifiers): void
-  onClick(position: Vec2, modifiers: Modifiers): void
-
-  // Keyboard handling
-  onKeyDown(key: string, modifiers: Modifiers): void
-
-  // Abstract methods for subclasses
-  protected abstract performSnap(worldPos: Vec2): SnapResult | null
-  protected abstract createPointFromSnap(snap: SnapResult): PointType
-
-  // Protected helpers
-  protected finishChain(): void
-  protected cancelChain(): void
-  protected addPoint(point: PointType, snap: SnapResult): void
+interface MonolithicInteriorWallConfig extends InteriorWallAssemblyConfig {
+  type: 'monolithic'
+  material: MaterialId
+  coreThickness: Length
 }
+
+interface FramedInteriorWallConfig extends InteriorWallAssemblyConfig {
+  type: 'framed'
+  studSpacing: Length
+  studMaterial: MaterialId
+  infillMaterial: MaterialId
+  claddingInside?: LayerSetId
+  claddingOutside?: LayerSetId
+}
+
+// ... more types as needed
 ```
 
-### State Management
+### File: `src/config/store/slices/interiorWalls.ts` (new)
+
+Config store slice following the established pattern:
 
 ```typescript
-interface PolylineToolState<PointType> {
-  points: PointType[]
-  isFinished: boolean
-  isValid: boolean
-  validationError?: string
+interface InteriorWallAssembliesState {
+  interiorWallAssemblies: Record<InteriorWallAssemblyId, InteriorWallAssemblyConfig>
+  defaultInteriorWallAssemblyId: InteriorWallAssemblyId | null
+}
+
+interface InteriorWallAssembliesActions {
+  addInteriorWallAssembly(config: Omit<InteriorWallAssemblyConfig, 'id'>): InteriorWallAssemblyId
+  removeInteriorWallAssembly(id: InteriorWallAssemblyId): void
+  updateInteriorWallAssemblyConfig(id: InteriorWallAssemblyId, updates: Partial<InteriorWallAssemblyConfig>): void
+  updateInteriorWallAssemblyName(id: InteriorWallAssemblyId, name: string): void
+  duplicateInteriorWallAssembly(id: InteriorWallAssemblyId): InteriorWallAssemblyId
+  getInteriorWallAssemblyById(id: InteriorWallAssemblyId): InteriorWallAssemblyConfig | undefined
+  getAllInteriorWallAssemblies(): InteriorWallAssemblyConfig[]
+  setDefaultInteriorWallAssembly(id: InteriorWallAssemblyId): void
+  getDefaultInteriorWallAssembly(): InteriorWallAssemblyConfig | undefined
+  resetToDefaults(): void
 }
 ```
 
-## IntermediateWallTool Implementation
+### File: `src/config/store/slices/interiorWalls.defaults.ts` (new)
 
-Create `src/editor/tools/intermediate-wall/add/IntermediateWallTool.ts`:
-
-### Snap Types
+Default assemblies:
 
 ```typescript
-type IntermediateWallSnapResult =
-  | { type: 'perimeter-corner'; corner: PerimeterCorner; position: Vec2 }
-  | { type: 'perimeter-wall'; wall: PerimeterWall; position: Vec2; offset: Length }
-  | { type: 'intermediate-wall-node'; node: WallNode; position: Vec2 }
-  | { type: 'intermediate-wall-midpoint'; wall: IntermediateWall; position: Vec2 }
-  | { type: 'perpendicular'; basePoint: Vec2; targetPoint: Vec2; referenceWall: IntermediateWall | PerimeterWall }
-  | { type: 'alignment'; point: Vec2; referenceLine: LineSegment2D }
-  | { type: 'free'; position: Vec2 }
+const defaultInteriorWallAssemblies = [
+  {
+    id: createInteriorWallAssemblyId(),
+    name: 'Monolithic 100mm',
+    type: 'monolithic' as const,
+    material: 'straw',
+    coreThickness: fromMillimeters(100)
+  }
+  // ... more defaults
+]
+
+const defaultInteriorWallAssemblyId = defaultInteriorWallAssemblies[0].id
 ```
 
-### Point Type
+## C.2: Interior Wall Assembly Interface
+
+### File: `src/construction/assemblies/interiorWalls/types.ts` (new)
 
 ```typescript
-interface IntermediateWallPoint {
-  position: Vec2
-  snapResult: IntermediateWallSnapResult
-  perimeterId: PerimeterId | null // Determined during placement
-  nodeId?: WallNodeId // Set after node creation
+interface InteriorWallAssembly {
+  construct(wall: IntermediateWallWithGeometry, storeyContext: StoreyContext): ConstructionModel
+  get tag(): Tag
+  get thicknessRange(): ThicknessRange
+  getCorePhysicsStructure(coreThickness: Length, height: Length): PhysicsSeries[]
+  getPhysicsStructure(totalThickness: Length, height: Length): AssemblyPhysicsStructure
 }
 ```
 
-### Tool Class
+**Note**: Uses `IntermediateWallWithGeometry` instead of `PerimeterWallWithGeometry`.
+
+### File: `src/construction/assemblies/interiorWalls/monolithic.ts` (new)
+
+First assembly implementation:
 
 ```typescript
-class IntermediateWallTool extends BasePolylineTool<IntermediateWallPoint, IntermediateWallSnapResult> {
-  private thickness: Length = fromMillimeters(100) // Default 100mm
+class MonolithicInteriorWallAssembly implements InteriorWallAssembly {
+  constructor(private config: MonolithicInteriorWallConfig) {}
 
-  constructor(
-    private store: Store,
-    private snappingService: SnappingService,
-    private canvas: Canvas
-  ) {
-    super({
-      snapToPoint: snap => snap.position,
-      isTerminatingSnap: snap => snap.type === 'intermediate-wall-midpoint',
-      createSegment: (start, end, startSnap, endSnap) => this.createWallSegment(start, end, startSnap, endSnap),
-      validatePoint: (points, newPoint, newSnap) => this.validateWallPoint(points, newPoint, newSnap),
-      getPreviewGeometry: (start, current) => this.getWallPreview(start, current)
-    })
-  }
-
-  protected performSnap(worldPos: Vec2): IntermediateWallSnapResult | null {
-    // Priority order:
-    // 1. Existing wall nodes
-    // 2. Perimeter corners
-    // 3. Perimeter wall points
-    // 4. Intermediate wall midpoints
-    // 5. Perpendicular snap
-    // 6. Alignment snap
-    // 7. Free position (if inside perimeter)
-
-    return this.snappingService.snapForIntermediateWall(worldPos, this.points)
-  }
-
-  protected createPointFromSnap(snap: IntermediateWallSnapResult): IntermediateWallPoint {
-    const perimeterId = this.determinePerimeterId(snap)
-    return {
-      position: snap.position,
-      snapResult: snap,
-      perimeterId
-    }
-  }
-
-  private determinePerimeterId(snap: IntermediateWallSnapResult): PerimeterId | null {
-    switch (snap.type) {
-      case 'perimeter-corner':
-        return snap.corner.perimeterId
-      case 'perimeter-wall':
-        return snap.wall.perimeterId
-      case 'intermediate-wall-node':
-        return snap.node.perimeterId
-      case 'intermediate-wall-midpoint':
-        return snap.wall.perimeterId
-      case 'perpendicular':
-      case 'alignment':
-      case 'free':
-        return this.findContainingPerimeter(snap.position)
-    }
-  }
-
-  private createWallSegment(
-    start: IntermediateWallPoint,
-    end: IntermediateWallPoint,
-    startSnap: IntermediateWallSnapResult,
-    endSnap: IntermediateWallSnapResult
-  ): void {
-    if (!start.perimeterId || !end.perimeterId) return
-    if (start.perimeterId !== end.perimeterId) return
-
-    const perimeterId = start.perimeterId
-
-    // Get or create start node
-    const startNodeId = this.getOrCreateNode(startSnap, perimeterId)
-    // Get or create end node
-    const endNodeId = this.getOrCreateNode(endSnap, perimeterId)
-
-    if (!startNodeId || !endNodeId) return
-
-    // Create the wall
-    this.store.dispatch.addIntermediateWall({
-      perimeterId,
-      start: { nodeId: startNodeId, axis: 'center' },
-      end: { nodeId: endNodeId, axis: 'center' },
-      thickness: this.thickness
-    })
-  }
-
-  private getOrCreateNode(snap: IntermediateWallSnapResult, perimeterId: PerimeterId): WallNodeId | null {
-    switch (snap.type) {
-      case 'perimeter-corner':
-        // Find existing node at corner or create one
-        return this.store.dispatch.addPerimeterWallNode({
-          perimeterId,
-          wallId: snap.corner.startingWallId, // Use appropriate wall
-          offsetFromCornerStart: fromMillimeters(0)
-        })
-
-      case 'perimeter-wall':
-        return this.store.dispatch.addPerimeterWallNode({
-          perimeterId,
-          wallId: snap.wall.id,
-          offsetFromCornerStart: snap.offset
-        })
-
-      case 'intermediate-wall-node':
-        return snap.node.id
-
-      case 'intermediate-wall-midpoint':
-        // This triggers the split and returns new node ID
-        return this.store.dispatch.splitIntermediateWallAtPoint({
-          wallId: snap.wall.id,
-          point: snap.position
-        })
-
-      case 'perpendicular':
-      case 'alignment':
-      case 'free':
-        return this.store.dispatch.addInnerWallNode({
-          perimeterId,
-          position: snap.position
-        })
-    }
-  }
-
-  private validateWallPoint(
-    points: IntermediateWallPoint[],
-    newPoint: IntermediateWallPoint,
-    newSnap: IntermediateWallSnapResult
-  ): ValidationResult {
-    // 1. Must be inside a perimeter
-    if (!newPoint.perimeterId) {
-      return { valid: false, error: 'Point must be inside a perimeter' }
-    }
-
-    // 2. If there are existing points, must be same perimeter
-    if (points.length > 0 && points[0].perimeterId !== newPoint.perimeterId) {
-      return { valid: false, error: 'All points must be in the same perimeter' }
-    }
-
-    // 3. Check for self-intersection with existing segments
-    if (points.length > 0) {
-      const lastPoint = points[points.length - 1]
-      const newSegment = { start: lastPoint.position, end: newPoint.position }
-
-      for (let i = 0; i < points.length - 1; i++) {
-        const existingSegment = { start: points[i].position, end: points[i + 1].position }
-        if (lineSegmentsIntersect(newSegment, existingSegment)) {
-          return { valid: false, error: 'Wall cannot cross existing walls' }
-        }
-      }
-    }
-
-    // 4. Check for intersection with existing intermediate walls
-    const existingWalls = this.store.getIntermediateWallsByPerimeter(newPoint.perimeterId)
-    for (const wall of existingWalls) {
-      if (points.length > 0) {
-        const lastPoint = points[points.length - 1]
-        const newSegment = { start: lastPoint.position, end: newPoint.position }
-        const wallSegment = wall.geometry.centerLine
-
-        // Allow touching at endpoints, but not crossing
-        if (lineSegmentsIntersect(newSegment, wallSegment)) {
-          // Check if intersection is at an endpoint (allowed)
-          const intersection = getLineSegmentIntersection(newSegment, wallSegment)
-          if (intersection && !isEndpoint(intersection, wallSegment)) {
-            return { valid: false, error: 'Wall cannot cross existing walls' }
-          }
-        }
-      }
-    }
-
-    // 5. Minimum wall length
-    if (points.length > 0) {
-      const lastPoint = points[points.length - 1]
-      const distance = vec2Distance(lastPoint.position, newPoint.position)
-      if (distance < fromMillimeters(50)) {
-        // Minimum 50mm
-        return { valid: false, error: 'Wall segment too short' }
-      }
-    }
-
-    return { valid: true }
-  }
-
-  private getWallPreview(start: IntermediateWallPoint, current: Vec2): PreviewGeometry {
-    const direction = vec2Normalize(vec2Subtract(current, start.position))
-    const perpendicular = vec2Perpendicular(direction)
-    const halfThickness = this.thickness / 2
-
-    const offset = vec2Scale(perpendicular, halfThickness)
-
-    return {
-      type: 'polygon',
-      points: [
-        vec2Add(start.position, offset),
-        vec2Add(current, offset),
-        vec2Subtract(current, offset),
-        vec2Subtract(start.position, offset)
-      ],
-      style: { fill: 'rgba(200, 200, 200, 0.5)', stroke: '#666', strokeWidth: 1 }
-    }
-  }
-
-  setThickness(thickness: Length): void {
-    this.thickness = thickness
+  construct(wall: IntermediateWallWithGeometry, storeyContext: StoreyContext): ConstructionModel {
+    // Create a simple rectangular cuboid for the wall
+    // Use wall.centerLine for position, wall.thickness for width
+    // Use storey context for height
+    // Handle entities (openings/posts) by cutting voids or adding sub-areas
   }
 }
 ```
 
-## Snapping Service Extension
-
-Extend `SnappingService.ts` to support intermediate wall snapping:
+### File: `src/construction/assemblies/interiorWalls/index.ts` (new)
 
 ```typescript
-interface SnappingService {
-  // Existing methods...
-
-  // New method for intermediate wall tool
-  snapForIntermediateWall(
-    worldPos: Vec2,
-    existingPoints: IntermediateWallPoint[]
-  ): IntermediateWallSnapResult | null
-}
-
-// Implementation
-snapForIntermediateWall(
-  worldPos: Vec2,
-  existingPoints: IntermediateWallPoint[]
-): IntermediateWallSnapResult | null {
-  const snapRadius = this.getSnapRadius()
-
-  // 1. Check existing wall nodes
-  const wallNodes = this.store.getAllWallNodes()
-  for (const node of wallNodes) {
-    if (vec2Distance(worldPos, node.geometry.position) < snapRadius) {
-      return {
-        type: 'intermediate-wall-node',
-        node: node.model,
-        position: node.geometry.position
-      }
-    }
+function resolveInteriorWallAssembly(config: InteriorWallAssemblyConfig): InteriorWallAssembly {
+  switch (config.type) {
+    case 'monolithic':
+      return new MonolithicInteriorWallAssembly(config)
+    case 'framed':
+      return new FramedInteriorWallAssembly(config)
+    // ...
   }
-
-  // 2. Check perimeter corners
-  const corners = this.store.getAllPerimeterCorners()
-  for (const corner of corners) {
-    if (vec2Distance(worldPos, corner.geometry.position) < snapRadius) {
-      return {
-        type: 'perimeter-corner',
-        corner: corner.model,
-        position: corner.geometry.position
-      }
-    }
-  }
-
-  // 3. Check perimeter walls
-  const perimeterWalls = this.store.getAllPerimeterWalls()
-  for (const wall of perimeterWalls) {
-    const projection = projectPointOnLineSegment(wall.geometry.innerLine, worldPos)
-    if (projection.distance < snapRadius) {
-      return {
-        type: 'perimeter-wall',
-        wall: wall.model,
-        position: projection.point,
-        offset: projection.t * wall.geometry.wallLength
-      }
-    }
-  }
-
-  // 4. Check intermediate walls (midpoint snapping)
-  const intermediateWalls = this.store.getAllIntermediateWalls()
-  for (const wall of intermediateWalls) {
-    const projection = projectPointOnLineSegment(wall.geometry.centerLine, worldPos)
-    if (projection.distance < snapRadius) {
-      // Check if near an endpoint (already handled by node snap)
-      const nearStart = vec2Distance(projection.point, wall.geometry.centerLine.start) < snapRadius
-      const nearEnd = vec2Distance(projection.point, wall.geometry.centerLine.end) < snapRadius
-      if (!nearStart && !nearEnd) {
-        return {
-          type: 'intermediate-wall-midpoint',
-          wall: wall.model,
-          position: projection.point
-        }
-      }
-    }
-  }
-
-  // 5. Perpendicular snapping (if we have previous point)
-  if (existingPoints.length > 0) {
-    const lastPoint = existingPoints[existingPoints.length - 1]
-    const perpSnap = this.findPerpendicularSnap(worldPos, lastPoint.position, [
-      ...perimeterWalls.map(w => w.geometry.centerLine),
-      ...intermediateWalls.map(w => w.geometry.centerLine)
-    ])
-    if (perpSnap && vec2Distance(worldPos, perpSnap.targetPoint) < snapRadius * 2) {
-      return {
-        type: 'perpendicular',
-        basePoint: lastPoint.position,
-        targetPoint: perpSnap.targetPoint,
-        referenceWall: perpSnap.referenceWall
-      }
-    }
-  }
-
-  // 6. Alignment snapping
-  const alignmentSnap = this.findAlignmentSnap(worldPos, [
-    ...perimeterWalls.map(w => w.geometry.centerLine),
-    ...intermediateWalls.map(w => w.geometry.centerLine)
-  ])
-  if (alignmentSnap) {
-    return alignmentSnap
-  }
-
-  // 7. Free position (validate inside perimeter)
-  const containingPerimeter = this.findContainingPerimeter(worldPos)
-  if (containingPerimeter) {
-    return { type: 'free', position: worldPos }
-  }
-
-  return null
 }
 ```
 
-## Inspector Component
+## C.3: Interior Wall Segmentation
 
-Create `src/editor/tools/intermediate-wall/add/IntermediateWallToolInspector.tsx`:
+### File: `src/construction/assemblies/interiorWalls/segmentation.ts` (new)
+
+Simplified segmentation for intermediate walls (no corner extensions):
+
+```typescript
+function* segmentedInteriorWallConstruction(
+  wall: IntermediateWallWithGeometry,
+  storeyContext: StoreyContext,
+  wallConstruction: WallSegmentConstruction,
+  openingAssemblyId?: OpeningAssemblyId
+): Generator<ConstructionResult>
+```
+
+**Key differences from perimeter wall segmentation:**
+
+- No corner extensions (walls attach to wall nodes, not perimeter corners)
+- Uses `centerLine` for positioning (perimeter uses `innerLine`)
+- Simpler wall area calculation (no reference side concept)
+- Entity positions along `centerLine` instead of `innerLine`
+- Height from storey context (no roof integration for interior walls)
+
+**Entity handling:**
+
+- Same pattern as perimeter: iterate through sorted entities, construct segments between them
+- Openings cut voids in the wall
+- Posts are sub-areas within the wall
+
+## C.4: 3D Construction Builder
+
+### File: `src/construction/store/builders.ts`
+
+Add intermediate wall construction:
+
+```typescript
+function buildIntermediateWallCoreModel(wallId: IntermediateWallId): CoreModel {
+  const wall = getIntermediateWallById(wallId)
+  const perimeter = getPerimeterById(wall.perimeterId)
+  const storeyContext = getWallStoreyContextCached(perimeter.storeyId)
+
+  const assemblyConfig = wall.wallAssemblyId
+    ? getInteriorWallAssemblyById(wall.wallAssemblyId)
+    : getDefaultInteriorWallAssembly()
+
+  if (!assemblyConfig) return emptyCoreModel()
+
+  const assembly = resolveInteriorWallAssembly(assemblyConfig)
+  const wallModel = assembly.construct(wall, storeyContext)
+  return { model: wallModel, tags: [...], sourceId: wall.id }
+}
+```
+
+### Integration with composite builders
+
+Update composite builders to include intermediate walls:
+
+```typescript
+// In buildPerimeterComposite:
+// Add intermediate wall transforms alongside perimeter wall transforms
+
+// In buildStoreyComposite:
+// Include intermediate walls for each perimeter in the storey
+```
+
+## C.5: Assembly Assignment in Inspector
+
+### File: `src/editor/inspectors/IntermediateWallInspector.tsx`
+
+Add assembly selector dropdown:
 
 ```tsx
-import { useEffect, useState } from 'react'
+// Assembly field
+<AssemblySelect
+  value={wall.wallAssemblyId}
+  onChange={assemblyId => store.dispatch.updateIntermediateWallAssembly(wall.id, assemblyId)}
+  assemblies={getAllInteriorWallAssemblies()}
+/>
+```
 
-import { Length, fromMillimeters, toMillimeters } from '@/building/model/units'
+### Store action
 
-import { IntermediateWallTool } from './IntermediateWallTool'
+```typescript
+// In intermediateWallsSlice.ts:
+updateIntermediateWallAssembly(wallId: IntermediateWallId, assemblyId: InteriorWallAssemblyId): void
+```
 
-interface IntermediateWallToolInspectorProps {
-  tool: IntermediateWallTool
+## C.6: Testing
+
+- Test config store CRUD for interior wall assemblies
+- Test monolithic assembly construction (basic cuboid)
+- Test assembly construction with openings
+- Test assembly construction with posts
+- Test 3D builder integration
+- Test assembly assignment via inspector
+
+---
+
+# Phase D: Room Detection & Labeling
+
+## Goal
+
+Automatically detect rooms from closed wall loops and allow users to assign room types and labels.
+
+## Current State
+
+- **`Room` model type**: Defined in `rooms.ts` with `RoomType` enum
+- **`RoomId`**: Defined in `ids.ts` but commented out of `SelectableId`
+- **`Perimeter.roomIds`**: Always `[]`
+- **`IntermediateWall.leftRoomId` / `rightRoomId`**: TODO placeholders
+- **No detection algorithm exists**
+
+## D.1: Room Detection Algorithm
+
+### File: `src/building/store/slices/roomDetection.ts` (new)
+
+The algorithm detects rooms from the wall graph topology:
+
+### Input
+
+For a given perimeter:
+
+1. Collect all wall segments forming the boundary:
+   - Perimeter wall segments (each `PerimeterWall` becomes 1-2 segments depending on intermediate wall attachment points)
+   - Intermediate wall segments (each `IntermediateWall` is 1 segment)
+2. Build a planar graph: nodes are wall endpoints (corners + wall nodes), edges are wall segments
+3. Identify all minimal cycles (faces) in the planar graph
+
+### Algorithm
+
+```
+function detectRooms(perimeterId: PerimeterId): Room[]:
+  // 1. Build edge list
+  edges = []
+  for each perimeter wall:
+    add edge from wall start corner to wall end corner
+    // If intermediate wall nodes exist on this wall, split the edge
+    for each PerimeterWallNode on this wall (sorted by offset):
+      split edge at node position
+
+  for each intermediate wall:
+    add edge from start node to end node
+
+  // 2. Build planar graph
+  graph = PlanarGraph.fromEdges(edges)
+
+  // 3. Find all minimal cycles (faces)
+  faces = graph.findMinimalCycles()
+
+  // 4. Filter out the outer face (the perimeter itself)
+  //    The outer face contains all other faces
+  outerFace = face with largest area
+  rooms = faces.filter(f => f !== outerFace)
+
+  // 5. Compute room geometry
+  for each room:
+    boundary = Polygon2D from cycle vertices
+    area = polygonArea(boundary)
+
+  return rooms
+```
+
+### Cycle Detection Approach
+
+Use the **dual graph** approach for planar subdivision:
+
+1. Build adjacency graph from edges
+2. For each directed edge, find the minimal cycle by following the "next edge" (leftmost turn at each vertex)
+3. This naturally enumerates all faces of the planar subdivision
+4. Filter to keep only interior faces (rooms), not the exterior face
+
+### Incremental Updates
+
+Room detection should run:
+
+- After any intermediate wall is added/removed/split
+- After any wall node is added/removed/moved
+- After perimeter geometry changes
+
+**Optimization**: Only re-detect rooms for the affected perimeter.
+
+## D.2: Room Store Slice
+
+### File: `src/building/store/slices/roomsSlice.ts` (new)
+
+```typescript
+interface RoomsState {
+  rooms: Record<RoomId, Room>
+  _roomGeometry: Record<RoomId, RoomGeometry>
 }
 
-function IntermediateWallToolInspector({ tool }: IntermediateWallToolInspectorProps) {
-  const [thickness, setThickness] = useState(() => toMillimeters(tool.getThickness()))
+interface RoomsActions {
+  // Internal (called by intermediate wall/perimeter mutations):
+  _detectRoomsForPerimeter(perimeterId: PerimeterId): void
+  _updateRoomLeftRight(wallId: IntermediateWallId): void
 
-  useEffect(() => {
-    tool.setThickness(fromMillimeters(thickness))
-  }, [thickness, tool])
+  // User actions:
+  updateRoomType(roomId: RoomId, type: RoomType): void
+  updateRoomCustomLabel(roomId: RoomId, label: string): void
+
+  // Getters:
+  getRoomById(id: RoomId): RoomWithGeometry | undefined
+  getRoomsByPerimeter(perimeterId: PerimeterId): RoomWithGeometry[]
+  getAllRooms(): RoomWithGeometry[]
+}
+```
+
+### Room Geometry Computation
+
+```typescript
+function updateRoomGeometry(state: RoomsState, roomId: RoomId): void {
+  const room = state.rooms[roomId]
+  // Boundary is computed during detection
+  const boundary = room.boundary // Polygon2D from cycle vertices
+  const area = polygonArea(boundary)
+  state._roomGeometry[roomId] = { boundary, area }
+}
+```
+
+### Left/Right Room Assignment
+
+After room detection, assign rooms to wall sides:
+
+```typescript
+function assignRoomsToWalls(state: RoomsState, perimeterId: PerimeterId): void {
+  const rooms = getRoomsByPerimeter(perimeterId)
+  const walls = getIntermediateWallsByPerimeter(perimeterId)
+
+  for (const wall of walls) {
+    const wallMidpoint = lineSegmentMidpoint(wall.geometry.centerLine)
+    const wallNormal = wall.geometry.direction // perpendicular to center line
+
+    for (const room of rooms) {
+      if (pointInPolygon(wallMidpoint + wallNormal * epsilon, room.geometry.boundary)) {
+        wall.leftRoomId = room.id
+      } else if (pointInPolygon(wallMidpoint - wallNormal * epsilon, room.geometry.boundary)) {
+        wall.rightRoomId = room.id
+      }
+    }
+  }
+}
+```
+
+### Integration with Perimeter
+
+Update `Perimeter.roomIds` when rooms are detected:
+
+```typescript
+// In perimeterSlice or roomsSlice:
+perimeter.roomIds = rooms.filter(r => r.perimeterId === perimeterId).map(r => r.id)
+```
+
+## D.3: Room Detection Triggers
+
+Room detection runs automatically after mutations:
+
+```typescript
+// In intermediateWallsSlice.ts - after wall/node mutations:
+// Call roomsSlice._detectRoomsForPerimeter(perimeterId)
+
+// In perimeterSlice.ts - after perimeter geometry changes:
+// Call roomsSlice._detectRoomsForPerimeter(perimeterId)
+```
+
+**Debounce**: If multiple mutations happen in quick succession (e.g., drawing a chain of walls), debounce room detection to run only after the last mutation.
+
+## D.4: Room Selection
+
+### File: `src/building/model/ids.ts`
+
+Uncomment `RoomId` from `SelectableId`:
+
+```typescript
+type SelectableId =
+  | PerimeterId
+  | PerimeterCornerId
+  | PerimeterWallId
+  | IntermediateWallId
+  | WallNodeId
+  | OpeningId
+  | WallPostId
+  | RoomId // <-- Uncomment
+```
+
+### File: `src/editor/canvas/layers/rooms/RoomShape.tsx` (new)
+
+SVG rendering for rooms:
+
+```tsx
+function RoomShape({ roomId }: { roomId: RoomId }) {
+  const room = useRoomById(roomId)
+  if (!room) return null
 
   return (
-    <div className="inspector">
-      <h3>Intermediate Wall</h3>
+    <g data-entity-id={roomId} data-entity-type="room">
+      <polygon
+        points={polygonToSvgPoints(room.geometry.boundary)}
+        fill={getRoomTypeColor(room.type)}
+        fillOpacity={0.15}
+        stroke={getRoomTypeColor(room.type)}
+        strokeWidth={1}
+      />
+      <text x={centroid.x} y={centroid.y}>
+        {room.customLabel || getRoomTypeLabel(room.type, room.counter)}
+      </text>
+    </g>
+  )
+}
+```
 
-      <div className="field">
-        <label>Thickness (mm)</label>
+### Canvas layer integration
+
+Add room rendering as a background layer below walls.
+
+## D.5: Room Labeling UI
+
+### File: `src/editor/inspectors/RoomInspector.tsx` (new)
+
+Inspector for selected rooms:
+
+```tsx
+function RoomInspector({ roomId }: { roomId: RoomId }) {
+  const room = useRoomById(roomId)
+  const [type, setType] = useState(room.type)
+  const [label, setLabel] = useState(room.customLabel)
+
+  return (
+    <div>
+      <h3>Room</h3>
+
+      <div>
+        <label>Type</label>
+        <select
+          value={type}
+          onChange={e => {
+            setType(e.target.value)
+            store.dispatch.updateRoomType(roomId, e.target.value)
+          }}
+        >
+          {RoomType.options.map(t => (
+            <option key={t} value={t}>
+              {formatRoomType(t)}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label>Custom Label</label>
         <input
-          type="number"
-          value={thickness}
-          onChange={e => setThickness(Number(e.target.value))}
-          min={50}
-          max={500}
-          step={10}
+          value={label}
+          onChange={e => {
+            setLabel(e.target.value)
+            store.dispatch.updateRoomCustomLabel(roomId, e.target.value)
+          }}
         />
       </div>
 
+      <div>
+        <label>Area</label>
+        <span>{formatArea(room.geometry.area)}</span>
+      </div>
+    </div>
+  )
+}
+```
+
+### File: `src/editor/tools/basic/SelectToolInspector.tsx`
+
+Add room handling:
+
+```tsx
+{
+  selectedId && isRoomId(selectedId) && <RoomInspector key={selectedId} roomId={selectedId} />
+}
+```
+
+## D.6: Counter Management
+
+Room counters (e.g., "Bedroom 1", "Bedroom 2") need to be managed:
+
+```typescript
+// When room type changes:
+function getNextCounter(perimeterId: PerimeterId, roomType: RoomType, excludeRoomId?: RoomId): number {
+  const rooms = getRoomsByPerimeter(perimeterId)
+  const existing = rooms.filter(r => r.type === roomType && r.id !== excludeRoomId).map(r => r.counter)
+  return existing.length > 0 ? Math.max(...existing) + 1 : 1
+}
+
+// When a room is deleted or type changed:
+// Re-number remaining rooms of the same type to fill gaps
+```
+
+## D.7: Testing
+
+- Test cycle detection on simple rectangular room (4 perimeter walls + 2 intermediate walls)
+- Test cycle detection on L-shaped room
+- Test cycle detection with T-junctions
+- Test detection when rooms share a wall
+- Test left/right room assignment
+- Test room geometry computation (area)
+- Test incremental detection after wall add/remove/split
+- Test counter management
+- Test room type labeling
+- Test room selection
+
+---
+
+# Phase E: Room Preset Tool
+
+## Goal
+
+Place rectangular room presets inside an existing perimeter. The user configures dimensions and room type in a dialog, then clicks a position on the canvas where the room walls snap to existing walls.
+
+## Prerequisites
+
+- Phase D (Room Detection) must be complete for room creation
+- Phase C (Assemblies) should be complete for wall assembly assignment
+
+## E.1: Tool Concept
+
+**Interaction flow:**
+
+1. User activates the room preset tool
+2. Inspector shows a dialog with: width, length, wall thickness, wall assembly, room type
+3. After confirming dimensions, the tool enters canvas placement mode
+4. A ghost rectangle follows the cursor, snapped to nearby walls
+5. User clicks to place the room
+6. Intermediate walls are created for sides that don't align with existing walls
+7. Room detection runs, creating the new room with the configured type
+
+**Snapping behavior:**
+
+- Each side of the rectangle snaps to nearby existing walls (perimeter or intermediate)
+- If a side aligns with an existing wall, no new wall is created for that side
+- If a corner snaps to an existing wall node, reuse that node
+- If a corner is free, create an inner wall node
+- If a corner snaps to a perimeter wall midpoint, create a perimeter wall node
+
+## E.2: Room Preset Config
+
+### File: `src/editor/tools/room/preset/types.ts` (new)
+
+```typescript
+interface RoomPresetConfig {
+  width: Length // Interior width
+  length: Length // Interior length
+  thickness: Length // Wall thickness
+  wallAssemblyId?: InteriorWallAssemblyId
+  roomType: RoomType
+  customLabel?: string
+}
+```
+
+## E.3: RoomPresetTool
+
+### File: `src/editor/tools/room/preset/RoomPresetTool.ts` (new)
+
+Two-phase tool: dialog phase then placement phase.
+
+```typescript
+class RoomPresetTool extends BaseTool {
+  private config: RoomPresetConfig | null = null
+  private placementMode: boolean = false
+
+  // Phase 1: Dialog (handled by inspector component)
+  // Inspector shows config fields, "Place" button sets this.config and placementMode = true
+
+  // Phase 2: Canvas placement
+  handlePointerMove(position: Vec2): void {
+    // Compute ghost rectangle at cursor position
+    // Snap rectangle edges to nearby walls
+    // Render preview via overlay
+  }
+
+  handlePointerDown(position: Vec2): void {
+    // 1. Determine which sides of the rectangle align with existing walls
+    // 2. For sides needing new walls:
+    //    a. Compute start/end nodes (snap to existing nodes or create new ones)
+    //    b. Create intermediate walls
+    // 3. Run room detection for the perimeter
+    // 4. Set the new room's type to config.roomType
+    // 5. Pop tool
+  }
+}
+```
+
+## E.4: Snapping Logic
+
+The ghost rectangle has 4 edges. For each edge:
+
+1. **Check alignment with existing walls**: Project the edge onto nearby walls. If the edge is colinear with an existing wall and within snap distance, snap to it.
+2. **Corner snapping**: Each corner snaps to:
+   - Existing wall nodes (highest priority)
+   - Perimeter wall midpoints (creates perimeter wall node)
+   - Other intermediate wall midpoints (triggers split)
+   - Free position (creates inner wall node)
+3. **Dimension preservation**: When one edge snaps to an existing wall, the perpendicular edges may need to adjust to maintain the configured width/length. The user can toggle between "preserve dimensions" and "stretch to fit" modes.
+
+## E.5: Wall Creation Strategy
+
+After placement, determine which walls need to be created:
+
+```
+for each side of the rectangle:
+  if side fully aligns with an existing wall:
+    // No new wall needed - existing wall becomes a room boundary
+    // Update room detection will pick this up
+  else if side partially aligns with an existing wall:
+    // Create intermediate wall for the non-aligned portion
+    // Snap endpoints to existing wall nodes or create new ones
+  else:
+    // Create full intermediate wall for this side
+    // Snap endpoints to nearest nodes or create new ones
+```
+
+## E.6: Inspector Component
+
+### File: `src/editor/tools/room/preset/RoomPresetToolInspector.tsx` (new)
+
+```tsx
+function RoomPresetToolInspector({ tool }: Props) {
+  // Dimension fields (width, length, thickness)
+  // Wall assembly selector
+  // Room type selector (dropdown of RoomType values)
+  // Custom label input
+  // "Place" button → enters placement mode
+  // Help text for placement phase
+}
+```
+
+## E.7: Overlay Component
+
+### File: `src/editor/tools/room/preset/RoomPresetToolOverlay.tsx` (new)
+
+SVG overlay rendering:
+
+- Ghost rectangle with dashed lines
+- Color-coded edges: green for snapped-to-existing, gray for new walls
+- Dimension labels on edges
+- Room type label at center
+- Snap indicators at corners
+
+## E.8: Testing
+
+- Test dialog configuration and validation
+- Test snapping to perimeter walls (full and partial alignment)
+- Test snapping to existing wall nodes
+- Test wall creation (new walls vs reusing existing)
+- Test room detection after placement
+- Test room type assignment
+- Test placement that requires T-junction splits
+
+---
+
+# Phase F: Room Split Tool
+
+## Goal
+
+Split an existing room by placing a wall across it, creating two new rooms. The user clicks a position inside the room and the split wall is placed horizontally or vertically through that point.
+
+## Prerequisites
+
+- Phase D (Room Detection) must be complete
+- Phase A (Constraints) recommended for wall constraint generation
+
+## F.1: Tool Concept
+
+**Interaction flow:**
+
+1. User activates the room split tool
+2. Inspector shows: wall thickness, wall assembly, split orientation (horizontal/vertical)
+3. User hovers over a room → the room highlights
+4. A preview line appears through the room at the cursor position (horizontal or vertical)
+5. The preview line snaps to align with existing wall nodes on the opposite walls
+6. User clicks to place the split wall
+7. The split wall is created, room detection runs, producing two rooms
+
+**Split orientation:**
+
+- Default: horizontal (wall runs left-right)
+- Toggle: vertical (wall runs top-bottom) — via modifier key (e.g., Shift) or inspector toggle
+- Auto-detect: based on room proportions (wider rooms get horizontal splits, taller rooms get vertical)
+
+## F.2: Split Computation
+
+### File: `src/editor/tools/room/split/roomSplitGeometry.ts` (new)
+
+```typescript
+interface RoomSplitResult {
+  wallStart: Vec2 // Start point of the split wall
+  wallEnd: Vec2 // End point of the split wall
+  startSnap: SnapTarget // What the start snaps to
+  endSnap: SnapTarget // What the end snaps to
+  roomAPolygon: Polygon2D // Boundary of room A
+  roomBPolygon: Polygon2D // Boundary of room B
+}
+
+type SnapTarget =
+  | { type: 'wall-node'; nodeId: WallNodeId }
+  | { type: 'perimeter-wall'; wallId: PerimeterWallId; offset: Length }
+  | { type: 'intermediate-wall-midpoint'; wallId: IntermediateWallId; point: Vec2 }
+
+function computeRoomSplit(
+  room: RoomWithGeometry,
+  position: Vec2,
+  orientation: 'horizontal' | 'vertical',
+  snapCandidates: SnapTarget[]
+): RoomSplitResult
+```
+
+**Algorithm:**
+
+1. Determine the split line: horizontal or vertical line through `position`, clipped to the room boundary
+2. Find where the split line intersects the room boundary walls
+3. For each intersection point, determine the snap target (existing node, perimeter wall, or intermediate wall midpoint)
+4. If snapping to an intermediate wall midpoint, plan a split (T-junction)
+5. Compute the two resulting room polygons by splitting the original room boundary along the split line
+
+## F.3: RoomSplitTool
+
+### File: `src/editor/tools/room/split/RoomSplitTool.ts` (new)
+
+```typescript
+class RoomSplitTool extends BaseTool {
+  private orientation: 'horizontal' | 'vertical' = 'horizontal'
+  private hoveredRoomId: RoomId | null = null
+  private splitResult: RoomSplitResult | null = null
+
+  handlePointerMove(position: Vec2): void {
+    // 1. Determine which room the cursor is in
+    this.hoveredRoomId = findRoomAtPoint(position)
+    if (!this.hoveredRoomId) {
+      this.splitResult = null
+      return
+    }
+
+    // 2. Compute split preview
+    this.splitResult = computeRoomSplit(room, position, this.orientation, snapCandidates)
+  }
+
+  handlePointerDown(position: Vec2): void {
+    if (!this.hoveredRoomId || !this.splitResult) return
+
+    // 1. Create start node (snap or new)
+    const startNodeId = getOrCreateNode(this.splitResult.startSnap)
+
+    // 2. Create end node (may trigger intermediate wall split)
+    const endNodeId = getOrCreateNode(this.splitResult.endSnap)
+
+    // 3. Create the split wall
+    addIntermediateWall({
+      perimeterId: room.perimeterId,
+      start: { nodeId: startNodeId, axis: 'center' },
+      end: { nodeId: endNodeId, axis: 'center' },
+      thickness: this.thickness,
+      wallAssemblyId: this.assemblyId
+    })
+
+    // 4. Room detection runs automatically, producing two rooms
+  }
+
+  handleKeyDown(key: string): void {
+    // Shift toggles orientation
+    if (key === 'Shift') {
+      this.orientation = this.orientation === 'horizontal' ? 'vertical' : 'horizontal'
+    }
+  }
+}
+```
+
+## F.4: Inspector Component
+
+### File: `src/editor/tools/room/split/RoomSplitToolInspector.tsx` (new)
+
+```tsx
+function RoomSplitToolInspector({ tool }: Props) {
+  return (
+    <div>
+      <h3>Split Room</h3>
+      <LengthField label="Wall thickness" value={thickness} onChange={...} />
+      <AssemblySelect label="Wall assembly" value={assemblyId} onChange={...} />
+      <OrientationToggle value={orientation} onChange={...} />
       <div className="help">
-        <p>Click to place wall points</p>
-        <p>Press Enter to finish</p>
+        <p>Hover over a room and click to split</p>
+        <p>Hold Shift to toggle orientation</p>
         <p>Press Escape to cancel</p>
       </div>
     </div>
   )
 }
-
-export default IntermediateWallToolInspector
 ```
 
-## Overlay Component
+## F.5: Overlay Component
 
-Create `src/editor/tools/intermediate-wall/add/IntermediateWallToolOverlay.tsx`:
+### File: `src/editor/tools/room/split/RoomSplitToolOverlay.tsx` (new)
 
-```tsx
-import { useEffect, useRef } from 'react'
+SVG overlay rendering:
 
-import { useToolState } from '@/editor/canvas/hooks/useToolState'
+- Highlight the hovered room (lighter fill)
+- Draw the split preview line (dashed, color-coded by orientation)
+- Draw snap indicators at endpoints
+- Show dimension labels for the two resulting sub-rooms
+- Show area labels for each sub-room
 
-import { IntermediateWallTool } from './IntermediateWallTool'
+## F.6: Edge Cases
 
-interface IntermediateWallToolOverlayProps {
-  tool: IntermediateWallTool
-}
+- **Split through an existing intermediate wall**: The split line may cross an existing intermediate wall. In this case, create a T-junction (split the existing wall) and create two wall segments for the split.
+- **Split at an existing wall node**: If the split line passes through an existing wall node, use that node directly — the result is more than two rooms (e.g., splitting one room into three if a wall node is on the split line).
+- **Split against perimeter wall**: Endpoints on perimeter walls create perimeter wall nodes.
+- **Very thin resulting room**: Warn if one of the resulting rooms would be below a minimum area threshold.
 
-function IntermediateWallToolOverlay({ tool }: IntermediateWallToolOverlayProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const toolState = useToolState(tool)
+## F.7: Testing
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    // Draw placed points and segments
-    const points = toolState.points
-    if (points.length > 0) {
-      // Draw segments
-      ctx.strokeStyle = '#666'
-      ctx.lineWidth = toolState.thickness
-      ctx.lineCap = 'butt'
-
-      ctx.beginPath()
-      ctx.moveTo(points[0].position.x, points[0].position.y)
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].position.x, points[i].position.y)
-      }
-      ctx.stroke()
-
-      // Draw points
-      ctx.fillStyle = '#333'
-      for (const point of points) {
-        ctx.beginPath()
-        ctx.arc(point.position.x, point.position.y, 4, 0, Math.PI * 2)
-        ctx.fill()
-      }
-    }
-
-    // Draw preview segment
-    if (points.length > 0 && toolState.currentSnap) {
-      const lastPoint = points[points.length - 1]
-      const currentPoint = toolState.currentSnap.position
-
-      // Preview line
-      ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)'
-      ctx.lineWidth = toPixels(toolState.thickness)
-      ctx.setLineDash([5, 5])
-      ctx.beginPath()
-      ctx.moveTo(lastPoint.position.x, lastPoint.position.y)
-      ctx.lineTo(currentPoint.x, currentPoint.y)
-      ctx.stroke()
-      ctx.setLineDash([])
-
-      // Snap indicator
-      drawSnapIndicator(ctx, toolState.currentSnap)
-    }
-
-    // Draw validation error if any
-    if (!toolState.isValid && toolState.validationError) {
-      ctx.fillStyle = 'rgba(255, 0, 0, 0.8)'
-      ctx.font = '14px sans-serif'
-      ctx.fillText(toolState.validationError, 10, 20)
-    }
-  }, [toolState])
-
-  return <canvas ref={canvasRef} className="tool-overlay" style={{ pointerEvents: 'none' }} />
-}
-
-function drawSnapIndicator(ctx: CanvasRenderingContext2D, snap: IntermediateWallSnapResult) {
-  const { position, type } = snap
-
-  ctx.strokeStyle = type === 'intermediate-wall-midpoint' ? '#ff6600' : '#00ff00'
-  ctx.lineWidth = 2
-
-  ctx.beginPath()
-  ctx.arc(position.x, position.y, 8, 0, Math.PI * 2)
-  ctx.stroke()
-
-  // Special indicator for T-junction
-  if (type === 'intermediate-wall-midpoint') {
-    ctx.fillStyle = '#ff6600'
-    ctx.font = '12px sans-serif'
-    ctx.fillText('T', position.x + 12, position.y + 4)
-  }
-}
-
-export default IntermediateWallToolOverlay
-```
-
-## Tool Registration
-
-### Update `src/editor/tools/system/types.ts`
-
-```typescript
-export type ToolId =
-  | 'select'
-  | 'perimeter-add'
-  | 'intermediate-wall-add'  // NEW
-  | // ... other tools
-```
-
-### Update `src/editor/tools/system/metadata.ts`
-
-```typescript
-import intermediateWallAddIcon from '@/shared/assets/icons/wall-intermediate.svg'
-
-export const toolMetadata: Record<ToolId, ToolMetadata> = {
-  // ... existing tools
-
-  'intermediate-wall-add': {
-    id: 'intermediate-wall-add',
-    name: 'Intermediate Wall',
-    icon: intermediateWallAddIcon,
-    category: 'walls',
-    shortcut: 'W',
-    description: 'Draw interior partition walls',
-    factory: () => new IntermediateWallTool(/* dependencies */)
-  }
-}
-```
-
-## Validation Rules Summary
-
-1. **Inside perimeter**: All points must be inside a perimeter polygon
-2. **Same perimeter**: All points in a chain must belong to the same perimeter
-3. **No self-intersection**: Wall segments cannot cross each other within the same chain
-4. **No wall crossing**: Cannot cross existing intermediate walls (except at endpoints)
-5. **Minimum length**: Each segment must be at least 50mm
-6. **Perimeter walls allowed**: Can touch/cross perimeter walls (they're boundaries)
-
-## File Structure
-
-```
-src/editor/tools/
-├── shared/
-│   ├── polygon/
-│   │   └── BasePolygonTool.ts (existing)
-│   └── polyline/
-│       └── BasePolylineTool.ts (NEW)
-│
-├── intermediate-wall/
-│   └── add/
-│       ├── IntermediateWallTool.ts (NEW)
-│       ├── IntermediateWallToolInspector.tsx (NEW)
-│       └── IntermediateWallToolOverlay.tsx (NEW)
-│
-└── system/
-    ├── types.ts (UPDATE - add ToolId)
-    ├── metadata.ts (UPDATE - register tool)
-    └── ToolSystem.ts (UPDATE - if needed)
-
-src/building/store/slices/
-└── intermediateWallsSlice.ts (UPDATE - add splitIntermediateWallAtPoint)
-
-src/editor/canvas/services/
-└── SnappingService.ts (UPDATE - add snapForIntermediateWall)
-```
-
-## Key Patterns to Follow
-
-1. **Vec2 creation**: Always use `newVec2(x, y)`, never object literals
-2. **Geometry updates**: Call `updateIntermediateWallGeometry(state, id)` after every mutation
-3. **Getters**: Combine base model + geometry in getter functions
-4. **Timestamps**: Update via `touch(state, entityId)` for undo/redo
-5. **State access**: Geometry functions need perimeter geometry access for perimeter nodes
-
-## Implementation Phases
-
-### Phase 1: Store & Geometry (Current)
-
-- [x] Implement `intermediateWallGeometry.ts`
-- [x] Implement `intermediateWallsSlice.ts` actions
-- [x] Integrate into main store
-- [ ] Unit tests for geometry computation
-- [ ] Implement `splitIntermediateWallAtPoint` action
-
-### Phase 2: Drawing Tools
-
-- [ ] Create `BasePolylineTool` base class
-- [ ] Create `IntermediateWallTool`
-- [ ] Implement snapping for intermediate walls
-- [ ] Implement perpendicular snapping
-- [ ] Implement node creation logic
-- [ ] Connect to perimeter walls
-
-### Phase 3: UI Components
-
-- [ ] Create `IntermediateWallToolInspector`
-- [ ] Create `IntermediateWallToolOverlay`
-- [ ] Add tool icon
-- [ ] Register tool in ToolSystem
-
-### Phase 4: Testing
-
-- [ ] Test snapping to all snap types
-- [ ] Test T-junction creation
-- [ ] Test validation rules
-- [ ] Test chain drawing and finishing
-- [ ] Test cancellation
-
-### Phase 5: Polish
-
-- [ ] Visual feedback for snap types
-- [ ] Error messages display
-- [ ] Keyboard shortcuts
-- [ ] Undo/redo support
+- Test horizontal split of rectangular room
+- Test vertical split of rectangular room
+- Test split with snapped endpoints to existing nodes
+- Test split with endpoints on perimeter walls
+- Test split through existing intermediate wall (T-junction)
+- Test split at existing wall node (creating 3 rooms)
+- Test orientation toggle (Shift key)
+- Test room detection after split
+- Test minimum area validation
+- Test split of L-shaped room
