@@ -1320,6 +1320,12 @@ interface Resources {
       "perimeter": "Perimeter",
       "removeFloorOpening": "Remove floor opening"
     },
+    "intermediateWall": {
+      "deleteWall": "Delete Wall",
+      "fitToView": "Fit to View",
+      "thickness": "Thickness",
+      "wallLength": "Length"
+    },
     "opening": {
       "confirmDelete": "Are you sure you want to remove this opening?",
       "deleteOpening": "Delete opening",
@@ -1460,6 +1466,10 @@ interface Resources {
       "usableFloorArea": "Usable Floor Area (GFA)",
       "wallToWindowRatio": "Wall-to-window ratio (WWR)",
       "windowArea": "Window Area"
+    },
+    "wallNode": {
+      "deleteNode": "Delete Node",
+      "fitToView": "Fit to View"
     },
     "wallPost": {
       "actsAsPost": "Acts as Post",

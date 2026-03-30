@@ -52,6 +52,12 @@
     "perimeter": "Périmètre",
     "removeFloorOpening": "Supprimer l'ouverture de plancher"
   },
+  "intermediateWall": {
+    "deleteWall": "Supprimer le mur",
+    "fitToView": "Ajuster à la vue",
+    "thickness": "Épaisseur",
+    "wallLength": "Longueur"
+  },
   "opening": {
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette ouverture ?",
     "deleteOpening": "Supprimer l'ouverture",
@@ -192,6 +198,10 @@
     "usableFloorArea": "Surface de plancher utile (SHON)",
     "wallToWindowRatio": "Ratio mur/fenêtre (WWR)",
     "windowArea": "Surface des fenêtres"
+  },
+  "wallNode": {
+    "deleteNode": "Supprimer le nœud",
+    "fitToView": "Ajuster à la vue"
   },
   "wallPost": {
     "actsAsPost": "Fait office de montant",

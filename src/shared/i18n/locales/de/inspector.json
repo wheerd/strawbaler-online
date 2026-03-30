@@ -48,6 +48,12 @@
     "perimeter": "Umfang",
     "removeFloorOpening": "Aussparung entfernen"
   },
+  "intermediateWall": {
+    "deleteWall": "Wand löschen",
+    "fitToView": "Auf Ansicht anpassen",
+    "thickness": "Dicke",
+    "wallLength": "Länge"
+  },
   "opening": {
     "confirmDelete": "Möchtest du diese Öffnung wirklich entfernen?",
     "deleteOpening": "Öffnung löschen",
@@ -188,6 +194,10 @@
     "usableFloorArea": "Nutzbare Bodenfläche (NGF)",
     "wallToWindowRatio": "Wand-Fenster-Verhältnis (WWR)",
     "windowArea": "Fensterfläche"
+  },
+  "wallNode": {
+    "deleteNode": "Knoten löschen",
+    "fitToView": "Auf Ansicht anpassen"
   },
   "wallPost": {
     "actsAsPost": "Fungiert als Ständer",
