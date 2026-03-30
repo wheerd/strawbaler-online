@@ -265,6 +265,130 @@ describe('SnappingService', () => {
     })
   })
 
+  describe('Segment-Line Intersection Snapping', () => {
+    it('should snap to intersection of a line and a segment when line is added first', () => {
+      const candidates: SnapCandidate<void>[] = [
+        {
+          type: 'segment',
+          segment: { start: newVec2(500, 100), end: newVec2(700, 300) },
+          priority: 1
+        },
+        {
+          type: 'line',
+          line: { point: newVec2(0, 200), direction: newVec2(1, 0) },
+          priority: 1
+        }
+      ]
+      const svc = new SnappingService<void>({ candidates })
+
+      const target = newVec2(595, 205)
+      const result = svc.findSnapResult(target)
+
+      expect(result).not.toBeNull()
+      expect(result?.type).toBe('snap')
+      expect(result?.position[0]).toBe(600)
+      expect(result?.position[1]).toBe(200)
+      expect(result?.lines?.length).toBe(2)
+    })
+
+    it('should snap to intersection of a segment and a line when segment is added first', () => {
+      const candidates: SnapCandidate<void>[] = [
+        {
+          type: 'line',
+          line: { point: newVec2(0, 200), direction: newVec2(1, 0) },
+          priority: 1
+        },
+        {
+          type: 'segment',
+          segment: { start: newVec2(500, 100), end: newVec2(700, 300) },
+          priority: 1
+        }
+      ]
+      const svc = new SnappingService<void>({ candidates })
+
+      const target = newVec2(595, 205)
+      const result = svc.findSnapResult(target)
+
+      expect(result).not.toBeNull()
+      expect(result?.type).toBe('snap')
+      expect(result?.position[0]).toBe(600)
+      expect(result?.position[1]).toBe(200)
+      expect(result?.lines?.length).toBe(2)
+    })
+
+    it('should not snap when line misses the segment', () => {
+      const candidates: SnapCandidate<void>[] = [
+        {
+          type: 'segment',
+          segment: { start: newVec2(500, 100), end: newVec2(600, 200) },
+          priority: 1
+        },
+        {
+          type: 'line',
+          line: { point: newVec2(0, 500), direction: newVec2(1, 0) },
+          priority: 1,
+          minDistance: 10
+        }
+      ]
+      const svc = new SnappingService<void>({ candidates })
+
+      const target = newVec2(550, 400)
+      const result = svc.findSnapResult(target)
+
+      expect(result).toBeNull()
+    })
+
+    it('should generate segment-line intersection when segment is dynamically added', () => {
+      const svc = new SnappingService<void>({
+        candidates: [
+          {
+            type: 'line',
+            line: { point: newVec2(0, 150), direction: newVec2(1, 0) }
+          }
+        ]
+      })
+
+      svc.addSnapCandidate({
+        type: 'segment',
+        segment: { start: newVec2(0, 0), end: newVec2(300, 300) }
+      })
+
+      const target = newVec2(155, 145)
+      const result = svc.findSnapResult(target)
+
+      expect(result).not.toBeNull()
+      expect(result?.type).toBe('snap')
+      expect(result?.position[0]).toBe(150)
+      expect(result?.position[1]).toBe(150)
+      expect(result?.lines?.length).toBe(2)
+    })
+
+    it('should generate segment-line intersection when line is dynamically added', () => {
+      const svc = new SnappingService<void>({
+        candidates: [
+          {
+            type: 'segment',
+            segment: { start: newVec2(0, 0), end: newVec2(300, 300) }
+          }
+        ]
+      })
+
+      svc.addSnapCandidate({
+        type: 'line',
+        line: { point: newVec2(0, 150), direction: newVec2(1, 0) }
+      })
+
+      const target = newVec2(155, 145)
+      const result = svc.findSnapResult(target)
+
+      expect(result).not.toBeNull()
+      expect(result?.type).toBe('snap')
+      expect(result?.position[0]).toBe(150)
+      expect(result?.position[1]).toBe(150)
+      expect(result?.lines?.length).toBe(2)
+    })
+  })
+
   describe('minDistance', () => {
     it('should use per-candidate minDistance when set', () => {
       const candidates: SnapCandidate<void>[] = [

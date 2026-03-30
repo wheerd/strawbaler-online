@@ -11,6 +11,7 @@ import {
   lenSqrVec2,
   lineFromSegment,
   lineIntersection,
+  lineSegmentIntersect,
   newVec2,
   projectPointOntoLine,
   scaleAddVec2,
@@ -151,6 +152,19 @@ export class SnappingService<T> {
         for (const existing of otherLines) {
           this.addIntersectionSnapCandidates(internalCandidate, existing)
         }
+        const otherSegments = this.candidates.filter(
+          (c): c is SnapLineSegment<T> & InternalMeta => c.type === 'segment' && !c.isDerived
+        )
+        for (const existing of otherSegments) {
+          this.addSegmentLineIntersectionSnapCandidates(internalCandidate, existing)
+        }
+      } else if (internalCandidate.type === 'segment') {
+        const otherLines = this.candidates.filter(
+          (c): c is SnapLine<T> & InternalMeta => c.type === 'line' && !c.isDerived
+        )
+        for (const existing of otherLines) {
+          this.addSegmentLineIntersectionSnapCandidates(existing, internalCandidate)
+        }
       }
     }
   }
@@ -274,6 +288,36 @@ export class SnappingService<T> {
         minDistance,
         meta,
         lines: [line1.line, line2.line]
+      })
+    }
+  }
+
+  private addSegmentLineIntersectionSnapCandidates(
+    line: SnapLine<T> & InternalMeta,
+    segment: SnapLineSegment<T> & InternalMeta
+  ): void {
+    const intersection = lineSegmentIntersect(line.line, segment.segment)
+    if (intersection) {
+      const meta =
+        line.priority > segment.priority
+          ? line.meta
+          : segment.priority > line.priority
+            ? segment.meta
+            : line.meta === segment.meta
+              ? line.meta
+              : undefined
+      const minDistance = Math.min(line.minDistance, segment.minDistance)
+      const priority = Math.max(line.priority, segment.priority) + PRIORITY_EPS
+      const segmentLine = lineFromSegment(segment.segment)
+      this.addSnapCandidateInternal({
+        type: 'point',
+        position: intersection,
+        mode: 'snap',
+        priority,
+        isDerived: true,
+        minDistance,
+        meta,
+        lines: [line.line, segmentLine]
       })
     }
   }

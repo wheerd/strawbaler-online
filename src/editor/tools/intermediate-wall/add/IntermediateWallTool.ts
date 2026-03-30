@@ -453,5 +453,7 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
     this.state.lengthOverride = null
     this.state.segmentLengthOverrides = []
     this.state.thickness = 120
+    this.resetContext()
+    this.setupContext()
   }
 }
