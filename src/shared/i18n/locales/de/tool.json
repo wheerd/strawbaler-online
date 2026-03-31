@@ -68,6 +68,28 @@
     "description": "Zeichne eine Ausparung in eine vorhandenen Bodenfläche. Die Positionen richten sich automatisch an Bodenkanten oder anderen Öffnungen aus.",
     "title": "Aussparung"
   },
+  "intermediateWall": {
+    "cancelTooltip": "Wanderstellung abbrechen (Escape)",
+    "cancelWall": "✕ Wand abbrechen",
+    "clearLengthOverride": "Längenüberschreibung löschen (Escape)",
+    "completeTooltip": "Wand abschließen (Eingabe)",
+    "completeWall": "✓ Wand abschließen",
+    "controlClickFirst": "Klicke auf eine bestehende Wand oder einen Knoten zum Abschließen",
+    "controlEnter": "{{key}} zum Abschließen der Wand",
+    "controlEscAbort": "{{key}} zum Abbrechen der Wand",
+    "controlEscOverride": "{{key}} zum Löschen der Überschreibung",
+    "controlNumbers": "Zahlen eingeben, um genaue Wandlänge festzulegen",
+    "controlPlace": "Klicke, um Wandpunkte zu platzieren",
+    "controlsHeading": "Steuerung:",
+    "controlSnap": "Punkte rasten am Raster und an vorhandener Geometrie ein",
+    "infoLeft": "Zeichne die linke Kante deiner Zwischenwand. Klicke, um Punkte zu platzieren, und schließe ab, indem du auf eine bestehende Wand oder einen Knoten klickst oder Eingabe drückst.",
+    "infoRight": "Zeichne die rechte Kante deiner Zwischenwand. Klicke, um Punkte zu platzieren, und schließe ab, indem du auf eine bestehende Wand oder einen Knoten klickst oder Eingabe drückst.",
+    "lengthOverride": "Längenüberschreibung",
+    "referenceSide": "Ausrichtungsseite",
+    "referenceSideLeft": "Links",
+    "referenceSideRight": "Rechts",
+    "wallThickness": "Wandstärke"
+  },
   "keyboard": {
     "enter": "Eingabe",
     "esc": "Esc"

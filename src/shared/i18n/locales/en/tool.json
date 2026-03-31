@@ -68,6 +68,28 @@
     "description": "Draw an opening within an existing floor area. Use snapping to align with floor edges or other openings.",
     "title": "Floor Opening"
   },
+  "intermediateWall": {
+    "cancelTooltip": "Cancel wall creation (Escape)",
+    "cancelWall": "✕ Cancel Wall",
+    "clearLengthOverride": "Clear length override (Escape)",
+    "completeTooltip": "Complete wall (Enter)",
+    "completeWall": "✓ Complete Wall",
+    "controlClickFirst": "Click an existing wall or node to finish",
+    "controlEnter": "{{key}} to complete wall",
+    "controlEscAbort": "{{key}} to abort wall",
+    "controlEscOverride": "{{key}} to clear override",
+    "controlNumbers": "Type numbers to set exact wall length",
+    "controlPlace": "Click to place wall points",
+    "controlsHeading": "Controls:",
+    "controlSnap": "Points snap to grid and existing geometry",
+    "infoLeft": "Draw the left edge of your intermediate wall. Click to place points, and finish by clicking an existing wall or node or pressing Enter.",
+    "infoRight": "Draw the right edge of your intermediate wall. Click to place points, and finish by clicking an existing wall or node or pressing Enter.",
+    "lengthOverride": "Length Override",
+    "referenceSide": "Alignment Side",
+    "referenceSideLeft": "Left",
+    "referenceSideRight": "Right",
+    "wallThickness": "Wall Thickness"
+  },
   "keyboard": {
     "enter": "Enter",
     "esc": "Esc"

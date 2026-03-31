@@ -12,8 +12,9 @@ import { Button } from '@/shared/ui/components/button'
 import { Callout, CalloutIcon, CalloutText } from '@/shared/ui/components/callout'
 import { Kbd } from '@/shared/ui/components/kbd'
 import { Separator } from '@/shared/ui/components/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 
-import type { IntermediateWallTool } from './IntermediateWallTool'
+import type { IntermediateWallAlignment, IntermediateWallTool } from './IntermediateWallTool'
 
 export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<IntermediateWallTool>): React.JSX.Element {
   const { t } = useTranslation('tool')
@@ -40,7 +41,9 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
             <Info />
           </CalloutIcon>
           <CalloutText>
-            <span className="text-xs">TODO</span>
+            <span className="text-xs">
+              {state.alignment === 'left' ? t($ => $.intermediateWall.infoLeft) : t($ => $.intermediateWall.infoRight)}
+            </span>
           </CalloutText>
         </Callout>
 
@@ -49,7 +52,9 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
           {/* Wall Thickness */}
           <div className="flex items-center gap-1">
             <Label.Root htmlFor="wall-thickness">
-              <span className="text-muted-foreground text-xs font-medium">{t($ => $.perimeter.wallThickness)}</span>
+              <span className="text-muted-foreground text-xs font-medium">
+                {t($ => $.intermediateWall.wallThickness)}
+              </span>
             </Label.Root>
             <MeasurementInfo highlightedMeasurement="totalWallThickness" showFinishedSides />
           </div>
@@ -68,6 +73,28 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
               className="grow"
             />
           </div>
+
+          <div className="flex items-center gap-1">
+            <Label.Root>
+              <span className="text-muted-foreground text-xs font-medium">
+                {t($ => $.intermediateWall.referenceSide)}
+              </span>
+            </Label.Root>
+          </div>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            value={state.alignment}
+            onValueChange={value => {
+              if (value) {
+                tool.setAlignment(value as IntermediateWallAlignment)
+              }
+            }}
+          >
+            <ToggleGroupItem value="left">{t($ => $.intermediateWall.referenceSideLeft)}</ToggleGroupItem>
+            <ToggleGroupItem value="right">{t($ => $.intermediateWall.referenceSideRight)}</ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
         {/* Length Override Display */}
@@ -75,7 +102,7 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
           <>
             <Separator />
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-medium text-blue-600">{t($ => $.perimeter.lengthOverride)}</span>
+              <span className="text-xs font-medium text-blue-600">{t($ => $.intermediateWall.lengthOverride)}</span>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-xs text-blue-600">{formatLength(state.lengthOverride)}</span>
                 <Button
@@ -85,7 +112,7 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
                   onClick={() => {
                     tool.clearLengthOverride()
                   }}
-                  title={t($ => $.perimeter.clearLengthOverride)}
+                  title={t($ => $.intermediateWall.clearLengthOverride)}
                 >
                   <X />
                 </Button>
@@ -97,14 +124,14 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
         {/* Help Text */}
         <Separator />
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-medium">{t($ => $.perimeter.controlsHeading)}</span>
-          <span className="text-muted-foreground text-xs">• {t($ => $.perimeter.controlPlace)}</span>
-          <span className="text-muted-foreground text-xs">• {t($ => $.perimeter.controlSnap)}</span>
-          <span className="text-muted-foreground text-xs">• {t($ => $.perimeter.controlNumbers)}</span>
+          <span className="text-xs font-medium">{t($ => $.intermediateWall.controlsHeading)}</span>
+          <span className="text-muted-foreground text-xs">• {t($ => $.intermediateWall.controlPlace)}</span>
+          <span className="text-muted-foreground text-xs">• {t($ => $.intermediateWall.controlSnap)}</span>
+          <span className="text-muted-foreground text-xs">• {t($ => $.intermediateWall.controlNumbers)}</span>
           {state.lengthOverride ? (
             <span className="text-muted-foreground text-xs">
               • <Kbd size="sm">{t($ => $.keyboard.esc)}</Kbd>{' '}
-              {t($ => $.perimeter.controlEscOverride, {
+              {t($ => $.intermediateWall.controlEscOverride, {
                 key: ''
               })
                 .replace('{{key}}', '')
@@ -113,7 +140,7 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
           ) : (
             <span className="text-muted-foreground text-xs">
               • <Kbd size="sm">{t($ => $.keyboard.esc)}</Kbd>{' '}
-              {t($ => $.perimeter.controlEscAbort, {
+              {t($ => $.intermediateWall.controlEscAbort, {
                 key: ''
               })
                 .replace('{{key}}', '')
@@ -124,13 +151,13 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
             <>
               <span className="text-muted-foreground text-xs">
                 • <Kbd size="sm">{t($ => $.keyboard.enter)}</Kbd>{' '}
-                {t($ => $.perimeter.controlEnter, {
+                {t($ => $.intermediateWall.controlEnter, {
                   key: ''
                 })
                   .replace('{{key}}', '')
                   .trim()}
               </span>
-              <span className="text-muted-foreground text-xs">• {t($ => $.perimeter.controlClickFirst)}</span>
+              <span className="text-muted-foreground text-xs">• {t($ => $.intermediateWall.controlClickFirst)}</span>
             </>
           )}
         </div>
@@ -148,9 +175,9 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
                     tool.complete()
                   }}
                   disabled={!state.isValid}
-                  title={t($ => $.perimeter.completeTooltip)}
+                  title={t($ => $.intermediateWall.completeTooltip)}
                 >
-                  <span className="text-xs">{t($ => $.perimeter.completePerimeter)}</span>
+                  <span className="text-xs">{t($ => $.intermediateWall.completeWall)}</span>
                   <Kbd size="sm" className="ml-auto">
                     {t($ => $.keyboard.enter)}
                   </Kbd>
@@ -163,9 +190,9 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
                 onClick={() => {
                   tool.cancel()
                 }}
-                title={t($ => $.perimeter.cancelTooltip)}
+                title={t($ => $.intermediateWall.cancelTooltip)}
               >
-                <span className="text-xs">{t($ => $.perimeter.cancelPerimeter)}</span>
+                <span className="text-xs">{t($ => $.intermediateWall.cancelWall)}</span>
                 <Kbd size="sm" className="ml-auto">
                   {t($ => $.keyboard.esc)}
                 </Kbd>

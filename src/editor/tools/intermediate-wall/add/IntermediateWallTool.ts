@@ -37,6 +37,8 @@ import { IntermediateWallToolOverlay } from './IntermediateWallToolOverlay'
 
 type SnapEntityId = WallId | WallNodeId
 
+export type IntermediateWallAlignment = 'left' | 'right'
+
 interface IntermediateWallToolState {
   points: Vec2[]
   pointer: Vec2
@@ -47,6 +49,7 @@ interface IntermediateWallToolState {
   lengthOverride: Length | null
   segmentLengthOverrides: (Length | null)[]
   thickness: Length
+  alignment: IntermediateWallAlignment
 }
 
 const SNAP_NODE_TOLERANCE = 200
@@ -73,12 +76,18 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
       isValid: true,
       lengthOverride: null,
       segmentLengthOverrides: [] as (Length | null)[],
-      thickness: 120
+      thickness: 120,
+      alignment: 'left'
     }
   }
 
   public setThickness(thickness: Length): void {
     this.state.thickness = thickness
+    this.triggerRender()
+  }
+
+  public setAlignment(alignment: IntermediateWallAlignment): void {
+    this.state.alignment = alignment
     this.triggerRender()
   }
 
@@ -295,8 +304,8 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
 
       modelActions.addIntermediateWall(
         perimeterId,
-        { nodeId: startNode.id, axis: 'center' },
-        { nodeId: endNode.id, axis: 'center' },
+        { nodeId: startNode.id, axis: this.state.alignment },
+        { nodeId: endNode.id, axis: this.state.alignment },
         this.state.thickness
       )
     }
@@ -445,14 +454,12 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
 
   private resetDrawingState(): void {
     this.state.points = []
-    this.state.pointer = ZERO_VEC2
     this.state.snapResult = undefined
     this.state.startEntity = undefined
     this.state.perimeterId = undefined
     this.state.isValid = true
     this.state.lengthOverride = null
     this.state.segmentLengthOverrides = []
-    this.state.thickness = 120
     this.resetContext()
     this.setupContext()
   }

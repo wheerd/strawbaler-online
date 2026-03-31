@@ -155,6 +155,7 @@ describe('PolygonToolOverlay', () => {
   describe('snapping behavior', () => {
     it('renders snap position when snap result exists', () => {
       const snapResult: SnapResult<void> = {
+        priority: 0,
         position: newVec2(125, 125),
         distance: 10,
         type: 'snap'
@@ -171,6 +172,7 @@ describe('PolygonToolOverlay', () => {
 
     it('renders snap lines when snap result has lines', () => {
       const snapResult: SnapResult<void> = {
+        priority: 0,
         position: newVec2(150, 150),
         distance: 10,
         type: 'align',
@@ -225,6 +227,7 @@ describe('PolygonToolOverlay', () => {
       mockUseZoom.mockReturnValue(2.0)
 
       const snapResult: SnapResult<void> = {
+        priority: 0,
         position: newVec2(100, 100),
         distance: 10,
         type: 'align',

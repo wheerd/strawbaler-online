@@ -4,7 +4,7 @@ import { SnappingLines } from '@/editor/canvas/components/SnappingLines'
 import { useZoom } from '@/editor/canvas/state/viewportStore'
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolOverlayComponentProps } from '@/editor/tools/system/types'
-import { type Vec2, addVec2, direction, perpendicularCCW, scaleVec2 } from '@/shared/geometry'
+import { type Vec2, addVec2, direction, perpendicularCW, scaleVec2 } from '@/shared/geometry'
 
 import type { IntermediateWallTool } from './IntermediateWallTool'
 
@@ -42,7 +42,7 @@ function computeDerivedSegments(
     const end = inputPoints[(i + 1) % inputPoints.length]
 
     const segDirection = direction(start, end)
-    const outward = perpendicularCCW(segDirection)
+    const outward = perpendicularCW(segDirection)
     const offset = scaleVec2(outward, thickness * multiplier)
 
     const offsetStart = addVec2(start, offset)
@@ -79,7 +79,7 @@ export function IntermediateWallToolOverlay({
       return null
     }
 
-    return computeDerivedSegments(workingPoints, 'left', state.thickness)
+    return computeDerivedSegments(workingPoints, state.alignment, state.thickness)
   }, [workingPoints, state.thickness, tool])
 
   return (
