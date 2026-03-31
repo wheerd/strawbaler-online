@@ -33,7 +33,11 @@ export class RoofMovementBehavior extends PolygonMovementBehavior<RoofEntityCont
     const perimeters = store.getPerimetersByStorey(roof.storeyId)
     const otherRoofs = store.getRoofsByStorey(roof.storeyId).filter(r => r.id !== roof.id)
     const snapCandidates = this.buildSnapCandidates(perimeters, otherRoofs)
-    const snapService = new SnappingService<void>({ candidates: snapCandidates })
+    const snapService = new SnappingService<void>({
+      candidates: snapCandidates,
+      defaultPointDistance: 200,
+      defaultLineDistance: 100
+    })
 
     return { roof, snapService }
   }
@@ -47,9 +51,11 @@ export class RoofMovementBehavior extends PolygonMovementBehavior<RoofEntityCont
     const roofPoints = otherRoofs.flatMap(roof => roof.referencePolygon.points)
     const roofSegments = otherRoofs.flatMap(roof => createPolygonSegments(roof.referencePolygon.points))
 
-    const allPoints = [...perimeterPoints, ...roofPoints]
-    for (const point of allPoints) {
-      candidates.push({ type: 'point', position: point, mode: 'snap' })
+    for (const point of perimeterPoints) {
+      candidates.push({ type: 'point', position: point, mode: 'snap', priority: 2 })
+    }
+    for (const point of roofPoints) {
+      candidates.push({ type: 'point', position: point, mode: 'snap', priority: 1 })
     }
 
     const allSegments = [...perimeterSegments, ...roofSegments]

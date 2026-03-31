@@ -52,7 +52,11 @@ export class PerimeterMovementBehavior extends PolygonMovementBehavior<Perimeter
     const lowerPerimeters = lowerStorey ? store.getPerimetersByStorey(lowerStorey.id) : []
 
     const snapCandidates = this.buildSnapCandidates(otherPerimeters, lowerPerimeters, referenceSide)
-    const snapService = new SnappingService<void>({ candidates: snapCandidates })
+    const snapService = new SnappingService<void>({
+      candidates: snapCandidates,
+      defaultPointDistance: 200,
+      defaultLineDistance: 100
+    })
 
     return { perimeter, snapService }
   }

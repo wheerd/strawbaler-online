@@ -42,19 +42,18 @@ export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityConte
 
     const service = context.entity.snapService
 
-    let bestScore = Infinity
+    let highestPriority = -Infinity
+    let bestDist = Infinity
     let resultDelta = copyVec2(pointerState.delta)
 
     for (let index = 0; index < previewPoints.length; index += 1) {
       const snapResult = service.findSnapResult(previewPoints[index]) ?? undefined
       if (!snapResult) continue
 
-      const score =
-        distSqrVec2(previewPoints[index], snapResult.position) *
-        (snapResult.lines && snapResult.lines.length > 0 ? 5 : 1)
-
-      if (score < bestScore) {
-        bestScore = score
+      const dist = distSqrVec2(previewPoints[index], snapResult.position)
+      if (highestPriority <= snapResult.priority && dist < bestDist) {
+        highestPriority = snapResult.priority
+        bestDist = dist
         resultDelta = subVec2(snapResult.position, originalPoints[index])
       }
     }

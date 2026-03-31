@@ -190,6 +190,7 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
     this.resetDrawingState()
     this.onPolygonCancelled()
     deactivateLengthInput()
+    this.triggerRender()
   }
 
   public complete(): void {
@@ -209,6 +210,7 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
 
     this.resetDrawingState()
     deactivateLengthInput()
+    this.triggerRender()
   }
 
   /**
@@ -354,7 +356,6 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
 
   private resetDrawingState(): void {
     this.state.points = []
-    this.state.pointer = ZERO_VEC2
     this.state.snapResult = undefined
     this.state.isCurrentSegmentValid = true
     this.state.isClosingSegmentValid = true

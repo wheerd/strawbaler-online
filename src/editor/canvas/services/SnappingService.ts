@@ -25,6 +25,7 @@ export interface SnappingContext<T> {
 }
 
 export interface SnapResult<T> {
+  priority: number
   position: Vec2
   distance: Length
   lines?: readonly [Line2D] | readonly [Line2D, Line2D]
@@ -201,6 +202,7 @@ export class SnappingService<T> {
         if (!this.referencePoint || distSqrVec2(point, this.referencePoint) >= referenceDistSq) {
           const snapType = 'mode' in candidate ? candidate.mode : candidate.type === 'segment' ? 'snap' : 'align'
           results.push({
+            priority: candidate.priority,
             position: point,
             distance,
             lines: candidate.lines,
