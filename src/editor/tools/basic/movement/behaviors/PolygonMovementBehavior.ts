@@ -51,7 +51,7 @@ export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityConte
       if (!snapResult) continue
 
       const dist = distSqrVec2(previewPoints[index], snapResult.position)
-      if (highestPriority <= snapResult.priority && dist < bestDist) {
+      if (highestPriority < snapResult.priority || (highestPriority === snapResult.priority && dist < bestDist)) {
         highestPriority = snapResult.priority
         bestDist = dist
         resultDelta = subVec2(snapResult.position, originalPoints[index])
