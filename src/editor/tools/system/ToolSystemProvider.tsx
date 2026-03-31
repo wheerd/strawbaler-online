@@ -8,6 +8,7 @@ import { SelectTool } from '@/editor/tools/basic/SelectTool'
 import { MoveTool } from '@/editor/tools/basic/movement/MoveTool'
 import { FloorAreaTool } from '@/editor/tools/floors/add-area/FloorAreaTool'
 import { FloorOpeningTool } from '@/editor/tools/floors/add-opening/FloorOpeningTool'
+import { IntermediateWallTool } from '@/editor/tools/intermediate-wall/add/IntermediateWallTool'
 import { AddOpeningTool } from '@/editor/tools/perimeter/add-opening/AddOpeningTool'
 import { AddPostTool } from '@/editor/tools/perimeter/add-post/AddPostTool'
 import { PerimeterTool } from '@/editor/tools/perimeter/add/PerimeterTool'
@@ -33,6 +34,7 @@ function createAndInitializeToolSystem(): ToolSystem {
   system.registerTool(SplitWallTool)
   system.registerTool(RoofTool)
   system.registerTool(TestDataTool)
+  system.registerTool(IntermediateWallTool)
 
   const handleDelete = () => {
     const selectedId = getCurrentSelection()

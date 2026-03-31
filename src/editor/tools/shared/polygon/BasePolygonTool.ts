@@ -1,4 +1,4 @@
-import { type SnapResult, type SnappingContext, SnappingService } from '@/editor/canvas/services/SnappingService'
+import { type SnapResult, SnappingService } from '@/editor/canvas/services/SnappingService'
 import type { LengthInputPosition } from '@/editor/canvas/services/length-input'
 import { activateLengthInput, deactivateLengthInput } from '@/editor/canvas/services/length-input'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
@@ -7,7 +7,6 @@ import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { CursorStyle, EditorEvent } from '@/editor/tools/system/types'
 import {
   type Length,
-  type LineSegment2D,
   type Polygon2D,
   type Vec2,
   ZERO_VEC2,
@@ -21,8 +20,8 @@ import {
 export interface PolygonToolStateBase {
   points: Vec2[]
   pointer: Vec2
-  snapResult?: SnapResult
-  snapContext: SnappingContext
+  snapResult?: SnapResult<void>
+  snapService: SnappingService<void>
   isCurrentSegmentValid: boolean
   isClosingSegmentValid: boolean
   lengthOverride: Length | null
@@ -40,10 +39,12 @@ export interface PolygonToolStateBase {
 export abstract class BasePolygonTool<TState extends PolygonToolStateBase> extends BaseTool {
   public state: TState
 
-  private readonly snappingService: SnappingService
-
   protected constructor(toolSystem: ToolSystem, initialState: Omit<TState, keyof PolygonToolStateBase>) {
     super(toolSystem)
+
+    const snapService = new SnappingService<void>({ candidates: [] })
+    this.setupSnapService(snapService)
+
     this.state = {
       points: [] as Vec2[],
       pointer: ZERO_VEC2,
@@ -53,10 +54,9 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
       lengthOverride: null,
       segmentLengthOverrides: [] as (Length | null)[],
       originSnappedIndex: null,
-      snapContext: this.extendSnapContext(this.createBaseSnapContext([])),
+      snapService,
       ...initialState
     } as TState
-    this.snappingService = new SnappingService()
   }
 
   handlePointerDown(event: EditorEvent): boolean {
@@ -96,8 +96,8 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
         this.state.originSnappedIndex = this.state.points.length
       }
 
-      this.state.points.push(pointToAdd)
-      this.updateSnapContext()
+      this.addPoint(pointToAdd)
+
       this.clearLengthOverride()
       this.updateValidation()
 
@@ -107,6 +107,36 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
     }
 
     return true
+  }
+
+  private addPoint(pointToAdd: Vec2) {
+    this.state.points.push(pointToAdd)
+
+    const snapService = this.state.snapService
+    snapService.referencePoint = pointToAdd
+    snapService.addSnapCandidate({
+      type: 'point',
+      position: pointToAdd,
+      mode: 'align'
+    })
+
+    if (this.state.points.length === 1) {
+      snapService.addSnapCandidate({
+        type: 'point',
+        position: pointToAdd,
+        mode: 'snap',
+        priority: 1
+      })
+    }
+
+    if (this.state.points.length > 1) {
+      const lastPoint = this.state.points[this.state.points.length - 2]
+      const line = { point: lastPoint, direction: direction(lastPoint, pointToAdd) }
+      snapService.addSnapCandidate({
+        type: 'line',
+        line
+      })
+    }
   }
 
   handlePointerMove(event: EditorEvent): boolean {
@@ -143,7 +173,7 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
   onActivate(): void {
     this.resetDrawingState()
     this.onToolActivated()
-    this.updateSnapContext()
+    this.createSnapService()
   }
 
   onDeactivate(): void {
@@ -160,6 +190,7 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
     this.resetDrawingState()
     this.onPolygonCancelled()
     deactivateLengthInput()
+    this.triggerRender()
   }
 
   public complete(): void {
@@ -179,6 +210,7 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
 
     this.resetDrawingState()
     deactivateLengthInput()
+    this.triggerRender()
   }
 
   /**
@@ -196,35 +228,14 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
     return scaleAddVec2(lastPoint, dir, this.state.lengthOverride)
   }
 
-  /**
-   * Allows subclasses to trigger a re-computation of the snapping context when
-   * external geometry changes.
-   */
-  protected updateSnapContext(): void {
-    const context = this.createBaseSnapContext(this.state.points)
-    this.state.snapContext = this.extendSnapContext(context)
-    this.triggerRender()
+  protected createSnapService(): void {
+    const service = new SnappingService<void>({ candidates: [] })
+    this.setupSnapService(service)
+    this.state.snapService = service
   }
 
-  protected createBaseSnapContext(points: readonly Vec2[]): SnappingContext {
-    const referenceLineSegments: LineSegment2D[] = []
-    for (let i = 1; i < points.length; i += 1) {
-      referenceLineSegments.push({ start: points[i - 1], end: points[i] })
-    }
-
-    const snapPoints = points.length > 0 ? [points[0]] : []
-    const referencePoint = points.length > 0 ? points[points.length - 1] : undefined
-
-    return {
-      snapPoints,
-      alignPoints: [...points],
-      referencePoint,
-      referenceLineSegments
-    }
-  }
-
-  protected extendSnapContext(context: SnappingContext): SnappingContext {
-    return context
+  protected setupSnapService(_snapService: SnappingService<void>): void {
+    // Override to add additional snap candidates from subclass
   }
 
   public getMinimumPointCount(): number {
@@ -258,8 +269,8 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
 
   protected abstract onPolygonCompleted(polygon: Polygon2D): void
 
-  private findSnap(target: Vec2): SnapResult | undefined {
-    const result = this.snappingService.findSnapResult(target, this.state.snapContext)
+  private findSnap(target: Vec2): SnapResult<void> | undefined {
+    const result = this.state.snapService.findSnapResult(target)
     return result ?? undefined
   }
 
@@ -345,13 +356,12 @@ export abstract class BasePolygonTool<TState extends PolygonToolStateBase> exten
 
   private resetDrawingState(): void {
     this.state.points = []
-    this.state.pointer = ZERO_VEC2
     this.state.snapResult = undefined
     this.state.isCurrentSegmentValid = true
     this.state.isClosingSegmentValid = true
     this.state.lengthOverride = null
     this.state.segmentLengthOverrides = []
     this.state.originSnappedIndex = null
-    this.updateSnapContext()
+    this.createSnapService()
   }
 }

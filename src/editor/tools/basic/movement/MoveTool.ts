@@ -1,6 +1,5 @@
 import type { SelectableId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { defaultSnappingService } from '@/editor/canvas/services/SnappingService'
 import { findEditorEntityAt } from '@/editor/canvas/services/editorHitTesting'
 import type { LengthInputConfig } from '@/editor/canvas/services/length-input'
 import { activateLengthInput, deactivateLengthInput } from '@/editor/canvas/services/length-input'
@@ -86,8 +85,7 @@ export class MoveTool extends BaseTool implements ToolImplementation {
       entityId: hitResult.entityId,
       parentIds: hitResult.parentIds,
       entity,
-      store,
-      snappingService: defaultSnappingService
+      store
     }
 
     // Initialize pointer state and movement state

@@ -1,6 +1,7 @@
 import type { SelectableId } from '@/building/model'
 import type { StoreActions } from '@/building/store'
-import type { SnapResult, SnappingContext } from '@/editor/canvas/services/SnappingService'
+import type { SnapResult } from '@/editor/canvas/services/SnappingService'
+import { SnappingService } from '@/editor/canvas/services/SnappingService'
 import { PolygonMovementPreview } from '@/editor/tools/basic/movement/previews/PolygonMovementPreview'
 import type {
   MovementBehavior,
@@ -11,12 +12,12 @@ import type {
 import { type Vec2, addVec2, copyVec2, distSqrVec2, subVec2 } from '@/shared/geometry'
 
 export interface PolygonEntityContext {
-  snapContext: SnappingContext
+  snapService: SnappingService<void>
 }
 
 export interface PolygonMovementState extends MovementState {
   previewPolygon: readonly Vec2[]
-  snapResults: SnapResult[]
+  snapResults: SnapResult<void>[]
 }
 
 export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityContext> implements MovementBehavior<
@@ -38,33 +39,27 @@ export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityConte
   constrainAndSnap(pointerState: PointerMovementState, context: MovementContext<TEntity>): PolygonMovementState {
     const originalPoints = this.getPolygonPoints(context)
     const previewPoints = originalPoints.map(point => addVec2(point, pointerState.delta))
-    const snapContext = this.getSnapContext(context)
 
-    let bestScore = Infinity
+    const service = context.entity.snapService
+
+    let highestPriority = -Infinity
+    let bestDist = Infinity
     let resultDelta = copyVec2(pointerState.delta)
 
     for (let index = 0; index < previewPoints.length; index += 1) {
-      const snapResult = context.snappingService.findSnapResult(previewPoints[index], snapContext) ?? undefined
+      const snapResult = service.findSnapResult(previewPoints[index]) ?? undefined
       if (!snapResult) continue
 
-      const score =
-        distSqrVec2(previewPoints[index], snapResult.position) *
-        (snapResult.lines && snapResult.lines.length > 0 ? 5 : 1)
-
-      if (score < bestScore) {
-        bestScore = score
+      const dist = distSqrVec2(previewPoints[index], snapResult.position)
+      if (highestPriority < snapResult.priority || (highestPriority === snapResult.priority && dist < bestDist)) {
+        highestPriority = snapResult.priority
+        bestDist = dist
         resultDelta = subVec2(snapResult.position, originalPoints[index])
       }
     }
 
     const finalPoints = this.translatePoints(originalPoints, resultDelta)
-    const epsilonTolerance = 1
-    const snapResults: SnapResult[] = []
-
-    for (const point of finalPoints) {
-      const snapResult = context.snappingService.findSnapResult(point, snapContext, epsilonTolerance)
-      if (snapResult) snapResults.push(snapResult)
-    }
+    const snapResults = finalPoints.map(point => service.findSnapResult(point, 1)).filter(r => r != null)
 
     return {
       previewPolygon: finalPoints,
@@ -83,10 +78,6 @@ export abstract class PolygonMovementBehavior<TEntity extends PolygonEntityConte
 
   applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<TEntity>): boolean {
     return this.applyMovementDelta(deltaDifference, context)
-  }
-
-  protected getSnapContext(context: MovementContext<TEntity>): SnappingContext {
-    return context.entity.snapContext
   }
 
   protected translatePoints(points: readonly Vec2[], delta: Vec2): Vec2[] {

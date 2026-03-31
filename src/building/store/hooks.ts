@@ -5,6 +5,7 @@ import type {
   Constraint,
   FloorArea,
   FloorOpening,
+  IntermediateWallWithGeometry,
   OpeningWithGeometry,
   PerimeterCornerGeometry,
   PerimeterCornerWithGeometry,
@@ -13,6 +14,7 @@ import type {
   Roof,
   RoofOverhang,
   Storey,
+  WallNodeWithGeometry,
   WallPostWithGeometry
 } from '@/building/model'
 import {
@@ -20,6 +22,7 @@ import {
   type ConstraintId,
   type FloorAreaId,
   type FloorOpeningId,
+  type IntermediateWallId,
   type OpeningId,
   type PerimeterCornerId,
   type PerimeterId,
@@ -28,16 +31,19 @@ import {
   type RoofOverhangId,
   type SelectableId,
   type StoreyId,
+  type WallNodeId,
   type WallPostId,
   isConstraintId,
   isFloorAreaId,
   isFloorOpeningId,
+  isIntermediateWallId,
   isOpeningId,
   isPerimeterCornerId,
   isPerimeterId,
   isPerimeterWallId,
   isRoofId,
   isRoofOverhangId,
+  isWallNodeId,
   isWallPostId
 } from '@/building/model/ids'
 import { assertUnreachable } from '@/shared/utils'
@@ -80,6 +86,8 @@ export const useModelEntityById = (
   | FloorOpening
   | Roof
   | RoofOverhang
+  | IntermediateWallWithGeometry
+  | WallNodeWithGeometry
   | null => {
   const selector = useCallback(
     (state: Store) => {
@@ -93,6 +101,8 @@ export const useModelEntityById = (
       if (isFloorOpeningId(id)) return state.floorOpenings[id]
       if (isRoofId(id)) return state.roofs[id]
       if (isRoofOverhangId(id)) return state.roofOverhangs[id]
+      if (isIntermediateWallId(id)) return state.intermediateWalls[id]
+      if (isWallNodeId(id)) return state.wallNodes[id]
       if (isConstraintId(id)) return state.buildingConstraints[id] ?? null
       assertUnreachable(id, `Unsupported entity: ${id}`)
     },
@@ -107,6 +117,8 @@ export const useModelEntityById = (
       if (isPerimeterWallId(id)) return state._perimeterWallGeometry[id]
       if (isPerimeterCornerId(id)) return state._perimeterCornerGeometry[id]
       if (isRoofOverhangId(id)) return state.roofOverhangs[id]
+      if (isIntermediateWallId(id)) return state._intermediateWallGeometry[id]
+      if (isWallNodeId(id)) return state._wallNodeGeometry[id]
       return emptyGeometry
     },
     [id]
@@ -123,6 +135,8 @@ export const useModelEntityById = (
       if (isFloorOpeningId(id)) return state.actions.getFloorOpeningById
       if (isRoofId(id)) return state.actions.getRoofById
       if (isRoofOverhangId(id)) return state.actions.getRoofOverhangById
+      if (isIntermediateWallId(id)) return state.actions.getIntermediateWallById
+      if (isWallNodeId(id)) return state.actions.getWallNodeById
       if (isConstraintId(id)) return state.actions.getBuildingConstraintById
       assertUnreachable(id, `Unsupported entity: ${id}`)
     },
@@ -294,3 +308,33 @@ export const usePerimeterCornerGeometries = (): Record<PerimeterCornerId, Perime
   useModelStore(state => state._perimeterCornerGeometry)
 
 export const useModelActions = (): StoreActions => useModelStore(state => state.actions)
+
+export const useIntermediateWallById = (id: IntermediateWallId): IntermediateWallWithGeometry => {
+  const wall = useModelStore(state => state.intermediateWalls[id])
+  const geometry = useModelStore(state => state._intermediateWallGeometry[id])
+  const getIntermediateWallById = useModelStore(state => state.actions.getIntermediateWallById)
+  return useMemo(() => getIntermediateWallById(id), [wall, geometry])
+}
+
+export const useIntermediateWallsByPerimeter = (id: PerimeterId): IntermediateWallWithGeometry[] => {
+  const perimeter = useModelStore(state => state.perimeters[id])
+  const walls = useModelStore(state => state.intermediateWalls)
+  const geometries = useModelStore(state => state._intermediateWallGeometry)
+  const getIntermediateWallsByPerimeter = useModelStore(state => state.actions.getIntermediateWallsByPerimeter)
+  return useMemo(() => getIntermediateWallsByPerimeter(id), [perimeter, walls, geometries, id])
+}
+
+export const useWallNodeById = (id: WallNodeId): WallNodeWithGeometry => {
+  const node = useModelStore(state => state.wallNodes[id])
+  const geometry = useModelStore(state => state._wallNodeGeometry[id])
+  const getWallNodeById = useModelStore(state => state.actions.getWallNodeById)
+  return useMemo(() => getWallNodeById(id), [node, geometry])
+}
+
+export const useWallNodesByPerimeter = (id: PerimeterId): WallNodeWithGeometry[] => {
+  const perimeter = useModelStore(state => state.perimeters[id])
+  const nodes = useModelStore(state => state.wallNodes)
+  const geometries = useModelStore(state => state._wallNodeGeometry)
+  const getWallNodesByPerimeter = useModelStore(state => state.actions.getWallNodesByPerimeter)
+  return useMemo(() => getWallNodesByPerimeter(id), [perimeter, nodes, geometries, id])
+}

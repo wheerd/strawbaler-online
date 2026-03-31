@@ -1,5 +1,8 @@
 import type { PerimeterWithGeometry } from '@/building/model'
+import { useIntermediateWallsByPerimeter, useWallNodesByPerimeter } from '@/building/store'
+import { IntermediateWallShape } from '@/editor/canvas/layers/walls/IntermediateWallShape'
 import { PerimeterWallEntitiesShape } from '@/editor/canvas/layers/walls/PerimeterWallEntitiesShape'
+import { WallNodeShape } from '@/editor/canvas/layers/walls/WallNodeShape'
 import { useViewMode } from '@/editor/canvas/state/viewModeStore'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 
@@ -8,6 +11,9 @@ import { PerimeterWallShape } from './PerimeterWallShape'
 
 export function PerimeterShape({ perimeter }: { perimeter: PerimeterWithGeometry }): React.JSX.Element {
   const mode = useViewMode()
+
+  const intermediateWalls = useIntermediateWallsByPerimeter(perimeter.id)
+  const wallNodes = useWallNodesByPerimeter(perimeter.id)
 
   const innerPath = polygonToSvgPath(perimeter.innerPolygon)
   const outerPath = polygonToSvgPath(perimeter.outerPolygon)
@@ -60,6 +66,16 @@ export function PerimeterShape({ perimeter }: { perimeter: PerimeterWithGeometry
       {/* Render each walls entities */}
       {perimeter.wallIds.map(id => (
         <PerimeterWallEntitiesShape key={`wall-entities-${id}`} wallId={id} />
+      ))}
+
+      {/* Render intermediate walls */}
+      {intermediateWalls.map(wall => (
+        <IntermediateWallShape key={`intermediate-wall-${wall.id}`} wallId={wall.id} />
+      ))}
+
+      {/* Render wall nodes */}
+      {wallNodes.map(node => (
+        <WallNodeShape key={`wall-node-${node.id}`} nodeId={node.id} />
       ))}
     </g>
   )

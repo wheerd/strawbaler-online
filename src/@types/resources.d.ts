@@ -1320,6 +1320,12 @@ interface Resources {
       "perimeter": "Perimeter",
       "removeFloorOpening": "Remove floor opening"
     },
+    "intermediateWall": {
+      "deleteWall": "Delete Wall",
+      "fitToView": "Fit to View",
+      "thickness": "Thickness",
+      "wallLength": "Length"
+    },
     "opening": {
       "confirmDelete": "Are you sure you want to remove this opening?",
       "deleteOpening": "Delete opening",
@@ -1460,6 +1466,10 @@ interface Resources {
       "usableFloorArea": "Usable Floor Area (GFA)",
       "wallToWindowRatio": "Wall-to-window ratio (WWR)",
       "windowArea": "Window Area"
+    },
+    "wallNode": {
+      "deleteNode": "Delete Node",
+      "fitToView": "Fit to View"
     },
     "wallPost": {
       "actsAsPost": "Acts as Post",
@@ -1699,6 +1709,28 @@ interface Resources {
       "description": "Draw an opening within an existing floor area. Use snapping to align with floor edges or other openings.",
       "title": "Floor Opening"
     },
+    "intermediateWall": {
+      "cancelTooltip": "Cancel wall creation (Escape)",
+      "cancelWall": "✕ Cancel Wall",
+      "clearLengthOverride": "Clear length override (Escape)",
+      "completeTooltip": "Complete wall (Enter)",
+      "completeWall": "✓ Complete Wall",
+      "controlClickFirst": "Click an existing wall or node to finish",
+      "controlEnter": "<kbd>Enter</kbd> to complete wall",
+      "controlEscAbort": "<kbd>Escape</kbd> to abort wall",
+      "controlEscOverride": "<kbd>Escape</kbd> to clear override",
+      "controlNumbers": "Type numbers to set exact wall length",
+      "controlPlace": "Click to place wall points",
+      "controlSnap": "Points snap to grid and existing geometry",
+      "controlsHeading": "Controls:",
+      "infoLeft": "Draw the left edge of your intermediate wall. Click to place points, and finish by clicking an existing wall or node or pressing Enter.",
+      "infoRight": "Draw the right edge of your intermediate wall. Click to place points, and finish by clicking an existing wall or node or pressing Enter.",
+      "lengthOverride": "Length Override",
+      "referenceSide": "Alignment Side",
+      "referenceSideLeft": "Left",
+      "referenceSideRight": "Right",
+      "wallThickness": "Wall Thickness"
+    },
     "keyboard": {
       "enter": "Enter",
       "esc": "Esc"
@@ -1884,6 +1916,7 @@ interface Resources {
       "basicSelect": "Select",
       "floorsAddArea": "Floor Area",
       "floorsAddOpening": "Floor Opening",
+      "intermediateWallAdd": "Draw Intermediate Wall",
       "perimeterAdd": "Building Perimeter",
       "perimeterAddOpening": "Add Opening",
       "perimeterAddPost": "Add Post",

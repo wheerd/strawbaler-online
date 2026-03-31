@@ -41,6 +41,7 @@ export interface PerimeterWall {
   startCornerId: PerimeterCornerId
   endCornerId: PerimeterCornerId
   entityIds: WallEntityId[]
+  wallNodeIds: WallNodeId[]
 
   thickness: Length
   wallAssemblyId: WallAssemblyId

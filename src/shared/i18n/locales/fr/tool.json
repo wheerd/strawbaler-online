@@ -68,6 +68,28 @@
     "description": "Dessinez une ouverture dans une surface de plancher existante. Utilisez l'accrochage pour vous aligner sur les bords du plancher ou d'autres ouvertures.",
     "title": "Ouverture de plancher"
   },
+  "intermediateWall": {
+    "cancelTooltip": "Annuler la création du mur (Échap)",
+    "cancelWall": "✕ Annuler le mur",
+    "clearLengthOverride": "Effacer la longueur saisie (Échap)",
+    "completeTooltip": "Terminer le mur (Entrée)",
+    "completeWall": "✓ Terminer le mur",
+    "controlClickFirst": "Cliquez sur un mur ou un nœud existant pour terminer",
+    "controlEnter": "<kbd>Entrée</kbd> pour terminer le mur",
+    "controlEscAbort": "<kbd>Échap</kbd> pour annuler le mur",
+    "controlEscOverride": "<kbd>Échap</kbd> pour effacer la saisie",
+    "controlNumbers": "Tapez des nombres pour définir la longueur exacte du mur",
+    "controlPlace": "Cliquez pour placer les points du mur",
+    "controlsHeading": "Commandes :",
+    "controlSnap": "Les points s'alignent sur la grille et la géométrie existante",
+    "infoLeft": "Dessinez le bord gauche de votre mur intermédiaire. Cliquez pour placer des points et terminez en cliquant sur un mur ou un nœud existant ou en appuyant sur Entrée.",
+    "infoRight": "Dessinez le bord droit de votre mur intermédiaire. Cliquez pour placer des points et terminez en cliquant sur un mur ou un nœud existant ou en appuyant sur Entrée.",
+    "lengthOverride": "Longueur saisie",
+    "referenceSide": "Côté d'alignement",
+    "referenceSideLeft": "Gauche",
+    "referenceSideRight": "Droite",
+    "wallThickness": "Épaisseur du mur"
+  },
   "keyboard": {
     "enter": "Entrée",
     "esc": "Échap"

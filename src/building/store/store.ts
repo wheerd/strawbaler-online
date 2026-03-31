@@ -11,6 +11,8 @@ import { Bounds2D } from '@/shared/geometry'
 import { MODEL_STORE_VERSION, applyMigrations } from './migrations'
 import { createConstraintsSlice, rebuildReverseIndex } from './slices/constraintsSlice'
 import { createFloorsSlice } from './slices/floorsSlice'
+import { updateAllWallNodeGeometry } from './slices/intermediateWallGeometry'
+import { createIntermediateWallsSlice } from './slices/intermediateWallsSlice'
 import { updatePerimeterGeometry } from './slices/perimeterGeometry'
 import { createPerimetersSlice } from './slices/perimeterSlice'
 import { createRoofsSlice } from './slices/roofsSlice'
@@ -49,6 +51,7 @@ export const useModelStore = create<Store>()(
           const roofsSlice = immer(createRoofsSlice)(set, get, store)
           const timestampsSlice = immer(createTimestampsSlice)(set, get, store)
           const constraintsSlice = immer(createConstraintsSlice)(set, get, store)
+          const intermediateWallsSlice = immer(createIntermediateWallsSlice)(set, get, store)
 
           return {
             ...storeysSlice,
@@ -57,6 +60,7 @@ export const useModelStore = create<Store>()(
             ...roofsSlice,
             ...timestampsSlice,
             ...constraintsSlice,
+            ...intermediateWallsSlice,
             actions: {
               ...storeysSlice.actions,
               ...perimetersSlice.actions,
@@ -64,6 +68,7 @@ export const useModelStore = create<Store>()(
               ...roofsSlice.actions,
               ...timestampsSlice.actions,
               ...constraintsSlice.actions,
+              ...intermediateWallsSlice.actions,
               getBounds: (storeyId: StoreyId): Bounds2D => {
                 const { getPerimetersByStorey, getFloorAreasByStorey, getRoofsByStorey } = get().actions
 
@@ -166,6 +171,8 @@ function partializeState(state: Store): PartializedStoreState {
     _openingGeometry,
     _wallPostGeometry,
     _constraintsByEntity,
+    _intermediateWallGeometry,
+    _wallNodeGeometry,
     ...rest
   } = state
   return rest
@@ -182,11 +189,22 @@ function regeneratePartializedState(state: PartializedStoreState): void {
   restoredState._perimeterCornerGeometry = {}
   restoredState._openingGeometry = {}
   restoredState._wallPostGeometry = {}
+  restoredState._intermediateWallGeometry = {}
+  restoredState._wallNodeGeometry = {}
+
   for (const perimeterId of Object.keys(restoredState.perimeters)) {
     try {
       updatePerimeterGeometry(restoredState, perimeterId as PerimeterId)
     } catch (error) {
       console.error('Error updating perimeter geometry for perimeterId:', perimeterId, error)
+    }
+  }
+
+  for (const perimeterId of Object.keys(restoredState.perimeters)) {
+    try {
+      updateAllWallNodeGeometry(restoredState, perimeterId as PerimeterId)
+    } catch (error) {
+      console.error('Error updating intermediate wall geometry for perimeterId:', perimeterId, error)
     }
   }
 

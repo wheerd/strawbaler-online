@@ -5,6 +5,7 @@ import type { PerimeterId, PerimeterWallId, StoreyId } from '@/building/model/id
 import { createStoreyId, createWallAssemblyId } from '@/building/model/ids'
 import type { ConstraintsSlice } from '@/building/store/slices/constraintsSlice'
 import { createConstraintsSlice } from '@/building/store/slices/constraintsSlice'
+import { createIntermediateWallsSlice } from '@/building/store/slices/intermediateWallsSlice'
 import type { PerimetersSlice } from '@/building/store/slices/perimeterSlice'
 import { createPerimetersSlice } from '@/building/store/slices/perimeterSlice'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
@@ -40,14 +41,17 @@ function setupCombinedSlice() {
   const testStoreyId = createStoreyId()
 
   const perimeterSlice = createPerimetersSlice(mockSet, mockGet, mockStore)
+  const intermediateWallsSlice = createIntermediateWallsSlice(mockSet, mockGet, mockStore)
   const constraintsSlice = createConstraintsSlice(mockSet, mockGet, mockStore)
 
   const slice = {
     ...perimeterSlice,
+    ...intermediateWallsSlice,
     ...constraintsSlice,
     timestamps: {},
     actions: {
       ...perimeterSlice.actions,
+      ...intermediateWallsSlice.actions,
       ...constraintsSlice.actions
     }
   } as any as CombinedSlice

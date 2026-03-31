@@ -16,6 +16,7 @@ export type ToolId =
   | 'perimeter.split-wall'
   | 'roofs.add-roof'
   | 'test.data'
+  | 'intermediate-wall.add'
 
 export type CursorStyle =
   | 'default'

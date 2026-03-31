@@ -137,7 +137,8 @@ function createMockWall(
       end: newVec2(wallLength, thickness)
     },
     direction: newVec2(1, 0),
-    outsideDirection: newVec2(0, 1)
+    outsideDirection: newVec2(0, 1),
+    wallNodeIds: []
   }
 }
 

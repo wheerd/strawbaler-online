@@ -67,6 +67,7 @@ export function EditorToolbar(): React.JSX.Element {
           <ToolButton toolId="perimeter.add-opening" activeToolId={activeToolId} toolSystem={toolSystem} />
           <ToolButton toolId="perimeter.add-post" activeToolId={activeToolId} toolSystem={toolSystem} />
           <ToolButton toolId="perimeter.split-wall" activeToolId={activeToolId} toolSystem={toolSystem} />
+          <ToolButton toolId="intermediate-wall.add" activeToolId={activeToolId} toolSystem={toolSystem} />
 
           <Separator orientation="vertical" className="h-6" decorative={false} />
 

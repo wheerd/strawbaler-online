@@ -5,6 +5,7 @@ import type {
   OpeningType,
   PerimeterCorner,
   PerimeterCornerId,
+  PerimeterId,
   PerimeterWall,
   PerimeterWallId,
   RingBeamAssemblyId,
@@ -15,8 +16,6 @@ import type {
   WallPostId,
   WallPostType
 } from '@/building/model'
-import { updatePerimeterGeometry } from '@/building/store/slices/perimeterGeometry'
-import type { StoreState } from '@/building/store/types'
 import type { MaterialId } from '@/materials/types'
 import { type Polygon2D, newVec2 } from '@/shared/geometry'
 
@@ -61,10 +60,12 @@ export const migrateToVersion12: Migration = state => {
     const newWallPosts: Record<string, WallPost> = {}
 
     try {
+      const perimeters = Object.values(state.perimeters) as object[]
       // Process each perimeter
-      for (const perimeter of Object.values(state.perimeters)) {
+      for (const perimeter of perimeters) {
         if (!isRecord(perimeter)) continue
         if (typeof perimeter.id !== 'string') continue
+        if ('wallIds' in perimeter) return // Already migrated
 
         // Extract old structure
         const oldWalls: unknown[] = Array.isArray(perimeter.walls) ? perimeter.walls : []
@@ -126,7 +127,7 @@ export const migrateToVersion12: Migration = state => {
           // Create normalized corner
           newPerimeterCorners[cornerId] = {
             id: cornerId,
-            perimeterId: perimeter.id,
+            perimeterId: perimeter.id as PerimeterId,
             previousWallId,
             nextWallId,
             referencePoint,
@@ -163,7 +164,7 @@ export const migrateToVersion12: Migration = state => {
             newOpenings[openingId] = {
               id: openingId,
               type: 'opening',
-              perimeterId: perimeter.id,
+              perimeterId: perimeter.id as PerimeterId,
               wallId,
               openingType: (oldOpening.type ?? 'door') as OpeningType,
               centerOffsetFromWallStart:
@@ -189,7 +190,7 @@ export const migrateToVersion12: Migration = state => {
             newWallPosts[postId] = {
               id: postId,
               type: 'post',
-              perimeterId: perimeter.id,
+              perimeterId: perimeter.id as PerimeterId,
               wallId,
               postType: (oldPost.type ?? 'center') as WallPostType,
               centerOffsetFromWallStart:
@@ -208,10 +209,11 @@ export const migrateToVersion12: Migration = state => {
           // Create normalized wall
           const newWall: PerimeterWall = {
             id: wallId,
-            perimeterId: perimeter.id,
+            perimeterId: perimeter.id as PerimeterId,
             startCornerId,
             endCornerId,
             entityIds,
+            wallNodeIds: [],
             thickness,
             wallAssemblyId
           }
@@ -241,28 +243,9 @@ export const migrateToVersion12: Migration = state => {
 
       // Assign new normalized structures to state
       state.perimeterWalls = newPerimeterWalls
-      state._perimeterWallGeometry = {}
       state.perimeterCorners = newPerimeterCorners
-      state._perimeterCornerGeometry = {}
       state.openings = newOpenings
-      state._openingGeometry = {}
       state.wallPosts = newWallPosts
-      state._wallPostGeometry = {}
-      state._perimeterGeometry = {}
-
-      // Recalculate geometry for all perimeters
-      for (const perimeter of Object.values(state.perimeters)) {
-        if (!isRecord(perimeter)) continue
-        if (typeof perimeter.id !== 'string') continue
-
-        try {
-          // Cast state to PerimetersState for geometry calculation
-          updatePerimeterGeometry(state as unknown as StoreState, perimeter.id)
-        } catch (error) {
-          console.error(`Failed to recalculate geometry for perimeter ${perimeter.id}:`, error)
-          // Continue with other perimeters even if one fails
-        }
-      }
     } catch (error) {
       // If migration fails catastrophically, reset the store
       console.error('Migration to version 12 failed, resetting perimeter data:', error)

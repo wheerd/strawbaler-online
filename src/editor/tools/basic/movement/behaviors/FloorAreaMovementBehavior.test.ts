@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { FloorArea } from '@/building/model'
 import type { StoreActions } from '@/building/store/types'
-import { SnappingService } from '@/editor/canvas/services/SnappingService'
 import { type Vec2, copyVec2, newVec2 } from '@/shared/geometry'
 
 import { FloorAreaMovementBehavior, type FloorAreaMovementState } from './FloorAreaMovementBehavior'
@@ -50,8 +49,7 @@ describe('FloorAreaMovementBehavior', () => {
     entityId: floorArea.id,
     parentIds: [],
     entity: entityContext,
-    store: storeActions,
-    snappingService: new SnappingService()
+    store: storeActions
   } satisfies Parameters<typeof behavior.commitMovement>[1]
 
   it('commits movement by translating all points', () => {

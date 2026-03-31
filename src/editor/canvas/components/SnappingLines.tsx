@@ -6,11 +6,11 @@ import type { Line2D } from '@/shared/geometry'
 import { eqVec2, newVec2 } from '@/shared/geometry'
 
 interface SnappingLinesProps {
-  snapResult?: SnapResult | null
-  snapResults?: SnapResult[]
+  snapResult?: SnapResult<unknown> | null
+  snapResults?: SnapResult<unknown>[]
 }
 
-function deduplicateLines(lines: Line2D[]): Line2D[] {
+function deduplicateLines(lines: readonly Line2D[]): Line2D[] {
   const seen = new Set<string>()
   return lines.filter(line => {
     const key = `${line.point[0]},${line.point[1]},${line.direction[0]},${line.direction[1]}`
@@ -25,11 +25,11 @@ export function SnappingLines({ snapResult, snapResults }: SnappingLinesProps): 
   const stageWidth = useStageWidth()
   const stageHeight = useStageHeight()
 
-  const allResults: SnapResult[] = []
+  const allResults: SnapResult<unknown>[] = []
   if (snapResult) allResults.push(snapResult)
   if (snapResults) allResults.push(...snapResults)
 
-  const allLines = deduplicateLines(allResults.flatMap(r => r.lines ?? []))
+  const allLines = deduplicateLines(allResults.flatMap(r => (r.lines ? [...r.lines] : [])))
 
   if (allLines.length === 0) {
     return null

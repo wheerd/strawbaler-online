@@ -21,7 +21,6 @@ import type {
   WallPostWithGeometry
 } from '@/building/model'
 import type {
-  EntityId,
   OpeningId,
   PerimeterCornerId,
   PerimeterId,
@@ -30,6 +29,7 @@ import type {
   StoreyId,
   WallAssemblyId,
   WallEntityId,
+  WallNodeId,
   WallPostId
 } from '@/building/model/ids'
 import {
@@ -43,7 +43,6 @@ import {
 } from '@/building/model/ids'
 import { InvalidOperationError, NotFoundError } from '@/building/store/errors'
 import {
-  type ConstraintsState,
   applyMergedConstraintsDraft,
   captureConstraintsForMerge,
   handleWallSplitConstraintsDraft,
@@ -54,9 +53,11 @@ import {
   removeTimestampDraft,
   updateTimestampDraft
 } from '@/building/store/slices/timestampsSlice'
+import type { StoreState } from '@/building/store/types'
 import { type Length, type Polygon2D, type Vec2, addVec2, copyVec2, distVec2, scaleAddVec2 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
+import { cleanUpOrphaned } from './cleanup'
 import { updateEntityGeometry, updatePerimeterGeometry } from './perimeterGeometry'
 
 export interface PerimetersState {
@@ -187,7 +188,7 @@ export interface PerimetersActions {
 export type PerimetersSlice = PerimetersState & { actions: PerimetersActions }
 
 export const createPerimetersSlice: StateCreator<
-  PerimetersSlice & TimestampsState & ConstraintsState,
+  PerimetersSlice & StoreState,
   [['zustand/immer', never]],
   [],
   PerimetersSlice
@@ -253,7 +254,8 @@ export const createPerimetersSlice: StateCreator<
           endCornerId: cornerIds[(i + 1) % n],
           thickness: wallThickness,
           wallAssemblyId,
-          entityIds: []
+          entityIds: [],
+          wallNodeIds: []
         }))
 
         const perimeter = {
@@ -453,7 +455,8 @@ export const createPerimetersSlice: StateCreator<
           wallAssemblyId: wall.wallAssemblyId,
           baseRingBeamAssemblyId: wall.baseRingBeamAssemblyId,
           topRingBeamAssemblyId: wall.topRingBeamAssemblyId,
-          entityIds: secondWallEntities.map(e => e.id)
+          entityIds: secondWallEntities.map(e => e.id),
+          wallNodeIds: []
         }
 
         // Insert new corner at the correct position
@@ -481,8 +484,30 @@ export const createPerimetersSlice: StateCreator<
           }
         }
 
+        // Distribute wall nodes between the two halves
+        const firstWallNodeIds: WallNodeId[] = []
+        const secondWallNodeIds: WallNodeId[] = []
+        const iwSplit = state
+        for (const nodeId of wall.wallNodeIds) {
+          const node = iwSplit.wallNodes[nodeId]
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-optional-chain
+          if (node && node.type === 'perimeter') {
+            if (node.offsetFromCornerStart < splitPosition) {
+              firstWallNodeIds.push(nodeId)
+            } else {
+              node.wallId = newWallId
+              node.offsetFromCornerStart -= splitPosition
+              secondWallNodeIds.push(nodeId)
+            }
+          } else {
+            firstWallNodeIds.push(nodeId)
+          }
+        }
+        wall.wallNodeIds = firstWallNodeIds
+        newWall.wallNodeIds = secondWallNodeIds
+
         // Recalculate geometry
-        cleanUpOrphaned(state)
+        cleanUpOrphaned(state as StoreState)
         updatePerimeterGeometry(state, wall.perimeterId)
 
         // Transfer constraints from the original wall to the split halves
@@ -1141,11 +1166,7 @@ export const createPerimetersSlice: StateCreator<
 })
 
 // Helper to remove a corner and merge adjacent walls
-const removeCornerAndMergeWalls = (
-  state: PerimetersSlice & TimestampsState & ConstraintsState,
-  perimeter: Perimeter,
-  corner: PerimeterCorner
-): void => {
+const removeCornerAndMergeWalls = (state: StoreState, perimeter: Perimeter, corner: PerimeterCorner): void => {
   // Get wall properties for merging
   const wall1 = state.perimeterWalls[corner.previousWallId]
   const wall2 = state.perimeterWalls[corner.nextWallId]
@@ -1164,8 +1185,10 @@ const removeCornerAndMergeWalls = (
 
   // Check if corner is exactly straight (180°) to preserve openings
   let entityIds: WallEntityId[] = []
+  let wallNodeIds: WallNodeId[] = []
   if (isColinear) {
     entityIds = [...wall1.entityIds, ...wall2.entityIds]
+    wallNodeIds = [...wall1.wallNodeIds, ...wall2.wallNodeIds]
     for (const id of wall1.entityIds) {
       const entity = isOpeningId(id) ? state.openings[id] : state.wallPosts[id]
       entity.wallId = mergedId
@@ -1176,6 +1199,19 @@ const removeCornerAndMergeWalls = (
       entity.wallId = mergedId
       entity.centerOffsetFromWallStart += wall1Geometry.wallLength
     }
+    for (const nodeId of wall1.wallNodeIds) {
+      const node = state.wallNodes[nodeId]
+      if (node.type === 'perimeter') {
+        node.wallId = mergedId
+      }
+    }
+    for (const nodeId of wall2.wallNodeIds) {
+      const node = state.wallNodes[nodeId]
+      if (node.type === 'perimeter') {
+        node.wallId = mergedId
+        node.offsetFromCornerStart += wall1Geometry.wallLength
+      }
+    }
   }
 
   const mergedWall: PerimeterWall = {
@@ -1185,7 +1221,8 @@ const removeCornerAndMergeWalls = (
     endCornerId: wall2.endCornerId,
     thickness: mergedThickness,
     wallAssemblyId: wall1.wallAssemblyId,
-    entityIds
+    entityIds,
+    wallNodeIds
   }
 
   perimeter.cornerIds = perimeter.cornerIds.filter(id => id !== corner.id)
@@ -1216,10 +1253,7 @@ const removeCornerAndMergeWalls = (
 }
 
 // Helper to remove a wall and merge the adjacent walls
-const removeWallAndMergeAdjacent = (
-  state: PerimetersSlice & TimestampsState & ConstraintsState,
-  wall: PerimeterWall
-): void => {
+const removeWallAndMergeAdjacent = (state: StoreState, wall: PerimeterWall): void => {
   const perimeter = state.perimeters[wall.perimeterId]
   const startCorner = state.perimeterCorners[wall.startCornerId]
   const endCorner = state.perimeterCorners[wall.endCornerId]
@@ -1249,7 +1283,8 @@ const removeWallAndMergeAdjacent = (
     endCornerId: newEndCorner.id,
     thickness: mergedThickness,
     wallAssemblyId: prevWall.wallAssemblyId,
-    entityIds: [] // Entities are deleted
+    entityIds: [],
+    wallNodeIds: []
   }
   state.perimeterWalls[mergedWall.id] = mergedWall
 
@@ -1281,6 +1316,7 @@ const removeWallAndMergeAdjacent = (
  * Calculate valid placement range for posts, including corner extensions
  * Returns [minOffset, maxOffset]
  */
+
 const getWallPostPlacementBounds = (
   state: PerimetersSlice & TimestampsState,
   wallId: PerimeterWallId
@@ -1421,60 +1457,6 @@ const validatePostOnWall = (
     bounds.maxOffset,
     excludedPost
   )
-}
-
-function cleanUpOrphaned(state: PerimetersSlice & TimestampsState & ConstraintsState) {
-  // Track IDs of entities to delete for timestamp cleanup
-  const entityIdsToRemove: EntityId[] = []
-
-  // Track valid wall IDs while cleaning up walls
-  const validWallIds = new Set<string>()
-  for (const wall of Object.values(state.perimeterWalls)) {
-    if (!(wall.perimeterId in state.perimeters) || !state.perimeters[wall.perimeterId].wallIds.includes(wall.id)) {
-      delete state.perimeterWalls[wall.id]
-      delete state._perimeterWallGeometry[wall.id]
-      entityIdsToRemove.push(wall.id)
-      removeConstraintsForEntityDraft(state, wall.id)
-    } else {
-      validWallIds.add(wall.id)
-    }
-  }
-
-  // Clean up orphaned corners
-  for (const corner of Object.values(state.perimeterCorners)) {
-    if (
-      !(corner.perimeterId in state.perimeters) ||
-      !state.perimeters[corner.perimeterId].cornerIds.includes(corner.id)
-    ) {
-      delete state.perimeterCorners[corner.id]
-      delete state._perimeterCornerGeometry[corner.id]
-      entityIdsToRemove.push(corner.id)
-      removeConstraintsForEntityDraft(state, corner.id)
-    }
-  }
-
-  // Clean up orphaned openings
-  for (const opening of Object.values(state.openings)) {
-    if (!validWallIds.has(opening.wallId) || !state.perimeterWalls[opening.wallId].entityIds.includes(opening.id)) {
-      delete state.openings[opening.id]
-      delete state._openingGeometry[opening.id]
-      entityIdsToRemove.push(opening.id)
-    }
-  }
-
-  // Clean up orphaned posts
-  for (const post of Object.values(state.wallPosts)) {
-    if (!validWallIds.has(post.wallId) || !state.perimeterWalls[post.wallId].entityIds.includes(post.id)) {
-      delete state.wallPosts[post.id]
-      delete state._wallPostGeometry[post.id]
-      entityIdsToRemove.push(post.id)
-    }
-  }
-
-  // Clean up orphaned timestamps if actions are provided
-  if (entityIdsToRemove.length > 0) {
-    removeTimestampDraft(state, ...entityIdsToRemove)
-  }
 }
 
 function findNearestValidWallEntityPosition(

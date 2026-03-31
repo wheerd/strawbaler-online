@@ -8,6 +8,7 @@ const OPENING_ID_PREFIX = 'opening_'
 const POST_ID_PREFIX = 'post_'
 const RING_BEAM_ID_PREFIX = 'ringbeam_'
 const WALL_ASSEMBLY_ID_PREFIX = 'wa_'
+const INTERIOR_WALL_ASSEMBLY_ID_PREFIX = 'iwa_'
 const FLOOR_ASSEMBLY_ID_PREFIX = 'fa_'
 const ROOF_ASSEMBLY_ID_PREFIX = 'ra_'
 const OPENING_ASSEMBLY_ID_PREFIX = 'oa_'
@@ -44,6 +45,7 @@ export type EntityId =
   | PerimeterWallId
   | PerimeterCornerId
   | IntermediateWallId
+  | WallNodeId
   | OpeningId
   | WallPostId
   | FloorAreaId
@@ -56,6 +58,7 @@ export type LayerSetId = `${typeof LAYER_SET_ID_PREFIX}${string}`
 export type AssemblyId =
   | RingBeamAssemblyId
   | WallAssemblyId
+  | InteriorWallAssemblyId
   | FloorAssemblyId
   | RoofAssemblyId
   | OpeningAssemblyId
@@ -72,9 +75,9 @@ export type SelectableId =
   | RoofId
   | RoofOverhangId
   | ConstraintId
-// | RoomId
-// | WallNodeId
-// | IntermediateWallId
+  // | RoomId
+  | WallNodeId
+  | IntermediateWallId
 
 // Config ids
 export type RingBeamAssemblyId = `${typeof RING_BEAM_ID_PREFIX}${string}`
@@ -82,7 +85,7 @@ export type WallAssemblyId = `${typeof WALL_ASSEMBLY_ID_PREFIX}${string}`
 export type FloorAssemblyId = `${typeof FLOOR_ASSEMBLY_ID_PREFIX}${string}`
 export type RoofAssemblyId = `${typeof ROOF_ASSEMBLY_ID_PREFIX}${string}`
 export type OpeningAssemblyId = `${typeof OPENING_ASSEMBLY_ID_PREFIX}${string}`
-
+export type InteriorWallAssemblyId = `${typeof INTERIOR_WALL_ASSEMBLY_ID_PREFIX}${string}`
 // ID generation helpers
 export const createStoreyId = (): StoreyId => createId(STOREY_ID_PREFIX)
 export const createPerimeterId = (): PerimeterId => createId(PERIMETER_ID_PREFIX)
@@ -108,6 +111,7 @@ export const createFloorAssemblyId = (): FloorAssemblyId => createId(FLOOR_ASSEM
 export const createRoofAssemblyId = (): RoofAssemblyId => createId(ROOF_ASSEMBLY_ID_PREFIX)
 export const createOpeningAssemblyId = (): OpeningAssemblyId => createId(OPENING_ASSEMBLY_ID_PREFIX)
 export const createLayerSetId = (): LayerSetId => createId(LAYER_SET_ID_PREFIX)
+export const createInteriorWallAssemblyId = (): InteriorWallAssemblyId => createId(INTERIOR_WALL_ASSEMBLY_ID_PREFIX)
 
 // Default floor construction config ID constant
 export const DEFAULT_FLOOR_ASSEMBLY_ID = 'fa_clt_default' as FloorAssemblyId
@@ -126,7 +130,7 @@ export const isOpeningId = (id: string): id is OpeningId => id.startsWith(OPENIN
 export const isWallPostId = (id: string): id is WallPostId => id.startsWith(POST_ID_PREFIX)
 export const isRoofOverhangId = (id: string): id is RoofOverhangId => id.startsWith(ROOF_OVERHANG_ID_PREFIX)
 export const isConstraintId = (id: string): id is ConstraintId => id.startsWith(CONSTRAINT_ID_PREFIX)
-export const isRoomId = (id: string): id is RoomId => id.startsWith(ROOF_ID_PREFIX)
+export const isRoomId = (id: string): id is RoomId => id.startsWith(ROOM_ID_PREFIX)
 export const isWallNodeId = (id: string): id is WallNodeId => id.startsWith(WALL_NODE_ID_PREFIX)
 export const isIntermediateWallId = (id: string): id is IntermediateWallId => id.startsWith(INTERMEDIATE_WALL_ID_PREFIX)
 
@@ -137,6 +141,8 @@ export const isFloorAssemblyId = (id: string): id is FloorAssemblyId => id.start
 export const isRoofAssemblyId = (id: string): id is RoofAssemblyId => id.startsWith(ROOF_ASSEMBLY_ID_PREFIX)
 export const isOpeningAssemblyId = (id: string): id is OpeningAssemblyId => id.startsWith(OPENING_ASSEMBLY_ID_PREFIX)
 export const isLayerSetId = (id: string): id is LayerSetId => id.startsWith(LAYER_SET_ID_PREFIX)
+export const isInteriorWallAssemblyId = (id: string): id is InteriorWallAssemblyId =>
+  id.startsWith(INTERIOR_WALL_ASSEMBLY_ID_PREFIX)
 
 // Entity type definitions for hit testing
 export type EntityType =
@@ -145,9 +151,9 @@ export type EntityType =
   | 'perimeter-corner'
   | 'opening'
   | 'wall-post'
-  // | 'intermediate-wall'
+  | 'intermediate-wall'
   // | 'room'
-  // | 'wall-node'
+  | 'wall-node'
   | 'floor-area'
   | 'floor-opening'
   | 'roof'
