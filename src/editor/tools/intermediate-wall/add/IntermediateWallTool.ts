@@ -352,6 +352,7 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
     this.resetContext()
     this.setupContext()
     deactivateLengthInput()
+    this.triggerRender()
   }
 
   public complete(snapEntity?: SnapEntityId): void {
@@ -365,6 +366,7 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
 
     this.resetDrawingState()
     deactivateLengthInput()
+    this.triggerRender()
   }
 
   public getPreviewPosition(): Vec2 {
@@ -383,6 +385,19 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
     return this.snappingService.findSnapResult(target) ?? undefined
   }
 
+  private resolveEntityToWallIds(entityId: SnapEntityId | undefined): Set<WallId> {
+    if (!entityId) return new Set()
+    if (isWallNodeId(entityId)) {
+      const node = getModelActions().getWallNodeById(entityId)
+      const wallIds = new Set<WallId>(node.connectedWallIds)
+      if (node.type === 'perimeter') {
+        wallIds.add(node.wallId)
+      }
+      return wallIds
+    }
+    return new Set<WallId>([entityId])
+  }
+
   private checkValidation(): boolean {
     const isInsideValidationPolygons = Object.values(this.validationPolygons).some(polygon =>
       isPointInPolygon(this.state.pointer, polygon)
@@ -394,11 +409,14 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
     if (this.state.points.length > 0) {
       const lastPoint = this.state.points[this.state.points.length - 1]
       const currentPos = this.state.snapResult?.position ?? this.state.pointer
-      const snapEntityId = this.state.snapResult?.meta
+      const snapMeta = this.state.snapResult?.meta
+      const snapEntityId = snapMeta !== 'origin' ? snapMeta : undefined
+      const snapWallIds = this.resolveEntityToWallIds(snapEntityId)
+      const startWallIds = this.resolveEntityToWallIds(this.state.startEntity)
       const segmentToValidate = { start: lastPoint, end: currentPos }
       for (const [entityId, lines] of Object.entries(this.validationLines)) {
-        if (entityId === snapEntityId) continue
-        if (this.state.points.length === 1 && this.state.startEntity === entityId) continue
+        if (snapWallIds.has(entityId as WallId)) continue
+        if (this.state.points.length === 1 && startWallIds.has(entityId as WallId)) continue
         for (const line of lines) {
           if (segmentsIntersect(segmentToValidate.start, segmentToValidate.end, line.start, line.end)) {
             return false

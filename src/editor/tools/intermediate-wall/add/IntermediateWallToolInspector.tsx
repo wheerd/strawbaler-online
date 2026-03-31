@@ -1,7 +1,7 @@
 import * as Label from '@radix-ui/react-label'
 import { Info, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 
 import { useReactiveTool } from '@/editor/tools/system/hooks/useReactiveTool'
 import type { ToolInspectorProps } from '@/editor/tools/system/types'
@@ -130,32 +130,26 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
           <span className="text-muted-foreground text-xs">• {t($ => $.intermediateWall.controlNumbers)}</span>
           {state.lengthOverride ? (
             <span className="text-muted-foreground text-xs">
-              • <Kbd size="sm">{t($ => $.keyboard.esc)}</Kbd>{' '}
-              {t($ => $.intermediateWall.controlEscOverride, {
-                key: ''
-              })
-                .replace('{{key}}', '')
-                .trim()}
+              •{' '}
+              <Trans ns="tool" i18nKey={$ => $.intermediateWall.controlEscOverride} components={{ kbd: <Kbd /> }}>
+                <Kbd size="sm">Escape</Kbd> to cancel length override
+              </Trans>
             </span>
           ) : (
             <span className="text-muted-foreground text-xs">
-              • <Kbd size="sm">{t($ => $.keyboard.esc)}</Kbd>{' '}
-              {t($ => $.intermediateWall.controlEscAbort, {
-                key: ''
-              })
-                .replace('{{key}}', '')
-                .trim()}
+              •{' '}
+              <Trans ns="tool" i18nKey={$ => $.intermediateWall.controlEscAbort} components={{ kbd: <Kbd /> }}>
+                <Kbd size="sm">Escape</Kbd> to cancel wall
+              </Trans>
             </span>
           )}
-          {state.points.length >= 3 && (
+          {state.points.length >= 2 && (
             <>
               <span className="text-muted-foreground text-xs">
-                • <Kbd size="sm">{t($ => $.keyboard.enter)}</Kbd>{' '}
-                {t($ => $.intermediateWall.controlEnter, {
-                  key: ''
-                })
-                  .replace('{{key}}', '')
-                  .trim()}
+                •{' '}
+                <Trans ns="tool" i18nKey={$ => $.intermediateWall.controlEnter} components={{ kbd: <Kbd size="sm" /> }}>
+                  <Kbd size="sm">Enter</Kbd> to complete wall
+                </Trans>
               </span>
               <span className="text-muted-foreground text-xs">• {t($ => $.intermediateWall.controlClickFirst)}</span>
             </>
@@ -167,7 +161,7 @@ export function IntermediateWallToolInspector({ tool }: ToolInspectorProps<Inter
           <>
             <Separator />
             <div className="flex flex-col gap-2">
-              {state.points.length >= 3 && (
+              {state.points.length >= 2 && (
                 <Button
                   size="sm"
                   className="w-full bg-green-600 hover:bg-green-700"
