@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { NotFoundError } from '@/building/store/errors'
+import { newVec2 } from '@/shared/geometry'
 
 import {
   expectConsistentIntermediateWallReferences,
@@ -14,7 +15,7 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const result = state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+      const result = state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
 
       expect(result.type).toBe('inner')
       expect(result.position[0]).toBeCloseTo(3000, 0)
@@ -29,9 +30,7 @@ describe('intermediateWallsSlice', () => {
     it('should throw NotFoundError for non-existent perimeter', () => {
       const { state } = setupIntermediateWallsSlice()
 
-      expect(() => state.actions.addInnerWallNode('perimeter_nonexistent' as any, { 0: 0, 1: 0 } as any)).toThrow(
-        NotFoundError
-      )
+      expect(() => state.actions.addInnerWallNode('perimeter_nonexistent' as any, newVec2(0, 0))).toThrow(NotFoundError)
     })
   })
 
@@ -73,8 +72,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
 
       const wall = state.actions.addIntermediateWall(
         perimeterId,
@@ -116,7 +115,7 @@ describe('intermediateWallsSlice', () => {
     it('should throw NotFoundError for non-existent node', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
 
-      const nodeA = state.actions.addInnerWallNode(perimeterData.perimeterId, { 0: 2000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(2000, 2500))
 
       expect(() =>
         state.actions.addIntermediateWall(
@@ -132,8 +131,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
 
       expect(() =>
         state.actions.addIntermediateWall(
@@ -160,8 +159,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -182,8 +181,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -205,9 +204,9 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 5000, 1: 2500 } as any)
-      const nodeC = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(5000, 2500))
+      const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
 
       const wall1 = state.actions.addIntermediateWall(
         perimeterId,
@@ -242,9 +241,9 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 5000, 1: 2500 } as any)
-      const nodeC = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(5000, 2500))
+      const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
 
       const wall1 = state.actions.addIntermediateWall(
         perimeterId,
@@ -273,8 +272,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -301,8 +300,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -321,8 +320,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -351,8 +350,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -360,7 +359,7 @@ describe('intermediateWallsSlice', () => {
         120
       )
 
-      const newNodeId = state.actions.splitIntermediateWallAtPoint(wall.id, { 0: 5000, 1: 2500 } as any)
+      const newNodeId = state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(5000, 2500))
 
       expect(state.intermediateWalls[wall.id]).toBeUndefined()
       expect(state._intermediateWallGeometry[wall.id]).toBeUndefined()
@@ -396,8 +395,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -407,7 +406,7 @@ describe('intermediateWallsSlice', () => {
 
       state.intermediateWalls[wall.id].wallAssemblyId = 'iwa_test' as any
 
-      state.actions.splitIntermediateWallAtPoint(wall.id, { 0: 5000, 1: 2500 } as any)
+      state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(5000, 2500))
 
       const remainingWalls = state.perimeters[perimeterId].intermediateWallIds.filter(id => id !== wall.id)
       const wallA = state.intermediateWalls[remainingWalls[0]]
@@ -421,8 +420,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -430,7 +429,7 @@ describe('intermediateWallsSlice', () => {
         120
       )
 
-      state.actions.splitIntermediateWallAtPoint(wall.id, { 0: 4000, 1: 2500 } as any)
+      state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(4000, 2500))
 
       const remainingWalls = state.perimeters[perimeterId].intermediateWallIds.filter(id => id !== wall.id)
       const geoA = state._intermediateWallGeometry[remainingWalls[0]]
@@ -444,7 +443,7 @@ describe('intermediateWallsSlice', () => {
       const { state } = setupIntermediateWallsSlice()
 
       expect(() =>
-        state.actions.splitIntermediateWallAtPoint('intermediate_nonexistent' as any, { 0: 0, 1: 0 } as any)
+        state.actions.splitIntermediateWallAtPoint('intermediate_nonexistent' as any, newVec2(0, 0))
       ).toThrow(NotFoundError)
     })
 
@@ -452,8 +451,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -461,7 +460,7 @@ describe('intermediateWallsSlice', () => {
         120
       )
 
-      const newNodeId = state.actions.splitIntermediateWallAtPoint(wall.id, { 0: 5000, 1: 2500 } as any)
+      const newNodeId = state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(5000, 2500))
 
       expect(state.perimeters[perimeterId].wallNodeIds).toContain(newNodeId)
     })
@@ -472,8 +471,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -481,7 +480,7 @@ describe('intermediateWallsSlice', () => {
         120
       )
 
-      state.actions.updateInnerWallNodePosition(nodeA.id, { 0: 3000, 1: 2500 } as any)
+      state.actions.updateInnerWallNodePosition(nodeA.id, newVec2(3000, 2500))
 
       expect((state.wallNodes[nodeA.id] as any).position[0]).toBeCloseTo(3000, 0)
       const geo = state._intermediateWallGeometry[wall.id]
@@ -492,7 +491,7 @@ describe('intermediateWallsSlice', () => {
       const { state } = setupIntermediateWallsSlice()
 
       expect(() => {
-        state.actions.updateInnerWallNodePosition('wallnode_nonexistent' as any, { 0: 0, 1: 0 } as any)
+        state.actions.updateInnerWallNodePosition('wallnode_nonexistent' as any, newVec2(0, 0))
       }).toThrow(NotFoundError)
     })
 
@@ -503,7 +502,7 @@ describe('intermediateWallsSlice', () => {
       const node = state.actions.addPerimeterWallNode(perimeterId, wallIds[0], 3000)
 
       expect(() => {
-        state.actions.updateInnerWallNodePosition(node.id, { 0: 0, 1: 0 } as any)
+        state.actions.updateInnerWallNodePosition(node.id, newVec2(0, 0))
       }).toThrow('Cannot update position of perimeter wall node')
     })
   })
@@ -514,7 +513,7 @@ describe('intermediateWallsSlice', () => {
       const { perimeterId, wallIds } = perimeterData
 
       const perimeterNode = state.actions.addPerimeterWallNode(perimeterId, wallIds[0], 3000)
-      const innerNode = state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+      const innerNode = state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: perimeterNode.id, axis: 'center' },
@@ -540,7 +539,7 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const node = state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+      const node = state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
 
       expect(() => {
         state.actions.updatePerimeterWallNodeOffset(node.id, 1000)
@@ -553,9 +552,9 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 5000, 1: 2500 } as any)
-      const nodeC = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(5000, 2500))
+      const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
 
       const wall1 = state.actions.addIntermediateWall(
         perimeterId,
@@ -594,8 +593,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -623,9 +622,9 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 5000, 1: 2500 } as any)
-      const nodeC = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(5000, 2500))
+      const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
 
       state.actions.addIntermediateWall(
         perimeterId,
@@ -652,8 +651,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
 
       state.actions.addIntermediateWall(
         perimeterId,
@@ -676,7 +675,7 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const node = state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+      const node = state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
 
       const result = state.actions.getWallNodeById(node.id)
 
@@ -709,7 +708,7 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId, wallIds } = perimeterData
 
-      state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+      state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
       state.actions.addPerimeterWallNode(perimeterId, wallIds[0], 5000)
 
       const nodes = state.actions.getAllWallNodes()
@@ -720,7 +719,7 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId, wallIds } = perimeterData
 
-      state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+      state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
       state.actions.addPerimeterWallNode(perimeterId, wallIds[0], 5000)
 
       const nodes = state.actions.getWallNodesByPerimeter(perimeterId)
@@ -739,8 +738,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -757,8 +756,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -766,7 +765,7 @@ describe('intermediateWallsSlice', () => {
         120
       )
 
-      state.actions.splitIntermediateWallAtPoint(wall.id, { 0: 5000, 1: 2500 } as any)
+      state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(5000, 2500))
 
       expectConsistentIntermediateWallReferences(state, perimeterId)
       expectNoOrphanedIntermediateEntities(state)
@@ -776,8 +775,8 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
-      const nodeA = state.actions.addInnerWallNode(perimeterId, { 0: 2000, 1: 2500 } as any)
-      const nodeB = state.actions.addInnerWallNode(perimeterId, { 0: 8000, 1: 2500 } as any)
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: nodeA.id, axis: 'center' },
@@ -785,7 +784,7 @@ describe('intermediateWallsSlice', () => {
         120
       )
 
-      state.actions.updateInnerWallNodePosition(nodeA.id, { 0: 3000, 1: 2500 } as any)
+      state.actions.updateInnerWallNodePosition(nodeA.id, newVec2(3000, 2500))
 
       expectConsistentIntermediateWallReferences(state, perimeterId)
       expectNoOrphanedIntermediateEntities(state)
@@ -811,7 +810,7 @@ describe('intermediateWallsSlice', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId, wallIds } = perimeterData
 
-      const node = state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+      const node = state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
 
       for (const wallId of wallIds) {
         expect(state.perimeterWalls[wallId].wallNodeIds).not.toContain(node.id)
@@ -836,7 +835,7 @@ describe('intermediateWallsSlice', () => {
       const { perimeterId, wallIds } = perimeterData
 
       const perimNode = state.actions.addPerimeterWallNode(perimeterId, wallIds[0], 3000)
-      const innerNode = state.actions.addInnerWallNode(perimeterId, { 0: 3000, 1: 2500 } as any)
+      const innerNode = state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
       state.actions.addIntermediateWall(
         perimeterId,
         { nodeId: perimNode.id, axis: 'center' },

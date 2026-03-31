@@ -245,7 +245,14 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
         const halfThickness = wall.thickness / 2
         this.snappingService.addSnapCandidate({
           type: 'segment',
-          segment: wall.centerLine,
+          segment: wall.leftLine,
+          minDistance: halfThickness,
+          meta: wall.id,
+          priority: 1
+        })
+        this.snappingService.addSnapCandidate({
+          type: 'segment',
+          segment: wall.rightLine,
           minDistance: halfThickness,
           meta: wall.id,
           priority: 1

@@ -29,6 +29,7 @@ import {
   normVec2,
   perpendicularCCW,
   perpendicularCW,
+  projectPointOntoLine,
   projectVec2,
   scaleAddVec2,
   scaleVec2,
@@ -57,9 +58,13 @@ export function updateAllWallNodeGeometry(
       const connectedWallLines = node.connectedWallIds
         .map(wallId => {
           const lines = wallLines.get(wallId)
-          return lines ? { wallId, ...lines } : null
+          const wall = state.intermediateWalls[wallId]
+          if (!lines) return null
+          const left = wall.start.nodeId === node.id ? lines.left : lines.right
+          const right = wall.start.nodeId === node.id ? lines.right : lines.left
+          return { wallId, left, right }
         })
-        .filter((item): item is { wallId: IntermediateWallId; left: Line2D; right: Line2D } => item !== null)
+        .filter(item => item != null)
 
       let points: Vec2[]
       if (connectedWallLines.length === 0) {
@@ -148,8 +153,8 @@ function updateComplexCorner(
         throw new Error(`Node position not found for node ${node.id}`)
       }
 
-      aPos = scaleAddVec2(a.point, a.direction, projectVec2(a.point, nodePos, a.direction))
-      bPos = scaleAddVec2(b.point, b.direction, projectVec2(b.point, nodePos, b.direction))
+      aPos = projectPointOntoLine(nodePos, a)
+      bPos = projectPointOntoLine(nodePos, b)
     } else {
       const intersection = lineIntersection(a, b)
       if (!intersection) {
@@ -171,7 +176,7 @@ function updateComplexCorner(
     if (wallA.start.nodeId === node.id) {
       geometryA.rightLine.start = aPos
     } else {
-      geometryA.rightLine.end = aPos
+      geometryA.leftLine.end = aPos
     }
 
     const wallBId = connectedWallLines[iNext].wallId
@@ -180,7 +185,7 @@ function updateComplexCorner(
     if (wallB.start.nodeId === node.id) {
       geometryB.leftLine.start = bPos
     } else {
-      geometryB.leftLine.end = bPos
+      geometryB.rightLine.end = bPos
     }
   }
   return points
@@ -214,8 +219,8 @@ function updateSimpleCorner(
       geometryA.leftLine.start = aLeft
       geometryA.rightLine.start = aRight
     } else {
-      geometryA.leftLine.end = aLeft
-      geometryA.rightLine.end = aRight
+      geometryA.leftLine.end = aRight
+      geometryA.rightLine.end = aLeft
     }
     const aDir = wallA.start.nodeId === node.id ? negVec2(a.left.direction) : a.left.direction
     const p1 = scaleAddVec2(aLeft, aDir, COLINEAR_POINT_OFFSET)
@@ -259,8 +264,8 @@ function updateSimpleCorner(
       geometryA.leftLine.start = i2
       geometryA.rightLine.start = i4
     } else {
-      geometryA.leftLine.end = i2
-      geometryA.rightLine.end = i4
+      geometryA.rightLine.end = i2
+      geometryA.leftLine.end = i4
     }
 
     const wallB = state.intermediateWalls[b.wallId]
@@ -301,8 +306,8 @@ function updateWallEnd(
     geometry.leftLine.start = left
     geometry.rightLine.start = right
   } else {
-    geometry.leftLine.end = left
-    geometry.rightLine.end = right
+    geometry.rightLine.end = left
+    geometry.leftLine.end = right
   }
 
   // TODO: Properly handle single wall case by creating a rectangle based on the wall line and node position

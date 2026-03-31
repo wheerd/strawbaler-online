@@ -22,7 +22,7 @@ import { removeConstraintsForEntityDraft } from '@/building/store/slices/constra
 import { removeTimestampDraft, updateTimestampDraft } from '@/building/store/slices/timestampsSlice'
 import type { StoreState } from '@/building/store/types'
 import type { Length, Vec2 } from '@/shared/geometry'
-import { copyVec2 } from '@/shared/geometry'
+import { copyVec2, lineFromSegment, projectPointOntoLine } from '@/shared/geometry'
 
 import { updateAllWallNodeGeometry } from './intermediateWallGeometry'
 
@@ -249,7 +249,10 @@ export const createIntermediateWallsSlice: StateCreator<
         }
 
         const originalWall = state.intermediateWalls[wallId]
+        const originalGeometry = state._intermediateWallGeometry[wallId]
         const perimeter = state.perimeters[originalWall.perimeterId]
+
+        const projectedPoint = projectPointOntoLine(point, lineFromSegment(originalGeometry.leftLine))
 
         const wallAId = createIntermediateWallId()
         const wallBId = createIntermediateWallId()
@@ -258,7 +261,7 @@ export const createIntermediateWallsSlice: StateCreator<
           id: newNodeIdInner,
           perimeterId: originalWall.perimeterId,
           type: 'inner',
-          position: copyVec2(point),
+          position: projectedPoint,
           connectedWallIds: [wallAId, wallBId]
         }
         state.wallNodes[newNodeIdInner] = newNode
@@ -269,7 +272,7 @@ export const createIntermediateWallsSlice: StateCreator<
           perimeterId: originalWall.perimeterId,
           openingIds: [],
           start: originalWall.start,
-          end: { nodeId: newNodeIdInner, axis: originalWall.start.axis },
+          end: { nodeId: newNodeIdInner, axis: 'left' },
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId
         }
@@ -278,7 +281,7 @@ export const createIntermediateWallsSlice: StateCreator<
           id: wallBId,
           perimeterId: originalWall.perimeterId,
           openingIds: [],
-          start: { nodeId: newNodeIdInner, axis: originalWall.end.axis },
+          start: { nodeId: newNodeIdInner, axis: 'left' },
           end: originalWall.end,
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId
