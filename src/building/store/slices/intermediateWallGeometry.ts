@@ -324,6 +324,19 @@ function updatePerimeterNode(
   const wallGeometry = state._perimeterWallGeometry[node.wallId]
   const start = wallGeometry.insideLine.start
 
+  const nodePos = nodePositions.get(node.id)
+  if (!nodePos) {
+    throw new Error(`Node position not found for perimeter wall node ${node.id}`)
+  }
+
+  if (node.connectedWallIds.length === 0) {
+    state._wallNodeGeometry[node.id] = {
+      position: nodePos,
+      center: nodePos
+    }
+    return
+  }
+
   let minOffset = Infinity
   let maxOffset = -Infinity
   for (const wallId of node.connectedWallIds) {
@@ -360,11 +373,6 @@ function updatePerimeterNode(
   const maxInside = scaleAddVec2(start, wallGeometry.direction, maxOffset)
   const minOutside = scaleAddVec2(minInside, wallGeometry.outsideDirection, wall.thickness)
   const maxOutside = scaleAddVec2(maxInside, wallGeometry.outsideDirection, wall.thickness)
-
-  const nodePos = nodePositions.get(node.id)
-  if (!nodePos) {
-    throw new Error(`Node position not found for perimeter wall node ${node.id}`)
-  }
 
   const newGeometry: PerimeterWallNodeGeometry = {
     position: nodePos,

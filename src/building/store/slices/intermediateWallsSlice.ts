@@ -104,11 +104,11 @@ export const createIntermediateWallsSlice: StateCreator<
         state.intermediateWalls[wallId] = wall
         perimeter.intermediateWallIds.push(wallId)
 
-        if (!(start.nodeId in state.wallNodes)) {
+        if (!(start.nodeId in state.wallNodes) || state.wallNodes[start.nodeId].perimeterId !== perimeterId) {
           throw new NotFoundError('Wall node', start.nodeId)
         }
         state.wallNodes[start.nodeId].connectedWallIds.push(wallId)
-        if (!(end.nodeId in state.wallNodes)) {
+        if (!(end.nodeId in state.wallNodes) || state.wallNodes[end.nodeId].perimeterId !== perimeterId) {
           throw new NotFoundError('Wall node', end.nodeId)
         }
         state.wallNodes[end.nodeId].connectedWallIds.push(wallId)
