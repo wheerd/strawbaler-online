@@ -14,15 +14,15 @@ import type {
   WallNodeGeometry,
   WallNodeWithGeometry
 } from '@/building/model'
-import type { IntermediateWallId, PerimeterId, PerimeterWallId, WallNodeId } from '@/building/model/ids'
-import { createIntermediateWallId, createWallNodeId } from '@/building/model/ids'
+import type { IntermediateWallId, PerimeterId, PerimeterWallId, WallEntityId, WallNodeId } from '@/building/model/ids'
+import { createIntermediateWallId, createWallNodeId, isOpeningId } from '@/building/model/ids'
 import { NotFoundError } from '@/building/store/errors'
 import { cleanUpOrphaned } from '@/building/store/slices/cleanup'
 import { removeConstraintsForEntityDraft } from '@/building/store/slices/constraintsSlice'
 import { removeTimestampDraft, updateTimestampDraft } from '@/building/store/slices/timestampsSlice'
 import type { StoreState } from '@/building/store/types'
 import type { Length, Vec2 } from '@/shared/geometry'
-import { copyVec2, lineFromSegment, projectPointOntoLine } from '@/shared/geometry'
+import { copyVec2, dotVec2, lineFromSegment, projectPointOntoLine } from '@/shared/geometry'
 
 import { updateAllWallNodeGeometry } from './intermediateWallGeometry'
 
@@ -44,6 +44,7 @@ export interface IntermediateWallsActions {
   removeIntermediateWall: (wallId: IntermediateWallId) => void
   updateIntermediateWallThickness: (wallId: IntermediateWallId, thickness: Length) => void
   updateIntermediateWallAlignment: (wallId: IntermediateWallId, start: WallAxis, end: WallAxis) => void
+  mergeIntermediateWalls: (nodeId: WallNodeId) => IntermediateWallId | null
 
   addPerimeterWallNode: (
     perimeterId: PerimeterId,
@@ -95,7 +96,7 @@ export const createIntermediateWallsSlice: StateCreator<
         const wall: IntermediateWall = {
           id: wallId,
           perimeterId,
-          openingIds: [],
+          entityIds: [],
           start,
           end,
           thickness
@@ -267,10 +268,27 @@ export const createIntermediateWallsSlice: StateCreator<
         state.wallNodes[newNodeIdInner] = newNode
         perimeter.wallNodeIds.push(newNodeIdInner)
 
+        const splitPosition = originalGeometry.wallLength / 2
+        const firstWallEntities: WallEntityId[] = []
+        const secondWallEntities: WallEntityId[] = []
+        for (const entityId of originalWall.entityIds) {
+          const entity = isOpeningId(entityId) ? state.openings[entityId] : state.wallPosts[entityId]
+          const entityStart = entity.centerOffsetFromWallStart - entity.width / 2
+          const entityEnd = entity.centerOffsetFromWallStart + entity.width / 2
+          if (splitPosition > entityStart && splitPosition < entityEnd) return
+          if (entity.centerOffsetFromWallStart < splitPosition) {
+            firstWallEntities.push(entityId)
+          } else {
+            secondWallEntities.push(entityId)
+            entity.wallId = wallBId
+            entity.centerOffsetFromWallStart -= splitPosition
+          }
+        }
+
         const wallA: IntermediateWall = {
           id: wallAId,
           perimeterId: originalWall.perimeterId,
-          openingIds: [],
+          entityIds: firstWallEntities,
           start: originalWall.start,
           end: { nodeId: newNodeIdInner, axis: 'left' },
           thickness: originalWall.thickness,
@@ -280,7 +298,7 @@ export const createIntermediateWallsSlice: StateCreator<
         const wallB: IntermediateWall = {
           id: wallBId,
           perimeterId: originalWall.perimeterId,
-          openingIds: [],
+          entityIds: secondWallEntities,
           start: { nodeId: newNodeIdInner, axis: 'left' },
           end: originalWall.end,
           thickness: originalWall.thickness,
@@ -316,6 +334,89 @@ export const createIntermediateWallsSlice: StateCreator<
       })
 
       return newNodeId
+    },
+
+    mergeIntermediateWalls: (nodeId: WallNodeId): IntermediateWallId | null => {
+      let mergedWallId: IntermediateWallId | null = null
+      set(state => {
+        if (!(nodeId in state.wallNodes)) {
+          throw new NotFoundError('Wall node', nodeId)
+        }
+
+        const node = state.wallNodes[nodeId]
+        if (node.type !== 'inner') return
+        if (node.connectedWallIds.length !== 2) return
+
+        const wallA = state.intermediateWalls[node.connectedWallIds[0]]
+        const wallB = state.intermediateWalls[node.connectedWallIds[1]]
+
+        if (!wallA || !wallB) return // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+
+        const geomA = state._intermediateWallGeometry[wallA.id]
+        const geomB = state._intermediateWallGeometry[wallB.id]
+
+        if (Math.abs(dotVec2(geomA.direction, geomB.direction)) < 0.999) return
+
+        const newId = createIntermediateWallId()
+        const wallALength = geomA.wallLength
+
+        const firstWall = wallA.end.nodeId === nodeId ? wallA : wallB
+        const secondWall = wallA.end.nodeId === nodeId ? wallB : wallA
+
+        const mergedEntityIds: WallEntityId[] = [...firstWall.entityIds]
+        for (const entityId of secondWall.entityIds) {
+          const entity = isOpeningId(entityId) ? state.openings[entityId] : state.wallPosts[entityId]
+          entity.wallId = newId
+          entity.centerOffsetFromWallStart += wallALength
+          mergedEntityIds.push(entityId)
+        }
+
+        const mergedWall: IntermediateWall = {
+          id: newId,
+          perimeterId: firstWall.perimeterId,
+          entityIds: mergedEntityIds,
+          start: firstWall.start,
+          end: secondWall.end,
+          thickness: firstWall.thickness,
+          wallAssemblyId: firstWall.wallAssemblyId
+        }
+
+        const perimeter = state.perimeters[firstWall.perimeterId]
+
+        perimeter.intermediateWallIds = perimeter.intermediateWallIds
+          .filter(id => id !== wallA.id && id !== wallB.id)
+          .concat(newId)
+
+        const startNode = state.wallNodes[firstWall.start.nodeId]
+        startNode.connectedWallIds = startNode.connectedWallIds
+          .filter(id => id !== wallA.id && id !== wallB.id)
+          .concat(newId)
+
+        const endNode = state.wallNodes[secondWall.end.nodeId]
+        endNode.connectedWallIds = endNode.connectedWallIds
+          .filter(id => id !== wallA.id && id !== wallB.id)
+          .concat(newId)
+
+        state.intermediateWalls[newId] = mergedWall
+
+        delete state.intermediateWalls[wallA.id]
+        delete state._intermediateWallGeometry[wallA.id]
+        delete state.intermediateWalls[wallB.id]
+        delete state._intermediateWallGeometry[wallB.id]
+        delete state.wallNodes[nodeId]
+        delete state._wallNodeGeometry[nodeId]
+
+        perimeter.wallNodeIds = perimeter.wallNodeIds.filter(id => id !== nodeId)
+
+        removeTimestampDraft(state, wallA.id, wallB.id, nodeId)
+        updateTimestampDraft(state, newId)
+
+        updateAllWallNodeGeometry(state, firstWall.perimeterId)
+
+        mergedWallId = newId
+      })
+
+      return mergedWallId
     },
 
     removeWallNode: (nodeId: WallNodeId) => {

@@ -5,6 +5,7 @@ import { Trans, useTranslation } from 'react-i18next'
 
 import type { WallPostType } from '@/building/model'
 import type { WallPostId } from '@/building/model/ids'
+import { isPerimeterWallId } from '@/building/model/ids'
 import { useModelActions, usePerimeterWallById, useWallPostById } from '@/building/store'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { type MaterialId } from '@/materials/types'
@@ -19,11 +20,12 @@ import { Switch } from '@/shared/ui/components/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-group'
 import { FitToViewIcon } from '@/shared/ui/icons'
 
-export function WallPostInspector({ postId }: { postId: WallPostId }): React.JSX.Element {
+export function WallPostInspector({ postId }: { postId: WallPostId }): React.JSX.Element | null {
   const { t } = useTranslation('inspector')
   const { updateWallPost: updatePost, removeWallPost: removePost } = useModelActions()
 
   const post = useWallPostById(postId)
+  if (!isPerimeterWallId(post.wallId)) return null
   const wall = usePerimeterWallById(post.wallId)
 
   const viewportActions = useViewportActions()

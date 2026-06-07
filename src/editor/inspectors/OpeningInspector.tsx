@@ -5,6 +5,7 @@ import { Trans, useTranslation } from 'react-i18next'
 
 import type { OpeningType } from '@/building/model'
 import type { OpeningId } from '@/building/model/ids'
+import { isPerimeterWallId } from '@/building/model/ids'
 import {
   useModelActions,
   usePerimeterById,
@@ -30,7 +31,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/components/toggle-grou
 import { Tooltip } from '@/shared/ui/components/tooltip'
 import { DoorIcon, FitToViewIcon, PassageIcon, WindowIcon } from '@/shared/ui/icons'
 
-export function OpeningInspector({ openingId }: { openingId: OpeningId }): React.JSX.Element {
+export function OpeningInspector({ openingId }: { openingId: OpeningId }): React.JSX.Element | null {
   const { t } = useTranslation('inspector')
   const { formatLength } = useFormatters()
   // Get model store functions - use specific selectors for stable references
@@ -39,6 +40,7 @@ export function OpeningInspector({ openingId }: { openingId: OpeningId }): React
 
   // Get perimeter from store
   const opening = useWallOpeningById(openingId)
+  if (!isPerimeterWallId(opening.wallId)) return null
   const wall = usePerimeterWallById(opening.wallId)
   const perimeter = usePerimeterById(wall.perimeterId)
   const storey = useStoreyById(perimeter.storeyId)

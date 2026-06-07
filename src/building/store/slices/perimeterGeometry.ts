@@ -5,11 +5,13 @@ import type {
   PerimeterReferenceSide,
   PerimeterWallGeometry,
   WallEntity,
-  WallEntityGeometry
+  WallEntityGeometry,
+  WallEntityGeometrySource
 } from '@/building/model'
 import { type PerimeterId, isOpeningId } from '@/building/model/ids'
 import type { PerimetersState } from '@/building/store/slices/perimeterSlice'
 import type { TimestampsState } from '@/building/store/slices/timestampsSlice'
+import type { WallEntitiesState } from '@/building/store/slices/wallEntitiesSlice'
 import {
   type Length,
   type Line2D,
@@ -255,7 +257,7 @@ const updateWallGeometry = (
   }
 }
 
-export function updateEntityGeometry(wall: PerimeterWallGeometry, entity: WallEntity): WallEntityGeometry {
+export function updateEntityGeometry(wall: WallEntityGeometrySource, entity: WallEntity): WallEntityGeometry {
   // Extract wall geometry
   const insideStart = wall.insideLine.start
   const outsideStart = wall.outsideLine.start
@@ -288,7 +290,10 @@ export function updateEntityGeometry(wall: PerimeterWallGeometry, entity: WallEn
   }
 }
 
-export function updatePerimeterGeometry(state: PerimetersState & TimestampsState, perimeterId: PerimeterId): void {
+export function updatePerimeterGeometry(
+  state: PerimetersState & WallEntitiesState & TimestampsState,
+  perimeterId: PerimeterId
+): void {
   const perimeter = state.perimeters[perimeterId]
 
   if (perimeter.wallIds.length !== perimeter.cornerIds.length) {

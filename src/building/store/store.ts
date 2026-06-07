@@ -18,6 +18,7 @@ import { createPerimetersSlice } from './slices/perimeterSlice'
 import { createRoofsSlice } from './slices/roofsSlice'
 import { createStoreysSlice } from './slices/storeysSlice'
 import { createTimestampsSlice } from './slices/timestampsSlice'
+import { createWallEntitiesSlice } from './slices/wallEntitiesSlice'
 import type { PartializedStoreState, Store, StoreActions, StoreState } from './types'
 
 const createDebouncedSave = (debounceTimeMs: number) => {
@@ -47,6 +48,7 @@ export const useModelStore = create<Store>()(
         (set, get, store) => {
           const storeysSlice = immer(createStoreysSlice)(set, get, store)
           const perimetersSlice = immer(createPerimetersSlice)(set, get, store)
+          const wallEntitiesSlice = immer(createWallEntitiesSlice)(set, get, store)
           const floorsSlice = immer(createFloorsSlice)(set, get, store)
           const roofsSlice = immer(createRoofsSlice)(set, get, store)
           const timestampsSlice = immer(createTimestampsSlice)(set, get, store)
@@ -56,6 +58,7 @@ export const useModelStore = create<Store>()(
           return {
             ...storeysSlice,
             ...perimetersSlice,
+            ...wallEntitiesSlice,
             ...floorsSlice,
             ...roofsSlice,
             ...timestampsSlice,
@@ -64,6 +67,7 @@ export const useModelStore = create<Store>()(
             actions: {
               ...storeysSlice.actions,
               ...perimetersSlice.actions,
+              ...wallEntitiesSlice.actions,
               ...floorsSlice.actions,
               ...roofsSlice.actions,
               ...timestampsSlice.actions,

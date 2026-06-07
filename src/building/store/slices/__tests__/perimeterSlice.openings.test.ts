@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { OpeningId, PerimeterId, PerimeterWallId, StoreyId } from '@/building/model/ids'
 import { createWallAssemblyId } from '@/building/model/ids'
-import type { PerimetersSlice } from '@/building/store/slices/perimeterSlice'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
 import {
+  type PerimeterTestSlice,
   createLShapedBoundary,
   createRectangularBoundary,
   expectNoOrphanedEntities,
@@ -25,7 +25,7 @@ const wouldClosingPolygonSelfIntersectMock = vi.mocked(wouldClosingPolygonSelfIn
 const ensurePolygonIsClockwiseMock = vi.mocked(ensurePolygonIsClockwise)
 
 describe('openingSlice', () => {
-  let slice: PerimetersSlice
+  let slice: PerimeterTestSlice
   let testStoreyId: StoreyId
   let perimeterId: PerimeterId
   let wallId: PerimeterWallId
@@ -348,7 +348,7 @@ describe('openingSlice', () => {
           height: 1500
         })
 
-        const openings = slice.actions.getWallOpeningsById(wallId)
+        const openings = slice.actions.getWallOpeningsByWallId(wallId)
 
         expect(openings).toHaveLength(2)
         openings.forEach(opening => {
@@ -357,7 +357,7 @@ describe('openingSlice', () => {
       })
 
       it('should return empty array for wall with no openings', () => {
-        const openings = slice.actions.getWallOpeningsById(wallId)
+        const openings = slice.actions.getWallOpeningsByWallId(wallId)
 
         expect(openings).toHaveLength(0)
       })

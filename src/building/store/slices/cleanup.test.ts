@@ -4,6 +4,7 @@ import type { Perimeter, WallAssemblyId } from '@/building/model'
 import { createConstraintsSlice } from '@/building/store/slices/constraintsSlice'
 import { createIntermediateWallsSlice } from '@/building/store/slices/intermediateWallsSlice'
 import { createPerimetersSlice } from '@/building/store/slices/perimeterSlice'
+import { createWallEntitiesSlice } from '@/building/store/slices/wallEntitiesSlice'
 import type { Store } from '@/building/store/types'
 import { newVec2 } from '@/shared/geometry'
 
@@ -22,16 +23,19 @@ function setupMockStore() {
 
   const perimeterSlice = createPerimetersSlice(mockSet, mockGet, mockStore)
   const intermediateWallsSlice = createIntermediateWallsSlice(mockSet, mockGet, mockStore)
+  const wallEntitiesSlice = createWallEntitiesSlice(mockSet, mockGet, mockStore)
   const constraintsSlice = createConstraintsSlice(mockSet, mockGet, mockStore)
 
   const store = {
     ...perimeterSlice,
     ...intermediateWallsSlice,
+    ...wallEntitiesSlice,
     ...constraintsSlice,
     timestamps: {},
     actions: {
       ...perimeterSlice.actions,
       ...intermediateWallsSlice.actions,
+      ...wallEntitiesSlice.actions,
       ...constraintsSlice.actions
     }
   } as any as Store

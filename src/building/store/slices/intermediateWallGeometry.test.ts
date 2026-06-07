@@ -159,7 +159,7 @@ describe('intermediateWallGeometry', () => {
       state.intermediateWalls[wallId] = {
         id: wallId,
         perimeterId,
-        openingIds: [],
+        entityIds: [],
         start: { nodeId: nodeAId, axis: 'center' },
         end: { nodeId: nodeBId, axis: 'center' },
         thickness: 120
@@ -206,7 +206,7 @@ describe('intermediateWallGeometry', () => {
       state.intermediateWalls[wallId] = {
         id: wallId,
         perimeterId,
-        openingIds: [],
+        entityIds: [],
         start: { nodeId: nodeAId, axis: 'center' },
         end: { nodeId: nodeBId, axis: 'center' },
         thickness: 120
@@ -259,7 +259,7 @@ describe('intermediateWallGeometry', () => {
       state.intermediateWalls[wallAId] = {
         id: wallAId,
         perimeterId,
-        openingIds: [],
+        entityIds: [],
         start: { nodeId: nodeAId, axis: 'center' },
         end: { nodeId, axis: 'center' },
         thickness: 120
@@ -267,7 +267,7 @@ describe('intermediateWallGeometry', () => {
       state.intermediateWalls[wallBId] = {
         id: wallBId,
         perimeterId,
-        openingIds: [],
+        entityIds: [],
         start: { nodeId, axis: 'center' },
         end: { nodeId: nodeBId, axis: 'center' },
         thickness: 120
@@ -316,7 +316,7 @@ describe('intermediateWallGeometry', () => {
       state.intermediateWalls[wallAId] = {
         id: wallAId,
         perimeterId,
-        openingIds: [],
+        entityIds: [],
         start: { nodeId: nodeAId, axis: 'center' },
         end: { nodeId, axis: 'center' },
         thickness: 120
@@ -324,7 +324,7 @@ describe('intermediateWallGeometry', () => {
       state.intermediateWalls[wallBId] = {
         id: wallBId,
         perimeterId,
-        openingIds: [],
+        entityIds: [],
         start: { nodeId, axis: 'center' },
         end: { nodeId: nodeBId, axis: 'center' },
         thickness: 120
@@ -372,7 +372,7 @@ describe('intermediateWallGeometry', () => {
       state.intermediateWalls[wallId] = {
         id: wallId,
         perimeterId,
-        openingIds: [],
+        entityIds: [],
         start: { nodeId, axis: 'center' },
         end: { nodeId: innerNodeId, axis: 'center' },
         thickness: 120
@@ -432,7 +432,7 @@ describe('intermediateWallGeometry', () => {
       state.intermediateWalls[wallId] = {
         id: wallId,
         perimeterId,
-        openingIds: [],
+        entityIds: [],
         start: { nodeId: nodeAId, axis: 'center' },
         end: { nodeId: nodeBId, axis: 'center' },
         thickness: 120

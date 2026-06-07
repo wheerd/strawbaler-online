@@ -19,8 +19,8 @@ vi.mock('@/building/store', () => ({
     getPerimeterById: (...args: unknown[]) => mockGetPerimeterById(...args),
     getPerimeterWallById: (...args: unknown[]) => mockGetPerimeterWallById(...args),
     getPerimeterCornerById: (...args: unknown[]) => mockGetPerimeterCornerById(...args),
-    getWallOpeningsById: () => [],
-    getWallPostsById: () => []
+    getWallOpeningsByWallId: () => [],
+    getWallPostsByWallId: () => []
   })
 }))
 

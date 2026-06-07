@@ -485,11 +485,11 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
           projEndPerpId
         )
 
-        for (const opening of modelActions.getWallOpeningsById(wall.id)) {
+        for (const opening of modelActions.getWallOpeningsByWallId(wall.id)) {
           addWallEntityGeometry(opening, entry)
         }
 
-        for (const post of modelActions.getWallPostsById(wall.id)) {
+        for (const post of modelActions.getWallPostsByWallId(wall.id)) {
           addWallEntityGeometry(post, entry)
         }
       }
