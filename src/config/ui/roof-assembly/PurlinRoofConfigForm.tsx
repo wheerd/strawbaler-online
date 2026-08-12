@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { PurlinRoofConfig } from '@/construction/assemblies/roofs/types'
 import { MaterialSelectWithEdit } from '@/materials/ui/MaterialSelectWithEdit'
 import { LengthField } from '@/shared/ui/LengthField/LengthField'
+import { Checkbox } from '@/shared/ui/components/checkbox'
 import { Separator } from '@/shared/ui/components/separator'
 
 interface PurlinRoofConfigFormProps {
@@ -271,6 +272,18 @@ export function PurlinRoofConfigForm({ config, onUpdate }: PurlinRoofConfigFormP
             min={0}
             size="sm"
           />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <Label.Root className="flex items-center gap-1">
+            <Checkbox
+              checked={config.extendSheathingIntoWalls}
+              onCheckedChange={value => {
+                onUpdate({ extendSheathingIntoWalls: value === true })
+              }}
+            />
+            <span className="text-base font-medium">{t($ => $.roofs.extendSheatingIntoWalls)}</span>
+          </Label.Root>
         </div>
       </div>
     </div>

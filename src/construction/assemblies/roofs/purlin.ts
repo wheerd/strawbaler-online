@@ -152,7 +152,10 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
           ),
           yieldAndClip(this.constructDecking(roofSide, roof), m => m.intersect(roofSideClip)),
           yieldAndClip(this.constructCeilingSheathing(roofSide, roof, perimeterContexts), m =>
-            m.intersect(roofSideClip).intersect(sheathingClip).subtract(purlinClip)
+            m
+              .intersect(roofSideClip)
+              .intersect(this.config.extendSheathingIntoWalls ? infillClip : sheathingClip)
+              .subtract(purlinClip)
           ),
           yieldAndClip(this.constructTopLayers(roof, roofSide), m => m.intersect(roofSideClip)),
           yieldAndClip(this.constructCeilingLayers(roof, roofSide), m =>
@@ -204,8 +207,18 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     const perimeterContexts = getPerimeterContextsByStorey(roof.storeyId)
     const roofSides = this.splitRoofPolygon(roof, ridgeHeight)
 
+    const adjustedRidgeHeight = this.config.extendSheathingIntoWalls
+      ? ridgeHeight - this.config.ceilingSheathingThickness / Math.cos(roof.slopeAngleRad)
+      : ridgeHeight
+
     for (const side of roofSides) {
-      map.addSlopedArea(side.polygon, roof.ridgeLine.start, negVec2(side.dirToRidge), roof.slopeAngleRad, ridgeHeight)
+      map.addSlopedArea(
+        side.polygon,
+        roof.ridgeLine.start,
+        negVec2(side.dirToRidge),
+        roof.slopeAngleRad,
+        adjustedRidgeHeight
+      )
     }
 
     const purlins = Array.from(this.constructAllPurlins(roof, perimeterContexts, ridgeHeight))
@@ -318,14 +331,15 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
         .filter(e => intersectLineSegmentWithPolygon(e, roof.overhangPolygon) != null)
         .map(e => scaleAddVec2(e.start, perpendicularCW(direction(e.start, e.end)), halfThickness))
     )
+    const perpForOuter = this.config.extendSheathingIntoWalls ? perpendicularCW : perpendicularCCW
     const outerRafterPoints = perimeterContexts.flatMap(c =>
       Array.from(polygonEdges(c.outerPolygon))
         .filter(e => dotAbsVec2(direction(e.start, e.end), ridgeDirection) < EPSILON)
         .filter(e => intersectLineSegmentWithPolygon(e, roof.overhangPolygon) != null)
-        .map(e => scaleAddVec2(e.start, perpendicularCCW(direction(e.start, e.end)), halfThickness))
+        .map(e => scaleAddVec2(e.start, perpForOuter(direction(e.start, e.end)), halfThickness))
     )
 
-    return innerRafterPoints
+    return (this.config.extendSheathingIntoWalls ? [] : innerRafterPoints)
       .concat(outerRafterPoints)
       .concat(edgeRafterMidpoints)
       .map(p => subVec2(p, roof.ridgeLine.start))
@@ -528,7 +542,7 @@ export class PurlinRoofAssembly extends BaseRoofAssembly<PurlinRoofConfig> {
     const perimeterPolygons = unionPolygons(
       perimeterContexts.map(c =>
         this.preparePolygonForConstruction(
-          c.innerPolygon,
+          this.config.extendSheathingIntoWalls ? c.outerPolygon : c.innerPolygon,
           roof.ridgeLine,
           roof.slopeAngleRad,
           -this.config.ceilingSheathingThickness,

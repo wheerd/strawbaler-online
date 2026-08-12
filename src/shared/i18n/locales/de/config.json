@@ -493,6 +493,7 @@
     "deleteConfirm": "Möchtest du \"{{name}}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "deleteTitle": "Dachaufbau löschen",
     "emptyList": "Keine Dachaufbauten verfügbar",
+    "extendSheatingIntoWalls": "Deckenbeplankung geht bis in die Wände",
     "labels": {
       "spacingMin": "Abstand (Min)",
       "spacingTarget": "Abstand (Ziel)"

@@ -677,6 +677,7 @@ interface Resources {
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteTitle": "Delete Roof Assembly",
       "emptyList": "No roof assemblies available",
+      "extendSheatingIntoWalls": "Extend Sheating into Walls",
       "labels": {
         "spacingMin": "Spacing (Min)",
         "spacingTarget": "Spacing (Target)"

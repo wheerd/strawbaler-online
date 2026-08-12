@@ -493,6 +493,7 @@
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer « {{name}} » ? Cette action est irréversible.",
     "deleteTitle": "Supprimer la composition de toiture",
     "emptyList": "Aucune composition de toiture disponible",
+    "extendSheatingIntoWalls": "Prolonger l’habillage dans les murs",
     "labels": {
       "spacingMin": "Espacement (Min)",
       "spacingTarget": "Espacement (Cible)"

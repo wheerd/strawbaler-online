@@ -55,6 +55,7 @@ export interface PurlinRoofConfig extends RoofAssemblyConfigBase {
 
   ceilingSheathingMaterial: MaterialId
   ceilingSheathingThickness: Length
+  extendSheathingIntoWalls?: boolean
 
   deckingMaterial: MaterialId
   deckingThickness: Length
