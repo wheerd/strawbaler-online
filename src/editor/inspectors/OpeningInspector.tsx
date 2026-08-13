@@ -3,24 +3,24 @@ import { Info, Trash } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
-import type { OpeningType } from '@/building/model'
+import type { OpeningType, PerimeterWallWithGeometry } from '@/building/model'
 import type { OpeningId } from '@/building/model/ids'
 import { isPerimeterWallId } from '@/building/model/ids'
 import {
   useModelActions,
   usePerimeterById,
-  usePerimeterWallById,
+  useWallById,
   useStoreyById,
   useWallOpeningById
 } from '@/building/store'
-import { useWallAssemblyById } from '@/config/store'
+import { useDefaultWallAssemblyId, useWallAssemblyById } from '@/config/store'
 import { OpeningAssemblySelectWithEdit } from '@/config/ui/opening-assembly/OpeningAssemblySelectWithEdit'
 import { resolveOpeningConfig } from '@/construction/assemblies/openings'
 import { getWallStoreyContextCached } from '@/construction/context/storeys'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { OpeningPreview } from '@/editor/shared/OpeningPreview'
-import { Bounds2D, type Polygon2D, addVec2, offsetPolygon, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
+import { Bounds2D, offsetPolygon } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 import { LengthField } from '@/shared/ui/LengthField'
 import { Button } from '@/shared/ui/components/button'
@@ -40,17 +40,20 @@ export function OpeningInspector({ openingId }: { openingId: OpeningId }): React
 
   // Get perimeter from store
   const opening = useWallOpeningById(openingId)
-  if (!isPerimeterWallId(opening.wallId)) return null
-  const wall = usePerimeterWallById(opening.wallId)
+  const wall = useWallById(opening.wallId)
   const perimeter = usePerimeterById(wall.perimeterId)
   const storey = useStoreyById(perimeter.storeyId)
 
   // Get assembly for padding config
-  const wallAssembly = useWallAssemblyById(wall.wallAssemblyId)
+  const defaultWallAssemblyId = useDefaultWallAssemblyId()
+  const wallAssembly = useWallAssemblyById(
+    isPerimeterWallId(opening.wallId) ? (wall as PerimeterWallWithGeometry).wallAssemblyId : defaultWallAssemblyId
+  )
+  const openingWallAssembly = isPerimeterWallId(opening.wallId) ? wallAssembly : undefined
 
   const openingConfig = useMemo(
-    () => resolveOpeningConfig(opening, wallAssembly ?? undefined),
-    [opening.openingAssemblyId, wallAssembly?.openingAssemblyId]
+    () => resolveOpeningConfig(opening, openingWallAssembly ?? undefined),
+    [opening.openingAssemblyId, openingWallAssembly?.openingAssemblyId]
   )
 
   const viewportActions = useViewportActions()
@@ -144,25 +147,8 @@ export function OpeningInspector({ openingId }: { openingId: OpeningId }): React
 
   const handleFitToView = useCallback(() => {
     // Calculate opening polygon (same as OpeningShape.tsx)
-    const insideStart = wall.insideLine.start
-    const outsideStart = wall.outsideLine.start
-    const wallVector = wall.direction
-    const leftEdge = opening.centerOffsetFromWallStart - opening.width / 2
-    const offsetStart = scaleVec2(wallVector, leftEdge)
-    const offsetEnd = scaleAddVec2(offsetStart, wallVector, opening.width)
-
-    const insideOpeningStart = addVec2(insideStart, offsetStart)
-    const insideOpeningEnd = addVec2(insideStart, offsetEnd)
-    const outsideOpeningStart = addVec2(outsideStart, offsetStart)
-    const outsideOpeningEnd = addVec2(outsideStart, offsetEnd)
-
-    const openingPolygon: Polygon2D = {
-      points: [insideOpeningStart, insideOpeningEnd, outsideOpeningEnd, outsideOpeningStart]
-    }
-
-    // Expand the polygon by 1.5x on each side (3x total area)
     const expandAmount = Math.max(opening.width, wall.thickness) * 1.5
-    const expandedPolygon = offsetPolygon(openingPolygon, expandAmount)
+    const expandedPolygon = offsetPolygon(opening.polygon, expandAmount)
 
     // Calculate bounds from expanded polygon
     const bounds = Bounds2D.fromPoints(expandedPolygon.points)

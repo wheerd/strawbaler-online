@@ -5,8 +5,7 @@ import { Trans, useTranslation } from 'react-i18next'
 
 import type { WallPostType } from '@/building/model'
 import type { WallPostId } from '@/building/model/ids'
-import { isPerimeterWallId } from '@/building/model/ids'
-import { useModelActions, usePerimeterWallById, useWallPostById } from '@/building/store'
+import { useModelActions, useWallById, useWallPostById } from '@/building/store'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import { type MaterialId } from '@/materials/types'
 import { MaterialSelectWithEdit } from '@/materials/ui/MaterialSelectWithEdit'
@@ -25,8 +24,7 @@ export function WallPostInspector({ postId }: { postId: WallPostId }): React.JSX
   const { updateWallPost: updatePost, removeWallPost: removePost } = useModelActions()
 
   const post = useWallPostById(postId)
-  if (!isPerimeterWallId(post.wallId)) return null
-  const wall = usePerimeterWallById(post.wallId)
+  const wall = useWallById(post.wallId)
 
   const viewportActions = useViewportActions()
 
