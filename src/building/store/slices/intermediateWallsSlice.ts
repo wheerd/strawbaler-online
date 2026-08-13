@@ -253,8 +253,8 @@ export const createIntermediateWallsSlice: StateCreator<
         const originalGeometry = state._intermediateWallGeometry[wallId]
         const perimeter = state.perimeters[originalWall.perimeterId]
 
-        const projectedPoint = projectPointOntoLine(point, lineFromSegment(originalGeometry.leftLine))
-        const splitPosition = projectVec2(originalGeometry.leftLine.start, projectedPoint, originalGeometry.direction)
+        const projectedPoint = projectPointOntoLine(point, lineFromSegment(originalGeometry.centerLine))
+        const splitPosition = projectVec2(originalGeometry.centerLine.start, projectedPoint, originalGeometry.direction)
 
         if (splitPosition <= 0 || splitPosition >= originalGeometry.wallLength) {
           throw new InvalidOperationError('Intermediate wall split point must be inside the wall')

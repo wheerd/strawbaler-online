@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { createIntermediateWallId, createWallNodeId } from '@/building/model/ids'
 import { computeWallLines, updateAllWallNodeGeometry } from '@/building/store/slices/intermediateWallGeometry'
-import { distVec2, dotVec2, newVec2, perpendicularCCW } from '@/shared/geometry'
+import { distVec2, distanceToInfiniteLine, dotVec2, newVec2, perpendicularCCW, scaleAddVec2 } from '@/shared/geometry'
 
 import { setupIntermediateWallsSlice } from './__tests__/testHelpers'
 
@@ -453,6 +453,105 @@ describe('intermediateWallGeometry', () => {
 
       expect(centerStartPerp).toBeGreaterThan(Math.min(leftStartPerp, rightStartPerp))
       expect(centerStartPerp).toBeLessThan(Math.max(leftStartPerp, rightStartPerp))
+    })
+
+    it('should preserve a trapezoid and limit both centerline endpoints to the side spans', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const startNode = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const endNode = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
+      const wall = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: startNode.id, axis: 'left' },
+        { nodeId: endNode.id, axis: 'right' },
+        120
+      )
+      const geometry = state._intermediateWallGeometry[wall.id]
+      const epsilon = 1e-4
+
+      expect(geometry.leftLength).not.toBeCloseTo(geometry.rightLength, 5)
+      expect(geometry.boundary.points).toHaveLength(4)
+
+      for (const [center, left, right] of [
+        [geometry.centerLine.start, geometry.leftLine, geometry.rightLine],
+        [geometry.centerLine.end, geometry.leftLine, geometry.rightLine]
+      ] as const) {
+        const centerProjection = dotVec2(geometry.direction, center)
+        const leftStart = dotVec2(geometry.direction, left.start)
+        const leftEnd = dotVec2(geometry.direction, left.end)
+        const rightStart = dotVec2(geometry.direction, right.start)
+        const rightEnd = dotVec2(geometry.direction, right.end)
+        const overlapStart = Math.max(Math.min(leftStart, leftEnd), Math.min(rightStart, rightEnd))
+        const overlapEnd = Math.min(Math.max(leftStart, leftEnd), Math.max(rightStart, rightEnd))
+        expect(centerProjection).toBeGreaterThanOrEqual(overlapStart - epsilon)
+        expect(centerProjection).toBeLessThanOrEqual(overlapEnd + epsilon)
+      }
+    })
+
+    it('should preserve physical side lines when a trapezoidal wall direction is reversed', () => {
+      const forward = computeWallLines(newVec2(0, 0), 'left', newVec2(6000, 0), 'right', 120)
+      const reverse = computeWallLines(newVec2(6000, 0), 'right', newVec2(0, 0), 'left', 120)
+
+      expect(distanceToInfiniteLine(forward.left.point, reverse.left)).toBeCloseTo(0, 5)
+      expect(distanceToInfiniteLine(forward.right.point, reverse.right)).toBeCloseTo(0, 5)
+      expect(Math.abs(dotVec2(forward.left.direction, reverse.left.direction))).toBeCloseTo(1, 5)
+      expect(Math.abs(dotVec2(forward.right.direction, reverse.right.direction))).toBeCloseTo(1, 5)
+    })
+
+    it('should position wall entities from the finalized centerline', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const startNode = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const endNode = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
+      const wall = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: startNode.id, axis: 'left' },
+        { nodeId: endNode.id, axis: 'right' },
+        120
+      )
+      const opening = state.actions.addWallOpening(wall.id, {
+        openingType: 'door',
+        centerOffsetFromWallStart: wall.wallLength / 3,
+        width: 800,
+        height: 2100
+      })
+      const geometry = state._intermediateWallGeometry[wall.id]
+      const openingGeometry = state._openingGeometry[opening.id]
+      const expectedCenter = scaleAddVec2(
+        geometry.centerLine.start,
+        geometry.direction,
+        opening.centerOffsetFromWallStart
+      )
+
+      expect(distVec2(openingGeometry.center, expectedCenter)).toBeLessThan(1e-3)
+      expect(distVec2(openingGeometry.insideLine.start, openingGeometry.outsideLine.start)).toBeCloseTo(120, 3)
+      expect(distVec2(openingGeometry.insideLine.end, openingGeometry.outsideLine.end)).toBeCloseTo(120, 3)
+    })
+
+    it('should generate a valid opening polygon from finalized intermediate wall sides', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(500, 300))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(3200, 1400))
+      const wall = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeA.id, axis: 'center' },
+        { nodeId: nodeB.id, axis: 'center' },
+        120
+      )
+      const opening = state.actions.addWallOpening(wall.id, {
+        openingType: 'door',
+        centerOffsetFromWallStart: wall.wallLength / 2,
+        width: 800,
+        height: 2100
+      })
+      const geometry = state._openingGeometry[opening.id]
+      const points = geometry.polygon.points
+      expect(points).toHaveLength(4)
+      expect(distVec2(geometry.insideLine.start, geometry.insideLine.end)).toBeCloseTo(800, 3)
+      expect(distVec2(geometry.outsideLine.start, geometry.outsideLine.end)).toBeCloseTo(800, 3)
+      expect(new Set(points).size).toBe(4)
+      expect(geometry.polygon.points).toEqual(points)
     })
   })
 })

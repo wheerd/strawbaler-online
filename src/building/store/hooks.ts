@@ -207,7 +207,15 @@ export const useWallById = (id: WallId): PerimeterWallWithGeometry | Intermediat
 
   return useMemo(
     () => (isPerimeterWallId(id) ? getPerimeterWallById(id) : getIntermediateWallById(id)),
-    [perimeterWall, intermediateWall, perimeterGeometry, intermediateGeometry, id, getPerimeterWallById, getIntermediateWallById]
+    [
+      perimeterWall,
+      intermediateWall,
+      perimeterGeometry,
+      intermediateGeometry,
+      id,
+      getPerimeterWallById,
+      getIntermediateWallById
+    ]
   )
 }
 export const useWallOpeningById = (id: OpeningId): OpeningWithGeometry => {

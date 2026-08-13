@@ -1,4 +1,4 @@
-import { isOpeningId, type IntermediateWallId } from '@/building/model/ids'
+import { type IntermediateWallId, isOpeningId } from '@/building/model/ids'
 import { useIntermediateWallById } from '@/building/store'
 import { OpeningShape } from '@/editor/canvas/layers/walls/OpeningShape'
 import { WallPostShape } from '@/editor/canvas/layers/walls/WallPostShape'

@@ -2,8 +2,8 @@ import type { IntermediateWallWithGeometry, PerimeterWallWithGeometry, WallPostT
 import {
   type EntityType,
   type PerimeterCornerId,
-  type WallId,
   type SelectableId,
+  type WallId,
   isIntermediateWallId,
   isPerimeterWallId
 } from '@/building/model/ids'
@@ -151,12 +151,7 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
   /**
    * Update preview state
    */
-  private updatePreview(
-    offset: Length,
-    wallHit: WallHit,
-    canPlace = true,
-    snapDirection?: 'left' | 'right'
-  ): void {
+  private updatePreview(offset: Length, wallHit: WallHit, canPlace = true, snapDirection?: 'left' | 'right'): void {
     this.state.hoveredWall = wallHit
     this.state.offset = offset
     this.state.previewPosition = this.offsetToPosition(offset, wallHit.wall)

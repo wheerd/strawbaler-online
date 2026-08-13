@@ -6,13 +6,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import type { OpeningType, PerimeterWallWithGeometry } from '@/building/model'
 import type { OpeningId } from '@/building/model/ids'
 import { isPerimeterWallId } from '@/building/model/ids'
-import {
-  useModelActions,
-  usePerimeterById,
-  useWallById,
-  useStoreyById,
-  useWallOpeningById
-} from '@/building/store'
+import { useModelActions, usePerimeterById, useStoreyById, useWallById, useWallOpeningById } from '@/building/store'
 import { useDefaultWallAssemblyId, useWallAssemblyById } from '@/config/store'
 import { OpeningAssemblySelectWithEdit } from '@/config/ui/opening-assembly/OpeningAssemblySelectWithEdit'
 import { resolveOpeningConfig } from '@/construction/assemblies/openings'

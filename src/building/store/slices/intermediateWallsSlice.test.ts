@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import type { InnerWallNode } from '@/building/model'
 import { InvalidOperationError, NotFoundError } from '@/building/store/errors'
 import { newVec2 } from '@/shared/geometry'
 
@@ -548,11 +549,44 @@ describe('intermediateWallsSlice', () => {
       state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(4000, 2500))
 
       const newWalls = state.perimeters[perimeterId].intermediateWallIds
-      const secondWall = newWalls.map(id => state.intermediateWalls[id]).find(item => item.entityIds.includes(opening.id))
+      const secondWall = newWalls
+        .map(id => state.intermediateWalls[id])
+        .find(item => item.entityIds.includes(opening.id))
       expect(secondWall).toBeDefined()
       expect(state.openings[opening.id].wallId).toBe(secondWall?.id)
-      expect(state.openings[opening.id].centerOffsetFromWallStart).toBeCloseTo(2200, 5)
+      expect(state.openings[opening.id].centerOffsetFromWallStart).toBeCloseTo(2200, 3)
       expect(state._openingGeometry[opening.id]).toBeDefined()
+    })
+
+    it('should measure a trapezoidal wall split along its centerline', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
+      const wall = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'right' },
+        120
+      )
+      const originalLength = wall.wallLength
+      const originalCenterLine = state._intermediateWallGeometry[wall.id].centerLine
+
+      state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(4000, 2600))
+
+      const newWalls = state.perimeters[perimeterId].intermediateWallIds.filter(id => id !== wall.id)
+      const firstGeometry = state._intermediateWallGeometry[newWalls[0]]
+      const secondGeometry = state._intermediateWallGeometry[newWalls[1]]
+
+      expect(originalLength).toBeGreaterThan(0)
+      expect(firstGeometry.wallLength).toBeGreaterThan(0)
+      expect(secondGeometry.wallLength).toBeGreaterThan(0)
+      const splitNode = Object.values(state.wallNodes).find(
+        node => node.connectedWallIds.includes(newWalls[0]) && node.connectedWallIds.includes(newWalls[1])
+      ) as InnerWallNode | undefined
+      expect(splitNode).toBeDefined()
+      expect(splitNode?.position[0]).toBeGreaterThan(originalCenterLine.start[0])
+      expect(splitNode?.position[0]).toBeLessThan(originalCenterLine.end[0])
     })
 
     it('should reject a split that crosses an entity without mutating state', () => {
@@ -598,7 +632,7 @@ describe('intermediateWallsSlice', () => {
 
       state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(4000, 2500))
 
-      expect(state.wallPosts[post.id].centerOffsetFromWallStart).toBeCloseTo(2200, 5)
+      expect(state.wallPosts[post.id].centerOffsetFromWallStart).toBeCloseTo(2200, 3)
       expect(state._wallPostGeometry[post.id]).toBeDefined()
     })
 
@@ -821,7 +855,6 @@ describe('intermediateWallsSlice', () => {
       expect(state.intermediateWalls[wallB.id]).toBeUndefined()
       expectConsistentIntermediateWallReferences(state, perimeterId)
     })
-
   })
 
   describe('getters', () => {

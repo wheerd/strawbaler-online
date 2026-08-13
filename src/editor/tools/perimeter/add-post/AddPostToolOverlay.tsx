@@ -78,7 +78,7 @@ export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTo
       {state.snapDirection && (
         <circle
           cx={state.snapDirection === 'right' ? -halfWidth : halfWidth}
-        cy={wallOffset + wall.thickness / 2}
+          cy={wallOffset + wall.thickness / 2}
           r={wall.thickness * 0.15}
           fill="var(--color-primary)"
           stroke="var(--color-schematic-gray-1)"
