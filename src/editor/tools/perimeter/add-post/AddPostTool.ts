@@ -1,9 +1,10 @@
-import type { PerimeterWallWithGeometry, WallPostType } from '@/building/model'
+import type { IntermediateWallWithGeometry, PerimeterWallWithGeometry, WallPostType } from '@/building/model'
 import {
   type EntityType,
   type PerimeterCornerId,
-  type PerimeterWallId,
+  type WallId,
   type SelectableId,
+  isIntermediateWallId,
   isPerimeterWallId
 } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
@@ -19,9 +20,9 @@ import { type Length, type Vec2, newVec2, projectVec2 } from '@/shared/geometry'
 import { AddPostToolInspector } from './AddPostToolInspector'
 import { AddPostToolOverlay } from './AddPostToolOverlay'
 
-interface PerimeterWallHit {
-  wallId: PerimeterWallId
-  wall: PerimeterWallWithGeometry
+interface WallHit {
+  wallId: WallId
+  wall: PerimeterWallWithGeometry | IntermediateWallWithGeometry
 }
 
 interface AddPostToolState {
@@ -34,7 +35,7 @@ interface AddPostToolState {
   infillMaterial: MaterialId // Default: woodwool
 
   // Interactive state
-  hoveredPerimeterWall?: PerimeterWallHit
+  hoveredWall?: WallHit
   offset?: Length
   previewPosition?: Vec2
   canPlace: boolean
@@ -69,29 +70,29 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
   /**
    * Extract wall information from hit test result
    */
-  private extractPerimeterWallFromHitResult(
+  private extractWallFromHitResult(
     hitResult: { entityId: SelectableId; entityType: EntityType; parentIds: SelectableId[] } | null
-  ): PerimeterWallHit | null {
+  ): WallHit | null {
     if (!hitResult) return null
 
-    const { getPerimeterWallById, getPerimeterCornerById } = getModelActions()
+    const { getPerimeterWallById, getIntermediateWallById, getPerimeterCornerById } = getModelActions()
 
-    let wall: PerimeterWallWithGeometry | null = null
-    let wallId: PerimeterWallId | null = null
+    let wall: PerimeterWallWithGeometry | IntermediateWallWithGeometry | null = null
+    let wallId: WallId | null = null
 
     // Check if we hit a wall directly
-    if (hitResult.entityType === 'perimeter-wall') {
-      wallId = hitResult.entityId as PerimeterWallId
-      wall = getPerimeterWallById(wallId)
+    if (hitResult.entityType === 'perimeter-wall' || hitResult.entityType === 'intermediate-wall') {
+      wallId = hitResult.entityId as WallId
+      wall = isIntermediateWallId(wallId) ? getIntermediateWallById(wallId) : getPerimeterWallById(wallId)
     }
 
     // Check if we hit an opening or post
     if (hitResult.entityType === 'opening' || hitResult.entityType === 'wall-post') {
       const [, wId] = hitResult.parentIds
 
-      if (isPerimeterWallId(wId)) {
+      if (isPerimeterWallId(wId) || isIntermediateWallId(wId)) {
         wallId = wId
-        wall = getPerimeterWallById(wallId)
+        wall = isIntermediateWallId(wallId) ? getIntermediateWallById(wallId) : getPerimeterWallById(wallId)
       }
     }
 
@@ -116,16 +117,20 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
   /**
    * Calculate center offset from pointer position projected onto wall
    */
-  private calculateCenterOffsetFromPointerPosition(pointerPos: Vec2, wall: PerimeterWallWithGeometry): Length {
-    const centerOffset = projectVec2(wall.insideLine.start, pointerPos, wall.direction)
+  private calculateCenterOffsetFromPointerPosition(
+    pointerPos: Vec2,
+    wall: PerimeterWallWithGeometry | IntermediateWallWithGeometry
+  ): Length {
+    const start = 'centerLine' in wall ? wall.centerLine.start : wall.insideLine.start
+    const centerOffset = projectVec2(start, pointerPos, wall.direction)
     return Math.round(centerOffset / 10) * 10 // Round center offset to 10mm increments
   }
 
   /**
    * Convert offset to actual position on the wall
    */
-  private offsetToPosition(offset: Length, wall: PerimeterWallWithGeometry): Vec2 {
-    const startPoint = wall.insideLine.start
+  private offsetToPosition(offset: Length, wall: PerimeterWallWithGeometry | IntermediateWallWithGeometry): Vec2 {
+    const startPoint = 'centerLine' in wall ? wall.centerLine.start : wall.insideLine.start
     const direction = wall.direction
 
     return newVec2(startPoint[0] + direction[0] * offset, startPoint[1] + direction[1] * offset)
@@ -135,7 +140,7 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
    * Clear preview state
    */
   private clearPreview(): void {
-    this.state.hoveredPerimeterWall = undefined
+    this.state.hoveredWall = undefined
     this.state.previewPosition = undefined
     this.state.offset = undefined
     this.state.canPlace = false
@@ -148,13 +153,13 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
    */
   private updatePreview(
     offset: Length,
-    perimeterWall: PerimeterWallHit,
+    wallHit: WallHit,
     canPlace = true,
     snapDirection?: 'left' | 'right'
   ): void {
-    this.state.hoveredPerimeterWall = perimeterWall
+    this.state.hoveredWall = wallHit
     this.state.offset = offset
-    this.state.previewPosition = this.offsetToPosition(offset, perimeterWall.wall)
+    this.state.previewPosition = this.offsetToPosition(offset, wallHit.wall)
     this.state.canPlace = canPlace
     this.state.snapDirection = snapDirection
     this.triggerRender()
@@ -167,19 +172,19 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
 
     // 1. Detect wall under cursor
     const hitResult = findEditorEntityAt(event.originalEvent)
-    const perimeterWall = this.extractPerimeterWallFromHitResult(hitResult)
+    const wallHit = this.extractWallFromHitResult(hitResult)
 
-    if (!perimeterWall) {
+    if (!wallHit) {
       this.clearPreview()
       return true
     }
 
     // 2. Calculate preferred center position from pointer
-    const preferredStartOffset = this.calculateCenterOffsetFromPointerPosition(pointerPos, perimeterWall.wall)
+    const preferredStartOffset = this.calculateCenterOffsetFromPointerPosition(pointerPos, wallHit.wall)
 
     // 3. Check if preferred position is valid and snap if needed
     const snappedOffset = getModelActions().findNearestValidWallPostPosition(
-      perimeterWall.wallId,
+      wallHit.wallId,
       preferredStartOffset,
       this.state.width
     )
@@ -189,14 +194,14 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
       // Determine snap direction
       const snapDirection: 'left' | 'right' | undefined =
         snappedOffset !== preferredStartOffset ? (snappedOffset > preferredStartOffset ? 'right' : 'left') : undefined
-      this.updatePreview(snappedOffset, perimeterWall, true, snapDirection)
+      this.updatePreview(snappedOffset, wallHit, true, snapDirection)
     } else {
       // Check if center is within valid bounds
       const halfWidth = this.state.width / 2
-      if (preferredStartOffset < halfWidth || preferredStartOffset > perimeterWall.wall.wallLength - halfWidth) {
+      if (preferredStartOffset < halfWidth || preferredStartOffset > wallHit.wall.wallLength - halfWidth) {
         this.clearPreview()
       } else {
-        this.updatePreview(preferredStartOffset, perimeterWall, snappedOffset === preferredStartOffset)
+        this.updatePreview(preferredStartOffset, wallHit, snappedOffset === preferredStartOffset)
       }
     }
 
@@ -204,11 +209,11 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
   }
 
   handlePointerDown(_event: EditorEvent): boolean {
-    if (!this.state.canPlace || !this.state.hoveredPerimeterWall || !this.state.offset) {
+    if (!this.state.canPlace || !this.state.hoveredWall || this.state.offset === undefined) {
       return true
     }
 
-    const { wallId } = this.state.hoveredPerimeterWall
+    const { wallId } = this.state.hoveredWall
 
     try {
       const post = getModelActions().addWallPost(wallId, {

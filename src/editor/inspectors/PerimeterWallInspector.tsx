@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import type { PerimeterWallId, RingBeamAssemblyId, WallAssemblyId } from '@/building/model/ids'
-import { useModelActions, usePerimeterWallById, useWallOpeningsById } from '@/building/store'
+import { useModelActions, usePerimeterWallById, useWallOpeningsByWallId } from '@/building/store'
 import { resolveLayerSetThickness, useWallAssemblyById } from '@/config/store'
 import { RingBeamAssemblySelectWithEdit } from '@/config/ui/ring-beam-assembly/RingBeamAssemblySelectWithEdit'
 import { WallAssemblySelectWithEdit } from '@/config/ui/wall-assembly/WallAssemblySelectWithEdit'
@@ -44,7 +44,7 @@ export function PerimeterWallInspector({ wallId }: { wallId: PerimeterWallId }):
   const wallAssembly = wallAssemblyConfig ? resolveWallAssembly(wallAssemblyConfig) : null
   const viewportActions = useViewportActions()
 
-  const openings = useWallOpeningsById(wallId)
+  const openings = useWallOpeningsByWallId(wallId)
 
   const thicknessRangeText = wallAssembly ? formatThicknessRange(wallAssembly.thicknessRange, t) : ''
 

@@ -31,6 +31,7 @@ import {
   type RoofOverhangId,
   type SelectableId,
   type StoreyId,
+  type WallId,
   type WallNodeId,
   type WallPostId,
   isConstraintId,
@@ -227,12 +228,22 @@ export const usePerimeterCornersById = (id: PerimeterId): PerimeterCornerWithGeo
   const getPerimeterCornersById = useModelStore(state => state.actions.getPerimeterCornersById)
   return useMemo(() => getPerimeterCornersById(id), [perimeter, walls, geometries, id])
 }
-export const useWallOpeningsById = (id: PerimeterWallId): OpeningWithGeometry[] => {
-  const wall = useModelStore(state => state.perimeterWalls[id])
+export const useWallOpeningsByWallId = (id: WallId): OpeningWithGeometry[] => {
+  const perimeterWall = useModelStore(state => state.perimeterWalls[id as PerimeterWallId])
+  const intermediateWall = useModelStore(state => state.intermediateWalls[id as IntermediateWallId])
   const openings = useModelStore(state => state.openings)
   const geometries = useModelStore(state => state._openingGeometry)
   const getWallOpeningsByWallId = useModelStore(state => state.actions.getWallOpeningsByWallId)
-  return useMemo(() => getWallOpeningsByWallId(id), [wall, openings, geometries, id])
+  return useMemo(() => getWallOpeningsByWallId(id), [perimeterWall, intermediateWall, openings, geometries, id])
+}
+
+export const useWallPostsByWallId = (id: WallId): WallPostWithGeometry[] => {
+  const perimeterWall = useModelStore(state => state.perimeterWalls[id as PerimeterWallId])
+  const intermediateWall = useModelStore(state => state.intermediateWalls[id as IntermediateWallId])
+  const wallPosts = useModelStore(state => state.wallPosts)
+  const geometries = useModelStore(state => state._wallPostGeometry)
+  const getWallPostsByWallId = useModelStore(state => state.actions.getWallPostsByWallId)
+  return useMemo(() => getWallPostsByWallId(id), [perimeterWall, intermediateWall, wallPosts, geometries, id])
 }
 
 export const useFloorAreas = (): Record<FloorAreaId, FloorArea> => useModelStore(state => state.floorAreas)
