@@ -19,7 +19,11 @@ import {
   type PerimetersState,
   createPerimetersSlice
 } from '@/building/store/slices/perimeterSlice'
-import type { WallEntitiesSlice, WallEntitiesState } from '@/building/store/slices/wallEntitiesSlice'
+import type {
+  WallEntitiesActions,
+  WallEntitiesSlice,
+  WallEntitiesState
+} from '@/building/store/slices/wallEntitiesSlice'
 import { createWallEntitiesSlice } from '@/building/store/slices/wallEntitiesSlice'
 import type { TimestampsState } from '@/config/store/slices/timestampsSlice'
 import type { MaterialId } from '@/materials/types'
@@ -508,7 +512,9 @@ export type IntermediateWallsTestState = IntermediateWallsSlice &
   PerimetersState &
   WallEntitiesState &
   TimestampsState &
-  ConstraintsState
+  ConstraintsState & {
+    actions: IntermediateWallsSlice['actions'] & WallEntitiesActions
+  }
 
 export function setupIntermediateWallsSlice(
   perimeterStateOverrides?: Partial<PerimetersState>,
@@ -604,6 +610,10 @@ export function expectNoOrphanedIntermediateEntities(
   state: IntermediateWallsState & {
     perimeters: Record<PerimeterId, any>
     perimeterWalls: Record<string, any>
+    openings: Record<string, any>
+    wallPosts: Record<string, any>
+    _openingGeometry: Record<string, any>
+    _wallPostGeometry: Record<string, any>
   }
 ): void {
   const allWallIds = new Set<string>()
@@ -635,6 +645,28 @@ export function expectNoOrphanedIntermediateEntities(
 
   for (const nodeId of Object.keys(state._wallNodeGeometry)) {
     expect(allNodeIds.has(nodeId), `Wall node geometry for ${nodeId} should have corresponding node`).toBe(true)
+  }
+
+  for (const wall of Object.values(state.intermediateWalls)) {
+    for (const entityId of wall.entityIds) {
+      const entity = isOpeningId(entityId) ? state.openings[entityId] : state.wallPosts[entityId]
+      expect(entity, `Entity ${entityId} should exist`).toBeDefined()
+      expect(entity.wallId, `Entity ${entityId} should reference wall ${wall.id}`).toBe(wall.id)
+    }
+  }
+
+  for (const [entityId, entity] of Object.entries(state.openings)) {
+    if (entity.wallId.startsWith('intermediate_')) {
+      expect(state.intermediateWalls[entity.wallId]).toBeDefined()
+      expect(state._openingGeometry[entityId]).toBeDefined()
+    }
+  }
+
+  for (const [entityId, entity] of Object.entries(state.wallPosts)) {
+    if (entity.wallId.startsWith('intermediate_')) {
+      expect(state.intermediateWalls[entity.wallId]).toBeDefined()
+      expect(state._wallPostGeometry[entityId]).toBeDefined()
+    }
   }
 
   // Verify perimeter-wall node IDs are consistent with perimeter.wallNodeIds

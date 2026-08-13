@@ -16,13 +16,13 @@ import type {
 } from '@/building/model'
 import type { IntermediateWallId, PerimeterId, PerimeterWallId, WallEntityId, WallNodeId } from '@/building/model/ids'
 import { createIntermediateWallId, createWallNodeId, isOpeningId } from '@/building/model/ids'
-import { NotFoundError } from '@/building/store/errors'
+import { InvalidOperationError, NotFoundError } from '@/building/store/errors'
 import { cleanUpOrphaned } from '@/building/store/slices/cleanup'
 import { removeConstraintsForEntityDraft } from '@/building/store/slices/constraintsSlice'
 import { removeTimestampDraft, updateTimestampDraft } from '@/building/store/slices/timestampsSlice'
 import type { StoreState } from '@/building/store/types'
 import type { Length, Vec2 } from '@/shared/geometry'
-import { copyVec2, dotVec2, lineFromSegment, projectPointOntoLine } from '@/shared/geometry'
+import { copyVec2, dotVec2, lineFromSegment, projectPointOntoLine, projectVec2 } from '@/shared/geometry'
 
 import { updateAllWallNodeGeometry } from './intermediateWallGeometry'
 
@@ -254,9 +254,41 @@ export const createIntermediateWallsSlice: StateCreator<
         const perimeter = state.perimeters[originalWall.perimeterId]
 
         const projectedPoint = projectPointOntoLine(point, lineFromSegment(originalGeometry.leftLine))
+        const splitPosition = projectVec2(originalGeometry.leftLine.start, projectedPoint, originalGeometry.direction)
+
+        if (splitPosition <= 0 || splitPosition >= originalGeometry.wallLength) {
+          throw new InvalidOperationError('Intermediate wall split point must be inside the wall')
+        }
 
         const wallAId = createIntermediateWallId()
         const wallBId = createIntermediateWallId()
+        const firstWallEntities: WallEntityId[] = []
+        const secondWallEntities: WallEntityId[] = []
+        for (const entityId of originalWall.entityIds) {
+          let entity
+          if (isOpeningId(entityId)) {
+            if (!(entityId in state.openings)) {
+              throw new NotFoundError('Wall entity', entityId)
+            }
+            entity = state.openings[entityId]
+          } else {
+            if (!(entityId in state.wallPosts)) {
+              throw new NotFoundError('Wall entity', entityId)
+            }
+            entity = state.wallPosts[entityId]
+          }
+          const entityStart = entity.centerOffsetFromWallStart - entity.width / 2
+          const entityEnd = entity.centerOffsetFromWallStart + entity.width / 2
+          if (entityStart < splitPosition && entityEnd > splitPosition) {
+            throw new InvalidOperationError('Cannot split intermediate wall through a wall entity')
+          }
+          if (entityEnd <= splitPosition) {
+            firstWallEntities.push(entityId)
+          } else {
+            secondWallEntities.push(entityId)
+          }
+        }
+
         const newNodeIdInner = createWallNodeId()
         const newNode: WallNode = {
           id: newNodeIdInner,
@@ -268,21 +300,10 @@ export const createIntermediateWallsSlice: StateCreator<
         state.wallNodes[newNodeIdInner] = newNode
         perimeter.wallNodeIds.push(newNodeIdInner)
 
-        const splitPosition = originalGeometry.wallLength / 2
-        const firstWallEntities: WallEntityId[] = []
-        const secondWallEntities: WallEntityId[] = []
-        for (const entityId of originalWall.entityIds) {
+        for (const entityId of secondWallEntities) {
           const entity = isOpeningId(entityId) ? state.openings[entityId] : state.wallPosts[entityId]
-          const entityStart = entity.centerOffsetFromWallStart - entity.width / 2
-          const entityEnd = entity.centerOffsetFromWallStart + entity.width / 2
-          if (splitPosition > entityStart && splitPosition < entityEnd) return
-          if (entity.centerOffsetFromWallStart < splitPosition) {
-            firstWallEntities.push(entityId)
-          } else {
-            secondWallEntities.push(entityId)
-            entity.wallId = wallBId
-            entity.centerOffsetFromWallStart -= splitPosition
-          }
+          entity.wallId = wallBId
+          entity.centerOffsetFromWallStart -= splitPosition
         }
 
         const wallA: IntermediateWall = {
@@ -357,18 +378,59 @@ export const createIntermediateWallsSlice: StateCreator<
 
         if (Math.abs(dotVec2(geomA.direction, geomB.direction)) < 0.999) return
 
-        const newId = createIntermediateWallId()
-        const wallALength = geomA.wallLength
-
         const firstWall = wallA.end.nodeId === nodeId ? wallA : wallB
         const secondWall = wallA.end.nodeId === nodeId ? wallB : wallA
+        const firstWallGeometry = state._intermediateWallGeometry[firstWall.id]
+        const mergedThickness = Math.max(firstWall.thickness, secondWall.thickness)
+
+        const mergedEntities: { id: WallEntityId; offset: Length; start: Length; end: Length }[] = []
+        for (const entityId of firstWall.entityIds) {
+          const entity = isOpeningId(entityId) ? state.openings[entityId] : state.wallPosts[entityId]
+          if (!(entityId in (isOpeningId(entityId) ? state.openings : state.wallPosts))) {
+            throw new NotFoundError('Wall entity', entityId)
+          }
+          mergedEntities.push({
+            id: entityId,
+            offset: entity.centerOffsetFromWallStart,
+            start: entity.centerOffsetFromWallStart - entity.width / 2,
+            end: entity.centerOffsetFromWallStart + entity.width / 2
+          })
+        }
+        for (const entityId of secondWall.entityIds) {
+          const entity = isOpeningId(entityId) ? state.openings[entityId] : state.wallPosts[entityId]
+          if (!(entityId in (isOpeningId(entityId) ? state.openings : state.wallPosts))) {
+            throw new NotFoundError('Wall entity', entityId)
+          }
+          const offset = entity.centerOffsetFromWallStart + firstWallGeometry.wallLength
+          mergedEntities.push({
+            id: entityId,
+            offset,
+            start: offset - entity.width / 2,
+            end: offset + entity.width / 2
+          })
+        }
+
+        mergedEntities.sort((a, b) => a.start - b.start)
+        for (let i = 1; i < mergedEntities.length; i++) {
+          if (mergedEntities[i - 1].end > mergedEntities[i].start) {
+            throw new InvalidOperationError('Cannot merge intermediate walls with overlapping entities')
+          }
+        }
+
+        const newId = createIntermediateWallId()
 
         const mergedEntityIds: WallEntityId[] = [...firstWall.entityIds]
         for (const entityId of secondWall.entityIds) {
           const entity = isOpeningId(entityId) ? state.openings[entityId] : state.wallPosts[entityId]
           entity.wallId = newId
-          entity.centerOffsetFromWallStart += wallALength
+          entity.centerOffsetFromWallStart += firstWallGeometry.wallLength
+          updateTimestampDraft(state, entityId)
           mergedEntityIds.push(entityId)
+        }
+        for (const entityId of firstWall.entityIds) {
+          const entity = isOpeningId(entityId) ? state.openings[entityId] : state.wallPosts[entityId]
+          entity.wallId = newId
+          updateTimestampDraft(state, entityId)
         }
 
         const mergedWall: IntermediateWall = {
@@ -377,7 +439,7 @@ export const createIntermediateWallsSlice: StateCreator<
           entityIds: mergedEntityIds,
           start: firstWall.start,
           end: secondWall.end,
-          thickness: firstWall.thickness,
+          thickness: mergedThickness,
           wallAssemblyId: firstWall.wallAssemblyId
         }
 
@@ -406,6 +468,9 @@ export const createIntermediateWallsSlice: StateCreator<
         delete state.wallNodes[nodeId]
         delete state._wallNodeGeometry[nodeId]
 
+        removeConstraintsForEntityDraft(state, wallA.id)
+        removeConstraintsForEntityDraft(state, wallB.id)
+        removeConstraintsForEntityDraft(state, nodeId)
         perimeter.wallNodeIds = perimeter.wallNodeIds.filter(id => id !== nodeId)
 
         removeTimestampDraft(state, wallA.id, wallB.id, nodeId)

@@ -1,5 +1,8 @@
+import isDeepEqual from 'fast-deep-equal'
+
 import type { Perimeter } from '@/building/model'
 import type { IntermediateWallId, PerimeterId, WallNodeId } from '@/building/model/ids'
+import { isOpeningId } from '@/building/model/ids'
 import type {
   InnerWallNode,
   InnerWallNodeGeometry,
@@ -12,6 +15,8 @@ import type {
 import type { IntermediateWallsState } from '@/building/store/slices/intermediateWallsSlice'
 import type { PerimetersState } from '@/building/store/slices/perimeterSlice'
 import type { TimestampsState } from '@/building/store/slices/timestampsSlice'
+import { updateTimestampDraft } from '@/building/store/slices/timestampsSlice'
+import type { WallEntitiesState } from '@/building/store/slices/wallEntitiesSlice'
 import {
   type Length,
   type Line2D,
@@ -37,10 +42,12 @@ import {
 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise } from '@/shared/geometry/polygon'
 
+import { updateEntityGeometry } from './perimeterGeometry'
+
 const COLINEAR_POINT_OFFSET = 10
 
 export function updateAllWallNodeGeometry(
-  state: IntermediateWallsState & PerimetersState & TimestampsState,
+  state: IntermediateWallsState & PerimetersState & WallEntitiesState & TimestampsState,
   perimeterId: PerimeterId
 ): void {
   if (!(perimeterId in state.perimeters)) return
@@ -90,6 +97,48 @@ export function updateAllWallNodeGeometry(
   for (const wallId of perimeter.intermediateWallIds) {
     updateWallGeometry(state._intermediateWallGeometry[wallId], state.intermediateWalls[wallId])
   }
+
+  for (const wallId of perimeter.intermediateWallIds) {
+    updateIntermediateWallEntities(state, wallId)
+  }
+}
+
+function updateIntermediateWallEntities(
+  state: IntermediateWallsState & PerimetersState & WallEntitiesState & TimestampsState,
+  wallId: IntermediateWallId
+): void {
+  const wall = state.intermediateWalls[wallId]
+  const geometry = state._intermediateWallGeometry[wallId]
+
+  const source = {
+    insideLine: geometry.leftLine,
+    outsideLine: geometry.rightLine,
+    direction: geometry.direction
+  }
+
+  for (const entityId of wall.entityIds) {
+    if (isOpeningId(entityId)) {
+      if (!(entityId in state.openings)) continue
+      const entity = state.openings[entityId]
+      const nextGeometry = updateEntityGeometry(source, entity)
+      if (!isGeometryEqual(state._openingGeometry[entityId], nextGeometry)) {
+        updateTimestampDraft(state, entityId)
+      }
+      state._openingGeometry[entityId] = nextGeometry
+    } else {
+      if (!(entityId in state.wallPosts)) continue
+      const entity = state.wallPosts[entityId]
+      const nextGeometry = updateEntityGeometry(source, entity)
+      if (!isGeometryEqual(state._wallPostGeometry[entityId], nextGeometry)) {
+        updateTimestampDraft(state, entityId)
+      }
+      state._wallPostGeometry[entityId] = nextGeometry
+    }
+  }
+}
+
+function isGeometryEqual(a: unknown, b: unknown): boolean {
+  return isDeepEqual(a, b)
 }
 
 function updateWallGeometry(geometry: IntermediateWallGeometry, wall: IntermediateWall) {
