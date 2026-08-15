@@ -5,7 +5,8 @@ import type {
   OpeningMovementState
 } from '@/editor/tools/basic/movement/behaviors/OpeningMovementBehavior'
 import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/types'
-import { scaleAddVec2 } from '@/shared/geometry'
+import { getWallMovementGeometry } from '@/editor/tools/basic/movement/wallMovementGeometry'
+import { normVec2, scaleAddVec2, subVec2 } from '@/shared/geometry'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 
 export function OpeningMovementPreview({
@@ -14,10 +15,15 @@ export function OpeningMovementPreview({
   context
 }: MovementPreviewComponentProps<OpeningEntityContext, OpeningMovementState>): React.JSX.Element {
   const { wall, opening } = context.entity
+  const wallGeometry = getWallMovementGeometry(wall)
 
   // Calculate the opening rectangle in new position
-  const wallStart = wall.insideLine.start
-  const outsideDirection = wall.outsideDirection
+  const wallStart = wallGeometry.insideLine.start
+  const outsideDirection = normVec2(subVec2(wallGeometry.outsideLine.start, wallStart))
+  const outsideDistance = Math.hypot(
+    wallGeometry.outsideLine.start[0] - wallStart[0],
+    wallGeometry.outsideLine.start[1] - wallStart[1]
+  )
   const halfWidth = opening.width / 2
 
   const openingStart = scaleAddVec2(wallStart, wall.direction, movementState.newOffset - halfWidth)
@@ -26,8 +32,8 @@ export function OpeningMovementPreview({
   // Create opening rectangle
   const insideStart = openingStart
   const insideEnd = openingEnd
-  const outsideStart = scaleAddVec2(openingStart, outsideDirection, wall.thickness)
-  const outsideEnd = scaleAddVec2(openingEnd, outsideDirection, wall.thickness)
+  const outsideStart = scaleAddVec2(openingStart, outsideDirection, outsideDistance)
+  const outsideEnd = scaleAddVec2(openingEnd, outsideDirection, outsideDistance)
 
   // Original position for movement indicator
   const originalStart = scaleAddVec2(wallStart, wall.direction, opening.centerOffsetFromWallStart)

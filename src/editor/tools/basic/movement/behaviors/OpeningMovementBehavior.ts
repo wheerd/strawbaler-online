@@ -1,8 +1,9 @@
-import type { Opening, PerimeterWallWithGeometry } from '@/building/model'
+import type { IntermediateWallWithGeometry, Opening, PerimeterWallWithGeometry } from '@/building/model'
 import type { SelectableId, WallEntityId } from '@/building/model/ids'
-import { isOpeningId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
+import { isIntermediateWallId, isOpeningId, isPerimeterId, isPerimeterWallId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import { OpeningMovementPreview } from '@/editor/tools/basic/movement/previews/OpeningMovementPreview'
+import { getWallMovementGeometry } from '@/editor/tools/basic/movement/wallMovementGeometry'
 import type {
   MovementBehavior,
   MovementContext,
@@ -13,7 +14,7 @@ import { type Length, type Vec2, ZERO_VEC2, dotVec2, newVec2, scaleAddVec2, subV
 
 // Opening movement needs access to the wall, wall, and opening
 export interface OpeningEntityContext {
-  wall: PerimeterWallWithGeometry
+  wall: PerimeterWallWithGeometry | IntermediateWallWithGeometry
   opening: Opening
 }
 
@@ -34,11 +35,13 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
   getEntity(entityId: SelectableId, parentIds: SelectableId[], store: StoreActions): OpeningEntityContext {
     const [perimeterId, wallId] = parentIds
 
-    if (!isPerimeterId(perimeterId) || !isPerimeterWallId(wallId) || !isOpeningId(entityId)) {
+    if (!isPerimeterId(perimeterId) || (!isPerimeterWallId(wallId) && !isIntermediateWallId(wallId)) || !isOpeningId(entityId)) {
       throw new Error(`Invalid entity context for opening ${entityId}`)
     }
 
-    const wall = store.getPerimeterWallById(wallId)
+    const wall = isPerimeterWallId(wallId)
+      ? store.getPerimeterWallById(wallId)
+      : store.getIntermediateWallById(wallId)
     const opening = store.getWallOpeningById(entityId)
 
     return { wall, opening }
@@ -63,11 +66,12 @@ export class OpeningMovementBehavior implements MovementBehavior<OpeningEntityCo
     const { opening, wall } = context.entity
 
     // Constrain to wall direction only - project the pointer delta onto wall direction
-    const wallDirection = wall.direction
+    const wallGeometry = getWallMovementGeometry(wall)
+    const wallDirection = wallGeometry.direction
     const projectedDistance = dotVec2(pointerState.delta, wallDirection)
 
     // Calculate new offset along wall (can be negative)
-    const wallStart = wall.insideLine.start
+    const wallStart = wallGeometry.insideLine.start
     const currentPosition = scaleAddVec2(wallStart, wall.direction, opening.centerOffsetFromWallStart)
     const newPosition = scaleAddVec2(currentPosition, wallDirection, projectedDistance)
 

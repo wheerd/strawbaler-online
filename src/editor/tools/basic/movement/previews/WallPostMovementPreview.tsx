@@ -3,6 +3,7 @@ import type {
   WallPostMovementState
 } from '@/editor/tools/basic/movement/behaviors/WallPostMovementBehavior'
 import type { MovementPreviewComponentProps } from '@/editor/tools/basic/movement/types'
+import { getWallMovementGeometry } from '@/editor/tools/basic/movement/wallMovementGeometry'
 import { addVec2, midpoint, scaleAddVec2, scaleVec2 } from '@/shared/geometry'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 
@@ -12,11 +13,12 @@ export function WallPostMovementPreview({
   isValid
 }: MovementPreviewComponentProps<WallPostEntityContext, WallPostMovementState>): React.JSX.Element {
   const { wall, post } = context.entity
+  const wallGeometry = getWallMovementGeometry(wall)
 
   // Extract wall geometry
-  const insideStart = wall.insideLine.start
-  const outsideStart = wall.outsideLine.start
-  const wallVector = wall.direction
+  const insideStart = wallGeometry.insideLine.start
+  const outsideStart = wallGeometry.outsideLine.start
+  const wallVector = wallGeometry.direction
 
   // Calculate post position using the new offset
   const offsetDistance = movementState.newOffset - post.width / 2
@@ -34,8 +36,8 @@ export function WallPostMovementPreview({
 
   // Movement indicator
   const base = midpoint(insideStart, outsideStart)
-  const originalMid = scaleAddVec2(base, wall.direction, post.centerOffsetFromWallStart)
-  const previewMid = scaleAddVec2(base, wall.direction, movementState.newOffset)
+  const originalMid = scaleAddVec2(base, wallGeometry.direction, post.centerOffsetFromWallStart)
+  const previewMid = scaleAddVec2(base, wallGeometry.direction, movementState.newOffset)
 
   const fillColor = isValid ? 'var(--color-green-600)' : 'var(--color-red-600)'
 
