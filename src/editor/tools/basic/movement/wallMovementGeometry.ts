@@ -1,4 +1,8 @@
-import type { IntermediateWallWithGeometry, PerimeterWallWithGeometry, WallEntityGeometrySource } from '@/building/model'
+import type {
+  IntermediateWallWithGeometry,
+  PerimeterWallWithGeometry,
+  WallEntityGeometrySource
+} from '@/building/model'
 import { type Length, type LineSegment2D, scaleAddVec2 } from '@/shared/geometry'
 
 export type MovableWall = PerimeterWallWithGeometry | IntermediateWallWithGeometry

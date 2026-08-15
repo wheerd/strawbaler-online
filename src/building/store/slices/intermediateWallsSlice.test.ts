@@ -855,6 +855,107 @@ describe('intermediateWallsSlice', () => {
       expect(state.intermediateWalls[wallB.id]).toBeUndefined()
       expectConsistentIntermediateWallReferences(state, perimeterId)
     })
+
+    it('should merge walls when the first wall starts and the second wall ends at the merge node', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const mergeNode = state.actions.addInnerWallNode(perimeterId, newVec2(5000, 2500))
+      const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
+      const wallA = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: mergeNode.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'center' },
+        120
+      )
+      const wallB = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeC.id, axis: 'center' },
+        { nodeId: mergeNode.id, axis: 'center' },
+        120
+      )
+      const postA = state.actions.addWallPost(wallA.id, mockPost({ centerOffsetFromWallStart: 500, width: 100 }))
+      const postB = state.actions.addWallPost(wallB.id, mockPost({ centerOffsetFromWallStart: 700, width: 100 }))
+      const wallALength = state._intermediateWallGeometry[wallA.id].wallLength
+      const wallBLength = state._intermediateWallGeometry[wallB.id].wallLength
+
+      const mergedId = state.actions.mergeIntermediateWalls(mergeNode.id)
+
+      expect(mergedId).toBeDefined()
+      expect(state.intermediateWalls[mergedId!].start.nodeId).toBe(nodeA.id)
+      expect(state.intermediateWalls[mergedId!].end.nodeId).toBe(nodeC.id)
+      expect(state.wallPosts[postA.id].centerOffsetFromWallStart).toBeCloseTo(wallALength - 500, 5)
+      expect(state.wallPosts[postB.id].centerOffsetFromWallStart).toBeCloseTo(wallALength + wallBLength - 700, 5)
+      expect(state.wallNodes[mergeNode.id]).toBeUndefined()
+      expectConsistentIntermediateWallReferences(state, perimeterId)
+    })
+
+    it('should merge walls when both walls start at the merge node', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const mergeNode = state.actions.addInnerWallNode(perimeterId, newVec2(5000, 2500))
+      const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
+      const wallA = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: mergeNode.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'center' },
+        120
+      )
+      const wallB = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: mergeNode.id, axis: 'center' },
+        { nodeId: nodeC.id, axis: 'center' },
+        120
+      )
+      const postA = state.actions.addWallPost(wallA.id, mockPost({ centerOffsetFromWallStart: 500, width: 100 }))
+      const postB = state.actions.addWallPost(wallB.id, mockPost({ centerOffsetFromWallStart: 700, width: 100 }))
+      const wallALength = state._intermediateWallGeometry[wallA.id].wallLength
+
+      const mergedId = state.actions.mergeIntermediateWalls(mergeNode.id)
+
+      expect(mergedId).toBeDefined()
+      expect(state.intermediateWalls[mergedId!].start.nodeId).toBe(nodeA.id)
+      expect(state.intermediateWalls[mergedId!].end.nodeId).toBe(nodeC.id)
+      expect(state.wallPosts[postA.id].centerOffsetFromWallStart).toBeCloseTo(wallALength - 500, 5)
+      expect(state.wallPosts[postB.id].centerOffsetFromWallStart).toBeCloseTo(wallALength + 700, 5)
+      expect(state.wallNodes[mergeNode.id]).toBeUndefined()
+      expectConsistentIntermediateWallReferences(state, perimeterId)
+    })
+
+    it('should merge walls when both walls end at the merge node', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const mergeNode = state.actions.addInnerWallNode(perimeterId, newVec2(5000, 2500))
+      const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
+      const wallA = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeA.id, axis: 'center' },
+        { nodeId: mergeNode.id, axis: 'center' },
+        120
+      )
+      const wallB = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeC.id, axis: 'center' },
+        { nodeId: mergeNode.id, axis: 'center' },
+        120
+      )
+      const postA = state.actions.addWallPost(wallA.id, mockPost({ centerOffsetFromWallStart: 500, width: 100 }))
+      const postB = state.actions.addWallPost(wallB.id, mockPost({ centerOffsetFromWallStart: 700, width: 100 }))
+      const wallALength = state._intermediateWallGeometry[wallA.id].wallLength
+      const wallBLength = state._intermediateWallGeometry[wallB.id].wallLength
+
+      const mergedId = state.actions.mergeIntermediateWalls(mergeNode.id)
+
+      expect(mergedId).toBeDefined()
+      expect(state.intermediateWalls[mergedId!].start.nodeId).toBe(nodeA.id)
+      expect(state.intermediateWalls[mergedId!].end.nodeId).toBe(nodeC.id)
+      expect(state.wallPosts[postA.id].centerOffsetFromWallStart).toBeCloseTo(500, 5)
+      expect(state.wallPosts[postB.id].centerOffsetFromWallStart).toBeCloseTo(wallALength + wallBLength - 700, 5)
+      expect(state.wallNodes[mergeNode.id]).toBeUndefined()
+      expectConsistentIntermediateWallReferences(state, perimeterId)
+    })
   })
 
   describe('getters', () => {

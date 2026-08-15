@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
+import { mockPost, setupIntermediateWallsSlice } from '@/building/store/slices/__tests__/testHelpers'
 import type { StoreActions } from '@/building/store/types'
 import { dotVec2, newVec2 } from '@/shared/geometry'
 
 import { WallPostMovementBehavior } from './WallPostMovementBehavior'
-import { mockPost, setupIntermediateWallsSlice } from '@/building/store/slices/__tests__/testHelpers'
 
 describe('WallPostMovementBehavior', () => {
   it('moves a post on an intermediate wall and respects wall bounds', () => {

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
+import { setupIntermediateWallsSlice } from '@/building/store/slices/__tests__/testHelpers'
 import type { StoreActions } from '@/building/store/types'
 import { dotVec2, newVec2 } from '@/shared/geometry'
 
 import { OpeningMovementBehavior } from './OpeningMovementBehavior'
-import { setupIntermediateWallsSlice } from '@/building/store/slices/__tests__/testHelpers'
 
 describe('OpeningMovementBehavior', () => {
   it('moves an opening on an intermediate wall along the wall direction', () => {

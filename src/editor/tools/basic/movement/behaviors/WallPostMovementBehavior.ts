@@ -3,13 +3,13 @@ import type { SelectableId, WallEntityId } from '@/building/model/ids'
 import { isIntermediateWallId, isPerimeterId, isPerimeterWallId, isWallPostId } from '@/building/model/ids'
 import type { StoreActions } from '@/building/store/types'
 import { WallPostMovementPreview } from '@/editor/tools/basic/movement/previews/WallPostMovementPreview'
-import { getWallMovementGeometry } from '@/editor/tools/basic/movement/wallMovementGeometry'
 import type {
   MovementBehavior,
   MovementContext,
   MovementState,
   PointerMovementState
 } from '@/editor/tools/basic/movement/types'
+import { getWallMovementGeometry } from '@/editor/tools/basic/movement/wallMovementGeometry'
 import { type Length, type Vec2, ZERO_VEC2, dotVec2, newVec2, projectVec2, scaleAddVec2 } from '@/shared/geometry'
 
 // Wall post movement needs access to the wall, wall, and post
@@ -35,13 +35,15 @@ export class WallPostMovementBehavior implements MovementBehavior<WallPostEntity
   getEntity(entityId: SelectableId, parentIds: SelectableId[], store: StoreActions): WallPostEntityContext {
     const [perimeterId, wallId] = parentIds
 
-    if (!isPerimeterId(perimeterId) || (!isPerimeterWallId(wallId) && !isIntermediateWallId(wallId)) || !isWallPostId(entityId)) {
+    if (
+      !isPerimeterId(perimeterId) ||
+      (!isPerimeterWallId(wallId) && !isIntermediateWallId(wallId)) ||
+      !isWallPostId(entityId)
+    ) {
       throw new Error(`Invalid entity context for wall post ${entityId}`)
     }
 
-    const wall = isPerimeterWallId(wallId)
-      ? store.getPerimeterWallById(wallId)
-      : store.getIntermediateWallById(wallId)
+    const wall = isPerimeterWallId(wallId) ? store.getPerimeterWallById(wallId) : store.getIntermediateWallById(wallId)
     const post = store.getWallPostById(entityId)
 
     return { wall, post }
