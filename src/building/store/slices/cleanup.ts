@@ -1,4 +1,5 @@
 import type { EntityId, WallId, WallNodeId } from '@/building/model/ids'
+import { isPerimeterWallId } from '@/building/model/ids'
 import { removeConstraintsForEntityDraft } from '@/building/store/slices/constraintsSlice'
 import { removeTimestampDraft } from '@/building/store/slices/timestampsSlice'
 import type { StoreState } from '@/building/store/types'
@@ -58,21 +59,48 @@ export function cleanUpOrphaned(state: StoreState) {
 
   // Clean up orphaned openings
   for (const opening of Object.values(state.openings)) {
-    if (!validWallIds.has(opening.wallId) || !state.perimeterWalls[opening.wallId].entityIds.includes(opening.id)) {
-      delete state.openings[opening.id]
-      delete state._openingGeometry[opening.id]
-      entityIdsToRemove.push(opening.id)
-      removeConstraintsForEntityDraft(state, opening.id)
+    if (isPerimeterWallId(opening.wallId)) {
+      if (
+        !(opening.wallId in state.perimeterWalls) ||
+        !state.perimeterWalls[opening.wallId].entityIds.includes(opening.id)
+      ) {
+        delete state.openings[opening.id]
+        delete state._openingGeometry[opening.id]
+        entityIdsToRemove.push(opening.id)
+        removeConstraintsForEntityDraft(state, opening.id)
+      }
+    } else {
+      if (
+        !(opening.wallId in state.intermediateWalls) ||
+        !state.intermediateWalls[opening.wallId].entityIds.includes(opening.id)
+      ) {
+        delete state.openings[opening.id]
+        delete state._openingGeometry[opening.id]
+        entityIdsToRemove.push(opening.id)
+        removeConstraintsForEntityDraft(state, opening.id)
+      }
     }
   }
 
   // Clean up orphaned posts
   for (const post of Object.values(state.wallPosts)) {
-    if (!validWallIds.has(post.wallId) || !state.perimeterWalls[post.wallId].entityIds.includes(post.id)) {
-      delete state.wallPosts[post.id]
-      delete state._wallPostGeometry[post.id]
-      entityIdsToRemove.push(post.id)
-      removeConstraintsForEntityDraft(state, post.id)
+    if (isPerimeterWallId(post.wallId)) {
+      if (!(post.wallId in state.perimeterWalls) || !state.perimeterWalls[post.wallId].entityIds.includes(post.id)) {
+        delete state.wallPosts[post.id]
+        delete state._wallPostGeometry[post.id]
+        entityIdsToRemove.push(post.id)
+        removeConstraintsForEntityDraft(state, post.id)
+      }
+    } else {
+      if (
+        !(post.wallId in state.intermediateWalls) ||
+        !state.intermediateWalls[post.wallId].entityIds.includes(post.id)
+      ) {
+        delete state.wallPosts[post.id]
+        delete state._wallPostGeometry[post.id]
+        entityIdsToRemove.push(post.id)
+        removeConstraintsForEntityDraft(state, post.id)
+      }
     }
   }
 

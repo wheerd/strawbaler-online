@@ -7,15 +7,16 @@ import type { AddPostTool } from './AddPostTool'
 export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTool>): React.JSX.Element | null {
   const { state } = useReactiveTool(tool)
 
-  if (!state.hoveredPerimeterWall || !state.previewPosition || state.offset === undefined) {
+  if (!state.hoveredWall || !state.previewPosition || state.offset === undefined) {
     return null
   }
 
-  const wall = state.hoveredPerimeterWall.wall
+  const wall = state.hoveredWall.wall
   const wallDirection = wall.direction
   const wallAngle = (Math.atan2(wallDirection[1], wallDirection[0]) * 180) / Math.PI
 
   const halfWidth = state.width / 2
+  const wallOffset = 'centerLine' in wall ? -wall.thickness / 2 : 0
 
   const fillColor = state.canPlace ? 'var(--color-schematic-gray-1)' : 'var(--color-red-600)'
 
@@ -27,7 +28,7 @@ export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTo
       {/* Post preview */}
       <rect
         x={-halfWidth}
-        y={0}
+        y={wallOffset}
         opacity={0.6}
         width={state.width}
         height={wall.thickness}
@@ -40,7 +41,7 @@ export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTo
       {(tool.state.type === 'inside' || tool.state.type === 'double') && (
         <rect
           x={-halfWidth}
-          y={0}
+          y={wallOffset}
           width={state.width}
           height={wall.thickness / 3}
           fill={MATERIAL_COLORS.woodSupport}
@@ -52,7 +53,7 @@ export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTo
       {tool.state.type === 'center' && (
         <rect
           x={-halfWidth}
-          y={wall.thickness / 3}
+          y={wallOffset + wall.thickness / 3}
           width={state.width}
           height={wall.thickness / 3}
           fill={MATERIAL_COLORS.woodSupport}
@@ -64,7 +65,7 @@ export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTo
       {(tool.state.type === 'outside' || tool.state.type === 'double') && (
         <rect
           x={-halfWidth}
-          y={(wall.thickness * 2) / 3}
+          y={wallOffset + (wall.thickness * 2) / 3}
           width={state.width}
           height={wall.thickness / 3}
           fill={MATERIAL_COLORS.woodSupport}
@@ -77,7 +78,7 @@ export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTo
       {state.snapDirection && (
         <circle
           cx={state.snapDirection === 'right' ? -halfWidth : halfWidth}
-          cy={wall.thickness / 2}
+          cy={wallOffset + wall.thickness / 2}
           r={wall.thickness * 0.15}
           fill="var(--color-primary)"
           stroke="var(--color-schematic-gray-1)"

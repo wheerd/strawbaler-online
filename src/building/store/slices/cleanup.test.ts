@@ -4,6 +4,7 @@ import type { Perimeter, WallAssemblyId } from '@/building/model'
 import { createConstraintsSlice } from '@/building/store/slices/constraintsSlice'
 import { createIntermediateWallsSlice } from '@/building/store/slices/intermediateWallsSlice'
 import { createPerimetersSlice } from '@/building/store/slices/perimeterSlice'
+import { createWallEntitiesSlice } from '@/building/store/slices/wallEntitiesSlice'
 import type { Store } from '@/building/store/types'
 import { newVec2 } from '@/shared/geometry'
 
@@ -22,16 +23,19 @@ function setupMockStore() {
 
   const perimeterSlice = createPerimetersSlice(mockSet, mockGet, mockStore)
   const intermediateWallsSlice = createIntermediateWallsSlice(mockSet, mockGet, mockStore)
+  const wallEntitiesSlice = createWallEntitiesSlice(mockSet, mockGet, mockStore)
   const constraintsSlice = createConstraintsSlice(mockSet, mockGet, mockStore)
 
   const store = {
     ...perimeterSlice,
     ...intermediateWallsSlice,
+    ...wallEntitiesSlice,
     ...constraintsSlice,
     timestamps: {},
     actions: {
       ...perimeterSlice.actions,
       ...intermediateWallsSlice.actions,
+      ...wallEntitiesSlice.actions,
       ...constraintsSlice.actions
     }
   } as any as Store
@@ -108,6 +112,40 @@ describe('cleanUpOrphaned', () => {
   })
 
   describe('intermediate wall cleanup', () => {
+    it('should remove entities attached to an intermediate wall when the perimeter is deleted', () => {
+      const nodeA = store.actions.addInnerWallNode(perimeter.id, newVec2(2000, 2500))
+      const nodeB = store.actions.addInnerWallNode(perimeter.id, newVec2(8000, 2500))
+      const wall = store.actions.addIntermediateWall(
+        perimeter.id,
+        { axis: 'center', nodeId: nodeA.id },
+        { axis: 'center', nodeId: nodeB.id },
+        120
+      )
+      const opening = store.actions.addWallOpening(wall.id, {
+        openingType: 'door',
+        centerOffsetFromWallStart: 2000,
+        width: 900,
+        height: 2100
+      })
+      const post = store.actions.addWallPost(wall.id, {
+        postType: 'center',
+        centerOffsetFromWallStart: 4000,
+        width: 100,
+        thickness: 100,
+        replacesPosts: true,
+        material: 'postMaterial' as any,
+        infillMaterial: 'infillMaterial' as any
+      })
+
+      delete store.perimeters[perimeter.id]
+      cleanUpOrphaned(store)
+
+      expect(store.openings[opening.id]).toBeUndefined()
+      expect(store.wallPosts[post.id]).toBeUndefined()
+      expect(store._openingGeometry[opening.id]).toBeUndefined()
+      expect(store._wallPostGeometry[post.id]).toBeUndefined()
+    })
+
     it('should cascade delete intermediate walls when perimeter is deleted', () => {
       const wn1 = store.actions.addInnerWallNode(perimeter.id, newVec2(0, 0)).id
       const wn2 = store.actions.addInnerWallNode(perimeter.id, newVec2(0, 1000)).id

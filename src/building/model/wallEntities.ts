@@ -1,12 +1,12 @@
 import type { MaterialId } from '@/materials/types'
 import { type Length, type LineSegment2D, type Polygon2D, type Vec2 } from '@/shared/geometry'
 
-import type { OpeningAssemblyId, OpeningId, PerimeterId, PerimeterWallId, WallEntityId, WallPostId } from './ids'
+import type { OpeningAssemblyId, OpeningId, PerimeterId, WallEntityId, WallId, WallPostId } from './ids'
 
 interface BaseWallEntity {
   id: WallEntityId
   perimeterId: PerimeterId
-  wallId: PerimeterWallId
+  wallId: WallId
   type: 'opening' | 'post'
   centerOffsetFromWallStart: Length
   width: Length
@@ -17,6 +17,12 @@ export interface WallEntityGeometry {
   outsideLine: LineSegment2D
   polygon: Polygon2D
   center: Vec2
+}
+
+export interface WallEntityGeometrySource {
+  insideLine: LineSegment2D
+  outsideLine: LineSegment2D
+  direction: Vec2
 }
 
 export type OpeningType = 'door' | 'window' | 'passage'

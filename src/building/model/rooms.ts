@@ -3,10 +3,10 @@ import { type Area, type Length, type LineSegment2D, type Polygon2D, type Vec2 }
 import type {
   InteriorWallAssemblyId,
   IntermediateWallId,
-  OpeningId,
   PerimeterId,
   PerimeterWallId,
   RoomId,
+  WallEntityId,
   WallNodeId
 } from './ids'
 
@@ -87,7 +87,7 @@ export interface WallAttachment {
 export interface IntermediateWall {
   id: IntermediateWallId
   perimeterId: PerimeterId
-  openingIds: OpeningId[] // TODO
+  entityIds: WallEntityId[]
   leftRoomId?: RoomId // TODO
   rightRoomId?: RoomId // TODO
   start: WallAttachment

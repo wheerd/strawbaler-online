@@ -1,5 +1,7 @@
-import type { IntermediateWallId } from '@/building/model/ids'
+import { type IntermediateWallId, isOpeningId } from '@/building/model/ids'
 import { useIntermediateWallById } from '@/building/store'
+import { OpeningShape } from '@/editor/canvas/layers/walls/OpeningShape'
+import { WallPostShape } from '@/editor/canvas/layers/walls/WallPostShape'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 import { polygonToSvgPath } from '@/shared/utils/svg'
 
@@ -17,6 +19,13 @@ export function IntermediateWallShape({ wallId }: { wallId: IntermediateWallId }
       data-parent-ids={JSON.stringify([wall.perimeterId])}
     >
       <path d={wallPath} fill={fillColor} className="stroke-border-contrast stroke-10" />
+      {wall.entityIds.map(id =>
+        isOpeningId(id) ? (
+          <OpeningShape key={`opening-${id}`} openingId={id} />
+        ) : (
+          <WallPostShape key={`post-${id}`} postId={id} />
+        )
+      )}
     </g>
   )
 }

@@ -8,6 +8,8 @@ import { createConstraintsSlice } from '@/building/store/slices/constraintsSlice
 import { createIntermediateWallsSlice } from '@/building/store/slices/intermediateWallsSlice'
 import type { PerimetersSlice } from '@/building/store/slices/perimeterSlice'
 import { createPerimetersSlice } from '@/building/store/slices/perimeterSlice'
+import type { WallEntitiesSlice } from '@/building/store/slices/wallEntitiesSlice'
+import { createWallEntitiesSlice } from '@/building/store/slices/wallEntitiesSlice'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
 import {
@@ -29,7 +31,7 @@ vi.mock('@/shared/geometry/polygon', async importOriginal => {
 const wouldClosingPolygonSelfIntersectMock = vi.mocked(wouldClosingPolygonSelfIntersect)
 const ensurePolygonIsClockwiseMock = vi.mocked(ensurePolygonIsClockwise)
 
-type CombinedSlice = PerimetersSlice & ConstraintsSlice
+type CombinedSlice = PerimetersSlice & WallEntitiesSlice & ConstraintsSlice
 
 /**
  * Sets up a test environment with both perimeter and constraints slices.
@@ -41,16 +43,22 @@ function setupCombinedSlice() {
   const testStoreyId = createStoreyId()
 
   const perimeterSlice = createPerimetersSlice(mockSet, mockGet, mockStore)
+  const wallEntitiesSlice = createWallEntitiesSlice(mockSet, mockGet, mockStore)
   const intermediateWallsSlice = createIntermediateWallsSlice(mockSet, mockGet, mockStore)
   const constraintsSlice = createConstraintsSlice(mockSet, mockGet, mockStore)
 
+  const { actions: _perimActions, ...perimState } = perimeterSlice
+  const { actions: _entityActions, ...entityState } = wallEntitiesSlice
+
   const slice = {
-    ...perimeterSlice,
+    ...perimState,
+    ...entityState,
     ...intermediateWallsSlice,
     ...constraintsSlice,
     timestamps: {},
     actions: {
-      ...perimeterSlice.actions,
+      ..._perimActions,
+      ..._entityActions,
       ...intermediateWallsSlice.actions,
       ...constraintsSlice.actions
     }

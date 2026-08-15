@@ -166,7 +166,7 @@ export class StoreyManagementService {
         sourcePerimeter.wallIds.forEach((sourceWallId, wallIndex) => {
           const newWallId = newPerimeter.wallIds[wallIndex]
 
-          const wallOpenings = this.actions.getWallOpeningsById(sourceWallId)
+          const wallOpenings = this.actions.getWallOpeningsByWallId(sourceWallId)
           for (const opening of wallOpenings) {
             const newOpening = this.actions.addWallOpening(newWallId, {
               openingType: opening.openingType,
@@ -186,7 +186,7 @@ export class StoreyManagementService {
         sourcePerimeter.wallIds.forEach((sourceWallId, wallIndex) => {
           const newWallId = newPerimeter.wallIds[wallIndex]
 
-          const wallPosts = this.actions.getWallPostsById(sourceWallId)
+          const wallPosts = this.actions.getWallPostsByWallId(sourceWallId)
           for (const post of wallPosts) {
             const newPost = this.actions.addWallPost(newWallId, {
               postType: post.postType,

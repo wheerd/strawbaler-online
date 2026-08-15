@@ -12,15 +12,16 @@ export function AddOpeningToolOverlay({ tool }: ToolOverlayComponentProps<AddOpe
   const { state } = useReactiveTool(tool)
 
   // Don't render anything if no preview state
-  if (!state.hoveredPerimeterWall || !state.previewPosition) {
+  if (!state.hoveredWall || !state.previewPosition) {
     return null
   }
 
-  const wall = state.hoveredPerimeterWall.wall
+  const wall = state.hoveredWall.wall
   const wallDirection = wall.direction
   const wallAngle = (Math.atan2(wallDirection[1], wallDirection[0]) * 180) / Math.PI
 
   const halfWidth = state.width / 2
+  const wallOffset = 'centerLine' in wall ? -wall.thickness / 2 : 0
 
   return (
     <g
@@ -30,7 +31,7 @@ export function AddOpeningToolOverlay({ tool }: ToolOverlayComponentProps<AddOpe
       {/* Opening Preview */}
       <rect
         x={-halfWidth}
-        y={0}
+        y={wallOffset}
         width={state.width}
         height={wall.thickness}
         fill={
@@ -44,7 +45,7 @@ export function AddOpeningToolOverlay({ tool }: ToolOverlayComponentProps<AddOpe
         stroke="var(--color-border)"
         strokeWidth={3}
       />
-      <g transform={`translate(0 ${wall.thickness}) scale(1, -1)`}>
+      <g transform={`translate(0 ${wallOffset + wall.thickness}) scale(1, -1)`}>
         <text
           x={0}
           y={wall.thickness / 2}
@@ -61,7 +62,7 @@ export function AddOpeningToolOverlay({ tool }: ToolOverlayComponentProps<AddOpe
       {state.snapDirection && (
         <circle
           cx={state.snapDirection === 'right' ? -halfWidth : halfWidth}
-          cy={wall.thickness / 2}
+          cy={wallOffset + wall.thickness / 2}
           r={wall.thickness * 0.15}
           fill="var(--color-primary)"
           stroke="var(--color-schematic-gray-1)"

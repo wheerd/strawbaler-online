@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type StoreyId, createStoreyId, createWallAssemblyId } from '@/building/model/ids'
 import { NotFoundError } from '@/building/store/errors'
-import type { PerimetersSlice } from '@/building/store/slices/perimeterSlice'
 import { newVec2 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
 import {
+  type PerimeterTestSlice,
   createLShapedBoundary,
   createRectangularBoundary,
   createTriangularBoundary,
@@ -30,7 +30,7 @@ const wouldClosingPolygonSelfIntersectMock = vi.mocked(wouldClosingPolygonSelfIn
 const ensurePolygonIsClockwiseMock = vi.mocked(ensurePolygonIsClockwise)
 
 describe('perimeterSlice - Basic CRUD', () => {
-  let slice: PerimetersSlice
+  let slice: PerimeterTestSlice
   let testStoreyId: StoreyId
 
   beforeEach(() => {

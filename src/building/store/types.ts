@@ -8,11 +8,13 @@ import type { PerimetersActions, PerimetersState } from './slices/perimeterSlice
 import type { RoofsActions, RoofsState } from './slices/roofsSlice'
 import type { StoreysActions, StoreysState } from './slices/storeysSlice'
 import type { TimestampsActions, TimestampsState } from './slices/timestampsSlice'
+import type { WallEntitiesActions, WallEntitiesState } from './slices/wallEntitiesSlice'
 
 export interface StoreState
   extends
     StoreysState,
     PerimetersState,
+    WallEntitiesState,
     FloorsState,
     RoofsState,
     TimestampsState,
@@ -23,6 +25,7 @@ export interface StoreActions
   extends
     StoreysActions,
     PerimetersActions,
+    WallEntitiesActions,
     FloorsActions,
     RoofsActions,
     TimestampsActions,

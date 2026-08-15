@@ -1,5 +1,8 @@
+import isDeepEqual from 'fast-deep-equal'
+
 import type { Perimeter } from '@/building/model'
 import type { IntermediateWallId, PerimeterId, WallNodeId } from '@/building/model/ids'
+import { isOpeningId } from '@/building/model/ids'
 import type {
   InnerWallNode,
   InnerWallNodeGeometry,
@@ -12,12 +15,16 @@ import type {
 import type { IntermediateWallsState } from '@/building/store/slices/intermediateWallsSlice'
 import type { PerimetersState } from '@/building/store/slices/perimeterSlice'
 import type { TimestampsState } from '@/building/store/slices/timestampsSlice'
+import { updateTimestampDraft } from '@/building/store/slices/timestampsSlice'
+import type { WallEntitiesState } from '@/building/store/slices/wallEntitiesSlice'
 import {
   type Length,
   type Line2D,
+  type LineSegment2D,
   type Vec2,
   ZERO_VEC2,
   addVec2,
+  crossVec2,
   direction,
   distVec2,
   dotVec2,
@@ -37,10 +44,12 @@ import {
 } from '@/shared/geometry'
 import { ensurePolygonIsClockwise } from '@/shared/geometry/polygon'
 
+import { updateEntityGeometry } from './perimeterGeometry'
+
 const COLINEAR_POINT_OFFSET = 10
 
 export function updateAllWallNodeGeometry(
-  state: IntermediateWallsState & PerimetersState & TimestampsState,
+  state: IntermediateWallsState & PerimetersState & WallEntitiesState & TimestampsState,
   perimeterId: PerimeterId
 ): void {
   if (!(perimeterId in state.perimeters)) return
@@ -62,7 +71,8 @@ export function updateAllWallNodeGeometry(
           if (!lines) return null
           const left = wall.start.nodeId === node.id ? lines.left : lines.right
           const right = wall.start.nodeId === node.id ? lines.right : lines.left
-          return { wallId, left, right }
+          const dir = wall.start.nodeId === node.id ? lines.left.direction : negVec2(lines.left.direction)
+          return { wallId, left, right, dir }
         })
         .filter(item => item != null)
 
@@ -90,6 +100,56 @@ export function updateAllWallNodeGeometry(
   for (const wallId of perimeter.intermediateWallIds) {
     updateWallGeometry(state._intermediateWallGeometry[wallId], state.intermediateWalls[wallId])
   }
+
+  for (const wallId of perimeter.intermediateWallIds) {
+    updateIntermediateWallEntities(state, wallId)
+  }
+}
+
+function updateIntermediateWallEntities(
+  state: IntermediateWallsState & PerimetersState & WallEntitiesState & TimestampsState,
+  wallId: IntermediateWallId
+): void {
+  const wall = state.intermediateWalls[wallId]
+  const geometry = state._intermediateWallGeometry[wallId]
+
+  const insideLine: LineSegment2D = {
+    start: scaleAddVec2(geometry.centerLine.start, geometry.leftDirection, wall.thickness / 2),
+    end: scaleAddVec2(geometry.centerLine.end, geometry.leftDirection, wall.thickness / 2)
+  }
+  const outsideLine: LineSegment2D = {
+    start: scaleAddVec2(geometry.centerLine.start, geometry.leftDirection, -wall.thickness / 2),
+    end: scaleAddVec2(geometry.centerLine.end, geometry.leftDirection, -wall.thickness / 2)
+  }
+  const source = {
+    insideLine,
+    outsideLine,
+    direction: geometry.direction
+  }
+
+  for (const entityId of wall.entityIds) {
+    if (isOpeningId(entityId)) {
+      if (!(entityId in state.openings)) continue
+      const entity = state.openings[entityId]
+      const nextGeometry = updateEntityGeometry(source, entity)
+      if (!isGeometryEqual(state._openingGeometry[entityId], nextGeometry)) {
+        updateTimestampDraft(state, entityId)
+      }
+      state._openingGeometry[entityId] = nextGeometry
+    } else {
+      if (!(entityId in state.wallPosts)) continue
+      const entity = state.wallPosts[entityId]
+      const nextGeometry = updateEntityGeometry(source, entity)
+      if (!isGeometryEqual(state._wallPostGeometry[entityId], nextGeometry)) {
+        updateTimestampDraft(state, entityId)
+      }
+      state._wallPostGeometry[entityId] = nextGeometry
+    }
+  }
+}
+
+function isGeometryEqual(a: unknown, b: unknown): boolean {
+  return isDeepEqual(a, b)
 }
 
 function updateWallGeometry(geometry: IntermediateWallGeometry, wall: IntermediateWall) {
@@ -125,16 +185,16 @@ function updateWallGeometry(geometry: IntermediateWallGeometry, wall: Intermedia
 
 function updateComplexCorner(
   node: InnerWallNode,
-  connectedWallLines: { left: Line2D; right: Line2D; wallId: IntermediateWallId }[],
+  connectedWallLines: { left: Line2D; right: Line2D; wallId: IntermediateWallId; dir: Vec2 }[],
   nodePositions: Map<WallNodeId, Vec2>,
   state: IntermediateWallsState & PerimetersState & TimestampsState
 ) {
   connectedWallLines.sort((a, b) => {
-    const aDir = a.left.direction
-    const bDir = b.left.direction
+    const aDir = a.dir
+    const bDir = b.dir
     const angleA = Math.atan2(aDir[1], aDir[0])
     const angleB = Math.atan2(bDir[1], bDir[0])
-    return angleA - angleB
+    return angleB - angleA
   })
 
   const points: Vec2[] = []
@@ -178,7 +238,6 @@ function updateComplexCorner(
     } else {
       geometryA.leftLine.end = aPos
     }
-
     const wallBId = connectedWallLines[iNext].wallId
     const wallB = state.intermediateWalls[wallBId]
     const geometryB = state._intermediateWallGeometry[wallBId]
@@ -193,12 +252,12 @@ function updateComplexCorner(
 
 function updateSimpleCorner(
   node: InnerWallNode,
-  a: { left: Line2D; right: Line2D; wallId: IntermediateWallId },
-  b: { left: Line2D; right: Line2D; wallId: IntermediateWallId },
+  a: { left: Line2D; right: Line2D; wallId: IntermediateWallId; dir: Vec2 },
+  b: { left: Line2D; right: Line2D; wallId: IntermediateWallId; dir: Vec2 },
   nodePositions: Map<WallNodeId, Vec2>,
   state: IntermediateWallsState & PerimetersState & TimestampsState
 ) {
-  const dot = dotVec2(a.left.direction, b.left.direction)
+  const dot = dotVec2(a.dir, b.dir)
   if (Math.abs(dot) > 0.99) {
     // Lines are almost parallel -> cutoff perpendicular at the node position
     const nodePos = nodePositions.get(node.id)
@@ -206,12 +265,8 @@ function updateSimpleCorner(
       throw new Error(`Node position not found for node ${node.id}`)
     }
 
-    const aLeft = scaleAddVec2(a.left.point, a.left.direction, projectVec2(a.left.point, nodePos, a.left.direction))
-    const aRight = scaleAddVec2(
-      a.right.point,
-      a.right.direction,
-      projectVec2(a.right.point, nodePos, a.right.direction)
-    )
+    const aLeft = projectPointOntoLine(nodePos, a.left)
+    const aRight = projectPointOntoLine(nodePos, a.right)
 
     const wallA = state.intermediateWalls[a.wallId]
     const geometryA = state._intermediateWallGeometry[a.wallId]
@@ -222,16 +277,11 @@ function updateSimpleCorner(
       geometryA.leftLine.end = aRight
       geometryA.rightLine.end = aLeft
     }
-    const aDir = wallA.start.nodeId === node.id ? negVec2(a.left.direction) : a.left.direction
-    const p1 = scaleAddVec2(aLeft, aDir, COLINEAR_POINT_OFFSET)
-    const p2 = scaleAddVec2(aRight, aDir, COLINEAR_POINT_OFFSET)
+    const p1 = scaleAddVec2(aLeft, a.dir, COLINEAR_POINT_OFFSET)
+    const p2 = scaleAddVec2(aRight, a.dir, COLINEAR_POINT_OFFSET)
 
-    const bLeft = scaleAddVec2(b.left.point, b.left.direction, projectVec2(b.left.point, nodePos, b.left.direction))
-    const bRight = scaleAddVec2(
-      b.right.point,
-      b.right.direction,
-      projectVec2(b.right.point, nodePos, b.right.direction)
-    )
+    const bLeft = projectPointOntoLine(nodePos, b.left)
+    const bRight = projectPointOntoLine(nodePos, b.right)
 
     const wallB = state.intermediateWalls[b.wallId]
     const geometryB = state._intermediateWallGeometry[b.wallId]
@@ -242,9 +292,8 @@ function updateSimpleCorner(
       geometryB.leftLine.end = bLeft
       geometryB.rightLine.end = bRight
     }
-    const bDir = wallB.start.nodeId === node.id ? negVec2(b.left.direction) : b.left.direction
-    const p3 = scaleAddVec2(bRight, bDir, COLINEAR_POINT_OFFSET)
-    const p4 = scaleAddVec2(bLeft, bDir, COLINEAR_POINT_OFFSET)
+    const p3 = scaleAddVec2(bRight, b.dir, COLINEAR_POINT_OFFSET)
+    const p4 = scaleAddVec2(bLeft, b.dir, COLINEAR_POINT_OFFSET)
 
     return [p1, p2, p3, p4]
   } else {
@@ -258,24 +307,30 @@ function updateSimpleCorner(
       throw new Error(`Could not compute all intersection points at node ${node.id}`)
     }
 
+    const cross = crossVec2(a.dir, b.dir)
+    const p1 = cross > 0 ? i1 : i2
+    const p2 = cross > 0 ? i4 : i3
+    const p3 = cross > 0 ? i2 : i3
+    const p4 = cross > 0 ? i1 : i4
+
     const wallA = state.intermediateWalls[a.wallId]
     const geometryA = state._intermediateWallGeometry[a.wallId]
     if (wallA.start.nodeId === node.id) {
-      geometryA.leftLine.start = i2
-      geometryA.rightLine.start = i4
+      geometryA.leftLine.start = p1
+      geometryA.rightLine.start = p2
     } else {
-      geometryA.rightLine.end = i2
-      geometryA.leftLine.end = i4
+      geometryA.rightLine.end = p1
+      geometryA.leftLine.end = p2
     }
 
     const wallB = state.intermediateWalls[b.wallId]
     const geometryB = state._intermediateWallGeometry[b.wallId]
     if (wallB.start.nodeId === node.id) {
-      geometryB.leftLine.start = i2
-      geometryB.rightLine.start = i4
+      geometryB.leftLine.start = p3
+      geometryB.rightLine.start = p4
     } else {
-      geometryB.leftLine.end = i2
-      geometryB.rightLine.end = i4
+      geometryB.rightLine.end = p3
+      geometryB.leftLine.end = p4
     }
 
     return [i1, i2, i3, i4]
