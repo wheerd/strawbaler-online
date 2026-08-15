@@ -284,8 +284,11 @@ export const createIntermediateWallsSlice: StateCreator<
           }
           if (entityEnd <= splitPosition) {
             firstWallEntities.push(entityId)
+            entity.wallId = wallAId
           } else {
             secondWallEntities.push(entityId)
+            entity.wallId = wallBId
+            entity.centerOffsetFromWallStart -= splitPosition
           }
         }
 
@@ -300,18 +303,12 @@ export const createIntermediateWallsSlice: StateCreator<
         state.wallNodes[newNodeIdInner] = newNode
         perimeter.wallNodeIds.push(newNodeIdInner)
 
-        for (const entityId of secondWallEntities) {
-          const entity = isOpeningId(entityId) ? state.openings[entityId] : state.wallPosts[entityId]
-          entity.wallId = wallBId
-          entity.centerOffsetFromWallStart -= splitPosition
-        }
-
         const wallA: IntermediateWall = {
           id: wallAId,
           perimeterId: originalWall.perimeterId,
           entityIds: firstWallEntities,
           start: originalWall.start,
-          end: { nodeId: newNodeIdInner, axis: 'left' },
+          end: { nodeId: newNodeIdInner, axis: 'center' },
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId
         }
@@ -320,7 +317,7 @@ export const createIntermediateWallsSlice: StateCreator<
           id: wallBId,
           perimeterId: originalWall.perimeterId,
           entityIds: secondWallEntities,
-          start: { nodeId: newNodeIdInner, axis: 'left' },
+          start: { nodeId: newNodeIdInner, axis: 'center' },
           end: originalWall.end,
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId
