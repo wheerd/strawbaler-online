@@ -1,6 +1,6 @@
 import { type Length, type Vec2 } from '@/shared/geometry'
 
-import type { ConstraintId, NodeId, PerimeterCornerId, WallEntityId, WallId } from './ids'
+import type { ConstraintId, NodeId, PerimeterCornerId, PerimeterWallId, WallEntityId, WallId, WallNodeId } from './ids'
 
 export type Constraint =
   | WallLengthConstraint
@@ -13,6 +13,10 @@ export type Constraint =
   | WallEntityAbsoluteConstraint
   | WallEntityRelativeConstraint
   | LockedCornerConstraint
+  | WallNodePerpendicularConstraint
+  | WallNodeColinearConstraint
+  | WallNodeAngleConstraint
+  | WallNodePositionConstraint
 
 export interface WallLengthConstraint {
   id: ConstraintId
@@ -88,6 +92,40 @@ export interface LockedCornerConstraint {
   type: 'lockedCorner'
   corner: PerimeterCornerId
   position: Vec2
+}
+
+export interface WallNodePerpendicularConstraint {
+  id: ConstraintId
+  type: 'wallNodePerpendicular'
+  node: WallNodeId
+  wallA: WallId
+  wallB: WallId
+}
+
+export interface WallNodeColinearConstraint {
+  id: ConstraintId
+  type: 'wallNodeColinear'
+  node: WallNodeId
+  wallA: WallId
+  wallB: WallId
+}
+
+export interface WallNodeAngleConstraint {
+  id: ConstraintId
+  type: 'wallNodeAngle'
+  node: WallNodeId
+  wallA: WallId
+  wallB: WallId
+  angle: number // radians
+}
+
+export interface WallNodePositionConstraint {
+  id: ConstraintId
+  type: 'wallNodePosition'
+  node: WallNodeId
+  perimeterWall: PerimeterWallId
+  reference: PerimeterCornerId | WallNodeId
+  distance: Length
 }
 
 /** A constraint without the `id` field, used when adding constraints to the store. */
