@@ -19,7 +19,7 @@ Implement interior walls and rooms in the floor plan editor, enabling:
 | Phase 2: Drawing Tools                       | Done        |
 | Phase 3: UI Components                       | Done        |
 | Phase A: Constraints for Intermediate Walls  | Not started |
-| Phase B: Wall Entities on Intermediate Walls | Not started |
+| Phase B: Wall Entities on Intermediate Walls | Done        |
 | Phase C: Interior Wall Assembly System       | Not started |
 | Phase D: Room Detection & Labeling           | Not started |
 | Phase E: Room Preset Tool                    | Not started |
@@ -73,7 +73,7 @@ Interior walls connect two wall nodes:
 interface IntermediateWall {
   id: IntermediateWallId
   perimeterId: PerimeterId
-  openingIds: OpeningId[]
+  entityIds: WallEntityId[]
   leftRoomId?: RoomId
   rightRoomId?: RoomId
   start: WallAttachment
@@ -83,30 +83,21 @@ interface IntermediateWall {
 }
 ```
 
-### Wall Entities (Planned Extension)
+### Wall Entities
 
-Currently wall entities are tied to perimeter walls. The plan extends them to intermediate walls:
+Wall entities are already shared by perimeter and intermediate walls:
 
 ```typescript
-// CURRENT (perimeter only):
 interface BaseWallEntity {
   id: WallEntityId
   perimeterId: PerimeterId
-  wallId: PerimeterWallId // <-- Must widen to WallId
+  wallId: WallId
   type: 'opening' | 'post'
   centerOffsetFromWallStart: Length
   width: Length
 }
 
-// PLANNED:
-interface BaseWallEntity {
-  id: WallEntityId
-  perimeterId: PerimeterId
-  wallId: WallId // PerimeterWallId | IntermediateWallId
-  type: 'opening' | 'post'
-  centerOffsetFromWallStart: Length
-  width: Length
-}
+// Opening and WallPost extend BaseWallEntity.
 ```
 
 ### Rooms
@@ -145,12 +136,12 @@ interface RoomGeometry {
 
 ```typescript
 interface WallNodeGeometry {
-  position: Vec2
+  center: Vec2
+  boundary?: Polygon2D
 }
 
 interface InnerWallNodeGeometry extends WallNodeGeometry {
-  connectedWallIds: IntermediateWallId[]
-  boundary: Polygon2D
+  // connectedWallIds remains on InnerWallNode.
 }
 
 interface IntermediateWallGeometry {
@@ -166,15 +157,17 @@ interface IntermediateWallGeometry {
 }
 ```
 
+`leftLine`, `centerLine`, and `rightLine` are all meaningful geometry. Mixed attachment axes can produce different side spans, so the center line alone is not sufficient for GCS constraints.
+
 ## Completed Implementation (Phases 1-3)
 
 ### Store & Geometry (`src/building/store/slices/`)
 
-- **`intermediateWallsSlice.ts`** (462 lines): Full CRUD for walls and nodes
+- **`intermediateWallsSlice.ts`**: Full CRUD for walls and nodes
   - Wall actions: `addIntermediateWall`, `removeIntermediateWall`, `updateIntermediateWallThickness`, `updateIntermediateWallAlignment`
   - Node actions: `addPerimeterWallNode`, `addInnerWallNode`, `splitIntermediateWallAtPoint`, `removeWallNode`, `updateInnerWallNodePosition`, `updatePerimeterWallNodeOffset`
   - All getters: `getIntermediateWallById`, `getIntermediateWallsByPerimeter`, `getAllIntermediateWalls`, `getWallNodeById`, `getWallNodesByPerimeter`, `getAllWallNodes`
-- **`intermediateWallGeometry.ts`** (493 lines): Wall lines, corner computation, boundary polygons
+- **`intermediateWallGeometry.ts`**: Wall lines, corner computation, boundary polygons
 - **`cleanup.ts`**: Orphan cleanup for intermediate walls, wall nodes, and constraints
 - **Tests**: 853 lines (slice) + 458 lines (geometry) + cleanup tests
 
@@ -217,6 +210,42 @@ Enable the GCS (geometric constraint solver) to enforce constraints on intermedi
 - **Constraint types**: `WallLengthConstraint`, `HorizontalWallConstraint`, `VerticalWallConstraint` etc. already accept `WallId` (which includes `IntermediateWallId`)
 - **Constraint store** (`constraintsSlice.ts`): Wall split/merge constraint transfer already handles `WallId`
 - **BUT**: No GCS sync, no constraint generation, no translator support for intermediate walls
+- Wall entities are already implemented for intermediate walls and are not deferred to Phase B.
+
+### Constraint Scope
+
+Perimeter corner constraints remain perimeter-specific because perimeter corners have exactly two adjacent perimeter walls. Intermediate wall nodes need an explicit wall pair: a node with three or more connected walls cannot identify an angle, perpendicularity, or colinearity relationship from the node alone.
+
+Node constraints therefore reference the node and both participating walls:
+
+```typescript
+interface WallNodePerpendicularConstraint {
+  id: ConstraintId
+  type: 'wallNodePerpendicular'
+  node: WallNodeId
+  wallA: WallId
+  wallB: WallId
+}
+
+interface WallNodeColinearConstraint {
+  id: ConstraintId
+  type: 'wallNodeColinear'
+  node: WallNodeId
+  wallA: WallId
+  wallB: WallId
+}
+
+interface WallNodeAngleConstraint {
+  id: ConstraintId
+  type: 'wallNodeAngle'
+  node: WallNodeId
+  wallA: WallId
+  wallB: WallId
+  angle: number
+}
+```
+
+`wallA` and `wallB` must be connected to `node`. The constraint store and translator must index and validate the node and both walls.
 
 ## A.1: GCS Geometry Registration
 
@@ -235,24 +264,32 @@ removeIntermediateWallGeometry(state, wallId: IntermediateWallId): void
 updateIntermediateWallGeometry(state, wallId: IntermediateWallId): void
 ```
 
-**GCS point scheme for intermediate walls:**
+**GCS geometry scheme for intermediate walls:**
 
-For each wall, create:
+The center line alone is insufficient because an attachment can target the left, center, or right wall axis. For each intermediate wall, register endpoint points and lines for all three axes:
 
-- `wallnode_{nodeId}` -- point at the wall node position (shared across connected walls)
-- `intermediate_{wallId}_ref` -- start point on center line
-- `intermediate_{wallId}_nonref` -- end point on center line
+```text
+intermediate_{wallId}_{start|end}_{left|center|right}
+intermediate_{wallId}_{left|center|right}
+```
+
+The endpoint selected by `WallAttachment.axis` is coincident with the corresponding attachment point at the wall node. Left and right are relative to each wall's direction, so they must not be represented as global node coordinates.
+
+For each wall, register:
+
+- Three axis lines: left, center, and right.
+- Endpoint points for each axis.
+- Parallel constraints between the three axis lines.
+- Thickness constraints between the center and side axes.
+- Attachment-specific endpoint coincidence constraints.
+- Entity points constrained to the intermediate wall center/reference line.
 
 Constraints:
 
-- Coincident: node point = wall endpoint point
-- For perimeter-attached nodes: point-on-line constraint (node point on perimeter wall's reference line)
-- For inner nodes: position can be free or constrained
-- p2p_distance for wall length
-
-**For wall entities on intermediate walls** (deferred to Phase B):
-
-- Same pattern as perimeter entities: start/center/end points on center line, width constraint
+- For perimeter-attached nodes: constrain the node's attachment geometry to the perimeter wall geometry.
+- For inner nodes: keep the node free unless a building constraint fixes or relates it.
+- Use the selected axis for endpoint coincidence; center attachment does not imply side-axis coincidence.
+- Use the appropriate axis line for wall length according to the requested constraint side.
 
 ### Extend `PerimeterRegistryEntry`
 
@@ -265,6 +302,8 @@ interface PerimeterRegistryEntry {
   wallNodeIds: WallNodeId[]
 }
 ```
+
+The registry must track all intermediate-wall axis points, lines, entity points, and structural constraints so upsert and removal cannot leave stale primitives.
 
 ## A.2: GCS Sync Subscriptions
 
@@ -294,41 +333,48 @@ Extend `TranslationContext` to handle intermediate walls:
 
 ```typescript
 interface TranslationContext {
-  // Existing (perimeter-only):
+  // Existing perimeter support:
   getLineStartPointId(lineId: string): string | undefined
   getWallCornerIds(wallId: WallId): { startCornerId: PerimeterCornerId; endCornerId: PerimeterCornerId } | undefined
   getCornerAdjacentWallIds(cornerId: PerimeterCornerId): { previousWallId: WallId; nextWallId: WallId } | undefined
   getReferenceSide(cornerId: PerimeterCornerId): 'left' | 'right'
 
-  // New (intermediate wall support):
-  getWallNodeIds(wallId: IntermediateWallId): { startNodeId: WallNodeId; endNodeId: WallNodeId } | undefined
+  // Intermediate wall support:
+  getWallEndpoints(wallId: WallId): { start: NodeId; end: NodeId } | undefined
   getWallNodeGcsPointId(nodeId: WallNodeId): string | undefined
-  getIntermediateWallGcsLineId(wallId: IntermediateWallId): string | undefined
+  getIntermediateWallGcsLineId(wallId: IntermediateWallId, axis: WallAxis): string | undefined
+  getWallEndpointGcsPointId(
+    wallId: IntermediateWallId,
+    endpoint: 'start' | 'end',
+    axis: WallAxis
+  ): string | undefined
+  getWallNodeConnectedWalls(nodeId: WallNodeId): WallId[]
 }
 ```
 
 **Implementation in `store.ts`:**
 
 ```typescript
-getWallNodeIds: (wallId: IntermediateWallId) => {
-  const wall = modelActionsRef.getIntermediateWallById(wallId)
-  return { startNodeId: wall.start.nodeId, endNodeId: wall.end.nodeId }
+getWallEndpoints: (wallId: WallId) => {
+  // Resolve perimeter corners or intermediate wall nodes here.
+  return resolveWallEndpoints(wallId)
 }
 
 getWallNodeGcsPointId: (nodeId: WallNodeId) => {
   return `wallnode_${nodeId}`
 }
 
-getIntermediateWallGcsLineId: (wallId: IntermediateWallId) => {
-  return `intermediate_${wallId}_ref`
+getIntermediateWallGcsLineId: (wallId: IntermediateWallId, axis: WallAxis) => {
+  return `intermediate_${wallId}_${axis}`
 }
 ```
 
 ### Update constraint translation functions
 
-- `translateWallLengthConstraint`: Handle `IntermediateWallId` by using `getWallNodeIds` instead of `getWallCornerIds`
+- `translateWallLengthConstraint`: Handle `IntermediateWallId` by using its endpoint axis points instead of perimeter corners
 - `translateHorizontalWallConstraint` / `translateVerticalWallConstraint`: Handle `IntermediateWallId` by constraining node positions
-- `translateWallEntityAbsoluteConstraint` / `translateWallEntityRelativeConstraint`: Handle entities on intermediate walls (deferred to Phase B)
+- `translateWallEntityAbsoluteConstraint` / `translateWallEntityRelativeConstraint`: Handle entities on intermediate walls using the center/reference axis
+- Add translation for `wallNodePerpendicular`, `wallNodeColinear`, and `wallNodeAngle` using the explicitly selected wall pair
 
 ### New helper functions
 
@@ -336,11 +382,11 @@ getIntermediateWallGcsLineId: (wallId: IntermediateWallId) => {
 // In constraintTranslator.ts or a shared helpers file
 function wallRefLineId(wallId: WallId): string {
   if (isPerimeterWallId(wallId)) return `wall_${wallId}_ref`
-  return `intermediate_${wallId}_ref`
+  return `intermediate_${wallId}_center`
 }
 
-function wallNodePointId(nodeId: WallNodeId): string {
-  return `wallnode_${nodeId}`
+function intermediateWallLineId(wallId: IntermediateWallId, axis: WallAxis): string {
+  return `intermediate_${wallId}_${axis}`
 }
 ```
 
@@ -354,17 +400,20 @@ Auto-generate constraints when intermediate walls are created:
 function generateIntermediateWallConstraints(
   wall: IntermediateWallWithGeometry,
   allWalls: IntermediateWallWithGeometry[],
-  perimeterWalls: PerimeterWallWithGeometry[]
+  perimeterWalls: PerimeterWallWithGeometry[],
+  nodes: WallNodeWithGeometry[]
 ): ConstraintInput[]
 ```
 
 **Rules:**
 
-1. **Length constraint**: Every intermediate wall gets a `WallLengthConstraint` with its current length on the `center` side
+1. **Length constraint**: Every intermediate wall gets a `WallLengthConstraint` with its current center-line length on the `center` side
 2. **Horizontal/Vertical**: If wall direction is nearly horizontal (within 1mm) or vertical, add corresponding constraint
 3. **Perpendicular to perimeter wall**: If an endpoint is attached to a perimeter wall and the intermediate wall is nearly perpendicular (within tolerance), add constraint
-4. **Perpendicular to other intermediate wall**: If two intermediate walls share a node and are nearly perpendicular, add constraint
-5. **Colinear**: If two intermediate walls share a node and are nearly colinear, add constraint
+4. **Perpendicular to other wall**: If two connected walls share a node and are nearly perpendicular, add a wall-node perpendicular constraint naming the node and both walls
+5. **Colinear**: If two connected walls share a node and are nearly colinear, add a wall-node colinear constraint naming the node and both walls
+
+For nodes with more than two connected walls, evaluate wall pairs independently. Do not infer a single angle from the node or constrain every pair unless that relationship is intended by the constraint policy.
 
 ### When to generate
 
@@ -421,13 +470,15 @@ Register in movement behaviors:
 - Test GCS point/line creation for intermediate walls
 - Test constraint translation for intermediate wall constraints
 - Test constraint generation (perpendicular, H/V, length)
+- Test wall-node constraints with two and three or more connected walls
+- Test all attachment-axis combinations and mixed-axis trapezoidal walls
 - Test GCS sync subscription (add/remove/update intermediate walls)
 - Test wall node movement with constraint enforcement
 - Test perpendicular snapping to existing walls
 
 ---
 
-# Phase B: Wall Entities on Intermediate Walls
+# Phase B: Wall Entities on Intermediate Walls (Completed)
 
 ## Goal
 
@@ -442,99 +493,54 @@ Enable full entity support (openings, posts) on intermediate walls, matching the
 
 ## Current State
 
-- **Entity model** (`src/building/model/wallEntities.ts`): `BaseWallEntity.wallId` is `PerimeterWallId` (must widen)
-- **Entity storage**: Entities stored in `perimeterSlice.ts` via `wall.entityIds` arrays
-- **Entity CRUD**: Actions in `perimeterSlice.ts` (`addWallOpening`, `removeWallOpening`, etc.)
-- **Entity geometry**: Computed in `perimeterGeometry.ts`
-- **`IntermediateWall.openingIds`**: TODO placeholder, no backing store
-- **Segmentation system**: Tied to `PerimeterWallWithGeometry`
+- **Entity model** (`src/building/model/wallEntities.ts`): `BaseWallEntity.wallId` already uses `WallId`.
+- **Entity storage**: Shared records and actions are implemented in `wallEntitiesSlice.ts`.
+- **Entity CRUD**: Generic opening and post actions accept perimeter or intermediate wall IDs.
+- **Entity geometry**: Intermediate entities are computed from `centerLine`, `leftLine`, and `rightLine`.
+- **Intermediate wall storage**: `IntermediateWall.entityIds` tracks both openings and posts.
+- **Split/merge/cleanup**: Entity offsets, wall lists, and orphan cleanup are implemented.
 
-## B.1: Widen Entity Model
+## B.1: Entity Model
 
 ### File: `src/building/model/wallEntities.ts`
 
-```typescript
-interface BaseWallEntity {
-  id: WallEntityId
-  perimeterId: PerimeterId
-  wallId: WallId // Was: PerimeterWallId
-  type: 'opening' | 'post'
-  centerOffsetFromWallStart: Length
-  width: Length
-}
-```
-
-Add a discriminator to know which store slice owns the entity:
-
-```typescript
-interface BaseWallEntity {
-  // ... existing fields
-  wallType: 'perimeter' | 'intermediate'
-}
-```
-
-**Migration**: Existing entities get `wallType: 'perimeter'` automatically. The `Opening` and `WallPost` types inherit `wallType` from `BaseWallEntity`.
+The model uses `WallId` directly. No `wallType` discriminator is required; wall ID prefixes and wall lookup determine the owning wall.
 
 ## B.2: Entity Storage Architecture
 
-### Approach: Shared storage, slice-specific dispatch
+### Approach: Shared storage
 
-Two options were considered:
-
-1. **Separate records in intermediateWallsSlice** -- duplicate opening/post records
-2. **Shared records, slice-specific dispatch** -- single source of truth, dispatch based on `wallType`
-
-**Chosen: Option 2** -- Keep `openings` and `wallPosts` records in `perimeterSlice.ts` (or extract to a shared slice), but dispatch entity operations based on `wallType`.
-
-### File changes:
-
-**Option A (simpler)**: Keep entity records in `perimeterSlice.ts` but add intermediate-wall-aware actions:
-
-```typescript
-// In intermediateWallsSlice.ts or a new wallEntitiesSlice.ts:
-addIntermediateWallOpening(wallId: IntermediateWallId, params: OpeningParams): OpeningWithGeometry
-removeIntermediateWallOpening(openingId: OpeningId): void
-updateIntermediateWallOpening(openingId: OpeningId, updates: Partial<OpeningParams>): void
-// Same for wall posts
-```
-
-**Option B (cleaner)**: Extract entity storage to a shared `wallEntitiesSlice.ts`:
-
-- Move `openings`, `wallPosts`, `_openingGeometry`, `_wallPostGeometry` records
-- Add generic actions that accept `WallId` and dispatch based on type
-- Both `perimeterSlice.ts` and `intermediateWallsSlice.ts` reference the shared slice
-
-**Recommendation**: Start with Option A for simpler migration, refactor to Option B later if needed.
+Implemented in `wallEntitiesSlice.ts`: opening and post records, geometry caches, validation, and generic actions are shared. Actions accept `WallId`, including `IntermediateWallId`; no wall-type discriminator or slice-specific duplicate actions is required.
 
 ## B.3: Entity CRUD Actions
 
-### In `src/building/store/slices/intermediateWallsSlice.ts`:
+### In `src/building/store/slices/wallEntitiesSlice.ts`:
 
 ```typescript
-// Opening actions
-addIntermediateWallOpening(wallId: IntermediateWallId, params: OpeningParams): OpeningWithGeometry
-removeIntermediateWallOpening(openingId: OpeningId): void
-updateIntermediateWallOpening(openingId: OpeningId, updates: Partial<OpeningParams>): void
-isIntermediateWallOpeningPlacementValid(wallId, centerOffset, width, excluded?): boolean
+// Generic actions accept WallId, including IntermediateWallId.
+addWallOpening(wallId: WallId, params: OpeningParams): OpeningWithGeometry
+removeWallOpening(openingId: OpeningId): void
+updateWallOpening(openingId: OpeningId, updates: Partial<OpeningParams>): void
+isWallOpeningPlacementValid(wallId: WallId, centerOffset, width, excluded?): boolean
 
 // Wall post actions
-addIntermediateWallPost(wallId: IntermediateWallId, params: WallPostParams): WallPostWithGeometry
-removeIntermediateWallPost(postId: WallPostId): void
-updateIntermediateWallPost(postId: WallPostId, updates: Partial<WallPostParams>): void
-isIntermediateWallPostPlacementValid(wallId, centerOffset, width, excluded?): boolean
+addWallPost(wallId: WallId, params: WallPostParams): WallPostWithGeometry
+removeWallPost(postId: WallPostId): void
+updateWallPost(postId: WallPostId, updates: Partial<WallPostParams>): void
+isWallPostPlacementValid(wallId: WallId, centerOffset, width, excluded?): boolean
 
 // Validation helpers
-isIntermediateWallEntityPlacementValid(wallId, centerOffset, width, excluded?, options?): boolean
-findNearestValidIntermediateWallEntityPosition(wallId, preferredCenter, width, excluded?, options?): Length | null
+isWallEntityPlacementValid(wallId: WallId, centerOffset, width, excluded?, options?): boolean
+findNearestValidWallEntityPosition(wallId: WallId, preferredCenter, width, excluded?, options?): Length | null
 ```
 
-**Validation logic**: Reuse the existing `validateWallItemPlacement()` pattern from `perimeterSlice.ts`, adapted for intermediate wall geometry (using `centerLine` instead of `innerLine`).
+**Validation logic**: Shared validation uses the target wall's geometry; intermediate walls use `centerLine` and their computed side lines.
 
 ## B.4: Entity Geometry Computation
 
 ### File: `src/building/store/slices/intermediateWallGeometry.ts`
 
-Add entity geometry computation for intermediate wall entities:
+Entity geometry computation for intermediate wall entities is implemented:
 
 ```typescript
 function updateIntermediateWallEntityGeometry(
@@ -559,7 +565,7 @@ When splitting an intermediate wall that has entities:
 1. Compute which entities belong to each half (by `centerOffsetFromWallStart` vs split point)
 2. Entities that straddle the split point: fail the split (return null) or remove the entity
 3. Entities on the second half: adjust `centerOffsetFromWallStart` by subtracting the first half's length
-4. Update `openingIds` arrays on both new walls
+4. Update `entityIds` arrays on both new walls
 
 ### In wall merge (future):
 
@@ -595,7 +601,7 @@ Add/edit entity modals adapted for intermediate walls:
 Ensure intermediate wall entity cleanup works correctly:
 
 - When an intermediate wall is removed: remove all its entities
-- When an entity is removed: remove from `openingIds` array
+- When an entity is removed: remove from the owning wall's `entityIds` array
 - When a perimeter is removed: cascade to intermediate walls and their entities
 
 ## B.8: Testing
