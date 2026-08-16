@@ -118,7 +118,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
     const infillArea = offsetPolygon(context.outerPolygon, -this.config.frameThickness)
     const infillPolygons = subtractPolygons(
       [infillArea],
-      [...gapPolygons.map(p => p.polygon.outer), ...expandedHoles]
+      [...joistPolygons.map(p => p.polygon.outer), ...expandedHoles]
     ).map(p => PolygonWithBoundingRect.fromPolygon(p, joistDirection))
     const infill = infillPolygons.flatMap(p =>
       Array.from(constructStrawPolygon(p, 'xy', this.config.constructionHeight, this.config.strawMaterial))
