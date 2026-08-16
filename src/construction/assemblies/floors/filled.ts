@@ -1,11 +1,6 @@
 import { constructStrawPolygon } from '@/construction/assemblies/straw'
 import { PolygonWithBoundingRect } from '@/construction/assemblies/utils/PolygonWithBoundingRect'
-import {
-  detectBeamEdges,
-  partitionByAlignedEdges,
-  polygonFromLineIntersections,
-  simplePolygonFrame
-} from '@/construction/assemblies/utils/helpers'
+import { detectBeamEdges, partitionByAlignedEdges, simplePolygonFrame } from '@/construction/assemblies/utils/helpers'
 import type { PerimeterConstructionContext } from '@/construction/context/perimeter'
 import { createConstructionElement, createConstructionElementId } from '@/construction/model/elements'
 import type { ConstructionModel } from '@/construction/model/model'
@@ -30,7 +25,6 @@ import {
   midpoint,
   minimumAreaBoundingBox,
   newVec3,
-  offsetLine,
   offsetPolygon,
   polygonEdges,
   subtractPolygons
@@ -52,13 +46,7 @@ export class FilledFloorAssembly extends BaseFloorAssembly<FilledFloorConfig> {
       .filter(e => 1 - dotAbsVec2(direction(e.start, e.end), joistDirection) < EPSILON)
       .map(e => midpoint(e.start, e.end))
 
-    const joistArea = polygonFromLineIntersections(
-      context.innerLines.map((l, i) =>
-        1 - dotAbsVec2(l.direction, joistDirection) < EPSILON
-          ? offsetLine(l, -this.config.frameThickness)
-          : offsetLine(context.outerLines[i], this.config.frameThickness)
-      )
-    )
+    const joistArea = offsetPolygon(context.outerPolygon, -this.config.frameThickness)
 
     const frame = Array.from(
       simplePolygonFrame(
