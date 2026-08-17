@@ -125,7 +125,7 @@ export interface WallNodePositionConstraint {
   node: WallNodeId
   perimeterWall: PerimeterWallId
   reference: PerimeterCornerId | WallNodeId
-  distance: Length
+  offset: Length
 }
 
 /** A constraint without the `id` field, used when adding constraints to the store. */

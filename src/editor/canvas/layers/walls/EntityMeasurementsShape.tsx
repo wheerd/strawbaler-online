@@ -10,7 +10,7 @@ import type {
   WallEntityGeometry,
   WallEntityRelativeConstraint
 } from '@/building/model'
-import type { PerimeterCornerId, WallEntityId } from '@/building/model/ids'
+import type { IntermediateWallId, PerimeterCornerId, PerimeterWallId, WallEntityId } from '@/building/model/ids'
 import { isOpeningId, isPerimeterWallId } from '@/building/model/ids'
 import {
   getModelActions,
@@ -34,15 +34,34 @@ import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { type Length, type Vec2, direction, midpoint, perpendicularCCW, scaleAddVec2 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 
+import { IntermediateWallEntityMeasurementsShape } from './IntermediateWallEntityMeasurementsShape'
+
 export function EntityMeasurementsShape({
   entity
 }: {
   entity: WallEntity & WallEntityGeometry
 }): React.JSX.Element | null {
+  if (!isPerimeterWallId(entity.wallId)) {
+    return (
+      <IntermediateWallEntityMeasurementsShape
+        entity={entity as WallEntity & WallEntityGeometry & { wallId: IntermediateWallId }}
+      />
+    )
+  }
+  return (
+    <PerimeterEntityMeasurementsShape
+      entity={entity as WallEntity & WallEntityGeometry & { wallId: PerimeterWallId }}
+    />
+  )
+}
+
+function PerimeterEntityMeasurementsShape({
+  entity
+}: {
+  entity: WallEntity & WallEntityGeometry & { wallId: PerimeterWallId }
+}): React.JSX.Element | null {
   const { formatLength } = useFormatters()
   const modelActions = useModelActions()
-
-  if (!isPerimeterWallId(entity.wallId)) return null
 
   const wall = usePerimeterWallById(entity.wallId)
   const startCorner = usePerimeterCornerById(wall.startCornerId)

@@ -1,5 +1,6 @@
 import { gcsService } from '@/building/gcs/service'
 import type { Constraint, Perimeter, PerimeterCorner, PerimeterId, PerimeterWall } from '@/building/model'
+import { isPerimeterWallId } from '@/building/model/ids'
 import type { PerimeterCornerId, PerimeterWallId, WallEntityId } from '@/building/model/ids'
 import type { WallEntityGeometry } from '@/building/model/wallEntities'
 import {
@@ -128,7 +129,8 @@ class GcsSyncService {
       const referencedWalls = getReferencedWallIds(constraint)
 
       const referencesPerimeter =
-        referencedCorners.some(c => perimeterCornerIds.has(c)) || referencedWalls.some(w => perimeterWallIds.has(w))
+        referencedCorners.some(c => perimeterCornerIds.has(c)) ||
+        referencedWalls.some(w => isPerimeterWallId(w) && perimeterWallIds.has(w))
 
       if (referencesPerimeter) {
         try {

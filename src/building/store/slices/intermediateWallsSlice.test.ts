@@ -345,6 +345,41 @@ describe('intermediateWallsSlice', () => {
         state.actions.updateIntermediateWallAlignment('intermediate_nonexistent' as any, 'left', 'right')
       }).toThrow(NotFoundError)
     })
+
+    it('keeps geometry unchanged when the requested alignment is already active', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const nodeA = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(8000, 2500))
+      const wall = state.actions.addIntermediateWall(
+        perimeterData.perimeterId,
+        { nodeId: nodeA.id, axis: 'center' },
+        { nodeId: nodeB.id, axis: 'center' },
+        120
+      )
+      const before = state.actions.getIntermediateWallById(wall.id)
+
+      state.actions.updateIntermediateWallAlignmentPreservingGeometry(wall.id, 'center')
+
+      expect(state.actions.getIntermediateWallById(wall.id).centerLine).toEqual(before.centerLine)
+    })
+
+    it('aborts an alignment change that cannot preserve the current geometry', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const nodeA = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(8000, 2500))
+      const wall = state.actions.addIntermediateWall(
+        perimeterData.perimeterId,
+        { nodeId: nodeA.id, axis: 'center' },
+        { nodeId: nodeB.id, axis: 'center' },
+        120
+      )
+
+      expect(() => {
+        state.actions.updateIntermediateWallAlignmentPreservingGeometry(wall.id, 'left')
+      }).toThrow('Cannot change the wall attachment axis without changing its geometry')
+      expect(state.intermediateWalls[wall.id].start.axis).toBe('center')
+      expect(state.intermediateWalls[wall.id].end.axis).toBe('center')
+    })
   })
 
   describe('intermediate wall entities', () => {

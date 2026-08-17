@@ -4,7 +4,8 @@ import {
   buildingConstraintKey,
   getReferencedCornerIds,
   getReferencedWallEntityIds,
-  getReferencedWallIds
+  getReferencedWallIds,
+  getReferencedWallNodeIds
 } from '@/building/gcs/constraintTranslator'
 import type { Constraint, ConstraintInput } from '@/building/model'
 import type { ConstraintEntityId, ConstraintId, PerimeterCornerId, PerimeterWallId, WallId } from '@/building/model/ids'
@@ -32,7 +33,12 @@ export type ConstraintsSlice = ConstraintsState & { actions: ConstraintsActions 
  * Extract all ConstraintEntityIds referenced by a constraint input.
  */
 function getReferencedEntityIds(input: ConstraintInput): ConstraintEntityId[] {
-  return [...getReferencedCornerIds(input), ...getReferencedWallIds(input), ...getReferencedWallEntityIds(input)]
+  return [
+    ...getReferencedCornerIds(input),
+    ...getReferencedWallNodeIds(input),
+    ...getReferencedWallIds(input),
+    ...getReferencedWallEntityIds(input)
+  ]
 }
 
 /**
@@ -79,9 +85,10 @@ function removeFromReverseIndex(
 export function rebuildReverseIndex(state: ConstraintsState) {
   for (const constraint of Object.values(state.buildingConstraints)) {
     const cornerIds = getReferencedCornerIds(constraint)
+    const wallNodeIds = getReferencedWallNodeIds(constraint)
     const wallIds = getReferencedWallIds(constraint)
     const wallEntityIds = getReferencedWallEntityIds(constraint)
-    const entityIds = [...cornerIds, ...wallIds, ...wallEntityIds]
+    const entityIds = [...cornerIds, ...wallNodeIds, ...wallIds, ...wallEntityIds]
 
     for (const entityId of entityIds) {
       const list = state._constraintsByEntity[entityId]

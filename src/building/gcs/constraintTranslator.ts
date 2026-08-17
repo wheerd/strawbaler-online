@@ -1,7 +1,14 @@
 import type { Constraint, SketchPoint } from '@salusoft89/planegcs'
 
-import type { ConstraintInput, PerimeterCornerId, PerimeterWallId, WallEntityId, WallId } from '@/building/model'
-import { isPerimeterCornerId, isPerimeterWallId } from '@/building/model'
+import type {
+  ConstraintInput,
+  PerimeterCornerId,
+  PerimeterWallId,
+  WallEntityId,
+  WallId,
+  WallNodeId
+} from '@/building/model'
+import { isPerimeterCornerId, isPerimeterWallId, isWallNodeId } from '@/building/model'
 
 // --- ID helpers ---
 
@@ -83,6 +90,22 @@ export function buildingConstraintKey(constraint: ConstraintInput): string {
     }
     case 'lockedCorner':
       return `lockedCorner_${constraint.corner}`
+    case 'wallNodePerpendicular': {
+      const [a, b] = sortedPair(constraint.wallA, constraint.wallB)
+      return `wallNodePerpendicular_${constraint.node}_${a}_${b}`
+    }
+    case 'wallNodeColinear': {
+      const [a, b] = sortedPair(constraint.wallA, constraint.wallB)
+      return `wallNodeColinear_${constraint.node}_${a}_${b}`
+    }
+    case 'wallNodeAngle': {
+      const [a, b] = sortedPair(constraint.wallA, constraint.wallB)
+      return `wallNodeAngle_${constraint.node}_${a}_${b}`
+    }
+    case 'wallNodePosition': {
+      const [a, b] = sortedPair(constraint.node, constraint.reference)
+      return `wallNodePosition_${constraint.perimeterWall}_${a}_${b}`
+    }
   }
 }
 
@@ -339,6 +362,14 @@ export function translateBuildingConstraint(
         ]
       }
     }
+
+    case 'wallNodePerpendicular':
+    case 'wallNodeColinear':
+    case 'wallNodeAngle':
+    case 'wallNodePosition':
+      // Intermediate wall/node primitives are registered by the intermediate
+      // wall GCS geometry layer. Keep model constraints storable meanwhile.
+      return { constraints: [], points: [] }
   }
 }
 
@@ -372,6 +403,22 @@ export function getReferencedCornerIds(constraint: ConstraintInput): PerimeterCo
       return isPerimeterCornerId(constraint.corner) ? [constraint.corner] : []
     case 'wallEntityAbsolute':
       return isPerimeterCornerId(constraint.node) ? [constraint.node] : []
+    case 'wallNodePosition':
+      return isPerimeterCornerId(constraint.reference) ? [constraint.reference] : []
+    default:
+      return []
+  }
+}
+
+/** Extract all intermediate wall-node IDs referenced by a building constraint. */
+export function getReferencedWallNodeIds(constraint: ConstraintInput): WallNodeId[] {
+  switch (constraint.type) {
+    case 'wallNodePerpendicular':
+    case 'wallNodeColinear':
+    case 'wallNodeAngle':
+      return [constraint.node]
+    case 'wallNodePosition':
+      return [constraint.node, ...(isWallNodeId(constraint.reference) ? [constraint.reference] : [])]
     default:
       return []
   }
@@ -380,20 +427,22 @@ export function getReferencedCornerIds(constraint: ConstraintInput): PerimeterCo
 /**
  * Extract all PerimeterWallIds referenced by a building constraint.
  */
-export function getReferencedWallIds(constraint: ConstraintInput): PerimeterWallId[] {
+export function getReferencedWallIds(constraint: ConstraintInput): WallId[] {
   switch (constraint.type) {
     case 'wallLength':
     case 'horizontalWall':
     case 'verticalWall':
     case 'wallEntityRelative':
     case 'wallEntityAbsolute':
-      return isPerimeterWallId(constraint.wall) ? [constraint.wall] : []
-    case 'parallel': {
-      const result: PerimeterWallId[] = []
-      if (isPerimeterWallId(constraint.wallA)) result.push(constraint.wallA)
-      if (isPerimeterWallId(constraint.wallB)) result.push(constraint.wallB)
-      return result
+      return [constraint.wall]
+    case 'parallel':
+    case 'wallNodePerpendicular':
+    case 'wallNodeColinear':
+    case 'wallNodeAngle': {
+      return [constraint.wallA, constraint.wallB]
     }
+    case 'wallNodePosition':
+      return [constraint.perimeterWall]
     default:
       return []
   }
