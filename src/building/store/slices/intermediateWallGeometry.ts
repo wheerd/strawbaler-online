@@ -114,12 +114,12 @@ function updateIntermediateWallEntities(
   const geometry = state._intermediateWallGeometry[wallId]
 
   const insideLine: LineSegment2D = {
-    start: scaleAddVec2(geometry.centerLine.start, geometry.leftDirection, wall.thickness / 2),
-    end: scaleAddVec2(geometry.centerLine.end, geometry.leftDirection, wall.thickness / 2)
-  }
-  const outsideLine: LineSegment2D = {
     start: scaleAddVec2(geometry.centerLine.start, geometry.leftDirection, -wall.thickness / 2),
     end: scaleAddVec2(geometry.centerLine.end, geometry.leftDirection, -wall.thickness / 2)
+  }
+  const outsideLine: LineSegment2D = {
+    start: scaleAddVec2(geometry.centerLine.start, geometry.leftDirection, wall.thickness / 2),
+    end: scaleAddVec2(geometry.centerLine.end, geometry.leftDirection, wall.thickness / 2)
   }
   const source = {
     insideLine,
@@ -153,34 +153,37 @@ function isGeometryEqual(a: unknown, b: unknown): boolean {
 }
 
 function updateWallGeometry(geometry: IntermediateWallGeometry, wall: IntermediateWall) {
-  const leftStart = geometry.leftLine.start
-  const leftEnd = geometry.leftLine.end
-  const rightStart = geometry.rightLine.start
-  const rightEnd = geometry.rightLine.end
-  const halfThickness = wall.thickness / 2
+  const leftStartProjection = dotVec2(geometry.direction, geometry.leftLine.start)
+  const leftEndProjection = dotVec2(geometry.direction, geometry.leftLine.end)
+  const rightStartProjection = dotVec2(geometry.direction, geometry.rightLine.start)
+  const rightEndProjection = dotVec2(geometry.direction, geometry.rightLine.end)
+  const overlapStart = Math.max(
+    Math.min(leftStartProjection, leftEndProjection),
+    Math.min(rightStartProjection, rightEndProjection)
+  )
+  const overlapEnd = Math.min(
+    Math.max(leftStartProjection, leftEndProjection),
+    Math.max(rightStartProjection, rightEndProjection)
+  )
 
-  const center = midpoint(midpoint(leftStart, leftEnd), midpoint(rightStart, rightEnd))
-  const leftStartProjection = Math.abs(projectVec2(center, leftStart, geometry.direction))
-  const rightStartProjection = Math.abs(projectVec2(center, rightStart, geometry.direction))
-
-  const centerStart =
-    leftStartProjection < rightStartProjection
-      ? scaleAddVec2(leftStart, geometry.leftDirection, -halfThickness)
-      : scaleAddVec2(rightStart, geometry.leftDirection, halfThickness)
-
-  const leftEndProjection = Math.abs(projectVec2(center, leftEnd, geometry.direction))
-  const rightEndProjection = Math.abs(projectVec2(center, rightEnd, geometry.direction))
-
-  const centerEnd =
-    leftEndProjection < rightEndProjection
-      ? scaleAddVec2(leftEnd, geometry.leftDirection, -halfThickness)
-      : scaleAddVec2(rightEnd, geometry.leftDirection, halfThickness)
+  const centerStart = scaleAddVec2(
+    scaleAddVec2(geometry.leftLine.start, geometry.direction, overlapStart - leftStartProjection),
+    geometry.leftDirection,
+    -wall.thickness / 2
+  )
+  const centerEnd = scaleAddVec2(
+    scaleAddVec2(geometry.leftLine.start, geometry.direction, overlapEnd - leftStartProjection),
+    geometry.leftDirection,
+    -wall.thickness / 2
+  )
 
   geometry.centerLine = { start: centerStart, end: centerEnd }
-  geometry.wallLength = distVec2(centerStart, centerEnd)
-  geometry.leftLength = distVec2(leftStart, leftEnd)
-  geometry.rightLength = distVec2(rightStart, rightEnd)
-  geometry.boundary = ensurePolygonIsClockwise({ points: [leftStart, leftEnd, rightEnd, rightStart] })
+  geometry.wallLength = distVec2(geometry.centerLine.start, geometry.centerLine.end)
+  geometry.leftLength = distVec2(geometry.leftLine.start, geometry.leftLine.end)
+  geometry.rightLength = distVec2(geometry.rightLine.start, geometry.rightLine.end)
+  geometry.boundary = ensurePolygonIsClockwise({
+    points: [geometry.leftLine.start, geometry.leftLine.end, geometry.rightLine.end, geometry.rightLine.start]
+  })
 }
 
 function updateComplexCorner(
@@ -497,8 +500,8 @@ export function computeWallLines(
   thickness: Length
 ): { left: Line2D; right: Line2D } {
   if (startAxis === endAxis) {
-    const dir = direction(start, end)
-    const leftDir = perpendicularCCW(dir)
+    const lineDirection = direction(start, end)
+    const leftDir = perpendicularCCW(lineDirection)
     const halfThickness = thickness / 2
 
     const leftBase =
@@ -515,30 +518,33 @@ export function computeWallLines(
           : scaleAddVec2(start, leftDir, -thickness)
 
     return {
-      left: { point: leftBase, direction: dir },
-      right: { point: rightBase, direction: dir }
+      left: { point: leftBase, direction: lineDirection },
+      right: { point: rightBase, direction: lineDirection }
     }
   }
 
   const v = subVec2(end, start)
   const len = lenVec2(v)
+  const dir = normVec2(v)
+  const perpendicularDir = perpendicularCCW(dir)
 
-  if (thickness > len) {
+  if (startAxis !== endAxis && thickness > len) {
     throw new Error('Wall thickness larger than distance between points')
   }
 
-  const vDir = normVec2(v)
-  const perp = perpendicularCCW(vDir)
-
-  const alpha = thickness / len
+  // The signed normal offset between the selected axes determines the
+  // direction of the parallel wall lines. Positive values mean that the
+  // start attachment is farther toward the left side than the end one.
+  const axisPosition = (axis: WallAxis): number => (axis === 'left' ? -1 : axis === 'right' ? 1 : 0)
+  const normalOffset = ((axisPosition(startAxis) - axisPosition(endAxis)) * thickness) / 2
+  const alpha = normalOffset / len
   const beta = Math.sqrt(1 - alpha * alpha)
 
-  // normal between the two lines
-  const n = addVec2(scaleVec2(vDir, alpha), scaleVec2(perp, beta))
-
-  // direction of both lines
-  const dir = perpendicularCW(n)
-  const leftDir = perpendicularCCW(dir)
+  // `leftDir` is the left normal of the start -> end direction. The
+  // perpendicular component is positive so the line direction remains
+  // oriented from start to end for every attachment-axis combination.
+  const leftDir = addVec2(scaleVec2(dir, alpha), scaleVec2(perpendicularDir, beta))
+  const lineDirection = perpendicularCW(leftDir)
 
   const leftBase =
     startAxis === 'left'
@@ -555,7 +561,7 @@ export function computeWallLines(
         : scaleAddVec2(start, leftDir, startAxis === 'center' ? -thickness / 2 : -thickness)
 
   return {
-    left: { point: leftBase, direction: dir },
-    right: { point: rightBase, direction: dir }
+    left: { point: leftBase, direction: lineDirection },
+    right: { point: rightBase, direction: lineDirection }
   }
 }

@@ -363,7 +363,7 @@ describe('intermediateWallsSlice', () => {
       expect(state.actions.getIntermediateWallById(wall.id).centerLine).toEqual(before.centerLine)
     })
 
-    it('aborts an alignment change that cannot preserve the current geometry', () => {
+    it('updates an alignment when the current geometry can be preserved', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const nodeA = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(2000, 2500))
       const nodeB = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(8000, 2500))
@@ -374,11 +374,10 @@ describe('intermediateWallsSlice', () => {
         120
       )
 
-      expect(() => {
-        state.actions.updateIntermediateWallAlignmentPreservingGeometry(wall.id, 'left')
-      }).toThrow('Cannot change the wall attachment axis without changing its geometry')
-      expect(state.intermediateWalls[wall.id].start.axis).toBe('center')
-      expect(state.intermediateWalls[wall.id].end.axis).toBe('center')
+      state.actions.updateIntermediateWallAlignmentPreservingGeometry(wall.id, 'left')
+
+      expect(state.intermediateWalls[wall.id].start.axis).toBe('left')
+      expect(state.intermediateWalls[wall.id].end.axis).toBe('left')
     })
   })
 

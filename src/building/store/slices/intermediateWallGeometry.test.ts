@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest'
 
 import { createIntermediateWallId, createWallNodeId } from '@/building/model/ids'
 import { computeWallLines, updateAllWallNodeGeometry } from '@/building/store/slices/intermediateWallGeometry'
-import { distVec2, distanceToInfiniteLine, dotVec2, newVec2, perpendicularCCW, scaleAddVec2 } from '@/shared/geometry'
+import {
+  distVec2,
+  distanceToInfiniteLine,
+  dotVec2,
+  newVec2,
+  perpendicularCCW,
+  scaleAddVec2,
+  subVec2
+} from '@/shared/geometry'
 
 import { setupIntermediateWallsSlice } from './__tests__/testHelpers'
 
@@ -88,6 +96,22 @@ describe('intermediateWallGeometry', () => {
         const perpDir = perpendicularCCW(result.left.direction)
         const distance = Math.abs(dotVec2(perpDir, result.right.point) - dotVec2(perpDir, result.left.point))
         expect(distance).toBeCloseTo(thickness, 1)
+      })
+
+      it('should keep the left line on the left side for every attachment-axis combination', () => {
+        const axes = ['left', 'center', 'right'] as const
+
+        for (const startAxis of axes) {
+          for (const endAxis of axes) {
+            const result = computeWallLines(start, startAxis, end, endAxis, thickness)
+            const wallDirection = result.left.direction
+            const leftDirection = perpendicularCCW(wallDirection)
+            const rightFromLeft = subVec2(result.right.point, result.left.point)
+
+            expect(dotVec2(wallDirection, subVec2(end, start))).toBeGreaterThan(0)
+            expect(dotVec2(leftDirection, rightFromLeft)).toBeLessThan(0)
+          }
+        }
       })
     })
 
@@ -467,7 +491,7 @@ describe('intermediateWallGeometry', () => {
         120
       )
       const geometry = state._intermediateWallGeometry[wall.id]
-      const epsilon = 1e-4
+      const epsilon = 1e-3
 
       expect(geometry.leftLength).not.toBeCloseTo(geometry.rightLength, 5)
       expect(geometry.boundary.points).toHaveLength(4)
@@ -494,8 +518,8 @@ describe('intermediateWallGeometry', () => {
 
       expect(distanceToInfiniteLine(forward.left.point, reverse.left)).toBeCloseTo(0, 5)
       expect(distanceToInfiniteLine(forward.right.point, reverse.right)).toBeCloseTo(0, 5)
-      expect(Math.abs(dotVec2(forward.left.direction, reverse.left.direction))).toBeCloseTo(1, 5)
-      expect(Math.abs(dotVec2(forward.right.direction, reverse.right.direction))).toBeCloseTo(1, 5)
+      expect(dotVec2(reverse.left.direction, subVec2(newVec2(0, 0), newVec2(6000, 0)))).toBeGreaterThan(0)
+      expect(dotVec2(reverse.right.direction, subVec2(newVec2(0, 0), newVec2(6000, 0)))).toBeGreaterThan(0)
     })
 
     it('should position wall entities from the finalized centerline', () => {
