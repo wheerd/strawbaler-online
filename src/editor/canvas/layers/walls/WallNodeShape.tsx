@@ -442,8 +442,9 @@ function WallNodeOffsetMeasurement({
   constraint?: WallNodePositionConstraint
   isSelected: boolean
   formatLength: (value: number) => string
-}): React.JSX.Element {
+}): React.JSX.Element | null {
   const status = useConstraintStatus(constraint?.id)
+  if (!isSelected && !constraint) return null
   const offset = node.offsetFromCornerStart - reference.offset
   const color = status.conflicting
     ? 'var(--color-red-600)'
