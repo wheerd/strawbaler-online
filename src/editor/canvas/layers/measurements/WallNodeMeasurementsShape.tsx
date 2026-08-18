@@ -25,7 +25,7 @@ import {
   DIMENSION_DEFAULT_STROKE_WIDTH,
   WALL_DIM_LAYER_OFFSET
 } from '@/editor/canvas/dimensions'
-import { ConstraintBadge } from '@/editor/canvas/overlay/ConstraintBadge'
+import { ConstraintBadgeStack, type ConstraintBadgeStackItem } from '@/editor/canvas/overlay/ConstraintBadgeStack'
 import { activateLengthInput } from '@/editor/canvas/services/length-input'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
@@ -34,7 +34,7 @@ import {
   angleVec2,
   degreesToRadians,
   midpoint,
-  perpendicular,
+  negVec2,
   radiansToDegrees,
   scaleVec2
 } from '@/shared/geometry'
@@ -46,6 +46,11 @@ import {
   getPerimeterWallMeasurementReferences,
   getReferencePoint
 } from './perimeterWallMeasurementReferences'
+import {
+  type WallNodeBadgePair,
+  type WallNodeIncidentWall,
+  getAdjacentWallNodeBadgePairs
+} from './wallNodeBadgeGeometry'
 
 export function WallNodeMeasurementsShape({ nodeId }: { nodeId: WallNodeId }): React.JSX.Element {
   const node = useWallNodeById(nodeId)
@@ -66,11 +71,6 @@ export function WallNodeMeasurementsShape({ nodeId }: { nodeId: WallNodeId }): R
       />
     </>
   )
-}
-
-interface IncidentWall {
-  id: WallId
-  direction: Vec2
 }
 
 function WallNodeConstraintBadges({
@@ -116,11 +116,26 @@ function PerimeterWallNodeConstraintBadges({
   isSelected: boolean
 }): React.JSX.Element {
   const perimeterWall = usePerimeterWallById(node.wallId)
-  const incidents: IncidentWall[] = [
-    { id: perimeterWall.id, direction: perimeterWall.direction },
+  const incidents: WallNodeIncidentWall[] = [
+    {
+      id: perimeterWall.id,
+      key: `${perimeterWall.id}-forward`,
+      direction: perimeterWall.direction,
+      leftPoint: node.insideLine.end,
+      rightPoint: node.insideLine.end,
+      isPerimeterRay: true
+    },
+    {
+      id: perimeterWall.id,
+      key: `${perimeterWall.id}-backward`,
+      direction: negVec2(perimeterWall.direction),
+      leftPoint: node.insideLine.start,
+      rightPoint: node.insideLine.start,
+      isPerimeterRay: true
+    },
     ...intermediateWalls
       .filter(wall => node.connectedWallIds.includes(wall.id))
-      .map(wall => ({ id: wall.id, direction: getDirectionAwayFromNode(wall, node.id) }))
+      .map(wall => getIncidentWall(wall, node.id))
   ]
   return <WallNodePairBadges node={node} incidents={incidents} constraints={constraints} isSelected={isSelected} />
 }
@@ -136,9 +151,9 @@ function InnerWallNodeConstraintBadges({
   intermediateWalls: IntermediateWallWithGeometry[]
   isSelected: boolean
 }): React.JSX.Element {
-  const incidents = intermediateWalls
+  const incidents: WallNodeIncidentWall[] = intermediateWalls
     .filter(wall => node.connectedWallIds.includes(wall.id))
-    .map(wall => ({ id: wall.id, direction: getDirectionAwayFromNode(wall, node.id) }))
+    .map(wall => getIncidentWall(wall, node.id))
   return <WallNodePairBadges node={node} incidents={incidents} constraints={constraints} isSelected={isSelected} />
 }
 
@@ -149,7 +164,7 @@ function WallNodePairBadges({
   isSelected
 }: {
   node: WallNodeWithGeometry
-  incidents: IncidentWall[]
+  incidents: WallNodeIncidentWall[]
   constraints: readonly Constraint[]
   isSelected: boolean
 }): React.JSX.Element {
@@ -159,24 +174,20 @@ function WallNodePairBadges({
     value: number
   } | null>(null)
   const modelActions = getModelActions()
-  const pairs: [IncidentWall, IncidentWall][] = []
-  for (let i = 0; i < incidents.length; i++) {
-    for (let j = i + 1; j < incidents.length; j++) pairs.push([incidents[i], incidents[j]])
-  }
+  const pairs = getAdjacentWallNodeBadgePairs(incidents)
 
   return (
     <>
-      {pairs.map(([wallA, wallB]) => (
+      {pairs.map(pair => (
         <WallNodePairBadge
-          key={`${wallA.id}-${wallB.id}`}
+          key={pair.key}
           node={node}
-          wallA={wallA}
-          wallB={wallB}
+          pair={pair}
           constraints={constraints}
           isSelected={isSelected}
-          onAngleOpen={(pair, value) => {
-            const position = viewportActions().worldToStage(node.center)
-            setAngleInput({ position: { x: position[0], y: position[1] }, pair, value })
+          onAngleOpen={(wallPair, value, basePoint) => {
+            const position = viewportActions().worldToStage(basePoint)
+            setAngleInput({ position: { x: position[0], y: position[1] }, pair: wallPair, value })
           }}
         />
       ))}
@@ -225,19 +236,18 @@ function WallNodePairBadges({
 
 function WallNodePairBadge({
   node,
-  wallA,
-  wallB,
+  pair,
   constraints,
   isSelected,
   onAngleOpen
 }: {
   node: WallNodeWithGeometry
-  wallA: IncidentWall
-  wallB: IncidentWall
+  pair: WallNodeBadgePair
   constraints: readonly Constraint[]
   isSelected: boolean
-  onAngleOpen: (pair: [WallId, WallId], value: number) => void
+  onAngleOpen: (pair: [WallId, WallId], value: number, basePoint: Vec2) => void
 }): React.JSX.Element {
+  const { wallA, wallB, basePoint, offsetDirection } = pair
   const modelActions = getModelActions()
   const perpendicularConstraint = findNodePairConstraint(
     constraints,
@@ -254,7 +264,6 @@ function WallNodePairBadge({
   const dot = Math.abs(wallA.direction[0] * wallB.direction[0] + wallA.direction[1] * wallB.direction[1])
   const isPerpendicular = dot < Math.sin((5 * Math.PI) / 180)
   const isColinear = dot > Math.cos((5 * Math.PI) / 180)
-  const outsideDirection = perpendicular(wallA.direction)
   const angle = angleConstraint
     ? radiansToDegrees(angleConstraint.angle)
     : radiansToDegrees(angleVec2(wallA.direction, wallB.direction))
@@ -266,71 +275,78 @@ function WallNodePairBadge({
     gcsService.triggerSolve()
   }
 
+  const badgeItems: ConstraintBadgeStackItem[] = []
+  if (perpendicularConstraint ?? (isSelected && isPerpendicular)) {
+    badgeItems.push({
+      id: 'perpendicular',
+      label: '⊥',
+      locked: perpendicularConstraint != null,
+      onClick: isSelected
+        ? () => {
+            toggle(perpendicularConstraint, 'wallNodePerpendicular')
+          }
+        : undefined,
+      tooltipKey: 'perpendicular',
+      status: status(perpendicularStatus)
+    })
+  }
+  if (colinearConstraint ?? (isSelected && isColinear)) {
+    badgeItems.push({
+      id: 'colinear',
+      label: '\u2550',
+      locked: colinearConstraint != null,
+      onClick: isSelected
+        ? () => {
+            toggle(colinearConstraint, 'wallNodeColinear')
+          }
+        : undefined,
+      tooltipKey: 'colinear',
+      status: status(colinearStatus)
+    })
+  }
+  if (angleConstraint ?? isSelected) {
+    badgeItems.push({
+      id: 'angle',
+      label: `${Math.round(angle)}°`,
+      locked: angleConstraint != null,
+      onClick: isSelected
+        ? () => {
+            onAngleOpen([wallA.id, wallB.id], angle, basePoint)
+          }
+        : undefined,
+      tooltipKey: 'angle',
+      status: status(angleStatus)
+    })
+  }
+
   return (
-    <g>
-      {(perpendicularConstraint ?? (isSelected && isPerpendicular)) && (
-        <ConstraintBadge
-          label="⊥"
-          dimLayer={1}
-          startPoint={node.center}
-          endPoint={node.center}
-          outsideDirection={outsideDirection}
-          locked={perpendicularConstraint != null}
-          onClick={
-            isSelected
-              ? () => {
-                  toggle(perpendicularConstraint, 'wallNodePerpendicular')
-                }
-              : undefined
-          }
-          tooltipKey="perpendicular"
-          status={status(perpendicularStatus)}
-        />
-      )}
-      {(colinearConstraint ?? (isSelected && isColinear)) && (
-        <ConstraintBadge
-          label="\u2550"
-          dimLayer={2}
-          startPoint={node.center}
-          endPoint={node.center}
-          outsideDirection={outsideDirection}
-          locked={colinearConstraint != null}
-          onClick={
-            isSelected
-              ? () => {
-                  toggle(colinearConstraint, 'wallNodeColinear')
-                }
-              : undefined
-          }
-          tooltipKey="colinear"
-          status={status(colinearStatus)}
-        />
-      )}
-      {(angleConstraint ?? isSelected) && (
-        <ConstraintBadge
-          label={`${Math.round(angle)}°`}
-          dimLayer={3}
-          startPoint={node.center}
-          endPoint={node.center}
-          outsideDirection={outsideDirection}
-          locked={angleConstraint != null}
-          onClick={
-            isSelected
-              ? () => {
-                  onAngleOpen([wallA.id, wallB.id], angle)
-                }
-              : undefined
-          }
-          tooltipKey="angle"
-          status={status(angleStatus)}
-        />
-      )}
-    </g>
+    <ConstraintBadgeStack
+      basePoint={basePoint}
+      offsetDirection={offsetDirection}
+      baseOffset={2 * WALL_DIM_LAYER_OFFSET}
+      items={badgeItems}
+    />
   )
 }
 
-function getDirectionAwayFromNode(wall: IntermediateWallWithGeometry, nodeId: WallNodeId): Vec2 {
-  return wall.start.nodeId === nodeId ? wall.direction : scaleVec2(wall.direction, -1)
+function getIncidentWall(wall: IntermediateWallWithGeometry, nodeId: WallNodeId): WallNodeIncidentWall {
+  if (wall.start.nodeId === nodeId) {
+    return {
+      id: wall.id,
+      key: wall.id,
+      direction: wall.direction,
+      leftPoint: wall.leftLine.start,
+      rightPoint: wall.rightLine.start
+    }
+  }
+
+  return {
+    id: wall.id,
+    key: wall.id,
+    direction: scaleVec2(wall.direction, -1),
+    leftPoint: wall.rightLine.end,
+    rightPoint: wall.leftLine.end
+  }
 }
 
 function findNodePairConstraint<T extends 'wallNodePerpendicular' | 'wallNodeColinear' | 'wallNodeAngle'>(

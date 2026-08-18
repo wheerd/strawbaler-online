@@ -17,6 +17,7 @@ import {
   usePerimeterWallById
 } from '@/building/store'
 import { AngleInput } from '@/editor/canvas/components/AngleInput'
+import { WALL_DIM_LAYER_OFFSET } from '@/editor/canvas/dimensions'
 import { ConstraintBadge } from '@/editor/canvas/overlay/ConstraintBadge'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
@@ -229,10 +230,9 @@ export function PerimeterCornerMeasurementsShape({ cornerId }: { cornerId: Perim
         {showAngleBadge && (
           <ConstraintBadge
             label={`${Math.round(badgeAngle)}°`}
-            dimLayer={2}
-            startPoint={corner.insidePoint}
-            endPoint={corner.insidePoint}
-            outsideDirection={insideDirection}
+            basePoint={corner.insidePoint}
+            offsetDirection={insideDirection}
+            offsetDistance={2 * WALL_DIM_LAYER_OFFSET}
             locked={angleConstraint != null}
             onClick={isSelected ? handleAngleClick : undefined}
             tooltipKey="angle"
@@ -244,10 +244,9 @@ export function PerimeterCornerMeasurementsShape({ cornerId }: { cornerId: Perim
         {showColinearBadge && (
           <ConstraintBadge
             label={'\u2550'}
-            dimLayer={2}
-            startPoint={corner.outsidePoint}
-            endPoint={corner.outsidePoint}
-            outsideDirection={outsideDirection}
+            basePoint={corner.outsidePoint}
+            offsetDirection={outsideDirection}
+            offsetDistance={2 * WALL_DIM_LAYER_OFFSET}
             locked={colinearConstraint != null}
             onClick={isSelected ? (colinearConstraint ? handleRemoveColinear : handleAddColinear) : undefined}
             tooltipKey="colinear"
@@ -259,10 +258,9 @@ export function PerimeterCornerMeasurementsShape({ cornerId }: { cornerId: Perim
         {showPerpendicularBadge && (
           <ConstraintBadge
             label="⊥"
-            dimLayer={1}
-            startPoint={corner.outsidePoint}
-            endPoint={corner.outsidePoint}
-            outsideDirection={outsideDirection}
+            basePoint={corner.outsidePoint}
+            offsetDirection={outsideDirection}
+            offsetDistance={WALL_DIM_LAYER_OFFSET}
             locked={perpendicularConstraint != null}
             onClick={
               isSelected ? (perpendicularConstraint ? handleRemovePerpendicular : handleAddPerpendicular) : undefined
@@ -276,10 +274,9 @@ export function PerimeterCornerMeasurementsShape({ cornerId }: { cornerId: Perim
         {showLockedBadge && (
           <ConstraintBadge
             label="🔒"
-            dimLayer={3}
-            startPoint={corner.outsidePoint}
-            endPoint={corner.outsidePoint}
-            outsideDirection={outsideDirection}
+            basePoint={corner.outsidePoint}
+            offsetDirection={outsideDirection}
+            offsetDistance={3 * WALL_DIM_LAYER_OFFSET}
             locked={lockedConstraint != null}
             onClick={isSelected ? (lockedConstraint ? handleRemoveLocked : handleAddLocked) : undefined}
             tooltipKey={lockedTooltipKey}

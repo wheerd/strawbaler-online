@@ -5,10 +5,11 @@ import { useConstraintStatus } from '@/building/gcs/store'
 import type {
   Constraint,
   HorizontalWallConstraint,
+  PerimeterWallWithGeometry,
   VerticalWallConstraint,
   WallLengthConstraint
 } from '@/building/model'
-import type { PerimeterCornerId, PerimeterWallId } from '@/building/model/ids'
+import type { PerimeterWallId } from '@/building/model/ids'
 import {
   getModelActions,
   useConstraintsForEntity,
@@ -163,24 +164,19 @@ function WallLengthIndicator({
 
 function HVConstraintBadge({
   wall,
-  startCornerId,
-  endCornerId,
   hvConstraint,
   suggestedHVType,
   subEntitySelected,
   onClick
 }: {
-  wall: { outsideDirection: Vec2 }
-  startCornerId: PerimeterCornerId
-  endCornerId: PerimeterCornerId
-  hvConstraint: (HorizontalWallConstraint | VerticalWallConstraint) | undefined
+  wall: PerimeterWallWithGeometry
+  hvConstraint?: HorizontalWallConstraint | VerticalWallConstraint
   suggestedHVType: 'horizontalWall' | 'verticalWall' | null
   subEntitySelected: boolean
   onClick: (() => void) | undefined
 }) {
-  const startCorner = usePerimeterCornerById(startCornerId)
-  const endCorner = usePerimeterCornerById(endCornerId)
   const hvStatus = useConstraintStatus(hvConstraint?.id)
+  const basePoint = midpoint(wall.insideLine.start, wall.insideLine.end)
 
   const label = hvConstraint
     ? hvConstraint.type === 'horizontalWall'
@@ -209,10 +205,9 @@ function HVConstraintBadge({
   return (
     <ConstraintBadge
       label={label}
-      dimLayer={subEntitySelected ? 5 : 4}
-      startPoint={startCorner.outsidePoint}
-      endPoint={endCorner.outsidePoint}
-      outsideDirection={wall.outsideDirection}
+      basePoint={basePoint}
+      offsetDirection={wall.outsideDirection}
+      offsetDistance={(subEntitySelected ? 5 : 4) * WALL_DIM_LAYER_OFFSET}
       locked={hvConstraint != null}
       onClick={onClick}
       tooltipKey={tooltipKey}
@@ -276,8 +271,6 @@ export function PerimeterWallMeasurementsShape({ wallId }: { wallId: PerimeterWa
       {(hvConstraint != null || (selected && suggestedHVType != null)) && (
         <HVConstraintBadge
           wall={wall}
-          startCornerId={wall.startCornerId}
-          endCornerId={wall.endCornerId}
           hvConstraint={hvConstraint}
           suggestedHVType={suggestedHVType}
           subEntitySelected={subEntitySelected}
