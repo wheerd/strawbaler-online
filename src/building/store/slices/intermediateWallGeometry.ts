@@ -390,7 +390,9 @@ function updatePerimeterNode(
   if (node.connectedWallIds.length === 0) {
     state._wallNodeGeometry[node.id] = {
       position: nodePos,
-      center: nodePos
+      center: nodePos,
+      insideLine: { start: nodePos, end: nodePos },
+      outsideLine: { start: nodePos, end: nodePos }
     }
     return
   }
@@ -435,6 +437,8 @@ function updatePerimeterNode(
   const newGeometry: PerimeterWallNodeGeometry = {
     position: nodePos,
     center: midpoint(minInside, maxOutside),
+    insideLine: { start: minInside, end: maxInside },
+    outsideLine: { start: minOutside, end: maxOutside },
     boundary: ensurePolygonIsClockwise({
       points: [minInside, maxInside, maxOutside, minOutside]
     })

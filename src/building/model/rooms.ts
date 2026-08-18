@@ -51,6 +51,8 @@ export interface BaseWallNodeGeometry {
 
 export interface PerimeterWallNodeGeometry extends BaseWallNodeGeometry {
   position: Vec2
+  insideLine: LineSegment2D
+  outsideLine: LineSegment2D
 }
 
 export type InnerWallNodeGeometry = BaseWallNodeGeometry

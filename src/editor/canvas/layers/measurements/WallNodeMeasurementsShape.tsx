@@ -5,10 +5,12 @@ import { useConstraintStatus } from '@/building/gcs/store'
 import type {
   Constraint,
   IntermediateWallWithGeometry,
+  PerimeterWallNodeWithGeometry,
+  PerimeterWallWithGeometry,
   WallNodePositionConstraint,
   WallNodeWithGeometry
 } from '@/building/model'
-import type { NodeId, WallId, WallNodeId } from '@/building/model/ids'
+import type { WallId, WallNodeId } from '@/building/model/ids'
 import {
   getModelActions,
   useConstraintsForEntity,
@@ -37,6 +39,13 @@ import {
   scaleVec2
 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
+
+import {
+  type PerimeterWallMeasurementReference,
+  getAdjacentPerimeterWallReferences,
+  getPerimeterWallMeasurementReferences,
+  getReferencePoint
+} from './perimeterWallMeasurementReferences'
 
 export function WallNodeMeasurementsShape({ nodeId }: { nodeId: WallNodeId }): React.JSX.Element {
   const node = useWallNodeById(nodeId)
@@ -360,51 +369,41 @@ function PerimeterWallNodeMeasurementContent({
   constraints,
   isSelected
 }: {
-  node: Extract<ReturnType<typeof useWallNodeById>, { type: 'perimeter' }>
+  node: PerimeterWallNodeWithGeometry
   constraints: readonly Constraint[]
   isSelected: boolean
 }): React.JSX.Element {
   const wall = usePerimeterWallById(node.wallId)
-  const { formatLength } = useFormatters()
-  interface NodeReference {
-    id: NodeId
-    offset: number
-    point: Vec2
-  }
-  const references = (
-    [
-      { id: wall.startCornerId, offset: 0, point: wall.insideLine.start },
-      { id: node.id, offset: node.offsetFromCornerStart, point: node.position },
-      ...wall.wallNodeIds
-        .filter(id => id !== node.id)
-        .map(id => {
-          const other = getModelActions().getWallNodeById(id)
-          if (other.type !== 'perimeter') return null
-          return { id, offset: other.offsetFromCornerStart, point: other.position }
-        }),
-      { id: wall.endCornerId, offset: wall.wallLength, point: wall.insideLine.end }
-    ] as (NodeReference | null)[]
+  const modelActions = getModelActions()
+  const references = getPerimeterWallMeasurementReferences(
+    wall,
+    modelActions.getPerimeterCornerById,
+    modelActions.getWallNodeById
   )
-    .filter((reference): reference is NodeReference => reference != null)
-    .sort((a, b) => a.offset - b.offset)
-  const index = references.findIndex(reference => reference.id === node.id)
-  const adjacent = [index > 0 ? references[index - 1] : undefined, references[index + 1]]
+  const { next, previous } = getAdjacentPerimeterWallReferences(references, node.offsetFromCornerStart, node.id)
 
   return (
     <>
-      {adjacent.map(reference =>
-        reference ? (
-          <WallNodeOffsetMeasurement
-            key={reference.id}
-            node={node}
-            reference={reference}
-            wall={wall}
-            constraint={findPositionConstraint(constraints, node.id, wall.id, reference.id)}
-            isSelected={isSelected}
-            formatLength={formatLength}
-          />
-        ) : null
-      )}
+      {previous ? (
+        <WallNodeOffsetMeasurement
+          node={node}
+          reference={previous}
+          wall={wall}
+          constraint={findPositionConstraint(constraints, node.id, wall.id, previous.id)}
+          isSelected={isSelected}
+          direction="previous"
+        />
+      ) : null}
+      {next ? (
+        <WallNodeOffsetMeasurement
+          node={node}
+          reference={next}
+          wall={wall}
+          constraint={findPositionConstraint(constraints, node.id, wall.id, next.id)}
+          isSelected={isSelected}
+          direction="next"
+        />
+      ) : null}
     </>
   )
 }
@@ -415,18 +414,20 @@ function WallNodeOffsetMeasurement({
   wall,
   constraint,
   isSelected,
-  formatLength
+  direction
 }: {
-  node: Extract<ReturnType<typeof useWallNodeById>, { type: 'perimeter' }>
-  reference: { id: NodeId; offset: number; point: Vec2 }
-  wall: ReturnType<typeof usePerimeterWallById>
+  node: PerimeterWallNodeWithGeometry
+  reference: PerimeterWallMeasurementReference
+  wall: PerimeterWallWithGeometry
   constraint?: WallNodePositionConstraint
   isSelected: boolean
-  formatLength: (value: number) => string
+  direction: 'previous' | 'next'
 }): React.JSX.Element | null {
+  const { formatLength } = useFormatters()
   const status = useConstraintStatus(constraint?.id)
   if (!isSelected && !constraint) return null
-  const offset = node.offsetFromCornerStart - reference.offset
+  const referencePoint = getReferencePoint(reference, 'inside', direction === 'previous' ? 'end' : 'start')
+  const nodePoint = getReferencePoint(node, 'inside', direction === 'previous' ? 'start' : 'end')
   const color = status.conflicting
     ? 'var(--color-red-600)'
     : status.redundant
@@ -435,41 +436,43 @@ function WallNodeOffsetMeasurement({
         ? 'var(--color-foreground)'
         : 'var(--color-muted-foreground)'
 
+  const onCommit = (enteredValue: number): void => {
+    getModelActions().addBuildingConstraint({
+      type: 'wallNodePosition',
+      node: node.id,
+      perimeterWall: wall.id,
+      reference: reference.id,
+      offset: enteredValue
+    })
+    gcsService.triggerSolve()
+  }
+
+  const onCancel = () => {
+    if (constraint) getModelActions().removeBuildingConstraint(constraint.id)
+  }
+
+  const clickHandler = (measurement: number): void => {
+    const position = viewportActions().worldToStage(midpoint(referencePoint, node.position))
+
+    activateLengthInput({
+      showImmediately: true,
+      position: { x: position[0], y: position[1] },
+      initialValue: constraint?.offset ?? measurement,
+      placeholder: 'Enter offset...',
+      onCommit,
+      onCancel
+    })
+  }
   return (
     <LengthIndicator
-      startPoint={reference.point}
-      endPoint={node.position}
-      label={constraint ? `${formatLength(constraint.offset)} \uD83D\uDD12` : formatLength(offset)}
-      offset={WALL_DIM_LAYER_OFFSET}
+      startPoint={direction === 'next' ? referencePoint : nodePoint}
+      endPoint={direction === 'previous' ? referencePoint : nodePoint}
+      label={constraint ? `${formatLength(constraint.offset)} \uD83D\uDD12` : undefined}
+      offset={2 * WALL_DIM_LAYER_OFFSET}
       color={color}
       fontSize={DIMENSION_DEFAULT_FONT_SIZE}
       strokeWidth={DIMENSION_DEFAULT_STROKE_WIDTH}
-      onClick={
-        isSelected
-          ? measurement => {
-              const position = viewportActions().worldToStage(midpoint(reference.point, node.position))
-              activateLengthInput({
-                showImmediately: true,
-                position: { x: position[0], y: position[1] },
-                initialValue: constraint?.offset ?? measurement,
-                placeholder: 'Enter offset...',
-                onCommit: enteredValue => {
-                  getModelActions().addBuildingConstraint({
-                    type: 'wallNodePosition',
-                    node: node.id,
-                    perimeterWall: wall.id,
-                    reference: reference.id as typeof wall.startCornerId | WallNodeId,
-                    offset: enteredValue
-                  })
-                  gcsService.triggerSolve()
-                },
-                onCancel: () => {
-                  if (constraint) getModelActions().removeBuildingConstraint(constraint.id)
-                }
-              })
-            }
-          : undefined
-      }
+      onClick={isSelected ? clickHandler : undefined}
     />
   )
 }

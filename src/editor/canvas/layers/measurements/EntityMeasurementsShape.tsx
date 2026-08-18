@@ -10,7 +10,7 @@ import type {
   WallEntityGeometry,
   WallEntityRelativeConstraint
 } from '@/building/model'
-import type { IntermediateWallId, PerimeterCornerId, PerimeterWallId, WallEntityId } from '@/building/model/ids'
+import type { IntermediateWallId, NodeId, PerimeterCornerId, PerimeterWallId, WallEntityId } from '@/building/model/ids'
 import { isOpeningId, isPerimeterWallId } from '@/building/model/ids'
 import {
   getModelActions,
@@ -35,6 +35,12 @@ import { type Length, type Vec2, direction, midpoint, perpendicularCCW, scaleAdd
 import { useFormatters } from '@/shared/i18n/useFormatters'
 
 import { IntermediateWallEntityMeasurementsShape } from './IntermediateWallEntityMeasurementsShape'
+import {
+  type PerimeterWallMeasurementReference,
+  getAdjacentPerimeterWallReferences,
+  getPerimeterWallMeasurementReferences,
+  getReferencePoint
+} from './perimeterWallMeasurementReferences'
 
 export function EntityMeasurementsShape({
   entity
@@ -73,13 +79,25 @@ function PerimeterEntityMeasurementsShape({
   const constraints = useConstraintsForEntity(entity.id)
 
   const startCornerConstraint = useMemo(
-    () => findCornerConstraintForEntity(constraints, startCorner.id, entity.id),
+    () => findNodeConstraintForEntity(constraints, startCorner.id, entity.id),
     [constraints, startCorner.id, entity.id]
   )
   const endCornerConstraint = useMemo(
-    () => findCornerConstraintForEntity(constraints, endCorner.id, entity.id),
+    () => findNodeConstraintForEntity(constraints, endCorner.id, entity.id),
     [constraints, endCorner.id, entity.id]
   )
+  const references = getPerimeterWallMeasurementReferences(
+    wall,
+    modelActions.getPerimeterCornerById,
+    modelActions.getWallNodeById
+  )
+  const adjacentReferences = getAdjacentPerimeterWallReferences(references, entity.centerOffsetFromWallStart)
+  const previousInsideConstraint = adjacentReferences.previous
+    ? findNodeConstraintForEntity(constraints, adjacentReferences.previous.id, entity.id)
+    : undefined
+  const nextInsideConstraint = adjacentReferences.next
+    ? findNodeConstraintForEntity(constraints, adjacentReferences.next.id, entity.id)
+    : undefined
 
   const allObstacles = wall.entityIds
     .map(id => (isOpeningId(id) ? modelActions.getWallOpeningById(id) : modelActions.getWallPostById(id)))
@@ -151,15 +169,14 @@ function PerimeterEntityMeasurementsShape({
         )
       })}
 
-      {(isSelected || startCornerConstraint?.side === 'right') && (
-        <ConstrainableCornerDistance
+      {adjacentReferences.previous && (isSelected || previousInsideConstraint?.side === 'right') && (
+        <ConstrainableReferenceDistance
           entity={entity}
-          corner={startCorner}
+          reference={adjacentReferences.previous}
           mode="prev"
           useCenter={mode === 'center'}
-          inside
           isSelected={isSelected}
-          constraint={startCornerConstraint ?? undefined}
+          constraint={previousInsideConstraint?.side === 'right' ? previousInsideConstraint : undefined}
           dimensionLayer={previousEntity ? 2 : 1}
         />
       )}
@@ -177,15 +194,14 @@ function PerimeterEntityMeasurementsShape({
         />
       )}
 
-      {(isSelected || endCornerConstraint?.side === 'right') && (
-        <ConstrainableCornerDistance
+      {adjacentReferences.next && (isSelected || nextInsideConstraint?.side === 'right') && (
+        <ConstrainableReferenceDistance
           entity={entity}
-          corner={endCorner}
+          reference={adjacentReferences.next}
           mode="next"
           useCenter={mode === 'center'}
-          inside
           isSelected={isSelected}
-          constraint={endCornerConstraint ?? undefined}
+          constraint={nextInsideConstraint?.side === 'right' ? nextInsideConstraint : undefined}
           dimensionLayer={nextEntity ? 2 : 1}
         />
       )}
@@ -283,6 +299,60 @@ function ConstrainableCornerDistance({
           startPoint,
           endPoint
         )
+      }}
+    />
+  )
+}
+
+function ConstrainableReferenceDistance({
+  entity,
+  reference,
+  mode,
+  useCenter,
+  isSelected,
+  constraint,
+  dimensionLayer
+}: {
+  entity: WallEntity & WallEntityGeometry
+  reference: PerimeterWallMeasurementReference
+  mode: 'prev' | 'next'
+  useCenter: boolean
+  isSelected: boolean
+  constraint?: WallEntityAbsoluteConstraint
+  dimensionLayer: WallDimLayer
+}): React.JSX.Element {
+  const { formatLength } = useFormatters()
+  const constraintStatus = useConstraintStatus(constraint?.id)
+  const isConstrained = constraint?.side === 'right'
+  useCenter = isConstrained ? constraint.entitySide === 'center' : useCenter
+  const entitySide = useCenter ? 'center' : mode === 'prev' ? 'start' : 'end'
+  const entityPoint = useCenter
+    ? midpoint(entity.insideLine.start, entity.insideLine.end)
+    : entitySide === 'start'
+      ? entity.insideLine.start
+      : entity.insideLine.end
+  const referencePoint = getReferencePoint(reference, 'inside', mode === 'prev' ? 'end' : 'start')
+  const startPoint = mode === 'prev' ? referencePoint : entityPoint
+  const endPoint = mode === 'prev' ? entityPoint : referencePoint
+  const color = constraintStatus.conflicting
+    ? 'var(--color-red-600)'
+    : constraintStatus.redundant
+      ? 'var(--color-amber-500)'
+      : isSelected
+        ? 'var(--color-foreground)'
+        : 'var(--color-muted-foreground)'
+
+  return (
+    <LengthIndicator
+      startPoint={startPoint}
+      endPoint={endPoint}
+      label={constraint ? `${formatLength(constraint.distance)} \uD83D\uDD12` : undefined}
+      offset={-dimensionLayer * WALL_DIM_LAYER_OFFSET}
+      color={color}
+      fontSize={DIMENSION_DEFAULT_FONT_SIZE}
+      strokeWidth={DIMENSION_DEFAULT_STROKE_WIDTH}
+      onClick={measurement => {
+        handleReferenceDistanceClick(entity, reference.id, entitySide, constraint, measurement, startPoint, endPoint)
       }}
     />
   )
@@ -435,16 +505,56 @@ function handleCornerDistanceClick(
   })
 }
 
-function findCornerConstraintForEntity(
+function handleReferenceDistanceClick(
+  entity: WallEntity,
+  nodeId: NodeId,
+  entitySide: 'start' | 'center' | 'end',
+  existingConstraint: WallEntityAbsoluteConstraint | undefined,
+  currentDistance: Length,
+  indicatorStartPoint: Vec2,
+  indicatorEndPoint: Vec2
+) {
+  const { addBuildingConstraint, removeBuildingConstraint } = getModelActions()
+  const mid = midpoint(indicatorStartPoint, indicatorEndPoint)
+  const dir = direction(indicatorStartPoint, indicatorEndPoint)
+  const perp = perpendicularCCW(dir)
+  const stagePos = viewportActions().worldToStage(scaleAddVec2(mid, perp, -60))
+
+  activateLengthInput({
+    showImmediately: true,
+    position: { x: stagePos[0] + 20, y: stagePos[1] - 30 },
+    initialValue: existingConstraint?.distance ?? currentDistance,
+    placeholder: 'Enter offset...',
+    onCommit: enteredValue => {
+      addBuildingConstraint({
+        type: 'wallEntityAbsolute',
+        wall: entity.wallId,
+        entity: entity.id,
+        side: 'right',
+        entitySide,
+        node: nodeId,
+        distance: enteredValue
+      })
+      gcsService.triggerSolve()
+    },
+    onCancel: () => {
+      if (existingConstraint) {
+        removeBuildingConstraint(existingConstraint.id)
+        gcsService.triggerSolve()
+      }
+    }
+  })
+}
+
+function findNodeConstraintForEntity(
   constraints: readonly Constraint[],
-  cornerId: PerimeterCornerId,
+  nodeId: NodeId,
   entityId: WallEntityId
-): WallEntityAbsoluteConstraint | null {
-  const constraint = constraints.find(
-    (c): c is WallEntityAbsoluteConstraint =>
-      c.type === 'wallEntityAbsolute' && c.entity === entityId && c.node === cornerId
+): WallEntityAbsoluteConstraint | undefined {
+  return constraints.find(
+    (constraint): constraint is WallEntityAbsoluteConstraint =>
+      constraint.type === 'wallEntityAbsolute' && constraint.entity === entityId && constraint.node === nodeId
   )
-  return constraint ?? null
 }
 
 function findRelativeConstraint(

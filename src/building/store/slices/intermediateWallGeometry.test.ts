@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import type { PerimeterWallNodeGeometry } from '@/building/model'
 import { createIntermediateWallId, createWallNodeId } from '@/building/model/ids'
 import { computeWallLines, updateAllWallNodeGeometry } from '@/building/store/slices/intermediateWallGeometry'
 import {
@@ -406,10 +407,14 @@ describe('intermediateWallGeometry', () => {
 
       updateAllWallNodeGeometry(state, perimeterId)
 
-      const nodeGeometry = state._wallNodeGeometry[nodeId]
+      const nodeGeometry = state._wallNodeGeometry[nodeId] as PerimeterWallNodeGeometry
       expect(nodeGeometry).toBeDefined()
       expect(nodeGeometry.center[0]).toBeCloseTo(3000, 0)
       expect(nodeGeometry.center[1]).toBeCloseTo(-210, 0)
+      expect(nodeGeometry.insideLine.start).toBeDefined()
+      expect(nodeGeometry.insideLine.end).toBeDefined()
+      expect(nodeGeometry.outsideLine.start).toBeDefined()
+      expect(nodeGeometry.outsideLine.end).toBeDefined()
     })
 
     it('should return early for non-existent perimeter', () => {
