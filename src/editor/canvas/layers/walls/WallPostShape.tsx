@@ -1,6 +1,5 @@
 import type { WallPostId } from '@/building/model/ids'
 import { useWallPostById } from '@/building/store'
-import { EntityMeasurementsShape } from '@/editor/canvas/layers/walls/EntityMeasurementsShape'
 import { type Vec2, lerpVec2 } from '@/shared/geometry'
 import { MATERIAL_COLORS } from '@/shared/theme/colors'
 
@@ -79,8 +78,6 @@ export function WallPostShape({ postId }: { postId: WallPostId }): React.JSX.Ele
           strokeLinejoin="miter"
         />
       )}
-
-      <EntityMeasurementsShape entity={post} />
     </g>
   )
 }

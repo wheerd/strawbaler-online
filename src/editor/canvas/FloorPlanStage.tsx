@@ -13,11 +13,13 @@ import { isDebug } from '@/shared/ui/hooks/useDebug'
 
 import { GcsLayer } from './layers/GcsLayer'
 import { GridLayer } from './layers/GridLayer'
+import { MeasurementLayer } from './layers/MeasurementLayer'
 import { PlanImageLayer } from './layers/PlanImageLayer'
 import { FloorLayer } from './layers/floor/FloorLayer'
 import { RoofLayer } from './layers/roof/RoofLayer'
 import { ToolOverlayLayer } from './layers/tools/ToolOverlayLayer'
 import { PerimeterLayer } from './layers/walls/PerimeterLayer'
+import { isEditorOverlayTarget } from './services/editorHitTesting'
 
 interface FloorPlanStageProps {
   width: number
@@ -104,6 +106,8 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
         return
       }
 
+      if (isEditorOverlayTarget(e.target)) return
+
       // Route to tool system
       toolSystem.handlePointerEvent({
         type: 'pointerdown',
@@ -133,6 +137,8 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
         return
       }
 
+      if (isEditorOverlayTarget(e.target)) return
+
       // Route to tool system
       toolSystem.handlePointerEvent({
         type: 'pointermove',
@@ -157,6 +163,8 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
         setDragStart(null)
         return
       }
+
+      if (isEditorOverlayTarget(e.target)) return
 
       // Route to tool system
       toolSystem.handlePointerEvent({
@@ -244,7 +252,7 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
   )
 
   return (
-    <div data-testid="editor-svg">
+    <div data-testid="editor-svg" className="relative">
       <svg
         ref={svgRef}
         viewBox={`0 0 ${width} ${height}`}
@@ -271,6 +279,7 @@ export function FloorPlanStage({ width, height }: FloorPlanStageProps): React.JS
           <RoofLayer />
           <PlanImageLayer placement="over" />
           {showDebugGcsLayer && <GcsLayer />}
+          <MeasurementLayer />
           <ToolOverlayLayer />
         </g>
       </svg>

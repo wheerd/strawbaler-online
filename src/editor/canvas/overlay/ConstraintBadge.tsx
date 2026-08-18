@@ -130,6 +130,7 @@ export function ConstraintBadge({
   return (
     <g
       className={isInteractive ? 'group cursor-pointer select-none' : 'pointer-events-none select-none'}
+      pointerEvents={isInteractive ? 'auto' : 'none'}
       onClick={isInteractive ? onClick : undefined}
     >
       {tooltip && <title>{tooltip}</title>}

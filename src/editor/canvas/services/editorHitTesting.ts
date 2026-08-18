@@ -6,7 +6,21 @@ export interface EntityHitResult {
   parentIds: SelectableId[]
 }
 
-export function findEditorEntityAt({ clientX, clientY }: { clientX: number; clientY: number }): EntityHitResult | null {
+export function isEditorOverlayTarget(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest('[data-layer="measurements"]') != null
+}
+
+export function findEditorEntityAt({
+  clientX,
+  clientY,
+  target
+}: {
+  clientX: number
+  clientY: number
+  target?: EventTarget | null
+}): EntityHitResult | null {
+  if (isEditorOverlayTarget(target ?? null)) return null
+
   // Get all elements at this point, ordered from top to bottom (paint order)
   const elements = document.elementsFromPoint(clientX, clientY)
 

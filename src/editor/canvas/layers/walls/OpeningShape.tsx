@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import type { OpeningId } from '@/building/model/ids'
 import { useWallOpeningById } from '@/building/store'
 import { DIMENSION_SMALL_FONT_SIZE, WALL_DIM_LAYER_OFFSET } from '@/editor/canvas/dimensions'
-import { EntityMeasurementsShape } from '@/editor/canvas/layers/walls/EntityMeasurementsShape'
 import { useCurrentSelection } from '@/editor/canvas/state/selectionStore'
 import { useUiScale } from '@/editor/canvas/state/viewportStore'
 import { direction, midpoint, perpendicularCW, scaleAddVec2 } from '@/shared/geometry'
@@ -79,8 +78,6 @@ export function OpeningShape({ openingId }: { openingId: OpeningId }): React.JSX
               })}
         </text>
       </g>
-
-      <EntityMeasurementsShape entity={opening} />
     </g>
   )
 }
