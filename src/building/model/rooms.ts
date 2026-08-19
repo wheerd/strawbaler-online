@@ -24,7 +24,7 @@ export type RoomType =
   | 'service'
   | 'generic'
 
-export type WallAxis = 'left' | 'center' | 'right'
+export type WallAxis = 'left' | 'right'
 
 export interface BaseWallNode {
   id: WallNodeId

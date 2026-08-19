@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { InnerWallNode } from '@/building/model'
 import { InvalidOperationError, NotFoundError } from '@/building/store/errors'
-import { newVec2 } from '@/shared/geometry'
+import { distanceToInfiniteLine, lineFromSegment, newVec2 } from '@/shared/geometry'
 
 import {
   expectConsistentIntermediateWallReferences,
@@ -79,8 +79,8 @@ describe('intermediateWallsSlice', () => {
 
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -107,8 +107,8 @@ describe('intermediateWallsSlice', () => {
       expect(() =>
         state.actions.addIntermediateWall(
           'perimeter_nonexistent' as any,
-          { nodeId, axis: 'center' },
-          { nodeId, axis: 'center' },
+          { nodeId, axis: 'left' },
+          { nodeId, axis: 'left' },
           120
         )
       ).toThrow(NotFoundError)
@@ -122,8 +122,8 @@ describe('intermediateWallsSlice', () => {
       expect(() =>
         state.actions.addIntermediateWall(
           perimeterData.perimeterId,
-          { nodeId: nodeA.id, axis: 'center' },
-          { nodeId: 'wallnode_nonexistent' as any, axis: 'center' },
+          { nodeId: nodeA.id, axis: 'left' },
+          { nodeId: 'wallnode_nonexistent' as any, axis: 'left' },
           120
         )
       ).toThrow(NotFoundError)
@@ -139,8 +139,8 @@ describe('intermediateWallsSlice', () => {
       expect(() =>
         state.actions.addIntermediateWall(
           perimeterId,
-          { nodeId: nodeA.id, axis: 'center' },
-          { nodeId: nodeB.id, axis: 'center' },
+          { nodeId: nodeA.id, axis: 'left' },
+          { nodeId: nodeB.id, axis: 'left' },
           0
         )
       ).toThrow('Wall thickness must be greater than 0')
@@ -148,8 +148,8 @@ describe('intermediateWallsSlice', () => {
       expect(() =>
         state.actions.addIntermediateWall(
           perimeterId,
-          { nodeId: nodeA.id, axis: 'center' },
-          { nodeId: nodeB.id, axis: 'center' },
+          { nodeId: nodeA.id, axis: 'left' },
+          { nodeId: nodeB.id, axis: 'left' },
           -50
         )
       ).toThrow('Wall thickness must be greater than 0')
@@ -165,8 +165,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -187,8 +187,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -212,14 +212,14 @@ describe('intermediateWallsSlice', () => {
 
       const wall1 = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const wall2 = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeB.id, axis: 'center' },
-        { nodeId: nodeC.id, axis: 'center' },
+        { nodeId: nodeB.id, axis: 'left' },
+        { nodeId: nodeC.id, axis: 'left' },
         120
       )
 
@@ -249,14 +249,14 @@ describe('intermediateWallsSlice', () => {
 
       const wall1 = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const wall2 = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeB.id, axis: 'center' },
-        { nodeId: nodeC.id, axis: 'center' },
+        { nodeId: nodeB.id, axis: 'left' },
+        { nodeId: nodeC.id, axis: 'left' },
         120
       )
 
@@ -278,8 +278,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -306,8 +306,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -326,8 +326,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -352,13 +352,13 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterData.perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const before = state.actions.getIntermediateWallById(wall.id)
 
-      state.actions.updateIntermediateWallAlignmentPreservingGeometry(wall.id, 'center')
+      state.actions.updateIntermediateWallAlignmentPreservingGeometry(wall.id, 'left')
 
       expect(state.actions.getIntermediateWallById(wall.id).centerLine).toEqual(before.centerLine)
     })
@@ -369,8 +369,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterData.perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -389,8 +389,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       return { state, wall }
@@ -477,8 +477,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -502,6 +502,8 @@ describe('intermediateWallsSlice', () => {
 
       expect(wallA.thickness).toBe(120)
       expect(wallB.thickness).toBe(120)
+      expect(wallA.end.axis).toBe('left')
+      expect(wallB.start.axis).toBe('left')
 
       const splitNode = state.wallNodes[newNodeId]
       expect(splitNode).toBeDefined()
@@ -522,8 +524,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -547,8 +549,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -569,8 +571,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const opening = state.actions.addWallOpening(wall.id, {
@@ -592,7 +594,7 @@ describe('intermediateWallsSlice', () => {
       expect(state._openingGeometry[opening.id]).toBeDefined()
     })
 
-    it('should measure a trapezoidal wall split along its centerline', () => {
+    it('should project a trapezoidal wall split onto its fallback left line', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
       const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
@@ -605,6 +607,7 @@ describe('intermediateWallsSlice', () => {
       )
       const originalLength = wall.wallLength
       const originalCenterLine = state._intermediateWallGeometry[wall.id].centerLine
+      const originalLeftLine = state._intermediateWallGeometry[wall.id].leftLine
 
       state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(4000, 2600))
 
@@ -621,6 +624,11 @@ describe('intermediateWallsSlice', () => {
       expect(splitNode).toBeDefined()
       expect(splitNode?.position[0]).toBeGreaterThan(originalCenterLine.start[0])
       expect(splitNode?.position[0]).toBeLessThan(originalCenterLine.end[0])
+      expect(distanceToInfiniteLine(splitNode!.position, lineFromSegment(originalLeftLine))).toBeLessThan(1e-3)
+      const firstWall = state.intermediateWalls[newWalls[0]]
+      const secondWall = state.intermediateWalls[newWalls[1]]
+      expect(firstWall.end.axis).toBe('left')
+      expect(secondWall.start.axis).toBe('left')
     })
 
     it('should reject a split that crosses an entity without mutating state', () => {
@@ -630,8 +638,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const opening = state.actions.addWallOpening(wall.id, {
@@ -658,8 +666,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const post = state.actions.addWallPost(wall.id, mockPost({ centerOffsetFromWallStart: 4200, width: 100 }))
@@ -686,8 +694,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -706,8 +714,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -725,8 +733,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const post = state.actions.addWallPost(wall.id, mockPost({ centerOffsetFromWallStart: 2000, width: 100 }))
@@ -744,8 +752,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const post = state.actions.addWallPost(wall.id, mockPost({ centerOffsetFromWallStart: 2000, width: 100 }))
@@ -785,8 +793,8 @@ describe('intermediateWallsSlice', () => {
       const innerNode = state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: perimeterNode.id, axis: 'center' },
-        { nodeId: innerNode.id, axis: 'center' },
+        { nodeId: perimeterNode.id, axis: 'left' },
+        { nodeId: innerNode.id, axis: 'left' },
         120
       )
 
@@ -827,14 +835,14 @@ describe('intermediateWallsSlice', () => {
 
       const wall1 = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const wall2 = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeB.id, axis: 'center' },
-        { nodeId: nodeC.id, axis: 'center' },
+        { nodeId: nodeB.id, axis: 'left' },
+        { nodeId: nodeC.id, axis: 'left' },
         120
       )
 
@@ -866,14 +874,14 @@ describe('intermediateWallsSlice', () => {
       const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wallA = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const wallB = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeB.id, axis: 'center' },
-        { nodeId: nodeC.id, axis: 'center' },
+        { nodeId: nodeB.id, axis: 'left' },
+        { nodeId: nodeC.id, axis: 'left' },
         180
       )
       const post = state.actions.addWallPost(wallB.id, mockPost({ centerOffsetFromWallStart: 1000, width: 100 }))
@@ -898,14 +906,14 @@ describe('intermediateWallsSlice', () => {
       const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wallA = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: mergeNode.id, axis: 'center' },
-        { nodeId: nodeA.id, axis: 'center' },
+        { nodeId: mergeNode.id, axis: 'left' },
+        { nodeId: nodeA.id, axis: 'left' },
         120
       )
       const wallB = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeC.id, axis: 'center' },
-        { nodeId: mergeNode.id, axis: 'center' },
+        { nodeId: nodeC.id, axis: 'left' },
+        { nodeId: mergeNode.id, axis: 'left' },
         120
       )
       const postA = state.actions.addWallPost(wallA.id, mockPost({ centerOffsetFromWallStart: 500, width: 100 }))
@@ -932,14 +940,14 @@ describe('intermediateWallsSlice', () => {
       const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wallA = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: mergeNode.id, axis: 'center' },
-        { nodeId: nodeA.id, axis: 'center' },
+        { nodeId: mergeNode.id, axis: 'left' },
+        { nodeId: nodeA.id, axis: 'left' },
         120
       )
       const wallB = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: mergeNode.id, axis: 'center' },
-        { nodeId: nodeC.id, axis: 'center' },
+        { nodeId: mergeNode.id, axis: 'left' },
+        { nodeId: nodeC.id, axis: 'left' },
         120
       )
       const postA = state.actions.addWallPost(wallA.id, mockPost({ centerOffsetFromWallStart: 500, width: 100 }))
@@ -965,14 +973,14 @@ describe('intermediateWallsSlice', () => {
       const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wallA = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: mergeNode.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: mergeNode.id, axis: 'left' },
         120
       )
       const wallB = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeC.id, axis: 'center' },
-        { nodeId: mergeNode.id, axis: 'center' },
+        { nodeId: nodeC.id, axis: 'left' },
+        { nodeId: mergeNode.id, axis: 'left' },
         120
       )
       const postA = state.actions.addWallPost(wallA.id, mockPost({ centerOffsetFromWallStart: 500, width: 100 }))
@@ -1001,8 +1009,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -1032,14 +1040,14 @@ describe('intermediateWallsSlice', () => {
 
       state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeB.id, axis: 'center' },
-        { nodeId: nodeC.id, axis: 'center' },
+        { nodeId: nodeB.id, axis: 'left' },
+        { nodeId: nodeC.id, axis: 'left' },
         120
       )
 
@@ -1060,8 +1068,8 @@ describe('intermediateWallsSlice', () => {
 
       state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -1146,8 +1154,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -1164,8 +1172,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -1183,8 +1191,8 @@ describe('intermediateWallsSlice', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
       state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
 
@@ -1242,8 +1250,8 @@ describe('intermediateWallsSlice', () => {
       const innerNode = state.actions.addInnerWallNode(perimeterId, newVec2(3000, 2500))
       state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: perimNode.id, axis: 'center' },
-        { nodeId: innerNode.id, axis: 'center' },
+        { nodeId: perimNode.id, axis: 'left' },
+        { nodeId: innerNode.id, axis: 'left' },
         120
       )
 

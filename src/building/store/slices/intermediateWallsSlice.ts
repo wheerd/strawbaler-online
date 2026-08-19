@@ -220,12 +220,7 @@ export const createIntermediateWallsSlice: StateCreator<
               : incidentEndpoint === 'start'
                 ? incidentWall.start.axis
                 : incidentWall.end.axis
-          const segment =
-            incidentAxis === 'left'
-              ? geometry.leftLine
-              : incidentAxis === 'right'
-                ? geometry.rightLine
-                : geometry.centerLine
+          const segment = incidentAxis === 'left' ? geometry.leftLine : geometry.rightLine
           incidentLines.push(lineFromSegment(segment))
         }
 
@@ -419,7 +414,9 @@ export const createIntermediateWallsSlice: StateCreator<
         const originalGeometry = state._intermediateWallGeometry[wallId]
         const perimeter = state.perimeters[originalWall.perimeterId]
 
-        const projectedPoint = projectPointOntoLine(point, lineFromSegment(originalGeometry.centerLine))
+        const splitAxis = originalWall.start.axis === originalWall.end.axis ? originalWall.start.axis : 'left'
+        const splitLine = splitAxis === 'left' ? originalGeometry.leftLine : originalGeometry.rightLine
+        const projectedPoint = projectPointOntoLine(point, lineFromSegment(splitLine))
         const splitPosition = projectVec2(originalGeometry.centerLine.start, projectedPoint, originalGeometry.direction)
 
         if (splitPosition <= 0 || splitPosition >= originalGeometry.wallLength) {
@@ -474,7 +471,7 @@ export const createIntermediateWallsSlice: StateCreator<
           perimeterId: originalWall.perimeterId,
           entityIds: firstWallEntities,
           start: originalWall.start,
-          end: { nodeId: newNodeIdInner, axis: 'center' },
+          end: { nodeId: newNodeIdInner, axis: splitAxis },
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId
         }
@@ -483,7 +480,7 @@ export const createIntermediateWallsSlice: StateCreator<
           id: wallBId,
           perimeterId: originalWall.perimeterId,
           entityIds: secondWallEntities,
-          start: { nodeId: newNodeIdInner, axis: 'center' },
+          start: { nodeId: newNodeIdInner, axis: splitAxis },
           end: originalWall.end,
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId

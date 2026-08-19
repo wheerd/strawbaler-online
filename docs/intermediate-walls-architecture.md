@@ -57,7 +57,7 @@ interface InnerWallNode {
 Walls connect to nodes via attachments, which include axis alignment:
 
 ```typescript
-type WallAxis = 'left' | 'center' | 'right'
+type WallAxis = 'left' | 'right'
 
 interface WallAttachment {
   nodeId: WallNodeId
@@ -266,7 +266,7 @@ updateIntermediateWallGeometry(state, wallId: IntermediateWallId): void
 
 **GCS geometry scheme for intermediate walls:**
 
-The center line alone is insufficient because an attachment can target the left, center, or right wall axis. For each intermediate wall, register endpoint points and lines for all three axes:
+The center line is derived geometry; attachments target the left or right wall axis. For each intermediate wall, register endpoint points and lines for both attachment axes plus the derived center line:
 
 ```text
 intermediate_{wallId}_{start|end}_{left|center|right}
@@ -277,9 +277,10 @@ The endpoint selected by `WallAttachment.axis` is coincident with the correspond
 
 For each wall, register:
 
-- Three axis lines: left, center, and right.
-- Endpoint points for each axis.
-- Parallel constraints between the three axis lines.
+- Two attachment axis lines: left and right.
+- The derived center line.
+- Endpoint points for each attachment axis.
+- Parallel constraints between the axis lines and center line.
 - Thickness constraints between the center and side axes.
 - Attachment-specific endpoint coincidence constraints.
 - Entity points constrained to the intermediate wall center/reference line.
@@ -288,7 +289,7 @@ Constraints:
 
 - For perimeter-attached nodes: constrain the node's attachment geometry to the perimeter wall geometry.
 - For inner nodes: keep the node free unless a building constraint fixes or relates it.
-- Use the selected axis for endpoint coincidence; center attachment does not imply side-axis coincidence.
+- Use the selected left or right axis for endpoint coincidence.
 - Use the appropriate axis line for wall length according to the requested constraint side.
 
 ### Extend `PerimeterRegistryEntry`
@@ -343,11 +344,7 @@ interface TranslationContext {
   getWallEndpoints(wallId: WallId): { start: NodeId; end: NodeId } | undefined
   getWallNodeGcsPointId(nodeId: WallNodeId): string | undefined
   getIntermediateWallGcsLineId(wallId: IntermediateWallId, axis: WallAxis): string | undefined
-  getWallEndpointGcsPointId(
-    wallId: IntermediateWallId,
-    endpoint: 'start' | 'end',
-    axis: WallAxis
-  ): string | undefined
+  getWallEndpointGcsPointId(wallId: IntermediateWallId, endpoint: 'start' | 'end', axis: WallAxis): string | undefined
   getWallNodeConnectedWalls(nodeId: WallNodeId): WallId[]
 }
 ```
@@ -1407,8 +1404,8 @@ class RoomSplitTool extends BaseTool {
     // 3. Create the split wall
     addIntermediateWall({
       perimeterId: room.perimeterId,
-      start: { nodeId: startNodeId, axis: 'center' },
-      end: { nodeId: endNodeId, axis: 'center' },
+      start: { nodeId: startNodeId, axis: 'left' },
+      end: { nodeId: endNodeId, axis: 'left' },
       thickness: this.thickness,
       wallAssemblyId: this.assemblyId
     })

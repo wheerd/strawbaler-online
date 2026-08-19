@@ -506,20 +506,9 @@ export function computeWallLines(
   if (startAxis === endAxis) {
     const lineDirection = direction(start, end)
     const leftDir = perpendicularCCW(lineDirection)
-    const halfThickness = thickness / 2
 
-    const leftBase =
-      startAxis === 'left'
-        ? start
-        : startAxis === 'center'
-          ? scaleAddVec2(start, leftDir, halfThickness)
-          : scaleAddVec2(start, leftDir, thickness)
-    const rightBase =
-      startAxis === 'right'
-        ? start
-        : startAxis === 'center'
-          ? scaleAddVec2(start, leftDir, -halfThickness)
-          : scaleAddVec2(start, leftDir, -thickness)
+    const leftBase = startAxis === 'left' ? start : scaleAddVec2(start, leftDir, thickness)
+    const rightBase = startAxis === 'right' ? start : scaleAddVec2(start, leftDir, -thickness)
 
     return {
       left: { point: leftBase, direction: lineDirection },
@@ -539,7 +528,7 @@ export function computeWallLines(
   // The signed normal offset between the selected axes determines the
   // direction of the parallel wall lines. Positive values mean that the
   // start attachment is farther toward the left side than the end one.
-  const axisPosition = (axis: WallAxis): number => (axis === 'left' ? -1 : axis === 'right' ? 1 : 0)
+  const axisPosition = (axis: WallAxis): number => (axis === 'left' ? -1 : 1)
   const normalOffset = ((axisPosition(startAxis) - axisPosition(endAxis)) * thickness) / 2
   const alpha = normalOffset / len
   const beta = Math.sqrt(1 - alpha * alpha)
@@ -550,19 +539,9 @@ export function computeWallLines(
   const leftDir = addVec2(scaleVec2(dir, alpha), scaleVec2(perpendicularDir, beta))
   const lineDirection = perpendicularCW(leftDir)
 
-  const leftBase =
-    startAxis === 'left'
-      ? start
-      : endAxis === 'left'
-        ? end
-        : scaleAddVec2(start, leftDir, startAxis === 'center' ? thickness / 2 : thickness)
+  const leftBase = startAxis === 'left' ? start : endAxis === 'left' ? end : scaleAddVec2(start, leftDir, thickness)
 
-  const rightBase =
-    startAxis === 'right'
-      ? start
-      : endAxis === 'right'
-        ? end
-        : scaleAddVec2(start, leftDir, startAxis === 'center' ? -thickness / 2 : -thickness)
+  const rightBase = startAxis === 'right' ? start : endAxis === 'right' ? end : scaleAddVec2(start, leftDir, -thickness)
 
   return {
     left: { point: leftBase, direction: lineDirection },

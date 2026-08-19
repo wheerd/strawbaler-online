@@ -22,8 +22,8 @@ describe('intermediateWallGeometry', () => {
     const thickness = 100
 
     describe('same axis alignment (startAxis === endAxis)', () => {
-      it('should create parallel left/right lines for center/center on horizontal segment', () => {
-        const result = computeWallLines(start, 'center', end, 'center', thickness)
+      it('should create parallel left/right lines for left/left on horizontal segment', () => {
+        const result = computeWallLines(start, 'left', end, 'left', thickness)
 
         expect(result.left.direction).toEqual(newVec2(1, 0))
         expect(result.right.direction).toEqual(newVec2(1, 0))
@@ -33,11 +33,11 @@ describe('intermediateWallGeometry', () => {
         expect(distance).toBeCloseTo(thickness, 1)
       })
 
-      it('should create parallel left/right lines for center/center on vertical segment', () => {
+      it('should create parallel left/right lines for left/left on vertical segment', () => {
         const vStart = newVec2(0, 0)
         const vEnd = newVec2(0, 1000)
 
-        const result = computeWallLines(vStart, 'center', vEnd, 'center', thickness)
+        const result = computeWallLines(vStart, 'left', vEnd, 'left', thickness)
 
         expect(result.left.direction).toEqual(newVec2(0, 1))
         expect(result.right.direction).toEqual(newVec2(0, 1))
@@ -59,8 +59,8 @@ describe('intermediateWallGeometry', () => {
         expect(result.right.point).toEqual(start)
       })
 
-      it('should offset left and right equally for center/center', () => {
-        const result = computeWallLines(start, 'center', end, 'center', thickness)
+      it('should offset left and right from the left attachment axis', () => {
+        const result = computeWallLines(start, 'left', end, 'left', thickness)
 
         const midX = (start[0] + end[0]) / 2
         const midY = (start[1] + end[1]) / 2
@@ -71,15 +71,15 @@ describe('intermediateWallGeometry', () => {
 
         const centerPerpDist = dotVec2(perpendicularCCW(result.left.direction), midPoint)
 
-        expect(leftPerpDist).toBeCloseTo(centerPerpDist + thickness / 2, 1)
-        expect(rightPerpDist).toBeCloseTo(centerPerpDist - thickness / 2, 1)
+        expect(leftPerpDist).toBeCloseTo(centerPerpDist, 1)
+        expect(rightPerpDist).toBeCloseTo(centerPerpDist - thickness, 1)
       })
 
       it('should work correctly on a diagonal segment (45 degrees)', () => {
         const dStart = newVec2(0, 0)
         const dEnd = newVec2(1000, 1000)
 
-        const result = computeWallLines(dStart, 'center', dEnd, 'center', thickness)
+        const result = computeWallLines(dStart, 'left', dEnd, 'left', thickness)
 
         const dir = result.left.direction
         const expectedDirLen = Math.sqrt(2)
@@ -91,8 +91,8 @@ describe('intermediateWallGeometry', () => {
         expect(distance).toBeCloseTo(thickness, 1)
       })
 
-      it('should have left/right distance equal to thickness for center/center', () => {
-        const result = computeWallLines(start, 'center', end, 'center', thickness)
+      it('should have left/right distance equal to thickness for left/left', () => {
+        const result = computeWallLines(start, 'left', end, 'left', thickness)
 
         const perpDir = perpendicularCCW(result.left.direction)
         const distance = Math.abs(dotVec2(perpDir, result.right.point) - dotVec2(perpDir, result.left.point))
@@ -100,7 +100,7 @@ describe('intermediateWallGeometry', () => {
       })
 
       it('should keep the left line on the left side for every attachment-axis combination', () => {
-        const axes = ['left', 'center', 'right'] as const
+        const axes = ['left', 'right'] as const
 
         for (const startAxis of axes) {
           for (const endAxis of axes) {
@@ -185,8 +185,8 @@ describe('intermediateWallGeometry', () => {
         id: wallId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallId)
@@ -232,8 +232,8 @@ describe('intermediateWallGeometry', () => {
         id: wallId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallId)
@@ -285,16 +285,16 @@ describe('intermediateWallGeometry', () => {
         id: wallAId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId, axis: 'left' },
         thickness: 120
       }
       state.intermediateWalls[wallBId] = {
         id: wallBId,
         perimeterId,
         entityIds: [],
-        start: { nodeId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallAId, wallBId)
@@ -342,16 +342,16 @@ describe('intermediateWallGeometry', () => {
         id: wallAId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId, axis: 'left' },
         thickness: 120
       }
       state.intermediateWalls[wallBId] = {
         id: wallBId,
         perimeterId,
         entityIds: [],
-        start: { nodeId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallAId, wallBId)
@@ -398,8 +398,8 @@ describe('intermediateWallGeometry', () => {
         id: wallId,
         perimeterId,
         entityIds: [],
-        start: { nodeId, axis: 'center' },
-        end: { nodeId: innerNodeId, axis: 'center' },
+        start: { nodeId, axis: 'left' },
+        end: { nodeId: innerNodeId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallId)
@@ -409,7 +409,7 @@ describe('intermediateWallGeometry', () => {
 
       const nodeGeometry = state._wallNodeGeometry[nodeId] as PerimeterWallNodeGeometry
       expect(nodeGeometry).toBeDefined()
-      expect(nodeGeometry.center[0]).toBeCloseTo(3000, 0)
+      expect(nodeGeometry.center[0]).toBeCloseTo(3060, 0)
       expect(nodeGeometry.center[1]).toBeCloseTo(-210, 0)
       expect(nodeGeometry.insideLine.start).toBeDefined()
       expect(nodeGeometry.insideLine.end).toBeDefined()
@@ -436,7 +436,7 @@ describe('intermediateWallGeometry', () => {
       }).not.toThrow()
     })
 
-    it('should have centerLine between leftLine and rightLine for center/center wall', () => {
+    it('should have centerLine between leftLine and rightLine for left/left wall', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
@@ -462,8 +462,8 @@ describe('intermediateWallGeometry', () => {
         id: wallId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallId)
@@ -564,8 +564,8 @@ describe('intermediateWallGeometry', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(3200, 1400))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const opening = state.actions.addWallOpening(wall.id, {
