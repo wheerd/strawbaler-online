@@ -55,7 +55,9 @@ export function GcsLayer(): React.JSX.Element {
                 fill={point.id.endsWith('_ref') ? 'var(--color-primary)' : 'var(--color-accent)'}
                 stroke="var(--color-border)"
                 strokeWidth={2 / zoom}
-              />
+              >
+                <title>{point.id}</title>
+              </circle>
             </g>
           )
         })}

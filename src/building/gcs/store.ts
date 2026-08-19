@@ -10,15 +10,19 @@ import type {
   PerimeterId,
   WallId
 } from '@/building/model'
+import { isPerimeterWallId } from '@/building/model/ids'
 import type { PerimeterCornerWithGeometry } from '@/building/model/perimeters'
 import type { OpeningWithGeometry, WallPostWithGeometry } from '@/building/model/wallEntities'
 import { getModelActions } from '@/building/store'
-import { type Vec2, midpoint, projectVec2, scaleAddVec2 } from '@/shared/geometry/2d'
+import { type Vec2, midpoint, projectVec2, scaleAddVec2, scaleVec2 } from '@/shared/geometry/2d'
 
 import {
   type TranslationContext,
   getReferencedCornerIds,
   getReferencedWallIds,
+  intermediateWallEndpointPointId,
+  intermediateWallEntityReferencePointId,
+  intermediateWallLineId,
   nodeNonRefSidePointForNextWall,
   nodeNonRefSidePointForPrevWall,
   nodeRefSidePointId,
@@ -28,6 +32,7 @@ import {
   wallEntityOnLineConstraintId,
   wallEntityPointId,
   wallEntityWidthConstraintId,
+  wallNodeRefPointId,
   wallNonRefLineId,
   wallNonRefSideProjectedPoint,
   wallRefLineId
@@ -288,7 +293,8 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         cornerGeomMap.set(corner.id, corner)
       }
 
-      const isRefInside = modelActions.getPerimeterById(perimeterId).referenceSide === 'inside'
+      const perimeter = modelActions.getPerimeterById(perimeterId)
+      const isRefInside = perimeter.referenceSide === 'inside'
 
       // Add points for each corner
       for (const corner of corners) {
@@ -360,7 +366,9 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         entry.pointIds.push(startRef, centerRef, endRef)
 
         // Constraint: All points must be on the wall line
-        const refLineId = wallRefLineId(entity.wallId)
+        const refLineId = isPerimeterWallId(entity.wallId)
+          ? wallRefLineId(entity.wallId)
+          : intermediateWallLineId(entity.wallId, 'entityReference')
 
         const startOnRef = wallEntityOnLineConstraintId(entity.id, 'start')
         const centerOnRef = wallEntityOnLineConstraintId(entity.id, 'center')
@@ -491,6 +499,155 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
 
         for (const post of modelActions.getWallPostsByWallId(wall.id)) {
           addWallEntityGeometry(post, entry)
+        }
+      }
+
+      const wallNodes = perimeter.wallNodeIds.map(nodeId => modelActions.getWallNodeById(nodeId))
+
+      for (const node of wallNodes) {
+        const nodePointId = wallNodeRefPointId(node.id)
+        actions.addPoint(nodePointId, node.position, false)
+        entry.pointIds.push(nodePointId)
+
+        if (node.type === 'perimeter') {
+          const perimeterLineId = isRefInside ? wallRefLineId(node.wallId) : wallNonRefLineId(node.wallId)
+          const nodeOnPerimeterId = `${nodePointId}_on_perimeter`
+          actions.addConstraint({
+            id: nodeOnPerimeterId,
+            type: 'point_on_line_pl',
+            p_id: nodePointId,
+            l_id: perimeterLineId,
+            driving: true
+          })
+          entry.constraintIds.push(nodeOnPerimeterId)
+        }
+      }
+
+      const intermediateWalls = perimeter.intermediateWallIds.map(wallId =>
+        modelActions.getIntermediateWallById(wallId)
+      )
+
+      for (const wall of intermediateWalls) {
+        const leftStart = intermediateWallEndpointPointId(wall.id, 'start', 'left')
+        const leftEnd = intermediateWallEndpointPointId(wall.id, 'end', 'left')
+        const rightStart = intermediateWallEndpointPointId(wall.id, 'start', 'right')
+        const rightEnd = intermediateWallEndpointPointId(wall.id, 'end', 'right')
+        const referenceStart = intermediateWallEntityReferencePointId(wall.id, 'start')
+        const referenceEnd = intermediateWallEntityReferencePointId(wall.id, 'end')
+
+        actions.addPoint(leftStart, wall.leftLine.start, false)
+        actions.addPoint(leftEnd, wall.leftLine.end, false)
+        actions.addPoint(rightStart, wall.rightLine.start, false)
+        actions.addPoint(rightEnd, wall.rightLine.end, false)
+        actions.addPoint(referenceStart, wall.centerLine.start, false)
+        actions.addPoint(referenceEnd, wall.centerLine.end, false)
+        entry.pointIds.push(leftStart, leftEnd, rightStart, rightEnd, referenceStart, referenceEnd)
+
+        const leftLineId = intermediateWallLineId(wall.id, 'left')
+        const rightLineId = intermediateWallLineId(wall.id, 'right')
+        const referenceLineId = intermediateWallLineId(wall.id, 'entityReference')
+        actions.addLine(leftLineId, leftStart, leftEnd)
+        actions.addLine(rightLineId, rightStart, rightEnd)
+        actions.addLine(referenceLineId, referenceStart, referenceEnd)
+        entry.lineIds.push(leftLineId, rightLineId, referenceLineId)
+
+        const parallelSidesId = `${wall.id}_parallel_sides`
+        const parallelReferenceId = `${wall.id}_parallel_entity_reference`
+        const thicknessId = `${wall.id}_thickness`
+        const referenceOffsetId = `${wall.id}_entity_reference_offset`
+        actions.addConstraint({ id: parallelSidesId, type: 'parallel', l1_id: leftLineId, l2_id: rightLineId })
+        actions.addConstraint({ id: parallelReferenceId, type: 'parallel', l1_id: referenceLineId, l2_id: leftLineId })
+        actions.addConstraint({
+          id: thicknessId,
+          type: 'p2l_distance',
+          p_id: rightStart,
+          l_id: leftLineId,
+          distance: wall.thickness
+        })
+        actions.addConstraint({
+          id: referenceOffsetId,
+          type: 'p2l_distance',
+          p_id: referenceStart,
+          l_id: leftLineId,
+          distance: wall.thickness / 2
+        })
+        entry.constraintIds.push(parallelSidesId, parallelReferenceId, thicknessId, referenceOffsetId)
+
+        for (const endpoint of ['start', 'end'] as const) {
+          const attachment = wall[endpoint]
+          const selectedLineId = intermediateWallLineId(wall.id, attachment.axis)
+          const nodePointId = wallNodeRefPointId(attachment.nodeId)
+          const attachedWallCount = intermediateWalls.filter(
+            candidate => candidate.start.nodeId === attachment.nodeId || candidate.end.nodeId === attachment.nodeId
+          ).length
+          const selectedEndpointPointId = intermediateWallEndpointPointId(wall.id, endpoint, attachment.axis)
+          const attachmentId = `${wall.id}_${endpoint}_attachment`
+          if (attachedWallCount === 1) {
+            actions.addConstraint({
+              id: `${attachmentId}_coincident`,
+              type: 'p2p_coincident',
+              p1_id: selectedEndpointPointId,
+              p2_id: nodePointId,
+              driving: true
+            })
+            entry.constraintIds.push(`${attachmentId}_coincident`)
+          } else {
+            actions.addConstraint({
+              id: attachmentId,
+              type: 'point_on_line_pl',
+              p_id: nodePointId,
+              l_id: selectedLineId,
+              driving: true
+            })
+            entry.constraintIds.push(attachmentId)
+          }
+        }
+
+        for (const opening of modelActions.getWallOpeningsByWallId(wall.id)) {
+          addWallEntityGeometry(opening, entry)
+        }
+
+        for (const post of modelActions.getWallPostsByWallId(wall.id)) {
+          addWallEntityGeometry(post, entry)
+        }
+      }
+
+      for (const node of wallNodes) {
+        const incidents = intermediateWalls
+          .filter(wall => wall.start.nodeId === node.id || wall.end.nodeId === node.id)
+          .map(wall => {
+            const atStart = wall.start.nodeId === node.id
+            const direction = atStart ? wall.direction : scaleVec2(wall.direction, -1)
+            return {
+              wall,
+              direction,
+              leftPoint: intermediateWallEndpointPointId(
+                wall.id,
+                atStart ? 'start' : 'end',
+                atStart ? 'left' : 'right'
+              ),
+              rightPoint: intermediateWallEndpointPointId(
+                wall.id,
+                atStart ? 'start' : 'end',
+                atStart ? 'right' : 'left'
+              )
+            }
+          })
+          .sort((a, b) => Math.atan2(b.direction[1], b.direction[0]) - Math.atan2(a.direction[1], a.direction[0]))
+
+        if (incidents.length < 2) continue
+        for (let index = 0; index < incidents.length; index++) {
+          const current = incidents[index]
+          const next = incidents[(index + 1) % incidents.length]
+          const coincidentId = `${node.id}_corner_${index}`
+          actions.addConstraint({
+            id: coincidentId,
+            type: 'p2p_coincident',
+            p1_id: current.rightPoint,
+            p2_id: next.leftPoint,
+            driving: true
+          })
+          entry.constraintIds.push(coincidentId)
         }
       }
 

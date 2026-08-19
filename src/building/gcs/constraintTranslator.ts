@@ -2,6 +2,7 @@ import type { Constraint, SketchPoint } from '@salusoft89/planegcs'
 
 import type {
   ConstraintInput,
+  IntermediateWallId,
   PerimeterCornerId,
   PerimeterWallId,
   WallEntityId,
@@ -36,6 +37,31 @@ export function wallRefLineId(wallId: WallId): string {
 
 export function wallNonRefLineId(wallId: WallId): string {
   return `wall_${wallId}_nonref`
+}
+
+export type IntermediateWallGcsAxis = 'left' | 'right'
+
+export function wallNodeRefPointId(nodeId: WallNodeId): string {
+  return `wallnode_${nodeId}_ref`
+}
+
+export function intermediateWallLineId(
+  wallId: IntermediateWallId,
+  line: IntermediateWallGcsAxis | 'entityReference'
+): string {
+  return `intermediate_${wallId}_${line}`
+}
+
+export function intermediateWallEndpointPointId(
+  wallId: IntermediateWallId,
+  endpoint: 'start' | 'end',
+  axis: IntermediateWallGcsAxis
+): string {
+  return `intermediate_${wallId}_${endpoint}_${axis}`
+}
+
+export function intermediateWallEntityReferencePointId(wallId: IntermediateWallId, endpoint: 'start' | 'end'): string {
+  return `intermediate_${wallId}_${endpoint}_entityReference`
 }
 
 export function wallEntityPointId(entityId: WallEntityId, side: 'start' | 'center' | 'end'): string {
