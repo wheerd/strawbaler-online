@@ -20,15 +20,13 @@ import {
   type TranslationContext,
   getReferencedCornerIds,
   getReferencedWallIds,
-  intermediateWallEndpointPointId,
-  intermediateWallLineId,
-  intermediateWallRightProjectedPointId,
   nodeNonRefSidePointForNextWall,
   nodeNonRefSidePointForPrevWall,
   nodeRefSidePointId,
   translateBuildingConstraint,
   translatedConstraintIds,
   translatedPointIds,
+  wallEndpointPointId,
   wallEntityOnLineConstraintId,
   wallEntityPointId,
   wallEntityWidthConstraintId,
@@ -367,9 +365,7 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         entry.pointIds.push(startRef, centerRef, endRef)
 
         // Constraint: All points must be on the wall line
-        const refLineId = isPerimeterWallId(entity.wallId)
-          ? wallRefLineId(entity.wallId)
-          : intermediateWallLineId(entity.wallId, 'left')
+        const refLineId = wallRefLineId(entity.wallId)
 
         const startOnRef = wallEntityOnLineConstraintId(entity.id, 'start')
         const centerOnRef = wallEntityOnLineConstraintId(entity.id, 'center')
@@ -529,12 +525,12 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
       )
 
       for (const wall of intermediateWalls) {
-        const leftStart = intermediateWallEndpointPointId(wall.id, 'start', 'left')
-        const leftEnd = intermediateWallEndpointPointId(wall.id, 'end', 'left')
-        const rightStart = intermediateWallEndpointPointId(wall.id, 'start', 'right')
-        const rightEnd = intermediateWallEndpointPointId(wall.id, 'end', 'right')
-        const rightStartProjected = intermediateWallRightProjectedPointId(wall.id, 'start')
-        const rightEndProjected = intermediateWallRightProjectedPointId(wall.id, 'end')
+        const leftStart = wallEndpointPointId(wall.id, 'start', 'ref')
+        const leftEnd = wallEndpointPointId(wall.id, 'end', 'ref')
+        const rightStart = wallEndpointPointId(wall.id, 'start', 'nonref')
+        const rightEnd = wallEndpointPointId(wall.id, 'end', 'nonref')
+        const rightStartProjected = wallNonRefSideProjectedPoint(wall.id, 'start')
+        const rightEndProjected = wallNonRefSideProjectedPoint(wall.id, 'end')
         const projectOntoLeftLine = (point: Vec2): Vec2 =>
           scaleAddVec2(wall.leftLine.start, wall.direction, projectVec2(wall.leftLine.start, point, wall.direction))
 
@@ -546,13 +542,13 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         actions.addPoint(rightEndProjected, projectOntoLeftLine(wall.rightLine.end), false)
         entry.pointIds.push(leftStart, leftEnd, rightStart, rightEnd, rightStartProjected, rightEndProjected)
 
-        const leftLineId = intermediateWallLineId(wall.id, 'left')
-        const rightLineId = intermediateWallLineId(wall.id, 'right')
+        const leftLineId = wallRefLineId(wall.id)
+        const rightLineId = wallNonRefLineId(wall.id)
         actions.addLine(leftLineId, leftStart, leftEnd)
         actions.addLine(rightLineId, rightStart, rightEnd)
         entry.lineIds.push(leftLineId, rightLineId)
 
-        const parallelSidesId = `${wall.id}_parallel_sides`
+        const parallelSidesId = `${wall.id}_parallel`
         const thicknessId = `${wall.id}_thickness`
         actions.addConstraint({ id: parallelSidesId, type: 'parallel', l1_id: leftLineId, l2_id: rightLineId })
         actions.addConstraint({
@@ -563,14 +559,13 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
           distance: wall.thickness
         })
         const projectedPoints = [
-          { id: rightStartProjected, endpoint: rightStart },
-          { id: rightEndProjected, endpoint: rightEnd }
+          { id: rightStartProjected, endpoint: rightStart, suffix: 'start' },
+          { id: rightEndProjected, endpoint: rightEnd, suffix: 'end' }
         ]
         entry.constraintIds.push(parallelSidesId, thicknessId)
-        for (const { id, endpoint } of projectedPoints) {
-          const suffix = id.endsWith('_start_projected') ? 'start' : 'end'
-          const onLineId = `${wall.id}_right_${suffix}_projected_on_left`
-          const perpendicularId = `${wall.id}_right_${suffix}_projected_perpendicular`
+        for (const { id, endpoint, suffix } of projectedPoints) {
+          const onLineId = `${wall.id}_proj_${suffix}_on_line`
+          const perpendicularId = `${wall.id}_proj_${suffix}_perp`
           actions.addConstraint({ id: onLineId, type: 'point_on_line_pl', p_id: id, l_id: leftLineId })
           actions.addConstraint({
             id: perpendicularId,
@@ -585,12 +580,16 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
 
         for (const endpoint of ['start', 'end'] as const) {
           const attachment = wall[endpoint]
-          const selectedLineId = intermediateWallLineId(wall.id, attachment.axis)
+          const selectedLineId = attachment.axis === 'left' ? wallRefLineId(wall.id) : wallNonRefLineId(wall.id)
           const nodePointId = wallNodeRefPointId(attachment.nodeId)
           const attachedWallCount = intermediateWalls.filter(
             candidate => candidate.start.nodeId === attachment.nodeId || candidate.end.nodeId === attachment.nodeId
           ).length
-          const selectedEndpointPointId = intermediateWallEndpointPointId(wall.id, endpoint, attachment.axis)
+          const selectedEndpointPointId = wallEndpointPointId(
+            wall.id,
+            endpoint,
+            attachment.axis === 'left' ? 'ref' : 'nonref'
+          )
           const attachmentId = `${wall.id}_${endpoint}_attachment`
           if (attachedWallCount === 1) {
             actions.addConstraint({
@@ -631,16 +630,8 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
             return {
               wall,
               direction,
-              leftPoint: intermediateWallEndpointPointId(
-                wall.id,
-                atStart ? 'start' : 'end',
-                atStart ? 'left' : 'right'
-              ),
-              rightPoint: intermediateWallEndpointPointId(
-                wall.id,
-                atStart ? 'start' : 'end',
-                atStart ? 'right' : 'left'
-              )
+              leftPoint: wallEndpointPointId(wall.id, atStart ? 'start' : 'end', atStart ? 'ref' : 'nonref'),
+              rightPoint: wallEndpointPointId(wall.id, atStart ? 'start' : 'end', atStart ? 'nonref' : 'ref')
             }
           })
           .sort((a, b) => Math.atan2(b.direction[1], b.direction[0]) - Math.atan2(a.direction[1], a.direction[0]))
@@ -649,7 +640,8 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         for (let index = 0; index < incidents.length; index++) {
           const current = incidents[index]
           const next = incidents[(index + 1) % incidents.length]
-          const coincidentId = `${node.id}_corner_${index}`
+          const wallIds = [current.wall.id, next.wall.id].sort()
+          const coincidentId = `wallnode_${node.id}_${wallIds[0]}_${wallIds[1]}_eq`
           actions.addConstraint({
             id: coincidentId,
             type: 'p2p_coincident',

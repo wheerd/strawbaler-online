@@ -1,14 +1,6 @@
 import type { Constraint, SketchPoint } from '@salusoft89/planegcs'
 
-import type {
-  ConstraintInput,
-  IntermediateWallId,
-  PerimeterCornerId,
-  PerimeterWallId,
-  WallEntityId,
-  WallId,
-  WallNodeId
-} from '@/building/model'
+import type { ConstraintInput, PerimeterCornerId, WallEntityId, WallId, WallNodeId } from '@/building/model'
 import { isPerimeterCornerId, isPerimeterWallId, isWallNodeId } from '@/building/model'
 
 // --- ID helpers ---
@@ -27,7 +19,7 @@ export function nodeNonRefSidePointForNextWall(cornerId: PerimeterCornerId): str
   return `corner_${cornerId}_nonref_next`
 }
 
-export function wallNonRefSideProjectedPoint(wallId: PerimeterWallId, side: 'start' | 'end'): string {
+export function wallNonRefSideProjectedPoint(wallId: WallId, side: 'start' | 'end'): string {
   return `${wallId}_${side}_proj`
 }
 
@@ -39,26 +31,12 @@ export function wallNonRefLineId(wallId: WallId): string {
   return `wall_${wallId}_nonref`
 }
 
-export type IntermediateWallGcsAxis = 'left' | 'right'
-
 export function wallNodeRefPointId(nodeId: WallNodeId): string {
   return `wallnode_${nodeId}_ref`
 }
 
-export function intermediateWallLineId(wallId: IntermediateWallId, line: IntermediateWallGcsAxis): string {
-  return `intermediate_${wallId}_${line}`
-}
-
-export function intermediateWallEndpointPointId(
-  wallId: IntermediateWallId,
-  endpoint: 'start' | 'end',
-  axis: IntermediateWallGcsAxis
-): string {
-  return `intermediate_${wallId}_${endpoint}_${axis}`
-}
-
-export function intermediateWallRightProjectedPointId(wallId: IntermediateWallId, endpoint: 'start' | 'end'): string {
-  return `intermediate_${wallId}_right_${endpoint}_projected`
+export function wallEndpointPointId(wallId: WallId, endpoint: 'start' | 'end', side: 'ref' | 'nonref'): string {
+  return `${wallId}_${endpoint}_${side}`
 }
 
 export function wallEntityPointId(entityId: WallEntityId, side: 'start' | 'center' | 'end'): string {

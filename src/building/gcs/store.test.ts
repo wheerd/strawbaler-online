@@ -560,13 +560,13 @@ describe('GCS store perimeter geometry', () => {
 
       const state = getGcsState()
       expect(state.points[`wallnode_${nodeId}_ref`]).toBeDefined()
-      expect(state.points[`intermediate_${intermediateWallId}_start_left`]).toBeDefined()
-      expect(state.points[`intermediate_${intermediateWallId}_right_start_projected`]).toBeDefined()
-      expect(state.lines.find(line => line.id === `intermediate_${intermediateWallId}_left`)).toBeDefined()
+      expect(state.points[`${intermediateWallId}_start_ref`]).toBeDefined()
+      expect(state.points[`${intermediateWallId}_start_proj`]).toBeDefined()
+      expect(state.lines.find(line => line.id === `wall_${intermediateWallId}_ref`)).toBeDefined()
       expect(state.lines.find(line => line.id === `intermediate_${intermediateWallId}_entityReference`)).toBeUndefined()
       expect(state.constraints[`${intermediateWallId}_start_attachment_coincident`]).toMatchObject({
         type: 'p2p_coincident',
-        p1_id: `intermediate_${intermediateWallId}_start_left`,
+        p1_id: `${intermediateWallId}_start_ref`,
         p2_id: `wallnode_${nodeId}_ref`
       })
       expect(state.constraints[`wallnode_${nodeId}_ref_on_perimeter`]).toMatchObject({

@@ -29,13 +29,7 @@ export function GcsLayer(): React.JSX.Element {
               y1={p1.y}
               x2={p2.x}
               y2={p2.y}
-              stroke={
-                line.id.endsWith('_ref')
-                  ? 'var(--color-primary)'
-                  : line.id.endsWith('_proj')
-                    ? 'var(--color-muted-foreground)'
-                    : 'var(--color-foreground)'
-              }
+              stroke={getGcsLineColor(line.id)}
               strokeWidth={2 / zoom}
               strokeLinecap="round"
               className="pointer-events-none"
@@ -52,7 +46,7 @@ export function GcsLayer(): React.JSX.Element {
                 cx={point.x}
                 cy={point.y}
                 r={point.fixed ? 6 / zoom : 8 / zoom}
-                fill={point.id.endsWith('_ref') ? 'var(--color-primary)' : 'var(--color-accent)'}
+                fill={getGcsPointColor(point.id)}
                 stroke="var(--color-border)"
                 strokeWidth={2 / zoom}
               >
@@ -63,4 +57,18 @@ export function GcsLayer(): React.JSX.Element {
         })}
     </g>
   )
+}
+
+function getGcsLineColor(id: string): string {
+  if (id.endsWith('_ref')) return 'var(--color-primary)'
+  if (id.endsWith('_nonref')) return 'var(--color-muted-foreground)'
+  if (id.endsWith('_proj')) return 'var(--color-muted-foreground)'
+  return 'var(--color-foreground)'
+}
+
+function getGcsPointColor(id: string): string {
+  if (id.endsWith('_ref')) return 'var(--color-primary)'
+  if (id.endsWith('_proj')) return 'var(--color-muted-foreground)'
+  if (id.endsWith('_nonref')) return 'var(--color-foreground)'
+  return 'var(--color-accent)'
 }
