@@ -21,8 +21,8 @@ import {
   getReferencedCornerIds,
   getReferencedWallIds,
   intermediateWallEndpointPointId,
-  intermediateWallEntityReferencePointId,
   intermediateWallLineId,
+  intermediateWallRightProjectedPointId,
   nodeNonRefSidePointForNextWall,
   nodeNonRefSidePointForPrevWall,
   nodeRefSidePointId,
@@ -348,9 +348,10 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         const insideCenter = midpoint(insideLine.start, insideLine.end)
         const outsideCenter = midpoint(outsideLine.start, outsideLine.end)
 
-        // Determine ref vs nonref based on which side is "inside"
-        const ref = isRefInside
-          ? { start: insideLine.start, center: insideCenter, end: insideLine.end }
+        const ref = isPerimeterWallId(entity.wallId)
+          ? isRefInside
+            ? { start: insideLine.start, center: insideCenter, end: insideLine.end }
+            : { start: outsideLine.start, center: outsideCenter, end: outsideLine.end }
           : { start: outsideLine.start, center: outsideCenter, end: outsideLine.end }
 
         // Point IDs
@@ -368,7 +369,7 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         // Constraint: All points must be on the wall line
         const refLineId = isPerimeterWallId(entity.wallId)
           ? wallRefLineId(entity.wallId)
-          : intermediateWallLineId(entity.wallId, 'entityReference')
+          : intermediateWallLineId(entity.wallId, 'left')
 
         const startOnRef = wallEntityOnLineConstraintId(entity.id, 'start')
         const centerOnRef = wallEntityOnLineConstraintId(entity.id, 'center')
@@ -532,31 +533,28 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         const leftEnd = intermediateWallEndpointPointId(wall.id, 'end', 'left')
         const rightStart = intermediateWallEndpointPointId(wall.id, 'start', 'right')
         const rightEnd = intermediateWallEndpointPointId(wall.id, 'end', 'right')
-        const referenceStart = intermediateWallEntityReferencePointId(wall.id, 'start')
-        const referenceEnd = intermediateWallEntityReferencePointId(wall.id, 'end')
+        const rightStartProjected = intermediateWallRightProjectedPointId(wall.id, 'start')
+        const rightEndProjected = intermediateWallRightProjectedPointId(wall.id, 'end')
+        const projectOntoLeftLine = (point: Vec2): Vec2 =>
+          scaleAddVec2(wall.leftLine.start, wall.direction, projectVec2(wall.leftLine.start, point, wall.direction))
 
         actions.addPoint(leftStart, wall.leftLine.start, false)
         actions.addPoint(leftEnd, wall.leftLine.end, false)
         actions.addPoint(rightStart, wall.rightLine.start, false)
         actions.addPoint(rightEnd, wall.rightLine.end, false)
-        actions.addPoint(referenceStart, wall.centerLine.start, false)
-        actions.addPoint(referenceEnd, wall.centerLine.end, false)
-        entry.pointIds.push(leftStart, leftEnd, rightStart, rightEnd, referenceStart, referenceEnd)
+        actions.addPoint(rightStartProjected, projectOntoLeftLine(wall.rightLine.start), false)
+        actions.addPoint(rightEndProjected, projectOntoLeftLine(wall.rightLine.end), false)
+        entry.pointIds.push(leftStart, leftEnd, rightStart, rightEnd, rightStartProjected, rightEndProjected)
 
         const leftLineId = intermediateWallLineId(wall.id, 'left')
         const rightLineId = intermediateWallLineId(wall.id, 'right')
-        const referenceLineId = intermediateWallLineId(wall.id, 'entityReference')
         actions.addLine(leftLineId, leftStart, leftEnd)
         actions.addLine(rightLineId, rightStart, rightEnd)
-        actions.addLine(referenceLineId, referenceStart, referenceEnd)
-        entry.lineIds.push(leftLineId, rightLineId, referenceLineId)
+        entry.lineIds.push(leftLineId, rightLineId)
 
         const parallelSidesId = `${wall.id}_parallel_sides`
-        const parallelReferenceId = `${wall.id}_parallel_entity_reference`
         const thicknessId = `${wall.id}_thickness`
-        const referenceOffsetId = `${wall.id}_entity_reference_offset`
         actions.addConstraint({ id: parallelSidesId, type: 'parallel', l1_id: leftLineId, l2_id: rightLineId })
-        actions.addConstraint({ id: parallelReferenceId, type: 'parallel', l1_id: referenceLineId, l2_id: leftLineId })
         actions.addConstraint({
           id: thicknessId,
           type: 'p2l_distance',
@@ -564,14 +562,26 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
           l_id: leftLineId,
           distance: wall.thickness
         })
-        actions.addConstraint({
-          id: referenceOffsetId,
-          type: 'p2l_distance',
-          p_id: referenceStart,
-          l_id: leftLineId,
-          distance: wall.thickness / 2
-        })
-        entry.constraintIds.push(parallelSidesId, parallelReferenceId, thicknessId, referenceOffsetId)
+        const projectedPoints = [
+          { id: rightStartProjected, endpoint: rightStart },
+          { id: rightEndProjected, endpoint: rightEnd }
+        ]
+        entry.constraintIds.push(parallelSidesId, thicknessId)
+        for (const { id, endpoint } of projectedPoints) {
+          const suffix = id.endsWith('_start_projected') ? 'start' : 'end'
+          const onLineId = `${wall.id}_right_${suffix}_projected_on_left`
+          const perpendicularId = `${wall.id}_right_${suffix}_projected_perpendicular`
+          actions.addConstraint({ id: onLineId, type: 'point_on_line_pl', p_id: id, l_id: leftLineId })
+          actions.addConstraint({
+            id: perpendicularId,
+            type: 'perpendicular_pppp',
+            l1p1_id: id,
+            l1p2_id: endpoint,
+            l2p1_id: leftStart,
+            l2p2_id: leftEnd
+          })
+          entry.constraintIds.push(onLineId, perpendicularId)
+        }
 
         for (const endpoint of ['start', 'end'] as const) {
           const attachment = wall[endpoint]

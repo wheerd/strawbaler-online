@@ -45,10 +45,7 @@ export function wallNodeRefPointId(nodeId: WallNodeId): string {
   return `wallnode_${nodeId}_ref`
 }
 
-export function intermediateWallLineId(
-  wallId: IntermediateWallId,
-  line: IntermediateWallGcsAxis | 'entityReference'
-): string {
+export function intermediateWallLineId(wallId: IntermediateWallId, line: IntermediateWallGcsAxis): string {
   return `intermediate_${wallId}_${line}`
 }
 
@@ -60,8 +57,8 @@ export function intermediateWallEndpointPointId(
   return `intermediate_${wallId}_${endpoint}_${axis}`
 }
 
-export function intermediateWallEntityReferencePointId(wallId: IntermediateWallId, endpoint: 'start' | 'end'): string {
-  return `intermediate_${wallId}_${endpoint}_entityReference`
+export function intermediateWallRightProjectedPointId(wallId: IntermediateWallId, endpoint: 'start' | 'end'): string {
+  return `intermediate_${wallId}_right_${endpoint}_projected`
 }
 
 export function wallEntityPointId(entityId: WallEntityId, side: 'start' | 'center' | 'end'): string {

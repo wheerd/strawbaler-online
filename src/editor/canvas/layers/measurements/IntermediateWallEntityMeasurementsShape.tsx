@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import { gcsService } from '@/building/gcs/service'
 import { useConstraintStatus } from '@/building/gcs/store'
 import type {
@@ -20,7 +22,7 @@ import { activateLengthInput } from '@/editor/canvas/services/length-input'
 import { useCurrentSelection } from '@/editor/canvas/state/selectionStore'
 import { useConstraintDisplayMode } from '@/editor/canvas/state/useConstraintDisplayMode'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
-import { type Vec2, midpoint, scaleAddVec2 } from '@/shared/geometry'
+import { midpoint } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 
 type IntermediateWallEntity = WallEntity & WallEntityGeometry & { wallId: IntermediateWallId }
@@ -42,60 +44,67 @@ export function IntermediateWallEntityMeasurementsShape({
   const previous = index > 0 ? entities[index - 1] : undefined
   const next = index >= 0 && index < entities.length - 1 ? entities[index + 1] : undefined
 
-  const startConstraint = findAbsoluteConstraint(constraints, entity.id, wall.start.nodeId)
-  const endConstraint = findAbsoluteConstraint(constraints, entity.id, wall.end.nodeId)
   const previousConstraint = previous ? findRelativeConstraint(constraints, entity.id, previous.id) : undefined
   const nextConstraint = next ? findRelativeConstraint(constraints, entity.id, next.id) : undefined
   const useCenter = mode === 'center'
 
   return (
     <>
-      {(isSelected || startConstraint) && (
-        <IntermediateEntityDistance
-          entity={entity}
-          point={wall.centerLine.start}
-          constraint={startConstraint}
-          isSelected={isSelected}
-          absoluteReference={wall.start.nodeId}
-          side="start"
-          direction={wall.direction}
-          useCenter={startConstraint ? startConstraint.entitySide === 'center' : useCenter}
-        />
-      )}
-      {(isSelected || endConstraint) && (
-        <IntermediateEntityDistance
-          entity={entity}
-          point={wall.centerLine.end}
-          constraint={endConstraint}
-          isSelected={isSelected}
-          absoluteReference={wall.end.nodeId}
-          side="end"
-          direction={wall.direction}
-          useCenter={endConstraint ? endConstraint.entitySide === 'center' : useCenter}
-        />
-      )}
-      {previous && (isSelected || previousConstraint) && (
-        <IntermediateRelativeDistance
-          entity={entity}
-          other={previous}
-          constraint={previousConstraint}
-          isSelected={isSelected}
-          mode="previous"
-          direction={wall.direction}
-          useCenter={previousConstraint ? previousConstraint.entityASide === 'center' : useCenter}
-        />
-      )}
-      {next && (isSelected || nextConstraint) && (
-        <IntermediateRelativeDistance
-          entity={entity}
-          other={next}
-          constraint={nextConstraint}
-          isSelected={isSelected}
-          mode="next"
-          direction={wall.direction}
-          useCenter={nextConstraint ? nextConstraint.entityASide === 'center' : useCenter}
-        />
-      )}
+      {(['left', 'right'] as const).map(wallSide => {
+        const startSideConstraint = findAbsoluteConstraint(constraints, entity.id, wall.start.nodeId, wallSide)
+        const endSideConstraint = findAbsoluteConstraint(constraints, entity.id, wall.end.nodeId, wallSide)
+        const previousSideConstraint = previousConstraint
+        const nextSideConstraint = nextConstraint
+
+        return (
+          <Fragment key={wallSide}>
+            {(isSelected || startSideConstraint) && (
+              <IntermediateEntityDistance
+                entity={entity}
+                wallSide={wallSide}
+                constraint={startSideConstraint}
+                isSelected={isSelected}
+                absoluteReference={wall.start.nodeId}
+                endpointSide="start"
+                useCenter={startSideConstraint ? startSideConstraint.entitySide === 'center' : useCenter}
+              />
+            )}
+            {(isSelected || endSideConstraint) && (
+              <IntermediateEntityDistance
+                entity={entity}
+                wallSide={wallSide}
+                constraint={endSideConstraint}
+                isSelected={isSelected}
+                absoluteReference={wall.end.nodeId}
+                endpointSide="end"
+                useCenter={endSideConstraint ? endSideConstraint.entitySide === 'center' : useCenter}
+              />
+            )}
+            {previous && (isSelected || previousSideConstraint) && (
+              <IntermediateRelativeDistance
+                entity={entity}
+                other={previous}
+                constraint={previousSideConstraint}
+                isSelected={isSelected}
+                mode="previous"
+                wallSide={wallSide}
+                useCenter={previousSideConstraint ? previousSideConstraint.entityASide === 'center' : useCenter}
+              />
+            )}
+            {next && (isSelected || nextSideConstraint) && (
+              <IntermediateRelativeDistance
+                entity={entity}
+                other={next}
+                constraint={nextSideConstraint}
+                isSelected={isSelected}
+                mode="next"
+                wallSide={wallSide}
+                useCenter={nextSideConstraint ? nextSideConstraint.entityASide === 'center' : useCenter}
+              />
+            )}
+          </Fragment>
+        )
+      })}
       {isSelected && <CenterModeToggleBadge mode={mode} position={entity.center} onClick={toggleMode} />}
     </>
   )
@@ -103,32 +112,35 @@ export function IntermediateWallEntityMeasurementsShape({
 
 function IntermediateEntityDistance({
   entity,
-  point,
+  wallSide,
   constraint,
   isSelected,
   absoluteReference,
-  side,
-  direction,
+  endpointSide,
   useCenter
 }: {
   entity: IntermediateWallEntity
-  point: Vec2
+  wallSide: 'left' | 'right'
   constraint?: WallEntityAbsoluteConstraint
   isSelected: boolean
   absoluteReference: NodeId
-  side: 'start' | 'end'
-  direction: Vec2
+  endpointSide: 'start' | 'end'
   useCenter: boolean
 }): React.JSX.Element {
   const { formatLength } = useFormatters()
   const status = useConstraintStatus(constraint?.id)
   const wall = useIntermediateWallById(entity.wallId)
   const color = getMeasurementColor(status, isSelected)
-  const entityStart = scaleAddVec2(entity.center, direction, -entity.width / 2)
-  const entityEnd = scaleAddVec2(entity.center, direction, entity.width / 2)
-  const entityPoint = useCenter ? entity.center : side === 'start' ? entityStart : entityEnd
-  const startPoint = side === 'start' ? point : entityPoint
-  const endPoint = side === 'start' ? entityPoint : point
+  const wallLine = wallSide === 'left' ? wall.leftLine : wall.rightLine
+  const entityLine = wallSide === 'left' ? entity.outsideLine : entity.insideLine
+  const wallPoint = endpointSide === 'start' ? wallLine.start : wallLine.end
+  const entityPoint = useCenter
+    ? midpoint(entityLine.start, entityLine.end)
+    : endpointSide === 'start'
+      ? entityLine.start
+      : entityLine.end
+  const startPoint = endpointSide === 'start' ? wallPoint : entityPoint
+  const endPoint = endpointSide === 'start' ? entityPoint : wallPoint
   const label = constraint ? `${formatLength(constraint.distance)} \uD83D\uDD12` : undefined
 
   return (
@@ -136,7 +148,7 @@ function IntermediateEntityDistance({
       startPoint={startPoint}
       endPoint={endPoint}
       label={label}
-      offset={wall.thickness / 2 + 2 * WALL_DIM_LAYER_OFFSET}
+      offset={(wallSide === 'left' ? 1 : -1) * (wall.thickness / 2 + 2 * WALL_DIM_LAYER_OFFSET)}
       color={color}
       fontSize={DIMENSION_DEFAULT_FONT_SIZE}
       strokeWidth={DIMENSION_DEFAULT_STROKE_WIDTH}
@@ -155,8 +167,8 @@ function IntermediateEntityDistance({
                     type: 'wallEntityAbsolute',
                     wall: entity.wallId,
                     entity: entity.id,
-                    side: 'left',
-                    entitySide: useCenter ? 'center' : side,
+                    side: wallSide,
+                    entitySide: useCenter ? 'center' : endpointSide,
                     node: absoluteReference,
                     distance: enteredValue
                   })
@@ -179,7 +191,7 @@ function IntermediateRelativeDistance({
   constraint,
   isSelected,
   mode,
-  direction,
+  wallSide,
   useCenter
 }: {
   entity: IntermediateWallEntity
@@ -187,28 +199,32 @@ function IntermediateRelativeDistance({
   constraint?: WallEntityRelativeConstraint
   isSelected: boolean
   mode: 'previous' | 'next'
-  direction: Vec2
+  wallSide: 'left' | 'right'
   useCenter: boolean
 }): React.JSX.Element {
   const { formatLength } = useFormatters()
   const status = useConstraintStatus(constraint?.id)
   const wall = useIntermediateWallById(entity.wallId)
   const color = getMeasurementColor(status, isSelected)
-  const entityStart = scaleAddVec2(entity.center, direction, -entity.width / 2)
-  const entityEnd = scaleAddVec2(entity.center, direction, entity.width / 2)
-  const otherStart = scaleAddVec2(other.center, direction, -other.width / 2)
-  const otherEnd = scaleAddVec2(other.center, direction, other.width / 2)
+  const entityLine = wallSide === 'left' ? entity.outsideLine : entity.insideLine
+  const otherLine = wallSide === 'left' ? other.outsideLine : other.insideLine
+  const entityStart = entityLine.start
+  const entityEnd = entityLine.end
+  const otherStart = otherLine.start
+  const otherEnd = otherLine.end
+  const entityCenter = midpoint(entityLine.start, entityLine.end)
+  const otherCenter = midpoint(otherLine.start, otherLine.end)
   const startPoint = useCenter
     ? mode === 'previous'
-      ? other.center
-      : entity.center
+      ? otherCenter
+      : entityCenter
     : mode === 'previous'
       ? otherEnd
       : entityEnd
   const endPoint = useCenter
     ? mode === 'previous'
-      ? entity.center
-      : other.center
+      ? entityCenter
+      : otherCenter
     : mode === 'previous'
       ? entityStart
       : otherStart
@@ -217,7 +233,7 @@ function IntermediateRelativeDistance({
       startPoint={startPoint}
       endPoint={endPoint}
       label={constraint ? `${formatLength(constraint.distance)} \uD83D\uDD12` : undefined}
-      offset={wall.thickness / 2 + WALL_DIM_LAYER_OFFSET}
+      offset={(wallSide === 'left' ? 1 : -1) * (wall.thickness / 2 + WALL_DIM_LAYER_OFFSET)}
       color={color}
       fontSize={DIMENSION_DEFAULT_FONT_SIZE}
       strokeWidth={DIMENSION_DEFAULT_STROKE_WIDTH}
@@ -262,11 +278,15 @@ function getMeasurementColor(status: { conflicting: boolean; redundant: boolean 
 function findAbsoluteConstraint(
   constraints: readonly Constraint[],
   entityId: WallEntityId,
-  nodeId: NodeId
+  nodeId: NodeId,
+  side: 'left' | 'right'
 ): WallEntityAbsoluteConstraint | undefined {
   return constraints.find(
     (constraint): constraint is WallEntityAbsoluteConstraint =>
-      constraint.type === 'wallEntityAbsolute' && constraint.entity === entityId && constraint.node === nodeId
+      constraint.type === 'wallEntityAbsolute' &&
+      constraint.entity === entityId &&
+      constraint.node === nodeId &&
+      constraint.side === side
   )
 }
 
