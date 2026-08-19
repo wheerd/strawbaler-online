@@ -6,6 +6,7 @@ import { referenceSideToConstraintSide } from '@/building/gcs/constraintGenerato
 import type {
   Constraint as BuildingConstraint,
   ConstraintId,
+  IntermediateWallId,
   PerimeterCornerId,
   PerimeterId,
   WallId
@@ -19,7 +20,9 @@ import { type Vec2, midpoint, projectVec2, scaleAddVec2, scaleVec2 } from '@/sha
 import {
   type TranslationContext,
   getReferencedCornerIds,
+  getReferencedWallEntityIds,
   getReferencedWallIds,
+  getReferencedWallNodeIds,
   nodeNonRefSidePointForNextWall,
   nodeNonRefSidePointForPrevWall,
   nodeRefSidePointId,
@@ -159,16 +162,34 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
       // Validate that all referenced corners exist as GCS points
       const cornerIds = getReferencedCornerIds(constraint)
       for (const cornerId of cornerIds) {
-        const refId = `corner_${cornerId}_ref`
+        const refId = nodeRefSidePointId(cornerId)
         if (!(refId in state.points)) {
           throw new Error(`Cannot add building constraint: corner "${cornerId}" not found in GCS points.`)
+        }
+      }
+
+      const wallNodeIds = getReferencedWallNodeIds(constraint)
+      for (const wallNodeId of wallNodeIds) {
+        const refId = wallNodeRefPointId(wallNodeId)
+        if (!(refId in state.points)) {
+          throw new Error(`Cannot add building constraint: wall node "${wallNodeId}" not found in GCS points.`)
+        }
+      }
+
+      const entityIds = getReferencedWallEntityIds(constraint)
+      for (const entityId of entityIds) {
+        for (const side of ['start', 'center', 'end'] as const) {
+          const pointId = wallEntityPointId(entityId, side)
+          if (!(pointId in state.points)) {
+            throw new Error(`Cannot add building constraint: wall entity "${entityId}" not found in GCS points.`)
+          }
         }
       }
 
       // Validate that all referenced walls exist as GCS lines
       const wallIds = getReferencedWallIds(constraint)
       for (const wallId of wallIds) {
-        const refLineId = `wall_${wallId}_ref`
+        const refLineId = wallRefLineId(wallId)
         if (!state.lines.some(l => l.id === refLineId)) {
           throw new Error(`Cannot add building constraint: wall "${wallId}" not found in GCS lines.`)
         }
@@ -201,6 +222,43 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
           const corner = modelActionsRef.getPerimeterCornerById(cornerId)
           const perimeter = modelActionsRef.getPerimeterById(corner.perimeterId)
           return referenceSideToConstraintSide(perimeter.referenceSide)
+        },
+        getWallRefEndpointPointIds: (wallId, nodeId) => {
+          try {
+            const wall = modelActionsRef.getIntermediateWallById(wallId as IntermediateWallId)
+            const atStart = wall.start.nodeId === nodeId
+            const atEnd = wall.end.nodeId === nodeId
+            if (!atStart && !atEnd) return undefined
+
+            const atNodeEndpoint = atStart ? 'start' : 'end'
+            const oppositeEndpoint = atStart ? 'end' : 'start'
+            const atNodePointId = wallEndpointPointId(wall.id, atNodeEndpoint, 'ref')
+            const oppositePointId = wallEndpointPointId(wall.id, oppositeEndpoint, 'ref')
+            return { atNodePointId, oppositePointId }
+          } catch {
+            return undefined
+          }
+        },
+        getWallNodeSidePointId: (wallId, nodeId, side) => {
+          try {
+            const wall = modelActionsRef.getIntermediateWallById(wallId as IntermediateWallId)
+            const atStart = wall.start.nodeId === nodeId
+            const atEnd = wall.end.nodeId === nodeId
+            if (!atStart && !atEnd) return undefined
+
+            let pointSide: 'ref' | 'nonref'
+            if (isPerimeterWallId(wallId)) {
+              const perimeter = modelActionsRef.getPerimeterById(wall.perimeterId)
+              const refPhysicalSide = perimeter.referenceSide === 'outside' ? 'left' : 'right'
+              pointSide = side === refPhysicalSide ? 'ref' : 'nonref'
+            } else {
+              pointSide = side === 'left' ? 'ref' : 'nonref'
+            }
+            const endpoint = atStart ? 'start' : 'end'
+            return wallEndpointPointId(wall.id, endpoint, pointSide)
+          } catch {
+            return undefined
+          }
         }
       }
 

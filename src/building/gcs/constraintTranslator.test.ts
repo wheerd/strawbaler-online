@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ConstraintInput, PerimeterCornerId, PerimeterWallId } from '@/building/model'
+import type { ConstraintInput, PerimeterCornerId, PerimeterWallId, WallNodeId } from '@/building/model'
 import type { WallId } from '@/building/model/ids'
 
 import {
@@ -17,6 +17,7 @@ const cornerB = 'outcorner_bbb' as PerimeterCornerId
 const cornerC = 'outcorner_ccc' as PerimeterCornerId
 const wallA = 'outwall_aaa' as PerimeterWallId
 const wallB = 'outwall_bbb' as PerimeterWallId
+const wallNode = 'wallnode_aaa' as WallNodeId
 
 // --- Helper to build a mock TranslationContext ---
 
@@ -35,6 +36,26 @@ function makeContext(overrides: Partial<TranslationContext> = {}): TranslationCo
       return undefined
     },
     getReferenceSide: () => 'right',
+    getWallRefEndpointPointIds: (wallId, nodeId) => {
+      if (nodeId !== wallNode) return undefined
+      if (wallId === wallA) {
+        return {
+          atNodePointId: `${wallA}_start_ref`,
+          oppositePointId: `${wallA}_end_ref`
+        }
+      }
+      if (wallId === wallB) {
+        return {
+          atNodePointId: `${wallB}_end_ref`,
+          oppositePointId: `${wallB}_start_ref`
+        }
+      }
+      return undefined
+    },
+    getWallNodeSidePointId: (wallId, nodeId, side) =>
+      nodeId === wallNode
+        ? `${wallId}_${side === 'left' ? 'start' : 'end'}_${side === 'left' ? 'ref' : 'nonref'}`
+        : undefined,
     ...overrides
   }
 }
@@ -316,6 +337,80 @@ describe('translateBuildingConstraint', () => {
         l_id: `wall_${wallA}_ref`,
         driving: true
       })
+    })
+  })
+
+  describe('wall-node constraints', () => {
+    it('translates wallNodePerpendicular using canonical ref lines', () => {
+      const constraint: ConstraintInput = { type: 'wallNodePerpendicular', node: wallNode, wallA, wallB }
+
+      expect(translateBuildingConstraint(constraint, 'node_perp', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_perp',
+          type: 'perpendicular_ll',
+          l1_id: `wall_${wallA}_ref`,
+          l2_id: `wall_${wallB}_ref`,
+          driving: true
+        }
+      ])
+    })
+
+    it('translates wallNodeColinear using wall ref endpoint points', () => {
+      const constraint: ConstraintInput = { type: 'wallNodeColinear', node: wallNode, wallA, wallB }
+
+      expect(translateBuildingConstraint(constraint, 'node_colinear', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_colinear',
+          type: 'point_on_line_ppp',
+          p_id: `${wallA}_start_ref`,
+          lp1_id: `${wallA}_end_ref`,
+          lp2_id: `${wallB}_start_ref`,
+          driving: true
+        }
+      ])
+    })
+
+    it('translates wallNodeAngle using canonical ref lines', () => {
+      const constraint: ConstraintInput = { type: 'wallNodeAngle', node: wallNode, wallA, wallB, angle: Math.PI / 2 }
+
+      expect(translateBuildingConstraint(constraint, 'node_angle', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_angle',
+          type: 'l2l_angle_ll',
+          l1_id: `wall_${wallA}_ref`,
+          l2_id: `wall_${wallB}_ref`,
+          angle: Math.PI / 2,
+          driving: true
+        }
+      ])
+    })
+
+    it('translates wallNodePosition between registered node points', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallNodePosition',
+        node: wallNode,
+        perimeterWall: wallA,
+        reference: wallNode,
+        offset: 250
+      }
+
+      expect(translateBuildingConstraint(constraint, 'node_position', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_position',
+          type: 'p2p_distance',
+          p1_id: `wallnode_${wallNode}_ref`,
+          p2_id: `wallnode_${wallNode}_ref`,
+          distance: 250,
+          driving: true
+        }
+      ])
+    })
+
+    it('does not use the wall-node ref point for wallNodeColinear', () => {
+      const constraint: ConstraintInput = { type: 'wallNodeColinear', node: wallNode, wallA, wallB }
+      const result = translateBuildingConstraint(constraint, 'node_colinear_points', makeContext())
+
+      expect(result.constraints[0]).not.toHaveProperty('p_id', `wallnode_${wallNode}_ref`)
     })
   })
 })

@@ -1,6 +1,8 @@
 import type {
   Constraint,
   FloorOpening,
+  IntermediateWall,
+  IntermediateWallGeometry,
   Opening,
   OpeningGeometry,
   Perimeter,
@@ -9,18 +11,22 @@ import type {
   PerimeterWall,
   Roof,
   Storey,
+  WallNode,
+  WallNodeGeometry,
   WallPost,
   WallPostGeometry
 } from '@/building/model'
 import {
   type ConstraintId,
   type FloorOpeningId,
+  type IntermediateWallId,
   type OpeningId,
   type PerimeterCornerId,
   type PerimeterId,
   type PerimeterWallId,
   type RoofId,
   type StoreyId,
+  type WallNodeId,
   type WallPostId
 } from '@/building/model/ids'
 import { subscribeRecords } from '@/shared/utils/subscription'
@@ -40,6 +46,13 @@ export const subscribeToPerimeterGeometries = (
 export const subscribeToWalls = (
   cb: (id: PerimeterWallId, current?: PerimeterWall, previous?: PerimeterWall) => void
 ) => subscribeRecords(useModelStore, s => s.perimeterWalls, cb)
+
+export const subscribeToIntermediateWalls = (
+  cb: (id: IntermediateWallId, current?: IntermediateWall, previous?: IntermediateWall) => void
+) => subscribeRecords(useModelStore, s => s.intermediateWalls, cb)
+
+export const subscribeToWallNodes = (cb: (id: WallNodeId, current?: WallNode, previous?: WallNode) => void) =>
+  subscribeRecords(useModelStore, s => s.wallNodes, cb)
 
 export const subscribeToCorners = (
   cb: (id: PerimeterCornerId, current?: PerimeterCorner, previous?: PerimeterCorner) => void
@@ -65,6 +78,14 @@ export const subscribeToOpeningGeometry = (
 export const subscribeToWallPostGeometry = (
   cb: (id: WallPostId, current?: WallPostGeometry, previous?: WallPostGeometry) => void
 ) => subscribeRecords(useModelStore, s => s._wallPostGeometry, cb)
+
+export const subscribeToIntermediateWallGeometry = (
+  cb: (id: IntermediateWallId, current?: IntermediateWallGeometry, previous?: IntermediateWallGeometry) => void
+) => subscribeRecords(useModelStore, s => s._intermediateWallGeometry, cb)
+
+export const subscribeToWallNodeGeometry = (
+  cb: (id: WallNodeId, current?: WallNodeGeometry, previous?: WallNodeGeometry) => void
+) => subscribeRecords(useModelStore, s => s._wallNodeGeometry, cb)
 
 export const subscribeToConstraints = (cb: (id: ConstraintId, current?: Constraint, previous?: Constraint) => void) =>
   subscribeRecords(useModelStore, s => s.buildingConstraints, cb)

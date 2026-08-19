@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { Constraint, PerimeterCornerId, PerimeterId, PerimeterWallId } from '@/building/model'
+import type {
+  Constraint,
+  IntermediateWallId,
+  PerimeterCornerId,
+  PerimeterId,
+  PerimeterWallId,
+  WallNodeId
+} from '@/building/model'
 import { newVec2 } from '@/shared/geometry'
 
 import { getGcsActions, getGcsState } from './store'
@@ -384,6 +391,62 @@ describe('GCS store building constraints', () => {
       expect(state.points[lockPointId].fixed).toBe(true)
 
       expect(state.constraintPoints[constraint.id]).toEqual([lockPointId])
+    })
+
+    it('translates wall-node colinearity using canonical ref endpoints', () => {
+      const actions = getGcsActions()
+      const nodeId = 'wallnode_node' as WallNodeId
+      const intermediateWallA = 'intermediate_wall_a' as IntermediateWallId
+      const intermediateWallB = 'intermediate_wall_b' as IntermediateWallId
+
+      mockGetIntermediateWallById.mockImplementation((wallId: IntermediateWallId) => {
+        if (wallId === intermediateWallA) {
+          return {
+            id: intermediateWallA,
+            start: { nodeId, axis: 'left' },
+            end: { nodeId: 'wallnode_other_a', axis: 'left' }
+          }
+        }
+        if (wallId === intermediateWallB) {
+          return {
+            id: intermediateWallB,
+            start: { nodeId: 'wallnode_other_b', axis: 'left' },
+            end: { nodeId, axis: 'right' }
+          }
+        }
+        throw new Error('unknown intermediate wall')
+      })
+
+      for (const pointId of [
+        `${intermediateWallA}_start_ref`,
+        `${intermediateWallA}_end_ref`,
+        `${intermediateWallB}_start_ref`,
+        `${intermediateWallB}_end_ref`,
+        `wallnode_${nodeId}_ref`
+      ]) {
+        actions.addPoint(pointId, newVec2(0, 0))
+      }
+      actions.addLine(`wall_${intermediateWallA}_ref`, `${intermediateWallA}_start_ref`, `${intermediateWallA}_end_ref`)
+      actions.addLine(`wall_${intermediateWallB}_ref`, `${intermediateWallB}_start_ref`, `${intermediateWallB}_end_ref`)
+
+      const constraint: Constraint = {
+        id: 'constraint_node_colinear',
+        type: 'wallNodeColinear',
+        node: nodeId,
+        wallA: intermediateWallA,
+        wallB: intermediateWallB
+      }
+
+      actions.addBuildingConstraint(constraint)
+
+      expect(getGcsState().constraints[`bc_${constraint.id}`]).toEqual({
+        id: `bc_${constraint.id}`,
+        type: 'point_on_line_ppp',
+        p_id: `${intermediateWallA}_start_ref`,
+        lp1_id: `${intermediateWallA}_end_ref`,
+        lp2_id: `${intermediateWallB}_start_ref`,
+        driving: true
+      })
     })
   })
 

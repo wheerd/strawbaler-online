@@ -4,14 +4,23 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   Constraint,
   ConstraintId,
+  IntermediateWall,
+  IntermediateWallGeometry,
+  Opening,
+  OpeningGeometry,
   Perimeter,
   PerimeterCorner,
   PerimeterCornerWithGeometry,
   PerimeterId,
   PerimeterWall,
-  PerimeterWallId
+  PerimeterWallId,
+  WallEntityGeometry,
+  WallNode,
+  WallNodeGeometry,
+  WallPost,
+  WallPostGeometry
 } from '@/building/model'
-import type { PerimeterCornerId } from '@/building/model/ids'
+import type { IntermediateWallId, OpeningId, PerimeterCornerId, WallNodeId, WallPostId } from '@/building/model/ids'
 import { newVec2 } from '@/shared/geometry'
 
 // --- Mock state ---
@@ -31,6 +40,24 @@ let capturedCornerCallback:
   | null = null
 let capturedWallCallback: ((id: PerimeterWallId, current?: PerimeterWall, previous?: PerimeterWall) => void) | null =
   null
+let capturedIntermediateWallCallback:
+  | ((id: IntermediateWallId, current?: IntermediateWall, previous?: IntermediateWall) => void)
+  | null = null
+let capturedWallNodeCallback: ((id: WallNodeId, current?: WallNode, previous?: WallNode) => void) | null = null
+let capturedIntermediateWallGeometryCallback:
+  | ((id: IntermediateWallId, current?: IntermediateWallGeometry, previous?: IntermediateWallGeometry) => void)
+  | null = null
+let capturedWallNodeGeometryCallback:
+  | ((id: WallNodeId, current?: WallNodeGeometry, previous?: WallNodeGeometry) => void)
+  | null = null
+let capturedOpeningCallback: ((id: OpeningId, current?: Opening, previous?: Opening) => void) | null = null
+let capturedWallPostCallback: ((id: WallPostId, current?: WallPost, previous?: WallPost) => void) | null = null
+let capturedOpeningGeometryCallback:
+  | ((id: OpeningId, current?: OpeningGeometry, previous?: OpeningGeometry) => void)
+  | null = null
+let capturedWallPostGeometryCallback:
+  | ((id: WallPostId, current?: WallPostGeometry, previous?: WallPostGeometry) => void)
+  | null = null
 
 // Mock GCS actions
 const mockAddPerimeterGeometry = vi.fn()
@@ -42,12 +69,21 @@ const mockSetTmpPoints = vi.fn()
 const mockRemoveConstraints = vi.fn()
 const mockAddConstraint = vi.fn()
 const mockSetConstraintStatus = vi.fn()
+const mockTriggerSolve = vi.hoisted(() => vi.fn())
+
+vi.mock('@/building/gcs/service', () => ({
+  gcsService: {
+    triggerSolve: mockTriggerSolve
+  }
+}))
 
 // Mock building actions
 const mockUpdatePerimeterBoundary = vi.fn()
 const mockUpdateWallOpening = vi.fn()
 const mockUpdateWallPost = vi.fn()
 const mockGetWallEntityById = vi.fn()
+const mockGetIntermediateWallById = vi.fn()
+const mockGetWallNodeById = vi.fn()
 
 // Mock corner geometry lookup
 const mockCornerGeometries: Record<string, PerimeterCornerWithGeometry> = {}
@@ -84,7 +120,9 @@ vi.mock('@/building/store', () => ({
     },
     updateWallOpening: (...args: unknown[]) => mockUpdateWallOpening(...args),
     updateWallPost: (...args: unknown[]) => mockUpdateWallPost(...args),
-    getWallEntityById: (...args: unknown[]) => mockGetWallEntityById(...args)
+    getWallEntityById: (...args: unknown[]) => mockGetWallEntityById(...args),
+    getIntermediateWallById: (...args: unknown[]) => mockGetIntermediateWallById(...args),
+    getWallNodeById: (...args: unknown[]) => mockGetWallNodeById(...args)
   }),
   subscribeToPerimeters: (cb: (id: string, current?: Perimeter, previous?: Perimeter) => void) => {
     capturedPerimeterCallback = cb
@@ -102,10 +140,40 @@ vi.mock('@/building/store', () => ({
     capturedWallCallback = cb
     return vi.fn() // unsubscribe
   },
-  subscribeToWallOpenings: () => vi.fn(),
-  subscribeToWallPosts: () => vi.fn(),
-  subscribeToOpeningGeometry: () => vi.fn(),
-  subscribeToWallPostGeometry: () => vi.fn()
+  subscribeToIntermediateWalls: (cb: (id: string, current?: IntermediateWall, previous?: IntermediateWall) => void) => {
+    capturedIntermediateWallCallback = cb as typeof capturedIntermediateWallCallback
+    return vi.fn()
+  },
+  subscribeToWallNodes: (cb: (id: string, current?: WallNode, previous?: WallNode) => void) => {
+    capturedWallNodeCallback = cb as typeof capturedWallNodeCallback
+    return vi.fn()
+  },
+  subscribeToWallOpenings: (cb: (id: string, current?: Opening, previous?: Opening) => void) => {
+    capturedOpeningCallback = cb as typeof capturedOpeningCallback
+    return vi.fn()
+  },
+  subscribeToWallPosts: (cb: (id: string, current?: WallPost, previous?: WallPost) => void) => {
+    capturedWallPostCallback = cb as typeof capturedWallPostCallback
+    return vi.fn()
+  },
+  subscribeToOpeningGeometry: (cb: (id: string, current?: OpeningGeometry, previous?: OpeningGeometry) => void) => {
+    capturedOpeningGeometryCallback = cb as typeof capturedOpeningGeometryCallback
+    return vi.fn()
+  },
+  subscribeToWallPostGeometry: (cb: (id: string, current?: WallPostGeometry, previous?: WallPostGeometry) => void) => {
+    capturedWallPostGeometryCallback = cb as typeof capturedWallPostGeometryCallback
+    return vi.fn()
+  },
+  subscribeToIntermediateWallGeometry: (
+    cb: (id: string, current?: IntermediateWallGeometry, previous?: IntermediateWallGeometry) => void
+  ) => {
+    capturedIntermediateWallGeometryCallback = cb as typeof capturedIntermediateWallGeometryCallback
+    return vi.fn()
+  },
+  subscribeToWallNodeGeometry: (cb: (id: string, current?: WallNodeGeometry, previous?: WallNodeGeometry) => void) => {
+    capturedWallNodeGeometryCallback = cb as typeof capturedWallNodeGeometryCallback
+    return vi.fn()
+  }
 }))
 
 // Mock GCS store
@@ -161,6 +229,15 @@ beforeEach(() => {
   capturedConstraintCallback = null
   capturedCornerCallback = null
   capturedWallCallback = null
+  capturedIntermediateWallCallback = null
+  capturedWallNodeCallback = null
+  capturedIntermediateWallGeometryCallback = null
+  capturedWallNodeGeometryCallback = null
+  capturedOpeningCallback = null
+  capturedWallPostCallback = null
+  capturedOpeningGeometryCallback = null
+  capturedWallPostGeometryCallback = null
+  mockTriggerSolve.mockClear()
 
   // Clear mutable objects
   for (const key of Object.keys(mockPerimeterRegistry) as PerimeterId[]) {
@@ -224,6 +301,84 @@ describe('GcsSyncService', () => {
       expect(capturedPerimeterCallback).toBeTypeOf('function')
       expect(capturedConstraintCallback).toBeTypeOf('function')
       expect(capturedCornerCallback).toBeTypeOf('function')
+      expect(capturedIntermediateWallCallback).toBeTypeOf('function')
+      expect(capturedWallNodeCallback).toBeTypeOf('function')
+      expect(capturedIntermediateWallGeometryCallback).toBeTypeOf('function')
+      expect(capturedWallNodeGeometryCallback).toBeTypeOf('function')
+      expect(capturedOpeningCallback).toBeTypeOf('function')
+      expect(capturedWallPostCallback).toBeTypeOf('function')
+      expect(capturedOpeningGeometryCallback).toBeTypeOf('function')
+      expect(capturedWallPostGeometryCallback).toBeTypeOf('function')
+    })
+
+    it('updates intermediate wall GCS points from geometry changes', async () => {
+      await importGcsSync()
+
+      const perimeterId = 'p1' as PerimeterId
+      const wallId = 'intermediate_wall_1' as IntermediateWallId
+      mockPerimeterRegistry[perimeterId] = { pointIds: [], lineIds: [], constraintIds: [] }
+      mockGetIntermediateWallById.mockReturnValue({ id: wallId, perimeterId })
+
+      capturedIntermediateWallGeometryCallback!(wallId, {
+        leftLine: { start: [1, 2], end: [3, 4] },
+        rightLine: { start: [5, 6], end: [7, 8] },
+        direction: [1, 0]
+      } as unknown as IntermediateWallGeometry)
+
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith(`${wallId}_start_ref`, [1, 2])
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith(`${wallId}_end_ref`, [3, 4])
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith(`${wallId}_start_nonref`, [5, 6])
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith(`${wallId}_end_nonref`, [7, 8])
+      const startProjection = mockUpdatePointPosition.mock.calls.find(([pointId]) => pointId === `${wallId}_start_proj`)
+      const endProjection = mockUpdatePointPosition.mock.calls.find(([pointId]) => pointId === `${wallId}_end_proj`)
+      expect(Array.from(startProjection?.[1] as Float32Array)).toEqual([5, 2])
+      expect(Array.from(endProjection?.[1] as Float32Array)).toEqual([7, 2])
+    })
+
+    it('does not update inner wall-node GCS points from center-only geometry changes', async () => {
+      await importGcsSync()
+
+      const perimeterId = 'p1' as PerimeterId
+      const nodeId = 'wallnode_1' as WallNodeId
+      mockPerimeterRegistry[perimeterId] = { pointIds: [], lineIds: [], constraintIds: [] }
+      mockGetWallNodeById.mockReturnValue({ id: nodeId, perimeterId })
+
+      capturedWallNodeGeometryCallback!(nodeId, { center: [9, 10] } as unknown as WallNodeGeometry)
+
+      expect(mockUpdatePointPosition).not.toHaveBeenCalled()
+    })
+
+    it('updates wall-node GCS points from model position changes', async () => {
+      await importGcsSync()
+
+      const perimeterId = 'p1' as PerimeterId
+      const nodeId = 'wallnode_1' as WallNodeId
+      mockPerimeterRegistry[perimeterId] = { pointIds: [], lineIds: [], constraintIds: [] }
+
+      const previous = {
+        id: nodeId,
+        perimeterId,
+        type: 'inner',
+        position: newVec2(1, 2),
+        connectedWallIds: []
+      } as unknown as WallNode
+      const current = { ...previous, position: newVec2(9, 10) }
+      capturedWallNodeCallback!(nodeId, current, previous)
+
+      expect(Array.from(mockUpdatePointPosition.mock.calls[0][1] as Float32Array)).toEqual([9, 10])
+    })
+
+    it('updates perimeter wall-node GCS points from position geometry', async () => {
+      await importGcsSync()
+
+      const perimeterId = 'p1' as PerimeterId
+      const nodeId = 'wallnode_1' as WallNodeId
+      mockPerimeterRegistry[perimeterId] = { pointIds: [], lineIds: [], constraintIds: [] }
+      mockGetWallNodeById.mockReturnValue({ id: nodeId, perimeterId })
+
+      capturedWallNodeGeometryCallback!(nodeId, { position: [9, 10] } as unknown as WallNodeGeometry, undefined)
+
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith(`wallnode_${nodeId}_ref`, [9, 10])
     })
 
     it('initializes all existing perimeters on import', async () => {
@@ -474,6 +629,167 @@ describe('GcsSyncService', () => {
       )
 
       warnSpy.mockRestore()
+    })
+  })
+
+  describe('intermediate wall synchronization', () => {
+    function makeIntermediateWall(id: string, thickness: number, entityIds: string[] = []): IntermediateWall {
+      return {
+        id: id as IntermediateWallId,
+        perimeterId: 'p1' as PerimeterId,
+        entityIds: entityIds as IntermediateWall['entityIds'],
+        start: { nodeId: 'wallnode_start' as WallNodeId, axis: 'left' },
+        end: { nodeId: 'wallnode_end' as WallNodeId, axis: 'right' },
+        thickness
+      }
+    }
+
+    it('rebuilds geometry and solves when intermediate wall thickness changes', async () => {
+      await importGcsSync()
+      mockAddPerimeterGeometry.mockClear()
+      mockTriggerSolve.mockClear()
+
+      capturedIntermediateWallCallback!(
+        'intermediate_wall_1' as IntermediateWallId,
+        makeIntermediateWall('intermediate_wall_1', 500),
+        makeIntermediateWall('intermediate_wall_1', 400)
+      )
+
+      expect(mockAddPerimeterGeometry).toHaveBeenCalledWith('p1')
+      expect(mockTriggerSolve).toHaveBeenCalledTimes(1)
+    })
+
+    it('rebuilds geometry without solving when intermediate wall entities change', async () => {
+      await importGcsSync()
+      mockAddPerimeterGeometry.mockClear()
+      mockTriggerSolve.mockClear()
+
+      capturedIntermediateWallCallback!(
+        'intermediate_wall_1' as IntermediateWallId,
+        makeIntermediateWall('intermediate_wall_1', 400, ['opening_2']),
+        makeIntermediateWall('intermediate_wall_1', 400, ['opening_1'])
+      )
+
+      expect(mockAddPerimeterGeometry).toHaveBeenCalledWith('p1')
+      expect(mockTriggerSolve).not.toHaveBeenCalled()
+    })
+
+    it('does nothing when intermediate wall geometry-affecting data is unchanged', async () => {
+      await importGcsSync()
+      mockAddPerimeterGeometry.mockClear()
+      mockTriggerSolve.mockClear()
+      const wall = makeIntermediateWall('intermediate_wall_1', 400, ['opening_1'])
+
+      capturedIntermediateWallCallback!('intermediate_wall_1' as IntermediateWallId, wall, { ...wall })
+
+      expect(mockAddPerimeterGeometry).not.toHaveBeenCalled()
+      expect(mockTriggerSolve).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('wall entity synchronization', () => {
+    function makeEntityGeometry(start: [number, number], end: [number, number]): WallEntityGeometry {
+      return {
+        insideLine: { start, end },
+        outsideLine: { start: [start[0], start[1] + 10], end: [end[0], end[1] + 10] },
+        center: [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2]
+      } as unknown as WallEntityGeometry
+    }
+
+    it('replaces an opening width constraint and solves', async () => {
+      await importGcsSync()
+      mockRemoveConstraints.mockClear()
+      mockAddConstraint.mockClear()
+      mockTriggerSolve.mockClear()
+
+      capturedOpeningCallback!(
+        'opening_1' as OpeningId,
+        { id: 'opening_1', width: 800 } as unknown as Opening,
+        { id: 'opening_1', width: 700 } as unknown as Opening
+      )
+
+      expect(mockRemoveConstraints).toHaveBeenCalledWith(['opening_1_width'])
+      expect(mockAddConstraint).toHaveBeenCalledWith({
+        id: 'opening_1_width',
+        type: 'p2p_distance',
+        p1_id: 'opening_1_start_ref',
+        p2_id: 'opening_1_end_ref',
+        distance: 800,
+        driving: true
+      })
+      expect(mockTriggerSolve).toHaveBeenCalledTimes(1)
+    })
+
+    it('replaces a wall post width constraint and solves', async () => {
+      await importGcsSync()
+      mockRemoveConstraints.mockClear()
+      mockAddConstraint.mockClear()
+      mockTriggerSolve.mockClear()
+
+      capturedWallPostCallback!(
+        'post_1' as WallPostId,
+        { id: 'post_1', width: 150 } as unknown as WallPost,
+        { id: 'post_1', width: 100 } as unknown as WallPost
+      )
+
+      expect(mockRemoveConstraints).toHaveBeenCalledWith(['post_1_width'])
+      expect(mockAddConstraint).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'post_1_width',
+          distance: 150
+        })
+      )
+      expect(mockTriggerSolve).toHaveBeenCalledTimes(1)
+    })
+
+    it('updates opening reference points from geometry changes', async () => {
+      await importGcsSync()
+      mockUpdatePointPosition.mockClear()
+      mockGetWallEntityById.mockReturnValue({ id: 'opening_1', perimeterId: 'p1', wallId: 'outwall_1' })
+      mockPerimetersById['p1' as PerimeterId] = makePerimeter('p1')
+
+      capturedOpeningGeometryCallback!(
+        'opening_1' as OpeningId,
+        makeEntityGeometry([10, 20], [30, 40]),
+        makeEntityGeometry([0, 0], [1, 1])
+      )
+
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith('opening_1_start_ref', [10, 20])
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith('opening_1_end_ref', [30, 40])
+      expect(
+        Array.from(
+          mockUpdatePointPosition.mock.calls.find(
+            ([pointId]) => pointId === 'opening_1_center_ref'
+          )?.[1] as Float32Array
+        )
+      ).toEqual([20, 30])
+    })
+
+    it('updates intermediate wall entity reference points from outside geometry', async () => {
+      await importGcsSync()
+      mockUpdatePointPosition.mockClear()
+      mockGetWallEntityById.mockReturnValue({
+        id: 'opening_1',
+        perimeterId: 'p1',
+        wallId: 'intermediate_wall_1'
+      })
+      mockPerimetersById['p1' as PerimeterId] = makePerimeter('p1')
+
+      capturedOpeningGeometryCallback!(
+        'opening_1' as OpeningId,
+        makeEntityGeometry([10, 20], [30, 40]),
+        makeEntityGeometry([0, 0], [1, 1])
+      )
+
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith('opening_1_start_ref', [10, 30])
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith('opening_1_end_ref', [30, 50])
+      expect(
+        Array.from(
+          mockUpdatePointPosition.mock.calls.find(
+            ([pointId]) => pointId === 'opening_1_center_ref'
+          )?.[1] as Float32Array
+        )
+      ).toEqual([20, 40])
     })
   })
 
