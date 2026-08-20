@@ -18,7 +18,7 @@ Implement interior walls and rooms in the floor plan editor, enabling:
 | Phase 1: Store & Geometry                    | Done        |
 | Phase 2: Drawing Tools                       | Done        |
 | Phase 3: UI Components                       | Done        |
-| Phase A: Constraints for Intermediate Walls  | Not started |
+| Phase A: Constraints for Intermediate Walls  | In progress |
 | Phase B: Wall Entities on Intermediate Walls | Done        |
 | Phase C: Interior Wall Assembly System       | Not started |
 | Phase D: Room Detection & Labeling           | Not started |
@@ -472,6 +472,39 @@ Register in movement behaviors:
 - Test GCS sync subscription (add/remove/update intermediate walls)
 - Test wall node movement with constraint enforcement
 - Test perpendicular snapping to existing walls
+
+---
+
+## A.8: Remaining GCS Integration Gaps
+
+The initial GCS geometry registration, constraint translation, model-to-GCS synchronization, and solved wall-node/entity synchronization are implemented. The following gaps remain tracked separately from movement behavior:
+
+1. **Intermediate wall length translation**
+   - `wallLength` translation still assumes perimeter wall corner IDs.
+   - Intermediate walls need their canonical ref endpoint points (or the requested side endpoints) used directly.
+
+2. **Constraint transfer during intermediate wall split/merge**
+   - Intermediate wall split/merge currently removes constraints associated with deleted walls/nodes.
+   - Constraints should eventually transfer to replacement walls/nodes where the relationship remains valid.
+   - Existing perimeter-specific split/merge transfer logic should not be assumed to cover intermediate walls.
+
+3. **Multi-wall node constraint semantics**
+   - A node with more than two connected walls requires an explicit wall pair for angle, perpendicular, and colinear constraints.
+   - The solver registration must preserve the distinction between the node point and the selected wall-side endpoint points.
+   - Additional regression coverage is needed for three-way and higher-degree nodes.
+
+4. **Constraint stability across perimeter rebuilds**
+   - `addPerimeterGeometry()` rebuilds all registered perimeter and intermediate primitives.
+   - Translated building constraints must continue to reference valid recreated primitives after thickness, attachment, or entity changes.
+   - Rebuild ordering and stale primitive handling need integration coverage.
+
+5. **Movement integration**
+   - `wall-node` and `intermediate-wall` movement behaviors remain intentionally deferred.
+   - Movement should be implemented only after the solved node-position application path is stable.
+
+6. **Solved geometry validation**
+   - Solver output must continue to be validated before committing node positions, perimeter-node offsets, and intermediate-wall entity offsets to the model.
+   - Invalid or non-finite solved positions must not mutate authoritative model state.
 
 ---
 

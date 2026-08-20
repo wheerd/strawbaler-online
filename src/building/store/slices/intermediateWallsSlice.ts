@@ -67,6 +67,7 @@ export interface IntermediateWallsActions {
   removeWallNode: (nodeId: WallNodeId) => void
   updateInnerWallNodePosition: (nodeId: WallNodeId, position: Vec2) => void
   updatePerimeterWallNodeOffset: (nodeId: WallNodeId, offsetFromCornerStart: Length) => void
+  applyGcsWallNodePositions: (perimeterId: PerimeterId, positions: Record<WallNodeId, Vec2>) => void
 
   getIntermediateWallById: (wallId: IntermediateWallId) => IntermediateWallWithGeometry
   getIntermediateWallsByPerimeter: (perimeterId: PerimeterId) => IntermediateWallWithGeometry[]
@@ -687,6 +688,40 @@ export const createIntermediateWallsSlice: StateCreator<
 
         updateAllWallNodeGeometry(state, node.perimeterId)
         updateTimestampDraft(state, nodeId)
+      })
+    },
+
+    applyGcsWallNodePositions: (perimeterId, positions) => {
+      set(state => {
+        if (!(perimeterId in state.perimeters)) {
+          throw new NotFoundError('Perimeter', perimeterId)
+        }
+
+        for (const [nodeId, position] of Object.entries(positions) as [WallNodeId, Vec2][]) {
+          if (!(nodeId in state.wallNodes)) throw new NotFoundError('Wall node', nodeId)
+          const node = state.wallNodes[nodeId]
+          if (node.perimeterId !== perimeterId) {
+            throw new Error(`Wall node "${nodeId}" does not belong to perimeter "${perimeterId}"`)
+          }
+          if (!Number.isFinite(position[0]) || !Number.isFinite(position[1])) {
+            throw new Error(`Invalid GCS position for wall node "${nodeId}"`)
+          }
+
+          if (node.type === 'inner') {
+            node.position = copyVec2(position)
+          } else {
+            const wallGeometry = state._perimeterWallGeometry[node.wallId]
+            node.offsetFromCornerStart = projectVec2(wallGeometry.insideLine.start, position, wallGeometry.direction)
+          }
+
+          const connectedWalls = Object.values(state.intermediateWalls).filter(
+            wall => wall.start.nodeId === nodeId || wall.end.nodeId === nodeId
+          )
+          for (const wall of connectedWalls) updateTimestampDraft(state, wall.id)
+          updateTimestampDraft(state, nodeId)
+        }
+
+        updateAllWallNodeGeometry(state, perimeterId)
       })
     },
 

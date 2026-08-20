@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { InnerWallNode } from '@/building/model'
 import { InvalidOperationError, NotFoundError } from '@/building/store/errors'
-import { distanceToInfiniteLine, lineFromSegment, newVec2 } from '@/shared/geometry'
+import { distanceToInfiniteLine, lineFromSegment, newVec2, scaleAddVec2 } from '@/shared/geometry'
 
 import {
   expectConsistentIntermediateWallReferences,
@@ -12,6 +12,44 @@ import {
 } from './__tests__/testHelpers'
 
 describe('intermediateWallsSlice', () => {
+  describe('applyGcsWallNodePositions', () => {
+    it('applies inner-node positions and recomputes geometry in one update', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const node = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(3000, 2500))
+
+      state.actions.applyGcsWallNodePositions(perimeterData.perimeterId, {
+        [node.id]: newVec2(3500, 2800)
+      })
+
+      expect(state.wallNodes[node.id]).toMatchObject({ position: newVec2(3500, 2800) })
+      expect(state._wallNodeGeometry[node.id]).toBeDefined()
+    })
+
+    it('converts perimeter-node positions back to wall offsets', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const node = state.actions.addPerimeterWallNode(perimeterData.perimeterId, perimeterData.wallIds[0], 1000)
+      const wallGeometry = state._perimeterWallGeometry[node.wallId]
+      const solvedPosition = scaleAddVec2(wallGeometry.insideLine.start, wallGeometry.direction, 1800)
+
+      state.actions.applyGcsWallNodePositions(perimeterData.perimeterId, {
+        [node.id]: solvedPosition
+      })
+
+      expect(state.wallNodes[node.id]).toMatchObject({ offsetFromCornerStart: 1800 })
+    })
+
+    it('rejects nodes from another perimeter', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const node = state.actions.addInnerWallNode(perimeterData.perimeterId, newVec2(3000, 2500))
+
+      expect(() => {
+        state.actions.applyGcsWallNodePositions('perimeter_other' as any, {
+          [node.id]: newVec2(3500, 2800)
+        })
+      }).toThrow(NotFoundError)
+    })
+  })
+
   describe('addInnerWallNode', () => {
     it('should create an inner wall node and return geometry', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()

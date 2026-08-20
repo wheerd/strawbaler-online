@@ -15,12 +15,13 @@ import {
   getPointIds,
   nodeRefSidePointId,
   wallEntityPointId,
+  wallNodeRefPointId,
   wallRefLineId
 } from '@/building/gcs/constraintTranslator'
 import { createGcs } from '@/building/gcs/gcsInstance'
 import { getGcsActions, getGcsState } from '@/building/gcs/store'
 import { COLLINEARITY_NUDGE_DISTANCE, validateSolution } from '@/building/gcs/validator'
-import type { EntityId, PerimeterCornerId, PerimeterId, PerimeterWallId } from '@/building/model'
+import type { EntityId, PerimeterCornerId, PerimeterId, PerimeterWallId, WallNodeId } from '@/building/model'
 import { isOpeningId, isWallPostId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { type Length, type Vec2, midpoint, newVec2, projectVec2 } from '@/shared/geometry'
@@ -196,6 +197,7 @@ class GcsService {
           const perimeter = getPerimeterById(perimeterId)
           if (perimeter.storeyId !== activeStoreyId) continue
           updatePerimeterBoundary(perimeterId, gcs.getPerimeterBoundary(perimeterId))
+          gcs.applyWallNodePositions(perimeterId)
           gcs.applyWallEntityOffsets(perimeterId)
         }
       }
@@ -417,6 +419,16 @@ export class WrappedGcs {
     return cornerIds.map(cornerId => this.findPointPosition(nodeRefSidePointId(cornerId)))
   }
 
+  applyWallNodePositions(perimeterId: PerimeterId): void {
+    const modelActions = getModelActions()
+    const perimeter = modelActions.getPerimeterById(perimeterId)
+    const positions = Object.fromEntries(
+      perimeter.wallNodeIds.map(nodeId => [nodeId, this.findPointPosition(wallNodeRefPointId(nodeId))] as const)
+    ) as Record<WallNodeId, Vec2>
+
+    modelActions.applyGcsWallNodePositions(perimeterId, positions)
+  }
+
   /**
    * Get the solved position of a single corner on its reference side.
    */
@@ -428,13 +440,21 @@ export class WrappedGcs {
   applyWallEntityOffsets(perimeterId: PerimeterId) {
     const modelActions = getModelActions()
     const perimeter = modelActions.getPerimeterById(perimeterId)
-    const walls = modelActions.getPerimeterWallsById(perimeterId)
+    const walls = [
+      ...modelActions.getPerimeterWallsById(perimeterId),
+      ...modelActions.getIntermediateWallsByPerimeter(perimeterId)
+    ]
 
     const isInsideRef = perimeter.referenceSide === 'inside'
 
     const entityOffsets = new Map<EntityId, Length>()
     for (const wall of walls) {
-      const wallStartPoint = isInsideRef ? wall.insideLine.start : wall.outsideLine.start
+      let wallStartPoint: Vec2
+      if ('insideLine' in wall) {
+        wallStartPoint = isInsideRef ? wall.insideLine.start : wall.outsideLine.start
+      } else {
+        wallStartPoint = wall.centerLine.start
+      }
 
       for (const entityId of wall.entityIds) {
         const pointId = wallEntityPointId(entityId, 'center')
