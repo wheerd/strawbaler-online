@@ -24,9 +24,10 @@ import { COLLINEARITY_NUDGE_DISTANCE, validateSolution } from '@/building/gcs/va
 import type { EntityId, PerimeterCornerId, PerimeterId, PerimeterWallId, WallNodeId } from '@/building/model'
 import { isOpeningId, isWallPostId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
-import { type Length, type Vec2, midpoint, newVec2, projectVec2 } from '@/shared/geometry'
+import { type Length, type LineSegment2D, type Vec2, midpoint, newVec2, projectVec2 } from '@/shared/geometry'
 
 const DRAG_TEMP_POINT_ID = 'drag_wall_temp_point'
+const DRAG_ENDPOINT_TEMP_PREFIX = 'drag_wall_endpoint_'
 
 // --- Helper functions for merging colinear H/V constraints ---
 
@@ -170,11 +171,9 @@ function transformAdjacentHVConstraints(
 }
 
 interface DragState {
-  pointId: string
-  constraintXId: string
-  constraintYId: string
-  paramXPos: number
-  paramYPos: number
+  pointIds: string[]
+  initialPositions: Map<string, Vec2>
+  constraints: { constraintXId: string; constraintYId: string; paramXPos: number; paramYPos: number }[]
 }
 
 class GcsService {
@@ -207,7 +206,7 @@ class GcsService {
     }, 100)
   }
 
-  getGcs(fixedNodeIds?: PerimeterCornerId[]): WrappedGcs {
+  getGcs(fixedNodeIds?: PerimeterCornerId[], fixedPointIds: string[] = []): WrappedGcs {
     const gcsState = getGcsState()
     const modelActions = getModelActions()
     const activeStoreyId = modelActions.getActiveStoreyId()
@@ -232,10 +231,10 @@ class GcsService {
       for (const pointId of pointIds) activePointIds.add(pointId)
     }
 
-    const fixedPointIds = (fixedNodeIds ?? []).map(id => nodeRefSidePointId(id))
+    const fixedIds = new Set([...(fixedNodeIds ?? []).map(id => nodeRefSidePointId(id)), ...fixedPointIds])
     const allPoints = Object.values(gcsState.points)
     const points = allPoints.filter(p => activePointIds.has(p.id))
-    const fixedPoints = points.map(p => (fixedPointIds.includes(p.id) ? { ...p, fixed: true } : p))
+    const fixedPoints = points.map(p => (fixedIds.has(p.id) ? { ...p, fixed: true } : p))
 
     const lines = gcsState.lines.filter(l => activeLineIds.has(l.id))
 
@@ -344,22 +343,58 @@ export class WrappedGcs {
   updateDrag(mouseX: number, mouseY: number): void {
     if (!this.dragState) return
 
-    const { paramXPos, paramYPos } = this.dragState
-    const gcs = this.gcs
+    const position = newVec2(mouseX, mouseY)
+    const initialPosition = this.dragState.initialPositions.get(this.dragState.pointIds[0])
+    if (!initialPosition) return
+    this.setDragConstraintPositions(position[0] - initialPosition[0], position[1] - initialPosition[1])
+    this.solveDrag()
+  }
 
-    gcs.gcs.set_p_param(paramXPos, mouseX, true)
-    gcs.gcs.set_p_param(paramYPos, mouseY, true)
-
-    const solveStatus = gcs.solve(Algorithm.DogLeg)
-    if (solveStatus === SolveStatus.Success) {
-      this.dismissSolverFailureToast()
-      if (!this.applySolution()) {
-        this.installDragConstraints(this.dragState.pointId, newVec2(mouseX, mouseY))
-      }
-    } else {
-      console.warn(`Solving GCS failed: ${solveStatus}`)
-      this.showSolverFailureToast()
+  /** Start dragging existing points together. Updates use a delta from these positions. */
+  startPointsDrag(pointIds: string[]): Vec2[] {
+    if (pointIds.length === 0) {
+      throw new Error('At least one GCS point is required for a multi-point drag')
     }
+
+    const positions = pointIds.map(pointId => this.findPointPosition(pointId))
+    this.resetGcs()
+    this.installDragConstraints(pointIds, positions)
+    return positions
+  }
+
+  /** Start dragging temporary points coincident with existing endpoints. */
+  startAttachedPointsDrag(pointIds: string[]): Vec2[] {
+    if (pointIds.length === 0) {
+      throw new Error('At least one GCS point is required for an attached drag')
+    }
+
+    const positions = pointIds.map(pointId => this.findPointPosition(pointId))
+    const temporaryPointIds = pointIds.map((_, index) => `${DRAG_ENDPOINT_TEMP_PREFIX}${index}`)
+    const temporaryPoints = positions.map((position, index) => ({
+      id: temporaryPointIds[index],
+      type: 'point' as const,
+      x: position[0],
+      y: position[1],
+      fixed: false
+    }))
+    const attachmentConstraints: SketchPrimitive[] = temporaryPointIds.map((temporaryPointId, index) => ({
+      id: `${temporaryPointId}_coincident`,
+      type: 'p2p_coincident',
+      p1_id: temporaryPointId,
+      p2_id: pointIds[index],
+      driving: true
+    }))
+
+    this.addTemporaryPrimitives(temporaryPoints, attachmentConstraints)
+    this.installDragConstraints(temporaryPointIds, positions)
+    return positions
+  }
+
+  /** Update a multi-point drag by applying the same delta to every dragged point. */
+  updatePointsDrag(deltaX: number, deltaY: number): void {
+    if (!this.dragState) return
+    this.setDragConstraintPositions(deltaX, deltaY)
+    this.solveDrag()
   }
 
   public solve() {
@@ -453,7 +488,7 @@ export class WrappedGcs {
       if ('insideLine' in wall) {
         wallStartPoint = isInsideRef ? wall.insideLine.start : wall.outsideLine.start
       } else {
-        wallStartPoint = wall.centerLine.start
+        wallStartPoint = wall.leftLine.start
       }
 
       for (const entityId of wall.entityIds) {
@@ -482,7 +517,18 @@ export class WrappedGcs {
     if (!this.dragState) {
       throw new Error('No active drag')
     }
-    return this.findPointPosition(this.dragState.pointId)
+    return this.findPointPosition(this.dragState.pointIds[0])
+  }
+
+  /** Get the current solved position of an arbitrary GCS point. */
+  getPointPosition(pointId: string): Vec2 {
+    return this.findPointPosition(pointId)
+  }
+
+  getLineSegment(lineId: string): LineSegment2D {
+    const line = this.lines.find(candidate => candidate.id === lineId)
+    if (!line) throw new Error(`GCS line "${lineId}" not found`)
+    return { start: this.findPointPosition(line.p1_id), end: this.findPointPosition(line.p2_id) }
   }
 
   // --- Private implementation ---
@@ -507,37 +553,74 @@ export class WrappedGcs {
     this.resetGcs()
   }
 
-  private installDragConstraints(pointId: string, mousePos: Vec2): void {
-    const constraintXId = `drag_${pointId}_x_${Date.now()}`
-    const constraintYId = `drag_${pointId}_y_${Date.now()}`
+  private installDragConstraints(pointIds: string[], positions: Vec2[]): void {
+    const constraints = pointIds.map((pointId, index) => {
+      const suffix = `${Date.now()}_${index}`
+      const constraintXId = `drag_${pointId}_x_${suffix}`
+      const constraintYId = `drag_${pointId}_y_${suffix}`
 
-    this.gcs.push_primitive({
-      type: 'equal',
-      id: constraintXId,
-      param1: { o_id: pointId, prop: 'x' },
-      param2: mousePos[0],
-      temporary: true,
-      driving: true
+      this.gcs.push_primitive({
+        type: 'equal',
+        id: constraintXId,
+        param1: { o_id: pointId, prop: 'x' },
+        param2: positions[index][0],
+        temporary: true,
+        driving: true
+      })
+      this.gcs.push_primitive({
+        type: 'equal',
+        id: constraintYId,
+        param1: { o_id: pointId, prop: 'y' },
+        param2: positions[index][1],
+        temporary: true,
+        driving: true
+      })
+
+      return {
+        constraintXId,
+        constraintYId,
+        paramXPos: this.gcs.p_param_index.get(constraintXId) ?? -1,
+        paramYPos: this.gcs.p_param_index.get(constraintYId) ?? -1
+      }
     })
 
-    this.gcs.push_primitive({
-      type: 'equal',
-      id: constraintYId,
-      param1: { o_id: pointId, prop: 'y' },
-      param2: mousePos[1],
-      temporary: true,
-      driving: true
-    })
+    this.dragState = {
+      pointIds,
+      initialPositions: new Map(pointIds.map((pointId, index) => [pointId, positions[index]])),
+      constraints
+    }
+  }
 
-    const paramXPos = this.gcs.p_param_index.get(constraintXId) ?? -1
-    const paramYPos = this.gcs.p_param_index.get(constraintYId) ?? -1
+  private setDragConstraintPositions(deltaX: number, deltaY: number): void {
+    if (!this.dragState) return
+    for (const [index, constraint] of this.dragState.constraints.entries()) {
+      const initialPosition = this.dragState.initialPositions.get(this.dragState.pointIds[index])
+      if (!initialPosition) continue
+      this.gcs.gcs.set_p_param(constraint.paramXPos, initialPosition[0] + deltaX, true)
+      this.gcs.gcs.set_p_param(constraint.paramYPos, initialPosition[1] + deltaY, true)
+    }
+  }
 
-    this.dragState = { pointId, constraintXId, constraintYId, paramXPos, paramYPos }
+  private solveDrag(): void {
+    if (!this.dragState) return
+    const solveStatus = this.gcs.solve(Algorithm.DogLeg)
+    if (solveStatus === SolveStatus.Success) {
+      this.dismissSolverFailureToast()
+      if (!this.applySolution()) {
+        this.installDragConstraints(
+          this.dragState.pointIds,
+          this.dragState.pointIds.map(pointId => this.findPointPosition(pointId))
+        )
+      }
+    } else {
+      console.warn(`Solving GCS failed: ${solveStatus}`)
+      this.showSolverFailureToast()
+    }
   }
 
   private startDrag(pointId: string, mousePos: Vec2): void {
     this.resetGcs()
-    this.installDragConstraints(pointId, mousePos)
+    this.installDragConstraints([pointId], [mousePos])
   }
 
   private applySolution(maxIterations = 3): boolean {

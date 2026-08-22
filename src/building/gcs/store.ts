@@ -698,8 +698,7 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         for (let index = 0; index < incidents.length; index++) {
           const current = incidents[index]
           const next = incidents[(index + 1) % incidents.length]
-          const wallIds = [current.wall.id, next.wall.id].sort()
-          const coincidentId = `wallnode_${node.id}_${wallIds[0]}_${wallIds[1]}_eq`
+          const coincidentId = `wallnode_${node.id}_${current.wall.id}_${next.wall.id}_eq`
           actions.addConstraint({
             id: coincidentId,
             type: 'p2p_coincident',

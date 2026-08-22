@@ -7,6 +7,8 @@ import { partial } from '@/test/helpers'
 import { WrappedGcs } from './service'
 
 const mockModelActions = vi.hoisted(() => ({
+  getActiveStoreyId: vi.fn(),
+  updatePerimeterBoundary: vi.fn(),
   getPerimeterById: vi.fn(),
   applyGcsWallNodePositions: vi.fn(),
   getPerimeterWallsById: vi.fn(),
@@ -90,6 +92,7 @@ describe('WrappedGcs solved model synchronization', () => {
       id: 'intermediate_1',
       entityIds: [postId],
       centerLine: { start: [0, 100], end: [0, 200] },
+      leftLine: { start: [0, 100], end: [0, 200] },
       direction: [0, 1]
     })
 
@@ -113,5 +116,92 @@ describe('WrappedGcs solved model synchronization', () => {
     expect(mockModelActions.updateWallPost).toHaveBeenCalledWith(postId, {
       centerOffsetFromWallStart: 40
     })
+  })
+
+  it('installs temporary driving constraints for a shared point drag', () => {
+    const pushPrimitive = vi.fn()
+    const wrapped = new WrappedGcs(
+      {
+        clear_data: vi.fn(),
+        push_primitives_and_params: vi.fn(),
+        push_primitive: pushPrimitive,
+        p_param_index: new Map(),
+        gcs: { set_p_param: vi.fn() }
+      } as never,
+      [
+        { id: 'endpoint_a', type: 'point', x: 10, y: 20, fixed: false },
+        { id: 'endpoint_b', type: 'point', x: 30, y: 40, fixed: false }
+      ],
+      [],
+      new Map(),
+      [],
+      {}
+    )
+
+    expect(wrapped.startPointsDrag(['endpoint_a', 'endpoint_b'])).toEqual([
+      new Float32Array([10, 20]),
+      new Float32Array([30, 40])
+    ])
+
+    expect(pushPrimitive).toHaveBeenCalledTimes(4)
+    expect(pushPrimitive.mock.calls.map(([constraint]) => constraint)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'equal',
+          param1: { o_id: 'endpoint_a', prop: 'x' },
+          temporary: true,
+          driving: true
+        }),
+        expect.objectContaining({
+          type: 'equal',
+          param1: { o_id: 'endpoint_a', prop: 'y' },
+          temporary: true,
+          driving: true
+        }),
+        expect.objectContaining({
+          type: 'equal',
+          param1: { o_id: 'endpoint_b', prop: 'x' },
+          temporary: true,
+          driving: true
+        }),
+        expect.objectContaining({
+          type: 'equal',
+          param1: { o_id: 'endpoint_b', prop: 'y' },
+          temporary: true,
+          driving: true
+        })
+      ])
+    )
+  })
+
+  it('attaches temporary points to both endpoints for a wall drag', () => {
+    const pushPrimitive = vi.fn()
+    const pushPrimitives = vi.fn()
+    const wrapped = new WrappedGcs(
+      {
+        clear_data: vi.fn(),
+        push_primitives_and_params: pushPrimitives,
+        push_primitive: pushPrimitive,
+        p_param_index: new Map(),
+        gcs: { set_p_param: vi.fn() }
+      } as never,
+      [
+        { id: 'endpoint_a', type: 'point', x: 10, y: 20, fixed: false },
+        { id: 'endpoint_b', type: 'point', x: 30, y: 40, fixed: false }
+      ],
+      [],
+      new Map(),
+      [],
+      {}
+    )
+
+    wrapped.startAttachedPointsDrag(['endpoint_a', 'endpoint_b'])
+
+    expect(pushPrimitives.mock.calls.flatMap(([primitives]) => primitives)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'p2p_coincident', p1_id: 'drag_wall_endpoint_0', p2_id: 'endpoint_a' }),
+        expect.objectContaining({ type: 'p2p_coincident', p1_id: 'drag_wall_endpoint_1', p2_id: 'endpoint_b' })
+      ])
+    )
   })
 })

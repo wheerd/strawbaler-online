@@ -15,6 +15,7 @@ import {
 } from '@/editor/canvas/services/length-input'
 import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
+import { isWallGeometryValid } from '@/editor/tools/intermediate-wall/wallValidation'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { CursorStyle, EditorEvent, ToolImplementation } from '@/editor/tools/system/types'
@@ -414,14 +415,28 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
       const snapWallIds = this.resolveEntityToWallIds(snapEntityId)
       const startWallIds = this.resolveEntityToWallIds(this.state.startEntity)
       const segmentToValidate = { start: lastPoint, end: currentPos }
-      for (const [entityId, lines] of Object.entries(this.validationLines)) {
-        if (snapWallIds.has(entityId as WallId)) continue
-        if (this.state.points.length === 1 && startWallIds.has(entityId as WallId)) continue
-        for (const line of lines) {
-          if (segmentsIntersect(segmentToValidate.start, segmentToValidate.end, line.start, line.end)) {
-            return false
-          }
-        }
+      const excludedWallIds = new Set<string>(snapWallIds)
+      if (this.state.points.length === 1) {
+        for (const wallId of startWallIds) excludedWallIds.add(wallId)
+      }
+
+      const perimeterId = this.findPerimeterContainingPoint(this.state.pointer)
+      if (!perimeterId) return false
+
+      const existingLines = Object.entries(this.validationLines).flatMap(([wallId, lines]) =>
+        lines.map(line => ({ wallId, line }))
+      )
+      const validationInput = {
+        points: [segmentToValidate.start, segmentToValidate.end],
+        segments: [segmentToValidate],
+        excludedWallIds: [...excludedWallIds]
+      }
+      const validationContext = {
+        polygon: this.validationPolygons[perimeterId],
+        lines: existingLines
+      }
+      if (!isWallGeometryValid(validationInput, validationContext)) {
+        return false
       }
 
       const previousSegments = this.state.points.slice(0, -1)

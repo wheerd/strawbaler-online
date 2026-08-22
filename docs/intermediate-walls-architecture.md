@@ -438,19 +438,19 @@ The `SnappingService` already handles line-line intersection snapping, so adding
 
 No changes needed to the snapping service itself - just add perpendicular snap line candidates from the tool.
 
-## A.6: Wall Node Movement Behavior (Optional)
+## A.6: Wall Node and Intermediate Wall Movement Behavior
 
 ### File: `src/editor/tools/basic/movement/movementBehaviors.ts`
 
-Enable moving intermediate wall nodes (which drags connected walls):
+Wall nodes and intermediate walls are moved through temporary GCS drags. Only the
+directly manipulated node or endpoint nodes remain free; all other perimeter
+corners and wall nodes are fixed during the solve.
 
 ```typescript
 class WallNodeMovementBehavior implements MovementBehavior {
   // On drag start: identify the node and all connected walls
-  // On drag move: update node position, which triggers geometry recalculation
-  //   - For inner nodes: update position directly
-  //   - For perimeter nodes: update offset along perimeter wall
-  // On drag end: commit position, resolve constraints
+  // On drag move: solve a temporary node drag and validate the candidate geometry
+  // On drag end: commit solved node positions and recompute derived geometry
 }
 ```
 
@@ -460,7 +460,10 @@ Register in movement behaviors:
 'wall-node': WallNodeMovementBehavior,
 ```
 
-**Interaction with GCS**: When a node is moved, the GCS solver should re-resolve and potentially adjust other constrained elements. This requires the GCS sync to be working (A.2).
+**Interaction with GCS**: Node movement drives the selected node. Intermediate-wall
+movement attaches temporary points to both endpoints and applies the same delta to
+both. Candidate positions must remain inside the perimeter and must not intersect
+unrelated walls.
 
 ## A.7: Testing
 
@@ -499,12 +502,13 @@ The initial GCS geometry registration, constraint translation, model-to-GCS sync
    - Rebuild ordering and stale primitive handling need integration coverage.
 
 5. **Movement integration**
-   - `wall-node` and `intermediate-wall` movement behaviors remain intentionally deferred.
-   - Movement should be implemented only after the solved node-position application path is stable.
+   - GCS-backed `wall-node` and `intermediate-wall` movement behaviors are implemented.
+   - Perimeter wall/corner commits also persist solved wall-node positions.
+   - Manual interaction coverage remains useful for tuning the feel of constrained drags.
 
 6. **Solved geometry validation**
-   - Solver output must continue to be validated before committing node positions, perimeter-node offsets, and intermediate-wall entity offsets to the model.
-   - Invalid or non-finite solved positions must not mutate authoritative model state.
+   - Movement reuses the intermediate-wall drawing containment and intersection rules.
+   - Invalid or non-finite solved positions are rejected before movement commits.
 
 ---
 
