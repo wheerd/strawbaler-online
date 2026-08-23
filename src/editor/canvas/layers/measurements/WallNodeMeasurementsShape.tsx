@@ -405,7 +405,7 @@ function PerimeterWallNodeMeasurementContent({
           node={node}
           reference={previous}
           wall={wall}
-          constraint={findPositionConstraint(constraints, node.id, wall.id, previous.id)}
+          constraint={findPositionConstraint(constraints, node.id, wall.id, previous.id, 'start')}
           isSelected={isSelected}
           direction="previous"
         />
@@ -415,7 +415,7 @@ function PerimeterWallNodeMeasurementContent({
           node={node}
           reference={next}
           wall={wall}
-          constraint={findPositionConstraint(constraints, node.id, wall.id, next.id)}
+          constraint={findPositionConstraint(constraints, node.id, wall.id, next.id, 'end')}
           isSelected={isSelected}
           direction="next"
         />
@@ -458,6 +458,7 @@ function WallNodeOffsetMeasurement({
       node: node.id,
       perimeterWall: wall.id,
       reference: reference.id,
+      nodeSide: direction === 'previous' ? 'start' : 'end',
       offset: enteredValue
     })
     gcsService.triggerSolve()
@@ -497,13 +498,15 @@ function findPositionConstraint(
   constraints: readonly Constraint[],
   node: WallNodeId,
   perimeterWall: string,
-  reference: string
+  reference: string,
+  nodeSide: 'start' | 'end'
 ): WallNodePositionConstraint | undefined {
   return constraints.find(
     (constraint): constraint is WallNodePositionConstraint =>
       constraint.type === 'wallNodePosition' &&
       constraint.node === node &&
       constraint.perimeterWall === perimeterWall &&
-      constraint.reference === reference
+      constraint.reference === reference &&
+      constraint.nodeSide === nodeSide
   )
 }

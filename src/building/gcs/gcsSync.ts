@@ -46,6 +46,7 @@ import {
   wallEndpointPointId,
   wallEntityPointId,
   wallEntityWidthConstraintId,
+  wallNodePerimeterPointId,
   wallNodeRefPointId,
   wallNonRefSideProjectedPoint
 } from './constraintTranslator'
@@ -352,6 +353,8 @@ class GcsSyncService {
 
     if ('position' in current) {
       getGcsActions().updatePointPosition(wallNodeRefPointId(id), current.position)
+      getGcsActions().updatePointPosition(wallNodePerimeterPointId(id, 'start'), current.insideLine.start)
+      getGcsActions().updatePointPosition(wallNodePerimeterPointId(id, 'end'), current.insideLine.end)
     }
   }
 

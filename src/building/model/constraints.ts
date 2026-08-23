@@ -125,6 +125,7 @@ export interface WallNodePositionConstraint {
   node: WallNodeId
   perimeterWall: PerimeterWallId
   reference: PerimeterCornerId | WallNodeId
+  nodeSide: 'start' | 'end'
   offset: Length
 }
 

@@ -35,6 +35,10 @@ export function wallNodeRefPointId(nodeId: WallNodeId): string {
   return `wallnode_${nodeId}_ref`
 }
 
+export function wallNodePerimeterPointId(nodeId: WallNodeId, side: 'start' | 'end'): string {
+  return `wallnode_${nodeId}_${side}`
+}
+
 export function wallEndpointPointId(wallId: WallId, endpoint: 'start' | 'end', side: 'ref' | 'nonref'): string {
   return `${wallId}_${endpoint}_${side}`
 }
@@ -105,7 +109,7 @@ export function buildingConstraintKey(constraint: ConstraintInput): string {
     }
     case 'wallNodePosition': {
       const [a, b] = sortedPair(constraint.node, constraint.reference)
-      return `wallNodePosition_${constraint.perimeterWall}_${a}_${b}`
+      return `wallNodePosition_${a}_${b}`
     }
   }
 }
@@ -425,10 +429,10 @@ export function translateBuildingConstraint(
     }
 
     case 'wallNodePosition': {
-      const nodePointId = wallNodeRefPointId(constraint.node)
+      const nodePointId = wallNodePerimeterPointId(constraint.node, constraint.nodeSide)
       const referencePointId = isPerimeterCornerId(constraint.reference)
         ? nodeRefSidePointId(constraint.reference)
-        : wallNodeRefPointId(constraint.reference)
+        : wallNodePerimeterPointId(constraint.reference, constraint.nodeSide === 'start' ? 'end' : 'start')
 
       return {
         constraints: [

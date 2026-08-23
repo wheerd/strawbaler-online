@@ -589,6 +589,12 @@ describe('GCS store perimeter geometry', () => {
         wallNodeIds: [nodeId],
         intermediateWallIds: [intermediateWallId]
       })
+      mockGetPerimeterWallById.mockReturnValue({
+        id: wallA,
+        startCornerId: cornerA,
+        endCornerId: cornerB,
+        direction: [1, 0]
+      })
       mockGetWallNodeById.mockReturnValue({
         id: nodeId,
         perimeterId: perimeterA,
@@ -623,6 +629,8 @@ describe('GCS store perimeter geometry', () => {
 
       const state = getGcsState()
       expect(state.points[`wallnode_${nodeId}_ref`]).toBeDefined()
+      expect(state.points[`wallnode_${nodeId}_start`]).toBeDefined()
+      expect(state.points[`wallnode_${nodeId}_end`]).toBeDefined()
       expect(state.points[`${intermediateWallId}_start_ref`]).toBeDefined()
       expect(state.points[`${intermediateWallId}_start_proj`]).toBeDefined()
       expect(state.lines.find(line => line.id === `wall_${intermediateWallId}_ref`)).toBeDefined()
@@ -632,9 +640,29 @@ describe('GCS store perimeter geometry', () => {
         p1_id: `${intermediateWallId}_start_ref`,
         p2_id: `wallnode_${nodeId}_ref`
       })
+      expect(state.constraints[`wallnode_${nodeId}_start_attachment`]).toMatchObject({
+        type: 'p2p_coincident',
+        p1_id: `wallnode_${nodeId}_start`,
+        p2_id: `${intermediateWallId}_start_nonref`
+      })
+      expect(state.constraints[`wallnode_${nodeId}_end_attachment`]).toMatchObject({
+        type: 'p2p_coincident',
+        p1_id: `wallnode_${nodeId}_end`,
+        p2_id: `${intermediateWallId}_start_ref`
+      })
       expect(state.constraints[`wallnode_${nodeId}_ref_on_perimeter`]).toMatchObject({
         type: 'point_on_line_pl',
         p_id: `wallnode_${nodeId}_ref`,
+        l_id: `wall_${wallA}_ref`
+      })
+      expect(state.constraints[`wallnode_${nodeId}_start_on_perimeter`]).toMatchObject({
+        type: 'point_on_line_pl',
+        p_id: `wallnode_${nodeId}_start`,
+        l_id: `wall_${wallA}_ref`
+      })
+      expect(state.constraints[`wallnode_${nodeId}_end_on_perimeter`]).toMatchObject({
+        type: 'point_on_line_pl',
+        p_id: `wallnode_${nodeId}_end`,
         l_id: `wall_${wallA}_ref`
       })
     })

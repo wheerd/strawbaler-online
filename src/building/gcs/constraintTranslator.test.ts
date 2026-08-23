@@ -391,6 +391,7 @@ describe('translateBuildingConstraint', () => {
         node: wallNode,
         perimeterWall: wallA,
         reference: wallNode,
+        nodeSide: 'start',
         offset: 250
       }
 
@@ -398,8 +399,8 @@ describe('translateBuildingConstraint', () => {
         {
           id: 'bc_node_position',
           type: 'p2p_distance',
-          p1_id: `wallnode_${wallNode}_ref`,
-          p2_id: `wallnode_${wallNode}_ref`,
+          p1_id: `wallnode_${wallNode}_end`,
+          p2_id: `wallnode_${wallNode}_start`,
           distance: 250,
           driving: true
         }

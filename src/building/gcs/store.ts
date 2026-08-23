@@ -15,7 +15,7 @@ import { isPerimeterWallId } from '@/building/model/ids'
 import type { PerimeterCornerWithGeometry } from '@/building/model/perimeters'
 import type { OpeningWithGeometry, WallPostWithGeometry } from '@/building/model/wallEntities'
 import { getModelActions } from '@/building/store'
-import { type Vec2, midpoint, projectVec2, scaleAddVec2, scaleVec2 } from '@/shared/geometry/2d'
+import { type Vec2, dotVec2, midpoint, projectVec2, scaleAddVec2, scaleVec2 } from '@/shared/geometry/2d'
 
 import {
   type TranslationContext,
@@ -33,6 +33,7 @@ import {
   wallEntityOnLineConstraintId,
   wallEntityPointId,
   wallEntityWidthConstraintId,
+  wallNodePerimeterPointId,
   wallNodeRefPointId,
   wallNonRefLineId,
   wallNonRefSideProjectedPoint,
@@ -565,16 +566,24 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         entry.pointIds.push(nodePointId)
 
         if (node.type === 'perimeter') {
-          const perimeterLineId = isRefInside ? wallRefLineId(node.wallId) : wallNonRefLineId(node.wallId)
-          const nodeOnPerimeterId = `${nodePointId}_on_perimeter`
-          actions.addConstraint({
-            id: nodeOnPerimeterId,
-            type: 'point_on_line_pl',
-            p_id: nodePointId,
-            l_id: perimeterLineId,
-            driving: true
-          })
-          entry.constraintIds.push(nodeOnPerimeterId)
+          const insideLineId = isRefInside ? wallRefLineId(node.wallId) : wallNonRefLineId(node.wallId)
+          const startPointId = wallNodePerimeterPointId(node.id, 'start')
+          const endPointId = wallNodePerimeterPointId(node.id, 'end')
+          actions.addPoint(startPointId, node.insideLine.start, false)
+          actions.addPoint(endPointId, node.insideLine.end, false)
+          entry.pointIds.push(startPointId, endPointId)
+
+          for (const pointId of [startPointId, endPointId, nodePointId]) {
+            const onPerimeterId = `${pointId}_on_perimeter`
+            actions.addConstraint({
+              id: onPerimeterId,
+              type: 'point_on_line_pl',
+              p_id: pointId,
+              l_id: insideLineId,
+              driving: true
+            })
+            entry.constraintIds.push(onPerimeterId)
+          }
         }
       }
 
@@ -692,7 +701,42 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
               rightPoint: wallEndpointPointId(wall.id, atStart ? 'start' : 'end', atStart ? 'nonref' : 'ref')
             }
           })
-          .sort((a, b) => Math.atan2(b.direction[1], b.direction[0]) - Math.atan2(a.direction[1], a.direction[0]))
+
+        if (node.type === 'perimeter') {
+          const perimeterWall = modelActions.getPerimeterWallById(node.wallId)
+          incidents.sort(
+            (a, b) => dotVec2(a.direction, perimeterWall.direction) - dotVec2(b.direction, perimeterWall.direction)
+          )
+
+          if (incidents.length > 0) {
+            const firstPoint = incidents[0].rightPoint
+            const lastPoint = incidents[incidents.length - 1].leftPoint
+
+            const startPointId = wallNodePerimeterPointId(node.id, 'start')
+            const endPointId = wallNodePerimeterPointId(node.id, 'end')
+            const startAttachmentId = `wallnode_${node.id}_start_attachment`
+            const endAttachmentId = `wallnode_${node.id}_end_attachment`
+            actions.addConstraint({
+              id: startAttachmentId,
+              type: 'p2p_coincident',
+              p1_id: startPointId,
+              p2_id: firstPoint,
+              driving: true
+            })
+            actions.addConstraint({
+              id: endAttachmentId,
+              type: 'p2p_coincident',
+              p1_id: endPointId,
+              p2_id: lastPoint,
+              driving: true
+            })
+            entry.constraintIds.push(startAttachmentId, endAttachmentId)
+          }
+        } else {
+          incidents.sort(
+            (a, b) => Math.atan2(b.direction[1], b.direction[0]) - Math.atan2(a.direction[1], a.direction[0])
+          )
+        }
 
         if (incidents.length < 2) continue
         for (let index = 0; index < incidents.length; index++) {
