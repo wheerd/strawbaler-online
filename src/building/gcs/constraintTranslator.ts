@@ -1,6 +1,6 @@
 import type { Constraint, SketchPoint } from '@salusoft89/planegcs'
 
-import type { ConstraintInput, PerimeterCornerId, WallEntityId, WallId, WallNodeId } from '@/building/model'
+import type { ConstraintInput, NodeId, PerimeterCornerId, WallEntityId, WallId, WallNodeId } from '@/building/model'
 import { isPerimeterCornerId, isPerimeterWallId, isWallNodeId } from '@/building/model'
 
 // --- ID helpers ---
@@ -127,12 +127,22 @@ export interface TranslationResult {
 export interface TranslationContext {
   /** Given a GCS line ID, return the ID of its first point (p1_id). */
   getLineStartPointId: (lineId: string) => string | undefined
-  /** Given a wall ID, return the IDs of the start and end corners. */
-  getWallCornerIds: (wallId: WallId) => { startCornerId: PerimeterCornerId; endCornerId: PerimeterCornerId } | undefined
+  /** Given a wall ID, return the IDs of the start and end nodes. */
+  getWallNodeIds: (
+    wallId: WallId,
+    side: 'ref' | 'nonref'
+  ) =>
+    | {
+        startId: NodeId
+        endId: NodeId
+        start: string
+        end: string
+      }
+    | undefined
   /** Given a corner ID, return the IDs of the adjacent walls. */
   getCornerAdjacentWallIds: (cornerId: PerimeterCornerId) => { previousWallId: WallId; nextWallId: WallId } | undefined
-  /** Given a corner ID, return the reference side for the perimeter it belongs to. */
-  getReferenceSide: (cornerId: PerimeterCornerId) => 'left' | 'right'
+  /** Given a entity ID, return the reference side for the perimeter it belongs to. */
+  getReferenceSide: (entityId: WallId) => 'left' | 'right'
   /** Return canonical ref endpoints for a wall at the requested intermediate node. */
   getWallRefEndpointPointIds: (
     wallId: WallId,
@@ -157,24 +167,23 @@ export function translateBuildingConstraint(
 
   switch (constraint.type) {
     case 'wallLength': {
-      const corners = context.getWallCornerIds(constraint.wall)
-      if (!corners) return { constraints: [], points: [] }
+      const side = isPerimeterWallId(constraint.wall)
+        ? context.getReferenceSide(constraint.wall) === constraint.side
+          ? 'ref'
+          : 'nonref'
+        : constraint.side === 'left'
+          ? 'ref'
+          : 'nonref'
 
-      // Determine if constraint side matches perimeter's reference side
-      const refConstraintSide = context.getReferenceSide(corners.startCornerId)
-      const isRefSide = constraint.side === refConstraintSide
-
+      const nodes = context.getWallNodeIds(constraint.wall, side)
+      if (!nodes) return { constraints: [], points: [] }
       return {
         constraints: [
           {
             id: prefix,
             type: 'p2p_distance',
-            p1_id: isRefSide
-              ? nodeRefSidePointId(corners.startCornerId)
-              : nodeNonRefSidePointForNextWall(corners.startCornerId),
-            p2_id: isRefSide
-              ? nodeRefSidePointId(corners.endCornerId)
-              : nodeNonRefSidePointForPrevWall(corners.endCornerId),
+            p1_id: nodes.start,
+            p2_id: nodes.end,
             distance: constraint.length,
             driving: true
           }
@@ -188,9 +197,9 @@ export function translateBuildingConstraint(
       // the adjacent corners on the reference side.
       const adjWalls = context.getCornerAdjacentWallIds(constraint.corner)
       if (!adjWalls) return { constraints: [], points: [] }
-      const prevCorners = context.getWallCornerIds(adjWalls.previousWallId)
-      const nextCorners = context.getWallCornerIds(adjWalls.nextWallId)
-      if (!prevCorners || !nextCorners) return { constraints: [], points: [] }
+      const prevWall = context.getWallNodeIds(adjWalls.previousWallId, 'ref')
+      const nextWall = context.getWallNodeIds(adjWalls.nextWallId, 'ref')
+      if (!prevWall || !nextWall) return { constraints: [], points: [] }
       // Previous wall's start corner and next wall's end corner are the line endpoints.
       // The corner itself is the point that must be on the line.
       return {
@@ -199,8 +208,8 @@ export function translateBuildingConstraint(
             id: prefix,
             type: 'point_on_line_ppp',
             p_id: nodeRefSidePointId(constraint.corner),
-            lp1_id: nodeRefSidePointId(prevCorners.startCornerId),
-            lp2_id: nodeRefSidePointId(nextCorners.endCornerId),
+            lp1_id: prevWall.start,
+            lp2_id: nextWall.end,
             driving: true
           }
         ],
@@ -302,15 +311,15 @@ export function translateBuildingConstraint(
     }
 
     case 'wallEntityAbsolute': {
-      const wall = context.getWallCornerIds(constraint.wall)
       const entityPointId = wallEntityPointId(constraint.entity, constraint.entitySide)
       let nodePointId: string | undefined
 
-      if (wall && isPerimeterCornerId(constraint.node) && isPerimeterWallId(constraint.wall)) {
-        const isRefSide = context.getReferenceSide(constraint.node) === constraint.side
+      if (isPerimeterCornerId(constraint.node) && isPerimeterWallId(constraint.wall)) {
+        const isRefSide = context.getReferenceSide(constraint.wall) === constraint.side
+        const nodes = context.getWallNodeIds(constraint.wall, isRefSide ? 'ref' : 'nonref')
         nodePointId = isRefSide
           ? nodeRefSidePointId(constraint.node)
-          : wallNonRefSideProjectedPoint(constraint.wall, constraint.node === wall.startCornerId ? 'start' : 'end')
+          : wallNonRefSideProjectedPoint(constraint.wall, constraint.node === nodes?.startId ? 'start' : 'end')
       } else if (isWallNodeId(constraint.node)) {
         nodePointId = context.getWallNodeSidePointId(constraint.wall, constraint.node, constraint.side)
       }

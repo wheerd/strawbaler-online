@@ -1,11 +1,15 @@
+import { type WallNodeIncident, getAdjacentWallNodePairs } from '@/building/gcs/wallNodePairs'
 import type {
   ConstraintInput,
+  IntermediateWallWithGeometry,
   PerimeterCornerWithGeometry,
   PerimeterReferenceSide,
-  PerimeterWallWithGeometry
+  PerimeterWallWithGeometry,
+  WallNodeWithGeometry
 } from '@/building/model'
+import type { IntermediateWallId, WallId } from '@/building/model/ids'
 import type { Length, Vec2 } from '@/shared/geometry'
-import { ZERO_VEC2, dotVec2, normVec2, subVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, dotVec2, normVec2, scaleVec2, subVec2 } from '@/shared/geometry'
 
 /**
  * Map a perimeter reference side to the constraint side used by building constraints.
@@ -243,4 +247,81 @@ export function generateFreeformConstraints(
   }
 
   return constraints
+}
+
+export function generateIntermediateWallConstraints(
+  createdWalls: IntermediateWallWithGeometry[],
+  allIntermediateWalls: IntermediateWallWithGeometry[],
+  perimeterWalls: PerimeterWallWithGeometry[],
+  nodes: WallNodeWithGeometry[],
+  alignment: 'left' | 'right',
+  lengthOverrides: ReadonlyMap<IntermediateWallId, Length | null>
+): ConstraintInput[] {
+  const constraints: ConstraintInput[] = []
+  const createdWallIds = new Set<WallId>(createdWalls.map(wall => wall.id))
+  const intermediateWallById = new Map(allIntermediateWalls.map(wall => [wall.id, wall]))
+  const perimeterWallById = new Map(perimeterWalls.map(wall => [wall.id, wall]))
+
+  for (const wall of createdWalls) {
+    const length = lengthOverrides.get(wall.id)
+    if (length != null) {
+      constraints.push({ type: 'wallLength', wall: wall.id, side: alignment, length })
+    }
+
+    const dx = Math.abs(wall.direction[0])
+    const dy = Math.abs(wall.direction[1])
+    if (dy < ALIGNMENT_TOLERANCE) {
+      constraints.push({ type: 'horizontalWall', wall: wall.id })
+    } else if (dx < ALIGNMENT_TOLERANCE) {
+      constraints.push({ type: 'verticalWall', wall: wall.id })
+    }
+  }
+
+  for (const node of nodes) {
+    const incidentWalls = node.connectedWallIds
+      .map(wallId => intermediateWallById.get(wallId))
+      .filter((wall): wall is IntermediateWallWithGeometry => wall != null)
+      .map(wall => getIntermediateIncident(wall, node.id))
+
+    if (node.type === 'perimeter') {
+      const perimeterWall = perimeterWallById.get(node.wallId)
+      if (perimeterWall) {
+        incidentWalls.push(
+          {
+            id: perimeterWall.id,
+            direction: perimeterWall.direction,
+            isPerimeterRay: true
+          },
+          {
+            id: perimeterWall.id,
+            direction: scaleVec2(perimeterWall.direction, -1),
+            isPerimeterRay: true
+          }
+        )
+      }
+    }
+
+    for (const [wallA, wallB] of getAdjacentWallNodePairs(incidentWalls)) {
+      if (!createdWallIds.has(wallA.id) && !createdWallIds.has(wallB.id)) continue
+
+      const dot = Math.abs(dotVec2(wallA.direction, wallB.direction))
+      if (dot < PERPENDICULAR_DOT_TOLERANCE) {
+        constraints.push({ type: 'wallNodePerpendicular', node: node.id, wallA: wallA.id, wallB: wallB.id })
+      } else if (dot > COLINEAR_DOT_THRESHOLD) {
+        constraints.push({ type: 'wallNodeColinear', node: node.id, wallA: wallA.id, wallB: wallB.id })
+      }
+    }
+  }
+
+  return constraints
+}
+
+function getIntermediateIncident(
+  wall: IntermediateWallWithGeometry,
+  nodeId: WallNodeWithGeometry['id']
+): WallNodeIncident {
+  return {
+    id: wall.id,
+    direction: wall.start.nodeId === nodeId ? wall.direction : scaleVec2(wall.direction, -1)
+  }
 }

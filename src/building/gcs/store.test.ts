@@ -64,12 +64,17 @@ function setupWallCornerMocks(): void {
   mockGetPerimeterWallById.mockImplementation((wallId: PerimeterWallId) => {
     const walls: Record<
       string,
-      { id: PerimeterWallId; startCornerId: PerimeterCornerId; endCornerId: PerimeterCornerId }
+      {
+        id: PerimeterWallId
+        perimeterId: PerimeterId
+        startCornerId: PerimeterCornerId
+        endCornerId: PerimeterCornerId
+      }
     > = {
-      [wallA]: { id: wallA, startCornerId: cornerA, endCornerId: cornerB },
-      [wallB]: { id: wallB, startCornerId: cornerB, endCornerId: cornerC },
-      [wallC]: { id: wallC, startCornerId: cornerC, endCornerId: cornerD },
-      [wallD]: { id: wallD, startCornerId: cornerD, endCornerId: cornerA }
+      [wallA]: { id: wallA, perimeterId: perimeterA, startCornerId: cornerA, endCornerId: cornerB },
+      [wallB]: { id: wallB, perimeterId: perimeterA, startCornerId: cornerB, endCornerId: cornerC },
+      [wallC]: { id: wallC, perimeterId: perimeterA, startCornerId: cornerC, endCornerId: cornerD },
+      [wallD]: { id: wallD, perimeterId: perimeterA, startCornerId: cornerD, endCornerId: cornerA }
     }
     const wall = walls[wallId]
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -108,6 +113,26 @@ function setupGeometry(): void {
 
 /** Helper to configure mock model store to return rectangle perimeter data. */
 function setupRectangleMocks(perimeterId: PerimeterId): void {
+  mockGetPerimeterWallById.mockImplementation((wallId: PerimeterWallId) => {
+    const walls: Record<
+      string,
+      {
+        id: PerimeterWallId
+        perimeterId: PerimeterId
+        startCornerId: PerimeterCornerId
+        endCornerId: PerimeterCornerId
+      }
+    > = {
+      [wallA]: { id: wallA, perimeterId, startCornerId: cornerA, endCornerId: cornerB },
+      [wallB]: { id: wallB, perimeterId, startCornerId: cornerB, endCornerId: cornerC },
+      [wallC]: { id: wallC, perimeterId, startCornerId: cornerC, endCornerId: cornerD },
+      [wallD]: { id: wallD, perimeterId, startCornerId: cornerD, endCornerId: cornerA }
+    }
+    const wall = walls[wallId]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!wall) throw new Error(`Wall "${wallId}" not found`)
+    return wall
+  })
   mockGetPerimeterCornersById.mockImplementation((mockId: PerimeterId) => {
     if (mockId !== perimeterId) return []
     return [

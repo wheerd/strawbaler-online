@@ -395,20 +395,24 @@ Auto-generate constraints when intermediate walls are created:
 
 ```typescript
 function generateIntermediateWallConstraints(
-  wall: IntermediateWallWithGeometry,
+  createdWalls: IntermediateWallWithGeometry[],
   allWalls: IntermediateWallWithGeometry[],
   perimeterWalls: PerimeterWallWithGeometry[],
-  nodes: WallNodeWithGeometry[]
+  nodes: WallNodeWithGeometry[],
+  alignment: 'left' | 'right',
+  lengthOverrides: ReadonlyMap<IntermediateWallId, Length | null>
 ): ConstraintInput[]
 ```
 
 **Rules:**
 
-1. **Length constraint**: Every intermediate wall gets a `WallLengthConstraint` with its current center-line length on the `center` side
+1. **Length constraint**: An intermediate wall gets a `WallLengthConstraint` only when the drawing tool recorded an explicit length override. The constraint side is the drawing tool's selected `left` or `right` alignment.
 2. **Horizontal/Vertical**: If wall direction is nearly horizontal (within 1mm) or vertical, add corresponding constraint
 3. **Perpendicular to perimeter wall**: If an endpoint is attached to a perimeter wall and the intermediate wall is nearly perpendicular (within tolerance), add constraint
-4. **Perpendicular to other wall**: If two connected walls share a node and are nearly perpendicular, add a wall-node perpendicular constraint naming the node and both walls
-5. **Colinear**: If two connected walls share a node and are nearly colinear, add a wall-node colinear constraint naming the node and both walls
+4. **Perpendicular to other wall**: For adjacent incident-wall pairs shown by the wall-node measurement badges, if the walls are nearly perpendicular, add a wall-node perpendicular constraint naming the node and both walls
+5. **Colinear**: For adjacent incident-wall pairs shown by the wall-node measurement badges, if the walls are nearly colinear, add a wall-node colinear constraint naming the node and both walls
+
+At a perimeter node, the two opposite perimeter rays represent one physical perimeter wall. When exactly one intermediate wall meets that node, show and generate one relationship rather than one relationship for each ray.
 
 For nodes with more than two connected walls, evaluate wall pairs independently. Do not infer a single angle from the node or constrain every pair unless that relationship is intended by the constraint policy.
 
@@ -484,7 +488,8 @@ The initial GCS geometry registration, constraint translation, model-to-GCS sync
 
 1. **Intermediate wall length translation**
    - `wallLength` translation still assumes perimeter wall corner IDs.
-   - Intermediate walls need their canonical ref endpoint points (or the requested side endpoints) used directly.
+
+- Intermediate walls use their requested left/right axis endpoint points directly.
 
 2. **Constraint transfer during intermediate wall split/merge**
    - Intermediate wall split/merge currently removes constraints associated with deleted walls/nodes.

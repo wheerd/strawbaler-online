@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ConstraintInput, PerimeterCornerId, PerimeterWallId, WallNodeId } from '@/building/model'
-import type { WallId } from '@/building/model/ids'
+import type { ConstraintInput, NodeId, PerimeterCornerId, PerimeterWallId, WallNodeId } from '@/building/model'
+import type { IntermediateWallId, WallId } from '@/building/model/ids'
 
 import {
   type TranslationContext,
@@ -24,10 +24,24 @@ const wallNode = 'wallnode_aaa' as WallNodeId
 function makeContext(overrides: Partial<TranslationContext> = {}): TranslationContext {
   return {
     getLineStartPointId: () => undefined,
-    getWallCornerIds: (wallId: WallId) => {
+    getWallNodeIds: (wallId: WallId, side: 'ref' | 'nonref') => {
       // Default: wallA → cornerA..cornerB, wallB → cornerB..cornerC
-      if (wallId === wallA) return { startCornerId: cornerA, endCornerId: cornerB }
-      if (wallId === wallB) return { startCornerId: cornerB, endCornerId: cornerC }
+      if (wallId === wallA) {
+        return {
+          startId: cornerA,
+          endId: cornerB,
+          start: side === 'ref' ? `corner_${cornerA}_ref` : `corner_${cornerA}_nonref_next`,
+          end: side === 'ref' ? `corner_${cornerB}_ref` : `corner_${cornerB}_nonref_prev`
+        }
+      }
+      if (wallId === wallB) {
+        return {
+          startId: cornerB,
+          endId: cornerC,
+          start: side === 'ref' ? `corner_${cornerB}_ref` : `corner_${cornerB}_nonref_next`,
+          end: side === 'ref' ? `corner_${cornerC}_ref` : `corner_${cornerC}_nonref_prev`
+        }
+      }
       return undefined
     },
     getCornerAdjacentWallIds: (cornerId: PerimeterCornerId) => {
@@ -167,6 +181,34 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'test', ctx)
       expect(result.constraints).toHaveLength(0)
+    })
+
+    it('translates an intermediate wall using its axis endpoints', () => {
+      const wall = 'intermediate_test' as IntermediateWallId
+      const c: ConstraintInput = { type: 'wallLength', wall, side: 'right', length: 240 }
+      const ctx = makeContext({
+        getWallNodeIds: (wallId, side) =>
+          wallId === wall
+            ? {
+                startId: wallNode as NodeId,
+                endId: wallNode as NodeId,
+                start: `${wallId}_start_${side === 'ref' ? 'left' : 'right'}`,
+                end: `${wallId}_end_${side === 'ref' ? 'left' : 'right'}`
+              }
+            : undefined
+      })
+      const result = translateBuildingConstraint(c, 'intermediate_length', ctx)
+
+      expect(result.constraints).toEqual([
+        {
+          id: 'bc_intermediate_length',
+          type: 'p2p_distance',
+          p1_id: `${wall}_start_right`,
+          p2_id: `${wall}_end_right`,
+          distance: 240,
+          driving: true
+        }
+      ])
     })
   })
 

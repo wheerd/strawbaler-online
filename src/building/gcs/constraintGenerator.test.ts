@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import type {
+  InnerWallNodeWithGeometry,
+  IntermediateWallWithGeometry,
   PerimeterCornerId,
   PerimeterCornerWithGeometry,
   PerimeterId,
@@ -9,13 +11,54 @@ import type {
 } from '@/building/model'
 import type { WallAssemblyId } from '@/building/model/ids'
 import type { Vec2 } from '@/shared/geometry'
-import { newVec2 } from '@/shared/geometry'
+import { addVec2, newVec2, perpendicular } from '@/shared/geometry'
 
 import {
   generateFreeformConstraints,
+  generateIntermediateWallConstraints,
   generatePresetConstraints,
   referenceSideToConstraintSide
 } from './constraintGenerator'
+
+function makeIntermediateWall(
+  id: string,
+  startNodeId: string,
+  endNodeId: string,
+  wallDirection: Vec2
+): IntermediateWallWithGeometry {
+  const start = newVec2(0, 0)
+  const end = newVec2(wallDirection[0] * 100, wallDirection[1] * 100)
+  const left = newVec2(-wallDirection[1] * 5, wallDirection[0] * 5)
+  const right = newVec2(wallDirection[1] * 5, -wallDirection[0] * 5)
+  return {
+    id: id as `intermediate_${string}`,
+    perimeterId: 'perim_1' as PerimeterId,
+    entityIds: [],
+    start: { nodeId: startNodeId as `wallnode_${string}`, axis: 'left' },
+    end: { nodeId: endNodeId as `wallnode_${string}`, axis: 'left' },
+    thickness: 10,
+    boundary: { points: [] },
+    centerLine: { start, end },
+    wallLength: 100,
+    leftLength: 100,
+    leftLine: { start: addVec2(start, left), end: addVec2(end, left) },
+    rightLength: 100,
+    rightLine: { start: addVec2(start, right), end: addVec2(end, right) },
+    direction: wallDirection,
+    leftDirection: perpendicular(wallDirection)
+  }
+}
+
+function makeInnerNode(id: string, connectedWallIds: string[]): InnerWallNodeWithGeometry {
+  return {
+    id: id as `wallnode_${string}`,
+    perimeterId: 'perim_1' as PerimeterId,
+    type: 'inner',
+    connectedWallIds: connectedWallIds as `intermediate_${string}`[],
+    position: newVec2(0, 0),
+    center: newVec2(0, 0)
+  }
+}
 
 // --- Helper factories ---
 
@@ -445,6 +488,67 @@ describe('generateFreeformConstraints', () => {
         side: 'left',
         length: 7000
       })
+    })
+  })
+})
+
+describe('generateIntermediateWallConstraints', () => {
+  it('generates only explicit length overrides and uses the alignment side', () => {
+    const wall = makeIntermediateWall('intermediate_a', 'wallnode_a', 'wallnode_b', newVec2(1, 0))
+    const constraints = generateIntermediateWallConstraints([wall], [wall], [], [], 'right', new Map([[wall.id, 240]]))
+
+    expect(constraints).toEqual(
+      expect.arrayContaining([
+        { type: 'wallLength', wall: wall.id, side: 'right', length: 240 },
+        { type: 'horizontalWall', wall: wall.id }
+      ])
+    )
+  })
+
+  it('does not generate a length constraint without an override', () => {
+    const wall = makeIntermediateWall('intermediate_a', 'wallnode_a', 'wallnode_b', newVec2(0, 1))
+    const constraints = generateIntermediateWallConstraints([wall], [wall], [], [], 'left', new Map())
+
+    expect(constraints).toEqual([{ type: 'verticalWall', wall: wall.id }])
+  })
+
+  it('generates perpendicular and colinear constraints only for adjacent wall pairs', () => {
+    const perpendicularWall = makeIntermediateWall(
+      'intermediate_perpendicular',
+      'wallnode_a',
+      'wallnode_b',
+      newVec2(1, 0)
+    )
+    const otherWall = makeIntermediateWall('intermediate_other', 'wallnode_a', 'wallnode_c', newVec2(0, 1))
+    const colinearWall = makeIntermediateWall('intermediate_colinear', 'wallnode_a', 'wallnode_d', newVec2(-1, 0))
+    const node = makeInnerNode('wallnode_a', [perpendicularWall.id, otherWall.id, colinearWall.id])
+
+    const constraints = generateIntermediateWallConstraints(
+      [perpendicularWall],
+      [perpendicularWall, otherWall, colinearWall],
+      [],
+      [node],
+      'left',
+      new Map()
+    )
+
+    expect(constraints).toContainEqual({
+      type: 'wallNodePerpendicular',
+      node: node.id,
+      wallA: otherWall.id,
+      wallB: perpendicularWall.id
+    })
+    expect(constraints).toContainEqual({
+      type: 'wallNodeColinear',
+      node: node.id,
+      wallA: perpendicularWall.id,
+      wallB: colinearWall.id
+    })
+    expect(constraints).not.toContainEqual({
+      type: 'wallNodePerpendicular',
+      node: node.id,
+      wallA: otherWall.id,
+      wallB: colinearWall.id
     })
   })
 })

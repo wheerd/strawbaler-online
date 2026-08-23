@@ -1,4 +1,7 @@
+import { generateIntermediateWallConstraints } from '@/building/gcs/constraintGenerator'
 import {
+  type IntermediateWallId,
+  type IntermediateWallWithGeometry,
   type PerimeterId,
   type WallId,
   type WallNodeId,
@@ -306,16 +309,40 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
           : modelActions.addInnerWallNode(perimeterId, point)
     })
 
+    const createdWalls: IntermediateWallWithGeometry[] = []
+    const lengthOverrides = new Map<IntermediateWallId, Length | null>()
     for (let index = 0; index < points.length - 1; index++) {
       const startNode = nodes[index]
       const endNode = nodes[index + 1]
 
-      modelActions.addIntermediateWall(
+      const wall = modelActions.addIntermediateWall(
         perimeterId,
         { nodeId: startNode.id, axis: this.state.alignment },
         { nodeId: endNode.id, axis: this.state.alignment },
         this.state.thickness
       )
+      createdWalls.push(wall)
+      lengthOverrides.set(wall.id, this.state.segmentLengthOverrides[index] ?? null)
+    }
+
+    const allIntermediateWalls = modelActions.getIntermediateWallsByPerimeter(perimeterId)
+    const finalCreatedWalls = createdWalls.map(
+      createdWall => allIntermediateWalls.find(wall => wall.id === createdWall.id) ?? createdWall
+    )
+    const constraints = generateIntermediateWallConstraints(
+      finalCreatedWalls,
+      allIntermediateWalls,
+      modelActions.getPerimeterWallsById(perimeterId),
+      modelActions.getWallNodesByPerimeter(perimeterId),
+      this.state.alignment,
+      lengthOverrides
+    )
+    for (const constraint of constraints) {
+      try {
+        modelActions.addBuildingConstraint(constraint)
+      } catch (error) {
+        console.warn('Failed to add intermediate wall constraint', constraint, error)
+      }
     }
   }
 

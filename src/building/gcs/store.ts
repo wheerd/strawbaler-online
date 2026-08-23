@@ -203,10 +203,30 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
           const line = state.lines.find(l => l.id === lineId)
           return line?.p1_id
         },
-        getWallCornerIds: (wallId: WallId) => {
+        getWallNodeIds: (wallId: WallId, side: 'ref' | 'nonref') => {
           try {
-            const wall = modelActionsRef.getPerimeterWallById(wallId as `outwall_${string}`)
-            return { startCornerId: wall.startCornerId, endCornerId: wall.endCornerId }
+            if (isPerimeterWallId(wallId)) {
+              const wall = modelActionsRef.getPerimeterWallById(wallId)
+              return {
+                startId: wall.startCornerId,
+                endId: wall.endCornerId,
+                start:
+                  side === 'ref'
+                    ? nodeRefSidePointId(wall.startCornerId)
+                    : nodeNonRefSidePointForNextWall(wall.startCornerId),
+                end:
+                  side === 'ref'
+                    ? nodeRefSidePointId(wall.endCornerId)
+                    : nodeNonRefSidePointForPrevWall(wall.endCornerId)
+              }
+            }
+            const wall = modelActionsRef.getIntermediateWallById(wallId)
+            return {
+              startId: wall.start.nodeId,
+              endId: wall.end.nodeId,
+              start: wallEndpointPointId(wallId, 'start', side),
+              end: wallEndpointPointId(wallId, 'end', side)
+            }
           } catch {
             return undefined
           }
@@ -219,9 +239,11 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
             return undefined
           }
         },
-        getReferenceSide: (cornerId: PerimeterCornerId) => {
-          const corner = modelActionsRef.getPerimeterCornerById(cornerId)
-          const perimeter = modelActionsRef.getPerimeterById(corner.perimeterId)
+        getReferenceSide: (entityId: WallId) => {
+          const wall = isPerimeterWallId(entityId)
+            ? modelActionsRef.getPerimeterWallById(entityId)
+            : modelActionsRef.getIntermediateWallById(entityId)
+          const perimeter = modelActionsRef.getPerimeterById(wall.perimeterId)
           return referenceSideToConstraintSide(perimeter.referenceSide)
         },
         getWallRefEndpointPointIds: (wallId, nodeId) => {

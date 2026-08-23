@@ -1,3 +1,4 @@
+import { getAdjacentWallNodePairs } from '@/building/gcs/wallNodePairs'
 import type { WallId } from '@/building/model/ids'
 import { type Vec2, addVec2, lenVec2, midpoint, newVec2, normVec2, perpendicularCCW } from '@/shared/geometry'
 
@@ -24,27 +25,9 @@ export function getSmallerAngleBisector(directionA: Vec2, directionB: Vec2): Vec
 }
 
 export function getAdjacentWallNodeBadgePairs(incidents: readonly WallNodeIncidentWall[]): WallNodeBadgePair[] {
-  const ordered = [...incidents].sort(
-    (a, b) => Math.atan2(b.direction[1], b.direction[0]) - Math.atan2(a.direction[1], a.direction[0])
-  )
-  if (ordered.length < 2) return []
-  if (
-    ordered.length === 2 &&
-    (ordered[0].id === ordered[1].id || (ordered[0].isPerimeterRay && ordered[1].isPerimeterRay))
-  ) {
-    return []
-  }
-
-  const adjacentPairs =
-    ordered.length === 2
-      ? [createBadgePair(ordered[0], ordered[1], true)]
-      : ordered.map((wallA, index) => {
-          const wallB = ordered[(index + 1) % ordered.length]
-          if (wallA.id === wallB.id || (wallA.isPerimeterRay && wallB.isPerimeterRay)) return null
-          return createBadgePair(wallA, wallB, false)
-        })
-
-  return adjacentPairs.filter((pair): pair is WallNodeBadgePair => pair != null)
+  const pairs = getAdjacentWallNodePairs(incidents)
+  const useSmallerAngle = incidents.length === 2
+  return pairs.map(([wallA, wallB]) => createBadgePair(wallA, wallB, useSmallerAngle))
 }
 
 function createBadgePair(

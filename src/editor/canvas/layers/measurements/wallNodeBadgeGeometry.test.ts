@@ -134,7 +134,7 @@ describe('wall-node badge geometry', () => {
       { id: 'wall_a' as never, key: 'wall_a', direction: newVec2(0, 1), leftPoint: point, rightPoint: point }
     ])
 
-    expect(pairs).toHaveLength(2)
+    expect(pairs).toHaveLength(1)
     expect(pairs.every(pair => !(pair.wallA.isPerimeterRay && pair.wallB.isPerimeterRay))).toBe(true)
   })
 })
