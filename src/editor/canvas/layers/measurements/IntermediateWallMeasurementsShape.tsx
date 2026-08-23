@@ -102,7 +102,7 @@ function IntermediateWallLengthIndicator({
       onClick={
         isSelected
           ? () => {
-              const { addBuildingConstraint, updateIntermediateWallAlignmentPreservingGeometry } = getModelActions()
+              const { addBuildingConstraint } = getModelActions()
               const { worldToStage } = viewportActions()
               const position = worldToStage(midpoint(startPoint, endPoint))
               activateLengthInput({
@@ -112,11 +112,10 @@ function IntermediateWallLengthIndicator({
                 placeholder: 'Enter length...',
                 onCommit: enteredValue => {
                   try {
-                    updateIntermediateWallAlignmentPreservingGeometry(wallId, side)
                     addBuildingConstraint({ type: 'wallLength', wall: wallId, side, length: enteredValue })
                     gcsService.triggerSolve()
                   } catch (error) {
-                    toast.error(error instanceof Error ? error.message : 'Could not change wall attachment axis')
+                    toast.error(error instanceof Error ? error.message : 'Could not add length constraint')
                   }
                 },
                 onCancel: () => {
