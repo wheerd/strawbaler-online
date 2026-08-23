@@ -487,14 +487,13 @@ unrelated walls.
 The initial GCS geometry registration, constraint translation, model-to-GCS synchronization, and solved wall-node/entity synchronization are implemented. The following gaps remain tracked separately from movement behavior:
 
 1. **Intermediate wall length translation**
-   - `wallLength` translation still assumes perimeter wall corner IDs.
-
-- Intermediate walls use their requested left/right axis endpoint points directly.
+   - Complete: intermediate walls use their requested left/right axis endpoint points directly.
 
 2. **Constraint transfer during intermediate wall split/merge**
-   - Intermediate wall split/merge currently removes constraints associated with deleted walls/nodes.
-   - Constraints should eventually transfer to replacement walls/nodes where the relationship remains valid.
-   - Existing perimeter-specific split/merge transfer logic should not be assumed to cover intermediate walls.
+   - Complete for supported wall, wall-node, and wall-entity relationships.
+   - Split transfers length, horizontal/vertical, parallel, endpoint wall-node, and same-segment entity constraints to the replacement walls.
+   - Merge transfers compatible constraints to the merged wall and drops relationships that depend on the deleted internal node.
+   - Splits and merges also maintain reverse-index entries and add the colinear constraint for a newly created split node.
 
 3. **Multi-wall node constraint semantics**
    - A node with more than two connected walls requires an explicit wall pair for angle, perpendicular, and colinear constraints.

@@ -741,6 +741,67 @@ describe('intermediateWallsSlice', () => {
 
       expect(state.perimeters[perimeterId].wallNodeIds).toContain(newNodeId)
     })
+
+    it('should transfer wall constraints and endpoint relationships when splitting', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
+      const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 4000))
+      const wall = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
+        120
+      )
+      const connectedWall = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeC.id, axis: 'left' },
+        { nodeId: nodeA.id, axis: 'left' },
+        120
+      )
+
+      state.actions.addBuildingConstraint({ type: 'wallLength', wall: wall.id, side: 'right', length: 6000 })
+      state.actions.addBuildingConstraint({ type: 'horizontalWall', wall: wall.id })
+      state.actions.addBuildingConstraint({ type: 'parallel', wallA: wall.id, wallB: connectedWall.id })
+      state.actions.addBuildingConstraint({
+        type: 'wallNodePerpendicular',
+        node: nodeA.id,
+        wallA: wall.id,
+        wallB: connectedWall.id
+      })
+
+      const splitNodeId = state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(5000, 2500))
+      const splitWalls = state.perimeters[perimeterId].intermediateWallIds
+        .map(id => state.intermediateWalls[id])
+        .filter(item => item.id !== wall.id)
+      const firstWall = splitWalls.find(item => item.start.nodeId === nodeA.id)
+      const secondWall = splitWalls.find(item => item.end.nodeId === nodeB.id)
+
+      expect(firstWall).toBeDefined()
+      expect(secondWall).toBeDefined()
+      expect(state.actions.getConstraintsForEntity(wall.id)).toHaveLength(0)
+
+      const lengthConstraints = state.actions.getAllBuildingConstraints().filter(c => c.type === 'wallLength')
+      expect(lengthConstraints).toHaveLength(2)
+      expect(lengthConstraints.every(c => c.side === 'right')).toBe(true)
+      expect(lengthConstraints.map(c => c.wall)).toEqual(expect.arrayContaining([firstWall!.id, secondWall!.id]))
+
+      const horizontalConstraints = state.actions.getAllBuildingConstraints().filter(c => c.type === 'horizontalWall')
+      expect(horizontalConstraints.map(c => c.wall)).toEqual(expect.arrayContaining([firstWall!.id, secondWall!.id]))
+
+      const parallel = state.actions.getAllBuildingConstraints().find(c => c.type === 'parallel')
+      expect(parallel).toMatchObject({ wallB: connectedWall.id })
+      expect([parallel?.wallA]).toEqual(expect.arrayContaining([firstWall!.id]))
+
+      const endpointConstraint = state.actions.getAllBuildingConstraints().find(c => c.type === 'wallNodePerpendicular')
+      expect(endpointConstraint).toMatchObject({ node: nodeA.id, wallA: firstWall!.id, wallB: connectedWall.id })
+
+      const splitConstraint = state.actions
+        .getAllBuildingConstraints()
+        .find(c => c.type === 'wallNodeColinear' && c.node === splitNodeId)
+      expect(splitConstraint).toMatchObject({ wallA: firstWall!.id, wallB: secondWall!.id })
+    })
   })
 
   describe('updateInnerWallNodePosition', () => {
@@ -1035,6 +1096,69 @@ describe('intermediateWallsSlice', () => {
       expect(state.wallPosts[postB.id].centerOffsetFromWallStart).toBeCloseTo(wallALength + wallBLength - 700, 5)
       expect(state.wallNodes[mergeNode.id]).toBeUndefined()
       expectConsistentIntermediateWallReferences(state, perimeterId)
+    })
+
+    it('should transfer constraints to the merged wall and remove internal-node relationships', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const mergeNode = state.actions.addInnerWallNode(perimeterId, newVec2(5000, 2500))
+      const nodeC = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
+      const nodeD = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 4000))
+      const wallA = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: mergeNode.id, axis: 'left' },
+        120
+      )
+      const wallB = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: mergeNode.id, axis: 'left' },
+        { nodeId: nodeC.id, axis: 'left' },
+        120
+      )
+      const connectedWall = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeD.id, axis: 'left' },
+        120
+      )
+
+      state.actions.addBuildingConstraint({ type: 'wallLength', wall: wallA.id, side: 'right', length: 3000 })
+      state.actions.addBuildingConstraint({ type: 'wallLength', wall: wallB.id, side: 'right', length: 3000 })
+      state.actions.addBuildingConstraint({ type: 'horizontalWall', wall: wallA.id })
+      state.actions.addBuildingConstraint({ type: 'horizontalWall', wall: wallB.id })
+      state.actions.addBuildingConstraint({ type: 'parallel', wallA: wallA.id, wallB: connectedWall.id })
+      state.actions.addBuildingConstraint({
+        type: 'wallNodePerpendicular',
+        node: nodeA.id,
+        wallA: wallA.id,
+        wallB: connectedWall.id
+      })
+      state.actions.addBuildingConstraint({
+        type: 'wallNodeColinear',
+        node: mergeNode.id,
+        wallA: wallA.id,
+        wallB: wallB.id
+      })
+
+      const mergedId = state.actions.mergeIntermediateWalls(mergeNode.id)
+
+      expect(mergedId).not.toBeNull()
+      expect(state.actions.getConstraintsForEntity(wallA.id)).toHaveLength(0)
+      expect(state.actions.getConstraintsForEntity(wallB.id)).toHaveLength(0)
+      expect(state.actions.getConstraintsForEntity(mergeNode.id)).toHaveLength(0)
+
+      const constraints = state.actions.getAllBuildingConstraints()
+      expect(constraints.filter(c => c.type === 'wallLength')).toHaveLength(1)
+      expect(constraints.filter(c => c.type === 'horizontalWall')).toHaveLength(1)
+      expect(constraints.find(c => c.type === 'parallel')).toMatchObject({ wallA: mergedId, wallB: connectedWall.id })
+      expect(constraints.find(c => c.type === 'wallNodePerpendicular')).toMatchObject({
+        node: nodeA.id,
+        wallA: mergedId,
+        wallB: connectedWall.id
+      })
+      expect(constraints.find(c => c.type === 'wallNodeColinear')).toBeUndefined()
     })
   })
 

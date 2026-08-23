@@ -11,7 +11,11 @@ import type {
 import type { PerimeterCornerId, PerimeterId, PerimeterWallId } from '@/building/model/ids'
 import { createStoreyId, isOpeningId, isWallPostId } from '@/building/model/ids'
 import { NotFoundError } from '@/building/store/errors'
-import type { ConstraintsState } from '@/building/store/slices/constraintsSlice'
+import {
+  type ConstraintsActions,
+  type ConstraintsState,
+  createConstraintsSlice
+} from '@/building/store/slices/constraintsSlice'
 import type { IntermediateWallsSlice, IntermediateWallsState } from '@/building/store/slices/intermediateWallsSlice'
 import { createIntermediateWallsSlice } from '@/building/store/slices/intermediateWallsSlice'
 import {
@@ -513,7 +517,7 @@ export type IntermediateWallsTestState = IntermediateWallsSlice &
   WallEntitiesState &
   TimestampsState &
   ConstraintsState & {
-    actions: IntermediateWallsSlice['actions'] & WallEntitiesActions
+    actions: IntermediateWallsSlice['actions'] & WallEntitiesActions & ConstraintsActions
   }
 
 export function setupIntermediateWallsSlice(
@@ -545,9 +549,11 @@ export function setupIntermediateWallsSlice(
   }
 
   const wallEntitiesActions = createWallEntitiesSlice(mockSet, mockGet, state as any)
+  const constraintsActions = createConstraintsSlice(mockSet, mockGet, state as any)
   state.actions = {
     ...createIntermediateWallsSlice(mockSet, mockGet, state as any).actions,
-    ...wallEntitiesActions.actions
+    ...wallEntitiesActions.actions,
+    ...constraintsActions.actions
   }
 
   mockGet.mockImplementation(() => state)
