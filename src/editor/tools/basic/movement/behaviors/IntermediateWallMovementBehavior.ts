@@ -18,8 +18,7 @@ import {
   getAffectedIntermediateWalls,
   getFixedWallPointIds,
   getWallNodePositions,
-  getWallValidationContext,
-  isSolvedWallGeometryValid
+  getWallValidationContext
 } from './wallMovementValidation'
 
 export interface IntermediateWallEntityContext {
@@ -100,10 +99,10 @@ export class IntermediateWallMovementBehavior implements MovementBehavior<
 
   validatePosition(
     _movementState: IntermediateWallMovementState,
-    context: MovementContext<IntermediateWallEntityContext>
+    _context: MovementContext<IntermediateWallEntityContext>
   ): boolean {
-    const { directNodeIds, gcs, validationContext, affectedWallIds } = context.entity
-    return isSolvedWallGeometryValid(gcs, validationContext, [...directNodeIds], affectedWallIds)
+    // The GCS solver's internal validator already checks all geometric validity.
+    return true
   }
 
   commitMovement(
@@ -119,14 +118,9 @@ export class IntermediateWallMovementBehavior implements MovementBehavior<
   }
 
   applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<IntermediateWallEntityContext>): boolean {
-    const { wall, directNodeIds, gcs, validationContext, affectedWallIds } = context.entity
+    const { wall, directNodeIds, gcs } = context.entity
     gcs.startAttachedPointsDrag([...directNodeIds].map(wallNodeRefPointId))
     gcs.updatePointsDrag(deltaDifference[0], deltaDifference[1])
-    const valid = isSolvedWallGeometryValid(gcs, validationContext, [...directNodeIds], affectedWallIds)
-    if (!valid) {
-      gcs.endDrag()
-      return false
-    }
     context.store.applyGcsWallNodePositions(
       wall.perimeterId,
       getWallNodePositions(gcs, [

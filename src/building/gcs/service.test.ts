@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { IntermediateWallWithGeometry, Perimeter, PerimeterWallWithGeometry } from '@/building/model'
+import type { IntermediateWallWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
 import type { PerimeterId, PerimeterWallId, WallEntityId, WallNodeId } from '@/building/model/ids'
 import { partial } from '@/test/helpers'
 
@@ -47,7 +47,6 @@ function makeWrappedGcs(points: { id: string; x: number; y: number }[]): Wrapped
     gcs as never,
     points.map(point => ({ ...point, type: 'point' as const, fixed: false })),
     [],
-    new Map<PerimeterId, Perimeter['cornerIds']>([['perimeter_1' as PerimeterId, []]]),
     [],
     {}
   )
@@ -133,7 +132,6 @@ describe('WrappedGcs solved model synchronization', () => {
         { id: 'endpoint_b', type: 'point', x: 30, y: 40, fixed: false }
       ],
       [],
-      new Map(),
       [],
       {}
     )
@@ -190,7 +188,6 @@ describe('WrappedGcs solved model synchronization', () => {
         { id: 'endpoint_b', type: 'point', x: 30, y: 40, fixed: false }
       ],
       [],
-      new Map(),
       [],
       {}
     )

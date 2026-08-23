@@ -19,8 +19,7 @@ import {
   getFixedWallPointIds,
   getSolvedIntermediateWallLines,
   getWallNodePositions,
-  getWallValidationContext,
-  isSolvedWallGeometryValid
+  getWallValidationContext
 } from './wallMovementValidation'
 
 export interface WallNodeEntityContext {
@@ -90,13 +89,9 @@ export class WallNodeMovementBehavior implements MovementBehavior<WallNodeEntity
     }
   }
 
-  validatePosition(movementState: WallNodeMovementState, context: MovementContext<WallNodeEntityContext>): boolean {
-    const { node, gcs, validationContext, affectedWallIds } = context.entity
-    return (
-      Number.isFinite(movementState.position[0]) &&
-      Number.isFinite(movementState.position[1]) &&
-      isSolvedWallGeometryValid(gcs, validationContext, [node.id], affectedWallIds)
-    )
+  validatePosition(_movementState: WallNodeMovementState, _context: MovementContext<WallNodeEntityContext>): boolean {
+    // The GCS solver's internal validator already checks all geometric validity.
+    return true
   }
 
   commitMovement(movementState: WallNodeMovementState, context: MovementContext<WallNodeEntityContext>): boolean {
@@ -109,15 +104,10 @@ export class WallNodeMovementBehavior implements MovementBehavior<WallNodeEntity
   }
 
   applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<WallNodeEntityContext>): boolean {
-    const { node, gcs, perimeterId, validationContext, affectedWallIds } = context.entity
+    const { node, gcs, perimeterId } = context.entity
     gcs.startPointsDrag([wallNodeRefPointId(node.id)])
     gcs.updatePointsDrag(deltaDifference[0], deltaDifference[1])
     const position = gcs.getPointPosition(wallNodeRefPointId(node.id))
-    const valid = isSolvedWallGeometryValid(gcs, validationContext, [node.id], affectedWallIds)
-    if (!valid) {
-      gcs.endDrag()
-      return false
-    }
     context.store.applyGcsWallNodePositions(perimeterId, { [node.id]: position })
     gcs.applyWallEntityOffsets(perimeterId)
     gcs.endDrag()

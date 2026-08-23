@@ -21,7 +21,7 @@ import {
 import { createGcs } from '@/building/gcs/gcsInstance'
 import { getGcsActions, getGcsState } from '@/building/gcs/store'
 import { COLLINEARITY_NUDGE_DISTANCE, validateSolution } from '@/building/gcs/validator'
-import type { EntityId, PerimeterCornerId, PerimeterId, PerimeterWallId, WallNodeId } from '@/building/model'
+import type { EntityId, Perimeter, PerimeterCornerId, PerimeterId, PerimeterWallId, WallNodeId } from '@/building/model'
 import { isOpeningId, isWallPostId } from '@/building/model/ids'
 import { getModelActions } from '@/building/store'
 import { type Length, type LineSegment2D, type Vec2, midpoint, newVec2, projectVec2 } from '@/shared/geometry'
@@ -211,11 +211,13 @@ class GcsService {
     const modelActions = getModelActions()
     const activeStoreyId = modelActions.getActiveStoreyId()
 
+    const perimeters: Perimeter[] = []
     const activePerimeterIds: PerimeterId[] = []
     for (const perimeterId of Object.keys(gcsState.perimeterRegistry) as PerimeterId[]) {
       const perimeter = modelActions.getPerimeterById(perimeterId)
       if (perimeter.storeyId === activeStoreyId) {
         activePerimeterIds.push(perimeterId)
+        perimeters.push(perimeter)
       }
     }
 
@@ -249,13 +251,7 @@ class GcsService {
 
     const primitives: SketchPrimitive[] = [...lines, ...Object.values(constraints)]
 
-    const cornerOrderMap = new Map<PerimeterId, PerimeterCornerId[]>()
-    for (const perimeterId of activePerimeterIds) {
-      const perimeter = modelActions.getPerimeterById(perimeterId)
-      cornerOrderMap.set(perimeterId, [...perimeter.cornerIds])
-    }
-
-    return new WrappedGcs(createGcs(), fixedPoints, primitives, cornerOrderMap, lines, constraints)
+    return new WrappedGcs(createGcs(), fixedPoints, primitives, lines, constraints, perimeters)
   }
 }
 
@@ -269,24 +265,24 @@ export class WrappedGcs {
   private points: SketchPoint[]
   private tempPoints: SketchPoint[] = []
   private tempPrimitives: SketchPrimitive[] = []
-  private cornerOrderMap: Map<PerimeterId, PerimeterCornerId[]>
   private lines: SketchLine[]
   private constraints: Record<string, Constraint>
+  private perimeters: Perimeter[]
 
   constructor(
     gcs: GcsWrapper,
     points: SketchPoint[],
     primitives: SketchPrimitive[],
-    cornerOrderMap: Map<PerimeterId, PerimeterCornerId[]>,
     lines: SketchLine[],
-    constraints: Record<string, Constraint>
+    constraints: Record<string, Constraint>,
+    perimeters: Perimeter[] = []
   ) {
     this.gcs = gcs
     this.points = points
     this.primitives = primitives
-    this.cornerOrderMap = cornerOrderMap
     this.lines = lines
     this.constraints = constraints
+    this.perimeters = perimeters
     this.resetGcs()
   }
 
@@ -447,11 +443,11 @@ export class WrappedGcs {
    * Get the solved perimeter boundary (reference-side corner positions in order).
    */
   getPerimeterBoundary(perimeterId: PerimeterId): Vec2[] {
-    const cornerIds = this.cornerOrderMap.get(perimeterId)
-    if (!cornerIds) {
-      throw new Error(`Perimeter "${perimeterId}" not found in corner order map`)
+    const perimeter = this.perimeters.find(p => p.id === perimeterId)
+    if (!perimeter) {
+      throw new Error(`Perimeter "${perimeterId}" not found`)
     }
-    return cornerIds.map(cornerId => this.findPointPosition(nodeRefSidePointId(cornerId)))
+    return perimeter.cornerIds.map(cornerId => this.findPointPosition(nodeRefSidePointId(cornerId)))
   }
 
   applyWallNodePositions(perimeterId: PerimeterId): void {
@@ -541,9 +537,9 @@ export class WrappedGcs {
     return newVec2(point.x, point.y)
   }
 
-  private resetGcs(): void {
+  private resetGcs(points = this.points): void {
     this.gcs.clear_data()
-    this.gcs.push_primitives_and_params([...this.points, ...this.tempPoints])
+    this.gcs.push_primitives_and_params([...points, ...this.tempPoints])
     this.gcs.push_primitives_and_params([...this.primitives, ...this.tempPrimitives])
   }
 
@@ -624,6 +620,8 @@ export class WrappedGcs {
   }
 
   private applySolution(maxIterations = 3): boolean {
+    let basePoints = this.points
+
     for (let iteration = 0; iteration < maxIterations; iteration++) {
       this.gcs.apply_solution()
 
@@ -641,12 +639,12 @@ export class WrappedGcs {
             : point
         })
 
-      const newPoints = updatePoints(this.points)
+      const newPoints = updatePoints(basePoints)
       const newTempPoints = updatePoints(this.tempPoints)
 
       const pointsMap = Object.fromEntries(newPoints.map(p => [p.id, p]))
       const linesMap = Object.fromEntries(this.lines.map(l => [l.id, l]))
-      const validation = validateSolution(pointsMap, this.cornerOrderMap, this.constraints, linesMap)
+      const validation = validateSolution(this.perimeters, pointsMap, this.constraints, linesMap)
 
       getGcsActions().setTmpPoints(pointsMap)
 
@@ -657,14 +655,16 @@ export class WrappedGcs {
       }
 
       if (validation.nudges && validation.nudges.length > 0) {
+        const nudgedPoints = newPoints.map(point => ({ ...point }))
         for (const { pointId, nudgeDirection } of validation.nudges) {
-          const point = this.points.find(p => p.id === pointId)
+          const point = nudgedPoints.find(p => p.id === pointId)
           if (point) {
             point.x += nudgeDirection[0] * COLLINEARITY_NUDGE_DISTANCE
             point.y += nudgeDirection[1] * COLLINEARITY_NUDGE_DISTANCE
           }
         }
-        this.resetGcs()
+        basePoints = nudgedPoints
+        this.resetGcs(basePoints)
         if (this.gcs.solve(Algorithm.DogLeg) !== SolveStatus.Success) {
           this.showSolverFailureToast()
           break
