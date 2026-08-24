@@ -2,7 +2,13 @@ import { toast } from 'sonner'
 
 import { gcsService } from '@/building/gcs/service'
 import { useConstraintStatus } from '@/building/gcs/store'
-import type { Constraint, IntermediateWallId, WallLengthConstraint } from '@/building/model'
+import type {
+  Constraint,
+  HorizontalWallConstraint,
+  IntermediateWallId,
+  VerticalWallConstraint,
+  WallLengthConstraint
+} from '@/building/model'
 import { getModelActions, useConstraintsForEntity, useIntermediateWallById } from '@/building/store'
 import { LengthIndicator } from '@/editor/canvas/components/LengthIndicator'
 import {
@@ -10,6 +16,7 @@ import {
   DIMENSION_DEFAULT_STROKE_WIDTH,
   WALL_DIM_LAYER_OFFSET
 } from '@/editor/canvas/dimensions'
+import { ConstraintBadge } from '@/editor/canvas/overlay/ConstraintBadge'
 import { activateLengthInput } from '@/editor/canvas/services/length-input'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
 import { useViewMode } from '@/editor/canvas/state/viewModeStore'
@@ -22,18 +29,28 @@ export function IntermediateWallMeasurementsShape({
 }: {
   wallId: IntermediateWallId
 }): React.JSX.Element | null {
-  const mode = useViewMode()
+const mode = useViewMode()
   const wall = useIntermediateWallById(wallId)
   const constraints = useConstraintsForEntity(wallId)
   const { isCurrentSelection } = useSelectionStore()
   const leftConstraint = findLengthConstraint(constraints, wallId, 'left')
   const rightConstraint = findLengthConstraint(constraints, wallId, 'right')
+  const hvConstraint = findHVConstraint(constraints, wallId)
+  const suggestedHVType = getSuggestedHVType(wall.direction)
   const isSelected = isCurrentSelection(wallId)
 
   if (mode !== 'walls') return null
 
   return (
     <>
+      {(hvConstraint != null || (isSelected && suggestedHVType != null)) && (
+        <IntermediateWallHVConstraintBadge
+          wall={wall}
+          hvConstraint={hvConstraint}
+          suggestedHVType={suggestedHVType}
+          isSelected={isSelected}
+        />
+      )}
       {(isSelected || leftConstraint) && (
         <IntermediateWallLengthIndicator
           wallId={wallId}
@@ -57,6 +74,85 @@ export function IntermediateWallMeasurementsShape({
         />
       )}
     </>
+  )
+}
+
+function findHVConstraint(
+  constraints: readonly Constraint[],
+  wallId: IntermediateWallId
+): HorizontalWallConstraint | VerticalWallConstraint | undefined {
+  return constraints.find(
+    (constraint): constraint is HorizontalWallConstraint | VerticalWallConstraint =>
+      (constraint.type === 'horizontalWall' || constraint.type === 'verticalWall') && constraint.wall === wallId
+  )
+}
+
+function getSuggestedHVType(direction: Vec2): 'horizontalWall' | 'verticalWall' | null {
+  if (Math.abs(direction[1]) < 0.001) return 'horizontalWall'
+  if (Math.abs(direction[0]) < 0.001) return 'verticalWall'
+  return null
+}
+
+function handleHVConstraintToggle(
+  wallId: IntermediateWallId,
+  hvConstraint: HorizontalWallConstraint | VerticalWallConstraint | undefined,
+  suggestedHVType: 'horizontalWall' | 'verticalWall' | null
+): void {
+  const { addBuildingConstraint, removeBuildingConstraint } = getModelActions()
+
+  if (hvConstraint) {
+    removeBuildingConstraint(hvConstraint.id)
+  } else if (suggestedHVType) {
+    addBuildingConstraint({ type: suggestedHVType, wall: wallId })
+  }
+  gcsService.triggerSolve()
+}
+
+function IntermediateWallHVConstraintBadge({
+  wall,
+  hvConstraint,
+  suggestedHVType,
+  isSelected
+}: {
+  wall: ReturnType<typeof useIntermediateWallById>
+  hvConstraint: HorizontalWallConstraint | VerticalWallConstraint | undefined
+  suggestedHVType: 'horizontalWall' | 'verticalWall' | null
+  isSelected: boolean
+}): React.JSX.Element {
+  const status = useConstraintStatus(hvConstraint?.id)
+  const label = hvConstraint
+    ? hvConstraint.type === 'horizontalWall'
+      ? '—'
+      : '\u2223'
+    : suggestedHVType === 'horizontalWall'
+      ? '—'
+      : '\u2223'
+
+  const tooltipKey = hvConstraint
+    ? hvConstraint.type === 'horizontalWall'
+      ? ('horizontal' as const)
+      : ('vertical' as const)
+    : suggestedHVType === 'horizontalWall'
+      ? ('horizontal' as const)
+      : ('vertical' as const)
+
+  return (
+    <ConstraintBadge
+      label={label}
+      basePoint={midpoint(wall.leftLine.start, wall.leftLine.end)}
+      offsetDirection={wall.leftDirection}
+      offsetDistance={2 * WALL_DIM_LAYER_OFFSET}
+      locked={hvConstraint != null}
+      onClick={
+        isSelected
+          ? () => {
+              handleHVConstraintToggle(wall.id, hvConstraint, suggestedHVType)
+            }
+          : undefined
+      }
+      tooltipKey={tooltipKey}
+      status={status.conflicting ? 'conflicting' : status.redundant ? 'redundant' : 'normal'}
+    />
   )
 }
 

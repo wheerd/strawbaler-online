@@ -675,11 +675,7 @@ describe('GCS store perimeter geometry', () => {
         p1_id: `wallnode_${nodeId}_end`,
         p2_id: `${intermediateWallId}_start_ref`
       })
-      expect(state.constraints[`wallnode_${nodeId}_ref_on_perimeter`]).toMatchObject({
-        type: 'point_on_line_pl',
-        p_id: `wallnode_${nodeId}_ref`,
-        l_id: `wall_${wallA}_ref`
-      })
+      expect(state.constraints[`wallnode_${nodeId}_ref_on_perimeter`]).toBeUndefined()
       expect(state.constraints[`wallnode_${nodeId}_start_on_perimeter`]).toMatchObject({
         type: 'point_on_line_pl',
         p_id: `wallnode_${nodeId}_start`,

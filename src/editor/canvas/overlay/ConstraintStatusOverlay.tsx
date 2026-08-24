@@ -2,10 +2,12 @@ import { TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { useAllConstraintStatus } from '@/building/gcs/store'
+import { isDebug } from '@/shared/ui/hooks/useDebug'
 
 export function ConstraintStatusOverlay(): React.JSX.Element | null {
   const { t } = useTranslation('inspector')
-  const { conflictingCount, redundantCount } = useAllConstraintStatus()
+  const debug = isDebug
+  const { conflictingCount, redundantCount, redundant, conflicting } = useAllConstraintStatus()
 
   const hasConflicts = conflictingCount > 0
   const hasRedundant = redundantCount > 0
@@ -20,9 +22,11 @@ export function ConstraintStatusOverlay(): React.JSX.Element | null {
     ? 'text-destructive-foreground bg-destructive hover:bg-destructive/90'
     : 'text-destructive-foreground bg-amber-500 hover:bg-amber-500/90'
 
-  const tooltipText = hasConflicts
-    ? t($ => $.constraint.conflictStatus, { count })
-    : t($ => $.constraint.redundantStatus, { count })
+  const tooltipText = debug
+    ? `Redundant:\n${[...redundant].join(',\n')}\nConflicting:\n${[...conflicting].join(',\n')}`
+    : hasConflicts
+      ? t($ => $.constraint.conflictStatus, { count })
+      : t($ => $.constraint.redundantStatus, { count })
 
   return (
     <div

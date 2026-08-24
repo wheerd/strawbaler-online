@@ -591,11 +591,16 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
           const insideLineId = isRefInside ? wallRefLineId(node.wallId) : wallNonRefLineId(node.wallId)
           const startPointId = wallNodePerimeterPointId(node.id, 'start')
           const endPointId = wallNodePerimeterPointId(node.id, 'end')
+
+          const attachedIntermediateWallCount = node.connectedWallIds.length
           actions.addPoint(startPointId, node.insideLine.start, false)
           actions.addPoint(endPointId, node.insideLine.end, false)
           entry.pointIds.push(startPointId, endPointId)
 
-          for (const pointId of [startPointId, endPointId, nodePointId]) {
+          const perimeterPointIds =
+            attachedIntermediateWallCount === 1 ? [startPointId, endPointId] : [startPointId, endPointId, nodePointId]
+
+          for (const pointId of perimeterPointIds) {
             const onPerimeterId = `${pointId}_on_perimeter`
             actions.addConstraint({
               id: onPerimeterId,
@@ -871,6 +876,7 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
 
 export const useGcsPoints = (): GcsStoreState['points'] => useGcsStore(state => state.tmpPoints ?? state.points)
 export const useGcsLines = (): GcsStoreState['lines'] => useGcsStore(state => state.lines)
+export const useGcsConstraints = (): GcsStoreState['constraints'] => useGcsStore(state => state.constraints)
 export const useGcsBuildingConstraints = (): GcsStoreState['buildingConstraints'] =>
   useGcsStore(state => state.buildingConstraints)
 export const useGcsPerimeterRegistry = (): GcsStoreState['perimeterRegistry'] =>
@@ -900,11 +906,15 @@ export const useConstraintStatus = (
 export const useAllConstraintStatus = (): {
   conflictingCount: number
   redundantCount: number
+  conflicting: Set<string>
+  redundant: Set<string>
 } => {
   return useGcsStore(
     useShallow(state => ({
       conflictingCount: state.conflictingConstraintIds.size,
-      redundantCount: state.redundantConstraintIds.size
+      redundantCount: state.redundantConstraintIds.size,
+      conflicting: state.conflictingConstraintIds,
+      redundant: state.redundantConstraintIds
     }))
   )
 }
