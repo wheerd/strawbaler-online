@@ -12,17 +12,25 @@ import {
 } from '@/editor/canvas/dimensions'
 import { activateLengthInput } from '@/editor/canvas/services/length-input'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
+import { useViewMode } from '@/editor/canvas/state/viewModeStore'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { type Length, type Vec2, midpoint } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
 
-export function IntermediateWallMeasurementsShape({ wallId }: { wallId: IntermediateWallId }): React.JSX.Element {
+export function IntermediateWallMeasurementsShape({
+  wallId
+}: {
+  wallId: IntermediateWallId
+}): React.JSX.Element | null {
+  const mode = useViewMode()
   const wall = useIntermediateWallById(wallId)
   const constraints = useConstraintsForEntity(wallId)
   const { isCurrentSelection } = useSelectionStore()
   const leftConstraint = findLengthConstraint(constraints, wallId, 'left')
   const rightConstraint = findLengthConstraint(constraints, wallId, 'right')
   const isSelected = isCurrentSelection(wallId)
+
+  if (mode !== 'walls') return null
 
   return (
     <>

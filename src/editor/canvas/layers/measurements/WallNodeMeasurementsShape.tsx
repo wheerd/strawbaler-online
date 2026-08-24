@@ -28,6 +28,7 @@ import {
 import { ConstraintBadgeStack, type ConstraintBadgeStackItem } from '@/editor/canvas/overlay/ConstraintBadgeStack'
 import { activateLengthInput } from '@/editor/canvas/services/length-input'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
+import { useViewMode } from '@/editor/canvas/state/viewModeStore'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import {
   type Vec2,
@@ -52,11 +53,14 @@ import {
   getAdjacentWallNodeBadgePairs
 } from './wallNodeBadgeGeometry'
 
-export function WallNodeMeasurementsShape({ nodeId }: { nodeId: WallNodeId }): React.JSX.Element {
+export function WallNodeMeasurementsShape({ nodeId }: { nodeId: WallNodeId }): React.JSX.Element | null {
+  const mode = useViewMode()
   const node = useWallNodeById(nodeId)
   const constraints = useConstraintsForEntity(nodeId)
   const isSelected = useSelectionStore(state => state.isCurrentSelection(nodeId))
   const intermediateWalls = useIntermediateWallsByPerimeter(node.perimeterId)
+
+  if (mode !== 'walls') return null
 
   return (
     <>

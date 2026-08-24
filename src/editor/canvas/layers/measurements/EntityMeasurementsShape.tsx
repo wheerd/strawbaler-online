@@ -30,6 +30,7 @@ import { CenterModeToggleBadge } from '@/editor/canvas/overlay/CenterModeToggleB
 import { activateLengthInput } from '@/editor/canvas/services/length-input'
 import { useCurrentSelection } from '@/editor/canvas/state/selectionStore'
 import { useConstraintDisplayMode } from '@/editor/canvas/state/useConstraintDisplayMode'
+import { useViewMode } from '@/editor/canvas/state/viewModeStore'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { type Length, type Vec2, direction, midpoint, perpendicularCCW, scaleAddVec2 } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
@@ -47,6 +48,9 @@ export function EntityMeasurementsShape({
 }: {
   entity: WallEntity & WallEntityGeometry
 }): React.JSX.Element | null {
+  const mode = useViewMode()
+  if (mode !== 'walls') return null
+
   if (!isPerimeterWallId(entity.wallId)) {
     return (
       <IntermediateWallEntityMeasurementsShape

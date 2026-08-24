@@ -20,6 +20,7 @@ import { AngleInput } from '@/editor/canvas/components/AngleInput'
 import { WALL_DIM_LAYER_OFFSET } from '@/editor/canvas/dimensions'
 import { ConstraintBadge } from '@/editor/canvas/overlay/ConstraintBadge'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
+import { useViewMode } from '@/editor/canvas/state/viewModeStore'
 import { useViewportActions } from '@/editor/canvas/state/viewportStore'
 import {
   ZERO_VEC2,
@@ -33,7 +34,12 @@ import {
   scaleAddVec2
 } from '@/shared/geometry'
 
-export function PerimeterCornerMeasurementsShape({ cornerId }: { cornerId: PerimeterCornerId }): React.JSX.Element {
+export function PerimeterCornerMeasurementsShape({
+  cornerId
+}: {
+  cornerId: PerimeterCornerId
+}): React.JSX.Element | null {
+  const mode = useViewMode()
   const select = useSelectionStore()
   const isSelected = select.isCurrentSelection(cornerId)
   const modelActions = useModelActions()
@@ -222,6 +228,8 @@ export function PerimeterCornerMeasurementsShape({ cornerId }: { cornerId: Perim
     modelActions.removeBuildingConstraint(lockedConstraint.id)
     gcsService.triggerSolve()
   }, [modelActions, lockedConstraint])
+
+  if (mode !== 'walls') return null
 
   return (
     <>

@@ -26,6 +26,7 @@ import {
 import { ConstraintBadge } from '@/editor/canvas/overlay/ConstraintBadge'
 import { activateLengthInput } from '@/editor/canvas/services/length-input'
 import { useSelectionStore } from '@/editor/canvas/state/selectionStore'
+import { useViewMode } from '@/editor/canvas/state/viewModeStore'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
 import { type Length, type Vec2, midpoint } from '@/shared/geometry'
 import { useFormatters } from '@/shared/i18n/useFormatters'
@@ -176,7 +177,7 @@ function HVConstraintBadge({
   onClick: (() => void) | undefined
 }) {
   const hvStatus = useConstraintStatus(hvConstraint?.id)
-  const basePoint = midpoint(wall.insideLine.start, wall.insideLine.end)
+  const basePoint = midpoint(wall.outsideLine.start, wall.outsideLine.end)
 
   const label = hvConstraint
     ? hvConstraint.type === 'horizontalWall'
@@ -207,7 +208,7 @@ function HVConstraintBadge({
       label={label}
       basePoint={basePoint}
       offsetDirection={wall.outsideDirection}
-      offsetDistance={(subEntitySelected ? 5 : 4) * WALL_DIM_LAYER_OFFSET}
+      offsetDistance={(subEntitySelected ? 4.3 : 3.3) * WALL_DIM_LAYER_OFFSET}
       locked={hvConstraint != null}
       onClick={onClick}
       tooltipKey={tooltipKey}
@@ -216,7 +217,8 @@ function HVConstraintBadge({
   )
 }
 
-export function PerimeterWallMeasurementsShape({ wallId }: { wallId: PerimeterWallId }): React.JSX.Element {
+export function PerimeterWallMeasurementsShape({ wallId }: { wallId: PerimeterWallId }): React.JSX.Element | null {
+  const mode = useViewMode()
   const { isCurrentSelection, isSelected } = useSelectionStore()
   const wall = usePerimeterWallById(wallId)
   const startCorner = usePerimeterCornerById(wall.startCornerId)
@@ -241,6 +243,8 @@ export function PerimeterWallMeasurementsShape({ wallId }: { wallId: PerimeterWa
     if (Math.abs(dx) < SUGGESTION_SIN_TOLERANCE) return 'verticalWall'
     return null
   }, [hvConstraint, wall.direction])
+
+  if (mode !== 'walls') return null
 
   return (
     <>
