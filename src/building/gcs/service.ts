@@ -397,6 +397,7 @@ export class WrappedGcs {
     const solveStatus = this.gcs.solve(Algorithm.DogLeg)
     if (solveStatus !== SolveStatus.Success) {
       console.warn(`Solving GCS failed: ${solveStatus}`)
+      console.log(this.gcs.get_gcs_redundant_constraints(), this.gcs.get_gcs_conflicting_constraints())
       this.showSolverFailureToast()
       return false
     }
@@ -610,6 +611,7 @@ export class WrappedGcs {
       }
     } else {
       console.warn(`Solving GCS failed: ${solveStatus}`)
+      console.log(this.gcs.get_gcs_redundant_constraints(), this.gcs.get_gcs_conflicting_constraints())
       this.showSolverFailureToast()
     }
   }

@@ -29,7 +29,7 @@ export function IntermediateWallMeasurementsShape({
 }: {
   wallId: IntermediateWallId
 }): React.JSX.Element | null {
-const mode = useViewMode()
+  const mode = useViewMode()
   const wall = useIntermediateWallById(wallId)
   const constraints = useConstraintsForEntity(wallId)
   const { isCurrentSelection } = useSelectionStore()
@@ -87,9 +87,11 @@ function findHVConstraint(
   )
 }
 
+const SUGGESTION_SIN_TOLERANCE = Math.sin((5 * Math.PI) / 180)
+
 function getSuggestedHVType(direction: Vec2): 'horizontalWall' | 'verticalWall' | null {
-  if (Math.abs(direction[1]) < 0.001) return 'horizontalWall'
-  if (Math.abs(direction[0]) < 0.001) return 'verticalWall'
+  if (Math.abs(direction[1]) < SUGGESTION_SIN_TOLERANCE) return 'horizontalWall'
+  if (Math.abs(direction[0]) < SUGGESTION_SIN_TOLERANCE) return 'verticalWall'
   return null
 }
 
