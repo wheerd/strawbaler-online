@@ -256,24 +256,18 @@ function checkWallGeometry(
   const intermediateLines = perimeter.intermediateWallIds.flatMap(wallId => {
     const ref = linesMap[wallRefLineId(wallId)]
     const nonRef = linesMap[wallNonRefLineId(wallId)]
-    return [
-      { wallId, segment: getSolvedLine(points, ref) },
-      { wallId, segment: getSolvedLine(points, nonRef) }
-    ]
+    return [getSolvedLine(points, ref), getSolvedLine(points, nonRef)]
   })
 
   for (let i = 0; i < intermediateLines.length; i++) {
-    const { wallId, segment } = intermediateLines[i]
+    const segment = intermediateLines[i]
 
     if (!isPointInPolygon(segment.start, validationPolygon) || !isPointInPolygon(segment.end, validationPolygon)) {
       return false
     }
 
     const line = lineFromSegment(segment)
-    const remainingIntermediate = intermediateLines
-      .slice(i + 1)
-      .filter(w => w.wallId !== wallId)
-      .map(w => w.segment)
+    const remainingIntermediate = intermediateLines.slice(i + 1)
 
     for (const otherSegment of remainingIntermediate.concat(perimeterLines)) {
       const otherLine = lineFromSegment(otherSegment)
