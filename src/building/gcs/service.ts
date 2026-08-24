@@ -27,7 +27,6 @@ import { getModelActions } from '@/building/store'
 import { type Length, type LineSegment2D, type Vec2, midpoint, newVec2, projectVec2 } from '@/shared/geometry'
 
 const DRAG_TEMP_POINT_ID = 'drag_wall_temp_point'
-const DRAG_ENDPOINT_TEMP_PREFIX = 'drag_wall_endpoint_'
 
 // --- Helper functions for merging colinear H/V constraints ---
 
@@ -307,10 +306,13 @@ export class WrappedGcs {
    * Returns the current position of the drag point (the wall midpoint).
    */
   startWallDrag(wallId: PerimeterWallId): Vec2 {
-    const lineId = wallRefLineId(wallId)
+    return this.startLineDrag(wallRefLineId(wallId))
+  }
+
+  startLineDrag(lineId: string): Vec2 {
     const line = this.lines.find(l => l.id === lineId)
     if (!line) {
-      throw new Error(`GCS line "${lineId}" not found for wall "${wallId}"`)
+      throw new Error(`GCS line "${lineId}" not found`)
     }
 
     const p1 = this.findPointPosition(line.p1_id)
@@ -346,48 +348,16 @@ export class WrappedGcs {
     this.solveDrag()
   }
 
-  /** Start dragging existing points together. Updates use a delta from these positions. */
-  startPointsDrag(pointIds: string[]): Vec2[] {
-    if (pointIds.length === 0) {
-      throw new Error('At least one GCS point is required for a multi-point drag')
-    }
-
-    const positions = pointIds.map(pointId => this.findPointPosition(pointId))
+  /** Start dragging an existing point. Updates use a delta from its position. */
+  startPointDrag(pointId: string): Vec2 {
+    const positions = [this.findPointPosition(pointId)]
     this.resetGcs()
-    this.installDragConstraints(pointIds, positions)
-    return positions
+    this.installDragConstraints([pointId], positions)
+    return positions[0]
   }
 
-  /** Start dragging temporary points coincident with existing endpoints. */
-  startAttachedPointsDrag(pointIds: string[]): Vec2[] {
-    if (pointIds.length === 0) {
-      throw new Error('At least one GCS point is required for an attached drag')
-    }
-
-    const positions = pointIds.map(pointId => this.findPointPosition(pointId))
-    const temporaryPointIds = pointIds.map((_, index) => `${DRAG_ENDPOINT_TEMP_PREFIX}${index}`)
-    const temporaryPoints = positions.map((position, index) => ({
-      id: temporaryPointIds[index],
-      type: 'point' as const,
-      x: position[0],
-      y: position[1],
-      fixed: false
-    }))
-    const attachmentConstraints: SketchPrimitive[] = temporaryPointIds.map((temporaryPointId, index) => ({
-      id: `${temporaryPointId}_coincident`,
-      type: 'p2p_coincident',
-      p1_id: temporaryPointId,
-      p2_id: pointIds[index],
-      driving: true
-    }))
-
-    this.addTemporaryPrimitives(temporaryPoints, attachmentConstraints)
-    this.installDragConstraints(temporaryPointIds, positions)
-    return positions
-  }
-
-  /** Update a multi-point drag by applying the same delta to every dragged point. */
-  updatePointsDrag(deltaX: number, deltaY: number): void {
+  /** Update a point drag by applying a delta from its initial position. */
+  updatePointDrag(deltaX: number, deltaY: number): void {
     if (!this.dragState) return
     this.setDragConstraintPositions(deltaX, deltaY)
     this.solveDrag()

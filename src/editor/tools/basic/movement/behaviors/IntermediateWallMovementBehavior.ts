@@ -1,4 +1,4 @@
-import { wallNodeRefPointId } from '@/building/gcs/constraintTranslator'
+import { wallRefLineId } from '@/building/gcs/constraintTranslator'
 import { type WrappedGcs, gcsService } from '@/building/gcs/service'
 import type { IntermediateWallWithGeometry } from '@/building/model'
 import type { SelectableId, WallId, WallNodeId } from '@/building/model/ids'
@@ -12,7 +12,7 @@ import type {
   PointerMovementState
 } from '@/editor/tools/basic/movement/types'
 import type { WallValidationContext } from '@/editor/tools/intermediate-wall/wallValidation'
-import { type LineSegment2D, type Vec2, midpoint, subVec2 } from '@/shared/geometry'
+import { type LineSegment2D, type Vec2, addVec2, midpoint, subVec2 } from '@/shared/geometry'
 
 import {
   getAffectedIntermediateWalls,
@@ -25,6 +25,7 @@ export interface IntermediateWallEntityContext {
   wall: IntermediateWallWithGeometry
   directNodeIds: Set<WallNodeId>
   gcs: WrappedGcs
+  startPoint: Vec2
   validationContext: WallValidationContext
   affectedWallIds: WallId[]
 }
@@ -47,12 +48,14 @@ export class IntermediateWallMovementBehavior implements MovementBehavior<
     const directNodeIds = new Set<WallNodeId>([wall.start.nodeId, wall.end.nodeId])
     const perimeters = store.getPerimetersByStorey(store.getActiveStoreyId())
     const gcs = gcsService.getGcs(undefined, getFixedWallPointIds(perimeters, directNodeIds))
+    const startPoint = gcs.startLineDrag(wallRefLineId(wall.id))
     const validationContext = getWallValidationContext(store, wall.perimeterId)
     const affectedWalls = getAffectedIntermediateWalls(store, wall.perimeterId, directNodeIds)
     return {
       wall,
       directNodeIds,
       gcs,
+      startPoint,
       validationContext,
       affectedWallIds: affectedWalls.map(affectedWall => affectedWall.id)
     }
@@ -62,8 +65,7 @@ export class IntermediateWallMovementBehavior implements MovementBehavior<
     pointerState: PointerMovementState,
     context: MovementContext<IntermediateWallEntityContext>
   ): IntermediateWallMovementState {
-    const { wall, directNodeIds, gcs } = context.entity
-    gcs.startAttachedPointsDrag([...directNodeIds].map(wallNodeRefPointId))
+    const { wall, gcs } = context.entity
     return {
       movementDelta: pointerState.delta,
       nodePositions: getWallNodePositions(gcs, [
@@ -78,8 +80,9 @@ export class IntermediateWallMovementBehavior implements MovementBehavior<
     pointerState: PointerMovementState,
     context: MovementContext<IntermediateWallEntityContext>
   ): IntermediateWallMovementState {
-    const { wall, gcs } = context.entity
-    gcs.updatePointsDrag(pointerState.delta[0], pointerState.delta[1])
+    const { wall, gcs, startPoint } = context.entity
+    const targetPosition = addVec2(startPoint, pointerState.delta)
+    gcs.updateDrag(targetPosition[0], targetPosition[1])
     const nodePositions = getWallNodePositions(gcs, [
       context.store.getWallNodeById(wall.start.nodeId),
       context.store.getWallNodeById(wall.end.nodeId)
@@ -117,10 +120,14 @@ export class IntermediateWallMovementBehavior implements MovementBehavior<
     return true
   }
 
+  cancelMovement(context: MovementContext<IntermediateWallEntityContext>): void {
+    context.entity.gcs.endDrag()
+  }
+
   applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<IntermediateWallEntityContext>): boolean {
-    const { wall, directNodeIds, gcs } = context.entity
-    gcs.startAttachedPointsDrag([...directNodeIds].map(wallNodeRefPointId))
-    gcs.updatePointsDrag(deltaDifference[0], deltaDifference[1])
+    const { wall, gcs, startPoint } = context.entity
+    const targetPosition = addVec2(startPoint, deltaDifference)
+    gcs.updateDrag(targetPosition[0], targetPosition[1])
     context.store.applyGcsWallNodePositions(
       wall.perimeterId,
       getWallNodePositions(gcs, [

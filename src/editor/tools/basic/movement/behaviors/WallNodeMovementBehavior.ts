@@ -63,7 +63,7 @@ export class WallNodeMovementBehavior implements MovementBehavior<WallNodeEntity
     context: MovementContext<WallNodeEntityContext>
   ): WallNodeMovementState {
     const { node, gcs, affectedWallIds } = context.entity
-    gcs.startPointsDrag([wallNodeRefPointId(node.id)])
+    gcs.startPointDrag(wallNodeRefPointId(node.id))
     const lines = getSolvedIntermediateWallLines(gcs, affectedWallIds)
     return {
       position: node.center,
@@ -78,7 +78,7 @@ export class WallNodeMovementBehavior implements MovementBehavior<WallNodeEntity
     context: MovementContext<WallNodeEntityContext>
   ): WallNodeMovementState {
     const { node, gcs, affectedWallIds } = context.entity
-    gcs.updatePointsDrag(pointerState.delta[0], pointerState.delta[1])
+    gcs.updatePointDrag(pointerState.delta[0], pointerState.delta[1])
     const position = gcs.getPointPosition(wallNodeRefPointId(node.id))
     const lines = getSolvedIntermediateWallLines(gcs, affectedWallIds)
     return {
@@ -105,8 +105,8 @@ export class WallNodeMovementBehavior implements MovementBehavior<WallNodeEntity
 
   applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<WallNodeEntityContext>): boolean {
     const { node, gcs, perimeterId } = context.entity
-    gcs.startPointsDrag([wallNodeRefPointId(node.id)])
-    gcs.updatePointsDrag(deltaDifference[0], deltaDifference[1])
+    gcs.startPointDrag(wallNodeRefPointId(node.id))
+    gcs.updatePointDrag(deltaDifference[0], deltaDifference[1])
     const position = gcs.getPointPosition(wallNodeRefPointId(node.id))
     context.store.applyGcsWallNodePositions(perimeterId, { [node.id]: position })
     gcs.applyWallEntityOffsets(perimeterId)

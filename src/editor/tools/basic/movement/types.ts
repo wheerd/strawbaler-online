@@ -50,6 +50,9 @@ export interface MovementBehavior<TEntity, TState extends MovementState> {
   // Commit movement using slice operations
   commitMovement(movementState: TState, context: MovementContext<TEntity>): boolean
 
+  // Release transient solver state when a movement is cancelled or invalid
+  cancelMovement?(context: MovementContext<TEntity>): void
+
   // Apply relative movement based on delta difference from last movement
   // Used for length input to modify last movement with new distance
   applyRelativeMovement(deltaDifference: Vec2, context: MovementContext<TEntity>): boolean

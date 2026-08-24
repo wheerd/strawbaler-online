@@ -178,6 +178,10 @@ class ProjectJSONService implements IProjectImportExportService {
       // If no floor plans data is included, clear existing floor plans to avoid stale data
       getFloorPlanActions().reset()
     }
+
+    void import('@/building/gcs/service').then(({ gcsService }) => {
+      gcsService.triggerSolve()
+    })
   }
 }
 

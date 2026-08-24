@@ -25,6 +25,12 @@ vi.mock('@/building/store', () => ({
   MODEL_STORE_VERSION: 5
 }))
 
+vi.mock('@/building/gcs/service', () => ({
+  gcsService: {
+    triggerSolve: vi.fn()
+  }
+}))
+
 vi.mock('@/config/store', () => ({
   getConfigState: vi.fn(),
   hydrateConfigState: vi.fn(),

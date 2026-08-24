@@ -626,7 +626,7 @@ describe('GCS store perimeter geometry', () => {
         type: 'perimeter',
         wallId: wallA,
         offsetFromCornerStart: 2000,
-        connectedWallIds: [],
+        connectedWallIds: [intermediateWallId],
         position: [2000, 0],
         center: [2000, -210],
         insideLine: { start: [2000, 0], end: [2000, 0] },

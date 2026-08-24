@@ -32,6 +32,7 @@ import {
   type Vec2,
   crossVec2,
   direction,
+  distSqrVec2,
   distVec2,
   isPointInPolygon,
   lineFromSegment,
@@ -261,6 +262,8 @@ function checkWallGeometry(
 
   for (let i = 0; i < intermediateLines.length; i++) {
     const segment = intermediateLines[i]
+
+    if (distSqrVec2(segment.start, segment.end) < MIN_WALL_LENGTH_SQ) return false
 
     if (!isPointInPolygon(segment.start, validationPolygon) || !isPointInPolygon(segment.end, validationPolygon)) {
       return false
