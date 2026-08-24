@@ -127,9 +127,7 @@ describe('WrappedGcs solved model synchronization', () => {
         p_param_index: new Map(),
         gcs: { set_p_param: vi.fn() }
       } as never,
-      [
-        { id: 'endpoint_a', type: 'point', x: 10, y: 20, fixed: false }
-      ],
+      [{ id: 'endpoint_a', type: 'point', x: 10, y: 20, fixed: false }],
       [],
       [],
       {}
@@ -151,9 +149,8 @@ describe('WrappedGcs solved model synchronization', () => {
           param1: { o_id: 'endpoint_a', prop: 'y' },
           temporary: true,
           driving: true
-        }),
+        })
       ])
     )
   })
-
 })
