@@ -449,6 +449,34 @@ describe('translateBuildingConstraint', () => {
       ])
     })
 
+    it('uses the inside non-reference corner point for outside-reference perimeters', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallNodePosition',
+        node: wallNode,
+        perimeterWall: wallA,
+        reference: cornerA,
+        nodeSide: 'end',
+        offset: 250
+      }
+
+      expect(
+        translateBuildingConstraint(
+          constraint,
+          'outside_node_position',
+          makeContext({ getReferenceSide: () => 'left' })
+        ).constraints
+      ).toEqual([
+        {
+          id: 'bc_outside_node_position',
+          type: 'p2p_distance',
+          p1_id: `corner_${cornerA}_nonref_next`,
+          p2_id: `wallnode_${wallNode}_end`,
+          distance: 250,
+          driving: true
+        }
+      ])
+    })
+
     it('does not use the wall-node ref point for wallNodeColinear', () => {
       const constraint: ConstraintInput = { type: 'wallNodeColinear', node: wallNode, wallA, wallB }
       const result = translateBuildingConstraint(constraint, 'node_colinear_points', makeContext())

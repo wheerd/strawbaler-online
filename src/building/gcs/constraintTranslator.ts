@@ -439,9 +439,25 @@ export function translateBuildingConstraint(
 
     case 'wallNodePosition': {
       const nodePointId = wallNodePerimeterPointId(constraint.node, constraint.nodeSide)
-      const referencePointId = isPerimeterCornerId(constraint.reference)
-        ? nodeRefSidePointId(constraint.reference)
-        : wallNodePerimeterPointId(constraint.reference, constraint.nodeSide === 'start' ? 'end' : 'start')
+      let referencePointId: string | undefined
+      if (isPerimeterCornerId(constraint.reference)) {
+        const referenceSide = context.getReferenceSide(constraint.perimeterWall)
+        if (referenceSide === 'right') {
+          referencePointId = nodeRefSidePointId(constraint.reference)
+        } else {
+          const wallNodes = context.getWallNodeIds(constraint.perimeterWall, 'nonref')
+          if (!wallNodes) return { constraints: [], points: [] }
+          referencePointId =
+            constraint.reference === wallNodes.startId
+              ? nodeNonRefSidePointForNextWall(constraint.reference)
+              : nodeNonRefSidePointForPrevWall(constraint.reference)
+        }
+      } else {
+        referencePointId = wallNodePerimeterPointId(
+          constraint.reference,
+          constraint.nodeSide === 'start' ? 'end' : 'start'
+        )
+      }
 
       return {
         constraints: [
