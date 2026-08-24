@@ -10,6 +10,7 @@ import {
   nodeNonRefSidePointForNextWall,
   nodeNonRefSidePointForPrevWall,
   nodeRefSidePointId,
+  wallEndpointPointId,
   wallEntityOnLineConstraintId,
   wallEntityWidthConstraintId,
   wallNonRefLineId,
@@ -19,8 +20,9 @@ import {
 import {
   type Perimeter,
   type PerimeterCornerId,
-  type PerimeterWallId,
   type WallEntityId,
+  type WallId,
+  isPerimeterWallId,
   isWallPostId
 } from '@/building/model'
 import { getModelActions } from '@/building/store'
@@ -70,7 +72,7 @@ function checkEntityPositions(
   constraints: Record<string, Constraint>,
   linesMap: Record<string, SketchLine>
 ): boolean {
-  const wallEntities: Record<PerimeterWallId, WallEntityContext> = {}
+  const wallEntities: Record<WallId, WallEntityContext> = {}
 
   // Extract wall entity information from GCS
   for (const point of Object.values(points)) {
@@ -80,18 +82,22 @@ function checkEntityPositions(
 
     const wallConstraint = constraints[wallEntityOnLineConstraintId(entityId, 'center')] as PointOnLine
     const wallLineId = wallConstraint.l_id
-    const wallId = wallLineId.substring(5, wallLineId.length - 4) as PerimeterWallId // Format: wall_{id}_ref
+    const wallId = wallLineId.substring(5, wallLineId.length - 4) as WallId // Format: wall_{id}_ref
     const wallLine = linesMap[wallLineId]
+    const isIntermediateWall = !isPerimeterWallId(wallId)
+
+    const startPoint1Id = isIntermediateWall ? wallEndpointPointId(wallId, 'start', 'ref') : wallLine.p1_id
+    const endPoint1Id = isIntermediateWall ? wallEndpointPointId(wallId, 'end', 'ref') : wallLine.p2_id
 
     const widthConstraint = constraints[wallEntityWidthConstraintId(entityId)] as P2PDistance
     const width = widthConstraint.distance as number
 
-    const startPoint1 = points[wallLine.p1_id]
+    const startPoint1 = points[startPoint1Id]
     const startPoint2 = points[wallNonRefSideProjectedPoint(wallId, 'start')]
     const startPos1 = newVec2(startPoint1.x, startPoint1.y)
     const startPos2 = newVec2(startPoint2.x, startPoint2.y)
 
-    const endPoint1 = points[wallLine.p2_id]
+    const endPoint1 = points[endPoint1Id]
     const endPoint2 = points[wallNonRefSideProjectedPoint(wallId, 'end')]
     const endPos1 = newVec2(endPoint1.x, endPoint1.y)
     const endPos2 = newVec2(endPoint2.x, endPoint2.y)
@@ -103,6 +109,19 @@ function checkEntityPositions(
 
     const centerPos = newVec2(point.x, point.y)
     const offset = projectVec2(basePos, centerPos, wallDir)
+
+    if (isIntermediateWall) {
+      if (!(wallId in wallEntities)) {
+        wallEntities[wallId] = {
+          startOffset: 0,
+          endOffset: 0,
+          length: distVec2(basePos, endPos),
+          entities: []
+        }
+      }
+      wallEntities[wallId].entities.push({ offset, width, entityId })
+      continue
+    }
 
     if (!(wallId in wallEntities)) {
       // Format: corner_{id}_ref
