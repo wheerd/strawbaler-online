@@ -28,6 +28,7 @@ import {
   type Vec2,
   ZERO_VEC2,
   direction,
+  eqVec2,
   lineFromSegment,
   perpendicular,
   projectVec2,
@@ -301,13 +302,39 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
       throw new Error('No perimeter found for intermediate wall')
     }
 
-    const nodes = points.map((point, index) => {
-      return index === 0 && this.state.startEntity
-        ? this.getOrCreateEntityNode(point, this.state.startEntity)
-        : index === points.length - 1 && snapEntity
-          ? this.getOrCreateEntityNode(point, snapEntity)
-          : modelActions.addInnerWallNode(perimeterId, point)
-    })
+    const sameIntermediateWallId =
+      this.state.startEntity &&
+      snapEntity &&
+      this.state.startEntity === snapEntity &&
+      isIntermediateWallId(this.state.startEntity)
+        ? this.state.startEntity
+        : undefined
+
+    let nodes: { id: WallNodeId }[]
+    if (sameIntermediateWallId) {
+      const startNode = this.getOrCreateEntityNode(points[0], sameIntermediateWallId)
+      const endNode = eqVec2(points[0], points[points.length - 1])
+        ? startNode
+        : this.getOrCreateNodeOnReplacementWall(points[points.length - 1], startNode.id)
+
+      nodes = points.map((point, index) => {
+        if (index === 0) return startNode
+        if (index === points.length - 1) return endNode
+        return modelActions.addInnerWallNode(perimeterId, point)
+      })
+    } else {
+      nodes = points.map((point, index) => {
+        if (index === 0 && this.state.startEntity) {
+          return this.getOrCreateEntityNode(point, this.state.startEntity)
+        }
+
+        if (index === points.length - 1 && snapEntity) {
+          return this.getOrCreateEntityNode(point, snapEntity)
+        }
+
+        return modelActions.addInnerWallNode(perimeterId, point)
+      })
+    }
 
     const createdWalls: IntermediateWallWithGeometry[] = []
     const lengthOverrides = new Map<IntermediateWallId, Length | null>()
@@ -369,6 +396,23 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
     }
 
     assertUnreachable(entityId, 'invalid entity id for node creation')
+  }
+
+  private getOrCreateNodeOnReplacementWall(point: Vec2, splitNodeId: WallNodeId): { id: WallNodeId } {
+    const modelActions = getModelActions()
+    const splitNode = modelActions.getWallNodeById(splitNodeId)
+    const replacementWall = splitNode.connectedWallIds
+      .map(wallId => modelActions.getIntermediateWallById(wallId))
+      .find(wall => {
+        const position = projectVec2(wall.centerLine.start, point, wall.direction)
+        return position > 0 && position < wall.wallLength
+      })
+
+    if (!replacementWall) {
+      throw new Error('Could not find replacement wall for intermediate wall endpoint')
+    }
+
+    return { id: modelActions.splitIntermediateWallAtPoint(replacementWall.id, point) }
   }
 
   getCursor(): CursorStyle {
