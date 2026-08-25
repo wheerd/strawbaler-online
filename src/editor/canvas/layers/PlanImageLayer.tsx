@@ -30,15 +30,20 @@ export function PlanImageLayer({ placement }: { placement: 'under' | 'over' }): 
   const worldY = plan.origin.world.y + plan.origin.image.y * mmPerPixel
 
   return (
-    <g data-layer={`plan-image-${placement}`} className="pointer-events-none" opacity={plan.opacity}>
+    <g
+      data-layer={`plan-image-${placement}`}
+      className="pointer-events-none"
+      opacity={plan.opacity}
+      transform="scale(1, -1)"
+    >
       <image
         href={imageUrl}
         x={worldX}
         y={-worldY}
         width={worldWidth}
         height={worldHeight}
-        transform="scale(1, -1)"
         crossOrigin="anonymous"
+        pointerEvents="none"
       />
     </g>
   )
