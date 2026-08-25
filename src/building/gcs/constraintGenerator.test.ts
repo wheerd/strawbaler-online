@@ -243,17 +243,21 @@ describe('referenceSideToConstraintSide', () => {
 
 describe('generatePresetConstraints', () => {
   describe('rectangular preset', () => {
-    it('generates a distance constraint for each wall', () => {
+    it('generates independent distance constraints for the walls', () => {
       const constraints = generatePresetConstraints(rectCorners, rectWalls, 'inside')
       const distConstraints = constraints.filter(c => c.type === 'wallLength')
 
-      expect(distConstraints).toHaveLength(4)
+      expect(distConstraints).toHaveLength(2)
       expect(distConstraints).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ type: 'wallLength', side: 'right', length: 6000 }),
-          expect.objectContaining({ type: 'wallLength', side: 'right', length: 4000 }),
-          expect.objectContaining({ type: 'wallLength', side: 'right', length: 6000 }),
           expect.objectContaining({ type: 'wallLength', side: 'right', length: 4000 })
+        ])
+      )
+      expect(distConstraints).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ wall: 'outwall_cd' }),
+          expect.objectContaining({ wall: 'outwall_da' })
         ])
       )
     })
@@ -295,11 +299,11 @@ describe('generatePresetConstraints', () => {
   })
 
   describe('L-shaped preset', () => {
-    it('generates a distance constraint for each wall', () => {
+    it('generates independent distance constraints for the walls', () => {
       const constraints = generatePresetConstraints(lCorners, lWalls, 'inside')
       const distConstraints = constraints.filter(c => c.type === 'wallLength')
 
-      expect(distConstraints).toHaveLength(6)
+      expect(distConstraints).toHaveLength(4)
     })
 
     it('generates correct H/V constraints for axis-aligned segments', () => {

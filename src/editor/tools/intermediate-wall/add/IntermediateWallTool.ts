@@ -362,7 +362,8 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
       modelActions.getPerimeterWallsById(perimeterId),
       modelActions.getWallNodesByPerimeter(perimeterId),
       this.state.alignment,
-      lengthOverrides
+      lengthOverrides,
+      modelActions.getAllBuildingConstraints()
     )
     for (const constraint of constraints) {
       try {

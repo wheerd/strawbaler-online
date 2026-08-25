@@ -1,5 +1,6 @@
-import { type WallNodeIncident, getAdjacentWallNodePairs } from '@/building/gcs/wallNodePairs'
+import { getAdjacentWallNodePairs } from '@/building/gcs/wallNodePairs'
 import type {
+  Constraint,
   ConstraintInput,
   IntermediateWallWithGeometry,
   PerimeterCornerWithGeometry,
@@ -7,9 +8,9 @@ import type {
   PerimeterWallWithGeometry,
   WallNodeWithGeometry
 } from '@/building/model'
-import type { IntermediateWallId, WallId } from '@/building/model/ids'
+import type { IntermediateWallId, NodeId, WallId } from '@/building/model/ids'
 import type { Length, Vec2 } from '@/shared/geometry'
-import { ZERO_VEC2, dotVec2, normVec2, scaleVec2, subVec2 } from '@/shared/geometry'
+import { ZERO_VEC2, dotVec2, negVec2, normVec2, scaleVec2, subVec2 } from '@/shared/geometry'
 
 /**
  * Map a perimeter reference side to the constraint side used by building constraints.
@@ -39,7 +40,7 @@ function getReferenceSideLength(wall: PerimeterWallWithGeometry, referenceSide: 
  *
  * Produces:
  * - A lockedCorner constraint for the first corner (at origin)
- * - A wallLength constraint for every wall (using the reference-side length)
+ * - A wallLength constraint for each independent wall length (using the reference-side length)
  * - Horizontal/vertical constraints for consecutive corner pairs where the
  *   reference-side points are exactly aligned on one axis
  *
@@ -78,8 +79,38 @@ export function generatePresetConstraints(
     position: ZERO_VEC2
   })
 
-  // Wall length constraint for each wall
-  for (const wall of walls) {
+  const horizontalWallIndices = new Set<number>()
+  const verticalWallIndices = new Set<number>()
+
+  // Classify axis-aligned walls so one length in each axis group can be omitted.
+  for (let i = 0; i < n; i++) {
+    const cornerA = corners[i]
+    const cornerB = corners[(i + 1) % n]
+    const pA = getReferenceSidePoint(cornerA, referenceSide)
+    const pB = getReferenceSidePoint(cornerB, referenceSide)
+
+    // Exact equality check — preset geometry is precise
+    if (pA[1] === pB[1]) {
+      horizontalWallIndices.add(i)
+    } else if (pA[0] === pB[0]) {
+      verticalWallIndices.add(i)
+    }
+  }
+
+  // One length in each axis group is implied by the closed polygon.
+  const omittedLengthIndices = new Set<number>()
+  if (horizontalWallIndices.size > 1) {
+    omittedLengthIndices.add(Math.max(...horizontalWallIndices))
+  }
+  if (verticalWallIndices.size > 1) {
+    omittedLengthIndices.add(Math.max(...verticalWallIndices))
+  }
+
+  // Wall length constraints, excluding the two closure-redundant lengths.
+  for (let i = 0; i < walls.length; i++) {
+    if (omittedLengthIndices.has(i)) continue
+
+    const wall = walls[i]
     const length = getReferenceSideLength(wall, referenceSide)
     constraints.push({
       type: 'wallLength',
@@ -91,23 +122,13 @@ export function generatePresetConstraints(
 
   // Horizontal/vertical constraints for walls
   for (let i = 0; i < n; i++) {
-    const cornerA = corners[i]
-    const cornerB = corners[(i + 1) % n]
-    const pA = getReferenceSidePoint(cornerA, referenceSide)
-    const pB = getReferenceSidePoint(cornerB, referenceSide)
+    const type = horizontalWallIndices.has(i) ? 'horizontalWall' : verticalWallIndices.has(i) ? 'verticalWall' : null
+    if (!type) continue
 
-    // Exact equality check — preset geometry is precise
-    if (pA[1] === pB[1]) {
-      constraints.push({
-        type: 'horizontalWall',
-        wall: walls[i].id
-      })
-    } else if (pA[0] === pB[0]) {
-      constraints.push({
-        type: 'verticalWall',
-        wall: walls[i].id
-      })
-    }
+    constraints.push({
+      type,
+      wall: walls[i].id
+    })
   }
 
   return constraints
@@ -255,7 +276,8 @@ export function generateIntermediateWallConstraints(
   perimeterWalls: PerimeterWallWithGeometry[],
   nodes: WallNodeWithGeometry[],
   alignment: 'left' | 'right',
-  lengthOverrides: ReadonlyMap<IntermediateWallId, Length | null>
+  lengthOverrides: ReadonlyMap<IntermediateWallId, Length | null>,
+  existingConstraints: Constraint[] = []
 ): ConstraintInput[] {
   const constraints: ConstraintInput[] = []
   const createdWallIds = new Set<WallId>(createdWalls.map(wall => wall.id))
@@ -268,8 +290,8 @@ export function generateIntermediateWallConstraints(
       constraints.push({ type: 'wallLength', wall: wall.id, side: alignment, length })
     }
 
-    const dx = Math.abs(wall.direction[0])
-    const dy = Math.abs(wall.direction[1])
+    const dx = Math.abs(wall.leftLine.start[0] - wall.leftLine.end[0])
+    const dy = Math.abs(wall.leftLine.start[1] - wall.leftLine.end[1])
     if (dy < ALIGNMENT_TOLERANCE) {
       constraints.push({ type: 'horizontalWall', wall: wall.id })
     } else if (dx < ALIGNMENT_TOLERANCE) {
@@ -281,7 +303,7 @@ export function generateIntermediateWallConstraints(
     const incidentWalls = node.connectedWallIds
       .map(wallId => intermediateWallById.get(wallId))
       .filter((wall): wall is IntermediateWallWithGeometry => wall != null)
-      .map(wall => getIntermediateIncident(wall, node.id))
+      .map(wall => getIntermediateIncident(wall, node.id, existingConstraints, constraints))
 
     if (node.type === 'perimeter') {
       const perimeterWall = perimeterWallById.get(node.wallId)
@@ -290,11 +312,13 @@ export function generateIntermediateWallConstraints(
           {
             id: perimeterWall.id,
             direction: perimeterWall.direction,
+            hasHVConstraint: hasHVConstraint(perimeterWall.id, existingConstraints, constraints),
             isPerimeterRay: true
           },
           {
             id: perimeterWall.id,
             direction: scaleVec2(perimeterWall.direction, -1),
+            hasHVConstraint: hasHVConstraint(perimeterWall.id, existingConstraints, constraints),
             isPerimeterRay: true
           }
         )
@@ -303,6 +327,7 @@ export function generateIntermediateWallConstraints(
 
     for (const [wallA, wallB] of getAdjacentWallNodePairs(incidentWalls)) {
       if (!createdWallIds.has(wallA.id) && !createdWallIds.has(wallB.id)) continue
+      if (wallA.hasHVConstraint && wallB.hasHVConstraint) continue
 
       const dot = Math.abs(dotVec2(wallA.direction, wallB.direction))
       if (dot < PERPENDICULAR_DOT_TOLERANCE) {
@@ -316,12 +341,29 @@ export function generateIntermediateWallConstraints(
   return constraints
 }
 
+interface WallNodeIncident {
+  id: WallId
+  direction: Vec2
+  hasHVConstraint: boolean
+  isPerimeterRay?: boolean
+}
+
 function getIntermediateIncident(
   wall: IntermediateWallWithGeometry,
-  nodeId: WallNodeWithGeometry['id']
+  nodeId: NodeId,
+  existingConstraints: Constraint[],
+  constraints: ConstraintInput[]
 ): WallNodeIncident {
   return {
     id: wall.id,
-    direction: wall.start.nodeId === nodeId ? wall.direction : scaleVec2(wall.direction, -1)
+    direction: wall.start.nodeId === nodeId ? wall.direction : negVec2(wall.direction),
+    hasHVConstraint: hasHVConstraint(wall.id, existingConstraints, constraints)
   }
+}
+
+function hasHVConstraint(wallId: WallId, existingConstraints: Constraint[], constraints: ConstraintInput[]): boolean {
+  return (
+    existingConstraints.some(c => (c.type === 'verticalWall' || c.type === 'horizontalWall') && c.wall === wallId) ||
+    constraints.some(c => (c.type === 'verticalWall' || c.type === 'horizontalWall') && c.wall === wallId)
+  )
 }
