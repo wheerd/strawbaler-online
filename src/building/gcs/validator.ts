@@ -10,7 +10,6 @@ import {
   nodeNonRefSidePointForNextWall,
   nodeNonRefSidePointForPrevWall,
   nodeRefSidePointId,
-  wallEndpointPointId,
   wallEntityOnLineConstraintId,
   wallEntityWidthConstraintId,
   wallNonRefLineId,
@@ -87,8 +86,8 @@ function checkEntityPositions(
     const wallLine = linesMap[wallLineId]
     const isIntermediateWall = !isPerimeterWallId(wallId)
 
-    const startPoint1Id = isIntermediateWall ? wallEndpointPointId(wallId, 'start', 'ref') : wallLine.p1_id
-    const endPoint1Id = isIntermediateWall ? wallEndpointPointId(wallId, 'end', 'ref') : wallLine.p2_id
+    const startPoint1Id = wallLine.p1_id
+    const endPoint1Id = wallLine.p2_id
 
     const widthConstraint = constraints[wallEntityWidthConstraintId(entityId)] as P2PDistance
     const width = widthConstraint.distance as number
@@ -105,6 +104,8 @@ function checkEntityPositions(
 
     const wallDir = direction(startPos1, endPos1)
 
+    // Intermediate wall side lines can extend through a node overlap. The
+    // valid entity span is their longitudinal overlap, not the full GCS line.
     const basePos = projectVec2(startPos1, startPos2, wallDir) > 0 ? startPos2 : startPos1
     const endPos = projectVec2(endPos1, endPos2, wallDir) > 0 ? endPos1 : endPos2
 

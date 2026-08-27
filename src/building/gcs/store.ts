@@ -15,7 +15,7 @@ import { isPerimeterWallId } from '@/building/model/ids'
 import type { PerimeterCornerWithGeometry } from '@/building/model/perimeters'
 import type { OpeningWithGeometry, WallPostWithGeometry } from '@/building/model/wallEntities'
 import { getModelActions } from '@/building/store'
-import { type Vec2, dotVec2, midpoint, projectVec2, scaleAddVec2, scaleVec2 } from '@/shared/geometry/2d'
+import { type Vec2, midpoint, projectVec2, scaleAddVec2 } from '@/shared/geometry/2d'
 
 import {
   type TranslationContext,
@@ -33,7 +33,7 @@ import {
   wallEntityOnLineConstraintId,
   wallEntityPointId,
   wallEntityWidthConstraintId,
-  wallNodePerimeterPointId,
+  wallNodePointId,
   wallNodeRefPointId,
   wallNonRefLineId,
   wallNonRefSideProjectedPoint,
@@ -154,6 +154,17 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
     addBuildingConstraint: constraint => {
       const state = get()
 
+      const getRegisteredEndpointPointId = (
+        wallId: WallId,
+        endpoint: 'start' | 'end',
+        side: 'ref' | 'nonref'
+      ): string => {
+        const lineId = side === 'ref' ? wallRefLineId(wallId) : wallNonRefLineId(wallId)
+        const line = state.lines.find(l => l.id === lineId)
+        if (!line) return wallEndpointPointId(wallId, endpoint, side)
+        return endpoint === 'start' ? line.p1_id : line.p2_id
+      }
+
       // Check for duplicate
       if (constraint.id in state.buildingConstraints) {
         console.warn(`Building constraint with id "${constraint.id}" already exists, skipping.`)
@@ -224,8 +235,8 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
             return {
               startId: wall.start.nodeId,
               endId: wall.end.nodeId,
-              start: wallEndpointPointId(wallId, 'start', side),
-              end: wallEndpointPointId(wallId, 'end', side)
+              start: getRegisteredEndpointPointId(wallId, 'start', side),
+              end: getRegisteredEndpointPointId(wallId, 'end', side)
             }
           } catch {
             return undefined
@@ -255,9 +266,28 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
 
             const atNodeEndpoint = atStart ? 'start' : 'end'
             const oppositeEndpoint = atStart ? 'end' : 'start'
-            const atNodePointId = wallEndpointPointId(wall.id, atNodeEndpoint, 'ref')
-            const oppositePointId = wallEndpointPointId(wall.id, oppositeEndpoint, 'ref')
+            const atNodePointId = getRegisteredEndpointPointId(wall.id, atNodeEndpoint, 'ref')
+            const oppositePointId = getRegisteredEndpointPointId(wall.id, oppositeEndpoint, 'ref')
             return { atNodePointId, oppositePointId }
+          } catch {
+            return undefined
+          }
+        },
+        getWallNodeSideEndpointPointIds: (wallId, nodeId, side) => {
+          try {
+            const wall = modelActionsRef.getIntermediateWallById(wallId as IntermediateWallId)
+            const atStart = wall.start.nodeId === nodeId
+            const atEnd = wall.end.nodeId === nodeId
+            if (!atStart && !atEnd) return undefined
+
+            const endpoint: 'start' | 'end' = atStart ? 'start' : 'end'
+            const oppositeEndpoint: 'start' | 'end' = atStart ? 'end' : 'start'
+            const pointSide =
+              side === 'left' ? (endpoint === 'start' ? 'ref' : 'nonref') : endpoint === 'start' ? 'nonref' : 'ref'
+            return {
+              atNodePointId: getRegisteredEndpointPointId(wall.id, endpoint, pointSide),
+              oppositePointId: getRegisteredEndpointPointId(wall.id, oppositeEndpoint, pointSide)
+            }
           } catch {
             return undefined
           }
@@ -277,8 +307,8 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
             } else {
               pointSide = side === 'left' ? 'ref' : 'nonref'
             }
-            const endpoint = atStart ? 'start' : 'end'
-            return wallEndpointPointId(wall.id, endpoint, pointSide)
+            const endpoint: 'start' | 'end' = atStart ? 'start' : 'end'
+            return getRegisteredEndpointPointId(wall.id, endpoint, pointSide)
           } catch {
             return undefined
           }
@@ -581,60 +611,126 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
       }
 
       const wallNodes = perimeter.wallNodeIds.map(nodeId => modelActions.getWallNodeById(nodeId))
+      const intermediateWalls = perimeter.intermediateWallIds.map(wallId =>
+        modelActions.getIntermediateWallById(wallId)
+      )
 
       for (const node of wallNodes) {
         const nodePointId = wallNodeRefPointId(node.id)
         actions.addPoint(nodePointId, node.position, false)
         entry.pointIds.push(nodePointId)
 
-        if (node.type === 'perimeter') {
-          const insideLineId = isRefInside ? wallRefLineId(node.wallId) : wallNonRefLineId(node.wallId)
-          const startPointId = wallNodePerimeterPointId(node.id, 'start')
-          const endPointId = wallNodePerimeterPointId(node.id, 'end')
+        const n = node.incidentWalls.length
 
-          const attachedIntermediateWallCount = node.connectedWallIds.length
-          actions.addPoint(startPointId, node.insideLine.start, false)
-          actions.addPoint(endPointId, node.insideLine.end, false)
-          entry.pointIds.push(startPointId, endPointId)
+        if (node.type === 'inner' && n === 1) {
+          const otherPointId = wallNodePointId(node.id, 0)
+          const incident = node.incidentWalls[0]
+          const wall = intermediateWalls.find(w => w.id === incident.id)
+          if (!wall) continue
+          const otherPoint =
+            wall.start.nodeId === node.id
+              ? wall.start.axis === 'left'
+                ? wall.rightLine.start
+                : wall.leftLine.start
+              : wall.end.axis === 'left'
+                ? wall.rightLine.end
+                : wall.leftLine.end
+          actions.addPoint(otherPointId, otherPoint, false)
+          entry.pointIds.push(otherPointId)
+          continue
+        }
 
-          const perimeterPointIds =
-            attachedIntermediateWallCount === 1 ? [startPointId, endPointId] : [startPointId, endPointId, nodePointId]
+        let insideLineStart = ''
+        let insideLineEnd = ''
+        for (let i = 0; i < n; i++) {
+          const incident = node.incidentWalls[i]
+          const pointId = wallNodePointId(node.id, i)
+          const iNext = (i + 1) % n
+          const next = node.incidentWalls[iNext]
+          if (isPerimeterWallId(incident.id)) {
+            if (!isPerimeterWallId(next.id)) {
+              insideLineEnd = wallNodePointId(node.id, iNext)
+            }
+            continue
+          }
 
-          for (const pointId of perimeterPointIds) {
-            const onPerimeterId = `${pointId}_on_perimeter`
-            actions.addConstraint({
-              id: onPerimeterId,
-              type: 'point_on_line_pl',
-              p_id: pointId,
-              l_id: insideLineId,
-              driving: true
-            })
-            entry.constraintIds.push(onPerimeterId)
+          const wall = intermediateWalls.find(w => w.id === incident.id)
+          if (!wall) continue
+
+          if (isPerimeterWallId(next.id)) {
+            const nextPoint = wall.start.nodeId === node.id ? wall.rightLine.start : wall.leftLine.end
+            const nextPointId = wallNodePointId(node.id, iNext)
+            actions.addPoint(nextPointId, nextPoint, false)
+            entry.pointIds.push(nextPointId)
+            insideLineStart = nextPointId
+          }
+
+          const point = wall.start.nodeId === node.id ? wall.leftLine.start : wall.rightLine.end
+          actions.addPoint(pointId, point, false)
+          entry.pointIds.push(pointId)
+        }
+
+        if (insideLineStart && insideLineEnd) {
+          actions.addLine(`wn_${node.id}_inside`, insideLineStart, insideLineEnd)
+
+          if (node.type === 'perimeter') {
+            const insideLineId = isRefInside ? wallRefLineId(node.wallId) : wallNonRefLineId(node.wallId)
+
+            const perimeterPointIds =
+              node.connectedWallIds.length === 1
+                ? [insideLineStart, insideLineEnd]
+                : [insideLineStart, insideLineEnd, nodePointId]
+
+            for (const pointId of perimeterPointIds) {
+              const onPerimeterId = `${pointId}_on_perimeter`
+              actions.addConstraint({
+                id: onPerimeterId,
+                type: 'point_on_line_pl',
+                p_id: pointId,
+                l_id: insideLineId,
+                driving: true
+              })
+              entry.constraintIds.push(onPerimeterId)
+            }
           }
         }
       }
 
-      const intermediateWalls = perimeter.intermediateWallIds.map(wallId =>
-        modelActions.getIntermediateWallById(wallId)
-      )
+      const resolveEndpointPointId = (wallId: WallId, endpoint: 'start' | 'end', side: 'ref' | 'nonref'): string => {
+        const wall = intermediateWalls.find(candidate => candidate.id === wallId)
+        if (!wall) return wallEndpointPointId(wallId, endpoint, side)
+        const nodeId = wall[endpoint].nodeId
+        const node = wallNodes.find(n => n.id === nodeId)
+        if (!node) return wallEndpointPointId(wallId, endpoint, side)
+        const incidentWallCount = node.incidentWalls.length
+        if (incidentWallCount === 0) return wallEndpointPointId(wallId, endpoint, side)
+
+        if (node.type === 'inner' && incidentWallCount === 1) {
+          const useNodeRef = (wall[endpoint].axis === 'left') === (side === 'ref')
+          return useNodeRef ? wallNodeRefPointId(node.id) : wallNodePointId(node.id, 0)
+        }
+
+        const wallIndex = node.incidentWalls.findIndex(w => w.id === wallId)
+        if (wallIndex < 0) return wallEndpointPointId(wallId, endpoint, side)
+        const useNextPoint = (endpoint === 'start') === (side === 'nonref')
+        const pointIndex = (incidentWallCount + wallIndex + (useNextPoint ? 1 : 0)) % incidentWallCount
+        const originalId = wallNodePointId(node.id, pointIndex)
+        return originalId
+      }
 
       for (const wall of intermediateWalls) {
-        const leftStart = wallEndpointPointId(wall.id, 'start', 'ref')
-        const leftEnd = wallEndpointPointId(wall.id, 'end', 'ref')
-        const rightStart = wallEndpointPointId(wall.id, 'start', 'nonref')
-        const rightEnd = wallEndpointPointId(wall.id, 'end', 'nonref')
+        const leftStart = resolveEndpointPointId(wall.id, 'start', 'ref')
+        const leftEnd = resolveEndpointPointId(wall.id, 'end', 'ref')
+        const rightStart = resolveEndpointPointId(wall.id, 'start', 'nonref')
+        const rightEnd = resolveEndpointPointId(wall.id, 'end', 'nonref')
         const rightStartProjected = wallNonRefSideProjectedPoint(wall.id, 'start')
         const rightEndProjected = wallNonRefSideProjectedPoint(wall.id, 'end')
         const projectOntoLeftLine = (point: Vec2): Vec2 =>
           scaleAddVec2(wall.leftLine.start, wall.direction, projectVec2(wall.leftLine.start, point, wall.direction))
 
-        actions.addPoint(leftStart, wall.leftLine.start, false)
-        actions.addPoint(leftEnd, wall.leftLine.end, false)
-        actions.addPoint(rightStart, wall.rightLine.start, false)
-        actions.addPoint(rightEnd, wall.rightLine.end, false)
         actions.addPoint(rightStartProjected, projectOntoLeftLine(wall.rightLine.start), false)
         actions.addPoint(rightEndProjected, projectOntoLeftLine(wall.rightLine.end), false)
-        entry.pointIds.push(leftStart, leftEnd, rightStart, rightEnd, rightStartProjected, rightEndProjected)
+        entry.pointIds.push(rightStartProjected, rightEndProjected)
 
         const leftLineId = wallRefLineId(wall.id)
         const rightLineId = wallNonRefLineId(wall.id)
@@ -652,11 +748,12 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
           l_id: leftLineId,
           distance: wall.thickness
         })
+        entry.constraintIds.push(parallelSidesId, thicknessId)
+
         const projectedPoints = [
           { id: rightStartProjected, endpoint: rightStart, suffix: 'start' },
           { id: rightEndProjected, endpoint: rightEnd, suffix: 'end' }
         ]
-        entry.constraintIds.push(parallelSidesId, thicknessId)
         for (const { id, endpoint, suffix } of projectedPoints) {
           const onLineId = `${wall.id}_proj_${suffix}_on_line`
           const perpendicularId = `${wall.id}_proj_${suffix}_perp`
@@ -676,34 +773,34 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
           const attachment = wall[endpoint]
           const selectedLineId = attachment.axis === 'left' ? wallRefLineId(wall.id) : wallNonRefLineId(wall.id)
           const nodePointId = wallNodeRefPointId(attachment.nodeId)
-          const attachedWallCount = intermediateWalls.filter(
-            candidate => candidate.start.nodeId === attachment.nodeId || candidate.end.nodeId === attachment.nodeId
-          ).length
-          const selectedEndpointPointId = wallEndpointPointId(
-            wall.id,
-            endpoint,
-            attachment.axis === 'left' ? 'ref' : 'nonref'
-          )
-          const attachmentId = `${wall.id}_${endpoint}_attachment`
-          if (attachedWallCount === 1) {
+
+          const node = wallNodes.find(n => n.id === attachment.nodeId)
+          if (!node) continue
+          if (node.type === 'inner' && node.connectedWallIds.length === 1) {
+            const otherId = resolveEndpointPointId(wall.id, endpoint === 'start' ? 'end' : 'start', 'ref')
+            const perpendicularId = `${node.id}_end_perp`
             actions.addConstraint({
-              id: `${attachmentId}_coincident`,
-              type: 'p2p_coincident',
-              p1_id: selectedEndpointPointId,
-              p2_id: nodePointId,
+              id: perpendicularId,
+              type: 'perpendicular_pppp',
+              l1p1_id: nodePointId,
+              l1p2_id: otherId,
+              l2p1_id: wallNodePointId(node.id, 0),
+              l2p2_id: nodePointId,
               driving: true
             })
-            entry.constraintIds.push(`${attachmentId}_coincident`)
-          } else {
-            actions.addConstraint({
-              id: attachmentId,
-              type: 'point_on_line_pl',
-              p_id: nodePointId,
-              l_id: selectedLineId,
-              driving: true
-            })
-            entry.constraintIds.push(attachmentId)
+            entry.constraintIds.push(perpendicularId)
+            continue
           }
+
+          const attachmentId = `${wall.id}_${endpoint}_attachment`
+          actions.addConstraint({
+            id: attachmentId,
+            type: 'point_on_line_pl',
+            p_id: nodePointId,
+            l_id: selectedLineId,
+            driving: true
+          })
+          entry.constraintIds.push(attachmentId)
         }
 
         for (const opening of modelActions.getWallOpeningsByWallId(wall.id)) {
@@ -712,72 +809,6 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
 
         for (const post of modelActions.getWallPostsByWallId(wall.id)) {
           addWallEntityGeometry(post, entry)
-        }
-      }
-
-      for (const node of wallNodes) {
-        const incidents = intermediateWalls
-          .filter(wall => wall.start.nodeId === node.id || wall.end.nodeId === node.id)
-          .map(wall => {
-            const atStart = wall.start.nodeId === node.id
-            const direction = atStart ? wall.direction : scaleVec2(wall.direction, -1)
-            return {
-              wall,
-              direction,
-              leftPoint: wallEndpointPointId(wall.id, atStart ? 'start' : 'end', atStart ? 'ref' : 'nonref'),
-              rightPoint: wallEndpointPointId(wall.id, atStart ? 'start' : 'end', atStart ? 'nonref' : 'ref')
-            }
-          })
-
-        if (node.type === 'perimeter') {
-          const perimeterWall = modelActions.getPerimeterWallById(node.wallId)
-          incidents.sort(
-            (a, b) => dotVec2(a.direction, perimeterWall.direction) - dotVec2(b.direction, perimeterWall.direction)
-          )
-
-          if (incidents.length > 0) {
-            const firstPoint = incidents[0].rightPoint
-            const lastPoint = incidents[incidents.length - 1].leftPoint
-
-            const startPointId = wallNodePerimeterPointId(node.id, 'start')
-            const endPointId = wallNodePerimeterPointId(node.id, 'end')
-            const startAttachmentId = `wallnode_${node.id}_start_attachment`
-            const endAttachmentId = `wallnode_${node.id}_end_attachment`
-            actions.addConstraint({
-              id: startAttachmentId,
-              type: 'p2p_coincident',
-              p1_id: startPointId,
-              p2_id: firstPoint,
-              driving: true
-            })
-            actions.addConstraint({
-              id: endAttachmentId,
-              type: 'p2p_coincident',
-              p1_id: endPointId,
-              p2_id: lastPoint,
-              driving: true
-            })
-            entry.constraintIds.push(startAttachmentId, endAttachmentId)
-          }
-        } else {
-          incidents.sort(
-            (a, b) => Math.atan2(b.direction[1], b.direction[0]) - Math.atan2(a.direction[1], a.direction[0])
-          )
-        }
-
-        if (incidents.length < 2) continue
-        for (let index = 0; index < incidents.length; index++) {
-          const current = incidents[index]
-          const next = incidents[(index + 1) % incidents.length]
-          const coincidentId = `wallnode_${node.id}_${current.wall.id}_${next.wall.id}_eq`
-          actions.addConstraint({
-            id: coincidentId,
-            type: 'p2p_coincident',
-            p1_id: current.rightPoint,
-            p2_id: next.leftPoint,
-            driving: true
-          })
-          entry.constraintIds.push(coincidentId)
         }
       }
 

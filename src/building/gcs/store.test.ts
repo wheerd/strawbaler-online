@@ -629,6 +629,14 @@ describe('GCS store perimeter geometry', () => {
         connectedWallIds: [intermediateWallId],
         position: [2000, 0],
         center: [2000, -210],
+        incidentWalls: [
+          {
+            id: intermediateWallId,
+            direction: [0, 1],
+            leftPoint: [2000, 0],
+            rightPoint: [1880, 0]
+          }
+        ],
         insideLine: { start: [2000, 0], end: [2000, 0] },
         outsideLine: { start: [2000, -420], end: [2000, -420] }
       })
@@ -642,7 +650,7 @@ describe('GCS store perimeter geometry', () => {
         direction: [0, 1],
         leftDirection: [-1, 0],
         boundary: { points: [] },
-        centerLine: { start: [2000, 0], end: [2000, 3000] },
+        entityReferenceLine: { start: [2000, 0], end: [2000, 3000] },
         wallLength: 3000,
         leftLength: 3000,
         leftLine: { start: [2000, 0], end: [2000, 3000] },
@@ -656,24 +664,25 @@ describe('GCS store perimeter geometry', () => {
       expect(state.points[`wallnode_${nodeId}_ref`]).toBeDefined()
       expect(state.points[`wallnode_${nodeId}_start`]).toBeDefined()
       expect(state.points[`wallnode_${nodeId}_end`]).toBeDefined()
-      expect(state.points[`${intermediateWallId}_start_ref`]).toBeDefined()
+      expect(state.points[`${intermediateWallId}_start_ref`]).toBeUndefined()
       expect(state.points[`${intermediateWallId}_start_proj`]).toBeDefined()
+      expect(state.wallNodeRegistry[nodeId].endpointToBoundaryPoint[`${intermediateWallId}_start_ref`]).toBe(
+        `wallnode_${nodeId}_end`
+      )
+      expect(state.wallNodeRegistry[nodeId].endpointToBoundaryPoint[`${intermediateWallId}_start_nonref`]).toBe(
+        `wallnode_${nodeId}_start`
+      )
       expect(state.lines.find(line => line.id === `wall_${intermediateWallId}_ref`)).toBeDefined()
       expect(state.lines.find(line => line.id === `intermediate_${intermediateWallId}_entityReference`)).toBeUndefined()
-      expect(state.constraints[`${intermediateWallId}_start_attachment_coincident`]).toMatchObject({
-        type: 'p2p_coincident',
-        p1_id: `${intermediateWallId}_start_ref`,
-        p2_id: `wallnode_${nodeId}_ref`
+      expect(state.constraints[`${intermediateWallId}_start_attachment`]).toMatchObject({
+        type: 'point_on_line_pl',
+        p_id: `wallnode_${nodeId}_ref`,
+        l_id: `wall_${intermediateWallId}_ref`
       })
-      expect(state.constraints[`wallnode_${nodeId}_start_attachment`]).toMatchObject({
-        type: 'p2p_coincident',
-        p1_id: `wallnode_${nodeId}_start`,
-        p2_id: `${intermediateWallId}_start_nonref`
-      })
-      expect(state.constraints[`wallnode_${nodeId}_end_attachment`]).toMatchObject({
-        type: 'p2p_coincident',
-        p1_id: `wallnode_${nodeId}_end`,
-        p2_id: `${intermediateWallId}_start_ref`
+      expect(state.constraints[`${intermediateWallId}_end_attachment`]).toMatchObject({
+        type: 'point_on_line_pl',
+        p_id: `wallnode_${nodeId}_ref`,
+        l_id: `wall_${intermediateWallId}_nonref`
       })
       expect(state.constraints[`wallnode_${nodeId}_ref_on_perimeter`]).toBeUndefined()
       expect(state.constraints[`wallnode_${nodeId}_start_on_perimeter`]).toMatchObject({
@@ -686,6 +695,60 @@ describe('GCS store perimeter geometry', () => {
         p_id: `wallnode_${nodeId}_end`,
         l_id: `wall_${wallA}_ref`
       })
+    })
+
+    it('keeps original ref/nonref mapping for a one-wall inner node at the wall end', () => {
+      const nodeId = 'wallnode_inner_test' as WallNodeId
+      const intermediateWallId = 'intermediate_inner_test' as IntermediateWallId
+      const otherNodeId = 'wallnode_other' as WallNodeId
+      const node = {
+        id: nodeId,
+        perimeterId: perimeterA,
+        type: 'inner' as const,
+        position: [2000, 1500] as [number, number],
+        incidentWalls: [
+          {
+            id: intermediateWallId,
+            direction: [0, -1],
+            leftPoint: [2000, 1500],
+            rightPoint: [1880, 1500]
+          }
+        ],
+        connectedWallIds: [intermediateWallId]
+      }
+
+      mockGetPerimeterById.mockReturnValue({
+        id: perimeterA,
+        cornerIds: [],
+        wallNodeIds: [nodeId],
+        intermediateWallIds: [intermediateWallId]
+      })
+      mockGetWallNodeById.mockImplementation((id: WallNodeId) =>
+        id === nodeId ? node : { ...node, id, connectedWallIds: [] }
+      )
+      mockGetIntermediateWallById.mockReturnValue({
+        id: intermediateWallId,
+        perimeterId: perimeterA,
+        entityIds: [],
+        start: { nodeId: otherNodeId, axis: 'right' },
+        end: { nodeId, axis: 'left' },
+        thickness: 120,
+        direction: [0, 1],
+        leftDirection: [-1, 0],
+        boundary: { points: [] },
+        entityReferenceLine: { start: [2000, 0], end: [2000, 3000] },
+        wallLength: 3000,
+        leftLength: 3000,
+        leftLine: { start: [2000, 0], end: [2000, 3000] },
+        rightLength: 3000,
+        rightLine: { start: [1880, 0], end: [1880, 3000] }
+      })
+
+      getGcsActions().addPerimeterGeometry(perimeterA)
+
+      const mapping = getGcsState().wallNodeRegistry[nodeId].endpointToBoundaryPoint
+      expect(mapping[`${intermediateWallId}_end_ref`]).toBe(`wallnode_${nodeId}_ref`)
+      expect(mapping[`${intermediateWallId}_end_nonref`]).toBe(`wallnode_${nodeId}_boundary_single`)
     })
 
     it('creates p2p_coincident constraints for non-colinear corners', () => {

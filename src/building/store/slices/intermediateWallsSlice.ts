@@ -269,7 +269,10 @@ export const createIntermediateWallsSlice: StateCreator<
             ...geometry,
             leftLine: { start: copyVec2(geometry.leftLine.start), end: copyVec2(geometry.leftLine.end) },
             rightLine: { start: copyVec2(geometry.rightLine.start), end: copyVec2(geometry.rightLine.end) },
-            centerLine: { start: copyVec2(geometry.centerLine.start), end: copyVec2(geometry.centerLine.end) }
+            entityReferenceLine: {
+              start: copyVec2(geometry.entityReferenceLine.start),
+              end: copyVec2(geometry.entityReferenceLine.end)
+            }
           })
         }
 
@@ -295,16 +298,16 @@ export const createIntermediateWallsSlice: StateCreator<
             previous.leftLine.end,
             previous.rightLine.start,
             previous.rightLine.end,
-            previous.centerLine.start,
-            previous.centerLine.end
+            previous.entityReferenceLine.start,
+            previous.entityReferenceLine.end
           ]
           const nextPoints = [
             next.leftLine.start,
             next.leftLine.end,
             next.rightLine.start,
             next.rightLine.end,
-            next.centerLine.start,
-            next.centerLine.end
+            next.entityReferenceLine.start,
+            next.entityReferenceLine.end
           ]
           if (
             points.some(
@@ -422,7 +425,11 @@ export const createIntermediateWallsSlice: StateCreator<
         const splitAxis = originalWall.start.axis === originalWall.end.axis ? originalWall.start.axis : 'left'
         const splitLine = splitAxis === 'left' ? originalGeometry.leftLine : originalGeometry.rightLine
         const projectedPoint = projectPointOntoLine(point, lineFromSegment(splitLine))
-        const splitPosition = projectVec2(originalGeometry.centerLine.start, projectedPoint, originalGeometry.direction)
+        const splitPosition = projectVec2(
+          originalGeometry.entityReferenceLine.start,
+          projectedPoint,
+          originalGeometry.direction
+        )
 
         if (splitPosition <= 0 || splitPosition >= originalGeometry.wallLength) {
           throw new InvalidOperationError('Intermediate wall split point must be inside the wall')

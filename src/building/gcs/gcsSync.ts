@@ -48,7 +48,9 @@ import {
   wallEntityWidthConstraintId,
   wallNodePerimeterPointId,
   wallNodeRefPointId,
-  wallNonRefSideProjectedPoint
+  wallNonRefLineId,
+  wallNonRefSideProjectedPoint,
+  wallRefLineId
 } from './constraintTranslator'
 import { getGcsActions, getGcsState } from './store'
 
@@ -327,13 +329,21 @@ class GcsSyncService {
     if (!current) return
 
     const wall = getModelActions().getIntermediateWallById(id)
-    if (!(wall.perimeterId in getGcsState().perimeterRegistry)) return
+    const state = getGcsState()
+    if (!(wall.perimeterId in state.perimeterRegistry)) return
 
     const { updatePointPosition } = getGcsActions()
-    updatePointPosition(wallEndpointPointId(id, 'start', 'ref'), current.leftLine.start)
-    updatePointPosition(wallEndpointPointId(id, 'end', 'ref'), current.leftLine.end)
-    updatePointPosition(wallEndpointPointId(id, 'start', 'nonref'), current.rightLine.start)
-    updatePointPosition(wallEndpointPointId(id, 'end', 'nonref'), current.rightLine.end)
+
+    const resolveEndpoint = (endpoint: 'start' | 'end', side: 'ref' | 'nonref'): string => {
+      const lineId = side === 'ref' ? wallRefLineId(id) : wallNonRefLineId(id)
+      const line = state.lines.find(l => l.id === lineId)
+      if (!line) return wallEndpointPointId(id, endpoint, side)
+      return endpoint === 'start' ? line.p1_id : line.p2_id
+    }
+    updatePointPosition(resolveEndpoint('start', 'ref'), current.leftLine.start)
+    updatePointPosition(resolveEndpoint('end', 'ref'), current.leftLine.end)
+    updatePointPosition(resolveEndpoint('start', 'nonref'), current.rightLine.start)
+    updatePointPosition(resolveEndpoint('end', 'nonref'), current.rightLine.end)
 
     const projectOntoLeftLine = (point: typeof current.leftLine.start) =>
       scaleAddVec2(

@@ -28,44 +28,17 @@ import { type Length, type LineSegment2D, type Vec2, midpoint, newVec2, projectV
 
 const DRAG_TEMP_POINT_ID = 'drag_wall_temp_point'
 
-// --- Helper functions for merging colinear H/V constraints ---
+// --- Helper functions for removing redundant colinear constraints ---
 
-interface CornerAdjacencyInfo {
-  prevWall?: string
-  nextWall?: string
-}
-
-interface ColinearChain {
-  walls: string[] // Wall IDs in the chain (in order)
-  startCornerId: string // Outermost start corner of chain
-  endCornerId: string // Outermost end corner of chain
-  constraintType: 'horizontal' | 'vertical' // Type of H/V constraints on all walls
-}
-
-function buildCornerAdjacencyMap(lines: SketchLine[]): Map<string, CornerAdjacencyInfo> {
-  const map = new Map<string, CornerAdjacencyInfo>()
-
-  for (const line of lines) {
-    const start = map.get(line.p1_id) ?? {}
-    map.set(line.p1_id, { ...start, nextWall: line.id })
-    const end = map.get(line.p2_id) ?? {}
-    map.set(line.p2_id, { ...end, prevWall: line.id })
-  }
-
-  return map
-}
-
-function findColinearChains(
+function findRedundantColinearConstraintIds(
   constraints: Record<string, Constraint>,
-  wallMap: Map<string, SketchLine>,
-  cornerAdjacencyMap: Map<string, CornerAdjacencyInfo>
-): ColinearChain[] {
-  const chains = new Map<string, ColinearChain>()
+  wallMap: Map<string, SketchLine>
+): Set<string> {
   const wallsWithHV = new Set<string>()
   const wallToConstraintType: Map<string, 'horizontal' | 'vertical'> = new Map<string, 'horizontal' | 'vertical'>()
-  const colinearConstraints = new Set<string>()
+  const colinearConstraints: { id: string; pointIds: string }[] = []
 
-  for (const [, constraint] of Object.entries(constraints)) {
+  for (const [id, constraint] of Object.entries(constraints)) {
     if (constraint.type === 'horizontal_l') {
       wallsWithHV.add(constraint.l_id)
       wallToConstraintType.set(constraint.l_id, 'horizontal')
@@ -73,96 +46,64 @@ function findColinearChains(
       wallsWithHV.add(constraint.l_id)
       wallToConstraintType.set(constraint.l_id, 'vertical')
     } else if (constraint.type === 'point_on_line_ppp') {
-      const pointIds = [constraint.p_id, constraint.lp1_id, constraint.lp2_id].sort()
-      colinearConstraints.add(pointIds.join('|'))
+      colinearConstraints.push({
+        id,
+        pointIds: [constraint.p_id, constraint.lp1_id, constraint.lp2_id].sort().join('|')
+      })
     }
   }
 
-  for (const wallId of wallsWithHV) {
-    const wallLine = wallMap.get(wallId)
-    if (!wallLine) continue
+  const redundantConstraintIds = new Set<string>()
+  const wallIds = [...wallsWithHV].filter(wallId => wallMap.has(wallId))
+  for (let i = 0; i < wallIds.length; i++) {
+    const wallA = wallMap.get(wallIds[i])
+    if (!wallA) continue
+    for (let j = i + 1; j < wallIds.length; j++) {
+      const wallB = wallMap.get(wallIds[j])
+      if (!wallB) continue
+      if (wallToConstraintType.get(wallIds[i]) !== wallToConstraintType.get(wallIds[j])) continue
 
-    const prevWall = cornerAdjacencyMap.get(wallLine.p1_id)?.prevWall
-    if (
-      !prevWall ||
-      !wallsWithHV.has(prevWall) ||
-      wallToConstraintType.get(wallId) !== wallToConstraintType.get(prevWall)
-    )
-      continue
+      const wallAId = wallIds[i].slice('wall_'.length, -'_ref'.length)
+      const wallBId = wallIds[j].slice('wall_'.length, -'_ref'.length)
+      const sharedPoints = [wallA.p1_id, wallA.p2_id].filter(
+        pointId => pointId === wallB.p1_id || pointId === wallB.p2_id
+      )
+      for (const colinearConstraint of colinearConstraints) {
+        const isWallNodeColinear =
+          colinearConstraint.id.includes('wallNodeColinear') &&
+          (colinearConstraint.id.includes(`_${wallAId}_${wallBId}`) ||
+            colinearConstraint.id.includes(`_${wallBId}_${wallAId}`))
+        const isCornerColinear =
+          colinearConstraint.id.includes('colinearCorner') &&
+          sharedPoints.length === 1 &&
+          colinearConstraint.pointIds ===
+            [
+              sharedPoints[0],
+              wallA.p1_id === sharedPoints[0] ? wallA.p2_id : wallA.p1_id,
+              wallB.p1_id === sharedPoints[0] ? wallB.p2_id : wallB.p1_id
+            ]
+              .sort()
+              .join('|')
 
-    const prevWallLine = wallMap.get(prevWall)
-    if (!prevWallLine) continue
-    const colinearPointIds = [prevWallLine.p1_id, wallLine.p1_id, wallLine.p2_id].sort()
-    if (!colinearConstraints.has(colinearPointIds.join('|'))) continue
-
-    const prevCorner = prevWallLine.p1_id
-    const prevPrevWall = cornerAdjacencyMap.get(prevCorner)?.prevWall
-    if (!prevPrevWall) continue
-
-    const existingChainAfter = chains.get(wallId)
-    const existingChainBefore = chains.get(prevPrevWall)
-
-    let chain: ColinearChain
-    if (existingChainBefore) {
-      const walls = existingChainAfter
-        ? [...existingChainBefore.walls, ...existingChainAfter.walls]
-        : [...existingChainBefore.walls, wallId]
-
-      chain = {
-        walls,
-        startCornerId: existingChainBefore.startCornerId,
-        endCornerId: existingChainAfter?.endCornerId ?? wallLine.p2_id,
-        constraintType: wallToConstraintType.get(wallId) ?? 'horizontal'
-      }
-    } else {
-      const walls = existingChainAfter ? [prevWall, ...existingChainAfter.walls] : [prevWall, wallId]
-      chain = {
-        walls,
-        startCornerId: prevCorner,
-        endCornerId: existingChainAfter?.endCornerId ?? wallLine.p2_id,
-        constraintType: wallToConstraintType.get(wallId) ?? 'horizontal'
+        if (isWallNodeColinear || isCornerColinear) {
+          redundantConstraintIds.add(colinearConstraint.id)
+        }
       }
     }
-    chains.set(chain.walls[0], chain)
   }
 
-  return Array.from(chains.values())
+  return redundantConstraintIds
 }
 
 function transformAdjacentHVConstraints(
   constraints: Record<string, Constraint>,
   lines: SketchLine[]
 ): Record<string, Constraint> {
-  const cornerAdjacencyMap = buildCornerAdjacencyMap(lines)
-  const wallMap = new Map(lines.map(l => [l.id, l]))
-  const chains = findColinearChains(constraints, wallMap, cornerAdjacencyMap)
+  const wallMap = new Map(lines.filter(line => line.id.endsWith('_ref')).map(line => [line.id, line]))
+  const redundantConstraintIds = findRedundantColinearConstraintIds(constraints, wallMap)
 
   const result = { ...constraints }
-  const removedConstraintIds = new Set<string>()
-
-  for (const chain of chains) {
-    const mergedConstraintId = `merged_${chain.constraintType}_chain_${chain.walls.join('_')}`
-
-    for (const wallId of chain.walls) {
-      const constraint = Object.values(constraints).find(
-        c => (c.type === 'horizontal_l' || c.type === 'vertical_l') && c.l_id === wallId
-      )
-      if (constraint) {
-        removedConstraintIds.add(constraint.id)
-      }
-    }
-
-    const gcsType = chain.constraintType === 'horizontal' ? 'horizontal_pp' : 'vertical_pp'
-    result[mergedConstraintId] = {
-      id: mergedConstraintId,
-      type: gcsType,
-      p1_id: chain.startCornerId,
-      p2_id: chain.endCornerId,
-      driving: true
-    }
-  }
-
-  for (const id of removedConstraintIds) {
+  for (const id of redundantConstraintIds) {
     delete result[id]
   }
 
@@ -455,7 +396,7 @@ export class WrappedGcs {
       if ('insideLine' in wall) {
         wallStartPoint = isInsideRef ? wall.insideLine.start : wall.outsideLine.start
       } else {
-        wallStartPoint = wall.leftLine.start
+        wallStartPoint = wall.entityReferenceLine.start
       }
 
       for (const entityId of wall.entityIds) {

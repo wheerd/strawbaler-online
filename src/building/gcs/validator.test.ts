@@ -138,4 +138,20 @@ describe('validateSolution dynamic wall geometry', () => {
 
     expect(result).toEqual({ valid: false, reason: 'Wall entity position violation' })
   })
+
+  it('validates intermediate entities against the side-line overlap, not extended endpoints', () => {
+    const entityId = 'opening_overlap' as WallEntityId
+    const points = {
+      ...makePoints(),
+      [`${entityId}_center_ref`]: point(`${entityId}_center_ref`, 50, 20)
+    }
+
+    const invalid = validateSolution([makePerimeter()], points, makeEntityConstraints(entityId), makeLines())
+    expect(invalid).toEqual({ valid: false, reason: 'Wall entity position violation' })
+
+    points[`${entityId}_center_ref`] = point(`${entityId}_center_ref`, 27.5, 50)
+    expect(validateSolution([makePerimeter()], points, makeEntityConstraints(entityId), makeLines())).toEqual({
+      valid: true
+    })
+  })
 })

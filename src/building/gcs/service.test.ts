@@ -90,7 +90,7 @@ describe('WrappedGcs solved model synchronization', () => {
     const intermediateWall = partial<IntermediateWallWithGeometry>({
       id: 'intermediate_1',
       entityIds: [postId],
-      centerLine: { start: [0, 100], end: [0, 200] },
+      entityReferenceLine: { start: [0, 100], end: [0, 200] },
       leftLine: { start: [0, 100], end: [0, 200] },
       direction: [0, 1]
     })

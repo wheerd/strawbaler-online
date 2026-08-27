@@ -191,6 +191,7 @@ vi.mock('./store', () => ({
   }),
   getGcsState: () => ({
     perimeterRegistry: mockPerimeterRegistry,
+    wallNodeRegistry: {},
     points: mockGcsPoints,
     constraints: mockGcsConstraints,
     lines: mockGcsLines
@@ -317,7 +318,12 @@ describe('GcsSyncService', () => {
       const perimeterId = 'p1' as PerimeterId
       const wallId = 'intermediate_wall_1' as IntermediateWallId
       mockPerimeterRegistry[perimeterId] = { pointIds: [], lineIds: [], constraintIds: [] }
-      mockGetIntermediateWallById.mockReturnValue({ id: wallId, perimeterId })
+      mockGetIntermediateWallById.mockReturnValue({
+        id: wallId,
+        perimeterId,
+        start: { nodeId: 'wallnode_start' as WallNodeId, axis: 'left' },
+        end: { nodeId: 'wallnode_end' as WallNodeId, axis: 'left' }
+      })
 
       capturedIntermediateWallGeometryCallback!(wallId, {
         leftLine: { start: [1, 2], end: [3, 4] },

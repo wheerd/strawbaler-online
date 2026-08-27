@@ -398,7 +398,7 @@ describe('intermediateWallsSlice', () => {
 
       state.actions.updateIntermediateWallAlignmentPreservingGeometry(wall.id, 'left')
 
-      expect(state.actions.getIntermediateWallById(wall.id).centerLine).toEqual(before.centerLine)
+      expect(state.actions.getIntermediateWallById(wall.id).entityReferenceLine).toEqual(before.entityReferenceLine)
     })
 
     it('updates an alignment when the current geometry can be preserved', () => {
@@ -644,7 +644,7 @@ describe('intermediateWallsSlice', () => {
         120
       )
       const originalLength = wall.wallLength
-      const originalCenterLine = state._intermediateWallGeometry[wall.id].centerLine
+      const originalEntityReferenceLine = state._intermediateWallGeometry[wall.id].entityReferenceLine
       const originalLeftLine = state._intermediateWallGeometry[wall.id].leftLine
 
       state.actions.splitIntermediateWallAtPoint(wall.id, newVec2(4000, 2600))
@@ -660,8 +660,8 @@ describe('intermediateWallsSlice', () => {
         node => node.connectedWallIds.includes(newWalls[0]) && node.connectedWallIds.includes(newWalls[1])
       ) as InnerWallNode | undefined
       expect(splitNode).toBeDefined()
-      expect(splitNode?.position[0]).toBeGreaterThan(originalCenterLine.start[0])
-      expect(splitNode?.position[0]).toBeLessThan(originalCenterLine.end[0])
+      expect(splitNode?.position[0]).toBeGreaterThan(originalEntityReferenceLine.start[0])
+      expect(splitNode?.position[0]).toBeLessThan(originalEntityReferenceLine.end[0])
       expect(distanceToInfiniteLine(splitNode!.position, lineFromSegment(originalLeftLine))).toBeLessThan(1e-3)
       const firstWall = state.intermediateWalls[newWalls[0]]
       const secondWall = state.intermediateWalls[newWalls[1]]
@@ -1183,7 +1183,7 @@ describe('intermediateWallsSlice', () => {
       expect(result.thickness).toBe(120)
       expect(result.wallLength).toBeGreaterThan(0)
       expect(result.boundary.points).toHaveLength(4)
-      expect(result.centerLine).toBeDefined()
+      expect(result.entityReferenceLine).toBeDefined()
     })
 
     it('getIntermediateWallById should throw for non-existent wall', () => {

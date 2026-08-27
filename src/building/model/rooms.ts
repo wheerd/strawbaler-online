@@ -7,6 +7,7 @@ import type {
   PerimeterWallId,
   RoomId,
   WallEntityId,
+  WallId,
   WallNodeId
 } from './ids'
 
@@ -44,9 +45,17 @@ export interface InnerWallNode extends BaseWallNode {
   position: Vec2
 }
 
+export interface WallNodeIncidentWall {
+  id: WallId
+  direction: Vec2
+  leftPoint: Vec2
+  rightPoint: Vec2
+}
+
 export interface BaseWallNodeGeometry {
   boundary?: Polygon2D
   center: Vec2
+  incidentWalls: WallNodeIncidentWall[]
 }
 
 export interface PerimeterWallNodeGeometry extends BaseWallNodeGeometry {
@@ -100,7 +109,7 @@ export interface IntermediateWall {
 
 export interface IntermediateWallGeometry {
   boundary: Polygon2D
-  centerLine: LineSegment2D
+  entityReferenceLine: LineSegment2D
   wallLength: Length
   leftLength: Length
   leftLine: LineSegment2D

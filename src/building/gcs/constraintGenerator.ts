@@ -326,6 +326,7 @@ export function generateIntermediateWallConstraints(
     }
 
     for (const [wallA, wallB] of getAdjacentWallNodePairs(incidentWalls)) {
+      if (wallA.isPerimeterRay && wallB.isPerimeterRay) continue
       if (!createdWallIds.has(wallA.id) && !createdWallIds.has(wallB.id)) continue
       if (wallA.hasHVConstraint && wallB.hasHVConstraint) continue
 

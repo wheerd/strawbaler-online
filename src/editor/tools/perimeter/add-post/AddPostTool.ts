@@ -121,7 +121,7 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
     pointerPos: Vec2,
     wall: PerimeterWallWithGeometry | IntermediateWallWithGeometry
   ): Length {
-    const start = 'centerLine' in wall ? wall.centerLine.start : wall.insideLine.start
+    const start = 'entityReferenceLine' in wall ? wall.entityReferenceLine.start : wall.insideLine.start
     const centerOffset = projectVec2(start, pointerPos, wall.direction)
     return Math.round(centerOffset / 10) * 10 // Round center offset to 10mm increments
   }
@@ -130,7 +130,7 @@ export class AddPostTool extends BaseTool implements ToolImplementation {
    * Convert offset to actual position on the wall
    */
   private offsetToPosition(offset: Length, wall: PerimeterWallWithGeometry | IntermediateWallWithGeometry): Vec2 {
-    const startPoint = 'centerLine' in wall ? wall.centerLine.start : wall.insideLine.start
+    const startPoint = 'entityReferenceLine' in wall ? wall.entityReferenceLine.start : wall.insideLine.start
     const direction = wall.direction
 
     return newVec2(startPoint[0] + direction[0] * offset, startPoint[1] + direction[1] * offset)

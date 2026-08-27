@@ -405,7 +405,7 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
     const replacementWall = splitNode.connectedWallIds
       .map(wallId => modelActions.getIntermediateWallById(wallId))
       .find(wall => {
-        const position = projectVec2(wall.centerLine.start, point, wall.direction)
+        const position = projectVec2(wall.entityReferenceLine.start, point, wall.direction)
         return position > 0 && position < wall.wallLength
       })
 

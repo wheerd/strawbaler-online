@@ -33,7 +33,7 @@ export interface IntermediateWallEntityContext {
 export interface IntermediateWallMovementState extends MovementState {
   movementDelta: Vec2
   nodePositions: Record<WallNodeId, Vec2>
-  centerLine: LineSegment2D
+  entityReferenceLine: LineSegment2D
 }
 
 export class IntermediateWallMovementBehavior implements MovementBehavior<
@@ -72,7 +72,7 @@ export class IntermediateWallMovementBehavior implements MovementBehavior<
         context.store.getWallNodeById(wall.start.nodeId),
         context.store.getWallNodeById(wall.end.nodeId)
       ]),
-      centerLine: wall.centerLine
+      entityReferenceLine: wall.entityReferenceLine
     }
   }
 
@@ -90,10 +90,10 @@ export class IntermediateWallMovementBehavior implements MovementBehavior<
     return {
       movementDelta: subVec2(
         midpoint(nodePositions[wall.start.nodeId], nodePositions[wall.end.nodeId]),
-        midpoint(wall.centerLine.start, wall.centerLine.end)
+        midpoint(wall.entityReferenceLine.start, wall.entityReferenceLine.end)
       ),
       nodePositions,
-      centerLine: {
+      entityReferenceLine: {
         start: nodePositions[wall.start.nodeId],
         end: nodePositions[wall.end.nodeId]
       }

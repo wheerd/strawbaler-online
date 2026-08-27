@@ -39,6 +39,10 @@ export function wallNodePerimeterPointId(nodeId: WallNodeId, side: 'start' | 'en
   return `wallnode_${nodeId}_${side}`
 }
 
+export function wallNodePointId(nodeId: WallNodeId, index: number): string {
+  return `wn_${nodeId}_${index}`
+}
+
 export function wallEndpointPointId(wallId: WallId, endpoint: 'start' | 'end', side: 'ref' | 'nonref'): string {
   return `${wallId}_${endpoint}_${side}`
 }
@@ -147,6 +151,12 @@ export interface TranslationContext {
   getWallRefEndpointPointIds: (
     wallId: WallId,
     nodeId: WallNodeId
+  ) => { atNodePointId: string; oppositePointId: string } | undefined
+  /** Return endpoints on one side of a wall, viewed from the node. */
+  getWallNodeSideEndpointPointIds?: (
+    wallId: WallId,
+    nodeId: WallNodeId,
+    side: 'left' | 'right'
   ) => { atNodePointId: string; oppositePointId: string } | undefined
   /** Return the point at a wall node on the requested physical wall side. */
   getWallNodeSidePointId: (wallId: WallId, nodeId: WallNodeId, side: 'left' | 'right') => string | undefined
@@ -402,8 +412,13 @@ export function translateBuildingConstraint(
     }
 
     case 'wallNodeColinear': {
-      const wallAEndpoints = context.getWallRefEndpointPointIds(constraint.wallA, constraint.node)
-      const wallBEndpoints = context.getWallRefEndpointPointIds(constraint.wallB, constraint.node)
+      const getSideEndpoints = context.getWallNodeSideEndpointPointIds
+      const wallAEndpoints =
+        getSideEndpoints?.(constraint.wallA, constraint.node, 'left') ??
+        context.getWallRefEndpointPointIds(constraint.wallA, constraint.node)
+      const wallBEndpoints =
+        getSideEndpoints?.(constraint.wallB, constraint.node, 'right') ??
+        context.getWallRefEndpointPointIds(constraint.wallB, constraint.node)
       if (!wallAEndpoints || !wallBEndpoints) return { constraints: [], points: [] }
 
       return {

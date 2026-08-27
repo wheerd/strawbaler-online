@@ -12,19 +12,19 @@ export function IntermediateWallMovementPreview({
   return (
     <g pointerEvents="none">
       <line
-        x1={movementState.centerLine.start[0]}
-        y1={movementState.centerLine.start[1]}
-        x2={movementState.centerLine.end[0]}
-        y2={movementState.centerLine.end[1]}
+        x1={movementState.entityReferenceLine.start[0]}
+        y1={movementState.entityReferenceLine.start[1]}
+        x2={movementState.entityReferenceLine.end[0]}
+        y2={movementState.entityReferenceLine.end[1]}
         stroke={color}
         strokeWidth={30}
         opacity={0.65}
       />
       <line
-        x1={movementState.centerLine.start[0]}
-        y1={movementState.centerLine.start[1]}
-        x2={movementState.centerLine.end[0]}
-        y2={movementState.centerLine.end[1]}
+        x1={movementState.entityReferenceLine.start[0]}
+        y1={movementState.entityReferenceLine.start[1]}
+        x2={movementState.entityReferenceLine.end[0]}
+        y2={movementState.entityReferenceLine.end[1]}
         stroke={color}
         strokeWidth={10}
         strokeDasharray="80 40"

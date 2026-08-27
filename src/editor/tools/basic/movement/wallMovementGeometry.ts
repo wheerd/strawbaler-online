@@ -23,12 +23,12 @@ export function getWallMovementGeometry(wall: MovableWall): WallMovementGeometry
 
   const halfThickness = wall.thickness / 2
   const insideLine: LineSegment2D = {
-    start: scaleAddVec2(wall.centerLine.start, wall.leftDirection, halfThickness),
-    end: scaleAddVec2(wall.centerLine.end, wall.leftDirection, halfThickness)
+    start: scaleAddVec2(wall.entityReferenceLine.start, wall.leftDirection, halfThickness),
+    end: scaleAddVec2(wall.entityReferenceLine.end, wall.leftDirection, halfThickness)
   }
   const outsideLine: LineSegment2D = {
-    start: scaleAddVec2(wall.centerLine.start, wall.leftDirection, -halfThickness),
-    end: scaleAddVec2(wall.centerLine.end, wall.leftDirection, -halfThickness)
+    start: scaleAddVec2(wall.entityReferenceLine.start, wall.leftDirection, -halfThickness),
+    end: scaleAddVec2(wall.entityReferenceLine.end, wall.leftDirection, -halfThickness)
   }
 
   return {

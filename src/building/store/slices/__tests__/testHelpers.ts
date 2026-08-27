@@ -18,6 +18,7 @@ import {
 } from '@/building/store/slices/constraintsSlice'
 import type { IntermediateWallsSlice, IntermediateWallsState } from '@/building/store/slices/intermediateWallsSlice'
 import { createIntermediateWallsSlice } from '@/building/store/slices/intermediateWallsSlice'
+import { updatePerimeterGeometry } from '@/building/store/slices/perimeterGeometry'
 import {
   type PerimetersSlice,
   type PerimetersState,
@@ -302,16 +303,16 @@ export function createMockPerimeterState(
   const t = thickness
 
   const wallIds: PerimeterWallId[] = [
-    'outwall_bottom' as PerimeterWallId,
-    'outwall_right' as PerimeterWallId,
+    'outwall_left' as PerimeterWallId,
     'outwall_top' as PerimeterWallId,
-    'outwall_left' as PerimeterWallId
+    'outwall_right' as PerimeterWallId,
+    'outwall_bottom' as PerimeterWallId
   ]
   const cornerIds: PerimeterCornerId[] = [
     'outcorner_bl' as PerimeterCornerId,
-    'outcorner_br' as PerimeterCornerId,
+    'outcorner_tl' as PerimeterCornerId,
     'outcorner_tr' as PerimeterCornerId,
-    'outcorner_tl' as PerimeterCornerId
+    'outcorner_br' as PerimeterCornerId
   ]
   const perimeterId = 'perimeter_test' as PerimeterId
 
@@ -376,15 +377,15 @@ export function createMockPerimeterState(
       previousWallId: wallIds[3],
       nextWallId: wallIds[0],
       referencePoint: newVec2(0, 0),
-      constructedByWall: 'previous'
+      constructedByWall: 'next'
     },
     [cornerIds[1]]: {
       id: cornerIds[1],
       perimeterId,
       previousWallId: wallIds[0],
       nextWallId: wallIds[1],
-      referencePoint: newVec2(w, 0),
-      constructedByWall: 'previous'
+      referencePoint: newVec2(0, h),
+      constructedByWall: 'next'
     },
     [cornerIds[2]]: {
       id: cornerIds[2],
@@ -392,15 +393,15 @@ export function createMockPerimeterState(
       previousWallId: wallIds[1],
       nextWallId: wallIds[2],
       referencePoint: newVec2(w, h),
-      constructedByWall: 'previous'
+      constructedByWall: 'next'
     },
     [cornerIds[3]]: {
       id: cornerIds[3],
       perimeterId,
       previousWallId: wallIds[2],
       nextWallId: wallIds[3],
-      referencePoint: newVec2(0, h),
-      constructedByWall: 'previous'
+      referencePoint: newVec2(w, 0),
+      constructedByWall: 'next'
     }
   }
 
@@ -504,6 +505,15 @@ export function createMockPerimeterState(
     wallPosts: {},
     _wallPostGeometry: {}
   }
+
+  updatePerimeterGeometry(
+    {
+      ...perimetersState,
+      ...wallEntitiesState,
+      timestamps: {}
+    },
+    perimeterId
+  )
 
   return {
     perimetersState,

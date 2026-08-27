@@ -484,6 +484,33 @@ describe('translateBuildingConstraint', () => {
       expect(result.constraints[0]).not.toHaveProperty('p_id', `wallnode_${wallNode}_ref`)
     })
   })
+
+  it('translates wallNodeColinear using node-perspective left and right sides', () => {
+    const constraint: ConstraintInput = { type: 'wallNodeColinear', node: wallNode, wallA, wallB }
+    const result = translateBuildingConstraint(
+      constraint,
+      'constraint_test',
+      makeContext({
+        getWallNodeSideEndpointPointIds: (wallId, nodeId, side) => {
+          if (nodeId !== wallNode) return undefined
+          if (wallId === wallA && side === 'left') {
+            return { atNodePointId: 'wallA_node_left', oppositePointId: 'wallA_outer_left' }
+          }
+          if (wallId === wallB && side === 'right') {
+            return { atNodePointId: 'wallB_node_right', oppositePointId: 'wallB_outer_right' }
+          }
+          return undefined
+        }
+      })
+    )
+
+    expect(result.constraints[0]).toMatchObject({
+      type: 'point_on_line_ppp',
+      p_id: 'wallA_node_left',
+      lp1_id: 'wallA_outer_left',
+      lp2_id: 'wallB_outer_right'
+    })
+  })
 })
 
 // --- Validation helper tests ---

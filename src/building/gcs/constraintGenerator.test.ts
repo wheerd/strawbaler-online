@@ -38,7 +38,7 @@ function makeIntermediateWall(
     end: { nodeId: endNodeId as `wallnode_${string}`, axis: 'left' },
     thickness: 10,
     boundary: { points: [] },
-    centerLine: { start, end },
+    entityReferenceLine: { start, end },
     wallLength: 100,
     leftLength: 100,
     leftLine: { start: addVec2(start, left), end: addVec2(end, left) },
@@ -56,7 +56,8 @@ function makeInnerNode(id: string, connectedWallIds: string[]): InnerWallNodeWit
     type: 'inner',
     connectedWallIds: connectedWallIds as `intermediate_${string}`[],
     position: newVec2(0, 0),
-    center: newVec2(0, 0)
+    center: newVec2(0, 0),
+    incidentWalls: []
   }
 }
 

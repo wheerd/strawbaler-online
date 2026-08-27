@@ -408,12 +408,12 @@ export function getWallEntityGeometrySource(state: StoreState, wallId: WallId): 
   const perpDir = perpendicularCCW(geom.direction)
   return {
     insideLine: {
-      start: scaleAddVec2(geom.centerLine.start, perpDir, -halfThickness),
-      end: scaleAddVec2(geom.centerLine.end, perpDir, -halfThickness)
+      start: scaleAddVec2(geom.entityReferenceLine.start, perpDir, -halfThickness),
+      end: scaleAddVec2(geom.entityReferenceLine.end, perpDir, -halfThickness)
     },
     outsideLine: {
-      start: scaleAddVec2(geom.centerLine.start, perpDir, halfThickness),
-      end: scaleAddVec2(geom.centerLine.end, perpDir, halfThickness)
+      start: scaleAddVec2(geom.entityReferenceLine.start, perpDir, halfThickness),
+      end: scaleAddVec2(geom.entityReferenceLine.end, perpDir, halfThickness)
     },
     direction: geom.direction
   }
