@@ -95,12 +95,47 @@ function findRedundantColinearConstraintIds(
   return redundantConstraintIds
 }
 
-function transformAdjacentHVConstraints(
+function findRedundantAlignedAttachmentConstraintIds(
+  constraints: Record<string, Constraint>,
+  wallMap: Map<string, SketchLine>
+): Set<string> {
+  const wallOrientations = new Map<string, 'horizontal' | 'vertical'>()
+  for (const constraint of Object.values(constraints)) {
+    if (constraint.type === 'horizontal_l') {
+      wallOrientations.set(constraint.l_id, 'horizontal')
+    } else if (constraint.type === 'vertical_l') {
+      wallOrientations.set(constraint.l_id, 'vertical')
+    }
+  }
+
+  const retainedAttachments = new Set<string>()
+  const redundantConstraintIds = new Set<string>()
+  for (const [id, constraint] of Object.entries(constraints)) {
+    if (constraint.type !== 'point_on_line_pl' || !id.endsWith('_attachment')) continue
+
+    const orientation = wallOrientations.get(constraint.l_id)
+    if (!orientation || !wallMap.has(constraint.l_id)) continue
+
+    const groupKey = `${constraint.p_id}|${orientation}`
+    if (retainedAttachments.has(groupKey)) {
+      redundantConstraintIds.add(id)
+    } else {
+      retainedAttachments.add(groupKey)
+    }
+  }
+
+  return redundantConstraintIds
+}
+
+export function filterRedundantAdjacentConstraints(
   constraints: Record<string, Constraint>,
   lines: SketchLine[]
 ): Record<string, Constraint> {
   const wallMap = new Map(lines.filter(line => line.id.endsWith('_ref')).map(line => [line.id, line]))
-  const redundantConstraintIds = findRedundantColinearConstraintIds(constraints, wallMap)
+  const redundantConstraintIds = new Set([
+    ...findRedundantColinearConstraintIds(constraints, wallMap),
+    ...findRedundantAlignedAttachmentConstraintIds(constraints, wallMap)
+  ])
 
   const result = { ...constraints }
   for (const id of redundantConstraintIds) {
@@ -180,7 +215,7 @@ class GcsService {
 
     const lines = gcsState.lines.filter(l => activeLineIds.has(l.id))
 
-    const allConstraints = transformAdjacentHVConstraints(gcsState.constraints, gcsState.lines)
+    const allConstraints = filterRedundantAdjacentConstraints(gcsState.constraints, gcsState.lines)
     const constraints = Object.fromEntries(
       Object.entries(allConstraints).filter(([, constraint]) => {
         const pids = getPointIds(constraint)

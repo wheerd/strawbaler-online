@@ -1,10 +1,11 @@
+import type { Constraint, SketchLine } from '@salusoft89/planegcs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { IntermediateWallWithGeometry, PerimeterWallWithGeometry } from '@/building/model'
 import type { PerimeterId, PerimeterWallId, WallEntityId, WallNodeId } from '@/building/model/ids'
 import { partial } from '@/test/helpers'
 
-import { WrappedGcs } from './service'
+import { WrappedGcs, filterRedundantAdjacentConstraints } from './service'
 
 const mockModelActions = vi.hoisted(() => ({
   getActiveStoreyId: vi.fn(),
@@ -152,5 +153,67 @@ describe('WrappedGcs solved model synchronization', () => {
         })
       ])
     )
+  })
+})
+
+describe('filterRedundantAdjacentConstraints', () => {
+  const lines: SketchLine[] = [
+    { id: 'wall_intermediate_horizontal_a_ref', type: 'line', p1_id: 'a1', p2_id: 'a2' },
+    { id: 'wall_intermediate_horizontal_b_ref', type: 'line', p1_id: 'b1', p2_id: 'b2' },
+    { id: 'wall_intermediate_vertical_ref', type: 'line', p1_id: 'c1', p2_id: 'c2' }
+  ]
+
+  const constraints: Record<string, Constraint> = {
+    horizontal_a: { id: 'horizontal_a', type: 'horizontal_l', l_id: lines[0].id },
+    horizontal_b: { id: 'horizontal_b', type: 'horizontal_l', l_id: lines[1].id },
+    vertical: { id: 'vertical', type: 'vertical_l', l_id: lines[2].id },
+    horizontal_a_attachment: {
+      id: 'horizontal_a_attachment',
+      type: 'point_on_line_pl',
+      p_id: 'wallnode_shared_ref',
+      l_id: lines[0].id
+    },
+    horizontal_b_attachment: {
+      id: 'horizontal_b_attachment',
+      type: 'point_on_line_pl',
+      p_id: 'wallnode_shared_ref',
+      l_id: lines[1].id
+    },
+    vertical_attachment: {
+      id: 'vertical_attachment',
+      type: 'point_on_line_pl',
+      p_id: 'wallnode_shared_ref',
+      l_id: lines[2].id
+    }
+  }
+
+  it('filters duplicate attachments for aligned wall lines', () => {
+    const result = filterRedundantAdjacentConstraints(constraints, lines)
+
+    expect(result).toHaveProperty('horizontal_a_attachment')
+    expect(result).not.toHaveProperty('horizontal_b_attachment')
+    expect(result).toHaveProperty('vertical_attachment')
+  })
+
+  it('does not filter attachments on different nodes or axes', () => {
+    const result = filterRedundantAdjacentConstraints(
+      {
+        horizontal_a: constraints.horizontal_a,
+        vertical: constraints.vertical,
+        horizontal_a_attachment: constraints.horizontal_a_attachment,
+        horizontal_other_node_attachment: {
+          id: 'horizontal_other_node_attachment',
+          type: 'point_on_line_pl',
+          p_id: 'wallnode_other_ref',
+          l_id: lines[0].id
+        },
+        vertical_attachment: constraints.vertical_attachment
+      },
+      lines
+    )
+
+    expect(result).toHaveProperty('horizontal_a_attachment')
+    expect(result).toHaveProperty('horizontal_other_node_attachment')
+    expect(result).toHaveProperty('vertical_attachment')
   })
 })
