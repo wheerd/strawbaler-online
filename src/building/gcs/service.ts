@@ -152,7 +152,7 @@ interface DragState {
 }
 
 class GcsService {
-  private solveTimeout: NodeJS.Timeout | undefined
+  private solveTimeout: ReturnType<typeof setTimeout> | undefined
 
   constructor() {
     this.triggerSolve()

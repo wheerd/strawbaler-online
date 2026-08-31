@@ -20,6 +20,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest watch",
+    "test:gcs-dump-debug": "GCS_DUMP_DEBUG=1 vitest run src/building/gcs/gcsDump.test.ts --pool=threads",
     "testimporter": "IFCIMPORTER=1 vitest watch src/importers/ifc/importer.integration.test.ts",
     "i18n:interface": "i18next-cli types",
     "i18n:extract": "i18next-cli extract",
