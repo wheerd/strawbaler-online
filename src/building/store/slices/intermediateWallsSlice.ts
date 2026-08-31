@@ -148,6 +148,7 @@ export const createIntermediateWallsSlice: StateCreator<
 
         perimeter.intermediateWallIds = perimeter.intermediateWallIds.filter(id => id !== wallId)
 
+        removeConstraintsForEntityDraft(state, wallId)
         delete state.intermediateWalls[wallId]
         delete state._intermediateWallGeometry[wallId]
 

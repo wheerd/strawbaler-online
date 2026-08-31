@@ -217,6 +217,31 @@ describe('intermediateWallsSlice', () => {
       expect(state.wallNodes[nodeB.id]).toBeUndefined()
     })
 
+    it('should remove building constraints that reference the wall', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+
+      const nodeA = state.actions.addInnerWallNode(perimeterId, newVec2(2000, 2500))
+      const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(8000, 2500))
+      const wall = state.actions.addIntermediateWall(
+        perimeterId,
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
+        120
+      )
+      const constraintId = state.actions.addBuildingConstraint({
+        type: 'wallLength',
+        wall: wall.id,
+        side: 'left',
+        length: 6000
+      })
+
+      state.actions.removeIntermediateWall(wall.id)
+
+      expect(state.buildingConstraints[constraintId]).toBeUndefined()
+      expect(state._constraintsByEntity[wall.id]).toBeUndefined()
+    })
+
     it('should remove orphaned nodes after wall removal', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
