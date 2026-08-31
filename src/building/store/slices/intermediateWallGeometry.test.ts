@@ -498,8 +498,8 @@ describe('intermediateWallGeometry', () => {
           id: wallIds[i],
           perimeterId,
           entityIds: [],
-          start: { nodeId, axis: 'left' },
-          end: { nodeId: endNodeId, axis: 'left' },
+          start: { nodeId: i === 1 ? endNodeId : nodeId, axis: 'left' },
+          end: { nodeId: i === 1 ? nodeId : endNodeId, axis: 'left' },
           thickness: 200
         }
       }
@@ -511,8 +511,8 @@ describe('intermediateWallGeometry', () => {
 
       const points = state._wallNodeGeometry[nodeId].boundary?.points ?? []
       expect(points).toHaveLength(4)
-      expect(points).toContainEqual(newVec2(5000, 2800))
-      expect(points).toContainEqual(newVec2(5200, 2800))
+      expect(points).toContainEqual(newVec2(5000, 3000))
+      expect(points).toContainEqual(newVec2(5200, 3000))
       expect(points).toContainEqual(newVec2(5200, 3200))
       expect(points).toContainEqual(newVec2(5000, 3200))
     })

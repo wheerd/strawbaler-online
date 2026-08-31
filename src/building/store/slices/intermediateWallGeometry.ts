@@ -400,9 +400,6 @@ function updateColinearNode(
 
   state._wallNodeGeometry[node.id] = {
     center: midpoint(aLeft, aRight),
-    boundary: ensurePolygonIsClockwise({
-      points: [aLeft, aRight, bRight, bLeft]
-    }),
     incidentWalls: [
       { direction: a.dir, leftPoint: aLeft, rightPoint: aRight, id: a.wallId },
       { direction: b.dir, leftPoint: bLeft, rightPoint: bRight, id: b.wallId }
