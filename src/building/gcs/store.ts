@@ -9,7 +9,8 @@ import type {
   IntermediateWallId,
   PerimeterCornerId,
   PerimeterId,
-  WallId
+  WallId,
+  WallNodeId
 } from '@/building/model'
 import { isPerimeterWallId } from '@/building/model/ids'
 import type { PerimeterCornerWithGeometry } from '@/building/model/perimeters'
@@ -33,6 +34,7 @@ import {
   wallEntityOnLineConstraintId,
   wallEntityPointId,
   wallEntityWidthConstraintId,
+  wallNodeInsideLineId,
   wallNodePointId,
   wallNodeRefPointId,
   wallNonRefLineId,
@@ -213,6 +215,10 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         getLineStartPointId: (lineId: string) => {
           const line = state.lines.find(l => l.id === lineId)
           return line?.p1_id
+        },
+        getWallNodeInsideLinePointIds: (nodeId: WallNodeId) => {
+          const line = state.lines.find(l => l.id === wallNodeInsideLineId(nodeId))
+          return line ? { start: line.p1_id, end: line.p2_id } : undefined
         },
         getWallNodeIds: (wallId: WallId, side: 'ref' | 'nonref') => {
           try {
@@ -671,7 +677,9 @@ const useGcsStore = create<GcsStore>()((set, get) => ({
         }
 
         if (insideLineStart && insideLineEnd) {
-          actions.addLine(`wn_${node.id}_inside`, insideLineStart, insideLineEnd)
+          const insideLineId = wallNodeInsideLineId(node.id)
+          actions.addLine(insideLineId, insideLineStart, insideLineEnd)
+          entry.lineIds.push(insideLineId)
 
           if (node.type === 'perimeter') {
             const insideLineId = isRefInside ? wallRefLineId(node.wallId) : wallNonRefLineId(node.wallId)

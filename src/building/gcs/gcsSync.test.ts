@@ -381,6 +381,7 @@ describe('GcsSyncService', () => {
       const nodeId = 'wallnode_1' as WallNodeId
       mockPerimeterRegistry[perimeterId] = { pointIds: [], lineIds: [], constraintIds: [] }
       mockGetWallNodeById.mockReturnValue({ id: nodeId, perimeterId })
+      mockGcsLines.push({ id: `wn_${nodeId}_inside`, p1_id: `wn_${nodeId}_0`, p2_id: `wn_${nodeId}_1` })
 
       capturedWallNodeGeometryCallback!(
         nodeId,
@@ -389,8 +390,8 @@ describe('GcsSyncService', () => {
       )
 
       expect(mockUpdatePointPosition).toHaveBeenCalledWith(`wallnode_${nodeId}_ref`, [9, 10])
-      expect(mockUpdatePointPosition).toHaveBeenCalledWith(`wallnode_${nodeId}_start`, [8, 10])
-      expect(mockUpdatePointPosition).toHaveBeenCalledWith(`wallnode_${nodeId}_end`, [12, 10])
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith(`wn_${nodeId}_0`, [8, 10])
+      expect(mockUpdatePointPosition).toHaveBeenCalledWith(`wn_${nodeId}_1`, [12, 10])
     })
 
     it('initializes all existing perimeters on import', async () => {

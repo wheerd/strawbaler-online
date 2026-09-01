@@ -24,6 +24,8 @@ const wallNode = 'wallnode_aaa' as WallNodeId
 function makeContext(overrides: Partial<TranslationContext> = {}): TranslationContext {
   return {
     getLineStartPointId: () => undefined,
+    getWallNodeInsideLinePointIds: nodeId =>
+      nodeId === wallNode ? { start: `wn_${nodeId}_0`, end: `wn_${nodeId}_1` } : undefined,
     getWallNodeIds: (wallId: WallId, side: 'ref' | 'nonref') => {
       // Default: wallA → cornerA..cornerB, wallB → cornerB..cornerC
       if (wallId === wallA) {
@@ -427,7 +429,7 @@ describe('translateBuildingConstraint', () => {
       ])
     })
 
-    it('translates wallNodePosition between registered node points', () => {
+    it('translates wallNodePosition using the wall node inside line points', () => {
       const constraint: ConstraintInput = {
         type: 'wallNodePosition',
         node: wallNode,
@@ -441,12 +443,53 @@ describe('translateBuildingConstraint', () => {
         {
           id: 'bc_node_position',
           type: 'p2p_distance',
-          p1_id: `wallnode_${wallNode}_end`,
-          p2_id: `wallnode_${wallNode}_start`,
+          p1_id: `wn_${wallNode}_1`,
+          p2_id: `wn_${wallNode}_0`,
           distance: 250,
           driving: true
         }
       ])
+    })
+
+    it('translates the opposite wall-node offset using the inside line points', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallNodePosition',
+        node: wallNode,
+        perimeterWall: wallA,
+        reference: wallNode,
+        nodeSide: 'end',
+        offset: 125
+      }
+
+      expect(translateBuildingConstraint(constraint, 'node_position_end', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_position_end',
+          type: 'p2p_distance',
+          p1_id: `wn_${wallNode}_0`,
+          p2_id: `wn_${wallNode}_1`,
+          distance: 125,
+          driving: true
+        }
+      ])
+    })
+
+    it('does not translate when the wall node inside line is unavailable', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallNodePosition',
+        node: wallNode,
+        perimeterWall: wallA,
+        reference: wallNode,
+        nodeSide: 'start',
+        offset: 125
+      }
+
+      expect(
+        translateBuildingConstraint(
+          constraint,
+          'node_position_missing',
+          makeContext({ getWallNodeInsideLinePointIds: () => undefined })
+        ).constraints
+      ).toEqual([])
     })
 
     it('uses the inside non-reference corner point for outside-reference perimeters', () => {
@@ -470,7 +513,7 @@ describe('translateBuildingConstraint', () => {
           id: 'bc_outside_node_position',
           type: 'p2p_distance',
           p1_id: `corner_${cornerA}_nonref_next`,
-          p2_id: `wallnode_${wallNode}_end`,
+          p2_id: `wn_${wallNode}_1`,
           distance: 250,
           driving: true
         }

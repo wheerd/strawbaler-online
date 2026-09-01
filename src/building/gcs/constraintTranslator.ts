@@ -35,8 +35,8 @@ export function wallNodeRefPointId(nodeId: WallNodeId): string {
   return `wallnode_${nodeId}_ref`
 }
 
-export function wallNodePerimeterPointId(nodeId: WallNodeId, side: 'start' | 'end'): string {
-  return `wallnode_${nodeId}_${side}`
+export function wallNodeInsideLineId(nodeId: WallNodeId): string {
+  return `wn_${nodeId}_inside`
 }
 
 export function wallNodePointId(nodeId: WallNodeId, index: number): string {
@@ -159,7 +159,9 @@ export interface TranslationContext {
     side: 'left' | 'right'
   ) => { atNodePointId: string; oppositePointId: string } | undefined
   /** Return the point at a wall node on the requested physical wall side. */
-  getWallNodeSidePointId: (wallId: WallId, nodeId: WallNodeId, side: 'left' | 'right') => string | undefined
+  getWallNodeSidePointId: (wallId: WallId, nodeId: WallNodeId, side: 'left' | 'right') => string | undefined,
+  /** Return the registered endpoints of a wall node's inside line. */
+  getWallNodeInsideLinePointIds: (nodeId: WallNodeId) => { start: string; end: string } | undefined
 }
 
 /**
@@ -453,7 +455,10 @@ export function translateBuildingConstraint(
     }
 
     case 'wallNodePosition': {
-      const nodePointId = wallNodePerimeterPointId(constraint.node, constraint.nodeSide)
+      const insideLinePoints = context.getWallNodeInsideLinePointIds(constraint.node)
+      if (!insideLinePoints) return { constraints: [], points: [] }
+
+      const nodePointId = insideLinePoints[constraint.nodeSide]
       let referencePointId: string | undefined
       if (isPerimeterCornerId(constraint.reference)) {
         const referenceSide = context.getReferenceSide(constraint.perimeterWall)
@@ -467,12 +472,13 @@ export function translateBuildingConstraint(
               ? nodeNonRefSidePointForNextWall(constraint.reference)
               : nodeNonRefSidePointForPrevWall(constraint.reference)
         }
-      } else {
-        referencePointId = wallNodePerimeterPointId(
-          constraint.reference,
-          constraint.nodeSide === 'start' ? 'end' : 'start'
-        )
+      } else if (isWallNodeId(constraint.reference)) {
+        const referenceLinePoints = context.getWallNodeInsideLinePointIds(constraint.reference)
+        if (!referenceLinePoints) return { constraints: [], points: [] }
+        referencePointId = referenceLinePoints[constraint.nodeSide === 'start' ? 'end' : 'start']
       }
+
+      if (!referencePointId) return { constraints: [], points: [] }
 
       return {
         constraints: [
