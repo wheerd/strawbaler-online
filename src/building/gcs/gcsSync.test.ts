@@ -615,6 +615,7 @@ describe('GcsSyncService', () => {
       capturedPerimeterCallback!('p1' as PerimeterId, curr, prev)
 
       expect(mockAddPerimeterGeometry).toHaveBeenCalledWith('p1')
+      expect(mockGcsRemoveBuildingConstraint).toHaveBeenCalledWith(constraint.id)
       expect(mockGcsAddBuildingConstraint).toHaveBeenCalledTimes(1)
       expect(mockGcsAddBuildingConstraint).toHaveBeenCalledWith(constraint)
     })

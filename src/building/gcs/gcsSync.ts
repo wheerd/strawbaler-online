@@ -135,8 +135,32 @@ class GcsSyncService {
     } else if (current && previous) {
       // Perimeter updated (e.g. corner removed → cornerIds/wallIds changed)
       // addPerimeterGeometry handles upsert (removes old data first)
+      this.removeTranslatedConstraintsForPerimeter(perimeterId)
       gcsActions.addPerimeterGeometry(perimeterId)
       this.syncConstraintsForPerimeter(perimeterId)
+    }
+  }
+
+  private removeTranslatedConstraintsForPerimeter(perimeterId: PerimeterId): void {
+    const modelActions = getModelActions()
+    const gcsActions = getGcsActions()
+    const perimeter = modelActions.getPerimeterById(perimeterId)
+    const perimeterCornerIds = new Set<PerimeterCornerId>(perimeter.cornerIds)
+    const perimeterWallIds = new Set<PerimeterWallId>(perimeter.wallIds)
+    const intermediateWallIds = new Set<IntermediateWallId>(perimeter.intermediateWallIds)
+    const wallNodeIds = new Set<WallNodeId>(perimeter.wallNodeIds)
+
+    for (const constraint of modelActions.getAllBuildingConstraints()) {
+      const referencesPerimeter =
+        getReferencedCornerIds(constraint).some(c => perimeterCornerIds.has(c)) ||
+        getReferencedWallIds(constraint).some(
+          wallId =>
+            (isPerimeterWallId(wallId) && perimeterWallIds.has(wallId)) ||
+            intermediateWallIds.has(wallId as IntermediateWallId)
+        ) ||
+        getReferencedWallNodeIds(constraint).some(nodeId => wallNodeIds.has(nodeId))
+
+      if (referencesPerimeter) gcsActions.removeBuildingConstraint(constraint.id)
     }
   }
 
@@ -147,8 +171,8 @@ class GcsSyncService {
    * subscription fires before geometry exists (e.g. during redo) or where an upsert
    * rebuilds geometry that existing translated constraints reference.
    *
-   * The GCS store's addBuildingConstraint has a duplicate check, so re-adding
-   * constraints that are already present is harmless (logs a warning and returns).
+   * Existing translated constraints are removed before perimeter updates so these
+   * calls always translate against the newly registered geometry.
    */
   private syncConstraintsForPerimeter(perimeterId: PerimeterId): void {
     const modelActions = getModelActions()
