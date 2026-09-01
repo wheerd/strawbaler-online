@@ -1,6 +1,14 @@
 import type { Constraint, SketchPoint } from '@salusoft89/planegcs'
 
-import type { ConstraintInput, NodeId, PerimeterCornerId, WallEntityId, WallId, WallNodeId } from '@/building/model'
+import type {
+  ConstraintInput,
+  IntermediateWallId,
+  NodeId,
+  PerimeterCornerId,
+  WallEntityId,
+  WallId,
+  WallNodeId
+} from '@/building/model'
 import { isPerimeterCornerId, isPerimeterWallId, isWallNodeId } from '@/building/model'
 
 // --- ID helpers ---
@@ -37,6 +45,14 @@ export function wallNodeRefPointId(nodeId: WallNodeId): string {
 
 export function wallNodeInsideLineId(nodeId: WallNodeId): string {
   return `wn_${nodeId}_inside`
+}
+
+export function wallNodeOutsideLineId(nodeId: WallNodeId): string {
+  return `wn_${nodeId}_outside`
+}
+
+export function wallNodeOutsidePointId(nodeId: WallNodeId, side: 'start' | 'end'): string {
+  return `wn_${nodeId}_outside_${side}`
 }
 
 export function wallNodePointId(nodeId: WallNodeId, index: number): string {
@@ -159,9 +175,11 @@ export interface TranslationContext {
     side: 'left' | 'right'
   ) => { atNodePointId: string; oppositePointId: string } | undefined
   /** Return the point at a wall node on the requested physical wall side. */
-  getWallNodeSidePointId: (wallId: WallId, nodeId: WallNodeId, side: 'left' | 'right') => string | undefined,
-  /** Return the registered endpoints of a wall node's inside line. */
+  getWallNodeSidePointId: (wallId: IntermediateWallId, nodeId: WallNodeId, side: 'left' | 'right') => string | undefined
+  /** Return the registered endpoints of a perimeter wall node's inside line. */
   getWallNodeInsideLinePointIds: (nodeId: WallNodeId) => { start: string; end: string } | undefined
+  /** Return the registered endpoints of a perimeter wall node's outside line. */
+  getWallNodeOutsideLinePointIds: (nodeId: WallNodeId) => { start: string; end: string } | undefined
 }
 
 /**
@@ -333,7 +351,16 @@ export function translateBuildingConstraint(
           ? nodeRefSidePointId(constraint.node)
           : wallNonRefSideProjectedPoint(constraint.wall, constraint.node === nodes?.startId ? 'start' : 'end')
       } else if (isWallNodeId(constraint.node)) {
-        nodePointId = context.getWallNodeSidePointId(constraint.wall, constraint.node, constraint.side)
+        if (isPerimeterWallId(constraint.wall)) {
+          const referenceSide = context.getReferenceSide(constraint.wall)
+          const linePoints =
+            referenceSide === 'right'
+              ? context.getWallNodeInsideLinePointIds(constraint.node)
+              : context.getWallNodeOutsideLinePointIds(constraint.node)
+          nodePointId = linePoints?.[constraint.nodeSide]
+        } else {
+          nodePointId = context.getWallNodeSidePointId(constraint.wall, constraint.node, constraint.side)
+        }
       }
 
       if (!nodePointId) return { constraints: [], points: [] }

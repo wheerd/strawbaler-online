@@ -73,6 +73,7 @@ export interface WallEntityAbsoluteConstraint {
   side: 'left' | 'right'
   entitySide: 'start' | 'center' | 'end'
   node: NodeId
+  nodeSide: 'start' | 'end'
   distance: Length
 }
 

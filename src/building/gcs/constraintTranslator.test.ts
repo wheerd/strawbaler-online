@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { ConstraintInput, NodeId, PerimeterCornerId, PerimeterWallId, WallNodeId } from '@/building/model'
-import type { IntermediateWallId, WallId } from '@/building/model/ids'
+import type { IntermediateWallId, WallEntityId, WallId } from '@/building/model/ids'
 
 import {
   type TranslationContext,
@@ -18,6 +18,8 @@ const cornerC = 'outcorner_ccc' as PerimeterCornerId
 const wallA = 'outwall_aaa' as PerimeterWallId
 const wallB = 'outwall_bbb' as PerimeterWallId
 const wallNode = 'wallnode_aaa' as WallNodeId
+const entity = 'opening_aaa' as WallEntityId
+const intermediateWall = 'intermediate_aaa' as IntermediateWallId
 
 // --- Helper to build a mock TranslationContext ---
 
@@ -26,6 +28,8 @@ function makeContext(overrides: Partial<TranslationContext> = {}): TranslationCo
     getLineStartPointId: () => undefined,
     getWallNodeInsideLinePointIds: nodeId =>
       nodeId === wallNode ? { start: `wn_${nodeId}_0`, end: `wn_${nodeId}_1` } : undefined,
+    getWallNodeOutsideLinePointIds: nodeId =>
+      nodeId === wallNode ? { start: `wn_${nodeId}_outside_start`, end: `wn_${nodeId}_outside_end` } : undefined,
     getWallNodeIds: (wallId: WallId, side: 'ref' | 'nonref') => {
       // Default: wallA → cornerA..cornerB, wallB → cornerB..cornerC
       if (wallId === wallA) {
@@ -381,6 +385,86 @@ describe('translateBuildingConstraint', () => {
         l_id: `wall_${wallA}_ref`,
         driving: true
       })
+    })
+  })
+
+  describe('wallEntityAbsolute', () => {
+    it('uses the perimeter node inside-line point for the reference side', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallEntityAbsolute',
+        wall: wallA,
+        entity,
+        side: 'right',
+        entitySide: 'start',
+        node: wallNode,
+        nodeSide: 'end',
+        distance: 250
+      }
+
+      expect(translateBuildingConstraint(constraint, 'perimeter_entity_inside', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_perimeter_entity_inside',
+          type: 'p2p_distance',
+          p1_id: `wn_${wallNode}_1`,
+          p2_id: `${entity}_start_ref`,
+          distance: 250,
+          driving: true
+        }
+      ])
+    })
+
+    it('uses the perimeter node outside-line point when the perimeter reference side is outside', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallEntityAbsolute',
+        wall: wallA,
+        entity,
+        side: 'left',
+        entitySide: 'end',
+        node: wallNode,
+        nodeSide: 'start',
+        distance: 125
+      }
+
+      expect(
+        translateBuildingConstraint(
+          constraint,
+          'perimeter_entity_outside',
+          makeContext({ getReferenceSide: () => 'left' })
+        ).constraints
+      ).toEqual([
+        {
+          id: 'bc_perimeter_entity_outside',
+          type: 'p2p_distance',
+          p1_id: `wn_${wallNode}_outside_start`,
+          p2_id: `${entity}_end_ref`,
+          distance: 125,
+          driving: true
+        }
+      ])
+    })
+
+    it('continues to use the intermediate wall side resolver', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallEntityAbsolute',
+        wall: intermediateWall,
+        entity,
+        side: 'left',
+        entitySide: 'center',
+        node: wallNode,
+        nodeSide: 'start',
+        distance: 100
+      }
+
+      expect(translateBuildingConstraint(constraint, 'intermediate_entity', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_intermediate_entity',
+          type: 'p2p_distance',
+          p1_id: `${intermediateWall}_start_ref`,
+          p2_id: `${entity}_center_ref`,
+          distance: 100,
+          driving: true
+        }
+      ])
     })
   })
 

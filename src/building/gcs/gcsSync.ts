@@ -47,6 +47,7 @@ import {
   wallEntityPointId,
   wallEntityWidthConstraintId,
   wallNodeInsideLineId,
+  wallNodeOutsideLineId,
   wallNodeRefPointId,
   wallNonRefLineId,
   wallNonRefSideProjectedPoint,
@@ -363,10 +364,15 @@ class GcsSyncService {
 
     if ('position' in current) {
       const insideLine = getGcsState().lines.find(line => line.id === wallNodeInsideLineId(id))
+      const outsideLine = getGcsState().lines.find(line => line.id === wallNodeOutsideLineId(id))
       getGcsActions().updatePointPosition(wallNodeRefPointId(id), current.position)
       if (insideLine) {
         getGcsActions().updatePointPosition(insideLine.p1_id, current.insideLine.start)
         getGcsActions().updatePointPosition(insideLine.p2_id, current.insideLine.end)
+      }
+      if (outsideLine) {
+        getGcsActions().updatePointPosition(outsideLine.p1_id, current.outsideLine.start)
+        getGcsActions().updatePointPosition(outsideLine.p2_id, current.outsideLine.end)
       }
     }
   }

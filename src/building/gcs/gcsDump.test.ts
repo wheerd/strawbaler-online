@@ -1,3 +1,4 @@
+// eslint-disable-next-line camelcase
 import { Algorithm, DebugMode, GcsWrapper, SolveStatus, init_planegcs_module } from '@salusoft89/planegcs'
 import type { SketchLine, SketchPoint, SketchPrimitive } from '@salusoft89/planegcs'
 import planegcsWasmUrl from '@salusoft89/planegcs/dist/planegcs_dist/planegcs.wasm?url'

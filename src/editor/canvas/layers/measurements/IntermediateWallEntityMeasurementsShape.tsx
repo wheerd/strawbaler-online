@@ -170,6 +170,7 @@ function IntermediateEntityDistance({
                     side: wallSide,
                     entitySide: useCenter ? 'center' : endpointSide,
                     node: absoluteReference,
+                    nodeSide: endpointSide === 'start' ? 'end' : 'start',
                     distance: enteredValue
                   })
                   gcsService.triggerSolve()

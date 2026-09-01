@@ -299,6 +299,7 @@ function ConstrainableCornerDistance({
           entitySide,
           inside,
           isConstrained ? constraint : undefined,
+          mode === 'prev' ? 'end' : 'start',
           measurement,
           startPoint,
           endPoint
@@ -356,7 +357,16 @@ function ConstrainableReferenceDistance({
       fontSize={DIMENSION_DEFAULT_FONT_SIZE}
       strokeWidth={DIMENSION_DEFAULT_STROKE_WIDTH}
       onClick={measurement => {
-        handleReferenceDistanceClick(entity, reference.id, entitySide, constraint, measurement, startPoint, endPoint)
+        handleReferenceDistanceClick(
+          entity,
+          reference.id,
+          entitySide,
+          mode === 'prev' ? 'end' : 'start',
+          constraint,
+          measurement,
+          startPoint,
+          endPoint
+        )
       }}
     />
   )
@@ -468,6 +478,7 @@ function handleCornerDistanceClick(
   entitySide: 'start' | 'center' | 'end',
   isInside: boolean,
   existingConstraint: WallEntityAbsoluteConstraint | undefined,
+  nodeSide: 'start' | 'end',
   currentDistance: Length,
   indicatorStartPoint: Vec2,
   indicatorEndPoint: Vec2
@@ -496,6 +507,7 @@ function handleCornerDistanceClick(
         node: cornerId,
         side: isInside ? 'right' : 'left',
         entitySide,
+        nodeSide,
         distance: enteredValue
       })
       gcsService.triggerSolve()
@@ -513,6 +525,7 @@ function handleReferenceDistanceClick(
   entity: WallEntity,
   nodeId: NodeId,
   entitySide: 'start' | 'center' | 'end',
+  nodeSide: 'start' | 'end',
   existingConstraint: WallEntityAbsoluteConstraint | undefined,
   currentDistance: Length,
   indicatorStartPoint: Vec2,
@@ -537,6 +550,7 @@ function handleReferenceDistanceClick(
         side: 'right',
         entitySide,
         node: nodeId,
+        nodeSide,
         distance: enteredValue
       })
       gcsService.triggerSolve()
