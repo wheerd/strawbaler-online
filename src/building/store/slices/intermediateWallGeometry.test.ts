@@ -7,8 +7,10 @@ import {
   distVec2,
   distanceToInfiniteLine,
   dotVec2,
+  lineFromSegment,
   newVec2,
   perpendicularCCW,
+  projectPointOntoLine,
   scaleAddVec2,
   subVec2
 } from '@/shared/geometry'
@@ -372,6 +374,14 @@ describe('intermediateWallGeometry', () => {
       const wallBGeometry = state._intermediateWallGeometry[wallBId]
       expect(wallAGeometry).toBeDefined()
       expect(wallBGeometry).toBeDefined()
+      expect(wallAGeometry.leftLine.end).toEqual(wallBGeometry.leftLine.start)
+      expect(wallAGeometry.rightLine.end).toEqual(wallBGeometry.rightLine.start)
+      expect(wallAGeometry.leftLine.end).toEqual(
+        projectPointOntoLine(state.wallNodes[nodeId].position, lineFromSegment(wallAGeometry.leftLine))
+      )
+      expect(wallAGeometry.rightLine.end).toEqual(
+        projectPointOntoLine(state.wallNodes[nodeId].position, lineFromSegment(wallAGeometry.rightLine))
+      )
       expect(wallAGeometry.wallLength + wallBGeometry.wallLength).toBeCloseTo(6000, 0)
     })
 

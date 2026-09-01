@@ -256,6 +256,7 @@ function updateComplexNodeGeometry(
   const colinearIndex = intersectionPoints.indexOf(null)
   let colinearPrev = ZERO_VEC2
   let colinearNext = ZERO_VEC2
+  let colinearSharedPoint: Vec2 | undefined
   if (colinearIndex !== -1) {
     const colinearLine = incidents[colinearIndex].right
     const prevIndex = (n + colinearIndex - 1) % n
@@ -264,6 +265,10 @@ function updateComplexNodeGeometry(
     colinearPrev = projectPointOntoLine(intersectionPoints[prevIndex]!, colinearLine)
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     colinearNext = projectPointOntoLine(intersectionPoints[nextIndex]!, colinearLine)
+    const nodePosition = nodePositions.get(node.id)
+    if (nodePosition) {
+      colinearSharedPoint = projectPointOntoLine(nodePosition, colinearLine)
+    }
   }
 
   let insideStart = ZERO_VEC2
@@ -283,11 +288,20 @@ function updateComplexNodeGeometry(
     const leftPoint = leftProj < rightProj ? projectPointOntoLine(nextIntersection, line.left) : prevIntersection
     const rightPoint = leftProj < rightProj ? nextIntersection : projectPointOntoLine(prevIntersection, line.right)
 
+    // Keep the intersection-derived points for the node boundary, but use a
+    // single projected node point for the two walls sharing the colinear side.
+    const wallLeftPoint =
+      colinearSharedPoint && iNext === lineIndexAfter(colinearIndex, n) ? colinearSharedPoint : leftPoint
+    const wallRightPoint = colinearSharedPoint && iNext === colinearIndex ? colinearSharedPoint : rightPoint
+    const wallStartPoint =
+      colinearSharedPoint && iNext === lineIndexAfter(colinearIndex, n) ? colinearSharedPoint : prevIntersection
+    const wallEndPoint = colinearSharedPoint && iNext === colinearIndex ? colinearSharedPoint : nextIntersection
+
     polygonPoints.push(prevIntersection, leftPoint, rightPoint)
-    incidentWalls.push({ leftPoint, rightPoint, direction: line.dir, id: line.wallId })
+    incidentWalls.push({ leftPoint: wallLeftPoint, rightPoint: wallRightPoint, direction: line.dir, id: line.wallId })
 
     if (isIntermediateWallId(line.wallId)) {
-      assignWallEndpointsFromNode(node.id, line.wallId, state, prevIntersection, nextIntersection)
+      assignWallEndpointsFromNode(node.id, line.wallId, state, wallStartPoint, wallEndPoint)
     } else {
       if (intersectionPoints[iNext] === null) {
         insideStart = leftPoint
@@ -405,6 +419,14 @@ function updateColinearNode(
       { direction: b.dir, leftPoint: bLeft, rightPoint: bRight, id: b.wallId }
     ]
   } as InnerWallNodeGeometry
+}
+
+function lineIndex(index: number, count: number): number {
+  return (index + count) % count
+}
+
+function lineIndexAfter(index: number, count: number): number {
+  return lineIndex(index + 1, count)
 }
 
 function assignWallEndpointsFromNode(
