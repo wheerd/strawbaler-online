@@ -24,6 +24,10 @@ export function TestDataToolInspector({ tool }: ToolInspectorProps<TestDataTool>
     tool.createRectangularTestData()
   }, [tool])
 
+  const handleCreateIntermediateWalls = useCallback(() => {
+    tool.createIntermediateWallTestData()
+  }, [tool])
+
   const handleResetData = useCallback(() => {
     if (window.confirm(t($ => $.testData.confirmReset))) {
       tool.resetAllData()
@@ -51,6 +55,10 @@ export function TestDataToolInspector({ tool }: ToolInspectorProps<TestDataTool>
             {/* Rectangular Perimeter */}
             <Button className="w-full" size="sm" onClick={handleCreateRectangular}>
               {t($ => $.testData.rectangular)}
+            </Button>
+
+            <Button className="w-full" size="sm" onClick={handleCreateIntermediateWalls}>
+              {t($ => $.testData.intermediateWalls)}
             </Button>
           </div>
         </div>
