@@ -1,4 +1,5 @@
-import { type IntermediateWallId, isOpeningId } from '@/building/model/ids'
+import type { IntermediateWallId } from '@/building/model'
+import { isOpeningId } from '@/building/model/ids'
 import { useIntermediateWallById } from '@/building/store'
 import { OpeningShape } from '@/editor/canvas/layers/walls/OpeningShape'
 import { WallPostShape } from '@/editor/canvas/layers/walls/WallPostShape'
@@ -7,9 +8,7 @@ import { polygonToSvgPath } from '@/shared/utils/svg'
 
 export function IntermediateWallShape({ wallId }: { wallId: IntermediateWallId }): React.JSX.Element {
   const wall = useIntermediateWallById(wallId)
-
   const fillColor = MATERIAL_COLORS.strawbale
-
   const wallPath = polygonToSvgPath(wall.boundary)
 
   return (

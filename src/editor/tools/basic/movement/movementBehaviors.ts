@@ -2,11 +2,13 @@ import type { EntityType } from '@/building/model/ids'
 
 import { FloorAreaMovementBehavior } from './behaviors/FloorAreaMovementBehavior'
 import { FloorOpeningMovementBehavior } from './behaviors/FloorOpeningMovementBehavior'
+import { IntermediateWallMovementBehavior } from './behaviors/IntermediateWallMovementBehavior'
 import { OpeningMovementBehavior } from './behaviors/OpeningMovementBehavior'
 import { PerimeterCornerMovementBehavior } from './behaviors/PerimeterCornerMovementBehavior'
 import { PerimeterMovementBehavior } from './behaviors/PerimeterMovementBehavior'
 import { PerimeterWallMovementBehavior } from './behaviors/PerimeterWallMovementBehavior'
 import { RoofMovementBehavior } from './behaviors/RoofMovementBehavior'
+import { WallNodeMovementBehavior } from './behaviors/WallNodeMovementBehavior'
 import { WallPostMovementBehavior } from './behaviors/WallPostMovementBehavior'
 import type { MovementBehavior, MovementState } from './types'
 
@@ -21,8 +23,8 @@ const MOVEMENT_BEHAVIORS: Record<EntityType, MovementBehavior<any, any> | null> 
   'floor-opening': new FloorOpeningMovementBehavior(),
   roof: new RoofMovementBehavior(),
   'roof-overhang': null,
-  'intermediate-wall': null,
-  'wall-node': null
+  'intermediate-wall': new IntermediateWallMovementBehavior(),
+  'wall-node': new WallNodeMovementBehavior()
 }
 
 export function getMovementBehavior(entityType: EntityType): MovementBehavior<unknown, MovementState> | null {

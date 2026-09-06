@@ -183,6 +183,8 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     if (isValid) {
       behavior.commitMovement(currentMovementState, context)
       this.storeLastMovement()
+    } else {
+      behavior.cancelMovement?.(context)
     }
 
     this.resetTransientState()
@@ -199,6 +201,9 @@ export class MoveTool extends BaseTool implements ToolImplementation {
     // Handle escape key to cancel movement
     if (event.key === 'Escape') {
       if (this.toolState.isWaitingForMovement || this.toolState.isMoving) {
+        if (this.toolState.isMoving && this.toolState.behavior && this.toolState.context) {
+          this.toolState.behavior.cancelMovement?.(this.toolState.context)
+        }
         this.resetTransientState()
         return true // Event consumed
       }

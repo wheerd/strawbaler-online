@@ -16,7 +16,7 @@ export function AddPostToolOverlay({ tool }: ToolOverlayComponentProps<AddPostTo
   const wallAngle = (Math.atan2(wallDirection[1], wallDirection[0]) * 180) / Math.PI
 
   const halfWidth = state.width / 2
-  const wallOffset = 'centerLine' in wall ? -wall.thickness / 2 : 0
+  const wallOffset = 'entityReferenceLine' in wall ? -wall.thickness / 2 : 0
 
   const fillColor = state.canPlace ? 'var(--color-schematic-gray-1)' : 'var(--color-red-600)'
 

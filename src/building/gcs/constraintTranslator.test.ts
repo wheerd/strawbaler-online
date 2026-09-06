@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ConstraintInput, PerimeterCornerId, PerimeterWallId } from '@/building/model'
-import type { WallId } from '@/building/model/ids'
+import type { ConstraintInput, NodeId, PerimeterCornerId, PerimeterWallId, WallNodeId } from '@/building/model'
+import type { IntermediateWallId, WallEntityId, WallId } from '@/building/model/ids'
 
 import {
   type TranslationContext,
@@ -17,16 +17,37 @@ const cornerB = 'outcorner_bbb' as PerimeterCornerId
 const cornerC = 'outcorner_ccc' as PerimeterCornerId
 const wallA = 'outwall_aaa' as PerimeterWallId
 const wallB = 'outwall_bbb' as PerimeterWallId
+const wallNode = 'wallnode_aaa' as WallNodeId
+const entity = 'opening_aaa' as WallEntityId
+const intermediateWall = 'intermediate_aaa' as IntermediateWallId
 
 // --- Helper to build a mock TranslationContext ---
 
 function makeContext(overrides: Partial<TranslationContext> = {}): TranslationContext {
   return {
     getLineStartPointId: () => undefined,
-    getWallCornerIds: (wallId: WallId) => {
+    getWallNodeInsideLinePointIds: nodeId =>
+      nodeId === wallNode ? { start: `wn_${nodeId}_0`, end: `wn_${nodeId}_1` } : undefined,
+    getWallNodeOutsideLinePointIds: nodeId =>
+      nodeId === wallNode ? { start: `wn_${nodeId}_outside_start`, end: `wn_${nodeId}_outside_end` } : undefined,
+    getWallNodeIds: (wallId: WallId, side: 'ref' | 'nonref') => {
       // Default: wallA → cornerA..cornerB, wallB → cornerB..cornerC
-      if (wallId === wallA) return { startCornerId: cornerA, endCornerId: cornerB }
-      if (wallId === wallB) return { startCornerId: cornerB, endCornerId: cornerC }
+      if (wallId === wallA) {
+        return {
+          startId: cornerA,
+          endId: cornerB,
+          start: side === 'ref' ? `corner_${cornerA}_ref` : `corner_${cornerA}_nonref_next`,
+          end: side === 'ref' ? `corner_${cornerB}_ref` : `corner_${cornerB}_nonref_prev`
+        }
+      }
+      if (wallId === wallB) {
+        return {
+          startId: cornerB,
+          endId: cornerC,
+          start: side === 'ref' ? `corner_${cornerB}_ref` : `corner_${cornerB}_nonref_next`,
+          end: side === 'ref' ? `corner_${cornerC}_ref` : `corner_${cornerC}_nonref_prev`
+        }
+      }
       return undefined
     },
     getCornerAdjacentWallIds: (cornerId: PerimeterCornerId) => {
@@ -35,6 +56,26 @@ function makeContext(overrides: Partial<TranslationContext> = {}): TranslationCo
       return undefined
     },
     getReferenceSide: () => 'right',
+    getWallRefEndpointPointIds: (wallId, nodeId) => {
+      if (nodeId !== wallNode) return undefined
+      if (wallId === wallA) {
+        return {
+          atNodePointId: `${wallA}_start_ref`,
+          oppositePointId: `${wallA}_end_ref`
+        }
+      }
+      if (wallId === wallB) {
+        return {
+          atNodePointId: `${wallB}_end_ref`,
+          oppositePointId: `${wallB}_start_ref`
+        }
+      }
+      return undefined
+    },
+    getWallNodeSidePointId: (wallId, nodeId, side) =>
+      nodeId === wallNode
+        ? `${wallId}_${side === 'left' ? 'start' : 'end'}_${side === 'left' ? 'ref' : 'nonref'}`
+        : undefined,
     ...overrides
   }
 }
@@ -146,6 +187,34 @@ describe('translateBuildingConstraint', () => {
       const ctx = makeContext()
       const result = translateBuildingConstraint(c, 'test', ctx)
       expect(result.constraints).toHaveLength(0)
+    })
+
+    it('translates an intermediate wall using its axis endpoints', () => {
+      const wall = 'intermediate_test' as IntermediateWallId
+      const c: ConstraintInput = { type: 'wallLength', wall, side: 'right', length: 240 }
+      const ctx = makeContext({
+        getWallNodeIds: (wallId, side) =>
+          wallId === wall
+            ? {
+                startId: wallNode as NodeId,
+                endId: wallNode as NodeId,
+                start: `${wallId}_start_${side === 'ref' ? 'left' : 'right'}`,
+                end: `${wallId}_end_${side === 'ref' ? 'left' : 'right'}`
+              }
+            : undefined
+      })
+      const result = translateBuildingConstraint(c, 'intermediate_length', ctx)
+
+      expect(result.constraints).toEqual([
+        {
+          id: 'bc_intermediate_length',
+          type: 'p2p_distance',
+          p1_id: `${wall}_start_right`,
+          p2_id: `${wall}_end_right`,
+          distance: 240,
+          driving: true
+        }
+      ])
     })
   })
 
@@ -316,6 +385,257 @@ describe('translateBuildingConstraint', () => {
         l_id: `wall_${wallA}_ref`,
         driving: true
       })
+    })
+  })
+
+  describe('wallEntityAbsolute', () => {
+    it('uses the perimeter node inside-line point for the reference side', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallEntityAbsolute',
+        wall: wallA,
+        entity,
+        side: 'right',
+        entitySide: 'start',
+        node: wallNode,
+        nodeSide: 'end',
+        distance: 250
+      }
+
+      expect(translateBuildingConstraint(constraint, 'perimeter_entity_inside', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_perimeter_entity_inside',
+          type: 'p2p_distance',
+          p1_id: `wn_${wallNode}_1`,
+          p2_id: `${entity}_start_ref`,
+          distance: 250,
+          driving: true
+        }
+      ])
+    })
+
+    it('uses the perimeter node outside-line point when the perimeter reference side is outside', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallEntityAbsolute',
+        wall: wallA,
+        entity,
+        side: 'left',
+        entitySide: 'end',
+        node: wallNode,
+        nodeSide: 'start',
+        distance: 125
+      }
+
+      expect(
+        translateBuildingConstraint(
+          constraint,
+          'perimeter_entity_outside',
+          makeContext({ getReferenceSide: () => 'left' })
+        ).constraints
+      ).toEqual([
+        {
+          id: 'bc_perimeter_entity_outside',
+          type: 'p2p_distance',
+          p1_id: `wn_${wallNode}_outside_start`,
+          p2_id: `${entity}_end_ref`,
+          distance: 125,
+          driving: true
+        }
+      ])
+    })
+
+    it('continues to use the intermediate wall side resolver', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallEntityAbsolute',
+        wall: intermediateWall,
+        entity,
+        side: 'left',
+        entitySide: 'center',
+        node: wallNode,
+        nodeSide: 'start',
+        distance: 100
+      }
+
+      expect(translateBuildingConstraint(constraint, 'intermediate_entity', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_intermediate_entity',
+          type: 'p2p_distance',
+          p1_id: `${intermediateWall}_start_ref`,
+          p2_id: `${entity}_center_ref`,
+          distance: 100,
+          driving: true
+        }
+      ])
+    })
+  })
+
+  describe('wall-node constraints', () => {
+    it('translates wallNodePerpendicular using canonical ref lines', () => {
+      const constraint: ConstraintInput = { type: 'wallNodePerpendicular', node: wallNode, wallA, wallB }
+
+      expect(translateBuildingConstraint(constraint, 'node_perp', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_perp',
+          type: 'perpendicular_ll',
+          l1_id: `wall_${wallA}_ref`,
+          l2_id: `wall_${wallB}_ref`,
+          driving: true
+        }
+      ])
+    })
+
+    it('translates wallNodeColinear using wall ref endpoint points', () => {
+      const constraint: ConstraintInput = { type: 'wallNodeColinear', node: wallNode, wallA, wallB }
+
+      expect(translateBuildingConstraint(constraint, 'node_colinear', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_colinear',
+          type: 'point_on_line_ppp',
+          p_id: `${wallA}_start_ref`,
+          lp1_id: `${wallA}_end_ref`,
+          lp2_id: `${wallB}_start_ref`,
+          driving: true
+        }
+      ])
+    })
+
+    it('translates wallNodeAngle using canonical ref lines', () => {
+      const constraint: ConstraintInput = { type: 'wallNodeAngle', node: wallNode, wallA, wallB, angle: Math.PI / 2 }
+
+      expect(translateBuildingConstraint(constraint, 'node_angle', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_angle',
+          type: 'l2l_angle_ll',
+          l1_id: `wall_${wallA}_ref`,
+          l2_id: `wall_${wallB}_ref`,
+          angle: Math.PI / 2,
+          driving: true
+        }
+      ])
+    })
+
+    it('translates wallNodePosition using the wall node inside line points', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallNodePosition',
+        node: wallNode,
+        perimeterWall: wallA,
+        reference: wallNode,
+        nodeSide: 'start',
+        offset: 250
+      }
+
+      expect(translateBuildingConstraint(constraint, 'node_position', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_position',
+          type: 'p2p_distance',
+          p1_id: `wn_${wallNode}_1`,
+          p2_id: `wn_${wallNode}_0`,
+          distance: 250,
+          driving: true
+        }
+      ])
+    })
+
+    it('translates the opposite wall-node offset using the inside line points', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallNodePosition',
+        node: wallNode,
+        perimeterWall: wallA,
+        reference: wallNode,
+        nodeSide: 'end',
+        offset: 125
+      }
+
+      expect(translateBuildingConstraint(constraint, 'node_position_end', makeContext()).constraints).toEqual([
+        {
+          id: 'bc_node_position_end',
+          type: 'p2p_distance',
+          p1_id: `wn_${wallNode}_0`,
+          p2_id: `wn_${wallNode}_1`,
+          distance: 125,
+          driving: true
+        }
+      ])
+    })
+
+    it('does not translate when the wall node inside line is unavailable', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallNodePosition',
+        node: wallNode,
+        perimeterWall: wallA,
+        reference: wallNode,
+        nodeSide: 'start',
+        offset: 125
+      }
+
+      expect(
+        translateBuildingConstraint(
+          constraint,
+          'node_position_missing',
+          makeContext({ getWallNodeInsideLinePointIds: () => undefined })
+        ).constraints
+      ).toEqual([])
+    })
+
+    it('uses the inside non-reference corner point for outside-reference perimeters', () => {
+      const constraint: ConstraintInput = {
+        type: 'wallNodePosition',
+        node: wallNode,
+        perimeterWall: wallA,
+        reference: cornerA,
+        nodeSide: 'end',
+        offset: 250
+      }
+
+      expect(
+        translateBuildingConstraint(
+          constraint,
+          'outside_node_position',
+          makeContext({ getReferenceSide: () => 'left' })
+        ).constraints
+      ).toEqual([
+        {
+          id: 'bc_outside_node_position',
+          type: 'p2p_distance',
+          p1_id: `corner_${cornerA}_nonref_next`,
+          p2_id: `wn_${wallNode}_1`,
+          distance: 250,
+          driving: true
+        }
+      ])
+    })
+
+    it('does not use the wall-node ref point for wallNodeColinear', () => {
+      const constraint: ConstraintInput = { type: 'wallNodeColinear', node: wallNode, wallA, wallB }
+      const result = translateBuildingConstraint(constraint, 'node_colinear_points', makeContext())
+
+      expect(result.constraints[0]).not.toHaveProperty('p_id', `wallnode_${wallNode}_ref`)
+    })
+  })
+
+  it('translates wallNodeColinear using node-perspective left and right sides', () => {
+    const constraint: ConstraintInput = { type: 'wallNodeColinear', node: wallNode, wallA, wallB }
+    const result = translateBuildingConstraint(
+      constraint,
+      'constraint_test',
+      makeContext({
+        getWallNodeSideEndpointPointIds: (wallId, nodeId, side) => {
+          if (nodeId !== wallNode) return undefined
+          if (wallId === wallA && side === 'left') {
+            return { atNodePointId: 'wallA_node_left', oppositePointId: 'wallA_outer_left' }
+          }
+          if (wallId === wallB && side === 'right') {
+            return { atNodePointId: 'wallB_node_right', oppositePointId: 'wallB_outer_right' }
+          }
+          return undefined
+        }
+      })
+    )
+
+    expect(result.constraints[0]).toMatchObject({
+      type: 'point_on_line_ppp',
+      p_id: 'wallA_node_left',
+      lp1_id: 'wallA_outer_left',
+      lp2_id: 'wallB_outer_right'
     })
   })
 })

@@ -35,6 +35,7 @@ import { type Length, type Polygon2D, type Vec2, addVec2, copyVec2, scaleAddVec2
 import { ensurePolygonIsClockwise, wouldClosingPolygonSelfIntersect } from '@/shared/geometry/polygon'
 
 import { cleanUpOrphaned } from './cleanup'
+import { updateAllWallNodeGeometry } from './intermediateWallGeometry'
 import { updatePerimeterGeometry } from './perimeterGeometry'
 import { hasPostsInCornerArea } from './wallEntitiesSlice'
 
@@ -587,7 +588,15 @@ export const createPerimetersSlice: StateCreator<
           corner.referencePoint = addVec2(corner.referencePoint, offset)
         }
 
+        for (const nodeId of perimeter.wallNodeIds) {
+          const node = state.wallNodes[nodeId]
+          if (node.type === 'inner') {
+            node.position = addVec2(node.position, offset)
+          }
+        }
+
         updatePerimeterGeometry(state, perimeterId)
+        updateAllWallNodeGeometry(state, perimeterId)
 
         updateTimestampDraft(state, perimeterId, ...perimeter.cornerIds)
       })

@@ -18,11 +18,24 @@ import type { IntermediateWallId, PerimeterId, PerimeterWallId, WallEntityId, Wa
 import { createIntermediateWallId, createWallNodeId, isOpeningId } from '@/building/model/ids'
 import { InvalidOperationError, NotFoundError } from '@/building/store/errors'
 import { cleanUpOrphaned } from '@/building/store/slices/cleanup'
-import { removeConstraintsForEntityDraft } from '@/building/store/slices/constraintsSlice'
+import {
+  handleIntermediateWallMergeConstraintsDraft,
+  handleIntermediateWallSplitConstraintsDraft,
+  removeConstraintsForEntityDraft
+} from '@/building/store/slices/constraintsSlice'
 import { removeTimestampDraft, updateTimestampDraft } from '@/building/store/slices/timestampsSlice'
 import type { StoreState } from '@/building/store/types'
-import type { Length, Vec2 } from '@/shared/geometry'
-import { copyVec2, dotVec2, lineFromSegment, projectPointOntoLine, projectVec2 } from '@/shared/geometry'
+import type { Length, Line2D, Vec2 } from '@/shared/geometry'
+import {
+  copyVec2,
+  distanceToInfiniteLine,
+  dotVec2,
+  lineFromSegment,
+  lineIntersection,
+  projectPointOntoLine,
+  projectVec2,
+  scaleAddVec2
+} from '@/shared/geometry'
 
 import { updateAllWallNodeGeometry } from './intermediateWallGeometry'
 
@@ -44,6 +57,8 @@ export interface IntermediateWallsActions {
   removeIntermediateWall: (wallId: IntermediateWallId) => void
   updateIntermediateWallThickness: (wallId: IntermediateWallId, thickness: Length) => void
   updateIntermediateWallAlignment: (wallId: IntermediateWallId, start: WallAxis, end: WallAxis) => void
+  updateIntermediateWallAttachmentAxis: (wallId: IntermediateWallId, endpoint: 'start' | 'end', axis: WallAxis) => void
+  updateIntermediateWallAlignmentPreservingGeometry: (wallId: IntermediateWallId, axis: WallAxis) => void
   mergeIntermediateWalls: (nodeId: WallNodeId) => IntermediateWallId | null
 
   addPerimeterWallNode: (
@@ -56,6 +71,7 @@ export interface IntermediateWallsActions {
   removeWallNode: (nodeId: WallNodeId) => void
   updateInnerWallNodePosition: (nodeId: WallNodeId, position: Vec2) => void
   updatePerimeterWallNodeOffset: (nodeId: WallNodeId, offsetFromCornerStart: Length) => void
+  applyGcsWallNodePositions: (perimeterId: PerimeterId, positions: Record<WallNodeId, Vec2>) => void
 
   getIntermediateWallById: (wallId: IntermediateWallId) => IntermediateWallWithGeometry
   getIntermediateWallsByPerimeter: (perimeterId: PerimeterId) => IntermediateWallWithGeometry[]
@@ -132,6 +148,7 @@ export const createIntermediateWallsSlice: StateCreator<
 
         perimeter.intermediateWallIds = perimeter.intermediateWallIds.filter(id => id !== wallId)
 
+        removeConstraintsForEntityDraft(state, wallId)
         delete state.intermediateWalls[wallId]
         delete state._intermediateWallGeometry[wallId]
 
@@ -172,6 +189,159 @@ export const createIntermediateWallsSlice: StateCreator<
         updateAllWallNodeGeometry(state, wall.perimeterId)
         updateTimestampDraft(state, wallId)
       })
+    },
+
+    updateIntermediateWallAttachmentAxis: (wallId, endpoint, axis) => {
+      set(state => {
+        if (!(wallId in state.intermediateWalls)) throw new NotFoundError('Intermediate wall', wallId)
+        const wall = state.intermediateWalls[wallId]
+
+        const nodeId = endpoint === 'start' ? wall.start.nodeId : wall.end.nodeId
+        if (!(nodeId in state.wallNodes)) throw new NotFoundError('Wall node', nodeId)
+        const node = state.wallNodes[nodeId]
+
+        const currentPosition: Vec2 =
+          node.type === 'perimeter'
+            ? scaleAddVec2(
+                state._perimeterWallGeometry[node.wallId].insideLine.start,
+                state._perimeterWallGeometry[node.wallId].direction,
+                node.offsetFromCornerStart
+              )
+            : node.position
+
+        const incidentLines: Line2D[] = []
+        if (node.type === 'perimeter') {
+          const perimeterGeometry = state._perimeterWallGeometry[node.wallId]
+          incidentLines.push(lineFromSegment(perimeterGeometry.insideLine))
+        }
+
+        for (const incidentWallId of node.connectedWallIds) {
+          const incidentWall = state.intermediateWalls[incidentWallId]
+          const geometry = state._intermediateWallGeometry[incidentWallId]
+
+          const incidentEndpoint = incidentWall.start.nodeId === nodeId ? 'start' : 'end'
+          const incidentAxis =
+            incidentWallId === wallId && incidentEndpoint === endpoint
+              ? axis
+              : incidentEndpoint === 'start'
+                ? incidentWall.start.axis
+                : incidentWall.end.axis
+          const segment = incidentAxis === 'left' ? geometry.leftLine : geometry.rightLine
+          incidentLines.push(lineFromSegment(segment))
+        }
+
+        const tolerance = 0.5
+        const isOnAllLines = (position: Vec2) =>
+          incidentLines.every(line => distanceToInfiniteLine(position, line) <= tolerance)
+
+        let nextPosition: Vec2 | undefined
+        if (isOnAllLines(currentPosition)) {
+          nextPosition = copyVec2(currentPosition)
+        } else if (incidentLines.length === 1) {
+          nextPosition = projectPointOntoLine(currentPosition, incidentLines[0])
+        } else {
+          const candidates: Vec2[] = []
+          for (let i = 0; i < incidentLines.length; i++) {
+            for (let j = i + 1; j < incidentLines.length; j++) {
+              const intersection = lineIntersection(incidentLines[i], incidentLines[j])
+              if (intersection && isOnAllLines(intersection)) candidates.push(intersection)
+            }
+          }
+          candidates.sort(
+            (a, b) =>
+              (a[0] - currentPosition[0]) ** 2 +
+              (a[1] - currentPosition[1]) ** 2 -
+              ((b[0] - currentPosition[0]) ** 2 + (b[1] - currentPosition[1]) ** 2)
+          )
+          if (candidates.length === 0) {
+            throw new InvalidOperationError('Cannot change the wall attachment axis without changing its geometry')
+          }
+          nextPosition = candidates[0]
+        }
+
+        if (!isOnAllLines(nextPosition)) {
+          throw new InvalidOperationError('Cannot change the wall attachment axis without changing its geometry')
+        }
+
+        const oldGeometry = new Map<IntermediateWallId, IntermediateWallGeometry>()
+        for (const incidentWallId of node.connectedWallIds) {
+          const geometry = state._intermediateWallGeometry[incidentWallId]
+          oldGeometry.set(incidentWallId, {
+            ...geometry,
+            leftLine: { start: copyVec2(geometry.leftLine.start), end: copyVec2(geometry.leftLine.end) },
+            rightLine: { start: copyVec2(geometry.rightLine.start), end: copyVec2(geometry.rightLine.end) },
+            entityReferenceLine: {
+              start: copyVec2(geometry.entityReferenceLine.start),
+              end: copyVec2(geometry.entityReferenceLine.end)
+            }
+          })
+        }
+
+        if (node.type === 'inner') {
+          node.position = copyVec2(nextPosition)
+        } else {
+          const perimeterGeometry = state._perimeterWallGeometry[node.wallId]
+          node.offsetFromCornerStart = projectVec2(
+            perimeterGeometry.insideLine.start,
+            nextPosition,
+            perimeterGeometry.direction
+          )
+        }
+        if (endpoint === 'start') wall.start.axis = axis
+        else wall.end.axis = axis
+
+        updateAllWallNodeGeometry(state, wall.perimeterId)
+
+        for (const [incidentWallId, previous] of oldGeometry) {
+          const next = state._intermediateWallGeometry[incidentWallId]
+          const points = [
+            previous.leftLine.start,
+            previous.leftLine.end,
+            previous.rightLine.start,
+            previous.rightLine.end,
+            previous.entityReferenceLine.start,
+            previous.entityReferenceLine.end
+          ]
+          const nextPoints = [
+            next.leftLine.start,
+            next.leftLine.end,
+            next.rightLine.start,
+            next.rightLine.end,
+            next.entityReferenceLine.start,
+            next.entityReferenceLine.end
+          ]
+          if (
+            points.some(
+              (point, index) => Math.hypot(point[0] - nextPoints[index][0], point[1] - nextPoints[index][1]) > tolerance
+            )
+          ) {
+            throw new InvalidOperationError('Cannot change the wall attachment axis without changing its geometry')
+          }
+          updateTimestampDraft(state, incidentWallId)
+        }
+        updateTimestampDraft(state, nodeId)
+      })
+    },
+
+    updateIntermediateWallAlignmentPreservingGeometry: (wallId, axis) => {
+      const actions = get().actions
+      const wall = actions.getIntermediateWallById(wallId)
+      const previousStart = wall.start.axis
+      const previousEnd = wall.end.axis
+
+      try {
+        actions.updateIntermediateWallAttachmentAxis(wallId, 'start', axis)
+        actions.updateIntermediateWallAttachmentAxis(wallId, 'end', axis)
+      } catch (error) {
+        try {
+          actions.updateIntermediateWallAttachmentAxis(wallId, 'start', previousStart)
+          actions.updateIntermediateWallAttachmentAxis(wallId, 'end', previousEnd)
+        } catch {
+          // Preserve the original failure. The normal restoration path is
+          // expected to succeed because it restores the captured geometry.
+        }
+        throw error
+      }
     },
 
     addPerimeterWallNode: (perimeterId: PerimeterId, wallId: PerimeterWallId, offsetFromCornerStart: Length) => {
@@ -253,8 +423,14 @@ export const createIntermediateWallsSlice: StateCreator<
         const originalGeometry = state._intermediateWallGeometry[wallId]
         const perimeter = state.perimeters[originalWall.perimeterId]
 
-        const projectedPoint = projectPointOntoLine(point, lineFromSegment(originalGeometry.centerLine))
-        const splitPosition = projectVec2(originalGeometry.centerLine.start, projectedPoint, originalGeometry.direction)
+        const splitAxis = originalWall.start.axis === originalWall.end.axis ? originalWall.start.axis : 'left'
+        const splitLine = splitAxis === 'left' ? originalGeometry.leftLine : originalGeometry.rightLine
+        const projectedPoint = projectPointOntoLine(point, lineFromSegment(splitLine))
+        const splitPosition = projectVec2(
+          originalGeometry.entityReferenceLine.start,
+          projectedPoint,
+          originalGeometry.direction
+        )
 
         if (splitPosition <= 0 || splitPosition >= originalGeometry.wallLength) {
           throw new InvalidOperationError('Intermediate wall split point must be inside the wall')
@@ -264,6 +440,7 @@ export const createIntermediateWallsSlice: StateCreator<
         const wallBId = createIntermediateWallId()
         const firstWallEntities: WallEntityId[] = []
         const secondWallEntities: WallEntityId[] = []
+        const entityWall = new Map<WallEntityId, IntermediateWallId>()
         for (const entityId of originalWall.entityIds) {
           let entity
           if (isOpeningId(entityId)) {
@@ -285,10 +462,12 @@ export const createIntermediateWallsSlice: StateCreator<
           if (entityEnd <= splitPosition) {
             firstWallEntities.push(entityId)
             entity.wallId = wallAId
+            entityWall.set(entityId, wallAId)
           } else {
             secondWallEntities.push(entityId)
             entity.wallId = wallBId
             entity.centerOffsetFromWallStart -= splitPosition
+            entityWall.set(entityId, wallBId)
           }
         }
 
@@ -308,7 +487,7 @@ export const createIntermediateWallsSlice: StateCreator<
           perimeterId: originalWall.perimeterId,
           entityIds: firstWallEntities,
           start: originalWall.start,
-          end: { nodeId: newNodeIdInner, axis: 'center' },
+          end: { nodeId: newNodeIdInner, axis: splitAxis },
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId
         }
@@ -317,7 +496,7 @@ export const createIntermediateWallsSlice: StateCreator<
           id: wallBId,
           perimeterId: originalWall.perimeterId,
           entityIds: secondWallEntities,
-          start: { nodeId: newNodeIdInner, axis: 'center' },
+          start: { nodeId: newNodeIdInner, axis: splitAxis },
           end: originalWall.end,
           thickness: originalWall.thickness,
           wallAssemblyId: originalWall.wallAssemblyId
@@ -347,6 +526,20 @@ export const createIntermediateWallsSlice: StateCreator<
         updateTimestampDraft(state, newNodeIdInner)
 
         updateAllWallNodeGeometry(state, originalWall.perimeterId)
+
+        const firstGeometry = state._intermediateWallGeometry[wallAId]
+        const secondGeometry = state._intermediateWallGeometry[wallBId]
+        handleIntermediateWallSplitConstraintsDraft(state, {
+          originalWallId: wallId,
+          firstWallId: wallAId,
+          secondWallId: wallBId,
+          splitNodeId: newNodeIdInner,
+          originalStartNodeId: originalWall.start.nodeId,
+          originalEndNodeId: originalWall.end.nodeId,
+          firstLengths: { left: firstGeometry.leftLength, right: firstGeometry.rightLength },
+          secondLengths: { left: secondGeometry.leftLength, right: secondGeometry.rightLength },
+          entityWall
+        })
 
         newNodeId = newNodeIdInner
       })
@@ -442,15 +635,21 @@ export const createIntermediateWallsSlice: StateCreator<
         delete state.wallNodes[nodeId]
         delete state._wallNodeGeometry[nodeId]
 
-        removeConstraintsForEntityDraft(state, wallA.id)
-        removeConstraintsForEntityDraft(state, wallB.id)
-        removeConstraintsForEntityDraft(state, nodeId)
         perimeter.wallNodeIds = perimeter.wallNodeIds.filter(id => id !== nodeId)
 
         removeTimestampDraft(state, wallA.id, wallB.id, nodeId)
         updateTimestampDraft(state, newId)
 
         updateAllWallNodeGeometry(state, wallA.perimeterId)
+
+        const mergedGeometry = state._intermediateWallGeometry[newId]
+        handleIntermediateWallMergeConstraintsDraft(state, {
+          firstWallId: wallA.id,
+          secondWallId: wallB.id,
+          mergedWallId: newId,
+          removedNodeId: nodeId,
+          mergedLengths: { left: mergedGeometry.leftLength, right: mergedGeometry.rightLength }
+        })
 
         mergedWallId = newId
       })
@@ -524,6 +723,40 @@ export const createIntermediateWallsSlice: StateCreator<
 
         updateAllWallNodeGeometry(state, node.perimeterId)
         updateTimestampDraft(state, nodeId)
+      })
+    },
+
+    applyGcsWallNodePositions: (perimeterId, positions) => {
+      set(state => {
+        if (!(perimeterId in state.perimeters)) {
+          throw new NotFoundError('Perimeter', perimeterId)
+        }
+
+        for (const [nodeId, position] of Object.entries(positions) as [WallNodeId, Vec2][]) {
+          if (!(nodeId in state.wallNodes)) throw new NotFoundError('Wall node', nodeId)
+          const node = state.wallNodes[nodeId]
+          if (node.perimeterId !== perimeterId) {
+            throw new Error(`Wall node "${nodeId}" does not belong to perimeter "${perimeterId}"`)
+          }
+          if (!Number.isFinite(position[0]) || !Number.isFinite(position[1])) {
+            throw new Error(`Invalid GCS position for wall node "${nodeId}"`)
+          }
+
+          if (node.type === 'inner') {
+            node.position = copyVec2(position)
+          } else {
+            const wallGeometry = state._perimeterWallGeometry[node.wallId]
+            node.offsetFromCornerStart = projectVec2(wallGeometry.insideLine.start, position, wallGeometry.direction)
+          }
+
+          const connectedWalls = Object.values(state.intermediateWalls).filter(
+            wall => wall.start.nodeId === nodeId || wall.end.nodeId === nodeId
+          )
+          for (const wall of connectedWalls) updateTimestampDraft(state, wall.id)
+          updateTimestampDraft(state, nodeId)
+        }
+
+        updateAllWallNodeGeometry(state, perimeterId)
       })
     },
 

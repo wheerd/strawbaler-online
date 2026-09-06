@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { Constraint, PerimeterCornerId, PerimeterId, PerimeterWallId } from '@/building/model'
+import type {
+  Constraint,
+  IntermediateWallId,
+  PerimeterCornerId,
+  PerimeterId,
+  PerimeterWallId,
+  WallNodeId
+} from '@/building/model'
 import { newVec2 } from '@/shared/geometry'
 
 import { getGcsActions, getGcsState } from './store'
@@ -8,9 +15,11 @@ import { getGcsActions, getGcsState } from './store'
 // Mock building store for addPerimeterGeometry and addBuildingConstraint
 const mockGetPerimeterCornersById = vi.fn().mockReturnValue([])
 const mockGetPerimeterWallsById = vi.fn().mockReturnValue([])
-const mockGetPerimeterById = vi.fn().mockReturnValue({ cornerIds: [] })
+const mockGetPerimeterById = vi.fn().mockReturnValue({ cornerIds: [], wallNodeIds: [], intermediateWallIds: [] })
 const mockGetPerimeterWallById = vi.fn()
 const mockGetPerimeterCornerById = vi.fn()
+const mockGetWallNodeById = vi.fn()
+const mockGetIntermediateWallById = vi.fn()
 
 vi.mock('@/building/store', () => ({
   getModelActions: () => ({
@@ -19,6 +28,8 @@ vi.mock('@/building/store', () => ({
     getPerimeterById: (...args: unknown[]) => mockGetPerimeterById(...args),
     getPerimeterWallById: (...args: unknown[]) => mockGetPerimeterWallById(...args),
     getPerimeterCornerById: (...args: unknown[]) => mockGetPerimeterCornerById(...args),
+    getWallNodeById: (...args: unknown[]) => mockGetWallNodeById(...args),
+    getIntermediateWallById: (...args: unknown[]) => mockGetIntermediateWallById(...args),
     getWallOpeningsByWallId: () => [],
     getWallPostsByWallId: () => []
   })
@@ -53,12 +64,17 @@ function setupWallCornerMocks(): void {
   mockGetPerimeterWallById.mockImplementation((wallId: PerimeterWallId) => {
     const walls: Record<
       string,
-      { id: PerimeterWallId; startCornerId: PerimeterCornerId; endCornerId: PerimeterCornerId }
+      {
+        id: PerimeterWallId
+        perimeterId: PerimeterId
+        startCornerId: PerimeterCornerId
+        endCornerId: PerimeterCornerId
+      }
     > = {
-      [wallA]: { id: wallA, startCornerId: cornerA, endCornerId: cornerB },
-      [wallB]: { id: wallB, startCornerId: cornerB, endCornerId: cornerC },
-      [wallC]: { id: wallC, startCornerId: cornerC, endCornerId: cornerD },
-      [wallD]: { id: wallD, startCornerId: cornerD, endCornerId: cornerA }
+      [wallA]: { id: wallA, perimeterId: perimeterA, startCornerId: cornerA, endCornerId: cornerB },
+      [wallB]: { id: wallB, perimeterId: perimeterA, startCornerId: cornerB, endCornerId: cornerC },
+      [wallC]: { id: wallC, perimeterId: perimeterA, startCornerId: cornerC, endCornerId: cornerD },
+      [wallD]: { id: wallD, perimeterId: perimeterA, startCornerId: cornerD, endCornerId: cornerA }
     }
     const wall = walls[wallId]
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -97,6 +113,26 @@ function setupGeometry(): void {
 
 /** Helper to configure mock model store to return rectangle perimeter data. */
 function setupRectangleMocks(perimeterId: PerimeterId): void {
+  mockGetPerimeterWallById.mockImplementation((wallId: PerimeterWallId) => {
+    const walls: Record<
+      string,
+      {
+        id: PerimeterWallId
+        perimeterId: PerimeterId
+        startCornerId: PerimeterCornerId
+        endCornerId: PerimeterCornerId
+      }
+    > = {
+      [wallA]: { id: wallA, perimeterId, startCornerId: cornerA, endCornerId: cornerB },
+      [wallB]: { id: wallB, perimeterId, startCornerId: cornerB, endCornerId: cornerC },
+      [wallC]: { id: wallC, perimeterId, startCornerId: cornerC, endCornerId: cornerD },
+      [wallD]: { id: wallD, perimeterId, startCornerId: cornerD, endCornerId: cornerA }
+    }
+    const wall = walls[wallId]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!wall) throw new Error(`Wall "${wallId}" not found`)
+    return wall
+  })
   mockGetPerimeterCornersById.mockImplementation((mockId: PerimeterId) => {
     if (mockId !== perimeterId) return []
     return [
@@ -247,7 +283,7 @@ describe('GCS store building constraints', () => {
     // zustand mock auto-resets stores between tests
     mockGetPerimeterCornersById.mockReturnValue([])
     mockGetPerimeterWallsById.mockReturnValue([])
-    mockGetPerimeterById.mockReturnValue({ cornerIds: [] })
+    mockGetPerimeterById.mockReturnValue({ cornerIds: [], wallNodeIds: [], intermediateWallIds: [] })
     mockGetPerimeterWallById.mockReturnValue(undefined)
     mockGetPerimeterCornerById.mockImplementation((cornerId: PerimeterCornerId) => ({
       id: cornerId,
@@ -381,6 +417,62 @@ describe('GCS store building constraints', () => {
 
       expect(state.constraintPoints[constraint.id]).toEqual([lockPointId])
     })
+
+    it('translates wall-node colinearity using canonical ref endpoints', () => {
+      const actions = getGcsActions()
+      const nodeId = 'wallnode_node' as WallNodeId
+      const intermediateWallA = 'intermediate_wall_a' as IntermediateWallId
+      const intermediateWallB = 'intermediate_wall_b' as IntermediateWallId
+
+      mockGetIntermediateWallById.mockImplementation((wallId: IntermediateWallId) => {
+        if (wallId === intermediateWallA) {
+          return {
+            id: intermediateWallA,
+            start: { nodeId, axis: 'left' },
+            end: { nodeId: 'wallnode_other_a', axis: 'left' }
+          }
+        }
+        if (wallId === intermediateWallB) {
+          return {
+            id: intermediateWallB,
+            start: { nodeId: 'wallnode_other_b', axis: 'left' },
+            end: { nodeId, axis: 'right' }
+          }
+        }
+        throw new Error('unknown intermediate wall')
+      })
+
+      for (const pointId of [
+        `${intermediateWallA}_start_ref`,
+        `${intermediateWallA}_end_ref`,
+        `${intermediateWallB}_start_ref`,
+        `${intermediateWallB}_end_ref`,
+        `wallnode_${nodeId}_ref`
+      ]) {
+        actions.addPoint(pointId, newVec2(0, 0))
+      }
+      actions.addLine(`wall_${intermediateWallA}_ref`, `${intermediateWallA}_start_ref`, `${intermediateWallA}_end_ref`)
+      actions.addLine(`wall_${intermediateWallB}_ref`, `${intermediateWallB}_start_ref`, `${intermediateWallB}_end_ref`)
+
+      const constraint: Constraint = {
+        id: 'constraint_node_colinear',
+        type: 'wallNodeColinear',
+        node: nodeId,
+        wallA: intermediateWallA,
+        wallB: intermediateWallB
+      }
+
+      actions.addBuildingConstraint(constraint)
+
+      expect(getGcsState().constraints[`bc_${constraint.id}`]).toEqual({
+        id: `bc_${constraint.id}`,
+        type: 'point_on_line_ppp',
+        p_id: `${intermediateWallA}_start_ref`,
+        lp1_id: `${intermediateWallA}_end_ref`,
+        lp2_id: `${intermediateWallB}_start_ref`,
+        driving: true
+      })
+    })
   })
 
   describe('removeBuildingConstraint', () => {
@@ -455,7 +547,7 @@ describe('GCS store perimeter geometry', () => {
   beforeEach(() => {
     mockGetPerimeterCornersById.mockReturnValue([])
     mockGetPerimeterWallsById.mockReturnValue([])
-    mockGetPerimeterById.mockReturnValue({ cornerIds: [] })
+    mockGetPerimeterById.mockReturnValue({ cornerIds: [], wallNodeIds: [], intermediateWallIds: [] })
   })
 
   describe('addPerimeterGeometry', () => {
@@ -510,6 +602,136 @@ describe('GCS store perimeter geometry', () => {
       expect(state.lines.find(l => l.id === `wall_${wallA}_nonref`)).toBeDefined()
       expect(state.lines.find(l => l.id === `wall_${wallB}_ref`)).toBeDefined()
       expect(state.lines.find(l => l.id === `wall_${wallB}_nonref`)).toBeDefined()
+    })
+
+    it('registers intermediate wall geometry and node attachment constraints', () => {
+      setupRectangleMocks(perimeterA)
+      const nodeId = 'wallnode_test' as never
+      const intermediateWallId = 'intermediate_test' as never
+      const perimeter = mockGetPerimeterById(perimeterA)
+      mockGetPerimeterById.mockReturnValue({
+        ...perimeter,
+        wallNodeIds: [nodeId],
+        intermediateWallIds: [intermediateWallId]
+      })
+      mockGetPerimeterWallById.mockReturnValue({
+        id: wallA,
+        startCornerId: cornerA,
+        endCornerId: cornerB,
+        direction: [1, 0]
+      })
+      mockGetWallNodeById.mockReturnValue({
+        id: nodeId,
+        perimeterId: perimeterA,
+        type: 'perimeter',
+        wallId: wallA,
+        offsetFromCornerStart: 2000,
+        connectedWallIds: [intermediateWallId],
+        position: [2000, 0],
+        center: [2000, -210],
+        incidentWalls: [
+          {
+            id: intermediateWallId,
+            direction: [0, 1],
+            leftPoint: [2000, 0],
+            rightPoint: [1880, 0]
+          }
+        ],
+        insideLine: { start: [2000, 0], end: [2000, 0] },
+        outsideLine: { start: [2000, -420], end: [2000, -420] }
+      })
+      mockGetIntermediateWallById.mockReturnValue({
+        id: intermediateWallId,
+        perimeterId: perimeterA,
+        entityIds: [],
+        start: { nodeId, axis: 'left' },
+        end: { nodeId, axis: 'right' },
+        thickness: 120,
+        direction: [0, 1],
+        leftDirection: [-1, 0],
+        boundary: { points: [] },
+        entityReferenceLine: { start: [2000, 0], end: [2000, 3000] },
+        wallLength: 3000,
+        leftLength: 3000,
+        leftLine: { start: [2000, 0], end: [2000, 3000] },
+        rightLength: 3000,
+        rightLine: { start: [1880, 0], end: [1880, 3000] }
+      })
+
+      getGcsActions().addPerimeterGeometry(perimeterA)
+
+      const state = getGcsState()
+      expect(state.points[`wallnode_${nodeId}_ref`]).toBeDefined()
+      expect(state.points[`wn_${nodeId}_0`]).toBeDefined()
+      expect(state.points[`${intermediateWallId}_start_ref`]).toBeUndefined()
+      expect(state.points[`${intermediateWallId}_start_proj`]).toBeDefined()
+      expect(state.lines.find(line => line.id === `wall_${intermediateWallId}_ref`)).toBeDefined()
+      expect(state.lines.find(line => line.id === `intermediate_${intermediateWallId}_entityReference`)).toBeUndefined()
+      expect(state.constraints[`${intermediateWallId}_start_attachment`]).toMatchObject({
+        type: 'point_on_line_pl',
+        p_id: `wallnode_${nodeId}_ref`,
+        l_id: `wall_${intermediateWallId}_ref`
+      })
+      expect(state.constraints[`${intermediateWallId}_end_attachment`]).toMatchObject({
+        type: 'point_on_line_pl',
+        p_id: `wallnode_${nodeId}_ref`,
+        l_id: `wall_${intermediateWallId}_nonref`
+      })
+    })
+
+    it('keeps original ref/nonref mapping for a one-wall inner node at the wall end', () => {
+      const nodeId = 'wallnode_inner_test' as WallNodeId
+      const intermediateWallId = 'intermediate_inner_test' as IntermediateWallId
+      const otherNodeId = 'wallnode_other' as WallNodeId
+      const node = {
+        id: nodeId,
+        perimeterId: perimeterA,
+        type: 'inner' as const,
+        position: [2000, 1500] as [number, number],
+        incidentWalls: [
+          {
+            id: intermediateWallId,
+            direction: [0, -1],
+            leftPoint: [2000, 1500],
+            rightPoint: [1880, 1500]
+          }
+        ],
+        connectedWallIds: [intermediateWallId]
+      }
+
+      mockGetPerimeterById.mockReturnValue({
+        id: perimeterA,
+        cornerIds: [],
+        wallNodeIds: [nodeId],
+        intermediateWallIds: [intermediateWallId]
+      })
+      mockGetWallNodeById.mockImplementation((id: WallNodeId) =>
+        id === nodeId ? node : { ...node, id, connectedWallIds: [] }
+      )
+      mockGetIntermediateWallById.mockReturnValue({
+        id: intermediateWallId,
+        perimeterId: perimeterA,
+        entityIds: [],
+        start: { nodeId: otherNodeId, axis: 'right' },
+        end: { nodeId, axis: 'left' },
+        thickness: 120,
+        direction: [0, 1],
+        leftDirection: [-1, 0],
+        boundary: { points: [] },
+        entityReferenceLine: { start: [2000, 0], end: [2000, 3000] },
+        wallLength: 3000,
+        leftLength: 3000,
+        leftLine: { start: [2000, 0], end: [2000, 3000] },
+        rightLength: 3000,
+        rightLine: { start: [1880, 0], end: [1880, 3000] }
+      })
+
+      getGcsActions().addPerimeterGeometry(perimeterA)
+
+      const refLine = getGcsState().lines.find(line => line.id === `wall_${intermediateWallId}_ref`)
+      const nonrefLine = getGcsState().lines.find(line => line.id === `wall_${intermediateWallId}_nonref`)
+      expect(refLine?.p2_id).toBe(`wallnode_${nodeId}_ref`)
+      expect(nonrefLine?.p2_id).toBe(`wn_${nodeId}_0`)
     })
 
     it('creates p2p_coincident constraints for non-colinear corners', () => {

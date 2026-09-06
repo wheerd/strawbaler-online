@@ -245,6 +245,7 @@
     "hardReset": "Réinitialisation complète",
     "hexagonal": "⬡ Périmètre hexagonal (côtés de 3 m)",
     "instructions": "Cliquez sur n'importe quel bouton ci-dessus pour générer des données de test ou réinitialiser le modèle. Chaque cas de test crée un périmètre avec des fenêtres et portes réalistes pour démontrer les fonctionnalités de l'application.",
+    "intermediateWalls": "▤ Relations entre cloisons",
     "rectangular": "▭ Périmètre rectangulaire (8×5 m)",
     "resetAll": "🗑️ Réinitialiser toutes les données",
     "resetWarning": "⚠️ Cela supprimera définitivement tous les périmètres, ouvertures et travaux enregistrés"

@@ -4,10 +4,19 @@ import {
   buildingConstraintKey,
   getReferencedCornerIds,
   getReferencedWallEntityIds,
-  getReferencedWallIds
+  getReferencedWallIds,
+  getReferencedWallNodeIds
 } from '@/building/gcs/constraintTranslator'
 import type { Constraint, ConstraintInput } from '@/building/model'
-import type { ConstraintEntityId, ConstraintId, PerimeterCornerId, PerimeterWallId, WallId } from '@/building/model/ids'
+import type {
+  ConstraintEntityId,
+  ConstraintId,
+  PerimeterCornerId,
+  PerimeterWallId,
+  WallEntityId,
+  WallId,
+  WallNodeId
+} from '@/building/model/ids'
 import { createConstraintId } from '@/building/model/ids'
 import type { Length } from '@/shared/geometry'
 
@@ -32,7 +41,12 @@ export type ConstraintsSlice = ConstraintsState & { actions: ConstraintsActions 
  * Extract all ConstraintEntityIds referenced by a constraint input.
  */
 function getReferencedEntityIds(input: ConstraintInput): ConstraintEntityId[] {
-  return [...getReferencedCornerIds(input), ...getReferencedWallIds(input), ...getReferencedWallEntityIds(input)]
+  return [
+    ...getReferencedCornerIds(input),
+    ...getReferencedWallNodeIds(input),
+    ...getReferencedWallIds(input),
+    ...getReferencedWallEntityIds(input)
+  ]
 }
 
 /**
@@ -79,9 +93,10 @@ function removeFromReverseIndex(
 export function rebuildReverseIndex(state: ConstraintsState) {
   for (const constraint of Object.values(state.buildingConstraints)) {
     const cornerIds = getReferencedCornerIds(constraint)
+    const wallNodeIds = getReferencedWallNodeIds(constraint)
     const wallIds = getReferencedWallIds(constraint)
     const wallEntityIds = getReferencedWallEntityIds(constraint)
-    const entityIds = [...cornerIds, ...wallIds, ...wallEntityIds]
+    const entityIds = [...cornerIds, ...wallNodeIds, ...wallIds, ...wallEntityIds]
 
     for (const entityId of entityIds) {
       const list = state._constraintsByEntity[entityId]
@@ -146,6 +161,188 @@ export function addBuildingConstraintDraft(state: ConstraintsState, input: Const
   addToReverseIndex(state._constraintsByEntity, id, entityIds)
 
   return id
+}
+
+function asConstraintInput(constraint: Constraint): ConstraintInput {
+  const { id: _id, ...input } = constraint
+  return input as ConstraintInput
+}
+
+function replaceWall(
+  input: ConstraintInput,
+  originalWallId: WallId,
+  replacementWallId: WallId
+): ConstraintInput | null {
+  switch (input.type) {
+    case 'wallLength':
+    case 'horizontalWall':
+    case 'verticalWall':
+    case 'wallEntityAbsolute':
+    case 'wallEntityRelative':
+      return input.wall === originalWallId ? { ...input, wall: replacementWallId } : input
+    case 'parallel':
+      return input.wallA === originalWallId
+        ? { ...input, wallA: replacementWallId }
+        : input.wallB === originalWallId
+          ? { ...input, wallB: replacementWallId }
+          : input
+    case 'wallNodePerpendicular':
+    case 'wallNodeColinear':
+    case 'wallNodeAngle':
+      return input.wallA === originalWallId
+        ? { ...input, wallA: replacementWallId }
+        : input.wallB === originalWallId
+          ? { ...input, wallB: replacementWallId }
+          : input
+    default:
+      return input
+  }
+}
+
+function replaceEntityWall(
+  input: ConstraintInput,
+  entityWall: ReadonlyMap<WallEntityId, WallId>
+): ConstraintInput | null {
+  if (input.type === 'wallEntityAbsolute' || input.type === 'wallEntityRelative') {
+    const wallId = input.type === 'wallEntityAbsolute' ? entityWall.get(input.entity) : entityWall.get(input.entityA)
+    const otherWallId = input.type === 'wallEntityRelative' ? entityWall.get(input.entityB) : wallId
+    if (!wallId || !otherWallId || wallId !== otherWallId) return null
+    return { ...input, wall: wallId }
+  }
+  return input
+}
+
+export interface IntermediateWallSplitConstraintParams {
+  originalWallId: WallId
+  firstWallId: WallId
+  secondWallId: WallId
+  splitNodeId: WallNodeId
+  originalStartNodeId: WallNodeId
+  originalEndNodeId: WallNodeId
+  firstLengths: { left: Length; right: Length }
+  secondLengths: { left: Length; right: Length }
+  entityWall: ReadonlyMap<WallEntityId, WallId>
+}
+
+/** Transfer constraints when an intermediate wall is replaced by two walls. */
+export function handleIntermediateWallSplitConstraintsDraft(
+  state: ConstraintsState,
+  params: IntermediateWallSplitConstraintParams
+): void {
+  const ids = [...(state._constraintsByEntity[params.originalWallId] ?? [])]
+  const inputs: ConstraintInput[] = []
+
+  for (const id of ids) {
+    const constraint = state.buildingConstraints[id]
+    const input = asConstraintInput(constraint)
+    removeConstraintDraft(state, id)
+
+    switch (input.type) {
+      case 'wallLength':
+        inputs.push(
+          { ...input, wall: params.firstWallId, length: params.firstLengths[input.side] },
+          { ...input, wall: params.secondWallId, length: params.secondLengths[input.side] }
+        )
+        break
+      case 'horizontalWall':
+      case 'verticalWall':
+        inputs.push({ ...input, wall: params.firstWallId }, { ...input, wall: params.secondWallId })
+        break
+      case 'parallel':
+        inputs.push(
+          {
+            ...input,
+            ...(input.wallA === params.originalWallId ? { wallA: params.firstWallId } : { wallB: params.firstWallId })
+          },
+          {
+            ...input,
+            distance: undefined,
+            ...(input.wallA === params.originalWallId ? { wallA: params.secondWallId } : { wallB: params.secondWallId })
+          }
+        )
+        break
+      case 'wallNodePerpendicular':
+      case 'wallNodeColinear':
+      case 'wallNodeAngle': {
+        const replacement =
+          input.node === params.originalStartNodeId
+            ? params.firstWallId
+            : input.node === params.originalEndNodeId
+              ? params.secondWallId
+              : null
+        if (replacement)
+          inputs.push({
+            ...input,
+            ...(input.wallA === params.originalWallId ? { wallA: replacement } : { wallB: replacement })
+          })
+        break
+      }
+      case 'wallEntityAbsolute':
+      case 'wallEntityRelative': {
+        const transferred = replaceEntityWall(input, params.entityWall)
+        if (transferred) inputs.push(transferred)
+        break
+      }
+      default:
+        inputs.push(input)
+    }
+  }
+
+  for (const input of inputs) addBuildingConstraintDraft(state, input)
+  addBuildingConstraintDraft(state, {
+    type: 'wallNodeColinear',
+    node: params.splitNodeId,
+    wallA: params.firstWallId,
+    wallB: params.secondWallId
+  })
+}
+
+export interface IntermediateWallMergeConstraintParams {
+  firstWallId: WallId
+  secondWallId: WallId
+  mergedWallId: WallId
+  removedNodeId: WallNodeId
+  mergedLengths: { left: Length; right: Length }
+}
+
+/** Transfer constraints when two colinear intermediate walls are merged. */
+export function handleIntermediateWallMergeConstraintsDraft(
+  state: ConstraintsState,
+  params: IntermediateWallMergeConstraintParams
+): void {
+  const removedWallIds = new Set<WallId>([params.firstWallId, params.secondWallId])
+  const ids = new Set<ConstraintId>()
+  for (const wallId of removedWallIds) {
+    for (const id of state._constraintsByEntity[wallId] ?? []) ids.add(id)
+  }
+  for (const id of state._constraintsByEntity[params.removedNodeId] ?? []) ids.add(id)
+
+  const inputs: ConstraintInput[] = []
+  for (const id of ids) {
+    const constraint = state.buildingConstraints[id]
+    const input = asConstraintInput(constraint)
+    removeConstraintDraft(state, id)
+
+    if ('node' in input && input.node === params.removedNodeId) continue
+    if (input.type === 'wallLength') {
+      inputs.push({ ...input, wall: params.mergedWallId, length: params.mergedLengths[input.side] })
+    } else if (input.type === 'horizontalWall' || input.type === 'verticalWall') {
+      inputs.push({ ...input, wall: params.mergedWallId })
+    } else if (input.type === 'parallel') {
+      const otherWall = removedWallIds.has(input.wallA) ? input.wallB : input.wallA
+      if (!removedWallIds.has(otherWall)) {
+        inputs.push({ ...input, wallA: params.mergedWallId, wallB: otherWall })
+      }
+    } else {
+      let transferred: ConstraintInput = input
+      for (const wallId of removedWallIds) {
+        transferred = replaceWall(transferred, wallId, params.mergedWallId) ?? transferred
+      }
+      inputs.push(transferred)
+    }
+  }
+
+  for (const input of inputs) addBuildingConstraintDraft(state, input)
 }
 
 // ---------------------------------------------------------------------------

@@ -1,17 +1,15 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DIMENSION_DEFAULT_FONT_SIZE, WALL_DIM_LAYER_OFFSET, type WallDimLayer } from '@/editor/canvas/dimensions'
+import { DIMENSION_DEFAULT_FONT_SIZE } from '@/editor/canvas/dimensions'
 import { useUiScale } from '@/editor/canvas/state/viewportStore'
 import type { Vec2 } from '@/shared/geometry'
-import { midpoint } from '@/shared/geometry'
 
-interface ConstraintBadgeProps {
+export interface ConstraintBadgeProps {
   label: string
-  startPoint: Vec2
-  endPoint: Vec2
-  outsideDirection: Vec2
-  dimLayer: WallDimLayer
+  basePoint: Vec2
+  offsetDirection: Vec2
+  offsetDistance: number
   locked?: boolean
   onClick?: () => void
   tooltipKey?:
@@ -25,12 +23,19 @@ interface ConstraintBadgeProps {
   status?: 'conflicting' | 'redundant' | 'normal'
 }
 
+export function getConstraintBadgeSize(label: string, uiScale: number): { width: number; height: number } {
+  const scaledFontSize = DIMENSION_DEFAULT_FONT_SIZE * uiScale
+  return {
+    width: scaledFontSize * (2.24 + label.length * 0.6),
+    height: scaledFontSize * 1.6
+  }
+}
+
 export function ConstraintBadge({
   label,
-  startPoint,
-  endPoint,
-  outsideDirection,
-  dimLayer,
+  basePoint,
+  offsetDirection,
+  offsetDistance,
   locked,
   onClick,
   tooltipKey,
@@ -41,20 +46,19 @@ export function ConstraintBadge({
   const fontSize = DIMENSION_DEFAULT_FONT_SIZE
 
   const scaledFontSize = fontSize * uiScale
-  const scaledOffset = dimLayer * WALL_DIM_LAYER_OFFSET * uiScale
+  const scaledOffset = offsetDistance * uiScale
 
-  const mid = midpoint(startPoint, endPoint)
-  const badgeX = mid[0] + outsideDirection[0] * scaledOffset
-  const badgeY = mid[1] + outsideDirection[1] * scaledOffset
+  const badgeX = basePoint[0] + offsetDirection[0] * scaledOffset
+  const badgeY = basePoint[1] + offsetDirection[1] * scaledOffset
 
   const isInteractive = onClick != null
 
   const showLock = locked !== false
 
   const iconSize = scaledFontSize * 0.8
-  const rectHeight = scaledFontSize * 1.6
+  const rectHeight = getConstraintBadgeSize(label, uiScale).height
   const cornerRadius = rectHeight * 0.3
-  const rectWidth = 3 * cornerRadius + iconSize + scaledFontSize * label.length * 0.6
+  const rectWidth = getConstraintBadgeSize(label, uiScale).width
 
   const lockX = badgeX - rectWidth / 2 + iconSize * 0.5
   const lockY = badgeY + iconSize / 2
@@ -62,7 +66,7 @@ export function ConstraintBadge({
   const showAlert = status !== 'normal'
   const alertSize = scaledFontSize
   const alertX = badgeX - alertSize / 2
-  const alertY = badgeY + (outsideDirection[1] < 0 ? alertSize : -alertSize)
+  const alertY = badgeY + (offsetDirection[1] < 0 ? alertSize : -alertSize)
 
   const iconHref = showLock ? '#icon-lock' : '#icon-lock-open'
   const borderSize = (scaledFontSize / 8).toFixed(0)
@@ -130,6 +134,7 @@ export function ConstraintBadge({
   return (
     <g
       className={isInteractive ? 'group cursor-pointer select-none' : 'pointer-events-none select-none'}
+      pointerEvents={isInteractive ? 'auto' : 'none'}
       onClick={isInteractive ? onClick : undefined}
     >
       {tooltip && <title>{tooltip}</title>}

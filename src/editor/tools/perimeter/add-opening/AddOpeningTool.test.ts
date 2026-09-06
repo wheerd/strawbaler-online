@@ -125,7 +125,7 @@ describe('AddOpeningTool', () => {
         perimeterId: 'perimeter_1',
         thickness: 120,
         wallLength: 6000,
-        centerLine: { start: newVec2(0, 0), end: newVec2(6000, 0) },
+        entityReferenceLine: { start: newVec2(0, 0), end: newVec2(6000, 0) },
         direction: newVec2(1, 0)
       })),
       findNearestValidWallOpeningPosition: vi.fn(() => 2000),

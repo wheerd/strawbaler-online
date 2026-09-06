@@ -109,11 +109,14 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
   }
 
   commitMovement(movementState: CornerMovementState, context: MovementContext<CornerEntityContext>): boolean {
-    context.entity.gcs.endDrag()
-    const updated = context.store.updatePerimeterBoundary(context.entity.corner.perimeterId, movementState.newBoundary)
+    const perimeterId = context.entity.corner.perimeterId
+    const updated = context.store.updatePerimeterBoundary(perimeterId, movementState.newBoundary)
     if (updated) {
+      context.entity.gcs.applyWallNodePositions(perimeterId)
+      context.entity.gcs.applyWallEntityOffsets(perimeterId)
       context.entity.gcs.syncConstraintStatus()
     }
+    context.entity.gcs.endDrag()
     return updated
   }
 
@@ -133,6 +136,7 @@ export class PerimeterCornerMovementBehavior implements MovementBehavior<CornerE
 
     const updated = context.store.updatePerimeterBoundary(corner.perimeterId, newBoundary)
     if (updated) {
+      gcs.applyWallNodePositions(corner.perimeterId)
       gcs.applyWallEntityOffsets(corner.perimeterId)
       gcs.syncConstraintStatus()
     }

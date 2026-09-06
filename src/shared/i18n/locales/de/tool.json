@@ -245,6 +245,7 @@
     "hardReset": "Hard-Reset",
     "hexagonal": "⬡ Sechseckige Gebäudekontur (3m Seiten)",
     "instructions": "Klicke auf eine beliebige Schaltfläche oben, um Testdaten zu generieren oder das Modell zurückzusetzen. Jeder Testfall erstellt einen Gebäudekontur mit realistischen Fenstern und Türen, um die Anwendungsfunktionen zu demonstrieren.",
+    "intermediateWalls": "▤ Zwischenwand-Beziehungen",
     "rectangular": "▭ Rechteckige Gebäudekontur (8×5m)",
     "resetAll": "🗑️ Alle Daten zurücksetzen",
     "resetWarning": "⚠️ Dies löscht dauerhaft alle Stockwerke, Aufbauten und Materialien"

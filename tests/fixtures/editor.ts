@@ -55,6 +55,7 @@ export async function activateTool(
     | 'Floor Opening'
     | 'Roof'
     | 'Test Data'
+    | 'Draw Intermediate Wall'
 ): Promise<void> {
   await page.getByTestId('editor-toolbar').getByRole('button', { name: toolName }).click()
 }

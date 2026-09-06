@@ -21,7 +21,7 @@ export function AddOpeningToolOverlay({ tool }: ToolOverlayComponentProps<AddOpe
   const wallAngle = (Math.atan2(wallDirection[1], wallDirection[0]) * 180) / Math.PI
 
   const halfWidth = state.width / 2
-  const wallOffset = 'centerLine' in wall ? -wall.thickness / 2 : 0
+  const wallOffset = 'entityReferenceLine' in wall ? -wall.thickness / 2 : 0
 
   return (
     <g

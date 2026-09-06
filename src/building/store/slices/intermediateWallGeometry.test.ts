@@ -1,8 +1,19 @@
 import { describe, expect, it } from 'vitest'
 
+import type { PerimeterWallNodeGeometry } from '@/building/model'
 import { createIntermediateWallId, createWallNodeId } from '@/building/model/ids'
 import { computeWallLines, updateAllWallNodeGeometry } from '@/building/store/slices/intermediateWallGeometry'
-import { distVec2, distanceToInfiniteLine, dotVec2, newVec2, perpendicularCCW, scaleAddVec2 } from '@/shared/geometry'
+import {
+  distVec2,
+  distanceToInfiniteLine,
+  dotVec2,
+  lineFromSegment,
+  newVec2,
+  perpendicularCCW,
+  projectPointOntoLine,
+  scaleAddVec2,
+  subVec2
+} from '@/shared/geometry'
 
 import { setupIntermediateWallsSlice } from './__tests__/testHelpers'
 
@@ -13,8 +24,8 @@ describe('intermediateWallGeometry', () => {
     const thickness = 100
 
     describe('same axis alignment (startAxis === endAxis)', () => {
-      it('should create parallel left/right lines for center/center on horizontal segment', () => {
-        const result = computeWallLines(start, 'center', end, 'center', thickness)
+      it('should create parallel left/right lines for left/left on horizontal segment', () => {
+        const result = computeWallLines(start, 'left', end, 'left', thickness)
 
         expect(result.left.direction).toEqual(newVec2(1, 0))
         expect(result.right.direction).toEqual(newVec2(1, 0))
@@ -24,11 +35,11 @@ describe('intermediateWallGeometry', () => {
         expect(distance).toBeCloseTo(thickness, 1)
       })
 
-      it('should create parallel left/right lines for center/center on vertical segment', () => {
+      it('should create parallel left/right lines for left/left on vertical segment', () => {
         const vStart = newVec2(0, 0)
         const vEnd = newVec2(0, 1000)
 
-        const result = computeWallLines(vStart, 'center', vEnd, 'center', thickness)
+        const result = computeWallLines(vStart, 'left', vEnd, 'left', thickness)
 
         expect(result.left.direction).toEqual(newVec2(0, 1))
         expect(result.right.direction).toEqual(newVec2(0, 1))
@@ -50,8 +61,8 @@ describe('intermediateWallGeometry', () => {
         expect(result.right.point).toEqual(start)
       })
 
-      it('should offset left and right equally for center/center', () => {
-        const result = computeWallLines(start, 'center', end, 'center', thickness)
+      it('should offset left and right from the left attachment axis', () => {
+        const result = computeWallLines(start, 'left', end, 'left', thickness)
 
         const midX = (start[0] + end[0]) / 2
         const midY = (start[1] + end[1]) / 2
@@ -62,15 +73,15 @@ describe('intermediateWallGeometry', () => {
 
         const centerPerpDist = dotVec2(perpendicularCCW(result.left.direction), midPoint)
 
-        expect(leftPerpDist).toBeCloseTo(centerPerpDist + thickness / 2, 1)
-        expect(rightPerpDist).toBeCloseTo(centerPerpDist - thickness / 2, 1)
+        expect(leftPerpDist).toBeCloseTo(centerPerpDist, 1)
+        expect(rightPerpDist).toBeCloseTo(centerPerpDist - thickness, 1)
       })
 
       it('should work correctly on a diagonal segment (45 degrees)', () => {
         const dStart = newVec2(0, 0)
         const dEnd = newVec2(1000, 1000)
 
-        const result = computeWallLines(dStart, 'center', dEnd, 'center', thickness)
+        const result = computeWallLines(dStart, 'left', dEnd, 'left', thickness)
 
         const dir = result.left.direction
         const expectedDirLen = Math.sqrt(2)
@@ -82,12 +93,28 @@ describe('intermediateWallGeometry', () => {
         expect(distance).toBeCloseTo(thickness, 1)
       })
 
-      it('should have left/right distance equal to thickness for center/center', () => {
-        const result = computeWallLines(start, 'center', end, 'center', thickness)
+      it('should have left/right distance equal to thickness for left/left', () => {
+        const result = computeWallLines(start, 'left', end, 'left', thickness)
 
         const perpDir = perpendicularCCW(result.left.direction)
         const distance = Math.abs(dotVec2(perpDir, result.right.point) - dotVec2(perpDir, result.left.point))
         expect(distance).toBeCloseTo(thickness, 1)
+      })
+
+      it('should keep the left line on the left side for every attachment-axis combination', () => {
+        const axes = ['left', 'right'] as const
+
+        for (const startAxis of axes) {
+          for (const endAxis of axes) {
+            const result = computeWallLines(start, startAxis, end, endAxis, thickness)
+            const wallDirection = result.left.direction
+            const leftDirection = perpendicularCCW(wallDirection)
+            const rightFromLeft = subVec2(result.right.point, result.left.point)
+
+            expect(dotVec2(wallDirection, subVec2(end, start))).toBeGreaterThan(0)
+            expect(dotVec2(leftDirection, rightFromLeft)).toBeLessThan(0)
+          }
+        }
       })
     })
 
@@ -160,8 +187,8 @@ describe('intermediateWallGeometry', () => {
         id: wallId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallId)
@@ -173,10 +200,10 @@ describe('intermediateWallGeometry', () => {
       expect(wallGeometry).toBeDefined()
       expect(wallGeometry.wallLength).toBeCloseTo(6000, 0)
       expect(wallGeometry.boundary.points).toHaveLength(4)
-      expect(wallGeometry.centerLine.start).toBeDefined()
-      expect(wallGeometry.centerLine.end).toBeDefined()
+      expect(wallGeometry.entityReferenceLine.start).toBeDefined()
+      expect(wallGeometry.entityReferenceLine.end).toBeDefined()
 
-      const centerLen = distVec2(wallGeometry.centerLine.start, wallGeometry.centerLine.end)
+      const centerLen = distVec2(wallGeometry.entityReferenceLine.start, wallGeometry.entityReferenceLine.end)
       expect(centerLen).toBeCloseTo(6000, 0)
       expect(centerLen).toBeCloseTo(wallGeometry.wallLength, 0)
     })
@@ -207,8 +234,8 @@ describe('intermediateWallGeometry', () => {
         id: wallId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallId)
@@ -260,16 +287,16 @@ describe('intermediateWallGeometry', () => {
         id: wallAId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId, axis: 'left' },
         thickness: 120
       }
       state.intermediateWalls[wallBId] = {
         id: wallBId,
         perimeterId,
         entityIds: [],
-        start: { nodeId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallAId, wallBId)
@@ -280,6 +307,11 @@ describe('intermediateWallGeometry', () => {
       const nodeGeometry = state._wallNodeGeometry[nodeId]
       expect(nodeGeometry).toBeDefined()
       expect(nodeGeometry.boundary?.points).toHaveLength(4)
+
+      const geometryA = state._intermediateWallGeometry[wallAId]
+      const geometryB = state._intermediateWallGeometry[wallBId]
+      expect(geometryA.leftLine.end).toEqual(geometryB.leftLine.start)
+      expect(geometryA.rightLine.end).toEqual(geometryB.rightLine.start)
     })
 
     it('should handle colinear walls meeting at a node (180-degree junction)', () => {
@@ -317,16 +349,16 @@ describe('intermediateWallGeometry', () => {
         id: wallAId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId, axis: 'left' },
         thickness: 120
       }
       state.intermediateWalls[wallBId] = {
         id: wallBId,
         perimeterId,
         entityIds: [],
-        start: { nodeId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallAId, wallBId)
@@ -336,13 +368,163 @@ describe('intermediateWallGeometry', () => {
 
       const nodeGeometry = state._wallNodeGeometry[nodeId]
       expect(nodeGeometry).toBeDefined()
-      expect(nodeGeometry.boundary?.points).toHaveLength(4)
+      expect(nodeGeometry.boundary).toBeUndefined()
 
       const wallAGeometry = state._intermediateWallGeometry[wallAId]
       const wallBGeometry = state._intermediateWallGeometry[wallBId]
       expect(wallAGeometry).toBeDefined()
       expect(wallBGeometry).toBeDefined()
+      expect(wallAGeometry.leftLine.end).toEqual(wallBGeometry.leftLine.start)
+      expect(wallAGeometry.rightLine.end).toEqual(wallBGeometry.rightLine.start)
+      expect(wallAGeometry.leftLine.end).toEqual(
+        projectPointOntoLine(state.wallNodes[nodeId].position, lineFromSegment(wallAGeometry.leftLine))
+      )
+      expect(wallAGeometry.rightLine.end).toEqual(
+        projectPointOntoLine(state.wallNodes[nodeId].position, lineFromSegment(wallAGeometry.rightLine))
+      )
       expect(wallAGeometry.wallLength + wallBGeometry.wallLength).toBeCloseTo(6000, 0)
+    })
+
+    it('should include both sides of every sector for a three-way node', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeId = createWallNodeId()
+      const endNodeIds = [createWallNodeId(), createWallNodeId(), createWallNodeId()]
+      const wallIds = [createIntermediateWallId(), createIntermediateWallId(), createIntermediateWallId()]
+      const endPositions = [newVec2(2000, 3000), newVec2(6500, 5598), newVec2(6500, 402)]
+
+      state.wallNodes[nodeId] = {
+        id: nodeId,
+        perimeterId,
+        type: 'inner',
+        position: newVec2(5000, 3000),
+        connectedWallIds: wallIds
+      }
+
+      for (let i = 0; i < wallIds.length; i++) {
+        const endNodeId = endNodeIds[i]
+        state.wallNodes[endNodeId] = {
+          id: endNodeId,
+          perimeterId,
+          type: 'inner',
+          position: endPositions[i],
+          connectedWallIds: [wallIds[i]]
+        }
+        state.intermediateWalls[wallIds[i]] = {
+          id: wallIds[i],
+          perimeterId,
+          entityIds: [],
+          start: { nodeId, axis: 'left' },
+          end: { nodeId: endNodeId, axis: 'left' },
+          thickness: 120
+        }
+      }
+
+      state.perimeters[perimeterId].intermediateWallIds.push(...wallIds)
+      state.perimeters[perimeterId].wallNodeIds.push(nodeId, ...endNodeIds)
+
+      updateAllWallNodeGeometry(state, perimeterId)
+
+      const nodeGeometry = state._wallNodeGeometry[nodeId]
+      expect(nodeGeometry.boundary?.points).toHaveLength(6)
+    })
+
+    it('should retain irregular sector endpoints around a three-way node', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeId = createWallNodeId()
+      const endNodeIds = [createWallNodeId(), createWallNodeId(), createWallNodeId()]
+      const wallIds = [createIntermediateWallId(), createIntermediateWallId(), createIntermediateWallId()]
+      const center = newVec2(5000, 3000)
+      const angles = [180, 80, -38]
+
+      state.wallNodes[nodeId] = {
+        id: nodeId,
+        perimeterId,
+        type: 'inner',
+        position: center,
+        connectedWallIds: wallIds
+      }
+
+      for (let i = 0; i < wallIds.length; i++) {
+        const radians = (angles[i] * Math.PI) / 180
+        const endNodeId = endNodeIds[i]
+        state.wallNodes[endNodeId] = {
+          id: endNodeId,
+          perimeterId,
+          type: 'inner',
+          position: newVec2(center[0] + Math.cos(radians) * 3000, center[1] + Math.sin(radians) * 3000),
+          connectedWallIds: [wallIds[i]]
+        }
+        state.intermediateWalls[wallIds[i]] = {
+          id: wallIds[i],
+          perimeterId,
+          entityIds: [],
+          start: { nodeId, axis: 'left' },
+          end: { nodeId: endNodeId, axis: 'left' },
+          thickness: 120
+        }
+      }
+
+      state.perimeters[perimeterId].intermediateWallIds.push(...wallIds)
+      state.perimeters[perimeterId].wallNodeIds.push(nodeId, ...endNodeIds)
+
+      updateAllWallNodeGeometry(state, perimeterId)
+
+      // The raw three-sector polygon retains both endpoints and each sector
+      // intersection for the irregular junction.
+      const points = state._wallNodeGeometry[nodeId].boundary?.points ?? []
+      expect(points).toHaveLength(6)
+      expect(points).not.toContainEqual([0, 0])
+    })
+
+    it('should include the opposite corner in a perpendicular T-junction', () => {
+      const { state, perimeterData } = setupIntermediateWallsSlice()
+      const { perimeterId } = perimeterData
+      const nodeId = createWallNodeId()
+      const endNodeIds = [createWallNodeId(), createWallNodeId(), createWallNodeId()]
+      const wallIds = [createIntermediateWallId(), createIntermediateWallId(), createIntermediateWallId()]
+      const center = newVec2(5000, 3000)
+      const endPositions = [newVec2(2000, 3000), newVec2(8000, 3000), newVec2(5000, 6000)]
+
+      state.wallNodes[nodeId] = {
+        id: nodeId,
+        perimeterId,
+        type: 'inner',
+        position: center,
+        connectedWallIds: wallIds
+      }
+
+      for (let i = 0; i < wallIds.length; i++) {
+        const endNodeId = endNodeIds[i]
+        state.wallNodes[endNodeId] = {
+          id: endNodeId,
+          perimeterId,
+          type: 'inner',
+          position: endPositions[i],
+          connectedWallIds: [wallIds[i]]
+        }
+        state.intermediateWalls[wallIds[i]] = {
+          id: wallIds[i],
+          perimeterId,
+          entityIds: [],
+          start: { nodeId: i === 1 ? endNodeId : nodeId, axis: 'left' },
+          end: { nodeId: i === 1 ? nodeId : endNodeId, axis: 'left' },
+          thickness: 200
+        }
+      }
+
+      state.perimeters[perimeterId].intermediateWallIds.push(...wallIds)
+      state.perimeters[perimeterId].wallNodeIds.push(nodeId, ...endNodeIds)
+
+      updateAllWallNodeGeometry(state, perimeterId)
+
+      const points = state._wallNodeGeometry[nodeId].boundary?.points ?? []
+      expect(points).toHaveLength(4)
+      expect(points).toContainEqual(newVec2(5000, 3000))
+      expect(points).toContainEqual(newVec2(5200, 3000))
+      expect(points).toContainEqual(newVec2(5200, 3200))
+      expect(points).toContainEqual(newVec2(5000, 3200))
     })
 
     it('should compute position for perimeter wall node from offset', () => {
@@ -358,7 +540,7 @@ describe('intermediateWallGeometry', () => {
         id: nodeId,
         perimeterId,
         type: 'perimeter',
-        wallId: wallIds[0],
+        wallId: wallIds[1],
         offsetFromCornerStart: offset,
         connectedWallIds: [wallId]
       }
@@ -373,8 +555,8 @@ describe('intermediateWallGeometry', () => {
         id: wallId,
         perimeterId,
         entityIds: [],
-        start: { nodeId, axis: 'center' },
-        end: { nodeId: innerNodeId, axis: 'center' },
+        start: { nodeId, axis: 'left' },
+        end: { nodeId: innerNodeId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallId)
@@ -382,10 +564,15 @@ describe('intermediateWallGeometry', () => {
 
       updateAllWallNodeGeometry(state, perimeterId)
 
-      const nodeGeometry = state._wallNodeGeometry[nodeId]
+      const nodeGeometry = state._wallNodeGeometry[nodeId] as PerimeterWallNodeGeometry
       expect(nodeGeometry).toBeDefined()
-      expect(nodeGeometry.center[0]).toBeCloseTo(3000, 0)
-      expect(nodeGeometry.center[1]).toBeCloseTo(-210, 0)
+      expect(nodeGeometry.center[0]).toBeCloseTo(2940, 0)
+      expect(nodeGeometry.center[1]).toBeCloseTo(5210, 0)
+      expect(nodeGeometry.insideLine.start).toEqual(newVec2(2880, 5000))
+      expect(nodeGeometry.insideLine.end).toEqual(newVec2(3000, 5000))
+      expect(nodeGeometry.outsideLine.start).toEqual(newVec2(2880, 5420))
+      expect(nodeGeometry.outsideLine.end).toEqual(newVec2(3000, 5420))
+      expect(nodeGeometry.incidentWalls).toHaveLength(3)
     })
 
     it('should return early for non-existent perimeter', () => {
@@ -407,7 +594,7 @@ describe('intermediateWallGeometry', () => {
       }).not.toThrow()
     })
 
-    it('should have centerLine between leftLine and rightLine for center/center wall', () => {
+    it('should have entityReferenceLine between leftLine and rightLine for left/left wall', () => {
       const { state, perimeterData } = setupIntermediateWallsSlice()
       const { perimeterId } = perimeterData
 
@@ -433,8 +620,8 @@ describe('intermediateWallGeometry', () => {
         id: wallId,
         perimeterId,
         entityIds: [],
-        start: { nodeId: nodeAId, axis: 'center' },
-        end: { nodeId: nodeBId, axis: 'center' },
+        start: { nodeId: nodeAId, axis: 'left' },
+        end: { nodeId: nodeBId, axis: 'left' },
         thickness: 120
       }
       state.perimeters[perimeterId].intermediateWallIds.push(wallId)
@@ -447,7 +634,7 @@ describe('intermediateWallGeometry', () => {
 
       const perpDir = perpendicularCCW(geo.direction)
 
-      const centerStartPerp = dotVec2(perpDir, geo.centerLine.start)
+      const centerStartPerp = dotVec2(perpDir, geo.entityReferenceLine.start)
       const leftStartPerp = dotVec2(perpDir, geo.leftLine.start)
       const rightStartPerp = dotVec2(perpDir, geo.rightLine.start)
 
@@ -467,14 +654,14 @@ describe('intermediateWallGeometry', () => {
         120
       )
       const geometry = state._intermediateWallGeometry[wall.id]
-      const epsilon = 1e-4
+      const epsilon = 1e-3
 
       expect(geometry.leftLength).not.toBeCloseTo(geometry.rightLength, 5)
       expect(geometry.boundary.points).toHaveLength(4)
 
       for (const [center, left, right] of [
-        [geometry.centerLine.start, geometry.leftLine, geometry.rightLine],
-        [geometry.centerLine.end, geometry.leftLine, geometry.rightLine]
+        [geometry.entityReferenceLine.start, geometry.leftLine, geometry.rightLine],
+        [geometry.entityReferenceLine.end, geometry.leftLine, geometry.rightLine]
       ] as const) {
         const centerProjection = dotVec2(geometry.direction, center)
         const leftStart = dotVec2(geometry.direction, left.start)
@@ -494,8 +681,8 @@ describe('intermediateWallGeometry', () => {
 
       expect(distanceToInfiniteLine(forward.left.point, reverse.left)).toBeCloseTo(0, 5)
       expect(distanceToInfiniteLine(forward.right.point, reverse.right)).toBeCloseTo(0, 5)
-      expect(Math.abs(dotVec2(forward.left.direction, reverse.left.direction))).toBeCloseTo(1, 5)
-      expect(Math.abs(dotVec2(forward.right.direction, reverse.right.direction))).toBeCloseTo(1, 5)
+      expect(dotVec2(reverse.left.direction, subVec2(newVec2(0, 0), newVec2(6000, 0)))).toBeGreaterThan(0)
+      expect(dotVec2(reverse.right.direction, subVec2(newVec2(0, 0), newVec2(6000, 0)))).toBeGreaterThan(0)
     })
 
     it('should position wall entities from the finalized centerline', () => {
@@ -518,7 +705,7 @@ describe('intermediateWallGeometry', () => {
       const geometry = state._intermediateWallGeometry[wall.id]
       const openingGeometry = state._openingGeometry[opening.id]
       const expectedCenter = scaleAddVec2(
-        geometry.centerLine.start,
+        geometry.entityReferenceLine.start,
         geometry.direction,
         opening.centerOffsetFromWallStart
       )
@@ -535,8 +722,8 @@ describe('intermediateWallGeometry', () => {
       const nodeB = state.actions.addInnerWallNode(perimeterId, newVec2(3200, 1400))
       const wall = state.actions.addIntermediateWall(
         perimeterId,
-        { nodeId: nodeA.id, axis: 'center' },
-        { nodeId: nodeB.id, axis: 'center' },
+        { nodeId: nodeA.id, axis: 'left' },
+        { nodeId: nodeB.id, axis: 'left' },
         120
       )
       const opening = state.actions.addWallOpening(wall.id, {

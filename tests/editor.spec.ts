@@ -23,6 +23,7 @@ test('Editor page loads with correct toolbar', async ({ page }) => {
       - button "Add Opening"
       - button "Add Post"
       - button "Split Wall"
+      - button "Draw Intermediate Wall"
       - separator
       - button "Floor Opening"
       - separator

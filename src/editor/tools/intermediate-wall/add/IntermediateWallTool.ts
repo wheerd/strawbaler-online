@@ -1,4 +1,7 @@
+import { generateIntermediateWallConstraints } from '@/building/gcs/constraintGenerator'
 import {
+  type IntermediateWallId,
+  type IntermediateWallWithGeometry,
   type PerimeterId,
   type WallId,
   type WallNodeId,
@@ -15,6 +18,7 @@ import {
 } from '@/editor/canvas/services/length-input'
 import { getViewModeActions } from '@/editor/canvas/state/viewModeStore'
 import { viewportActions } from '@/editor/canvas/state/viewportStore'
+import { isWallGeometryValid } from '@/editor/tools/intermediate-wall/wallValidation'
 import { BaseTool } from '@/editor/tools/system/BaseTool'
 import type { ToolSystem } from '@/editor/tools/system/ToolSystem'
 import type { CursorStyle, EditorEvent, ToolImplementation } from '@/editor/tools/system/types'
@@ -24,6 +28,7 @@ import {
   type Vec2,
   ZERO_VEC2,
   direction,
+  eqVec2,
   lineFromSegment,
   perpendicular,
   projectVec2,
@@ -297,24 +302,75 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
       throw new Error('No perimeter found for intermediate wall')
     }
 
-    const nodes = points.map((point, index) => {
-      return index === 0 && this.state.startEntity
-        ? this.getOrCreateEntityNode(point, this.state.startEntity)
-        : index === points.length - 1 && snapEntity
-          ? this.getOrCreateEntityNode(point, snapEntity)
-          : modelActions.addInnerWallNode(perimeterId, point)
-    })
+    const sameIntermediateWallId =
+      this.state.startEntity &&
+      snapEntity &&
+      this.state.startEntity === snapEntity &&
+      isIntermediateWallId(this.state.startEntity)
+        ? this.state.startEntity
+        : undefined
 
+    let nodes: { id: WallNodeId }[]
+    if (sameIntermediateWallId) {
+      const startNode = this.getOrCreateEntityNode(points[0], sameIntermediateWallId)
+      const endNode = eqVec2(points[0], points[points.length - 1])
+        ? startNode
+        : this.getOrCreateNodeOnReplacementWall(points[points.length - 1], startNode.id)
+
+      nodes = points.map((point, index) => {
+        if (index === 0) return startNode
+        if (index === points.length - 1) return endNode
+        return modelActions.addInnerWallNode(perimeterId, point)
+      })
+    } else {
+      nodes = points.map((point, index) => {
+        if (index === 0 && this.state.startEntity) {
+          return this.getOrCreateEntityNode(point, this.state.startEntity)
+        }
+
+        if (index === points.length - 1 && snapEntity) {
+          return this.getOrCreateEntityNode(point, snapEntity)
+        }
+
+        return modelActions.addInnerWallNode(perimeterId, point)
+      })
+    }
+
+    const createdWalls: IntermediateWallWithGeometry[] = []
+    const lengthOverrides = new Map<IntermediateWallId, Length | null>()
     for (let index = 0; index < points.length - 1; index++) {
       const startNode = nodes[index]
       const endNode = nodes[index + 1]
 
-      modelActions.addIntermediateWall(
+      const wall = modelActions.addIntermediateWall(
         perimeterId,
         { nodeId: startNode.id, axis: this.state.alignment },
         { nodeId: endNode.id, axis: this.state.alignment },
         this.state.thickness
       )
+      createdWalls.push(wall)
+      lengthOverrides.set(wall.id, this.state.segmentLengthOverrides[index] ?? null)
+    }
+
+    const allIntermediateWalls = modelActions.getIntermediateWallsByPerimeter(perimeterId)
+    const finalCreatedWalls = createdWalls.map(
+      createdWall => allIntermediateWalls.find(wall => wall.id === createdWall.id) ?? createdWall
+    )
+    const constraints = generateIntermediateWallConstraints(
+      finalCreatedWalls,
+      allIntermediateWalls,
+      modelActions.getPerimeterWallsById(perimeterId),
+      modelActions.getWallNodesByPerimeter(perimeterId),
+      this.state.alignment,
+      lengthOverrides,
+      modelActions.getAllBuildingConstraints()
+    )
+    for (const constraint of constraints) {
+      try {
+        modelActions.addBuildingConstraint(constraint)
+      } catch (error) {
+        console.warn('Failed to add intermediate wall constraint', constraint, error)
+      }
     }
   }
 
@@ -341,6 +397,23 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
     }
 
     assertUnreachable(entityId, 'invalid entity id for node creation')
+  }
+
+  private getOrCreateNodeOnReplacementWall(point: Vec2, splitNodeId: WallNodeId): { id: WallNodeId } {
+    const modelActions = getModelActions()
+    const splitNode = modelActions.getWallNodeById(splitNodeId)
+    const replacementWall = splitNode.connectedWallIds
+      .map(wallId => modelActions.getIntermediateWallById(wallId))
+      .find(wall => {
+        const position = projectVec2(wall.entityReferenceLine.start, point, wall.direction)
+        return position > 0 && position < wall.wallLength
+      })
+
+    if (!replacementWall) {
+      throw new Error('Could not find replacement wall for intermediate wall endpoint')
+    }
+
+    return { id: modelActions.splitIntermediateWallAtPoint(replacementWall.id, point) }
   }
 
   getCursor(): CursorStyle {
@@ -414,14 +487,28 @@ export class IntermediateWallTool extends BaseTool implements ToolImplementation
       const snapWallIds = this.resolveEntityToWallIds(snapEntityId)
       const startWallIds = this.resolveEntityToWallIds(this.state.startEntity)
       const segmentToValidate = { start: lastPoint, end: currentPos }
-      for (const [entityId, lines] of Object.entries(this.validationLines)) {
-        if (snapWallIds.has(entityId as WallId)) continue
-        if (this.state.points.length === 1 && startWallIds.has(entityId as WallId)) continue
-        for (const line of lines) {
-          if (segmentsIntersect(segmentToValidate.start, segmentToValidate.end, line.start, line.end)) {
-            return false
-          }
-        }
+      const excludedWallIds = new Set<string>(snapWallIds)
+      if (this.state.points.length === 1) {
+        for (const wallId of startWallIds) excludedWallIds.add(wallId)
+      }
+
+      const perimeterId = this.findPerimeterContainingPoint(this.state.pointer)
+      if (!perimeterId) return false
+
+      const existingLines = Object.entries(this.validationLines).flatMap(([wallId, lines]) =>
+        lines.map(line => ({ wallId, line }))
+      )
+      const validationInput = {
+        points: [segmentToValidate.start, segmentToValidate.end],
+        segments: [segmentToValidate],
+        excludedWallIds: [...excludedWallIds]
+      }
+      const validationContext = {
+        polygon: this.validationPolygons[perimeterId],
+        lines: existingLines
+      }
+      if (!isWallGeometryValid(validationInput, validationContext)) {
+        return false
       }
 
       const previousSegments = this.state.points.slice(0, -1)

@@ -245,6 +245,7 @@
     "hardReset": "Hard Reset",
     "hexagonal": "⬡ Hexagonal Perimeter (3m sides)",
     "instructions": "Click any button above to generate test data or reset the model. Each test case creates a perimeter with realistic windows and doors to demonstrate the application features.",
+    "intermediateWalls": "▤ Intermediate Wall Relationships",
     "rectangular": "▭ Rectangular Perimeter (8×5m)",
     "resetAll": "🗑️ Reset All Data",
     "resetWarning": "⚠️ This will permanently clear all perimeters, openings, and saved work"

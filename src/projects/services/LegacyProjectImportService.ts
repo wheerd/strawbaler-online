@@ -125,6 +125,7 @@ interface ExportedConstraint {
   angle?: number
   entity?: string
   entitySide?: 'start' | 'center' | 'end'
+  nodeSide?: 'start' | 'end'
   node?: string
   entityA?: string
   entityB?: string
@@ -553,6 +554,7 @@ class LegacyProjectImportServiceImpl {
                 side,
                 entitySide,
                 node,
+                nodeSide: exportedConstraint.nodeSide ?? 'start',
                 distance
               }
               break

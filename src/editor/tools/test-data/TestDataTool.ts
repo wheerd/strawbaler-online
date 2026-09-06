@@ -6,6 +6,7 @@ import type { CursorStyle, ToolImplementation } from '@/editor/tools/system/type
 import { TestDataToolInspector } from './TestDataToolInspector'
 import { createCrossShapedPerimeter } from './generators/crossShaped'
 import { createHexagonalPerimeter } from './generators/hexagonal'
+import { createIntermediateWallTestData } from './generators/intermediateWalls'
 import { createRectangularPerimeter } from './generators/rectangular'
 
 export class TestDataTool implements ToolImplementation {
@@ -29,6 +30,11 @@ export class TestDataTool implements ToolImplementation {
 
   public createRectangularTestData(): void {
     createRectangularPerimeter()
+    this.toolSystem.popTool()
+  }
+
+  public createIntermediateWallTestData(): void {
+    createIntermediateWallTestData()
     this.toolSystem.popTool()
   }
 

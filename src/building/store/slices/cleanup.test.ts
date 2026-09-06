@@ -117,8 +117,8 @@ describe('cleanUpOrphaned', () => {
       const nodeB = store.actions.addInnerWallNode(perimeter.id, newVec2(8000, 2500))
       const wall = store.actions.addIntermediateWall(
         perimeter.id,
-        { axis: 'center', nodeId: nodeA.id },
-        { axis: 'center', nodeId: nodeB.id },
+        { axis: 'left', nodeId: nodeA.id },
+        { axis: 'left', nodeId: nodeB.id },
         120
       )
       const opening = store.actions.addWallOpening(wall.id, {
